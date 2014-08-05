@@ -562,7 +562,7 @@ public:
     }
 
     // Resets the parser related fields.
-    void ResetParser(SocketDataChunkRef sd);
+    void ResetParser(GatewayWorker *gw, SocketDataChunkRef sd);
 
     // Entry point for outer data processing.
     uint32_t HttpUriDispatcher(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled);

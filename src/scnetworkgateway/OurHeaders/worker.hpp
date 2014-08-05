@@ -161,6 +161,12 @@ class GatewayWorker
     // Overflow socket data chunks.
     LinearQueue<SocketDataChunk*, MAX_WORKER_CHUNKS> overflow_sds_;
 
+    // Worker sockets infos.
+    ScSocketInfoStruct* sockets_infos_;
+
+    // Indexes to free socket infos.
+    LinearQueue<socket_index_type, MAX_WORKER_CHUNKS> free_sockets_infos_;
+
     // Aggregation timer.
     uint64_t aggr_timer_;
 
@@ -227,12 +233,12 @@ public:
 
     // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(
-        const session_index_type aggr_socket_info_index,
+        const socket_index_type aggr_socket_info_index,
         const uint8_t* data,
         const int32_t data_len);
 
     // Tries to find current aggregation socket data from aggregation socket index.
-    SocketDataChunk* FindAggregationSdBySocketIndex(session_index_type aggr_socket_info_index);
+    SocketDataChunk* FindAggregationSdBySocketIndex(socket_index_type aggr_socket_info_index);
 
     // Returns given socket data chunk to private chunk pool.
     void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
@@ -482,7 +488,7 @@ public:
     uint32_t SendRawSocketDisconnectToDb(SocketDataChunk* sd);
 
     // Initiates receive on arbitrary socket.
-    uint32_t ReceiveOnSocket(session_index_type socket_index);
+    uint32_t ReceiveOnSocket(socket_index_type socket_index);
 
     // Running send on socket data.
     uint32_t Send(SocketDataChunkRef sd);
@@ -550,10 +556,139 @@ public:
 
     // Creates the socket data structure.
     uint32_t CreateSocketData(
-        const session_index_type socket_info_index,
+        const socket_index_type socket_info_index,
         SocketDataChunkRef out_sd,
         const int32_t data_len = GatewayChunkDataSizes[DefaultGatewayChunkSizeType]);
 
+    // Checks if port for this socket is aggregating.
+    bool IsAggregatingPort(socket_index_type socket_index);
+
+    // Checking if unique socket number is correct.
+    bool CompareUniqueSocketId(socket_index_type socket_index, random_salt_type unique_socket_id)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        bool is_equal = (sockets_infos_[socket_index].unique_socket_id_ == unique_socket_id);
+
+        return is_equal;
+    }
+
+    // Setting aggregation socket index.
+    void SetAggregationSocketIndex(socket_index_type socket_index, socket_index_type aggr_socket_info_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        sockets_infos_[socket_index].aggr_socket_info_index_ = aggr_socket_info_index;
+    }
+
+    // Getting reference to a particular socket info.
+    ScSocketInfoStruct* GetSocketInfoReference(socket_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        return sockets_infos_ + socket_index;
+    }
+
+    // Setting aggregated socket flag.
+    void SetSocketAggregatedFlag(socket_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        sockets_infos_[socket_index].set_socket_aggregated_flag();
+    }
+
+    // Disconnect proxy socket.
+    void DisconnectProxySocket(SocketDataChunk* sd)
+    {
+        socket_index_type proxy_socket_index = sd->GetProxySocketIndex();
+
+        GW_ASSERT_DEBUG(proxy_socket_index < g_gateway.setting_max_connections_per_worker());
+
+        // Checking if socket info is not reseted yet.
+        if (false == sockets_infos_[proxy_socket_index].IsReset()) {
+
+            // Setting unique socket id.
+            GenerateUniqueSocketInfoIds(proxy_socket_index);
+
+            if (false == sockets_infos_[proxy_socket_index].IsInvalidSocket()) {
+
+                // NOTE: Not checking for correctness here.
+                g_gateway.DisconnectSocket(sockets_infos_[proxy_socket_index].get_socket());
+
+                // Making socket unusable.
+                InvalidateSocket(proxy_socket_index);
+            }
+        }
+    }
+
+    // Applying session parameters to socket data.
+    bool ApplySocketInfoToSocketData(SocketDataChunkRef sd, socket_index_type socket_index, random_salt_type unique_socket_id);
+
+    // Creates new socket info.
+    void CreateNewSocketInfo(socket_index_type socket_index, port_index_type port_index, worker_id_type worker_id)
+    {
+        GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
+
+        sockets_infos_[socket_index].port_index_ = port_index;
+        sockets_infos_[socket_index].session_.gw_worker_id_ = worker_id;
+    }
+
+    // Setting new unique socket number.
+    random_salt_type GenerateUniqueSocketInfoIds(socket_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        random_salt_type unique_id = g_gateway.get_unique_socket_id();
+        GW_ASSERT(unique_id != INVALID_SESSION_SALT);
+
+        sockets_infos_[socket_index].unique_socket_id_ = unique_id;
+        sockets_infos_[socket_index].session_.scheduler_id_ = 0;
+
+#ifdef GW_SOCKET_DIAG
+        GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;
+#endif
+
+        return unique_id;
+    }
+
+    // Setting new unique socket number.
+    void InvalidateSocket(socket_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        sockets_infos_[socket_index].socket_ = INVALID_SOCKET;
+    }
+
+    // Getting unique socket number.
+    random_salt_type GetUniqueSocketId(socket_index_type socket_index)
+    {
+        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
+
+        return sockets_infos_[socket_index].unique_socket_id_;
+    }
+
+    // Gets socket info data by index.
+    ScSocketInfoStruct GetGlobalSocketInfoCopy(socket_index_type socket_index)
+    {
+        // Checking validity of linear session index other wise return a wrong copy.
+        if (INVALID_SOCKET_INDEX == socket_index)
+            return ScSocketInfoStruct();
+
+        // Fetching the session by index.
+        return sockets_infos_[socket_index];
+    }
+
+    // Collects outdated sockets if any.
+    uint32_t CollectInactiveSockets();
+
+    // Releases socket info index.
+    void ReleaseSocketIndex(socket_index_type socket_index);
+
+    // Gets free socket index.
+    socket_index_type ObtainFreeSocketIndex(
+        SOCKET s,
+        port_index_type port_index,
+        bool proxy_connect_socket);
 };
 
 } // namespace network

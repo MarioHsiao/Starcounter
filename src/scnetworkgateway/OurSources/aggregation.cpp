@@ -31,7 +31,7 @@ uint32_t PortAggregator(
     int32_t num_accum_bytes = big_accum_buf->get_accum_len_bytes(), num_processed_bytes = 0;
     AggregationStruct* ags;
 
-    session_index_type aggr_socket_info_index = sd->get_socket_info_index();
+    socket_index_type aggr_socket_info_index = sd->get_socket_info_index();
 
     while (num_processed_bytes < num_accum_bytes)
     {
@@ -66,11 +66,19 @@ uint32_t PortAggregator(
                 GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
                 // Getting new socket index.
-                ags->socket_info_index_ = g_gateway.ObtainFreeSocketIndex(gw, INVALID_SOCKET, port_index, false);
-                ags->unique_socket_id_ = g_gateway.GetUniqueSocketId(ags->socket_info_index_);
+                ags->socket_info_index_ = gw->ObtainFreeSocketIndex(INVALID_SOCKET, port_index, false);
+
+                // Checking if we can't obtain new socket index.
+                if (INVALID_SOCKET_INDEX == (ags->socket_info_index_)) {
+
+                    // NOTE: If problems obtaining free chunk index, breaking the whole aggregated receive.
+                    break;
+                }
+
+                ags->unique_socket_id_ = gw->GetUniqueSocketId(ags->socket_info_index_);
 
                 // Setting some socket options.
-                g_gateway.SetSocketAggregatedFlag(ags->socket_info_index_);
+                gw->SetSocketAggregatedFlag(ags->socket_info_index_);
 
                 // Sending data on aggregation socket.
                 err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
@@ -88,8 +96,10 @@ uint32_t PortAggregator(
                 // TODO: Research what to do on disconnect.
 
                 // Checking if socket is legitimate.
-                if (g_gateway.CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
-                    g_gateway.ReleaseSocketIndex(ags->socket_info_index_);
+                if (gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
+
+                    gw->ReleaseSocketIndex(ags->socket_info_index_);
+                    ags->socket_info_index_ = INVALID_SOCKET_INDEX;
                 }
 
                 break;
@@ -108,7 +118,7 @@ uint32_t PortAggregator(
                 }
 
                 // Checking if we have already created socket.
-                GW_ASSERT(true == g_gateway.CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_));
+                GW_ASSERT(true == gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_));
 
                 // Cloning chunk to push it to database.
                 err_code = sd->CreateSocketDataFromBigBuffer(gw, ags->socket_info_index_, ags->size_bytes_, orig_data_ptr + num_processed_bytes, &sd_push_to_db);
@@ -122,10 +132,10 @@ uint32_t PortAggregator(
                 }
 
                 // Applying special parameters to socket data.
-                g_gateway.ApplySocketInfoToSocketData(sd_push_to_db, ags->socket_info_index_, ags->unique_socket_id_);
+                gw->ApplySocketInfoToSocketData(sd_push_to_db, ags->socket_info_index_, ags->unique_socket_id_);
 
                 // Setting this aggregation socket.
-                g_gateway.SetAggregationSocketIndex(ags->socket_info_index_, sd->get_socket_info_index());
+                gw->SetAggregationSocketIndex(ags->socket_info_index_, sd->get_socket_info_index());
 
                 // Setting aggregation socket.
                 sd_push_to_db->set_unique_aggr_index(ags->unique_aggr_index_);
@@ -187,7 +197,7 @@ uint32_t GatewayWorker::SendAggregatedChunks()
 }
 
 // Tries to find current aggregation socket data from aggregation socket index.
-SocketDataChunk* GatewayWorker::FindAggregationSdBySocketIndex(session_index_type aggr_socket_info_index)
+SocketDataChunk* GatewayWorker::FindAggregationSdBySocketIndex(socket_index_type aggr_socket_info_index)
 {
     for (int32_t i = 0; i < aggr_sds_to_send_.get_num_entries(); i++)
     {
@@ -201,7 +211,7 @@ SocketDataChunk* GatewayWorker::FindAggregationSdBySocketIndex(session_index_typ
 
 // Performs a send of given socket data on aggregation socket.
 uint32_t GatewayWorker::SendOnAggregationSocket(
-    const session_index_type aggr_socket_info_index,
+    const socket_index_type aggr_socket_info_index,
     const uint8_t* data,
     const int32_t data_len)
 {
@@ -279,7 +289,7 @@ WRITE_TO_AGGR_SD:
 // Performs a send of given socket data on aggregation socket.
 uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd)
 {
-    session_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
+    socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
     SocketDataChunk* aggr_sd = FindAggregationSdBySocketIndex(aggr_socket_info_index);
     uint32_t err_code;
 

@@ -349,19 +349,6 @@ inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* s
 
     // Checking if we have session related socket.
     sd->SetGlobalSessionIfEmpty();
-
-    // Comparing with global session now.
-    // NOTE: We don't care what session the socket has.
-    /*if (!sd->CompareGlobalSessionSalt())
-    {
-#ifdef GW_SESSIONS_DIAG
-        GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
-#endif
-
-        // Resetting the session information.
-        http_request_.session_string_offset_ = 0;
-        sd->ResetSdSession();
-    }*/
 }
 
 inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
@@ -529,7 +516,7 @@ uint32_t HttpProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
@@ -684,7 +671,7 @@ HANDLER_MATCHED:
 }
 
 // Resets the parser related fields.
-void HttpProto::ResetParser(SocketDataChunkRef sd)
+void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
@@ -717,11 +704,11 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
-        ResetParser(sd);
+        ResetParser(gw, sd);
 
         // We can immediately set the request offset.
         http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
@@ -929,7 +916,7 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
         // Handled successfully.
@@ -1000,7 +987,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 
         // Finished receiving from proxied server,
         // now sending to the original user.
-        sd->ExchangeToProxySocket();
+        sd->ExchangeToProxySocket(gw);
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareToSendOnProxy();

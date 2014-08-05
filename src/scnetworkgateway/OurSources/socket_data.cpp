@@ -13,16 +13,14 @@ namespace network {
 
 // Initialization.
 void SocketDataChunk::Init(
-    session_index_type socket_info_index,
-    worker_id_type bound_worker_id)
+    GatewayWorker* gw,
+    socket_index_type socket_info_index)
 {
     flags_ = 0;
 
-    socket_info_index_ = INVALID_SESSION_INDEX;
-
     ResetUserDataOffset();
 
-    socket_info_index_ = socket_info_index;
+    set_socket_info_index(gw, socket_info_index);
     
     session_.Reset();
 
@@ -33,19 +31,109 @@ void SocketDataChunk::Init(
     set_type_of_network_oper(UNKNOWN_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
-    set_unique_socket_id(g_gateway.GetUniqueSocketId(socket_info_index));
-    set_bound_worker_id(bound_worker_id);
+    set_unique_socket_id(gw->GetUniqueSocketId(socket_info_index));
+    set_bound_worker_id(gw->get_worker_id());
 
     // Initializing HTTP/WEBSOCKETS data structures.
     get_http_proto()->Init();
     get_ws_proto()->Init();
 }
 
-// Releases socket info index.
-void SocketDataChunk::ReleaseSocketIndex(GatewayWorker* gw)
+// Setting new unique socket number.
+void SocketDataChunk::GenerateUniqueSocketInfoIds(GatewayWorker* gw)
 {
-    g_gateway.ReleaseSocketIndex(socket_info_index_);
-    socket_info_index_ = INVALID_SESSION_INDEX;
+    unique_socket_id_ = gw->GenerateUniqueSocketInfoIds(socket_info_index_);
+}
+
+// Start receiving on socket.
+uint32_t SocketDataChunk::Receive(GatewayWorker *gw, uint32_t *num_bytes)
+{
+    // Checking correct unique socket.
+    GW_ASSERT(true == CompareUniqueSocketId());
+
+    set_type_of_network_oper(RECEIVE_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    DWORD flags = 0;
+    return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+}
+
+// Start sending on socket.
+uint32_t SocketDataChunk::Send(GatewayWorker* gw, uint32_t *numBytes)
+{
+    // Checking correct unique socket.
+    GW_ASSERT(true == CompareUniqueSocketId());
+
+    GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
+
+    set_type_of_network_oper(SEND_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+}
+
+// Start accepting on socket.
+uint32_t SocketDataChunk::Accept(GatewayWorker* gw)
+{
+    // Checking correct unique socket.
+    GW_ASSERT(true == CompareUniqueSocketId());
+
+    set_type_of_network_oper(ACCEPT_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    // Running Windows API AcceptEx function.
+    return AcceptExFunc(
+        g_gateway.get_server_port(GetPortIndex())->get_listening_sock(),
+        GetSocket(),
+        accept_or_params_or_temp_data_,
+        0,
+        SOCKADDR_SIZE_EXT,
+        SOCKADDR_SIZE_EXT,
+        NULL,
+        &ovl_);
+}
+
+// Setting SO_UPDATE_ACCEPT_CONTEXT.
+uint32_t SocketDataChunk::SetAcceptSocketOptions(GatewayWorker* gw)
+{
+    SOCKET listening_sock = g_gateway.get_server_port(GetPortIndex())->get_listening_sock();
+
+    if (setsockopt(GetSocket(), SOL_SOCKET, SO_UPDATE_ACCEPT_CONTEXT, (char *)&listening_sock, sizeof(listening_sock))) {
+        uint32_t err_code = WSAGetLastError();
+
+        return err_code;
+    }
+
+    return 0;
+}
+
+// Start connecting on socket.
+uint32_t SocketDataChunk::Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
+{
+    // Checking correct unique socket.
+    GW_ASSERT(true == CompareUniqueSocketId());
+
+    set_type_of_network_oper(CONNECT_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    return ConnectExFunc(GetSocket(), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
+}
+
+// Start disconnecting socket.
+uint32_t SocketDataChunk::Disconnect(GatewayWorker *gw)
+{
+    // Checking correct unique socket.
+    GW_ASSERT(true == CompareUniqueSocketId());
+
+    set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
 }
 
 // Resetting socket.
@@ -54,9 +142,7 @@ void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
     // Checking if there is a proxy socket.
     if (HasProxySocket()) {
 
-        session_index_type proxy_socket_index = GetProxySocketIndex();
-
-        g_gateway.DisconnectProxySocket(proxy_socket_index);
+        gw->DisconnectProxySocket(this);
     }
 
     set_to_database_direction_flag();
@@ -71,7 +157,9 @@ void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
     session_.Reset();
 
     // Releasing socket index.
-    ReleaseSocketIndex(gw);
+    gw->ReleaseSocketIndex(socket_info_index_);
+    socket_info_index_ = INVALID_SOCKET_INDEX;
+    socket_info_ = NULL;
 
     // Resetting HTTP/WS stuff.
     get_http_proto()->Reset();
@@ -79,6 +167,45 @@ void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
 
     flags_ = 0;
     ResetAccumBuffer();
+}
+
+// Exchanges sockets during proxying.
+void SocketDataChunk::ExchangeToProxySocket(GatewayWorker* gw)
+{
+    socket_index_type proxy_socket_info_index = GetProxySocketIndex();
+
+    // Getting corresponding proxy socket id.
+    random_salt_type proxy_unique_socket_id = gw->GetUniqueSocketId(proxy_socket_info_index);
+
+#ifdef GW_SOCKET_DIAG
+    GW_COUT << "Exchanging sockets: " << socket_info_index_ << "<->" << proxy_socket_info_index << " and ids " <<
+        unique_socket_id_ << "<->" << proxy_unique_socket_id << GW_ENDL;
+#endif
+
+    set_socket_info_index(gw, proxy_socket_info_index);
+
+    unique_socket_id_ = proxy_unique_socket_id;
+}
+
+// Initializes socket data that comes from database.
+void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
+{
+    type_of_network_protocol_ = GetTypeOfNetworkProtocol();
+
+    // NOTE: Setting global session including scheduler id.
+    SetGlobalSessionCopy(session_);
+
+    // Checking if WebSocket handshake was approved.
+    if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) &&
+        get_ws_upgrade_approved_flag())
+    {
+        SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
+    }
+}
+
+void SocketDataChunk::set_socket_info_reference(GatewayWorker* gw)
+{
+    socket_info_ = gw->GetSocketInfoReference(socket_info_index_);
 }
 
 // Clones existing socket data chunk for receiving.
@@ -102,12 +229,13 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
     sd_clone->session_ = session_;
 
     sd_clone->set_to_database_direction_flag();
-    sd_clone->SetTypeOfNetworkProtocol(get_type_of_network_protocol());
     sd_clone->set_unique_socket_id(unique_socket_id_);
-    sd_clone->set_socket_info_index(socket_info_index_);
+    sd_clone->set_socket_info_index(gw, socket_info_index_);
     sd_clone->set_client_ip_info(client_ip_info_);
     sd_clone->set_type_of_network_oper(SocketOperType::RECEIVE_SOCKET_OPER);
 
+    sd_clone->SetTypeOfNetworkProtocol(get_type_of_network_protocol());
+    
     // This socket becomes attached.
     sd_clone->set_socket_representer_flag();
 
@@ -125,7 +253,7 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 // Clone current socket data to simply send it.
 uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
     GatewayWorker*gw,
-    session_index_type socket_info_index,
+    socket_index_type socket_info_index,
     int32_t data_len,
     uint8_t* data,
     SocketDataChunk** new_sd)
@@ -153,7 +281,7 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
 }
 
 // Binds current socket to some scheduler.
-void SocketDataChunk::BindSocketToScheduler(WorkerDbInterface *db) {
+void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface *db) {
 
     // Checking if we need to create scheduler id for certain protocols.
     switch (get_type_of_network_protocol()) {
@@ -178,7 +306,7 @@ void SocketDataChunk::BindSocketToScheduler(WorkerDbInterface *db) {
 }
 
 // Resets session depending on protocol.
-void SocketDataChunk::ResetSessionBasedOnProtocol()
+void SocketDataChunk::ResetSessionBasedOnProtocol(GatewayWorker* gw)
 {
     // Processing session according to protocol.
     switch (get_type_of_network_protocol())
@@ -189,7 +317,7 @@ void SocketDataChunk::ResetSessionBasedOnProtocol()
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT:
-            SetSdSessionFromGlobal();
+            session_ = GetGlobalSessionCopy();
             break;
 
         default:

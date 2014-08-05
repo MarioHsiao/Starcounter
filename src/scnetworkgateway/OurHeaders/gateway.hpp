@@ -51,6 +51,7 @@ namespace network {
 typedef uint32_t channel_chunk;
 typedef int64_t random_salt_type;
 typedef uint32_t session_index_type;
+typedef int32_t socket_index_type;
 typedef uint8_t scheduler_id_type;
 typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
@@ -118,9 +119,6 @@ enum GatewayErrorCodes
     SCERRGWCONNECTEXFAILED,
     SCERRGWOPERATIONONWRONGSOCKET,
     SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING,
-    SCERRGWTESTTIMEOUT,
-    SCERRGWTESTFAILED,
-    SCERRGWTESTFINISHED,
     SCERRGWFAILEDTOBINDPORT,
     SCERRGWFAILEDTOATTACHSOCKETTOIOCP,
     SCERRGWFAILEDTOLISTENONSOCKET,
@@ -130,7 +128,8 @@ enum GatewayErrorCodes
     SCERRGWMAXDATASIZEREACHED,
     SCERRGWWEBSOCKET,
     SCERRGWWEBSOCKETWRONGHANDSHAKEDATA,
-    SCERRGWNULLCODEHOST
+    SCERRGWNULLCODEHOST,
+    SCERRGWCANTOBTAINFREESOCKETINDEX
 };
 
 // Maximum number of ports the gateway operates with.
@@ -182,7 +181,7 @@ const port_index_type INVALID_PORT_INDEX = -1;
 const int32_t INVALID_INDEX = -1;
 
 // Invalid socket index.
-const session_index_type INVALID_SOCKET_INDEX = ~0;
+const socket_index_type INVALID_SOCKET_INDEX = -1;
 
 // Bad port number.
 const int32_t INVALID_PORT_NUMBER = 0;
@@ -198,9 +197,6 @@ const core::chunk_index INVALID_CHUNK_INDEX = MixedCodeConstants::INVALID_CHUNK_
 
 // Bad linear session index.
 const session_index_type INVALID_SESSION_INDEX = ~0;
-
-// Bad view model index.
-const session_index_type INVALID_VIEW_MODEL_INDEX = ~0;
 
 // Bad scheduler index.
 const scheduler_id_type INVALID_SCHEDULER_ID = 255;
@@ -330,7 +326,7 @@ struct AggregationStruct
 {
     random_salt_type unique_socket_id_;
     int32_t size_bytes_;
-    session_index_type socket_info_index_;
+    socket_index_type socket_info_index_;
     int32_t unique_aggr_index_;
     uint16_t port_number_;
 };
@@ -967,9 +963,6 @@ enum SOCKET_FLAGS
 // Structure that facilitates the socket.
 _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 {
-    // NOTE: Lock-free SLIST_ENTRY should be the first field!
-    SLIST_ENTRY free_socket_indexes_entry_;
-
     // Main session structure attached to this socket.
     ScSessionStruct session_;
 
@@ -991,13 +984,13 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     //////////////////////////////
 
     // Proxy socket identifier.
-    session_index_type proxy_socket_info_index_;
+    socket_index_type proxy_socket_info_index_;
 
     // This socket info index.
-    session_index_type read_only_index_;
+    socket_index_type read_only_index_;
 
     // Aggregation socket index.
-    session_index_type aggr_socket_info_index_;
+    socket_index_type aggr_socket_info_index_;
 
     // Number of bytes left for accumulation.
     uint32_t accum_data_bytes_left_;
@@ -1024,9 +1017,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
-
-    // Avoiding false sharing between workers.
-    uint8_t pad[CACHE_LINE_SIZE];
 
     bool get_socket_aggregated_flag()
     {
@@ -1079,8 +1069,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         type_of_network_protocol_ = MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1;
         flags_ = 0;
         dest_db_index_ = INVALID_DB_INDEX;
-        proxy_socket_info_index_ = INVALID_SESSION_INDEX;
-        aggr_socket_info_index_ = INVALID_SESSION_INDEX;
+        proxy_socket_info_index_ = INVALID_SOCKET_INDEX;
+        aggr_socket_info_index_ = INVALID_SOCKET_INDEX;
         ws_channel_id_ = MixedCodeConstants::INVALID_WS_CHANNEL_ID;
     }
 
@@ -1533,8 +1523,8 @@ class Gateway
     // SETTINGS
     ////////////////////////
 
-    // Maximum total number of sockets aka connections.
-    uint32_t setting_max_connections_;
+    // Maximum total number of sockets aka connections per worker.
+    socket_index_type setting_max_connections_per_worker_;
 
     // Maximum receive content length size in bytes.
     uint32_t setting_maximum_receive_content_length_;
@@ -1629,12 +1619,6 @@ class Gateway
     // SOCKETS INFOS
     ////////////////////////
 
-    // All sockets information.
-    ScSocketInfoStruct* all_sockets_infos_unsafe_;
-
-    // Free socket indexes.
-    PSLIST_HEADER free_socket_indexes_unsafe_;
-
     // Global timer to keep track on old connections.
     volatile socket_timestamp_type global_timer_unsafe_;
 
@@ -1704,6 +1688,15 @@ class Gateway
 
 public:
 
+    int32_t setting_inactive_socket_timeout_seconds() {
+       return setting_inactive_socket_timeout_seconds_;
+    }
+
+    socket_timestamp_type get_global_timer_unsafe()
+    {
+        return global_timer_unsafe_;
+    }
+
     bool get_db_starting() {
         return db_starting_;
     }
@@ -1730,16 +1723,6 @@ public:
     {
         return setting_aggregation_port_;
     }
-
-    // Gets free socket index.
-    session_index_type ObtainFreeSocketIndex(
-        GatewayWorker* gw,
-        SOCKET s,
-        port_index_type port_index,
-        bool proxy_connect_socket);
-
-    // Releases used socket index.
-    void ReleaseSocketIndex(session_index_type index);
 
     // Checks if IP is on white list.
     bool CheckIpForWhiteList(ip_info_type ip)
@@ -1801,254 +1784,7 @@ public:
         return codegen_uri_matcher_;
     }
 
-    // Checks if port for this socket is aggregating.
-    bool IsAggregatingPort(session_index_type socket_index)
-    {
-        return server_ports_[all_sockets_infos_unsafe_[socket_index].port_index_].get_aggregating_flag();
-    }
-
-    // Checking if unique socket number is correct.
-    bool CompareUniqueSocketId(session_index_type socket_index, random_salt_type unique_socket_id)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return (all_sockets_infos_unsafe_[socket_index].unique_socket_id_ == unique_socket_id);
-    }
-
-    // Get type of network protocol for this socket.
-    MixedCodeConstants::NetworkProtocolType GetTypeOfNetworkProtocol(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return (MixedCodeConstants::NetworkProtocolType) all_sockets_infos_unsafe_[socket_index].type_of_network_protocol_;
-    }
-
-    // Getting destination database index.
-    db_index_type GetDestDbIndex(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].dest_db_index_;
-    }
-
-    // Setting destination database index.
-    void SetDestDbIndex(session_index_type socket_index, db_index_type db_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].dest_db_index_ = db_index;
-    }
-
-    // Getting socket id.
-    port_index_type GetPortIndex(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].port_index_;
-    }
-
-    // Getting worker id.
-    worker_id_type GetBoundWorkerId(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_;
-    }
-
-    // Getting scheduler id.
-    scheduler_id_type GetSchedulerId(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_;
-    }
-
-    // Set scheduler id.
-    void SetSchedulerId(session_index_type socket_index, scheduler_id_type sched_id)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = sched_id;
-    }
-
-    // Getting socket index.
-    SOCKET GetSocket(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].socket_;
-    }
-
-    // Checks for proxy socket.
-    bool HasProxySocket(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return INVALID_SESSION_INDEX != all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
-    }
-
-    // Checks for proxy connect socket flag.
-    bool IsProxyConnectSocket(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].get_socket_proxy_connect_flag();
-    }
-
-    uint32_t GetWebSocketChannelId(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].ws_channel_id_;
-    }
-
-    void SetWebSocketChannelId(session_index_type socket_index, ws_channel_id_type ws_channel_id)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].ws_channel_id_ = ws_channel_id;
-    }
-
-    // Getting aggregation socket index.
-    session_index_type GetAggregationSocketIndex(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].aggr_socket_info_index_;
-    }
-
-    // Setting aggregation socket index.
-    void SetAggregationSocketIndex(session_index_type socket_index, session_index_type aggr_socket_info_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].aggr_socket_info_index_ = aggr_socket_info_index;
-    }
-
-    // Getting aggregated socket flag.
-    bool GetSocketAggregatedFlag(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].get_socket_aggregated_flag();
-    }
-
-    // Setting aggregated socket flag.
-    void SetSocketAggregatedFlag(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].set_socket_aggregated_flag();
-    }
-
-    // Disconnect proxy socket.
-    void DisconnectProxySocket(session_index_type proxy_socket_index)
-    {
-        GW_ASSERT_DEBUG(proxy_socket_index < setting_max_connections_);
-
-        // Checking if socket info is not reseted yet.
-        if (false == all_sockets_infos_unsafe_[proxy_socket_index].IsReset()) {
-
-            // Setting unique socket id.
-            GenerateUniqueSocketInfoIds(proxy_socket_index);
-
-            if (false == all_sockets_infos_unsafe_[proxy_socket_index].IsInvalidSocket()) {
-
-                // NOTE: Not checking for correctness here.
-                DisconnectSocket(all_sockets_infos_unsafe_[proxy_socket_index].get_socket());
-
-                // Making socket unusable.
-                InvalidateSocket(proxy_socket_index);
-            }
-        }
-    }
-
-    session_index_type GetProxySocketIndex(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_;
-    }
-
-    void SetProxySocketIndex(session_index_type socket_index, session_index_type proxy_socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].proxy_socket_info_index_ = proxy_socket_index;
-    }
-
-    session_index_type GetAccumulatedBytesLeft(session_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        return all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_;
-    }
-
-    void SetAccumulatedBytesLeft(session_index_type socket_index, uint32_t num_bytes)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_ = num_bytes;
-    }
-
-    void DecrementAccumulatedBytesLeft(session_index_type socket_index, uint32_t decr_bytes)
-    {
-        GW_ASSERT_DEBUG(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].accum_data_bytes_left_ -= decr_bytes;
-    }
-
-    // Applying session parameters to socket data.
-    bool ApplySocketInfoToSocketData(SocketDataChunkRef sd, session_index_type socket_index, random_salt_type unique_socket_id);
-
-    // Creates new socket info.
-    void CreateNewSocketInfo(session_index_type socket_index, port_index_type port_index, worker_id_type worker_id)
-    {
-        GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
-
-        all_sockets_infos_unsafe_[socket_index].port_index_ = port_index;
-        all_sockets_infos_unsafe_[socket_index].session_.gw_worker_id_ = worker_id;
-    }
-
-    // Setting new unique socket number.
-    random_salt_type GenerateUniqueSocketInfoIds(session_index_type socket_index)
-    {
-        GW_ASSERT(socket_index < setting_max_connections_);
-
-        random_salt_type unique_id = get_unique_socket_id();
-        GW_ASSERT(unique_id != INVALID_SESSION_SALT);
-
-        all_sockets_infos_unsafe_[socket_index].unique_socket_id_ = unique_id;
-        all_sockets_infos_unsafe_[socket_index].session_.scheduler_id_ = 0;
-
-#ifdef GW_SOCKET_DIAG
-        GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;
-#endif
-
-        return unique_id;
-    }
-
-    // Setting new unique socket number.
-    void InvalidateSocket(session_index_type socket_index)
-    {
-        GW_ASSERT(socket_index < setting_max_connections_);
-
-        all_sockets_infos_unsafe_[socket_index].socket_ = INVALID_SOCKET;
-    }
-
-    // Invalidating socket number.
-    bool IsInvalidSocket(session_index_type socket_index) {
-        GW_ASSERT(socket_index < setting_max_connections_);
-
-        return (INVALID_SOCKET == all_sockets_infos_unsafe_[socket_index].socket_);
-    }
-
-    // Getting unique socket number.
-    random_salt_type GetUniqueSocketId(session_index_type socket_index)
-    {
-        return all_sockets_infos_unsafe_[socket_index].unique_socket_id_;
-    }
-
+    
     // Unique linear socket id.
     random_salt_type get_unique_socket_id()
     {
@@ -2172,23 +1908,7 @@ public:
         return num_processed_http_requests_unsafe_;
     }
 
-    // Collects outdated sockets if any.
-    uint32_t CollectInactiveSockets(int32_t worker_id);
-
     void DisconnectSocket(SOCKET s);
-
-    // Updates current global timer value on given socket.
-    void UpdateSocketTimeStamp(session_index_type index)
-    {
-        all_sockets_infos_unsafe_[index].socket_timestamp_ = global_timer_unsafe_;
-    }
-
-    // Sets connection type on given socket.
-    void SetTypeOfNetworkProtocol(session_index_type index,
-        MixedCodeConstants::NetworkProtocolType proto_type)
-    {
-        all_sockets_infos_unsafe_[index].type_of_network_protocol_ = proto_type;
-    }
 
     // Steps global timer value.
     void step_global_timer_unsafe(int32_t value)
@@ -2243,10 +1963,10 @@ public:
         return setting_sc_server_type_upper_;
     }
 
-    // Getting maximum number of connections.
-    uint32_t setting_max_connections()
+    // Getting maximum number of connections per worker.
+    socket_index_type setting_max_connections_per_worker()
     {
-        return setting_max_connections_;
+        return setting_max_connections_per_worker_;
     }
 
     // Getting specific worker information.
@@ -2524,69 +2244,6 @@ public:
     void LogWriteWarning(const wchar_t* msg);
     void LogWriteNotice(const wchar_t* msg);
     void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
-
-    // Checks if global session data is active.
-    bool IsGlobalSessionActive(session_index_type index)
-    {
-        return all_sockets_infos_unsafe_[index].session_.IsActive();
-    }
-
-    // Checks if global session data is active.
-    bool CompareGlobalSessionSalt(
-        session_index_type index,
-        random_salt_type random_salt)
-    {
-        return all_sockets_infos_unsafe_[index].session_.CompareSalts(random_salt);
-    }
-
-    // Gets session data by index.
-    ScSessionStruct GetGlobalSessionCopy(session_index_type index)
-    {
-        // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == index)
-            return ScSessionStruct();
-
-        // Fetching the session by index.
-        return all_sockets_infos_unsafe_[index].session_;
-    }
-
-    // Gets socket info data by index.
-    ScSocketInfoStruct GetGlobalSocketInfoCopy(session_index_type socket_index)
-    {
-        // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == socket_index)
-            return ScSocketInfoStruct();
-
-        // Fetching the session by index.
-        return all_sockets_infos_unsafe_[socket_index];
-    }
-
-    // Gets session data by index.
-    void SetGlobalSessionCopy(
-        session_index_type index,
-        ScSessionStruct session_copy)
-    {
-        // Fetching the session by index.
-        all_sockets_infos_unsafe_[index].session_ = session_copy;
-    }
-
-    // Gets session data by index.
-    void DeleteGlobalSession(session_index_type index)
-    {
-        // Fetching the session by index.
-        all_sockets_infos_unsafe_[index].session_.Reset();
-    }
-
-    // Gets scheduler id for specific session.
-    scheduler_id_type GetGlobalSessionSchedulerId(session_index_type index)
-    {
-        // Checking validity of linear session index other wise return a wrong copy.
-        if (INVALID_SESSION_INDEX == index)
-            return INVALID_SCHEDULER_ID;
-
-        // Fetching the session by index.
-        return all_sockets_infos_unsafe_[index].session_.scheduler_id_;
-    }
 };
 
 // Globally accessed gateway object.
