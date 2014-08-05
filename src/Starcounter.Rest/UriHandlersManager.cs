@@ -179,12 +179,12 @@ namespace Starcounter.Rest
         /// <param name="rawParamsInfo">Raw parameters info.</param>
         /// <returns>Response or merged response.</returns>
         public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo, UriHandlersManager uhm) {
+            List<Response> responses;
 
             Debug.Assert(userDelegates_ != null);
 
             // Checking if there is only one delegate or merge function is not defined.
-            if ((UriInjectMethods.ResponsesMergerRoutine_ == null) ||
-                (userDelegates_.Count == 1)) {
+            if (userDelegates_.Count == 1) {
 
                 // Setting current application name.
                 StarcounterEnvironment.AppName = appNames_[0];
@@ -198,12 +198,21 @@ namespace Starcounter.Rest
 
                     // Check if response should be added to cache.
                     TryAddResponseToCache(req, resp);
+
+                    // Setting to which application the response belongs.
+                    resp.AppName = appNames_[0];
+                }
+
+                if (UriInjectMethods.ResponsesMergerRoutine_ != null) {
+                    responses = new List<Response>();
+                    responses.Add(resp);
+                    return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
                 }
 
                 return resp;
             }
-            
-            List<Response> responses = new List<Response>();
+
+            responses = new List<Response>();
 
             // Running every delegate from the list.
             for (int i = 0; i < userDelegates_.Count; i++) {
@@ -234,16 +243,10 @@ namespace Starcounter.Rest
             }
 
             // Checking if we have a response merging function defined.
-            if (responses.Count > 1) {
-                Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
+            Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
 
-                // Creating merged response.
-                return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
-
-            } else {
-
-                return responses[0];
-            }
+            // Creating merged response.
+            return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
         }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();

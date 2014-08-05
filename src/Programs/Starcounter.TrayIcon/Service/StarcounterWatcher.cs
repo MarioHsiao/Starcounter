@@ -373,6 +373,9 @@ namespace Starcounter.Tools.Service {
             Dictionary<string, IList<int>> executablesStats;
             ScApplicationsEventArgs executablesArgs = e.Argument as ScApplicationsEventArgs;
 
+            int retryCnt = 0;
+            retry:
+
             // Get Gateway stats for all running executables
             NetworkTask.Execute(this, out executablesStats);
 
@@ -384,6 +387,16 @@ namespace Starcounter.Tools.Service {
                     item.Ports = executablesStats[item.Name];
                 }
                 else {
+
+                    // Retry getting port number.
+                    // Sometimes when detecting that there is a new application running the
+                    // gateway stats has not yet been updated, lets wait a moment and retry.
+                    // collection port numbers for running applications
+                    if (retryCnt < 3) {
+                        retryCnt++;
+                        Thread.Sleep(500);
+                        goto retry;
+                    }
                     item.Ports = new List<int>();
                 }
             }
