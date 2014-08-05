@@ -59,10 +59,7 @@ namespace Starcounter.Advanced.XSON {
             Json childObj;
             Template tProperty;
 
-            addAppName = (obj._stepParent == null
-                                  && obj._appName != null
-                                  && Session.Current != null
-                                  && Session.Current.CheckOption(SessionOptions.IncludeAppName));
+            addAppName = (obj._stepParent == null && obj._appName != null);
 
             if (addAppName) {
 //                Debugger.Launch();
@@ -188,10 +185,7 @@ namespace Starcounter.Advanced.XSON {
                     *pfrag++ = (byte)'{';
                     offset++;
 
-                    addAppName = (obj._stepParent == null 
-                                  && obj._appName != null 
-                                  && Session.Current != null 
-                                  && Session.Current.CheckOption(SessionOptions.IncludeAppName));
+                    addAppName = (obj._stepParent == null && obj._appName != null);
 
                     if (addAppName) {
                         htmlUriMerged = "/polyjuice-merger?" + obj._appName + "=" + obj.GetHtmlPartialUrl();
