@@ -570,7 +570,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             } else if (tv is TString) {
                 value = ((TString)tv).DefaultValue;
                 if (value == null) value = "null";
-                else value = '"' + value + '"';
+                else value = '"' + EscapeStringValue(value) + '"';
             } else if (tv is TOid) {
                 value = ((TOid)tv).DefaultValue + "UL";
             }
@@ -578,6 +578,25 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (value != null) {
                 a.Prefix.Add("        " + mn.MemberName + ".DefaultValue = " + value + ";");
             }
+        }
+
+        private string EscapeStringValue(string input) {
+            string result = input;
+
+            // Really slow way of escaping the value so we can write it in generated code,
+            // but the code where this is called should not be performance critical
+            result = result.Replace("\\", @"\\");    // This needs to be done first!
+            result = result.Replace("\"", @"\""");
+            result = result.Replace("\a", @"\a");
+            result = result.Replace("\b", @"\b");
+            result = result.Replace("\f", @"\f");
+            result = result.Replace("\n", @"\n");
+            result = result.Replace("\r", @"\r");
+            result = result.Replace("\t", @"\t");
+            result = result.Replace("\v", @"\v");
+            result = result.Replace("\0", @"\0");
+
+            return result;
         }
 
         private void WriteSchemaOverrides(AstSchemaClass node) {
