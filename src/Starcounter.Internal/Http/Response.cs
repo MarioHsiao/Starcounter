@@ -754,6 +754,7 @@ namespace Starcounter
 
 					writer.Write(HttpHeadersUtf8.ServerSc);
 
+                    Boolean addSetCookie = true;
                     Boolean cacheControl = false;
                     if (null != customHeaderFields_) {
 
@@ -761,6 +762,8 @@ namespace Starcounter
 
                             if (h.Key == HttpHeadersUtf8.CacheControlHeader)
                                 cacheControl = true;
+                            else if (h.Key == HttpHeadersUtf8.SetCookieHeader)
+                                addSetCookie = false;
 
                             writer.Write(h.Key);
                             writer.Write(": ");
@@ -773,7 +776,7 @@ namespace Starcounter
                         writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
                     // Checking if session is defined.
-                    if ((null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
+                    if (addSetCookie && (null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
                         if (AppsSession.use_session_cookie_) {
                             writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
                             writer.Write(AppsSession.ToAsciiString());
