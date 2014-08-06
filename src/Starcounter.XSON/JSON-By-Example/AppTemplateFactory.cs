@@ -396,7 +396,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                   DebugInfo debugInfo)
         {
             OTT appTemplate;
-            Template newTemplate;
+            TString newTemplate;
 
             if (parent is MetaTemplate)
             {
@@ -408,7 +408,9 @@ namespace Starcounter.Internal.JsonTemplate
                 newTemplate = new TString() { TemplateName = name };
                 appTemplate = (OTT)parent;
 
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = (TString)CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate.DefaultValue = value;
+
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -430,13 +432,14 @@ namespace Starcounter.Internal.JsonTemplate
                                                    DebugInfo debugInfo)
         {
             OTT appTemplate;
-            Template newTemplate;
+            TLong newTemplate;
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TLong() { TemplateName = name };
                 appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = (TLong)CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate.DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -459,13 +462,14 @@ namespace Starcounter.Internal.JsonTemplate
                                                    DebugInfo debugInfo)
         {
             OTT appTemplate;
-            Template newTemplate;
+            TDecimal newTemplate;
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TDecimal() { TemplateName = name };
                 appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = (TDecimal)CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate.DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -488,13 +492,14 @@ namespace Starcounter.Internal.JsonTemplate
                                                   DebugInfo debugInfo)
         {
             OTT appTemplate;
-            Template newTemplate;
+            TDouble newTemplate;
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TDouble() { TemplateName = name };
                 appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = (TDouble)CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate.DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -517,7 +522,7 @@ namespace Starcounter.Internal.JsonTemplate
                                                    DebugInfo debugInfo)
         {
             OTT appTemplate;
-            Template newTemplate;
+            TBool newTemplate;
 
             if (parent is MetaTemplate<OT,OTT>)
             {
@@ -528,7 +533,8 @@ namespace Starcounter.Internal.JsonTemplate
             {
                 newTemplate = new TBool() { TemplateName = name };
                 appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = (TBool)CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate.DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
