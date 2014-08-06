@@ -11,6 +11,10 @@ namespace PickFileDialog {
     /// </summary>
     public partial class App : Application {
 
+        /// <summary>
+        /// Let the user pick a file and writes the picked file to console
+        /// External programs may use this to retrive a selected file
+        /// </summary>
         public App() {
 
             string[] args = Environment.GetCommandLineArgs();
@@ -55,7 +59,7 @@ namespace PickFileDialog {
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static string EscapeStringValue(string value) {
+        private static string EscapeStringValue(string value) {
             const char BACK_SLASH = '\\';
             const char SLASH = '/';
             const char DBL_QUOTE = '"';
