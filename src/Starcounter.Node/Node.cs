@@ -936,10 +936,10 @@ namespace Starcounter
             Response resp = null;
 
             // Checking if we are on local node.
-            if ((localNode_) && (!ho.ExternalOnly)) {
+            if ((localNode_) && (!ho.CallExternalOnly)) {
 
                 Int32 handlerLevel = 0;
-                if (ho.IsSpecificHandler)
+                if (ho.IsSpecificHandlerLevel)
                     handlerLevel = ho.HandlerLevel;
 
                 // Going through all handlers in the list.
@@ -971,7 +971,7 @@ namespace Starcounter
                     }
             
                     // Checking if we have a special handler.
-                    if (ho.IsSpecificHandler)
+                    if (ho.IsSpecificHandlerLevel)
                         return resp;
                     else
                         handlerLevel++;
