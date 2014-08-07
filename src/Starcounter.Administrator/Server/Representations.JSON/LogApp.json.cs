@@ -34,10 +34,10 @@ namespace Starcounter.Administrator.Server {
 
             this.LogEntries.Clear(); // Clearlist
 
-            int limit = 30;   // Limith the result
+            //int limit = 30;   // Limith the result
 
             var lr = new LogReader();
-            var i = 0;
+            //var i = 0;
             lr.Open(directoryPath, ReadDirection.Reverse, (64 * 1024));
             for (; ; ) {
                 var le = lr.Next();
@@ -72,7 +72,7 @@ namespace Starcounter.Administrator.Server {
                 }
 
 
-                if (++i > limit) break;
+                //if (++i > limit) break;
 
                 LogEntries.Add(
                     new LogEntriesElementJson() {
