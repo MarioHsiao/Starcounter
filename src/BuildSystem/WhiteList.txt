@@ -28,6 +28,7 @@ scadmin\Administrator.exe
 scadmin\Administrator.pdb
 scadmin\index.html
 scadmin\Starcounter.MsBuild.targets
+scadmin\PickFileDialog.exe
 
 # Other files
 behemoth.dll

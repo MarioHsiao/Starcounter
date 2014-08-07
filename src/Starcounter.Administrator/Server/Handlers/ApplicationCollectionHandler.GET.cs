@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using Starcounter.Administrator.Server.Utilities;
 using System.Windows.Forms;
 using System.Text;
+using System.Reflection;
+using System.ComponentModel;
 
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
@@ -103,46 +105,45 @@ namespace Starcounter.Administrator.Server.Handlers {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden };
                 }
 
-                OpenFileDialog openFileDialog = new OpenFileDialog();
+                string selectedFiles;
 
-                openFileDialog.Filter = "Application files (*.exe)|*.exe|All files (*.*)|*.*";
-                openFileDialog.FilterIndex = 1;
-                openFileDialog.RestoreDirectory = true;
-                openFileDialog.CheckFileExists = true;
-                openFileDialog.CheckPathExists = true;
-                openFileDialog.Multiselect = false;
+                try {
 
+                    // Execute an external program that will open a filedialog and lets the user pick a file.
+                    // The picked file is written to the console window by the external program.
+                    string rootPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                    string pickFileExecutable = Path.Combine(rootPath, "scadmin\\PickFileDialog.exe");
+
+                    var process = new Process();
+                    process.StartInfo.FileName = pickFileExecutable;
+                    process.StartInfo.Arguments = "\"Select a Starcounter Application\"";
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.Start();
+
+                    // Pick up the picked file from the console output.
+                    selectedFiles = process.StandardOutput.ReadToEnd();
+
+                    process.WaitForExit();
+                }
+                catch (Win32Exception) {
+                    selectedFiles = "[]";
+                }
                 Response response = new Response();
-
-                string responsebody = "[";
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK) {
-
-                    int cnt = 0;
-                    foreach (string filename in openFileDialog.FileNames) {
-                        if (cnt != 0) {
-                            responsebody += ",";
-                        }
-                        responsebody += string.Format("{{\"file\":\"{0}\"}}", EscapeStringValue(filename));
-                        cnt++;
-                    }
-                    response.StatusCode = (ushort)System.Net.HttpStatusCode.OK;
-                }
-                else {
-
-                    response.StatusCode = (ushort)System.Net.HttpStatusCode.NotFound;
-                }
-
-                responsebody += "]";
-                response.Body = responsebody;
- 
+                response.Body = selectedFiles;
                 return response;
             });
         }
 
-        public static bool IsLocalIpAddress(string host) {
+        /// <summary>
+        /// Checks if a ip is on localhost
+        /// </summary>
+        /// <param name="ip"></param>
+        /// <returns>true if ip is on local host</returns>
+        public static bool IsLocalIpAddress(string ip) {
             try { // get host IP addresses
-                IPAddress[] hostIPs = Dns.GetHostAddresses(host);
+                IPAddress[] hostIPs = Dns.GetHostAddresses(ip);
                 // get local IP addresses
                 IPAddress[] localIPs = Dns.GetHostAddresses(Dns.GetHostName());
 
@@ -159,35 +160,5 @@ namespace Starcounter.Administrator.Server.Handlers {
             catch { }
             return false;
         }
-
-        public static string EscapeStringValue(string value) {
-            const char BACK_SLASH = '\\';
-            const char SLASH = '/';
-            const char DBL_QUOTE = '"';
-
-            var output = new StringBuilder(value.Length);
-            foreach (char c in value) {
-                switch (c) {
-                    case SLASH:
-                        output.AppendFormat("{0}{1}", BACK_SLASH, SLASH);
-                        break;
-
-                    case BACK_SLASH:
-                        output.AppendFormat("{0}{0}", BACK_SLASH);
-                        break;
-
-                    case DBL_QUOTE:
-                        output.AppendFormat("{0}{1}", BACK_SLASH, DBL_QUOTE);
-                        break;
-
-                    default:
-                        output.Append(c);
-                        break;
-                }
-            }
-
-            return output.ToString();
-        }
-
     }
 }
