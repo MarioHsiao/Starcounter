@@ -30,9 +30,10 @@ namespace Starcounter {
     /// Special handler options.
     /// </summary>
     public class HandlerOptions {
+
         internal static Int32 NumHandlerLevels = 1;
 
-        internal Boolean IsSpecificHandler { get; set; }
+        internal Boolean IsSpecificHandlerLevel { get; set; }
 
         Int32 handlerLevel_ = 0;
 
@@ -44,7 +45,7 @@ namespace Starcounter {
                 return handlerLevel_;
             }
             set {
-                IsSpecificHandler = true;
+                IsSpecificHandlerLevel = true;
                 handlerLevel_ = value;
             }
         }
@@ -59,7 +60,7 @@ namespace Starcounter {
         /// <summary>
         /// Flag that allows only external calls.
         /// </summary>
-        public Boolean ExternalOnly { get; set; }
+        public Boolean CallExternalOnly { get; set; }
 
         internal Boolean DontModifyHeaders { get; set; }
 
@@ -69,7 +70,11 @@ namespace Starcounter {
         /// Default handler level.
         /// </summary>
         public static Int32 DefaultHandlerLevel {
-            get { return defaultHandlerLevel_; }
+
+            get {
+                return defaultHandlerLevel_;
+            }
+
             set {
                 defaultHandlerLevel_ = value;
                 DefaultHandlerOptions = new HandlerOptions();

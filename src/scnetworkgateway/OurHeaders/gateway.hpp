@@ -160,7 +160,7 @@ const int32_t MAX_PROXIED_URIS = 32;
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Maximum number of cached URI matchers.
-const int32_t MAX_CACHED_URI_MATCHERS = 16;
+const int32_t MAX_CACHED_URI_MATCHERS = 32;
 
 // Offset of data blob in socket data.
 const int32_t SOCKET_DATA_OFFSET_BLOB = MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
