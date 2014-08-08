@@ -53,7 +53,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
             redirect: function ($route, $location) {
                 if (jQuery.isEmptyObject($location.search())) {
                     // Set default search filter
-                    $location.search({ "debug": false, "notice": false, "warning": true, "error": true, "source": "" });
+                    $location.search({ "debug": false, "notice": false, "warning": true, "error": true, "source": "", "maxitems":30 });
                 }
             }
         }
