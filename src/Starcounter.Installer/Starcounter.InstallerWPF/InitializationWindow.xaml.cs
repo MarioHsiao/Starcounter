@@ -389,13 +389,18 @@ namespace Starcounter.InstallerWPF {
             // Try extracting static installer dependencies (only parent process does this).
             ExtractInstallerDependencies();
 
-            // Checking if another Starcounter version is installed.
-            // NOTE: Environment.Exit is used on purpose here, not just "return";
-            if (IsAnotherVersionInstalled())
-                Environment.Exit(0);
+            this.Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                           new Action(delegate {
+                // Checking if another Starcounter version is installed.
+                // NOTE: Environment.Exit is used on purpose here, not just "return";
+                if (IsAnotherVersionInstalled())
+                    Environment.Exit(0);
 
-            this.Visibility = Visibility.Hidden;
-            ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
+                    this.Visibility = Visibility.Hidden;
+                    ThreadPool.QueueUserWorkItem(this.InitInstallerWrapper);
+                }
+            ));
+
         }
 
         /// <summary>
