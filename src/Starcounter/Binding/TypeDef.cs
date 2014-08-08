@@ -102,8 +102,15 @@ namespace Starcounter.Binding
         /// <param name="propDefs">PropertyDef with names and types of the properties with the same
         /// order as ColumnDef. Column names and nullable properties are extracted from columnDefs</param>
         /// <returns></returns>
-        internal static TypeDef CreateTypeTableDef(string typeName, string baseTypeName, string tableName, string baseTableName,
+        internal static TypeDef CreateTypeTableDef(System.Type sysType, 
             ColumnDef[] columnDefs, PropertyDef[] propDefs) {
+            string typeName = sysType.FullName;
+            System.Type baseSysType = sysType.BaseType;
+            string baseTypeName = null;
+            if (!baseSysType.Equals(typeof(Starcounter.Internal.Entity)))
+                baseTypeName = baseSysType.FullName;
+            string tableName = typeName;
+            string baseTableName = baseTypeName;
             var typeCodes = new DbTypeCode[columnDefs.Length];
             typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
             Debug.Assert(propDefs.Length + 1 == columnDefs.Length);

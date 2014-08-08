@@ -35,8 +35,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.Type", null,
-                "Starcounter.Metadata.Type", null,
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false)
@@ -94,8 +93,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.DbPrimitiveType", "Starcounter.Metadata.Type",
-                "Starcounter.Metadata.DbPrimitiveType", "Starcounter.Metadata.Type",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -155,8 +153,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.MapPrimitiveType", "Starcounter.Metadata.Type",
-                "Starcounter.Metadata.MapPrimitiveType", "Starcounter.Metadata.Type",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -249,8 +246,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Metadata.MapPrimitiveType",
-                "Starcounter.Metadata.ClrPrimitiveType", "Starcounter.Metadata.MapPrimitiveType",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),

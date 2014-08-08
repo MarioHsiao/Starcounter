@@ -32,8 +32,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
-                "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -125,8 +124,7 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RawView", "Starcounter.Internal.Metadata.HostMaterializedTable",
-                "Starcounter.Metadata.RawView", "Starcounter.Internal.Metadata.HostMaterializedTable",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -173,8 +171,7 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.VMView", "Starcounter.Internal.Metadata.HostMaterializedTable",
-                "Starcounter.Metadata.VMView", "Starcounter.Internal.Metadata.HostMaterializedTable",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -221,8 +218,7 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
-                "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -312,8 +308,7 @@ namespace Starcounter.Internal.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Internal.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
-                "Starcounter.Internal.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
