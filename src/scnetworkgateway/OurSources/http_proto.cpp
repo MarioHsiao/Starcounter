@@ -159,34 +159,30 @@ inline uint32_t GetMethodAndUri(
         pos++;
     }
 
-    // TODO!
+    // Checking if method and URI has correct length.
+    if (pos > uri_max_len)
+        return SCERRGWWRONGHTTPDATA;
+
     // Checking that we have HTTP protocol.
-    if (pos < http_data_len)
+    if (pos < (http_data_len - 4))
     {
         // Checking for HTTP keyword.
         if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
         {
             // Wrong protocol.
-            return SCERRGWNONHTTPPROTOCOL;
+            return SCERRGWWRONGHTTPDATA;
         }
     }
     else
     {
         // Either wrong protocol or not enough accumulated data.
-        return SCERRGWNONHTTPPROTOCOL;
+        return SCERRGWRECEIVEMORE;
     }
 
-    // Checking if method and URI has correct length.
-    if (pos < uri_max_len)
-    {
-        // Setting output length.
-        *out_method_and_uri_len = pos;
+    // Setting output length.
+    *out_method_and_uri_len = pos;
 
-        return 0;
-    }
-
-    // Wrong protocol.
-    return SCERRGWNONHTTPPROTOCOL;
+    return 0;
 }
 
 // Fetches method and URI from HTTP request data.
@@ -194,7 +190,7 @@ inline uint32_t GetMethodAndUriLowerCase(
     char* http_data,
     uint32_t http_data_len,
     char* out_methoduri_lower_case,
-    uint32_t* out_len,
+    uint32_t* out_method_and_uri_len,
     uint32_t* out_uri_offset,
     uint32_t uri_max_len)
 {
@@ -225,40 +221,36 @@ inline uint32_t GetMethodAndUriLowerCase(
         pos++;
     }
 
-    // TODO!
+    // Checking if method and URI has correct length.
+    if (pos > uri_max_len)
+        return SCERRGWWRONGHTTPDATA;
+
     // Checking that we have HTTP protocol.
-    if (pos < http_data_len)
+    if (pos < (http_data_len - 4))
     {
         // Checking for HTTP keyword.
         if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
         {
             // Wrong protocol.
-            return SCERRGWNONHTTPPROTOCOL;
+            return SCERRGWWRONGHTTPDATA;
         }
     }
     else
     {
         // Either wrong protocol or not enough accumulated data.
-        return SCERRGWNONHTTPPROTOCOL;
+        return SCERRGWRECEIVEMORE;
     }
 
-    // Checking if method and URI has correct length.
-    if (pos < uri_max_len)
-    {
-        // Copying string.
-        strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
+    // Copying string.
+    strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
 
-        // Converting to lower case.
-        _strlwr_s(out_methoduri_lower_case + (*out_uri_offset), pos + 1 - (*out_uri_offset));
+    // Converting to lower case.
+    _strlwr_s(out_methoduri_lower_case + (*out_uri_offset), pos + 1 - (*out_uri_offset));
 
-        // Setting output length.
-        *out_len = pos;
+    // Setting output length.
+    *out_method_and_uri_len = pos;
 
-        return 0;
-    }
-
-    // Wrong protocol.
-    return SCERRGWNONHTTPPROTOCOL;
+    return 0;
 }
 
 inline int HttpProto::OnMessageBegin(http_parser* p)
@@ -520,7 +512,7 @@ uint32_t HttpProto::HttpUriDispatcher(
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
-        char* method_and_uri = (char*)sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+        char* method_and_uri = (char*) sd->get_accum_buf()->get_chunk_orig_buf_ptr();
         uint32_t method_and_uri_len, uri_offset;
 
         // Getting method and URI information.
@@ -546,26 +538,33 @@ uint32_t HttpProto::HttpUriDispatcher(
         */
 
         // Checking for any errors.
-        if (err_code)
-        {
-            // Checking if we are proxying.
-            if (sd->HasProxySocket())
-            {
-                // Set the unknown proxied protocol here.
-                sd->set_unknown_proxied_proto_flag();
+        if (err_code) {
 
-                // Just running proxy processing.
-                return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
+            if (SCERRGWRECEIVEMORE == err_code) {
+
+                // Checking if we are proxying.
+                if (sd->HasProxySocket()) {
+
+                    // Set the unknown proxied protocol here.
+                    sd->set_unknown_proxied_proto_flag();
+
+                    // Just running proxy processing.
+                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
+                }
+
+                // Returning socket to receiving state.
+                err_code = gw->Receive(sd);
+                GW_ERR_CHECK(err_code);
+
+                // Handled successfully.
+                *is_handled = true;
+
+                return 0;
+
+            } else {
+
+                return err_code;
             }
-
-            // Returning socket to receiving state.
-            err_code = gw->Receive(sd);
-            GW_ERR_CHECK(err_code);
-
-            // Handled successfully.
-            *is_handled = true;
-
-            return 0;
         }
 
         // Now we have method and URI and ready to search specific URI handler.
