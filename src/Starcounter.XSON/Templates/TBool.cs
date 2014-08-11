@@ -17,31 +17,6 @@ namespace Starcounter.Templates {
         }
 
         /// <summary>
-        /// The default value for a boolean property is false. For the
-        /// property defined by this template, you can set an alternative
-        /// default value (i.e. true).
-        /// </summary>
-        /// <value><c>true</c> if [default value]; otherwise, <c>false</c>.</value>
-        public bool DefaultValue { get; set; }
-
-        internal override void SetDefaultValue(Json parent) {
-            UnboundSetter(parent, DefaultValue);
-        }
-
-        ///// <summary>
-        ///// Will return a boxed version of the DefaultValue property.
-        ///// </summary>
-        ///// <value>The default value as object.</value>
-        //public override object DefaultValueAsObject {
-        //    get {
-        //        return DefaultValue;
-        //    }
-        //    set {
-        //        DefaultValue = (bool)value;
-        //    }
-        //}
-
-        /// <summary>
         /// Will return the Boolean runtime type
         /// </summary>
         /// <value>The type of the instance.</value>

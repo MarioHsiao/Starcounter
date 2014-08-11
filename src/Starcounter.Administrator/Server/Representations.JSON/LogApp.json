@@ -1,16 +1,16 @@
 ﻿{
 	"$": { Namespace: "Starcounter.Administrator.Server" },
 	"LogEntries": [{
-		"DateTimeStr" : "DateTime",
-		"TypeStr" : "Type",
-		"HostName" : "HostName",
-		"Source" : "Source",
-		"Message" : "Message"
+		"DateTimeStr" : "",
+		"TypeStr" : "",
+		"HostName" : "",
+		"Source" : "",
+		"Message" : ""
 	}],
-	"FilterNotice" : true,
-	"FilterWarning" : true,
-	"FilterError" : true,
-	"FilterDebug" : true,
-	"FilterSource": "Starcounter;Starcounter.Host",
-	"FilterMaxItems": 30
+	"FilterNotice" : false,
+	"FilterWarning" : false,
+	"FilterError" : false,
+	"FilterDebug" : false,
+	"FilterSource": "",
+	"FilterMaxItems": 0
 }

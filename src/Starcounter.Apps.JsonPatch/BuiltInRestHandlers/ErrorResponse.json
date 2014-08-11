@@ -1,6 +1,6 @@
 ﻿{
 	"$": { Namespace: "Starcounter.Internal" },
-    "message": "message",
-    "stackTrace": "stackTrace",
-	"helpLink":"helpLink"
+    "message": "",
+    "stackTrace": "",
+	"helpLink": ""
 }

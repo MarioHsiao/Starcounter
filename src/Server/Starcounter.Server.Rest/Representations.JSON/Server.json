@@ -1,13 +1,13 @@
 ﻿{
-    "Uri": "http://example.com/api/server",
-    "StartTime": "ISO-8601, e.g. 2013-11-11T09:21:",
-    "Context": "Machine/UserName or Machine only",
+    "Uri": "", // "http://example.com/api/server",
+    "StartTime": "", // "ISO-8601, e.g. 2013-11-11T09:21:",
+    "Context": "", // "Machine/UserName or Machine only",
     "Configuration": {
-        "Uri": "http://example.com/api/server/configuration",
-        "FilePath": "C:\\path\to\\the\\server\\server.config"
+        "Uri": "", // "http://example.com/api/server/configuration",
+        "FilePath": "", // "C:\\path\to\\the\\server\\server.config"
     },
     "Logs": {
-        "Uri": "http://example.com/api/server/logs",
-        "LogDirectory": "C:\\path\to\\the\\server\\logdirectory"
+        "Uri": "", // "http://example.com/api/server/logs",
+        "LogDirectory": "", // "C:\\path\to\\the\\server\\logdirectory"
     }
 }
