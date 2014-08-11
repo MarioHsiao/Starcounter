@@ -1,0 +1,46 @@
+﻿using System.Collections.Generic;
+using System.IO;
+
+namespace Starcounter.Internal.Weaver {
+    /// <summary>
+    /// Expose functionality that allows a client to ask if a given
+    /// class is configured as a database type.
+    /// </summary>
+    internal class DatabaseTypeConfiguration {
+        static DatabaseTypeConfiguration empty = new DatabaseTypeConfiguration();
+        const string databaseClassConfigFileName = ".dbtypes";
+
+        List<string> configuredNamespaces = new List<string>();
+
+        private DatabaseTypeConfiguration() {
+        }
+
+        public static DatabaseTypeConfiguration Open(string directory) {
+            var configFile = Path.Combine(directory, databaseClassConfigFileName);
+            if (!File.Exists(configFile)) {
+                return empty;
+            }
+
+            var config = new DatabaseTypeConfiguration();
+            var content = File.ReadAllLines(configFile);
+            foreach (var line in content) {
+                var trimmed = line.Trim();
+                if (trimmed == string.Empty || trimmed.StartsWith("#")) {
+                    continue;
+                }
+                config.configuredNamespaces.Add(trimmed);
+            }
+
+            return config;
+        }
+
+        public bool IsConfiguredDatabaseType(string fullTypeName) {
+            var lastDot = fullTypeName.LastIndexOf('.');
+            if (lastDot != -1) {
+                var ns = fullTypeName.Substring(0, lastDot);
+                return configuredNamespaces.Contains(ns);
+            }
+            return configuredNamespaces.Contains("*");
+        }
+    }
+}
