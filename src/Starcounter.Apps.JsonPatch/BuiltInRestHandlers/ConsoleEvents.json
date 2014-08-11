@@ -2,10 +2,10 @@
 	"$": { Namespace: "Starcounter.Internal" },
     "Items": [
 		{
-		    "applicationName": "myApp1",
-			"databaseName": "mydatabase1",
-			"text": "some text",
-			"time": "ISO-8601, e.g. 2013-04-25T06.24:32"
+		    "applicationName": "", // "myApp1"
+			"databaseName": "", // "mydatabase1",
+			"text": "", // "some text",
+			"time": "" // "ISO-8601, e.g. 2013-04-25T06.24:32"
 		}
     ]
 }

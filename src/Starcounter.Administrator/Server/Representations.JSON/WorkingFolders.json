@@ -2,8 +2,8 @@
 	"$": { Namespace: "Starcounter.Administrator.Server" },
     "Items": [
         {
-            "Port": 8080,
-            "Folder": "c:\somefolder"
+            "Port": 0, //8080,
+            "Folder": "" // "c:\somefolder"
         }
     ]
 }
