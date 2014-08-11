@@ -274,7 +274,7 @@ namespace Starcounter.XSON {
                 parent = json.Parent;
 
 //                if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
-                if (json._appName != null) {
+                if (!fromStepParent && json._appName != null) {
                     size += json._appName.Length + 1;
                 }
                 fromStepParent = false;
@@ -345,7 +345,7 @@ namespace Starcounter.XSON {
                 parent = json.Parent;
                 if (parent != null) {
 //                    if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
-                    if (json._appName != null) {
+                    if (!fromStepParent &&  json._appName != null) {
                         size = json.GetAppName().Length + 1;
                         writer.Skip(-(size + prevSize));
                         writer.Write('/');
