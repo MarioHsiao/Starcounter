@@ -363,7 +363,7 @@ namespace Starcounter.Internal.Weaver {
         void InitializeModuleThatReferenceStarcounter() {
             _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
-            databaseTypePolicy = new DatabaseTypePolicy(null, FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
+            databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
         }
 
         /// <summary>
