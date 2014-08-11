@@ -6,13 +6,19 @@ namespace Starcounter.Internal.Weaver {
     /// considered database types.
     /// </summary>
     internal class DatabaseTypePolicy {
+        DatabaseTypeConfiguration config;
         IType databaseAttributeType;
 
         public DatabaseTypePolicy(string applicationDirectory, IType databaseAttribute) {
+            config = DatabaseTypeConfiguration.Open(applicationDirectory);
             databaseAttributeType = databaseAttribute;
         }
 
         public bool IsDatabaseType(TypeDefDeclaration typeDef) {
+            if (config.IsConfiguredDatabaseType(typeDef.Name)) {
+                return true;
+            }
+
             return IsTaggedWithDatabaseAttribute(typeDef);
         }
 
