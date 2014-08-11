@@ -113,7 +113,7 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
-            Debug.Assert(Db.SQL<RawView>("select v from rawview v where v.materializedtable.name = ?",
+            Debug.Assert(Db.SQL<RawView>("select v from rawview v where v.Fullname = ?",
                 typeDef.TableDef.Name).First == null); // Always dropped and new created
             RawView thisType = Db.SQL<RawView>("select v from rawview v where UniqueIdentifier = ?",
                 GetUniqueIdentifier(typeDef.TableDef.Name)).First;
@@ -124,11 +124,11 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(matTab != null);
             thisType.MaterializedTable = matTab;
             Debug.Assert(thisType.Inherits == null || thisType.Inherits is RawView);
-            if ((thisType.Inherits == null) || (thisType.Inherits as RawView).MaterializedTable.Name != typeDef.TableDef.BaseName) {
+            if ((thisType.Inherits == null) || (thisType.Inherits as RawView).FullName != typeDef.TableDef.BaseName) {
                 // The parent was changed
                 RawView newParent = null;
                 if (typeDef.TableDef.BaseName != null) {
-                    newParent = Db.SQL<RawView>("select v from rawview v where materializedtable.name = ?",
+                    newParent = Db.SQL<RawView>("select v from rawview v where fullname = ?",
                         typeDef.TableDef.BaseName).First;
                     Debug.Assert(newParent != null);
                 }
@@ -146,7 +146,7 @@ namespace Starcounter.SqlProcessor {
             }
         }
         internal static void CreateColumnInstances(TypeDef typeDef) {
-            RawView thisView = Db.SQL<RawView>("select v from rawview v where materializedtable.name =?",
+            RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
         typeDef.TableDef.Name).First;
             Debug.Assert(thisView != null);
             for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
@@ -166,7 +166,7 @@ namespace Starcounter.SqlProcessor {
                         prop = typeDef.PropertyDefs[j];
                     }
                     if (prop.ColumnName == col.Name)
-                        newCol.Type = Db.SQL<RawView>("select v from rawview v where materializedtable.name = ?",
+                        newCol.Type = Db.SQL<RawView>("select v from rawview v where fullname = ?",
                             prop.TargetTypeName).First;
                 } else
                     newCol.Type = Db.SQL<Starcounter.Metadata.DbPrimitiveType>(

@@ -123,10 +123,14 @@ namespace Starcounter.Advanced.XSON {
             }
 
             if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                if ((!addAppName) && exposedProperties.Count > 0) {
+                    sizeBytes++;
+                }
+
                 foreach (Json pp in obj._stepSiblings) {
                     sizeBytes += 4 + pp._appName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
                     sizeBytes += pp._appName.Length + 1; // 1 for ":".
-                    sizeBytes += EstimateSizeBytes(pp) + 1; // 1 for ",".
+                    sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
                 }
             }
 
@@ -279,15 +283,18 @@ namespace Starcounter.Advanced.XSON {
                     if (addAppName) {
                         *pfrag++ = (byte)'}';
                         offset++;
-
-                        *pfrag++ = (byte)',';
-                        offset++;
                     }
 
                     // Checking if we have Json siblings on this level.
                     if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                        if (addAppName || exposedProperties.Count > 0) {
+                            *pfrag++ = (byte)',';
+                            offset++;
+                        }
+
                         // Serializing every sibling first.
-                        foreach (Json pp in obj._stepSiblings) {
+                        for (int kk = 0; kk < obj._stepSiblings.Count; kk++) {
+                            var pp = obj._stepSiblings[kk];
                             htmlUriMerged += "&" + pp._appName + "=" + pp.GetHtmlPartialUrl();
 
                             valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp._appName);
@@ -301,12 +308,17 @@ namespace Starcounter.Advanced.XSON {
                             pfrag += valueSize;
                             offset += valueSize;
 
-                            *pfrag++ = (byte)',';
-                            offset++;
+                            if ((kk + 1) < obj._stepSiblings.Count) {
+                                *pfrag++ = (byte)',';
+                                offset++;
+                            }
                         }
                     }
 
                     if (addAppName) {
+                        *pfrag++ = (byte)',';
+                        offset++;
+
                         // Adding Html property to outer level.
                         valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, "Html");
                         offset += valueSize;

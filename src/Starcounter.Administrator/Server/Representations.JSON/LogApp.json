@@ -11,5 +11,6 @@
 	"FilterWarning" : true,
 	"FilterError" : true,
 	"FilterDebug" : true,
-	"FilterSource": "Starcounter;Starcounter.Host"
+	"FilterSource": "Starcounter;Starcounter.Host",
+	"FilterMaxItems": 30
 }

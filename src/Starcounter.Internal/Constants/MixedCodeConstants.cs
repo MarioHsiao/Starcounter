@@ -180,7 +180,7 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_BLOB_SIZE_BYTES = SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
 
         // Maximum URI string length.
-        public const int MAX_URI_STRING_LEN = 512;
+        public const int MAX_URI_STRING_LEN = 1024;
 
         // Session parameter type number in user delegate.
         public const int REST_ARG_SESSION = 10;

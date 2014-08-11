@@ -33,7 +33,7 @@ namespace Starcounter {
 
         private static string GetPropertyName(Column col) {
             Debug.Assert(col.Table is RawView);
-            PropertyDef prop = (from propDef in Bindings.GetTypeDef(((RawView)col.Table).MaterializedTable.Name).PropertyDefs
+            PropertyDef prop = (from propDef in Bindings.GetTypeDef(((RawView)col.Table).FullName).PropertyDefs
                                 where propDef.ColumnName == col.MaterializedColumn.Name
                                 select propDef).First();
             return prop.Name;
@@ -47,13 +47,13 @@ namespace Starcounter {
             }
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
                 Debug.Assert(!String.IsNullOrEmpty(tbl.UniqueIdentifier));
-                if (Binding.Bindings.GetTypeDef(tbl.MaterializedTable.Name) == null) {
+                if (Binding.Bindings.GetTypeDef(tbl.FullName) == null) {
                     if (unloadAll)
                         throw ErrorCode.ToException(Error.SCERRUNLOADTABLENOCLASS, 
-                            "Table "+tbl.MaterializedTable.Name+" cannot be unloaded.");
+                            "Table "+tbl.FullName+" cannot be unloaded.");
                     else
-                        LogSources.Hosting.LogWarning("Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
-                    //Console.WriteLine("Warning: Table " + tbl.MaterializedTable.Name + " cannot be unloaded, since its class is not loaded.");
+                        LogSources.Hosting.LogWarning("Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
+                    //Console.WriteLine("Warning: Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
                 } else {
                     int tblNrObj = 0;
                     String insertHeader;
@@ -73,7 +73,7 @@ namespace Starcounter {
                     inStmt.Append("VALUES");
                     insertHeader = inStmt.ToString();
                     selectObjs.Append(" FROM ");
-                    selectObjs.Append(QuotePath(tbl.MaterializedTable.Name));
+                    selectObjs.Append(QuotePath(tbl.FullName));
                     selectObjs.Append(" __o");
                     SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
                     Debug.Assert(selectEnum.TypeBinding != null);
@@ -87,7 +87,7 @@ namespace Starcounter {
                         } else
                             valTypeName = val.GetType().ToString();
                         Debug.Assert(valTypeName != null);
-                        if (valTypeName == tbl.MaterializedTable.Name) {
+                        if (valTypeName == tbl.FullName) {
                             if (tblNrObj == 0)
                                 inStmt.Append("(");
                             else
@@ -148,7 +148,7 @@ namespace Starcounter {
         internal static void DeleteAll() {
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
                 Db.Transaction(delegate {
-                    Db.SlowSQL("DELETE FROM " + QuoteName(tbl.MaterializedTable.Name));
+                    Db.SlowSQL("DELETE FROM " + QuoteName(tbl.FullName));
                 });
             }
         }
