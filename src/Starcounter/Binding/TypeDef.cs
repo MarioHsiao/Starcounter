@@ -142,12 +142,19 @@ namespace Starcounter.Binding
                     Debug.Assert(properties[i].DeclaringType == sysType);
                 } else
                     Debug.Assert(properties[i].DeclaringType != sysType);
-            for (int i = 0; i < sysColumnTypeDef.PropertyDefs.Length; i++) {
-                Debug.Assert(sysColumnTypeDef.PropertyDefs[i].Name == sysColumnTypeDef.TableDef.ColumnDefs[i + 1].Name);
-            }
             if (nrOwnProp < properties.Length)
                 Debug.Assert(baseSysType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Length ==
                     properties.Length - nrOwnProp);
+            System.Type typeSpec = sysType.GetNestedType("__starcounterTypeSpecification", BindingFlags.NonPublic);
+            Debug.Assert(typeSpec != null);
+            for (int i = 0; i < sysColumnTypeDef.PropertyDefs.Length; i++) {
+                Debug.Assert(sysColumnTypeDef.PropertyDefs[i].Name == sysColumnTypeDef.TableDef.ColumnDefs[i + 1].Name);
+                string handleName = "columnHandle_" + sysColumnTypeDef.PropertyDefs[i].Name;
+                FieldInfo handleField = typeSpec.GetField(handleName, BindingFlags.Static | BindingFlags.NonPublic);
+                Debug.Assert(handleField != null);
+                Debug.Assert(handleField.GetValue(null) is int);
+                //Debug.Assert((int)handleField.GetValue(null) == i + 1); // Cannot be checked at this moment, since it is set later.
+            }
 #endif
                 return sysColumnTypeDef;
         }
