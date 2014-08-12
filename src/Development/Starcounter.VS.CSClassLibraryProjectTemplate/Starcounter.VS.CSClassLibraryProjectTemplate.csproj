@@ -40,7 +40,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <OutputPath>..\..\..\bin\Debug\</OutputPath>
-	<DocumentationFile>bin\Debug\Starcounter.VS.CSClassLibraryProjectTemplate.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\Starcounter.VS.CSClassLibraryProjectTemplate.XML</DocumentationFile>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
@@ -51,7 +51,7 @@
     <WarningLevel>4</WarningLevel>
     <OutputPath>..\..\..\bin\Release\</OutputPath>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-	<DocumentationFile>bin\Release\Starcounter.VS.CSClassLibraryProjectTemplate.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\Starcounter.VS.CSClassLibraryProjectTemplate.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.VisualStudio.CoreUtility">
@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
+    <None Include="AssemblyInfo.cs" />
     <None Include="Entity1.cs" />
     <None Include="ClassLibraryProjectTemplate.csproj" />
     <None Include="ClassLibrary.ico" />
