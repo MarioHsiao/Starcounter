@@ -113,6 +113,7 @@
     <Compile Include="Internal\ExceptionManager.cs" />
     <Compile Include="Internal\Initialized.cs" />
     <Compile Include="Internal\HostedThread.cs" />
+    <Compile Include="Internal\StarcounterAssemblyAttribute.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
     <Compile Include="Binding\IObjectProxy.cs" />
     <Compile Include="ITransactionConflictException.cs" />
