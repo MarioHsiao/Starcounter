@@ -1,6 +1,7 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
+using System.Reflection;
 
 namespace Starcounter.Metadata {
     public abstract class Table : Type {
@@ -217,8 +218,9 @@ namespace Starcounter.Metadata {
         #endregion
 
         static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
+            System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
+            TypeDef typeDef = TypeDef.CreateTypeTableDef(
+                thisSysType,
                 new ColumnDef[] {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
                     new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
@@ -244,6 +246,7 @@ namespace Starcounter.Metadata {
                     new PropertyDef("AppDomainName", DbTypeCode.String),
                     new PropertyDef("FullClassName", DbTypeCode.String)
                 });
+            return typeDef;
         }
 
         public ClrClass(Uninitialized u) : base(u) { }

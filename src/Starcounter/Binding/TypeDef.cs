@@ -6,6 +6,8 @@
 
 using System.Diagnostics;
 using System.Reflection;
+using System.Linq;
+
 namespace Starcounter.Binding
 {
 
@@ -126,7 +128,28 @@ namespace Starcounter.Binding
             var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
                 new TypeLoader(new AssemblyName("Starcounter"), typeName),
                 systemTableDef, typeCodes);
-            return sysColumnTypeDef;
+#if DEBUG
+            PropertyInfo[] properties = sysType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            Debug.Assert(properties.Length == sysColumnTypeDef.PropertyDefs.Length);
+            Debug.Assert(sysColumnTypeDef.TableDef.ColumnDefs.Length == sysColumnTypeDef.PropertyDefs.Length + 1);
+            var nrOwnProp = (from col in columnDefs
+                             where !col.IsInherited && col.Name != "__id"
+                             select col).Count();
+            Debug.Assert(nrOwnProp <= properties.Length);
+            for (int i = 0; i < properties.Length; i++)
+                if (i < nrOwnProp) {
+                    Debug.Assert(properties[i].Name == sysColumnTypeDef.PropertyDefs[i + properties.Length - nrOwnProp].Name);
+                    Debug.Assert(properties[i].DeclaringType == sysType);
+                } else
+                    Debug.Assert(properties[i].DeclaringType != sysType);
+            for (int i = 0; i < sysColumnTypeDef.PropertyDefs.Length; i++) {
+                Debug.Assert(sysColumnTypeDef.PropertyDefs[i].Name == sysColumnTypeDef.TableDef.ColumnDefs[i + 1].Name);
+            }
+            if (nrOwnProp < properties.Length)
+                Debug.Assert(baseSysType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Length ==
+                    properties.Length - nrOwnProp);
+#endif
+                return sysColumnTypeDef;
         }
 
         internal IndexInfo2 GetIndexInfo(string name) {
