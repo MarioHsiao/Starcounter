@@ -18,6 +18,28 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
     /// </summary>
     public class TestJsReader {
         /// <summary>
+        /// 
+        /// </summary>
+        [Test]
+        public static void DefaultValueTest() {
+            string script = @"{
+                                StrVal: ""default"",
+                                BoolVal: true,
+                                DblVal: 2e4,
+                                DecVal: 23.4,
+                                LongVal: 99
+                              }";
+
+            TObject schema = TObject.CreateFromJson(script);
+
+            Assert.AreEqual("default", ((TString)schema.Properties[0]).DefaultValue);
+            Assert.AreEqual(true, ((TBool)schema.Properties[1]).DefaultValue);
+            Assert.AreEqual(20000d, ((TDouble)schema.Properties[2]).DefaultValue);
+            Assert.AreEqual(23.4m, ((TDecimal)schema.Properties[3]).DefaultValue);
+            Assert.AreEqual(99, ((TLong)schema.Properties[4]).DefaultValue);
+        }
+
+        /// <summary>
         /// Creates the simple template from string.
         /// </summary>
         [Test]

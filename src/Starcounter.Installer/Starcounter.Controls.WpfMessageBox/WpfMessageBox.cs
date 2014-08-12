@@ -739,6 +739,11 @@ namespace Starcounter.Controls
             Typeface typeface;
             double fontSize;
             Size size = new Size();
+
+            if( string.IsNullOrEmpty( text ) ){
+                return size;
+            }
+
             PresentationSource source = PresentationSource.FromVisual(System.Windows.Application.Current.MainWindow);
             Matrix m = source.CompositionTarget.TransformToDevice;
 
