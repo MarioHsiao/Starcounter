@@ -83,7 +83,8 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private IType _transientAttributeType;
 
-        private IType _databaseAttributeType;
+        DatabaseTypePolicy databaseTypePolicy;
+
         /// <summary>
         /// The type corresponding to the SynonymousToAttribute .NET type.
         /// </summary>
@@ -362,7 +363,7 @@ namespace Starcounter.Internal.Weaver {
         void InitializeModuleThatReferenceStarcounter() {
             _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
-            _databaseAttributeType = FindStarcounterType(typeof(Starcounter.DatabaseAttribute));
+            databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
         }
 
         /// <summary>
@@ -962,13 +963,8 @@ namespace Starcounter.Internal.Weaver {
                 return databaseClass;
             }
 
-            TypeDefDeclaration cursor = typeDef;
-            while (!cursor.CustomAttributes.Contains(_databaseAttributeType)) {
-                if (cursor.BaseType != null) {
-                    cursor = cursor.BaseType.GetTypeDefinition();
-                } else {
-                    return null;
-                }
+            if (!databaseTypePolicy.IsDatabaseType(typeDef)) {
+                return null;
             }
 
             ScAnalysisTrace.Instance.WriteLine("DiscoverDatabaseClass: processing {0}.", typeDef);
