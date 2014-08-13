@@ -48,6 +48,18 @@ namespace Starcounter.Templates {
 			parent.CallHasChanged(this);
 		}
 
+        /// <summary>
+        ///
+        /// </summary>
+        public T DefaultValue { 
+            get; 
+            set; 
+        }
+
+        internal override void SetDefaultValue(Json parent) {
+            UnboundSetter(parent, DefaultValue);
+        }
+
 		/// <summary>
 		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
 		/// </summary>

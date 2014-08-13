@@ -14,6 +14,7 @@ using Starcounter.Templates;
 using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
@@ -513,6 +514,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     sb.Append(");");
                     a.Prefix.Add(sb.ToString());
 
+                    if (tv != null) {
+                        WriteDefaultValue(a, mn, tv);
+                    }
+
                     if (mn.Template.Editable) {
                         a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
                     }
@@ -549,6 +554,49 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
             a.Prefix.Add(
                 "    }");
+        }
+
+        private void WriteDefaultValue(AstSchemaClass a, AstProperty mn, TValue tv) {
+            string value = null;
+
+            if (tv is TBool) {
+                value = (((TBool)tv).DefaultValue == true) ? "true" : "false";
+            } else if (tv is TDouble) {
+                value = ((TDouble)tv).DefaultValue.ToString(CultureInfo.InvariantCulture) + "d";
+            } else if (tv is TDecimal) {
+                value = ((TDecimal)tv).DefaultValue.ToString(CultureInfo.InvariantCulture) + "m";
+            } else if (tv is TLong) {
+                value = ((TLong)tv).DefaultValue + "L";
+            } else if (tv is TString) {
+                value = ((TString)tv).DefaultValue;
+                if (value == null) value = "null";
+                else value = '"' + EscapeStringValue(value) + '"';
+            } else if (tv is TOid) {
+                value = ((TOid)tv).DefaultValue + "UL";
+            }
+
+            if (value != null) {
+                a.Prefix.Add("        " + mn.MemberName + ".DefaultValue = " + value + ";");
+            }
+        }
+
+        private string EscapeStringValue(string input) {
+            string result = input;
+
+            // Really slow way of escaping the value so we can write it in generated code,
+            // but the code where this is called should not be performance critical
+            result = result.Replace("\\", @"\\");    // This needs to be done first!
+            result = result.Replace("\"", @"\""");
+            result = result.Replace("\a", @"\a");
+            result = result.Replace("\b", @"\b");
+            result = result.Replace("\f", @"\f");
+            result = result.Replace("\n", @"\n");
+            result = result.Replace("\r", @"\r");
+            result = result.Replace("\t", @"\t");
+            result = result.Replace("\v", @"\v");
+            result = result.Replace("\0", @"\0");
+
+            return result;
         }
 
         private void WriteSchemaOverrides(AstSchemaClass node) {

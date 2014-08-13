@@ -409,6 +409,9 @@ namespace Starcounter.Internal.JsonTemplate
                 appTemplate = (OTT)parent;
 
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                if (newTemplate is TString)
+                    ((TString)newTemplate).DefaultValue = value;
+
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -437,6 +440,8 @@ namespace Starcounter.Internal.JsonTemplate
                 newTemplate = new TLong() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                if (newTemplate is TLong)
+                    ((TLong)newTemplate).DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -466,6 +471,8 @@ namespace Starcounter.Internal.JsonTemplate
                 newTemplate = new TDecimal() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                if (newTemplate is TDecimal)
+                    ((TDecimal)newTemplate).DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -494,7 +501,11 @@ namespace Starcounter.Internal.JsonTemplate
             {
                 newTemplate = new TDouble() { TemplateName = name };
                 appTemplate = (OTT)parent;
+
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                if (newTemplate is TDouble)
+                    ((TDouble)newTemplate).DefaultValue = value;
+
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }
@@ -529,6 +540,8 @@ namespace Starcounter.Internal.JsonTemplate
                 newTemplate = new TBool() { TemplateName = name };
                 appTemplate = (OTT)parent;
                 newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                if (newTemplate is TBool)
+                    ((TBool)newTemplate).DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
             }

@@ -1,9 +1,9 @@
 ﻿{
 	"$": { Namespace: "Starcounter.Administrator.Server" },
-	"DateTimeStr" : "DateTime",
-	"TypeStr" : "Type",
-	"HostName" : "HostName",
-	"Source" : "Source",
-	"Message" : "Message"
+	"DateTimeStr" : "",
+	"TypeStr" : "",
+	"HostName" : "",
+	"Source" : "",
+	"Message" : ""
 }
 

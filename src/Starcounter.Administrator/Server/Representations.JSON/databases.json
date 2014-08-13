@@ -2,19 +2,19 @@
 	"$": { Namespace: "Starcounter.Administrator.Server" },
     "Databases": [
         {
-            "name": "foo",
-            "uri": "http://example.com/api/databases/foo",
-			"engineUri":"http://example.com/api/engines/foo",
-			"codeHostProcessUri":"http://example.com/api/engines/foo/host",
-			"databaseProcessUri":"http://example.com/api/engines/foo/db",
+            "name": "", // "foo",
+            "uri": "", // "http://example.com/api/databases/foo",
+			"engineUri": "", // "http://example.com/api/engines/foo",
+			"codeHostProcessUri": "", // "http://example.com/api/engines/foo/host",
+			"databaseProcessUri": "", // "http://example.com/api/engines/foo/db",
 			"running": false
         },
 		{
-            "name": "bar",
-            "uri": "http://example.com/api/databases/bar",
-			"engineUri":"http://example.com/api/engines/bar",
-			"codeHostProcessUri":"http://example.com/api/engines/bar/host",
-			"databaseProcessUri":"http://example.com/api/engines/bar/db",
+            "name": "", // "bar",
+            "uri": "", // "http://example.com/api/databases/bar",
+			"engineUri": "", // "http://example.com/api/engines/bar",
+			"codeHostProcessUri": "", // "http://example.com/api/engines/bar/host",
+			"databaseProcessUri": "", // "http://example.com/api/engines/bar/db",
 			"running": false
         },
     ]

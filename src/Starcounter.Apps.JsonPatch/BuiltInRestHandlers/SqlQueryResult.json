@@ -1,16 +1,16 @@
 ﻿{
-	columns:[{title:"title", value:"value", type:"type"}],
+	columns:[{title:"", value:"", type:""}],
 	rows:{},
 	queryPlan:"",
 	sqlException:{
-		message:"message",
-		helpLink:"helpLink",
-		query:"query",
+		message:"",
+		helpLink:"",
+		query:"",
 		beginPosition:0,
 		endPosition:0,
 		scErrorCode:0,
-		token:"token",
-		stackTrace:"stackTrace"
+		token:"",
+		stackTrace:""
 	},
 	hasSqlException:false,
 	exception:{

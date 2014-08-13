@@ -2,8 +2,8 @@
 	"$": { Namespace: "Starcounter.Administrator.Server" },
     "Items": [
         {
-            "File": "TurboText_sv-SE_3.dll",
-            "Description": "Swedish"
+            "File": "", // "TurboText_sv-SE_3.dll",
+            "Description": "", // "Swedish"
         }
     ]
 }
