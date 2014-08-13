@@ -16,7 +16,9 @@ namespace Starcounter.Internal.Weaver {
 
         public bool IsDatabaseType(TypeDefDeclaration typeDef) {
             if (config.IsConfiguredDatabaseType(typeDef.Name)) {
-                return true;
+                if (typeDef.IsPublic()) {
+                    return true;
+                }
             }
 
             return IsTaggedWithDatabaseAttribute(typeDef);
