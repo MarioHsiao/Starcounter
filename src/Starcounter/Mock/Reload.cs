@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.Globalization;
 
 namespace Starcounter {
     public static class Reload {
@@ -139,13 +140,13 @@ namespace Starcounter {
                     Decimal? decVal = values.GetDecimal(index);
                     if (decVal == null)
                         return nullStr;
-                    return decVal.ToString();
+                    return ((Decimal)decVal).ToString(CultureInfo.InvariantCulture);
                 case DbTypeCode.Single: 
                 case DbTypeCode.Double:
                     Double? doubVal = values.GetDouble(index);
                     if (doubVal == null)
                         return nullStr;
-                    return doubVal.ToString();
+                    return ((Double)doubVal).ToString(CultureInfo.InvariantCulture);
                 case DbTypeCode.SByte: 
                 case DbTypeCode.Int16: 
                 case DbTypeCode.Int32: 
