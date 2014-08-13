@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
+    <None Include="AssemblyInfo.cs" />
     <None Include="Program.cs" />
     <None Include="ApplicationProjectTemplate.csproj">
       <SubType>Designer</SubType>
