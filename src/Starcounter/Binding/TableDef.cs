@@ -69,7 +69,8 @@ namespace Starcounter.Binding
         /// <summary>
         /// The column defs
         /// </summary>
-        public ColumnDef[] ColumnDefs;
+        private ColumnDef[] _ColumnDefs;
+        public ColumnDef[] ColumnDefs {get {return _ColumnDefs;} set {_ColumnDefs=value;}}
 
         /// <summary>
         /// The table id

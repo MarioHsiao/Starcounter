@@ -20,6 +20,9 @@ namespace Starcounter.SqlProcessor {
         private static extern uint scsql_create_runtime_metadata();
         [DllImport("scsqlprocessor.dll")]
         private static extern uint scsql_clean_clrclass();
+        [DllImport("scsqlprocessor.dll")]
+        internal static unsafe extern uint scsql_get_metacolumns_length([MarshalAs(UnmanagedType.LPWStr)]string typeName,
+            int* length);
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);

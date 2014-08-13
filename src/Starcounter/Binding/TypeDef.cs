@@ -30,7 +30,31 @@ namespace Starcounter.Binding
         /// <summary>
         /// The property defs
         /// </summary>
-        public PropertyDef[] PropertyDefs;
+        private PropertyDef[] _PropertyDefs;
+        private bool _set = false;
+        public PropertyDef[] PropertyDefs {
+            get {
+                if(_set)
+                unsafe {
+                    TableDef tblDef = Db.LookupTable(Name);
+                    Debug.Assert(Db.LookupTable(Name)!=null);
+                    Debug.Assert(tblDef.ColumnDefs.Length == TableDef.ColumnDefs.Length);
+                    PropertyDef[] prpDef = new PropertyDef[tblDef.ColumnDefs.Length - 1];
+                    for (int i = 0; i < prpDef.Length; i++) {
+                        //prpDef[i] = new PropertyDef(tblDef.ColumnDefs[i + 1].Name);
+                    }
+#if DEBUG
+                    for (int i = 0; i < tblDef.ColumnDefs.Length; i++) {
+                        Debug.Assert(tblDef.ColumnDefs[i].Name == TableDef.ColumnDefs[i].Name);
+                        Debug.Assert(tblDef.ColumnDefs[i].Type == TableDef.ColumnDefs[i].Type);
+                        Debug.Assert(tblDef.ColumnDefs[i].IsNullable == TableDef.ColumnDefs[i].IsNullable);
+                        Debug.Assert(tblDef.ColumnDefs[i].IsInherited == TableDef.ColumnDefs[i].IsInherited);
+                    }
+#endif
+                }
+                return _PropertyDefs;
+            }
+            set {_PropertyDefs = value;}}
 
         /// <summary>
         /// The type loader
@@ -123,6 +147,14 @@ namespace Starcounter.Binding
                 // Populate TypeCodes
                 typeCodes[i + 1] = propDefs[i].Type;
             }
+            // Create columnDefs and propDefs from stored meta-data through API
+#if false
+            int colsLength = 0;
+            uint err = Starcounter.SqlProcessor.SqlProcessor.scsql_get_metacolumns_length(typeName, &colsLength);
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+            Debug.Assert(colsLength == columnDefs.Length);
+#endif
             // Finally create TableDef and TypeDef
             var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
             var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
@@ -156,6 +188,7 @@ namespace Starcounter.Binding
                 //Debug.Assert((int)handleField.GetValue(null) == i + 1); // Cannot be checked at this moment, since it is set later.
             }
 #endif
+            sysColumnTypeDef._set = true;
                 return sysColumnTypeDef;
         }
 
