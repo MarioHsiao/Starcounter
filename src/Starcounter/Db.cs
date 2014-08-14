@@ -251,8 +251,9 @@ namespace Starcounter
 
         /// <summary>
         /// A microtask don't create a transaction directly but relies on the implicit transaction.
-        /// After the task is executed and an implicit transaction exists, it is committed and released.
-        /// Apart form that it works the same as an ordinary transactionscope with retries.
+        /// After the task is executed and an implicit transaction exists, it is committed and released
+        /// if it's upgraded to a readwrite transaction. Apart form that it works the same as an ordinary 
+        /// transactionscope with retries.
         /// </summary>
         /// <remarks>
         /// Currently there are two microtasks, main entrypoint for an application
@@ -264,74 +265,75 @@ namespace Starcounter
             int retries;
             ImplicitTransaction it;
 
-//            Debugger.Launch();
-
             if (maxRetries < 0)
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
 
             retries = 0;
             it = ThreadData.Current.ImplicitTransaction;
 
-            it.inImplicitScope = true;
-            try {
-                for (; ; ) {
-                    try {
-                        it.explicitTransactionCreated = false;
+            if (!it.insideMicroTask) {
+                it.insideMicroTask = true;
+                try {
+                    for (; ; ) {
 
-                        action();
+                        try {
+                            it.explicitTransactionCreated = false;
+                            action();
 
-                        if (it.IsCreatedForScope()) {
-                            if (Starcounter.Transaction._current != null) {
-                                // TODO:
-                                // We have a long running transaction set as current. If we also have an implicit 
-                                // transaction with modifications we need to throw exception since we cannot retry 
-                                // a scope with a manuell transaction in it.
-                                throw new Exception("TODO");
-                            }
-                            it.Commit();
-                        }
-                        return;
-                    } catch (Exception ex) {
-                        // TODO:
-                        // Throwing and catching exception is too slow.
-                        // Modify writemethods to detect errorcode from kernel and upgrade there.
-                        uint ec;
-
-//                        Debugger.Launch();
-
-                        Exception real = ex;
-
-                        if (ex is TargetInvocationException && ex.InnerException != null) {
-                            real = ex.InnerException;
-                        }
-
-                        if (ErrorCode.TryGetCode(real, out ec) && ec == Error.SCERRREADONLYTRANSACTION) {
-
-                            // TODO: 
-                            // How do we check this correctly.
-                            if (it.IsCreated()) {
-                                // We don't count this as a retry, just a restart.
-                                it.UpgradeToReadWrite();
-                                continue;
-                            }
-                        }
-
-                        if (it.IsCreatedForScope()) {
-                            if (it.ReleaseLocked() == 0) {
-                                if (ex is ITransactionConflictException) {
-                                    if (++retries <= maxRetries)
-                                        continue;
-                                    throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                            if (it.IsWritable()) {
+                                if (Starcounter.Transaction._current != null) {
+                                    // We have a long running transaction set as current. If we also have an implicit 
+                                    // transaction with modifications we need to throw exception since we cannot retry 
+                                    // a scope with a manuell transaction in it.
+                                    throw ErrorCode.ToException(Error.SCERRAMBIGUOUSIMPLICITTRANSACTION);
                                 }
-                                throw;
+                                it.Commit();
                             }
-                            HandleFatalErrorInTransactionScope();
+                            return;
+                        } catch (Exception ex) {
+                            // TODO:
+                            // Throwing and catching exception is too slow.
+                            // Modify writemethods to detect errorcode from kernel and upgrade there.
+                            uint ec;
+                            Exception real = ex;
+                            if (ex is TargetInvocationException && ex.InnerException != null) {
+                                real = ex.InnerException;
+                            }
+
+                            if (ErrorCode.TryGetCode(real, out ec) && ec == Error.SCERRREADONLYTRANSACTION) {
+                                if (it.IsCreated()) {
+                                    it.UpgradeToReadWrite();
+                                    continue; // We don't count this as a retry, just a restart.
+                                }
+                            }
+
+                            if (it.IsWritable()) {
+                                if (it.ReleaseLocked() == 0) {
+                                    if (ex is ITransactionConflictException) {
+                                        if (++retries <= maxRetries)
+                                            continue;
+                                        throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                                    }
+                                    throw;
+                                }
+                                HandleFatalErrorInTransactionScope();
+                            }
+                            throw;
+
                         }
-                        throw;
                     }
+                } finally {
+                    it.insideMicroTask = false;
                 }
-            } finally {
-                it.inImplicitScope = false;
+            } else {
+                try {
+                    action();
+                } catch {
+                    if (it.IsWritable())
+                        sccoredb.sccoredb_external_abort();
+                    throw;
+                }
+                return;
             }
         }
 

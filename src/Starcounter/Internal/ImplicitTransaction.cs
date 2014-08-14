@@ -11,50 +11,40 @@ namespace Starcounter.Internal {
     ///  instantiated once for every scheduler and reused.
     /// </summary>
     internal sealed class ImplicitTransaction {
-        private ulong readonlyHandle;
-        private ulong readonlyVerify;
+        private ulong handle;
+        private ulong verify;
+        private bool isWritable;
 
-        private ulong lockedHandle;
-        private ulong lockedVerify;
-
+        internal bool insideMicroTask;
         internal bool explicitTransactionCreated;
-        internal bool inImplicitScope;
-        private bool lockedOnThread;
-
+        
         internal bool IsCreated() {
-            return (this.readonlyHandle != 0);
+            return (handle != 0);
         }
 
-        internal bool IsCreatedForScope() {
-            return (this.lockedHandle != 0 && this.lockedOnThread == true);
+        internal bool IsWritable() {
+            return isWritable;
         }
-
-        //internal bool IsDirty() {
-        //    int isDirty;
-        //    uint r;
-
-        //    unsafe {
-        //        r = sccoredb.Mdb_TransactionIsReadWrite(handle, verify, &isDirty);
-        //    }
-        //    if (r == 0)
-        //        return (isDirty != 0);
-        //    throw ErrorCode.ToException(r);
-        //}
 
         internal void CreateOrSetReadOnly() {
             uint ec;
 
-            if (this.readonlyHandle == 0) {
+            if (this.handle == 0) {
                 ulong handle;
                 ulong verify;
                 ec = sccoredb.sccoredb_create_transaction_and_set_current(sccoredb.MDB_TRANSCREATE_READ_ONLY, 0, out handle, out verify);
                 if (ec == 0) {
-                    this.readonlyHandle = handle;
-                    this.readonlyVerify = verify;
+                    this.handle = handle;
+                    this.verify = verify;
+                    this.isWritable = false;
                     return;
                 }
             } else {
-                ec = sccoredb.sccoredb_set_current_transaction(0, this.readonlyHandle, this.readonlyVerify);
+                // TODO:
+                // writable should never be set here since then it will also be locked to the thread and used in scope.
+                Debug.Assert(isWritable == false);
+                
+                ec = sccoredb.sccoredb_set_current_transaction(0, this.handle, this.verify);
                 if (ec == 0)
                     return;
             }
@@ -65,18 +55,11 @@ namespace Starcounter.Internal {
             ulong handle;
             ulong verify;
 
-            if (this.lockedHandle != 0) {
-                // TODO: 
-                // Clean up existing transaction or should this never happen?
-                Debugger.Launch();
-                throw new NotImplementedException("Clean up old implicit transaction");
-            }
-
             uint r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
             if (r == 0) {
-                this.lockedHandle = handle;
-                this.lockedVerify = verify;
-                this.lockedOnThread = true;
+                this.handle = handle;
+                this.verify = verify;
+                this.isWritable = true;
                 return;
             }
             throw ErrorCode.ToException(r);
@@ -85,24 +68,29 @@ namespace Starcounter.Internal {
         internal void UpgradeToReadWrite() {
             if (this.explicitTransactionCreated)
                 throw ErrorCode.ToException(Error.SCERRAMBIGUOUSIMPLICITTRANSACTION);
+            ReleaseReadOnly();
             CreateReadWriteLocked();
         }
 
         internal void Commit() {
             Starcounter.Transaction.Commit(1, 1);
-            this.lockedHandle = 0;
-            this.lockedVerify = 0xFF;
-            this.lockedOnThread = false;
+            this.handle = 0;
+            this.verify = 0xFF;
+            this.isWritable = false;
         }
 
         internal void ReleaseReadOnly() {
-            if (this.readonlyHandle == 0)
+            // TODO:
+            // throw exception instead if writable?
+            Debug.Assert(isWritable == false);
+
+            if (this.handle == 0 || this.isWritable)
                 return;
 
-            uint r = sccoredb.sccoredb_free_transaction(this.readonlyHandle, this.readonlyVerify);
+            uint r = sccoredb.sccoredb_free_transaction(this.handle, this.verify);
             if (r == 0) {
-                this.readonlyHandle = 0;
-                this.readonlyVerify = 0xFF;
+                this.handle = 0;
+                this.verify = 0xFF;
                 return;
             }
             throw ErrorCode.ToException(r);
@@ -111,7 +99,12 @@ namespace Starcounter.Internal {
         internal uint ReleaseLocked() {
             uint ec = sccoredb.sccoredb_set_current_transaction(1, 0, 0);
             if (ec == 0) {
-                ec = sccoredb.sccoredb_free_transaction(this.lockedHandle, this.lockedVerify);
+                ec = sccoredb.sccoredb_free_transaction(this.handle, this.verify);
+                if (ec == 0) {
+                    this.handle = 0;
+                    this.verify = 0;
+                    this.isWritable = false;
+                }
             }
             return ec;
         }
