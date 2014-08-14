@@ -342,10 +342,18 @@ namespace Starcounter.Hosting {
 
             try {
                 if (entrypoint.GetParameters().Length == 0) {
-                    entrypoint.Invoke(null, null);
+
+                    Db.MicroTask(() => {
+                        entrypoint.Invoke(null, null);
+                    });
+
                 } else {
                     var arguments = application.Arguments ?? new string[0];
-                    entrypoint.Invoke(null, new object[] { arguments });
+
+                    Db.MicroTask(() => {
+                        entrypoint.Invoke(null, new object[] { arguments });
+                    });
+
                 }
             } catch (TargetInvocationException te) {
                 var entrypointException = te.InnerException;
