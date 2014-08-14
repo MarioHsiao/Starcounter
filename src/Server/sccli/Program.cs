@@ -16,7 +16,7 @@ namespace star {
        
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
-            SharedCLI.InitCLIContext();
+            SharedCLI.InitCLIContext(SharedCLI.ClientContext.KnownContexts.Star);
 
             ApplicationArguments appArgs;
             int serverPort;

@@ -10,7 +10,7 @@ namespace staradmin {
         static void Main(string[] args) {
             CommandLine.PreParse(ref args);
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
-            SharedCLI.InitCLIContext();
+            SharedCLI.InitCLIContext(SharedCLI.ClientContext.KnownContexts.StarAdmin);
 
             try {
                 var appArgs = CommandLine.Parse(args);

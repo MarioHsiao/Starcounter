@@ -3,6 +3,7 @@ using EnvDTE;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Starcounter.CLI;
 using Starcounter.VisualStudio.Projects;
 using System;
 using System.Runtime.InteropServices;
@@ -87,6 +88,7 @@ namespace Starcounter.VisualStudio {
             HWndDispatcher.Initialize();
             this.StarcounterOutputPane = this.CreateVsOutputPane("Starcounter");
             AppExeProjectConfiguration.Initialize();
+            SharedCLI.InitCLIContext(SharedCLI.ClientContext.KnownContexts.VisualStudio);
         }
 
         /// <summary>
