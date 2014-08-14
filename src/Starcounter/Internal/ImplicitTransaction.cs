@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal {
     /// <summary>
-    ///  There can only be one implicit transaction per scheduler, so this class is always 
-    ///  instantiated once for every scheduler and reused.
+    /// Class wrapping an implicit transaction, that is a transaction that is created
+    /// when no transaction is explicitly created by the user. This transaction can be both
+    /// readonly and readwrite depending by what is needed. Used together with Db.MicroTask(...)
+    /// and created with callback from kernel.
     /// </summary>
     internal sealed class ImplicitTransaction {
         [ThreadStatic]
