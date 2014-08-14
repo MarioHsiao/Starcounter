@@ -54,7 +54,9 @@ namespace Starcounter.CLI {
         /// code needs to use the CLI services of this assembly from a
         /// CLI client process).
         /// </summary>
-        public static void InitCLIContext() {
+        public static void InitCLIContext(string client = ClientContext.UnknownContext) {
+            SharedCLI.ClientContext.Current = client;
+
             // Install custom assembly resolver to be able to resolve
             // third-party web socket library
             // TODO:
@@ -168,6 +170,11 @@ namespace Starcounter.CLI {
         /// </summary>
         public static class ClientContext {
             /// <summary>
+            /// The current context. Set by client applications.
+            /// </summary>
+            public static string Current = UnknownContext;
+
+            /// <summary>
             /// Contexts we know about.
             /// </summary>
             public static class KnownContexts {
@@ -188,6 +195,11 @@ namespace Starcounter.CLI {
                 /// </summary>
                 public const string Admin = "Admin";
             }
+
+            /// <summary>
+            /// Used when the context is unknown.
+            /// </summary>
+            public const string UnknownContext = "Unknown";
 
             /// <summary>
             /// Gets the context string from Visual Studio.
