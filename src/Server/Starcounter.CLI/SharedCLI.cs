@@ -168,6 +168,78 @@ namespace Starcounter.CLI {
         /// </summary>
         public static class ClientContext {
             /// <summary>
+            /// Contexts we know about.
+            /// </summary>
+            public static class KnownContexts {
+                /// <summary>
+                /// Visual Studio context.
+                /// </summary>
+                public const string VisualStudio = "VS";
+                /// <summary>
+                /// The star.exe context.
+                /// </summary>
+                public const string Star = "star.exe";
+                /// <summary>
+                /// The staradmin.exe context.
+                /// </summary>
+                public const string StarAdmin = "staradmin.exe";
+                /// <summary>
+                /// Context of the administration server.
+                /// </summary>
+                public const string Admin = "Admin";
+            }
+
+            /// <summary>
+            /// Gets the context string from Visual Studio.
+            /// </summary>
+            public static string VisualStudio {
+                get {
+                    return Make(KnownContexts.VisualStudio);
+                }
+            }
+
+            /// <summary>
+            /// Gets the context string from star.exe.
+            /// </summary>
+            public static string Star {
+                get {
+                    return Make(KnownContexts.Star);
+                }
+            }
+
+            /// <summary>
+            /// Gets the context string from staradmin.exe.
+            /// </summary>
+            public static string StarAdmin {
+                get {
+                    return Make(KnownContexts.StarAdmin);
+                }
+            }
+
+            /// <summary>
+            /// Gets the context string from the Starcounter
+            /// admin server.
+            /// </summary>
+            public static string Admin {
+                get {
+                    return Make(KnownContexts.Admin);
+                }
+            }
+
+            static string Make(string context) {
+                var program = Process.GetCurrentProcess().MainModule.ModuleName;
+                try {
+                    return string.Format("{0}, {1}@{2} (via {3})",
+                        context,
+                        Environment.UserName.ToLowerInvariant(),
+                        Environment.MachineName.ToLowerInvariant(), program
+                        );
+                } catch {
+                    return string.Format("{0}, {1}", context, program);
+                }
+            }
+
+            /// <summary>
             /// Gets a string including the user information and the
             /// file/process name of the calling client.
             /// </summary>
