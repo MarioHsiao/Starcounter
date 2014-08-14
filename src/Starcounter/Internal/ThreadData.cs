@@ -80,17 +80,6 @@ namespace Starcounter
         private readonly unsafe UInt32* _pStateShare;
 
         /// <summary>
-        /// Holds the pointer to any implicit transaction created during the current task.
-        /// </summary>
-        internal Starcounter.Internal.ImplicitTransaction _ImplicitTransaction = new Internal.ImplicitTransaction();
-
-        internal Starcounter.Internal.ImplicitTransaction ImplicitTransaction {
-            get { 
-                return _ImplicitTransaction; 
-            }
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ThreadData" /> class.
         /// </summary>
         /// <param name="schedulerNumber">The scheduler number.</param>

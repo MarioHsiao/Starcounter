@@ -11,13 +11,22 @@ namespace Starcounter.Internal {
     ///  instantiated once for every scheduler and reused.
     /// </summary>
     internal sealed class ImplicitTransaction {
+        [ThreadStatic]
+        private static ImplicitTransaction current;
+
         private ulong handle;
         private ulong verify;
         private bool isWritable;
 
         internal bool insideMicroTask;
         internal bool explicitTransactionCreated;
-        
+
+        internal static ImplicitTransaction Current(bool createIfNull) {
+            if (current == null && createIfNull)
+                current = new ImplicitTransaction();
+            return current;
+        }
+
         internal bool IsCreated() {
             return (handle != 0);
         }

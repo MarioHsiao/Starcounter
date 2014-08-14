@@ -16,7 +16,9 @@ namespace Starcounter.Internal {
         private static void ResetCurrentTransaction() {
             // TODO
             // Set current to null in kernel.
-            ThreadData.Current.ImplicitTransaction.ReleaseReadOnly();
+            var it = ImplicitTransaction.Current(false);
+            if (it != null)
+                it.ReleaseReadOnly();
 
             if (Transaction._current != null) {
                 uint r = sccoredb.sccoredb_set_current_transaction(0, 0, 0);

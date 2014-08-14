@@ -191,7 +191,7 @@ namespace Starcounter
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0)
                 {
-                    ThreadData.Current.ImplicitTransaction.explicitTransactionCreated = true;
+                    ImplicitTransaction.Current(true).explicitTransactionCreated = true;
                     var currentTransaction = Starcounter.Transaction._current;
                     Starcounter.Transaction._current = null;
 
@@ -269,7 +269,7 @@ namespace Starcounter
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
 
             retries = 0;
-            it = ThreadData.Current.ImplicitTransaction;
+            it = ImplicitTransaction.Current(true);
 
             if (!it.insideMicroTask) {
                 it.insideMicroTask = true;
