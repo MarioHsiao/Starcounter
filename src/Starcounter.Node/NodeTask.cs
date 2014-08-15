@@ -201,7 +201,11 @@ namespace Starcounter {
             boundSchedulerId_ = boundSchedulerId;
             AggrMsgType = aggrMsgType;
             aggrMsgDelegate_ = aggrMsgDelegate;
-            socketWrapper_ = null;
+
+            if (null != socketWrapper_) {
+                socketWrapper_.Destroy();
+                socketWrapper_ = null;
+            }
         }
 
         /// <summary>
@@ -305,7 +309,11 @@ namespace Starcounter {
         {
             receiveTimer_.Dispose();
             connectionTimedOut_ = true;
-            socketWrapper_ = null;
+
+            if (null != socketWrapper_) {
+                socketWrapper_.Destroy();
+                socketWrapper_ = null;
+            }
         }
 
         /// <summary>
@@ -579,7 +587,10 @@ namespace Starcounter {
         void CallUserDelegateOnFailure(Exception exc, Boolean isSyncCall)
         {
             // We don't want to use failing socket anymore.
-            socketWrapper_ = null;
+            if (null != socketWrapper_) {
+                socketWrapper_.Destroy();
+                socketWrapper_ = null;
+            }
 
             // Logging the exception to server log.
             if (nodeInst_.ShouldLogErrors)
