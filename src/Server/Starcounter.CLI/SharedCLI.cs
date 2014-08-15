@@ -238,6 +238,16 @@ namespace Starcounter.CLI {
                 }
             }
 
+            /// <summary>
+            /// Creates a string containing the current client context
+            /// information, including information about the current client
+            /// and the user.
+            /// </summary>
+            /// <returns>A string representing the current context.</returns>
+            public static string GetCurrentContextInfo() {
+                return Make(Current);
+            }
+
             static string Make(string context) {
                 var program = Process.GetCurrentProcess().MainModule.ModuleName;
                 try {
