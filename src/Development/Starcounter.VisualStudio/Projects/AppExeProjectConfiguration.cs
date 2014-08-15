@@ -84,7 +84,7 @@ namespace Starcounter.VisualStudio.Projects {
             int serverPort;
             string serverName;
             bool result;
-
+            
             var debugConfiguration = new AssemblyDebugConfiguration(this);
             if (!debugConfiguration.IsStartProject) {
                 throw new NotSupportedException("Only 'Project' start action is currently supported.");
@@ -130,7 +130,7 @@ namespace Starcounter.VisualStudio.Projects {
 
             if (result) {
                 var finish = DateTime.Now;
-                this.WriteLine("Successfully started {0} (time {1}s), using parameters {2}", 
+                this.WriteLine("Successfully started {0} (time {1}s), using parameters {2}",
                     Path.GetFileName(debugConfiguration.AssemblyPath),
                     finish.Subtract(start).ToString(@"ss\.fff"),
                     string.Join(" ", debugConfiguration.Arguments));
@@ -221,10 +221,9 @@ namespace Starcounter.VisualStudio.Projects {
 
             ExecutableReference exeRef = engine.GetExecutable(debugConfig.AssemblyPath);
             if (exeRef != null) {
-                var restart = true;
                 headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
                 this.WriteDebugLaunchStatus("Stopping engine");
-                response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (String)null, headers);
+                response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, headers);
                 response.FailIfNotSuccessOr(404, 412);
                 if (response.StatusCode == 412) {
                     // Precondition failed. We expect someone else to have stopped
@@ -244,25 +243,13 @@ namespace Starcounter.VisualStudio.Projects {
                             // TODO: Craft a proper error message.
                             throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Engine was restarted/modified, and exe still in it. Aborting.");
                         }
-
-                        restart = false;
                     }
                 }
-                if (restart) {
-                    this.WriteDebugLaunchStatus("Starting engine");
-                    engineRef = new EngineReference();
-                    engineRef.Name = databaseName;
-                    engineRef.NoDb = args.ContainsFlag(Option.NoDb);
-                    engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
 
-                    response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null);
-                    response.FailIfNotSuccess();
+                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
+                response.FailIfNotSuccess();
 
-                    response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
-                    response.FailIfNotSuccess();
-
-                    engine.PopulateFromJson(response.Body);
-                }
+                engine.PopulateFromJson(response.Body);
             }
 
             bool attachDebugger = (flags & __VSDBGLAUNCHFLAGS.DBGLAUNCH_NoDebug) == 0;
