@@ -202,43 +202,6 @@ namespace Starcounter.CLI {
             public const string UnknownContext = "Unknown";
 
             /// <summary>
-            /// Gets the context string from Visual Studio.
-            /// </summary>
-            public static string VisualStudio {
-                get {
-                    return Make(KnownContexts.VisualStudio);
-                }
-            }
-
-            /// <summary>
-            /// Gets the context string from star.exe.
-            /// </summary>
-            public static string Star {
-                get {
-                    return Make(KnownContexts.Star);
-                }
-            }
-
-            /// <summary>
-            /// Gets the context string from staradmin.exe.
-            /// </summary>
-            public static string StarAdmin {
-                get {
-                    return Make(KnownContexts.StarAdmin);
-                }
-            }
-
-            /// <summary>
-            /// Gets the context string from the Starcounter
-            /// admin server.
-            /// </summary>
-            public static string Admin {
-                get {
-                    return Make(KnownContexts.Admin);
-                }
-            }
-
-            /// <summary>
             /// Creates a string containing the current client context
             /// information, including information about the current client
             /// and the user.
@@ -258,27 +221,6 @@ namespace Starcounter.CLI {
                         );
                 } catch {
                     return string.Format("{0}, {1}", context, program);
-                }
-            }
-
-            /// <summary>
-            /// Gets a string including the user information and the
-            /// file/process name of the calling client.
-            /// </summary>
-            /// <remarks>
-            /// <example>per@per-vaio (via foo.exe)</example>
-            /// </remarks>
-            public static string UserAndProgram {
-                get {
-                    var program = Process.GetCurrentProcess().MainModule.ModuleName;
-                    try {
-                        return string.Format("{0}@{1} (via {2})",
-                            Environment.UserName.ToLowerInvariant(), 
-                            Environment.MachineName.ToLowerInvariant(), program
-                            );
-                    } catch {
-                        return program;
-                    }
                 }
             }
         }
