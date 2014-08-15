@@ -29,7 +29,10 @@ namespace Starcounter.Internal {
             return current;
         }
 
-        internal bool IsCreated() {
+        // TODO:
+        // We just check if it is created sometime during this task here. Is there some way to get
+        // the current transaction from kernel?
+        internal bool IsCurrent() {
             return (handle != 0);
         }
 
