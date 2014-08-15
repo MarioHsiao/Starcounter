@@ -101,6 +101,10 @@ namespace Starcounter.Server.Commands {
                             continue;
                         }
 
+                        if (KnownClientContexts.ParseFromContextInfo(fellow.Info.StartedBy) == KnownClientContexts.VisualStudio) {
+                            continue;
+                        }
+
                         var exe = fellow.ToExecutable();
 
                         Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.Info.BinaryFilePath, database.Name);
