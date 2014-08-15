@@ -25,5 +25,18 @@ namespace Starcounter.Server {
         /// Used when the context is unknown.
         /// </summary>
         public const string UnknownContext = "Unknown";
+
+        /// <summary>
+        /// Extracts the known context identifier from the given
+        /// contextInfo string (previously produced by 
+        /// ClientContext.GetCurrentContextInfo).
+        /// </summary>
+        /// <param name="contextInfo">The context info string to parse.</param>
+        /// <returns>The context identifier</returns>
+        public static string ParseFromContextInfo(string contextInfo) {
+            int index = contextInfo.IndexOf(",");
+            if (index == -1) return KnownClientContexts.UnknownContext;
+            return contextInfo.Substring(0, index);
+        }
     }
 }
