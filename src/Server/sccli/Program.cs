@@ -4,6 +4,7 @@ using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
 using Starcounter.Internal;
+using Starcounter.Server;
 using Starcounter.Server.Setup;
 using System;
 using System.Diagnostics;
@@ -16,7 +17,7 @@ namespace star {
        
         static void Main(string[] args) {
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
-            SharedCLI.InitCLIContext(SharedCLI.ClientContext.KnownContexts.Star);
+            SharedCLI.InitCLIContext(KnownClientContexts.Star);
 
             ApplicationArguments appArgs;
             int serverPort;

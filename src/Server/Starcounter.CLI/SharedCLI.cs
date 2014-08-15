@@ -13,6 +13,7 @@ using System.IO;
 
 namespace Starcounter.CLI {
     using Severity = Sc.Tools.Logging.Severity;
+using Starcounter.Server;
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
@@ -54,7 +55,7 @@ namespace Starcounter.CLI {
         /// code needs to use the CLI services of this assembly from a
         /// CLI client process).
         /// </summary>
-        public static void InitCLIContext(string client = ClientContext.UnknownContext) {
+        public static void InitCLIContext(string client = KnownClientContexts.UnknownContext) {
             SharedCLI.ClientContext.Current = client;
 
             // Install custom assembly resolver to be able to resolve
@@ -172,34 +173,7 @@ namespace Starcounter.CLI {
             /// <summary>
             /// The current context. Set by client applications.
             /// </summary>
-            public static string Current = UnknownContext;
-
-            /// <summary>
-            /// Contexts we know about.
-            /// </summary>
-            public static class KnownContexts {
-                /// <summary>
-                /// Visual Studio context.
-                /// </summary>
-                public const string VisualStudio = "VS";
-                /// <summary>
-                /// The star.exe context.
-                /// </summary>
-                public const string Star = "star.exe";
-                /// <summary>
-                /// The staradmin.exe context.
-                /// </summary>
-                public const string StarAdmin = "staradmin.exe";
-                /// <summary>
-                /// Context of the administration server.
-                /// </summary>
-                public const string Admin = "Admin";
-            }
-
-            /// <summary>
-            /// Used when the context is unknown.
-            /// </summary>
-            public const string UnknownContext = "Unknown";
+            public static string Current = KnownClientContexts.UnknownContext;
 
             /// <summary>
             /// Creates a string containing the current client context
@@ -219,7 +193,7 @@ namespace Starcounter.CLI {
             /// <returns>The context identifier; see class KnownContexts.</returns>
             public static string ParseContextInfoToKnownContext(string contextInfo) {
                 int index = contextInfo.IndexOf(",");
-                if (index == -1) return UnknownContext;
+                if (index == -1) return KnownClientContexts.UnknownContext;
                 return contextInfo.Substring(0, index);
             }
 

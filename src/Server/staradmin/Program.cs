@@ -2,6 +2,7 @@
 using staradmin.Commands;
 using Starcounter.CLI;
 using Starcounter.Internal;
+using Starcounter.Server;
 using System;
 
 namespace staradmin {
@@ -10,7 +11,7 @@ namespace staradmin {
         static void Main(string[] args) {
             CommandLine.PreParse(ref args);
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();
-            SharedCLI.InitCLIContext(SharedCLI.ClientContext.KnownContexts.StarAdmin);
+            SharedCLI.InitCLIContext(KnownClientContexts.StarAdmin);
 
             try {
                 var appArgs = CommandLine.Parse(args);
