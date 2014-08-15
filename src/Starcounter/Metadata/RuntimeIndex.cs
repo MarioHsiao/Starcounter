@@ -19,21 +19,7 @@ namespace Starcounter.Metadata {
 
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("Unique", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("MaterializedIndex", sccoredb.STAR_TYPE_REFERENCE, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Unique", DbTypeCode.Boolean),
-                    new PropertyDef("MaterializedIndex", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedIndex")
-                });
-
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public Index(Uninitialized u) : base(u) { }
@@ -105,23 +91,7 @@ namespace Starcounter.Metadata {
         #endregion
 
         static internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("Index", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("Column", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("Position", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("Ascending", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("MaterializedIndexColumn", sccoredb.STAR_TYPE_REFERENCE, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Index", DbTypeCode.Object, "Starcounter.Metadata.Index"),
-                    new PropertyDef("Column", DbTypeCode.Object, "Starcounter.Metadata.Column"),
-                    new PropertyDef("Position", DbTypeCode.UInt64, false),
-                    new PropertyDef("Ascending", DbTypeCode.Boolean),
-                    new PropertyDef("MaterializedIndexColumn", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedIndexColumn")
-                });
+            return TypeDef.CreateTypeTableDef(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public IndexedColumn(Uninitialized u) : base(u) { }

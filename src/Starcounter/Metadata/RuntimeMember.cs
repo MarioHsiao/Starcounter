@@ -18,18 +18,7 @@ namespace Starcounter.Metadata {
     
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("Type", sccoredb.STAR_TYPE_REFERENCE, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type")
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public Member(Uninitialized u) : base(u) { }
@@ -85,22 +74,7 @@ namespace Starcounter.Metadata {
 
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Type", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("MaterializedColumn", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("Unique", sccoredb.STAR_TYPE_ULONG, false, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
-                    new PropertyDef("MaterializedColumn", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedColumn"),
-                    new PropertyDef("Unique", DbTypeCode.Boolean)
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public Column(Uninitialized u) : base(u) { }
@@ -150,20 +124,7 @@ namespace Starcounter.Metadata {
 
         static internal new TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Table", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Type", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Polymorphic", sccoredb.STAR_TYPE_ULONG, false, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Table", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("Type", DbTypeCode.Object, "Starcounter.Metadata.Type"),
-                    new PropertyDef("Polymorphic", DbTypeCode.Byte)
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public CodeProperty(Uninitialized u) : base(u) { }

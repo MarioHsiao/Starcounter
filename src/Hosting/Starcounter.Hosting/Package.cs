@@ -200,6 +200,9 @@ namespace Starcounter.Hosting {
                     // Call CLR class clean up
                     Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
                     OnCleanClrMetadata();
+                    // Populate properties and columns .NET metadata
+                    for (int i = 0; i < typeDefs.Length; i++)
+                        typeDefs[i].PopulatePropertyDef();
                 }
 
                 List<TypeDef> updateColumns = new List<TypeDef>();

@@ -31,30 +31,12 @@ namespace Starcounter.Binding
         /// The property defs
         /// </summary>
         private PropertyDef[] _PropertyDefs;
-        private bool _set = false;
         public PropertyDef[] PropertyDefs {
             get {
-                if(_set)
-                unsafe {
-                    TableDef tblDef = Db.LookupTable(Name);
-                    Debug.Assert(Db.LookupTable(Name)!=null);
-                    Debug.Assert(tblDef.ColumnDefs.Length == TableDef.ColumnDefs.Length);
-                    PropertyDef[] prpDef = new PropertyDef[tblDef.ColumnDefs.Length - 1];
-                    for (int i = 0; i < prpDef.Length; i++) {
-                        //prpDef[i] = new PropertyDef(tblDef.ColumnDefs[i + 1].Name);
-                    }
-#if DEBUG
-                    for (int i = 0; i < tblDef.ColumnDefs.Length; i++) {
-                        Debug.Assert(tblDef.ColumnDefs[i].Name == TableDef.ColumnDefs[i].Name);
-                        Debug.Assert(tblDef.ColumnDefs[i].Type == TableDef.ColumnDefs[i].Type);
-                        Debug.Assert(tblDef.ColumnDefs[i].IsNullable == TableDef.ColumnDefs[i].IsNullable);
-                        Debug.Assert(tblDef.ColumnDefs[i].IsInherited == TableDef.ColumnDefs[i].IsInherited);
-                    }
-#endif
-                }
+                Debug.Assert(_PropertyDefs != null);
                 return _PropertyDefs;
             }
-            set {_PropertyDefs = value;}}
+            internal set {_PropertyDefs = value;}}
 
         /// <summary>
         /// The type loader
@@ -117,19 +99,11 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// This is a help method, which creates TypeDef and TableDef for given names and columns/properties. Some property information are filled 
-        /// from columns, thus it is assumed that columns and properties have the same order.
+        /// This is a help method, which creates TypeDef and TableDef for given meta-data type.
         /// </summary>
-        /// <param name="typeName">The name of the type to create TypeDef</param>
-        /// <param name="baseTypeName">The name of the base type or null</param>
-        /// <param name="tableName">The name of the table to which type is mapped and for which TableDef to create.</param>
-        /// <param name="baseTableName">The name of the base table</param>
-        /// <param name="columnDefs">Complete ColumnDef for the TableDef</param>
-        /// <param name="propDefs">PropertyDef with names and types of the properties with the same
-        /// order as ColumnDef. Column names and nullable properties are extracted from columnDefs</param>
+        /// <param name="sysType">Instance of System.Type describing the meta-data type.</param>
         /// <returns></returns>
-        internal static TypeDef CreateTypeTableDef(System.Type sysType, 
-            ColumnDef[] columnDefs, PropertyDef[] propDefs) {
+        internal static TypeDef CreateTypeTableDef(System.Type sysType) {
             string typeName = sysType.FullName;
             System.Type baseSysType = sysType.BaseType;
             string baseTypeName = null;
@@ -137,59 +111,56 @@ namespace Starcounter.Binding
                 baseTypeName = baseSysType.FullName;
             string tableName = typeName;
             string baseTableName = baseTypeName;
-            var typeCodes = new DbTypeCode[columnDefs.Length];
-            typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
-            Debug.Assert(propDefs.Length + 1 == columnDefs.Length);
-            for (int i = 0; i < propDefs.Length; i++) {
-                // Complete PropertyDef from ColumnDef
-                propDefs[i].IsNullable = columnDefs[i + 1].IsNullable;
-                propDefs[i].ColumnName = columnDefs[i + 1].Name;
-                // Populate TypeCodes
-                typeCodes[i + 1] = propDefs[i].Type;
-            }
-            // Create columnDefs and propDefs from stored meta-data through API
-#if false
-            int colsLength = 0;
-            uint err = Starcounter.SqlProcessor.SqlProcessor.scsql_get_metacolumns_length(typeName, &colsLength);
-            if (err != 0)
-                throw ErrorCode.ToException(err);
-            Debug.Assert(colsLength == columnDefs.Length);
-#endif
-            // Finally create TableDef and TypeDef
-            var systemTableDef = new TableDef(tableName, baseTableName, columnDefs);
-            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, propDefs,
+            var systemTableDef = new TableDef(tableName, baseTableName, null);
+            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, null,
                 new TypeLoader(new AssemblyName("Starcounter"), typeName),
-                systemTableDef, typeCodes);
+                systemTableDef, null);
+            return sysColumnTypeDef;
+        }
+
+        /// <summary>
+        /// Populates properties PropertyDefs, ColumnRuntimeTypes, and TableDef.ColumnDefs
+        /// to describe meta-tables, since they cannot be created when TypeDef is created
+        /// </summary>
+        internal void PopulatePropertyDef() {
 #if DEBUG
-            PropertyInfo[] properties = sysType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            Debug.Assert(properties.Length == sysColumnTypeDef.PropertyDefs.Length);
-            Debug.Assert(sysColumnTypeDef.TableDef.ColumnDefs.Length == sysColumnTypeDef.PropertyDefs.Length + 1);
-            var nrOwnProp = (from col in columnDefs
-                             where !col.IsInherited && col.Name != "__id"
-                             select col).Count();
-            Debug.Assert(nrOwnProp <= properties.Length);
-            for (int i = 0; i < properties.Length; i++)
-                if (i < nrOwnProp) {
-                    Debug.Assert(properties[i].Name == sysColumnTypeDef.PropertyDefs[i + properties.Length - nrOwnProp].Name);
-                    Debug.Assert(properties[i].DeclaringType == sysType);
-                } else
-                    Debug.Assert(properties[i].DeclaringType != sysType);
-            if (nrOwnProp < properties.Length)
-                Debug.Assert(baseSysType.GetProperties(BindingFlags.Instance | BindingFlags.Public).Length ==
-                    properties.Length - nrOwnProp);
-            System.Type typeSpec = sysType.GetNestedType("__starcounterTypeSpecification", BindingFlags.NonPublic);
-            Debug.Assert(typeSpec != null);
-            for (int i = 0; i < sysColumnTypeDef.PropertyDefs.Length; i++) {
-                Debug.Assert(sysColumnTypeDef.PropertyDefs[i].Name == sysColumnTypeDef.TableDef.ColumnDefs[i + 1].Name);
-                string handleName = "columnHandle_" + sysColumnTypeDef.PropertyDefs[i].Name;
-                FieldInfo handleField = typeSpec.GetField(handleName, BindingFlags.Static | BindingFlags.NonPublic);
-                Debug.Assert(handleField != null);
-                Debug.Assert(handleField.GetValue(null) is int);
-                //Debug.Assert((int)handleField.GetValue(null) == i + 1); // Cannot be checked at this moment, since it is set later.
-            }
+            if (Name == "Starcounter.Internal.Metadata.MaterializedTable" || 
+                Name == "Starcounter.Internal.Metadata.MaterializedColumn" ||
+                Name == "Starcounter.Internal.Metadata.MaterializedIndex" ||
+                Name == "Starcounter.Internal.Metadata.MaterializedIndexColumn")
+                Debug.Assert(_PropertyDefs != null);
+            else
+                Debug.Assert(_PropertyDefs == null);
 #endif
-            sysColumnTypeDef._set = true;
-                return sysColumnTypeDef;
+            if (_PropertyDefs == null) {
+                TableDef tblDef = Db.LookupTable(Name);
+                Debug.Assert(Db.LookupTable(Name) != null);
+                Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
+                PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+                Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
+                PropertyDef[] prpDefs = new PropertyDef[properties.Length];
+                DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
+                typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
+                for (int i = 0; i < prpDefs.Length; i++) {
+                    DbTypeCode dbTypeCode;
+                    if (!System.Enum.TryParse<DbTypeCode>(properties[i].PropertyType.Name, out dbTypeCode)) {
+                        dbTypeCode = DbTypeCode.Object;
+                        prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode,
+                            properties[i].PropertyType.FullName);
+                    } else
+                        prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode);
+                    prpDefs[i].ColumnName = prpDefs[i].Name;
+                    typeCodes[i + 1] = dbTypeCode;
+                    int j = 0;
+                    while (j < prpDefs.Length && !(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name))
+                        j++;
+                    prpDefs[i].IsNullable = tblDef.ColumnDefs[j + 1].IsNullable;
+                    Debug.Assert(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name);
+                }
+                _PropertyDefs = prpDefs;
+                TableDef.ColumnDefs = tblDef.ColumnDefs;
+                ColumnRuntimeTypes = typeCodes;
+            }
         }
 
         internal IndexInfo2 GetIndexInfo(string name) {

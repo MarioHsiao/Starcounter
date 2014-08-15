@@ -35,15 +35,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(
-                thisSysType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String)
-                });
+            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -95,17 +87,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(
-                thisSysType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("PrimitiveType", sccoredb.STAR_TYPE_ULONG, false, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("PrimitiveType", DbTypeCode.UInt64)
-                });
+            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -157,24 +139,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(
-                thisSysType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("DbPrimitiveType", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("WriteLoss", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("DbTypeCode", sccoredb.STAR_TYPE_ULONG, false,false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", Starcounter.Binding.DbTypeCode.String),
-                    new PropertyDef("DbPrimitiveType", Starcounter.Binding.DbTypeCode.Object, 
-                        "Starcounter.Metadata.DbPrimitiveType"),
-                    new PropertyDef("WriteLoss", Starcounter.Binding.DbTypeCode.Boolean),
-                    new PropertyDef("ReadLoss",  Starcounter.Binding.DbTypeCode.Boolean),
-                    new PropertyDef("DbTypeCode", Starcounter.Binding.DbTypeCode.UInt16)
-                });
+            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -251,24 +216,7 @@ namespace Starcounter.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                MethodBase.GetCurrentMethod().DeclaringType,
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("DbPrimitiveType", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("WriteLoss", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("ReadLoss", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("DbTypeCode", sccoredb.STAR_TYPE_ULONG, false,true)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", Starcounter.Binding.DbTypeCode.String),
-                    new PropertyDef("DbPrimitiveType", Starcounter.Binding.DbTypeCode.Object, 
-                        "Starcounter.Metadata.DbPrimitiveType"),
-                    new PropertyDef("WriteLoss", Starcounter.Binding.DbTypeCode.Boolean),
-                    new PropertyDef("ReadLoss",  Starcounter.Binding.DbTypeCode.Boolean),
-                    new PropertyDef("DbTypeCode", Starcounter.Binding.DbTypeCode.UInt16)
-                });
+            return TypeDef.CreateTypeTableDef(MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <inheritdoc />
