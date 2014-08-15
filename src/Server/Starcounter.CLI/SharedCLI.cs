@@ -211,6 +211,18 @@ namespace Starcounter.CLI {
                 return Make(Current);
             }
 
+            /// <summary>
+            /// Extracts the known context identifier from the given
+            /// contextInfo string (previously produced by GetCurrentContextInfo).
+            /// </summary>
+            /// <param name="contextInfo">The context info string to parse.</param>
+            /// <returns>The context identifier; see class KnownContexts.</returns>
+            public static string ParseContextInfoToKnownContext(string contextInfo) {
+                int index = contextInfo.IndexOf(",");
+                if (index == -1) return UnknownContext;
+                return contextInfo.Substring(0, index);
+            }
+
             static string Make(string context) {
                 var program = Process.GetCurrentProcess().MainModule.ModuleName;
                 try {
