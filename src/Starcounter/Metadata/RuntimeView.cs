@@ -251,6 +251,4 @@ namespace Starcounter.Internal.Metadata {
             }
         }
     }
-
-
 }
