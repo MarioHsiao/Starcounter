@@ -203,6 +203,7 @@ namespace Starcounter.Hosting {
                     // Populate properties and columns .NET metadata
                     for (int i = 0; i < typeDefs.Length; i++)
                         typeDefs[i].PopulatePropertyDef();
+                    OnPopulateMetadataDefs();
                 }
 
                 List<TypeDef> updateColumns = new List<TypeDef>();
@@ -384,6 +385,7 @@ namespace Starcounter.Hosting {
         private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
         private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
+        private void OnPopulateMetadataDefs() { Trace("Properties and columns were populated for the given meta-types."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)
