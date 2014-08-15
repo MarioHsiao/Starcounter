@@ -153,6 +153,10 @@ namespace Starcounter.Administrator.Server {
                 return "hello";
             });
 
+            Handle.GET("/native-allocs", () => {
+                return "Number of native allocations: " + BitsAndBytes.NumNativeAllocations;
+            });
+
             Handle.GET("/echotestws", (Request req) => {
                 if (req.WebSocketUpgrade) {
                     Interlocked.Increment(ref WsHandshakesCounter);

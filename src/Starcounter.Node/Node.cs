@@ -696,15 +696,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Node destructor.
-        /// </summary>
-        ~Node()
-        {
-            if (sync_task_info_.IsConnectionEstablished())
-                sync_task_info_.Close();
-        }
-
-        /// <summary>
         /// Frees network streams.
         /// </summary>
         internal void FreeConnection(NodeTask nt, Boolean isSyncCall)

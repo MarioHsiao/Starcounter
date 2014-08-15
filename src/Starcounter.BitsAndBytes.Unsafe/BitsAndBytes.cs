@@ -1,8 +1,11 @@
-﻿
+﻿#define MEMORY_LEAK_CHECK
 using System;
 using System.Runtime.CompilerServices;
 
 using System.Reflection.Emit;
+using System.Threading;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace Starcounter.Internal {
     public static unsafe class BitsAndBytes {
@@ -121,11 +124,23 @@ namespace Starcounter.Internal {
             return true;
         }
 
+#if MEMORY_LEAK_CHECK
+        public static Int32 NumNativeAllocations = 0;
+#endif
+
       public static IntPtr Alloc(int size) {
+#if MEMORY_LEAK_CHECK
+          Interlocked.Increment(ref NumNativeAllocations);
+#endif
+
           return System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
       }
 
       public static void Free(IntPtr prevAllocMemory) {
+#if MEMORY_LEAK_CHECK
+          Interlocked.Decrement(ref NumNativeAllocations);
+#endif
+
           System.Runtime.InteropServices.Marshal.FreeHGlobal(prevAllocMemory);
       }
 
