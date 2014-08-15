@@ -291,22 +291,6 @@ namespace Starcounter
                             }
                             return;
                         } catch (Exception ex) {
-                            // TODO:
-                            // Throwing and catching exception is too slow.
-                            // Modify writemethods to detect errorcode from kernel and upgrade there.
-                            uint ec;
-                            Exception real = ex;
-                            if (ex is TargetInvocationException && ex.InnerException != null) {
-                                real = ex.InnerException;
-                            }
-
-                            if (ErrorCode.TryGetCode(real, out ec) && ec == Error.SCERRREADONLYTRANSACTION) {
-                                if (it.IsCreated()) {
-                                    it.UpgradeToReadWrite();
-                                    continue; // We don't count this as a retry, just a restart.
-                                }
-                            }
-
                             if (it.IsWritable()) {
                                 if (it.ReleaseLocked() == 0) {
                                     if (ex is ITransactionConflictException) {
@@ -319,7 +303,6 @@ namespace Starcounter
                                 HandleFatalErrorInTransactionScope();
                             }
                             throw;
-
                         }
                     }
                 } finally {
@@ -396,7 +379,9 @@ namespace Starcounter
                 // of this object so it will be deleted eventually.
 
                 if (r == Error.SCERRDELETEPENDING) return;
-                throw ErrorCode.ToException(r);
+
+                DbState.CheckImplicitTransactionUpgradeOrThrow(r);
+                Delete(proxy);
             }
 
             // Invoke all callbacks. If any of theese throws an exception then
@@ -423,7 +408,9 @@ namespace Starcounter
 
             r = sccoredb.sccoredb_complete_delete(oid, address);
             if (r == 0) return;
-            throw ErrorCode.ToException(r);
+
+            DbState.CheckImplicitTransactionUpgradeOrThrow(r);
+            Delete(proxy);
         }
 
         /// <summary>
