@@ -34,6 +34,7 @@ namespace Starcounter.Server {
         /// <param name="contextInfo">The context info string to parse.</param>
         /// <returns>The context identifier</returns>
         public static string ParseFromContextInfo(string contextInfo) {
+            if (string.IsNullOrWhiteSpace(contextInfo)) return KnownClientContexts.UnknownContext;
             int index = contextInfo.IndexOf(",");
             if (index == -1) return KnownClientContexts.UnknownContext;
             return contextInfo.Substring(0, index);
