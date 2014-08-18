@@ -3214,6 +3214,11 @@
         column.
       </remarks>
     </code>
+    <code hex="0116" severity="Error" name="ScErrAmbiguousImplicitTransaction">
+      <message>
+        Ambiguous implicit transaction. Please put code inside a transaction scope.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

@@ -353,7 +353,7 @@ namespace StarcounterInternal.Hosting
             SetYieldBlock();
             try {
                 try {
-                    TaskHelper.CreateOrSetImplicitTransaction();
+                    ImplicitTransaction.Current(true).CreateOrSetReadOnly();
                     return 0;
                 }
                 catch (System.OutOfMemoryException) {

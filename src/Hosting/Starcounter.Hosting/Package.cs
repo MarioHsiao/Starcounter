@@ -200,6 +200,10 @@ namespace Starcounter.Hosting {
                     // Call CLR class clean up
                     Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
                     OnCleanClrMetadata();
+                    // Populate properties and columns .NET metadata
+                    for (int i = 0; i < typeDefs.Length; i++)
+                        typeDefs[i].PopulatePropertyDef();
+                    OnPopulateMetadataDefs();
                 }
 
                 List<TypeDef> updateColumns = new List<TypeDef>();
@@ -342,10 +346,18 @@ namespace Starcounter.Hosting {
 
             try {
                 if (entrypoint.GetParameters().Length == 0) {
-                    entrypoint.Invoke(null, null);
+
+                    Db.MicroTask(() => {
+                        entrypoint.Invoke(null, null);
+                    });
+
                 } else {
                     var arguments = application.Arguments ?? new string[0];
-                    entrypoint.Invoke(null, new object[] { arguments });
+
+                    Db.MicroTask(() => {
+                        entrypoint.Invoke(null, new object[] { arguments });
+                    });
+
                 }
             } catch (TargetInvocationException te) {
                 var entrypointException = te.InnerException;
@@ -373,6 +385,7 @@ namespace Starcounter.Hosting {
         private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
         private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
+        private void OnPopulateMetadataDefs() { Trace("Properties and columns were populated for the given meta-types."); }
 
         [Conditional("TRACE")]
         private void Trace(string message)
