@@ -52,7 +52,7 @@ namespace Starcounter {
         /// <summary>
         /// Maximum number of pending asynchronous tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 4096 * 2;
+        public const Int32 MaxNumPendingAsyncTasks = 1024;
 
         /// <summary>
         /// Maximum number of pending aggregated tasks.
@@ -502,6 +502,7 @@ namespace Starcounter {
                     // So we need to create a new one.
                     socketWrapper_.SocketObj.Connect(nodeInst_.HostName, nodeInst_.PortNumber);
 
+                    // Sending the request.
                     socketWrapper_.SocketObj.Send(requestBytes_, 0, requestBytesLength_, SocketFlags.None);
                 }
 #endif
