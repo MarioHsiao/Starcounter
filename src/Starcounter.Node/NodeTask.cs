@@ -52,7 +52,7 @@ namespace Starcounter {
         /// <summary>
         /// Maximum number of pending asynchronous tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 128;
+        public const Int32 MaxNumPendingAsyncTasks = 1024;
 
         /// <summary>
         /// Maximum number of pending aggregated tasks.
@@ -171,9 +171,9 @@ namespace Starcounter {
         public MixedCodeConstants.AggregationMessageTypes AggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
 
         /// <summary>
-        /// Resets the connection details.
+        /// Resets the connection details, but keeps the existing socket.
         /// </summary>
-        public void Reset(
+        public void ResetButKeepSocket(
             Byte[] requestBytes,
             Int32 requestBytesLength,
             Action<Response, Object> userDelegate,
@@ -201,11 +201,6 @@ namespace Starcounter {
             boundSchedulerId_ = boundSchedulerId;
             AggrMsgType = aggrMsgType;
             aggrMsgDelegate_ = aggrMsgDelegate;
-
-            if (null != socketWrapper_) {
-                socketWrapper_.Destroy();
-                socketWrapper_ = null;
-            }
         }
 
         /// <summary>
