@@ -7,7 +7,6 @@
 using System;
 using System.IO;
 using NUnit.Framework;
-using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates.Interfaces;
 using Starcounter.XSON.Metadata;
@@ -43,18 +42,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         public static void CreateCsFromJsFile() {
             TJson templ = CreateJsonTemplateFromFile("MySampleApp.json");
             Assert.NotNull(templ);
-        }
-
-        /// <summary>
-        /// Generates the cs.
-        /// </summary>
-        [Test]
-        public static void GenerateCsGen1() {
-            TJson actual = CreateJsonTemplateFromFile("MySampleApp.json");
-            Assert.IsInstanceOf(typeof(TJson), actual);
-            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
-            var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
-            Console.WriteLine(codegen.GenerateCode());
         }
 
 		/// <summary>
@@ -101,27 +88,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Console.WriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
             Console.WriteLine(code);
-        }
-
-        [Test]
-        public static void GenerateCsFromTestMessage() {
-            String className = "TestMessage";
-            string codeBehindFilePath = "Input\\" + className + ".json.cs";
-            string codeBehind = File.ReadAllText(codeBehindFilePath);
-            CodeBehindMetadata metadata = PartialClassGenerator.CreateCodeBehindMetadata(className, codeBehind, codeBehindFilePath );
-
-            TJson actual = CreateJsonTemplateFromFile(className + ".json");
-            Assert.IsInstanceOf(typeof(TJson), actual);
-
-            actual.Namespace = metadata.RootClassInfo.Namespace;
-            actual.ClassName = className;
-
-            Assert.IsNotNullOrEmpty(actual.Namespace);
-
-            Gen1CodeGenerationModule codegenmodule = new Gen1CodeGenerationModule();
-            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
-
-            Console.WriteLine(codegen.GenerateCode());
         }
 
         [Test]
