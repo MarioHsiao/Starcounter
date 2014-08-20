@@ -138,7 +138,8 @@ public:
             if (handler_lists_[i]->get_db_index() == db_index)
             {
                 // Deleting the entry.
-                handler_lists_[i]->Erase();
+                GwDeleteSingle(handler_lists_[i]);
+                handler_lists_[i] = NULL;
 
                 handler_lists_.RemoveByIndex(i);
                 i--;
@@ -172,7 +173,8 @@ public:
     {
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++) {
             // Deleting the entry.
-            handler_lists_[i]->Erase();
+            GwDeleteSingle(handler_lists_[i]);
+            handler_lists_[i] = NULL;
         }
 
         // Removing all handlers lists.

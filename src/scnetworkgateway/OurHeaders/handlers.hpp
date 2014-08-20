@@ -233,23 +233,7 @@ public:
         reverse_proxy_info_ = reverse_proxy_info;
 
         // Deleting previous allocations if any.
-        if (original_uri_info_)
-        {
-            GwDeleteArray(original_uri_info_);
-            original_uri_info_ = NULL;
-        }
-
-        if (processed_uri_info_)
-        {
-            GwDeleteArray(processed_uri_info_);
-            processed_uri_info_ = NULL;
-        }
-
-        if (app_name_)
-        {
-            GwDeleteArray(app_name_);
-            app_name_ = NULL;
-        }
+        Erase();
 
         GW_ASSERT(app_name != NULL);
         uint32_t len = (uint32_t) strlen(app_name);
@@ -369,158 +353,6 @@ public:
     uint32_t UnregisterGlobally(db_index_type db_index);
 };
 
-// All handlers belonging to database.
-class HandlersTable
-{
-    // Total registered handlers.
-    BMX_HANDLER_INDEX_TYPE max_num_entries_;
-
-    // All registered handlers.
-    HandlersList registered_handlers_[bmx::MAX_TOTAL_NUMBER_OF_HANDLERS];
-
-public:
-
-    // Find port handler id.
-    BMX_HANDLER_INDEX_TYPE FindPortHandlerIndex(uint16_t port_num)
-    {
-        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
-        {
-            if (!registered_handlers_[i].IsEmpty())
-            {
-                if (bmx::PORT_HANDLER == registered_handlers_[i].get_type())
-                {
-                    if (port_num == registered_handlers_[i].get_port())
-                    {
-                        return i;
-                    }
-                }
-            }
-        }
-
-        return bmx::BMX_INVALID_HANDLER_INDEX;
-    }
-
-    // Find subport handler id.
-    BMX_HANDLER_INDEX_TYPE FindSubPortHandlerIndex(uint16_t port_num, bmx::BMX_SUBPORT_TYPE subport_num)
-    {
-        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
-        {
-            if (!registered_handlers_[i].IsEmpty())
-            {
-                if (bmx::SUBPORT_HANDLER == registered_handlers_[i].get_type())
-                {
-                    if (port_num == registered_handlers_[i].get_port())
-                    {
-                        if (subport_num == registered_handlers_[i].get_subport())
-                        {
-                            return i;
-                        }
-                    }
-                }
-            }
-        }
-
-        return bmx::BMX_INVALID_HANDLER_INDEX;
-    }
-
-    // Find URI handler id.
-    BMX_HANDLER_INDEX_TYPE FindUriHandlerIndex(uint16_t port_num, const char* processed_uri_info)
-    {
-        int32_t longest_matched_uri = 0;
-
-        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
-        {
-            if (!registered_handlers_[i].IsEmpty())
-            {
-                if (bmx::HANDLER_TYPE::URI_HANDLER == registered_handlers_[i].get_type())
-                {
-                    if (port_num == registered_handlers_[i].get_port())
-                    {
-                        // Comparing URI as starts with.
-                        if (!strncmp(registered_handlers_[i].get_processed_uri_info(), processed_uri_info, strlen(processed_uri_info)))
-                        {
-                            return i;
-                        }
-                    }
-                }
-            }
-        }
-
-        return bmx::BMX_INVALID_HANDLER_INDEX;
-    }
-
-    // Gets specific handler.
-    HandlersList* get_handler_list(BMX_HANDLER_TYPE handler_index)
-    {
-        return registered_handlers_ + handler_index;
-    }
-
-    // Finds specific handler.
-    HandlersList* FindHandler(BMX_HANDLER_TYPE handler_id);
-
-    // Unregisters certain handler.
-    uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id);
-    uint32_t UnregisterHandler(BMX_HANDLER_TYPE handler_id, GENERIC_HANDLER_CALLBACK handler_callback);
-
-    // Registers port handler.
-    uint32_t RegisterPortHandler(
-        GatewayWorker *gw,
-        uint16_t port_num,
-        const char* app_name_string,
-        BMX_HANDLER_TYPE handler_id,
-        GENERIC_HANDLER_CALLBACK port_handler,
-        db_index_type db_index,
-        BMX_HANDLER_INDEX_TYPE& out_handler_index);
-
-    // Registers sub-port handler.
-    uint32_t RegisterSubPortHandler(
-        GatewayWorker *gw,
-        uint16_t port,
-        const char* app_name_string,
-        bmx::BMX_SUBPORT_TYPE subport,
-        BMX_HANDLER_TYPE handler_id,
-        GENERIC_HANDLER_CALLBACK port_handle,
-        db_index_type db_index,
-        BMX_HANDLER_INDEX_TYPE& out_handler_index);
-
-    // Registers URI handler.
-    uint32_t RegisterUriHandler(
-        GatewayWorker *gw,
-        uint16_t port,
-        const char* app_name_string,
-        const char* original_uri_string,
-        const char* processed_uri_string,
-        uint8_t* param_types,
-        int32_t num_params,
-        BMX_HANDLER_TYPE handler_id,
-        GENERIC_HANDLER_CALLBACK port_handle,
-        db_index_type db_index,
-        BMX_HANDLER_INDEX_TYPE& out_handler_index,
-        ReverseProxyInfo* reverse_proxy_info);
-
-    // Constructor.
-    HandlersTable()
-    {
-        max_num_entries_ = 0;
-    }
-
-    // Erasing this table.
-    void Erase()
-    {
-        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++) {
-            registered_handlers_[i].Erase();
-        }
-
-        max_num_entries_ = 0;
-    }
-
-    // Destructor.
-    ~HandlersTable()
-    {
-        Erase();
-    }
-};
-
 class PortHandlers
 {
     // Port number.
@@ -562,6 +394,23 @@ public:
         return handler_lists_.IsEmpty();
     }
 
+    // Has certain handler.
+    bool HasHandler(GENERIC_HANDLER_CALLBACK handler)
+    {
+        // Going through all handler lists.
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i) {
+
+            if (!handler_lists_[i]->IsEmpty()) {
+
+                if (handler_lists_[i]->HandlerAlreadyExists(handler)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     // Removes certain entry.
     bool RemoveEntry(GENERIC_HANDLER_CALLBACK handler)
     {
@@ -575,7 +424,8 @@ public:
                 if (handler_lists_[i]->IsEmpty())
                 {
                     // Deleting the entry.
-                    handler_lists_[i]->Erase();
+                    GwDeleteSingle(handler_lists_[i]);
+                    handler_lists_[i] = NULL;
 
                     handler_lists_.RemoveByIndex(i);
                     i--;
@@ -601,7 +451,8 @@ public:
             if (db_index == handler_lists_[i]->get_db_index())
             {
                 // Deleting the entry.
-                handler_lists_[i]->Erase();
+                GwDeleteSingle(handler_lists_[i]);
+                handler_lists_[i] = NULL;
 
                 // Checking if there are no databases left.
                 handler_lists_.RemoveByIndex(i);
@@ -626,7 +477,8 @@ public:
     {
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i) {
             // Deleting the entry.
-            handler_lists_[i]->Erase();
+            GwDeleteSingle(handler_lists_[i]);
+            handler_lists_[i] = NULL;
         }
 
         // Removing all handlers lists.
@@ -637,68 +489,6 @@ public:
 
     // Running all registered handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled);
-};
-
-class RegisteredSubport
-{
-    // Subport number.
-    bmx::BMX_SUBPORT_TYPE subport_;
- 
-    // Unique handler lists.
-    LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
-
-public:
-
-    bmx::BMX_SUBPORT_TYPE get_subport()
-    {
-        return subport_;
-    }
-
-    RegisteredSubport()
-    {
-        Reset();
-    }
-
-    bool IsEmpty()
-    {
-        return (0 == subport_);
-    }
-
-    void Reset()
-    {
-        subport_ = 0;
-    }
-};
-
-class RegisteredSubports
-{
-    // Array of all registered URIs.
-    LinearList<RegisteredSubport, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
-
-public:
-
-    // Constructor.
-    RegisteredSubports()
-    {
-    }
-
-    // Checking if handlers list is empty.
-    bool IsEmpty()
-    {
-        return reg_uris_.IsEmpty();
-    }
-
-    // Removing certain entry.
-    bool RemoveEntry(db_index_type db_index)
-    {
-        return false;
-    }
-
-    // Removing certain entry.
-    bool RemoveEntry(HandlersList* handlers_list)
-    {
-        return false;
-    }
 };
 
 } // namespace network

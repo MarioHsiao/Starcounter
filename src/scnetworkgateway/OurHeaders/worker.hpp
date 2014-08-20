@@ -542,7 +542,11 @@ public:
     // Does general data processing using port handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
-        return g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
+        PortHandlers* ph = g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers();
+
+        GW_ASSERT(NULL != ph);
+
+        return ph->RunHandlers(gw, sd, is_handled);
     }
 
     // Push given chunk to database queue.

@@ -341,9 +341,9 @@ public:
         const char* channel_name,
         db_index_type db_index)
     {
-        HandlersList* h = GwNewConstructor(HandlersList);
+        HandlersList* hl = GwNewConstructor(HandlersList);
 
-        uint32_t err_code = h->Init(
+        uint32_t err_code = hl->Init(
             bmx::HANDLER_TYPE::WS_HANDLER,
             handler_info,
             port_number_,
@@ -360,7 +360,7 @@ public:
 
         GW_ASSERT(0 == err_code);
 
-        RegisteredWsChannel w(h);        
+        RegisteredWsChannel w(hl);        
         reg_ws_channels_.Add(w);
     }
 };
