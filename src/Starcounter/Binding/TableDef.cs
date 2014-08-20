@@ -21,14 +21,14 @@ namespace Starcounter.Binding
 
         /// <summary>
         /// </summary>
-        internal unsafe static TableDef ConstructTableDef(sccoredb.SCCOREDB_TABLE_INFO tableInfo) {
+        internal unsafe static TableDef ConstructTableDef(systables.STAR_TABLE_INFO tableInfo) {
             string name = new String(tableInfo.name);
             ushort tableId = tableInfo.table_id;
             uint columnCount = tableInfo.column_count;
             string baseName = null;
 
             if (tableInfo.inherited_table_id != ushort.MaxValue) {
-                var r = sccoredb.sccoredb_get_table_info(tableInfo.inherited_table_id, out tableInfo);
+                var r = systables.star_get_table_info(tableInfo.inherited_table_id, out tableInfo);
                 if (r == 0) {
                     baseName = new String(tableInfo.name);
                 }
@@ -39,8 +39,8 @@ namespace Starcounter.Binding
 
             ColumnDef[] columns = new ColumnDef[columnCount];
             for (ushort i = 0; i < columns.Length; i++) {
-                sccoredb.SCCOREDB_COLUMN_INFO columnInfo;
-                var r = sccoredb.sccoredb_get_column_info(tableId, i, out columnInfo);
+                systables.STAR_COLUMN_INFO columnInfo;
+                var r = systables.star_get_column_info(tableId, i, out columnInfo);
                 if (r == 0) {
                     columns[i] = new ColumnDef(
                         new string(columnInfo.name),

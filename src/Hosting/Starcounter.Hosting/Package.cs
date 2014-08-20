@@ -195,6 +195,9 @@ namespace Starcounter.Hosting {
             if (typeDefs.Length != 0)
             {
                 if (typeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
+                    uint e = systables.star_prepare_system_tables();
+                    if (e != 0) throw ErrorCode.ToException(e);
+
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                     OnRuntimeMetadataPopulated();
                     // Call CLR class clean up

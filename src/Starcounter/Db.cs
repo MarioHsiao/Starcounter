@@ -46,8 +46,8 @@ namespace Starcounter
         {
             unsafe
             {
-                sccoredb.SCCOREDB_TABLE_INFO tableInfo;
-                var r = sccoredb.sccoredb_get_table_info_by_name(name, out tableInfo);
+                systables.STAR_TABLE_INFO tableInfo;
+                var r = systables.star_get_table_info_by_name(name, out tableInfo);
                 if (r == 0)
                 {
                     return TableDef.ConstructTableDef(tableInfo);

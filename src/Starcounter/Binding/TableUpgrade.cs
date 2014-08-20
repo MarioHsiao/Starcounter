@@ -455,8 +455,8 @@ namespace Starcounter.Binding
 
             Db.Transaction(() =>
             {
-                sccoredb.SCCOREDB_TABLE_INFO tableInfo;
-                sccoredb.sccoredb_get_table_info(baseTableId, out tableInfo);
+                systables.STAR_TABLE_INFO tableInfo;
+                systables.star_get_table_info(baseTableId, out tableInfo);
 
                 var tableIds = new ushort[tableInfo.inheriting_table_count];
                 for (var i = 0; i < tableIds.Length; i++)
@@ -468,7 +468,7 @@ namespace Starcounter.Binding
                 for (var i = 0; i < tableIds.Length; i++)
                 {
                     var tableId = tableIds[i];
-                    sccoredb.sccoredb_get_table_info(tableId, out tableInfo);
+                    systables.star_get_table_info(tableId, out tableInfo);
                     if (tableInfo.inherited_table_id == baseTableId)
                     {
                         tableDefs.Add(TableDef.ConstructTableDef(tableInfo));

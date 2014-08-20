@@ -134,7 +134,7 @@ namespace Starcounter.Binding
 #endif
             if (_PropertyDefs == null) {
                 TableDef tblDef = Db.LookupTable(Name);
-                Debug.Assert(Db.LookupTable(Name) != null);
+                Debug.Assert(tblDef != null);
                 Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
                 PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
                 Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
