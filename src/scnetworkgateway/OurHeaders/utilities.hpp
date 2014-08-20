@@ -21,6 +21,23 @@ namespace network {
 #endif
 */
 
+#ifdef GW_DEV_DEBUG
+extern int64_t g_NumAllocationsCounter;
+#define GwNewArray(Type, Size) new Type[Size]; InterlockedIncrement64(&g_NumAllocationsCounter)
+#define GwNewConstructor(Type) new Type(); InterlockedIncrement64(&g_NumAllocationsCounter)
+#define GwNewConstructor1(Type, Param1) new Type(Param1); InterlockedIncrement64(&g_NumAllocationsCounter)
+#define GwNewConstructor2(Type, Param1, Param2) new Type(Param1, Param2); InterlockedIncrement64(&g_NumAllocationsCounter)
+#define GwDeleteArray(Ptr) delete[] Ptr; InterlockedDecrement64(&g_NumAllocationsCounter)
+#define GwDeleteSingle(Ptr) delete Ptr; InterlockedDecrement64(&g_NumAllocationsCounter)
+#else
+#define GwNewArray(Type, Size) (new Type[Size])
+#define GwNewConstructor(Type) (new Type())
+#define GwNewConstructor1(Type, Param1) (new Type(Param1))
+#define GwNewConstructor2(Type, Param1, Param2) (new Type(Param1, Param2))
+#define GwDeleteArray(Ptr) (delete[] Ptr)
+#define GwDeleteSingle(Ptr) (delete Ptr)
+#endif
+
 #if defined(GW_LOG_TO_FILE) || defined(GW_LOG_TO_CONSOLE)
 #define GW_LOGGING_ON
 #endif

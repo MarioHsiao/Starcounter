@@ -4,6 +4,10 @@
 namespace starcounter {
 namespace network {
 
+#ifdef GW_DEV_DEBUG
+int64_t g_NumAllocationsCounter = 0;
+#endif
+
 static CRITICAL_SECTION* StatisticsCS = NULL;
 static char BuildNumber[32];
 static bool IsPersonal = false;
@@ -44,7 +48,7 @@ void ReportStatistics(const char* stat_name, const double stat_value)
         LONG result = RegGetValue(HKEY_CURRENT_USER, L"Environment", L"TEMP", RRF_RT_REG_SZ, NULL, &BuildStatisticsFilePath, &data_len);
         wcscat_s(BuildStatisticsFilePath, 1024, L"\\ScBuildStatistics.txt");
 
-        StatisticsCS = new CRITICAL_SECTION;
+        StatisticsCS = GwNewConstructor(CRITICAL_SECTION);
         InitializeCriticalSection(StatisticsCS);
     }
 

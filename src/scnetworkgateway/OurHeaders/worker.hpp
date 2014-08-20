@@ -444,7 +444,7 @@ public:
         {
             if (worker_dbs_[i])
             {
-                delete worker_dbs_[i];
+                GwDeleteSingle(worker_dbs_[i]);
                 worker_dbs_[i] = NULL;
             }
         }

@@ -48,6 +48,32 @@ class HandlersList
 
 public:
 
+    ~HandlersList() {
+        Erase();
+    }
+
+    void Erase() {
+
+        // Deleting previous allocations if any.
+        if (original_uri_info_)
+        {
+            GwDeleteArray(original_uri_info_);
+            original_uri_info_ = NULL;
+        }
+
+        if (processed_uri_info_)
+        {
+            GwDeleteArray(processed_uri_info_);
+            processed_uri_info_ = NULL;
+        }
+
+        if (app_name_)
+        {
+            GwDeleteArray(app_name_);
+            app_name_ = NULL;
+        }
+    }
+
     bool ContainsHandler(GENERIC_HANDLER_CALLBACK handler)
     {
         return handlers_.Find(handler);
@@ -209,25 +235,25 @@ public:
         // Deleting previous allocations if any.
         if (original_uri_info_)
         {
-            delete [] original_uri_info_;
+            GwDeleteArray(original_uri_info_);
             original_uri_info_ = NULL;
         }
 
         if (processed_uri_info_)
         {
-            delete [] processed_uri_info_;
+            GwDeleteArray(processed_uri_info_);
             processed_uri_info_ = NULL;
         }
 
         if (app_name_)
         {
-            delete [] app_name_;
+            GwDeleteArray(app_name_);
             app_name_ = NULL;
         }
 
         GW_ASSERT(app_name != NULL);
         uint32_t len = (uint32_t) strlen(app_name);
-        app_name_ = new char[len + 1];
+        app_name_ = GwNewArray(char, len + 1);
         strncpy_s(app_name_, len + 1, app_name, len);
 
         num_params_ = num_params;
@@ -253,13 +279,13 @@ public:
                 GW_ASSERT(original_uri_info != NULL);
 
                 len = (uint32_t) strlen(original_uri_info);
-                original_uri_info_ = new char[len + 1];
+                original_uri_info_ = GwNewArray(char, len + 1);
                 strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
                 
                 GW_ASSERT(processed_uri_info != NULL);
 
                 len = (uint32_t) strlen(processed_uri_info);
-                processed_uri_info_ = new char[len + 1];
+                processed_uri_info_ = GwNewArray(char, len + 1);
                 strncpy_s(processed_uri_info_, len + 1, processed_uri_info, len);
 
                 processed_uri_info_len_ = len;
@@ -273,7 +299,7 @@ public:
                 GW_ASSERT(original_uri_info != NULL);
 
                 len = (uint32_t) strlen(original_uri_info);
-                original_uri_info_ = new char[len + 1];
+                original_uri_info_ = GwNewArray(char, len + 1);
                 strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
 
                 break;
@@ -475,12 +501,16 @@ public:
     // Constructor.
     HandlersTable()
     {
-        Erase();
+        max_num_entries_ = 0;
     }
 
     // Erasing this table.
     void Erase()
     {
+        for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++) {
+            registered_handlers_[i].Erase();
+        }
+
         max_num_entries_ = 0;
     }
 
@@ -544,6 +574,9 @@ public:
             {
                 if (handler_lists_[i]->IsEmpty())
                 {
+                    // Deleting the entry.
+                    handler_lists_[i]->Erase();
+
                     handler_lists_.RemoveByIndex(i);
                     i--;
                 }
@@ -557,13 +590,6 @@ public:
         return removed;
     }
 
-    // Removing certain entry.
-    bool RemoveEntry(HandlersList* handlers_list)
-    {
-        // Removing handler list.
-        return handler_lists_.RemoveEntry(handlers_list);
-    }
-
     // Removes certain entry.
     bool RemoveEntry(db_index_type db_index)
     {
@@ -574,6 +600,9 @@ public:
         {
             if (db_index == handler_lists_[i]->get_db_index())
             {
+                // Deleting the entry.
+                handler_lists_[i]->Erase();
+
                 // Checking if there are no databases left.
                 handler_lists_.RemoveByIndex(i);
                 --i;
@@ -595,6 +624,11 @@ public:
     // Resetting entry.
     void Reset()
     {
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i) {
+            // Deleting the entry.
+            handler_lists_[i]->Erase();
+        }
+
         // Removing all handlers lists.
         handler_lists_.Clear();
 

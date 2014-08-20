@@ -281,7 +281,7 @@ Gateway::Gateway()
     num_aggregated_send_queued_messages_ = 0;
 
     // Creating gateway handlers table.
-    gw_handlers_ = new HandlersTable();
+    gw_handlers_ = GwNewConstructor(HandlersTable);
 
     // Initial number of server ports.
     num_server_ports_slots_ = 0;
@@ -396,10 +396,10 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, SOCKET l
     GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
 
     // Allocating needed tables.
-    port_handlers_ = new PortHandlers();
-    registered_uris_ = new RegisteredUris(port_number);
-    registered_ws_channels_ = new PortWsChannels(port_number);
-    registered_subports_ = new RegisteredSubports();
+    port_handlers_ = GwNewConstructor(PortHandlers);
+    registered_uris_ = GwNewConstructor1(RegisteredUris, port_number);
+    registered_ws_channels_ = GwNewConstructor1(PortWsChannels, port_number);
+    registered_subports_ = GwNewConstructor(RegisteredSubports);
 
     listening_sock_ = listening_sock;
     port_number_ = port_number;
@@ -490,25 +490,25 @@ void ServerPort::Erase()
 
     if (port_handlers_)
     {
-        delete port_handlers_;
+        GwDeleteSingle(port_handlers_);
         port_handlers_ = NULL;
     }
 
     if (registered_uris_)
     {
-        delete registered_uris_;
+        GwDeleteSingle(registered_uris_);
         registered_uris_ = NULL;
     }
 
     if (registered_subports_)
     {
-        delete registered_subports_;
+        GwDeleteSingle(registered_subports_);
         registered_subports_ = NULL;
     }
 
     if (registered_ws_channels_)
     {
-        delete registered_ws_channels_;
+        GwDeleteSingle(registered_ws_channels_);
         registered_ws_channels_ = NULL;
     }
 
@@ -655,7 +655,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     std::stringstream str_stream;
     str_stream << config_file_stream.rdbuf();
     std::string tmp_str = str_stream.str();
-    char* config_contents = new char[tmp_str.size() + 1];
+    char* config_contents = GwNewArray(char, tmp_str.size() + 1);
     strcpy_s(config_contents, tmp_str.size() + 1, tmp_str.c_str());
 
     try
@@ -897,7 +897,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         return SCERRBADGATEWAYCONFIG;
     }
 
-    delete [] config_contents;
+    GwDeleteArray(config_contents);
 
     return 0;
 }
@@ -905,7 +905,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
 // Assert some correct state parameters.
 uint32_t Gateway::AssertCorrectState()
 {
-    SocketDataChunk* test_sdc = new SocketDataChunk();
+    SocketDataChunk* test_sdc = GwNewConstructor(SocketDataChunk);
     uint32_t err_code = 0;
 
     // Checking correct socket data.
@@ -941,7 +941,8 @@ uint32_t Gateway::AssertCorrectState()
     return 0;
 
 FAILED:
-    delete test_sdc;
+    GwDeleteSingle(test_sdc);
+    test_sdc = NULL;
 
     GW_ASSERT(false);
     return 0;
@@ -1138,24 +1139,6 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 #endif
 
     return 0;
-}
-
-uint32_t DatabaseStartupFinished(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
-{
-    *is_handled = true;
-
-    GW_COUT << "Database startup finished." << GW_ENDL;
-
-    // Entering global lock.
-    gw->EnterGlobalLock();
-
-    // Resetting database starting flag.
-    g_gateway.reset_db_starting();
-
-    // Releasing global lock.
-    gw->LeaveGlobalLock();
-
-    return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
 }
 
 uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
@@ -1625,9 +1608,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
                 return err_code;
             }
 
-            // Setting flag that database is starting.
-            set_db_starting();
-
             // Leaving global lock.
             LeaveGlobalLock();
 
@@ -1654,8 +1634,6 @@ uint32_t Gateway::CheckDatabaseChanges(const std::set<std::string>& active_datab
 
             // Entering global lock.
             EnterGlobalLock();
-
-            reset_db_starting();
 
             // Killing channels events monitor thread.
             active_databases_[s].KillChannelsEventsMonitor();
@@ -1688,7 +1666,7 @@ void ActiveDatabase::Init(
     db_index_type db_index)
 {
     // Creating fresh handlers table.
-    user_handlers_ = new HandlersTable();
+    user_handlers_ = GwNewConstructor(HandlersTable);
 
     db_name_ = db_name;
     unique_num_unsafe_ = unique_num;
@@ -1723,7 +1701,7 @@ void ActiveDatabase::Reset(bool hard_reset)
     // Removing handlers table.
     if (user_handlers_)
     {
-        delete user_handlers_;
+        GwDeleteSingle(user_handlers_);
         user_handlers_ = NULL;
     }
 
@@ -1785,8 +1763,8 @@ uint32_t Gateway::Init()
     GW_ASSERT((gw_workers_ == NULL) && (worker_thread_handles_ == NULL));
 
     // Allocating workers data.
-    gw_workers_ = new GatewayWorker[setting_num_workers_];
-    worker_thread_handles_ = new HANDLE[setting_num_workers_];
+    gw_workers_ = GwNewArray(GatewayWorker, setting_num_workers_);
+    worker_thread_handles_ = GwNewArray(HANDLE, setting_num_workers_);
 
     // Filling up worker parameters.
     for (int i = 0; i < setting_num_workers_; i++)
@@ -1849,7 +1827,7 @@ uint32_t Gateway::Init()
     gw_log_writer_.Init(setting_log_file_path_);
     
     // Loading URI codegen matcher.
-    codegen_uri_matcher_ = new CodegenUriMatcher();
+    codegen_uri_matcher_ = GwNewConstructor(CodegenUriMatcher);
     codegen_uri_matcher_->Init();
 
     // Loading Clang for URI matching.
@@ -1956,23 +1934,6 @@ void Gateway::RegisterGatewayHandlers() {
 
         GW_ASSERT(0 == err_code);
     }
-
-    // Registering URI handler for gateway statistics.
-    err_code = AddUriHandler(
-        &gw_workers_[0],
-        gw_handlers_,
-        setting_internal_system_port_,
-        "gateway",
-        "POST /gw/dbstartupfinished",
-        "POST /gw/dbstartupfinished ",
-        NULL,
-        0,
-        bmx::BMX_INVALID_HANDLER_INFO,
-        INVALID_DB_INDEX,
-        DatabaseStartupFinished,
-        true);
-
-    GW_ASSERT(0 == err_code);
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -2890,7 +2851,7 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     LPTHREAD_START_ROUTINE allThreadsMonitorRoutine)
 {
     // Allocating threads-related data structures.
-    uint32_t *worker_thread_ids = new uint32_t[setting_num_workers_];
+    uint32_t *worker_thread_ids = GwNewArray(uint32_t, setting_num_workers_);
 
     // Starting workers one by one.
     for (int i = 0; i < setting_num_workers_; i++)
@@ -2983,9 +2944,9 @@ uint32_t Gateway::StartWorkerAndManagementThreads(
     for(int i = 0; i < setting_num_workers_; i++)
         CloseHandle(worker_thread_handles_[i]);
 
-    delete [] worker_thread_ids;
-    delete [] worker_thread_handles_;
-    delete [] gw_workers_;
+    GwDeleteArray(worker_thread_ids);
+    GwDeleteArray(worker_thread_handles_);
+    GwDeleteArray(gw_workers_);
     gw_workers_ = NULL;
 
     // Checking if any error occurred.
@@ -3000,7 +2961,7 @@ Gateway::~Gateway()
     // Deleting only necessary stuff.
     if (gw_workers_)
     {
-        delete [] gw_workers_;
+        GwDeleteArray(gw_workers_);
         gw_workers_ = NULL;
     }
 }
@@ -3083,7 +3044,7 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
     MixedCodeConstants::MatchUriType match_uri_func;
     HMODULE gen_dll_handle;
 
-    UriMatcherCacheEntry* new_entry = new UriMatcherCacheEntry();
+    UriMatcherCacheEntry* new_entry = GwNewConstructor(UriMatcherCacheEntry);
 
     // Constructing dll name;
     std::wostringstream dll_name;
@@ -3275,7 +3236,7 @@ uint32_t Gateway::OpenStarcounterLog()
 	host_name_size = 0;
 //	make_sc_server_uri(setting_sc_server_type_.c_str(), 0, &host_name_size);
 	make_sc_process_uri(setting_sc_server_type_upper_.c_str(), GW_PROCESS_NAME, 0, &host_name_size);
-	host_name = (wchar_t *)malloc(host_name_size * sizeof(wchar_t));
+	host_name = GwNewArray(wchar_t, host_name_size);
 	if (host_name)
 	{
 //		make_sc_server_uri(setting_sc_server_type_.c_str(), host_name, &host_name_size);

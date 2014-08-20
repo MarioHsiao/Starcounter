@@ -1309,7 +1309,8 @@ public:
             uri_matcher_cache_.pop_front();
             oldest_uri_matcher->Destroy();
 
-            delete oldest_uri_matcher;
+            GwDeleteSingle(oldest_uri_matcher);
+            oldest_uri_matcher = NULL;
         }
 
         // Adding new entry to cache.
@@ -1565,8 +1566,6 @@ class Gateway
     // List of active databases.
     ActiveDatabase active_databases_[MAX_ACTIVE_DATABASES];
 
-    bool db_starting_;
-
     // Indicates what databases went down.
     bool db_did_go_down_[MAX_ACTIVE_DATABASES];
 
@@ -1696,18 +1695,6 @@ public:
     socket_timestamp_type get_global_timer_unsafe()
     {
         return global_timer_unsafe_;
-    }
-
-    bool get_db_starting() {
-        return db_starting_;
-    }
-
-    void set_db_starting() {
-        db_starting_ = true;
-    }
-
-    void reset_db_starting() {
-        db_starting_ = false;
     }
 
     uint16_t get_setting_internal_system_port() {

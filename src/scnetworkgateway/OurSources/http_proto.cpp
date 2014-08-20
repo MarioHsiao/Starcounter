@@ -1031,7 +1031,18 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
 // Profilers statistics for Gateway.
 uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    char* test_msg = "Starcounter gateway test response :)";
+#ifdef GW_DEV_DEBUG
+    std::stringstream str_stream;
+    str_stream << "Number of allocations: " << g_NumAllocationsCounter;
+    std::string tmp_str = str_stream.str();
+
+    const char* test_msg = tmp_str.c_str(); //"Starcounter gateway test response :)";
+
+#else
+
+    const char* test_msg = "Starcounter gateway test response :)";
+
+#endif
 
     *is_handled = true;
 

@@ -54,7 +54,7 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
         worker_dbs_[i] = NULL;
 
     // Creating random generator with current time seed.
-    rand_gen_ = new random_generator(timeGetTime());
+    rand_gen_ = GwNewConstructor1(random_generator, timeGetTime());
 
     aggr_timer_ = timeGetTime();
 
@@ -1331,7 +1331,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
 uint32_t GatewayWorker::WorkerRoutine()
 {
     BOOL compl_status = false;
-    OVERLAPPED_ENTRY* fetched_ovls = new OVERLAPPED_ENTRY[MAX_FETCHED_OVLS];
+    OVERLAPPED_ENTRY* fetched_ovls = GwNewArray(OVERLAPPED_ENTRY, MAX_FETCHED_OVLS);
     uint32_t num_fetched_ovls = 0;
     uint32_t err_code = 0;
     uint32_t oper_num_bytes = 0, flags = 0, oldTimeMs = timeGetTime();
@@ -1666,7 +1666,7 @@ uint32_t GatewayWorker::CreateSocketData(
 // Adds new active database.
 uint32_t GatewayWorker::AddNewDatabase(db_index_type db_index)
 {
-    worker_dbs_[db_index] = new WorkerDbInterface(db_index, worker_id_);
+    worker_dbs_[db_index] = GwNewConstructor2(WorkerDbInterface, db_index, worker_id_);
 
     return 0;
 }
@@ -1801,7 +1801,7 @@ void GatewayWorker::DeleteInactiveDatabase(db_index_type db_index)
 {
     if (worker_dbs_[db_index] != NULL)
     {
-        delete worker_dbs_[db_index];
+        GwDeleteSingle(worker_dbs_[db_index]);
         worker_dbs_[db_index] = NULL;
     }
 }
