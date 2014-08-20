@@ -132,7 +132,6 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             string json = @"{Header:"""",Depth:0,Count:0,Nodes:[{$:{Reuse:""NodeJson""}}]}";
 
             TObject tobj = Helper.Create(json, "NodeJson");
-            Assert.AreEqual("NodeJson", ((TObjArr)tobj.Properties[3]).elementTypeName);
 
             var root = (Json)tobj.CreateInstance();
             root.Data = Helper.GetTreeData();

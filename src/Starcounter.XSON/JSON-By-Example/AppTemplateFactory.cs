@@ -173,13 +173,11 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else if (upperName == "REUSE")
             {
-                var tarr = _template.Parent as TObjArr;
-                if (tarr == null)
+                var tobj = _template as TObject;
+                if (tobj == null)
                     ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
-                if (tarr.ElementType != _template)
-                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-                tarr.elementTypeName = v;
+                tobj.CodegenMetadata.Add("Reuse", v);
             }
             else if (upperName == "NAMESPACE")
             {
@@ -188,10 +186,8 @@ namespace Starcounter.Internal.JsonTemplate
 
                 appTemplate.Namespace = v;
             } else if (upperName == "DATATYPE") {
-                if (_template is TObjArr) {
-                    ((TObjArr)_template).InstanceDataTypeName = v;
-                } else if (_template is OTT) {
-                    ((OTT)_template).InstanceDataTypeName = v;
+                if (_template is TObjArr || _template is OTT) {
+                    _template.CodegenMetadata.Add("InstanceDataTypeName", v);
                 } else {
                     ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
                 }

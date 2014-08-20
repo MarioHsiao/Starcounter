@@ -28,13 +28,8 @@ namespace Starcounter.Templates {
 		internal Action<Json, Json> UnboundSetter;
 		internal Func<Json, Json> UnboundGetter;
         private Func<TObjArr, TObject> getElementType = null;
-		/// <summary>
-		/// 
-		/// </summary>
-		internal TObject[] _Single = new TObject[0];
-		private string instanceDataTypeName;
-        internal string elementTypeName;
-        
+		private TObject[] single = new TObject[0];
+      
 		/// <summary>
 		/// 
 		/// </summary>
@@ -243,12 +238,12 @@ namespace Starcounter.Templates {
         /// <value></value>
         public override IEnumerable<Template> Children {
             get {
-                return (IEnumerable<Template>)_Single;
+                return (IEnumerable<Template>)single;
             }
         }
 
         protected override IReadOnlyList<Internal.IReadOnlyTree> _Children {
-            get { return _Single; }
+            get { return single; }
         }
 
         /// <summary>
@@ -260,55 +255,30 @@ namespace Starcounter.Templates {
         /// <value>The obj template adhering to each element in this array</value>
         public TObject ElementType {
             get {
-                if (_Single.Length != 0)
-                    return _Single[0];
+                if (single.Length != 0)
+                    return single[0];
 
                 if (getElementType == null) 
                     return null;
 
                 ElementType = getElementType(this);
-                return _Single[0];
+                return single[0];
             }
             set {
                 if (value != null) {
-                    if (InstanceDataTypeName != null) {
-                        value.InstanceDataTypeName = InstanceDataTypeName;
-                    }
+                    // TODO:
+                    // Check why this is needed (or if it is needed).
+                    //if (InstanceDataTypeName != null) {
+                    //    value.InstanceDataTypeName = InstanceDataTypeName;
+                    //}
 
-                    _Single = new TObject[1];
-                    _Single[0] = (TObject)value;
+                    single = new TObject[1];
+                    single[0] = (TObject)value;
                 } else {
-                    _Single = new TObject[0];
+                    single = new TObject[0];
                 }
             }
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        public string InstanceDataTypeName {
-            get { return instanceDataTypeName; }
-            set {
-                var tj = ElementType;
-                if (tj != null)
-                    tj.InstanceDataTypeName = value;
-                instanceDataTypeName = value;
-            }
-        }
-
-        ///// <summary>
-        ///// Contains the default value for the property represented by this
-        ///// Template for each new App object.
-        ///// </summary>
-        ///// <value>The default value as object.</value>
-        ///// <exception cref="System.NotImplementedException"></exception>
-        //public override object DefaultValueAsObject {
-        //    get {
-        //        throw new System.NotImplementedException();
-        //    }
-        //    set {
-        //        throw new System.NotImplementedException();
-        //    }
-        //}
 
         public virtual Json CreateInstance(Json parent) {
             return new Arr<Json>(parent, this);

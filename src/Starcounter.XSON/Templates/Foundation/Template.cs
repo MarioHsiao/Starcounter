@@ -24,12 +24,33 @@ namespace Starcounter.Templates {
         private static readonly IReadOnlyList<IReadOnlyTree> _emptyList = new List<IReadOnlyTree>();
 
         /// <summary>
+        /// Dictionary used to hold values gathered when json is parsed from file and during codegeneration.
+        /// When using templates in applications this dictionary should never be used or instantiated.
+        /// </summary>
+        private Dictionary<string, string> codegenMetadata;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Template" /> class.
         /// </summary>
         public Template() {
             Editable = false;
             TemplateIndex = -1;
             _dynamic = false;
+        }
+
+        internal Dictionary<string, string> CodegenMetadata {
+            get {
+                if (codegenMetadata == null)
+                    codegenMetadata = new Dictionary<string, string>();
+                return codegenMetadata;
+            }
+        }
+
+        internal string GetCodegenMetadata(string key) {
+            string value = null;
+            if (codegenMetadata != null)
+                codegenMetadata.TryGetValue(key, out value);
+            return value;
         }
 
         /// <summary>
@@ -270,47 +291,6 @@ namespace Starcounter.Templates {
                 return str; // +" #" + this.GetHashCode();
             }
         }
-
-        ///// <summary>
-        ///// Contains the default value for the property represented by this
-        ///// Template for each new App object.
-        ///// </summary>
-        ///// <value>The default value as object.</value>
-        ///// <exception cref="System.NotImplementedException">This template </exception>
-        //public virtual object DefaultValueAsObject {
-        //    get {
-        //        return null;
-        //    }
-        //    set {
-        //        throw new NotImplementedException("This template " + GetType().FullName + " does not implement DefaultValueAsObject");
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Gets the instance.
-        ///// </summary>
-        ///// <param name="parent">The parent.</param>
-        ///// <returns>System.Object.</returns>
-        //public object GetInstance(Json parent) {
-        //    return this.CreateInstance(parent);
-        //}
-
-        ///// <summary>
-        ///// Creates the instance.
-        ///// </summary>
-        ///// <param name="parent">The parent.</param>
-        ///// <returns>System.Object.</returns>
-        //public virtual object CreateInstance(Json parent) {
-        //    return null;
-        //}
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <returns></returns>
-        //public object CreateInstance() {
-        //    return CreateInstance(null);
-        //}
 
         /// <summary>
         /// 
