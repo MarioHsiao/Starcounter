@@ -131,8 +131,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 							var tarr = kid as TObjArr;
 							var isUntyped = ((tarr.ElementType == null) || (tarr.ElementType.Properties.Count == 0));
 
-							if (isUntyped)
-								GenerateClassesForDefaultArray(tarr);
+                            if (isUntyped) {
+                                if (tarr.elementTypeName != null)
+                                    GenerateClassesForReusedJson(tarr);
+                                else 
+								    GenerateClassesForDefaultArray(tarr);
+                            }
 
 							GenerateProperty(
 								kid,
@@ -176,6 +180,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
                 }
             }
+        }
+
+        private void GenerateClassesForReusedJson(TObjArr template) {
+            var acn = Generator.GetJsonArrayClass(template.elementTypeName);
+//            template.ElementType = (TJson)acn.NTemplateClass.Template;
+
+            Generator.ValueClasses[template] = acn;
+            Generator.TemplateClasses[template] = acn.NTemplateClass;
+            Generator.MetaClasses[template] = acn.NMetadataClass;
         }
 
 		private void GenerateClassesForDefaultArray(TObjArr template) {

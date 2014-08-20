@@ -27,13 +27,14 @@ namespace Starcounter.Templates {
 		internal Func<Json, IEnumerable> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
 		internal Func<Json, Json> UnboundGetter;
-		
+        private Func<TObjArr, TObject> getElementType = null;
 		/// <summary>
 		/// 
 		/// </summary>
 		internal TObject[] _Single = new TObject[0];
 		private string instanceDataTypeName;
-
+        internal string elementTypeName;
+        
 		/// <summary>
 		/// 
 		/// </summary>
@@ -47,6 +48,11 @@ namespace Starcounter.Templates {
             customSetter(parent, value);
         }
 
+        public void SetCustomGetElementType(Func<TObjArr, TObject> getElementType) {
+            ElementType = null;
+            this.getElementType = getElementType;
+        }
+        
 		/// <summary>
 		/// Sets the getter and setter delegates for unbound values to the submitted delegates.
 		/// </summary>
@@ -254,17 +260,26 @@ namespace Starcounter.Templates {
         /// <value>The obj template adhering to each element in this array</value>
         public TObject ElementType {
             get {
-                if (_Single.Length == 0) {
+                if (_Single.Length != 0)
+                    return _Single[0];
+
+                if (getElementType == null) 
                     return null;
-                }
-                return (TObject)_Single[0];
+
+                ElementType = getElementType(this);
+                return _Single[0];
             }
             set {
-                if (InstanceDataTypeName != null) {
-                    value.InstanceDataTypeName = InstanceDataTypeName;
+                if (value != null) {
+                    if (InstanceDataTypeName != null) {
+                        value.InstanceDataTypeName = InstanceDataTypeName;
+                    }
+
+                    _Single = new TObject[1];
+                    _Single[0] = (TObject)value;
+                } else {
+                    _Single = new TObject[0];
                 }
-                _Single = new TObject[1];
-                _Single[0] = (TObject)value;
             }
         }
         /// <summary>

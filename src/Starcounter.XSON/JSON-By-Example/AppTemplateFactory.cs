@@ -173,7 +173,13 @@ namespace Starcounter.Internal.JsonTemplate
             }
             else if (upperName == "REUSE")
             {
-                ErrorHelper.RaiseNotImplementedException(name, _debugInfo);
+                var tarr = _template.Parent as TObjArr;
+                if (tarr == null)
+                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+
+                if (tarr.ElementType != _template)
+                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                tarr.elementTypeName = v;
             }
             else if (upperName == "NAMESPACE")
             {

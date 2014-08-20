@@ -523,14 +523,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
 
                     var tArr = mn.Template as TObjArr;
-                    if (tArr != null && tArr.ElementType.Properties.Count != 0) {
-                        sb.Clear();
-                        sb.Append("        ");
-                        sb.Append(mn.MemberName);
-                        sb.Append(".ElementType = ");
-                        sb.Append(mn.Type.Generic[0].GlobalClassSpecifier);
-                        sb.Append(".DefaultTemplate;");
-                        a.Prefix.Add(sb.ToString());
+                    if (tArr != null) {
+                        if (tArr.ElementType.Properties.Count != 0 || Generator.GetDefaultJson() != mn.Type.Generic[0]) {
+                            sb.Clear();
+                            sb.Append("        ");
+                            sb.Append(mn.MemberName);
+                            sb.Append(".SetCustomGetElementType((arr) => { return ");
+                            sb.Append(mn.Type.Generic[0].GlobalClassSpecifier);
+                            sb.Append(".DefaultTemplate;});");
+                            a.Prefix.Add(sb.ToString());
+                        }
                     }
 
                     if (mn.BackingFieldName != null /*&& !(mn.Template is TObjArr)*/) {
