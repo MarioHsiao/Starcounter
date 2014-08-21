@@ -1033,7 +1033,7 @@ uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
 {
 #ifdef GW_DEV_DEBUG
     std::stringstream str_stream;
-    str_stream << "Number of allocations: " << g_NumAllocationsCounter;
+    str_stream << "Number of allocations: " << g_NumAllocationsCounter << " " << g_NumAlignedAllocationsCounter;
     std::string tmp_str = str_stream.str();
 
     const char* test_msg = tmp_str.c_str(); //"Starcounter gateway test response :)";

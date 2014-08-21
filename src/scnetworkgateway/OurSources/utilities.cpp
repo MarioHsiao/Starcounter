@@ -6,6 +6,7 @@ namespace network {
 
 #ifdef GW_DEV_DEBUG
 int64_t g_NumAllocationsCounter = 0;
+int64_t g_NumAlignedAllocationsCounter = 0;
 #endif
 
 static CRITICAL_SECTION* StatisticsCS = NULL;

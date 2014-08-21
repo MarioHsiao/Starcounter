@@ -17,7 +17,7 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     worker_id_ = new_worker_id;
 
     // Allocating data for sockets infos.
-    sockets_infos_ = (ScSocketInfoStruct*) _aligned_malloc(sizeof(ScSocketInfoStruct) * g_gateway.setting_max_connections_per_worker(), MEMORY_ALLOCATION_ALIGNMENT);
+    sockets_infos_ = (ScSocketInfoStruct*) GwNewAligned(sizeof(ScSocketInfoStruct) * g_gateway.setting_max_connections_per_worker());
 
     // Cleaning all socket infos and setting indexes.
     for (socket_index_type i = g_gateway.setting_max_connections_per_worker() - 1; i >= 0; i--)
@@ -39,7 +39,7 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
         return PrintLastError();
     }
 
-    rebalance_accept_sockets_ = (PSLIST_HEADER) _aligned_malloc(sizeof(SLIST_HEADER), MEMORY_ALLOCATION_ALIGNMENT);
+    rebalance_accept_sockets_ = (PSLIST_HEADER) GwNewAligned(sizeof(SLIST_HEADER));
     GW_ASSERT(rebalance_accept_sockets_);
     InitializeSListHead(rebalance_accept_sockets_);
 
@@ -1111,7 +1111,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             // Getting temporary rebalance container.
             RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
             if (NULL == rsi) {
-                rsi = (RebalancedSocketInfo*)_aligned_malloc(sizeof(RebalancedSocketInfo), MEMORY_ALLOCATION_ALIGNMENT);
+                rsi = (RebalancedSocketInfo*) GwNewAligned(sizeof(RebalancedSocketInfo));
             }
             rsi->Init(sd->GetPortIndex(), sd->GetSocket());
 

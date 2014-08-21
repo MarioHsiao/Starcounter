@@ -46,7 +46,7 @@ public:
         // Checking if we should completely dispose the chunk.
         if (worker_chunks_[store_index].get_num_entries() > GatewayChunkStoresSizes[store_index])
         {
-            _aligned_free(sd);
+            GwDeleteAligned(sd);
             num_allocated_chunks_[store_index]--;
         }
         else
@@ -83,7 +83,7 @@ public:
         }
 
         // Creating new chunk.
-        sd = (SocketDataChunk*) _aligned_malloc(GatewayChunkSizes[chunk_store_index], MEMORY_ALLOCATION_ALIGNMENT);
+        sd = (SocketDataChunk*) GwNewAligned(GatewayChunkSizes[chunk_store_index]);
         GW_ASSERT(NULL != sd);
         num_allocated_chunks_[chunk_store_index]++;
 
