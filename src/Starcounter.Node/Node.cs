@@ -696,15 +696,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Node destructor.
-        /// </summary>
-        ~Node()
-        {
-            if (sync_task_info_.IsConnectionEstablished())
-                sync_task_info_.Close();
-        }
-
-        /// <summary>
         /// Frees network streams.
         /// </summary>
         internal void FreeConnection(NodeTask nt, Boolean isSyncCall)
@@ -881,7 +872,7 @@ namespace Starcounter
                 currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
             // Initializing connection.
-            nt.Reset(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId, aggrMsgType);
+            nt.ResetButKeepSocket(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId, aggrMsgType);
 
             // Checking if we don't use aggregation.
             if (!UsesAggregation()) {
@@ -994,7 +985,7 @@ namespace Starcounter
             lock (finished_async_tasks_)
             {
                 // Initializing connection.
-                sync_task_info_.Reset(requestBytes, requestBytesLength, null, null, userObject, receiveTimeoutMs, 0);
+                sync_task_info_.ResetButKeepSocket(requestBytes, requestBytesLength, null, null, userObject, receiveTimeoutMs, 0);
 
                 // Doing synchronous request and returning response.
                 return sync_task_info_.PerformSyncRequest();

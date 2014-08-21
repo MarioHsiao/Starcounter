@@ -29,7 +29,7 @@ namespace Starcounter.Server {
         /// <param name="configuration">The configuration to turn to when
         /// configuring the host needs a configurable value.</param>
         internal static unsafe void Configure(ServerConfiguration configuration) {
-            byte* mem = (byte*)Marshal.AllocHGlobal(128);
+            byte* mem = (byte*) BitsAndBytes.Alloc(128);
 
             ulong hmenv = ConfigureMemory(configuration, mem);
             mem += 128;

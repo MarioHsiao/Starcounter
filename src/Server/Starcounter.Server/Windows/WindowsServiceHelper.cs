@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 
 namespace Starcounter.Server.Windows {
+    using Starcounter.Internal;
     using QUERY_SERVICE_CONFIG = Win32Service.QUERY_SERVICE_CONFIG;
     using SERVICE_STATUS_PROCESS = Win32Service.SERVICE_STATUS_PROCESS;
 
@@ -115,7 +116,7 @@ namespace Starcounter.Server.Windows {
 
             serviceConfig = null;
             bufferSize = 2048;
-            buffer = Marshal.AllocHGlobal((int)bufferSize);
+            buffer = BitsAndBytes.Alloc((int)bufferSize);
             bytesNeeded = 0;
 
             try {
@@ -133,9 +134,9 @@ namespace Starcounter.Server.Windows {
                     if (lastError != Win32Error.ERROR_INSUFFICIENT_BUFFER)
                         throw new Win32Exception(lastError);
 
-                    Marshal.FreeHGlobal(buffer);
+                    BitsAndBytes.Free(buffer);
                     bufferSize = bytesNeeded;
-                    buffer = Marshal.AllocHGlobal((int)bufferSize);
+                    buffer = BitsAndBytes.Alloc((int)bufferSize);
 
                     goto call_native_query;
                 }
@@ -146,7 +147,7 @@ namespace Starcounter.Server.Windows {
                 serviceConfig = new QUERY_SERVICE_CONFIG();
                 Marshal.PtrToStructure(buffer, serviceConfig);
             } finally {
-                Marshal.FreeHGlobal(buffer);
+                BitsAndBytes.Free(buffer);
             }
 
             return serviceConfig;
@@ -162,7 +163,7 @@ namespace Starcounter.Server.Windows {
 
             serviceStatus = null;
             bufferSize = Marshal.SizeOf(typeof(SERVICE_STATUS_PROCESS));
-            buffer = Marshal.AllocHGlobal(bufferSize);
+            buffer = BitsAndBytes.Alloc(bufferSize);
             bytesNeeded = 0;
 
             try {
@@ -182,9 +183,9 @@ namespace Starcounter.Server.Windows {
                     if (lastError != Win32Error.ERROR_INSUFFICIENT_BUFFER)
                         throw new Win32Exception(lastError);
 
-                    Marshal.FreeHGlobal(buffer);
+                    BitsAndBytes.Free(buffer);
                     bufferSize = bytesNeeded;
-                    buffer = Marshal.AllocHGlobal((int)bufferSize);
+                    buffer = BitsAndBytes.Alloc((int)bufferSize);
                     goto call_native_query;
                 }
 
@@ -194,7 +195,7 @@ namespace Starcounter.Server.Windows {
                 serviceStatus = new SERVICE_STATUS_PROCESS();
                 Marshal.PtrToStructure(buffer, serviceStatus);
             } finally {
-                Marshal.FreeHGlobal(buffer);
+                BitsAndBytes.Free(buffer);
             }
 
             return serviceStatus;
