@@ -1,5 +1,4 @@
 ﻿
-using Starcounter.Internal.Application.CodeGeneration;
 using Starcounter.Internal.MsBuild.Codegen;
 using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;

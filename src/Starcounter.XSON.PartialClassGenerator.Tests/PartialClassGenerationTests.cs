@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using TJson = Starcounter.Templates.TObject;
 using Starcounter.Templates;
+using System.Collections.Generic;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
@@ -112,6 +113,30 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             t = new Json.JsonByExample.Schema().GetType();
             actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
             Assert.AreEqual(expected, actual);
+        }
+
+        [Test]
+        public static void TestGeneratedCodeWithArrayItemReuse() {
+            string json = @"{ myarr:[ { $: {Reuse:""MyNamespace.Person""} } ] }";
+
+            var className = "Test";
+            var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
+            tobj.ClassName = className;
+
+            var generator = PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
+            Console.WriteLine(generator.GenerateCode());
+        }
+
+        [Test]
+        public static void TestJsonTreeWithReuse() {
+            string json = @"{Header:"""",Depth:0,Count:0,Nodes:[{$:{Reuse:""NodeJson""}}]}";
+
+            TObject tobj = Helper.Create(json, "NodeJson");
+
+            var root = (Json)tobj.CreateInstance();
+            root.Data = Helper.GetTreeData();
+            
+            Console.WriteLine(root.ToJson());
         }
     }
 }

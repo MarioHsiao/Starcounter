@@ -32,7 +32,7 @@ namespace Starcounter.Templates {
 		internal Func<Json, Json> UnboundGetter;
 
 		private PropertyList _PropertyTemplates;
-		private string instanceDataTypeName;
+
 		private BindingStrategy bindChildren = BindingStrategy.Auto;
 		protected Type _JsonType;
 		public bool HasAtLeastOneBoundProperty = true; // TODO!
@@ -288,18 +288,6 @@ namespace Starcounter.Templates {
                 return _JsonType;
             }
             set { _JsonType = value; }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public string InstanceDataTypeName {
-            get { return instanceDataTypeName; }
-            set {
-                instanceDataTypeName = value;
-                if (!string.IsNullOrEmpty(value))
-					BindChildren = BindingStrategy.Bound;
-            }
         }
 
         /// <summary>

@@ -98,6 +98,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (CodebehindClass != null) {
                     return CodebehindClass.ClassName;
                 }
+
+                if (NTemplateClass == null)
+                    return "";
                 var template = NTemplateClass.Template;
                 string className = null;
                 if (template is TObject) {
