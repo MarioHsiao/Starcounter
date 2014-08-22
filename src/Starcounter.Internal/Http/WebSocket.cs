@@ -228,6 +228,17 @@ namespace Starcounter
         /// Server push on WebSocket.
         /// </summary>
         /// <param name="data">Data to push.</param>
+        /// <param name="dataLen">Length of data in bytes.</param>
+        /// <param name="isText">Is given data a text?</param>
+        /// <param name="connFlags">Connection flags on the push.</param>
+        public void Send(Byte[] data, Int32 dataLen, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags) {
+            PushServerMessage(this, data, dataLen, isText, connFlags);
+        }
+
+        /// <summary>
+        /// Server push on WebSocket.
+        /// </summary>
+        /// <param name="data">Data to push.</param>
         /// <param name="isText">Is given data a text?</param>
         /// <param name="connFlags">Connection flags on the push.</param>
         public void Send(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
