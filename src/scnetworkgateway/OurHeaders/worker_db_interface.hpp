@@ -149,7 +149,7 @@ public:
 
         if (channels_)
         {
-            delete[] channels_;
+            GwDeleteArray(channels_);
             channels_ = NULL;
         }
     }
@@ -163,7 +163,7 @@ public:
     ~WorkerDbInterface()
     {
         // Deleting channels.
-        delete[] channels_;
+        GwDeleteArray(channels_);
         channels_ = NULL;
     }
 

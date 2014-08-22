@@ -512,7 +512,7 @@ WorkerDbInterface::WorkerDbInterface(
 
     // Allocating channels.
     num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
-    channels_ = new core::channel_number[num_schedulers_];
+    channels_ = GwNewArray(core::channel_number, num_schedulers_);
 
     // Getting unique client interface for this worker.
     bool shared_int_acquired = shared_int_.acquire_client_number2(worker_id);

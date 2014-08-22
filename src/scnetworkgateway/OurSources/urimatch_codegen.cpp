@@ -15,7 +15,7 @@ namespace network {
 // Initializes managed codegen loader.
 void CodegenUriMatcher::Init()
 {
-    uri_matching_code_ = new char[MAX_URI_MATCHING_CODE_BYTES];
+    uri_matching_code_ = GwNewArray(char, MAX_URI_MATCHING_CODE_BYTES);
 
     // Loading managed URI matching codegen DLL.
     HINSTANCE dll = LoadLibrary(L"GatewayToClrProxy.dll");
@@ -160,7 +160,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 uint32_t num_chars = static_cast<uint32_t> (tmp_str.size());
 
                 // COnverting char to wchar_t basically.
-                wchar_t* wcstring = new wchar_t[num_chars + 1];
+                wchar_t* wcstring = GwNewArray(wchar_t, num_chars + 1);
                 size_t num_conv_chars = 0;
                 mbstowcs_s(&num_conv_chars, wcstring, num_chars, tmp_str.c_str(), _TRUNCATE);
                 GW_ASSERT(num_chars == num_conv_chars);
@@ -169,7 +169,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 std::wstringstream comp_output_wchar_stream;
                 comp_output_wchar_stream << L"URI matcher generated code compilation has failed:" << std::endl;
                 comp_output_wchar_stream << wcstring;
-                delete [] wcstring;
+                GwDeleteArray(wcstring);
 
                 // Sending compiler output to server log.
                 g_gateway.LogWriteError(comp_output_wchar_stream.str().c_str());

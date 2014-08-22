@@ -421,13 +421,6 @@ typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
-uint32_t OuterPortProcessData(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
 uint32_t AppsPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
@@ -436,13 +429,6 @@ uint32_t AppsPortProcessData(
     bool* is_handled);
 
 uint32_t OuterSubportProcessData(
-    HandlersList* hl,
-    GatewayWorker *gw,
-    SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_info,
-    bool* is_handled);
-
-uint32_t AppsSubportProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
@@ -1082,7 +1068,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
 // Represents an active database.
 uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params);
-class HandlersTable;
 class RegisteredUris;
 class ActiveDatabase
 {
@@ -1097,9 +1082,6 @@ class ActiveDatabase
 
     // Unique sequence number.
     volatile uint64_t unique_num_unsafe_;
-
-    // Database handlers.
-    HandlersTable* user_handlers_;
 
     // Channels events monitor thread handle.
     HANDLE channels_events_thread_handle_;
@@ -1161,12 +1143,6 @@ public:
     const std::string& get_db_name()
     {
         return db_name_;
-    }
-
-    // Gets database handlers.
-    HandlersTable* get_user_handlers()
-    {
-        return user_handlers_;
     }
 
     // Closes all tracked sockets.
@@ -1285,10 +1261,6 @@ class ServerPort
     // All registered WebSockets belonging to this port.
     PortWsChannels* registered_ws_channels_;
 
-    // All registered subports belonging to this port.
-    // TODO: Fix full support!
-    RegisteredSubports* registered_subports_;
-
     // This port index in global array.
     port_index_type port_index_;
 
@@ -1309,7 +1281,8 @@ public:
             uri_matcher_cache_.pop_front();
             oldest_uri_matcher->Destroy();
 
-            delete oldest_uri_matcher;
+            GwDeleteSingle(oldest_uri_matcher);
+            oldest_uri_matcher = NULL;
         }
 
         // Adding new entry to cache.
@@ -1369,12 +1342,6 @@ public:
     PortHandlers* get_port_handlers()
     {
         return port_handlers_;
-    }
-
-    // Getting registered subports.
-    RegisteredSubports* get_registered_subports()
-    {
-        return registered_subports_;
     }
 
     // Removes this port.
@@ -1565,8 +1532,6 @@ class Gateway
     // List of active databases.
     ActiveDatabase active_databases_[MAX_ACTIVE_DATABASES];
 
-    bool db_starting_;
-
     // Indicates what databases went down.
     bool db_did_go_down_[MAX_ACTIVE_DATABASES];
 
@@ -1646,9 +1611,6 @@ class Gateway
     // Specific gateway log writer.
     GatewayLogWriter gw_log_writer_;
 
-    // Gateway handlers.
-    HandlersTable* gw_handlers_;
-
     // All server ports.
     ServerPort server_ports_[MAX_PORTS_NUM];
 
@@ -1696,18 +1658,6 @@ public:
     socket_timestamp_type get_global_timer_unsafe()
     {
         return global_timer_unsafe_;
-    }
-
-    bool get_db_starting() {
-        return db_starting_;
-    }
-
-    void set_db_starting() {
-        db_starting_ = true;
-    }
-
-    void reset_db_starting() {
-        db_starting_ = false;
     }
 
     uint16_t get_setting_internal_system_port() {
@@ -1863,7 +1813,6 @@ public:
     // Adds some URI handler: either Apps or Gateway.
     uint32_t AddUriHandler(
         GatewayWorker *gw,
-        HandlersTable* handlers_table,
         uint16_t port,
         const char* app_name_string,
         const char* original_uri_info,
@@ -1879,20 +1828,8 @@ public:
     // Adds some port handler: either Apps or Gateway.
     uint32_t AddPortHandler(
         GatewayWorker *gw,
-        HandlersTable* handlers_table,
         uint16_t port,
         const char* app_name_string,
-        BMX_HANDLER_TYPE handler_info,
-        db_index_type db_index,
-        GENERIC_HANDLER_CALLBACK handler_proc);
-
-    // Adds some sub-port handler: either Apps or Gateway.
-    uint32_t AddSubPortHandler(
-        GatewayWorker *gw,
-        HandlersTable* handlers_table,
-        uint16_t port,
-        const char* app_name_string,
-        bmx::BMX_SUBPORT_TYPE subport,
         BMX_HANDLER_TYPE handler_info,
         db_index_type db_index,
         GENERIC_HANDLER_CALLBACK handler_proc);
@@ -1979,12 +1916,6 @@ public:
         return worker_thread_handles_[worker_id];
     }
 
-    // Getting gateway handlers.
-    HandlersTable* get_gw_handlers()
-    {
-        return gw_handlers_;
-    }
-
     // Checks if certain server port exists.
     ServerPort* FindServerPort(uint16_t port_num)
     {
@@ -2010,7 +1941,7 @@ public:
     }
 
     // Adds new server port.
-    ServerPort* AddServerPort(uint16_t port_num, SOCKET listening_sock)
+    ServerPort* AddNewServerPort(uint16_t port_num, SOCKET listening_sock)
     {
         // Looking for an empty server port slot.
         int32_t empty_slot = 0;
