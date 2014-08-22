@@ -1,21 +1,16 @@
 ﻿
-
 using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
 using System;
 using System.Collections.Generic;
 using TJson = Starcounter.Templates.TObject;
 
-
 namespace Starcounter.Internal.MsBuild.Codegen {
-
-
     /// <summary>
     /// Hooks up the code-behind bind classes and reorders the generated partials
     /// accordingly.
     /// </summary>
     internal class GeneratorPhase4 {
-
         internal Gen2DomGenerator Generator;
 
         internal void RunPhase4(AstJsonClass acn) {
@@ -32,9 +27,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 GenerateInputBindings(kid);
             }
         }
-
-
-
 
         /// <summary>
         /// Connects the code behind classes.
@@ -60,7 +52,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (mapInfo.IsMapped) {
                     appTemplate = FindTAppFor(mapInfo, rootTemplate);
 
-                    if (appTemplate.InstanceDataTypeName != null) {
+                    if (appTemplate.GetCodegenMetadata(Gen2DomGenerator.InstanceDataTypeName) != null) {
                         Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
                     }
 

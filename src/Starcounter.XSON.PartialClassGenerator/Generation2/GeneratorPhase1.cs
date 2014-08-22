@@ -129,10 +129,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         }
                         else if (kid is TObjArr) {
 							var tarr = kid as TObjArr;
-							var isUntyped = ((tarr.ElementType == null) || (tarr.ElementType.Properties.Count == 0));
+                            var titem = tarr.ElementType;
+							var isUntyped = ((titem == null) || (titem.Properties.Count == 0));
 
-							if (isUntyped)
-								GenerateClassesForDefaultArray(tarr);
+                            if (isUntyped) {
+                                if (titem != null && titem.GetCodegenMetadata(Gen2DomGenerator.Reuse) != null)
+                                    GenerateClassesForReusedJson(tarr, titem.GetCodegenMetadata(Gen2DomGenerator.Reuse));
+                                else 
+								    GenerateClassesForDefaultArray(tarr);
+                            }
 
 							GenerateProperty(
 								kid,
@@ -176,6 +181,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
                 }
             }
+        }
+
+        private void GenerateClassesForReusedJson(TObjArr template, string reuseTypeName) {
+            var acn = Generator.GetJsonArrayClass(reuseTypeName);
+
+            Generator.ValueClasses[template] = acn;
+            Generator.TemplateClasses[template] = acn.NTemplateClass;
+            Generator.MetaClasses[template] = acn.NMetadataClass;
         }
 
 		private void GenerateClassesForDefaultArray(TObjArr template) {
