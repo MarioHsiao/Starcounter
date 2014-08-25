@@ -1161,7 +1161,9 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     std::replace(processed_uri_info.begin(), processed_uri_info.end(), '\\', ' ');
 
     for (int32_t i = 0; i < num_params; i++) {
-        ss >> param_types[i];
+        int32_t p;
+        ss >> p;
+        param_types[i] = static_cast<uint8_t>(p);
     }
 
     std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);

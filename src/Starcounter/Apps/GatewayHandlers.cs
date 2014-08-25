@@ -152,6 +152,8 @@ namespace Starcounter
                     raw_chunk = null;
                 }
 
+                // Clearing current session.
+                Session.End();
             }
 
 			return 0;
@@ -272,6 +274,8 @@ namespace Starcounter
 
             } finally {
 
+                // Clearing current session.
+                Session.End();
             }
 
             return 0;
@@ -496,6 +500,9 @@ namespace Starcounter
                     BitsAndBytes.Free((IntPtr)raw_chunk);
                     raw_chunk = null;
                 }
+
+                // Clearing current session.
+                Session.End();
             }
 
             return 0;

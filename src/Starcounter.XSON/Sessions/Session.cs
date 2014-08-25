@@ -166,9 +166,9 @@ namespace Starcounter {
             get {
                 return _current;
             }
+
             set {
                 _current = value;
-
             }
         }
 
@@ -591,6 +591,7 @@ namespace Starcounter {
         /// Destroys the session.
         /// </summary>
         public void Destroy() {
+
             foreach (var dac in _stateList) {
                 if (dac.Data != null)
                     DisposeJsonRecursively(dac.Data);
