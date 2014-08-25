@@ -39,6 +39,9 @@ namespace Starcounter.Internal.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+#if false
             var systemTableDef = new TableDef(
                 "materialized_table",
                 new ColumnDef[]
@@ -66,6 +69,7 @@ namespace Starcounter.Internal.Metadata {
                 }
                 );
             return sysTableTypeDef;
+#endif
         }
 
         /// <summary>

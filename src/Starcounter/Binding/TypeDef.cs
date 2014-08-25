@@ -123,44 +123,34 @@ namespace Starcounter.Binding
         /// to describe meta-tables, since they cannot be created when TypeDef is created
         /// </summary>
         internal void PopulatePropertyDef() {
-#if DEBUG
-            if (Name == "Starcounter.Internal.Metadata.MaterializedTable" || 
-                Name == "Starcounter.Internal.Metadata.MaterializedColumn" ||
-                Name == "Starcounter.Internal.Metadata.MaterializedIndex" ||
-                Name == "Starcounter.Internal.Metadata.MaterializedIndexColumn")
-                Debug.Assert(_PropertyDefs != null);
-            else
-                Debug.Assert(_PropertyDefs == null);
-#endif
-            if (_PropertyDefs == null) {
-                TableDef tblDef = Db.LookupTable(Name);
-                Debug.Assert(tblDef != null);
-                Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
-                PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-                Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
-                PropertyDef[] prpDefs = new PropertyDef[properties.Length];
-                DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
-                typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
-                for (int i = 0; i < prpDefs.Length; i++) {
-                    DbTypeCode dbTypeCode;
-                    if (!System.Enum.TryParse<DbTypeCode>(properties[i].PropertyType.Name, out dbTypeCode)) {
-                        dbTypeCode = DbTypeCode.Object;
-                        prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode,
-                            properties[i].PropertyType.FullName);
-                    } else
-                        prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode);
-                    prpDefs[i].ColumnName = prpDefs[i].Name;
-                    typeCodes[i + 1] = dbTypeCode;
-                    int j = 0;
-                    while (j < prpDefs.Length && !(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name))
-                        j++;
-                    prpDefs[i].IsNullable = tblDef.ColumnDefs[j + 1].IsNullable;
-                    Debug.Assert(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name);
-                }
-                _PropertyDefs = prpDefs;
-                TableDef.ColumnDefs = tblDef.ColumnDefs;
-                ColumnRuntimeTypes = typeCodes;
+            Debug.Assert(_PropertyDefs == null);
+            TableDef tblDef = Db.LookupTable(Name);
+            Debug.Assert(tblDef != null);
+            Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
+            PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
+            PropertyDef[] prpDefs = new PropertyDef[properties.Length];
+            DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
+            typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
+            for (int i = 0; i < prpDefs.Length; i++) {
+                DbTypeCode dbTypeCode;
+                if (!System.Enum.TryParse<DbTypeCode>(properties[i].PropertyType.Name, out dbTypeCode)) {
+                    dbTypeCode = DbTypeCode.Object;
+                    prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode,
+                        properties[i].PropertyType.FullName);
+                } else
+                    prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode);
+                prpDefs[i].ColumnName = prpDefs[i].Name;
+                typeCodes[i + 1] = dbTypeCode;
+                int j = 0;
+                while (j < prpDefs.Length && !(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name))
+                    j++;
+                prpDefs[i].IsNullable = tblDef.ColumnDefs[j + 1].IsNullable;
+                Debug.Assert(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name);
             }
+            _PropertyDefs = prpDefs;
+            TableDef.ColumnDefs = tblDef.ColumnDefs;
+            ColumnRuntimeTypes = typeCodes;
         }
 
         internal IndexInfo2 GetIndexInfo(string name) {

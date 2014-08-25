@@ -105,8 +105,8 @@ namespace QueryProcessingTest {
                 count++;
             }
             Trace.Assert(count == 18);
-            rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
-                "materialized_index").First;
+            rv = Db.SQL<RawView>("select rw from rawview rw where name = ?",
+                "MaterializedIndex").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.UniqueIdentifierReversed == "materialized_index.Raw.Starcounter");
             Trace.Assert(rv.UniqueIdentifier == rv.UniqueIdentifierReversed.ReverseOrderDotWords());
@@ -131,9 +131,9 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Name == "MaterializedColumn");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Internal.Metadata.HostMaterializedTable);
-            Trace.Assert(c.Type.Name == "materialized_column");
+            Trace.Assert(c.Type.Name == "MaterializedColumn");
             Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable != null);
-            Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).FullName == "materialized_column");
+            Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).FullName == "Starcounter.Internal.Metadata.MaterializedColumn");
             Trace.Assert(c.Table != null);
             Trace.Assert(c.Table.Name == "Column");
             Trace.Assert(c.Table.FullName == "Starcounter.Metadata.Column");
