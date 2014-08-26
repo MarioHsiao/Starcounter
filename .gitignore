@@ -60,3 +60,6 @@ src/Samples/NetworkIoTest/image.png
 
 #nCover
 *.sln.DotSettings
+
+# Deleted
+src/Starcounter/Query/prologbeans/*
