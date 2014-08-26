@@ -325,7 +325,7 @@ namespace Starcounter
                                             if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
 
                                                 // Creating WebSocket object used for pushes.
-                                                WebSocket ws = new WebSocket(wsInternal, null, null, WebSocket.WsHandlerType.Empty);
+                                                WebSocket ws = new WebSocket(wsInternal, null, null, false, WebSocket.WsHandlerType.Empty);
 
                                                 // Setting current WebSocket.
                                                 WebSocket.Current = ws;
@@ -354,33 +354,38 @@ namespace Starcounter
             ForEach(channelName, cargoId, (WebSocket ws) => { ws.Disconnect(); });
         }
 
+        Boolean isText_;
+
+        /// <summary>
+        /// Is a text or binary message?
+        /// </summary>
+        internal Boolean IsText {
+            get {
+                return isText_;
+            }
+        }
+
         String message_;
 
+        /// <summary>
+        /// Received text message.
+        /// </summary>
         internal String Message
         {
-            get
-            {
+            get {
                 return message_;
-            }
-
-            set
-            {
-                message_ = value;
             }
         }
 
         Byte[] bytes_;
 
+        /// <summary>
+        /// Received binary bytes.
+        /// </summary>
         internal Byte[] Bytes
         {
-            get
-            {
+            get {
                 return bytes_;
-            }
-
-            set
-            {
-                bytes_ = value;
             }
         }
 
@@ -391,12 +396,18 @@ namespace Starcounter
             get { return wsHandlerType_; }
         }
 
-        internal WebSocket(WebSocketInternal wsInternal, String message, Byte[] bytes, WsHandlerType wsHandlerType)
+        internal WebSocket(
+            WebSocketInternal wsInternal,
+            String message,
+            Byte[] bytes,
+            Boolean isText,
+            WsHandlerType wsHandlerType)
         {
             wsInternal_ = wsInternal;
             message_ = message;
             bytes_ = bytes;
             wsHandlerType_ = wsHandlerType;
+            isText_ = isText;
         }
 
         internal void ConstructFromRequest(

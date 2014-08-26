@@ -58,7 +58,7 @@ namespace Starcounter.Internal {
                 Int32 sizeBytes = jsonPatch.CreateJsonPatchBytes(session, false, out patchResponse);
 
                 // Sending the patch bytes to the client.
-                ws.Send(patchResponse, sizeBytes, false);
+                ws.Send(patchResponse, sizeBytes, ws.IsText);
 
                 return;
 
