@@ -67,6 +67,12 @@ uint32_t PortAggregator(
                 // Checking if port exists.
                 if (INVALID_PORT_INDEX == port_index) {
 
+                    // Nullifying the aggregation structure.
+                    memset(ags, 0, sizeof(AggregationStruct));
+
+                    // Sending data on aggregation socket.
+                    err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
+
                     // NOTE: If problem finding port - breaking the sequence.
                     break;
                 }
