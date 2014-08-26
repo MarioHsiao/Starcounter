@@ -63,8 +63,14 @@ uint32_t PortAggregator(
             {
                 // Getting port handler.
                 port_index_type port_index = g_gateway.FindServerPortIndex(ags->port_number_);
-                GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
+                // Checking if port exists.
+                if (INVALID_PORT_INDEX == port_index) {
+
+                    // NOTE: If problem finding port - breaking the sequence.
+                    break;
+                }
+                
                 // Getting new socket index.
                 ags->socket_info_index_ = gw->ObtainFreeSocketIndex(INVALID_SOCKET, port_index, false);
 
