@@ -20,9 +20,9 @@ namespace Starcounter.Internal.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_table_id = 1;
-            internal static int columnHandle_name = 2;
-            internal static int columnHandle_base_table = 3;
+            internal static int columnHandleName;
+            internal static int columnHandleBaseTable;
+            internal static int columnHandleNameToken;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -41,35 +41,6 @@ namespace Starcounter.Internal.Metadata {
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-#if false
-            var systemTableDef = new TableDef(
-                "materialized_table",
-                new ColumnDef[]
-                {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("base_table", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                }
-                );
-
-            var sysTableTypeDef = new TypeDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("BaseTable", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedTable") { ColumnName = "base_table" }
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedTable"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.String, DbTypeCode.Object
-                }
-                );
-            return sysTableTypeDef;
-#endif
         }
 
         /// <summary>
@@ -80,24 +51,23 @@ namespace Starcounter.Internal.Metadata {
             : base(u) {
         }
 
-        /// <summary>
-        /// </summary>
-        public ulong TableId {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_id); }
-        }
 
         /// <summary>
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
         public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandleName); }
         }
 
         /// <summary>
         /// </summary>
         public MaterializedTable BaseTable {
-            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_base_table); }
+            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandleBaseTable); }
+        }
+
+        public ulong NameToken {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandleNameToken); }
         }
     }
 }

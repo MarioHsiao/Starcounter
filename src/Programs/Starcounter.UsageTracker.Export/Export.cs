@@ -123,7 +123,7 @@ namespace Starcounter.Applications.UsageTrackerApp.Export {
             QueryResultRows<object> items = Db.SlowSQL(string.Format("SELECT o FROM {0} o", table.Name));
             TypeDef typeDef = null;
             try {
-                typeDef = Bindings.GetTypeDef((int)table.TableId);
+                typeDef = Bindings.GetTypeDef(table.Name);
             }
             catch (IndexOutOfRangeException) {
                 throw new KeyNotFoundException(string.Format("Failed to get type definition for table: {0}, Is Host Executable running?", table.Name));

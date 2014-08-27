@@ -254,20 +254,20 @@ namespace QueryProcessingTest {
 
         public static void TestComparison() {
             HelpMethods.LogEvent("Start testing queries on comparison bug");
-            ulong accountTableId = Db.SQL<ulong>("select TableId from MaterializedTable where name = ?", "QueryProcessingTest.Account").First;
-            var e = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = ?", 
+            ulong accountTableId = Db.SQL<ulong>("select NameToken from MaterializedTable where name = ?", "QueryProcessingTest.Account").First;
+            var e = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where Nametoken = ?", 
                 accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
             Starcounter.Internal.Metadata.MaterializedTable s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
-            Trace.Assert(s.TableId == accountTableId);
+            Trace.Assert(s.NameToken == accountTableId);
             e.Dispose();
             e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>(
-                "select s from MaterializedTable s where TableId = " + accountTableId).GetEnumerator();
+                "select s from MaterializedTable s where NameToken = " + accountTableId).GetEnumerator();
             Trace.Assert(e.MoveNext());
             s = e.Current;
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
-            Trace.Assert(s.TableId == accountTableId);
+            Trace.Assert(s.NameToken == accountTableId);
             e.Dispose();
             e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = 10").
                 GetEnumerator();
