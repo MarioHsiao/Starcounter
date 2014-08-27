@@ -99,14 +99,21 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) class RebalancedSocketInfo {
     // NOTE: Lock-free SLIST_ENTRY should be the first field!
     SLIST_ENTRY lockfree_entry_;
 
-    port_index_type port_index_;
+    // Saved socket handle.
     SOCKET socket_;
 
+    // Saved client IP address.
+    ip_info_type client_ip_info_;
+
+    // Saved port index.
+    port_index_type port_index_;
+    
 public:
 
-    void Init(port_index_type port_index, SOCKET socket) {
+    void Init(port_index_type port_index, SOCKET socket, ip_info_type client_ip_info) {
         port_index_ = port_index;
         socket_ = socket;
+        client_ip_info_ = client_ip_info;
     }
 
     port_index_type get_port_index() {
@@ -115,6 +122,10 @@ public:
 
     SOCKET get_socket() {
         return socket_;
+    }
+
+    ip_info_type get_client_ip_info() {
+        return client_ip_info_;
     }
 };
 
