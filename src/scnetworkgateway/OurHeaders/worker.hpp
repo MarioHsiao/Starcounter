@@ -46,7 +46,7 @@ public:
         // Checking if we should completely dispose the chunk.
         if (worker_chunks_[store_index].get_num_entries() > GatewayChunkStoresSizes[store_index])
         {
-            _aligned_free(sd);
+            GwDeleteAligned(sd);
             num_allocated_chunks_[store_index]--;
         }
         else
@@ -83,7 +83,7 @@ public:
         }
 
         // Creating new chunk.
-        sd = (SocketDataChunk*) _aligned_malloc(GatewayChunkSizes[chunk_store_index], MEMORY_ALLOCATION_ALIGNMENT);
+        sd = (SocketDataChunk*) GwNewAligned(GatewayChunkSizes[chunk_store_index]);
         GW_ASSERT(NULL != sd);
         num_allocated_chunks_[chunk_store_index]++;
 
@@ -444,7 +444,7 @@ public:
         {
             if (worker_dbs_[i])
             {
-                delete worker_dbs_[i];
+                GwDeleteSingle(worker_dbs_[i]);
                 worker_dbs_[i] = NULL;
             }
         }
@@ -542,7 +542,11 @@ public:
     // Does general data processing using port handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
-        return g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers()->RunHandlers(gw, sd, is_handled);
+        PortHandlers* ph = g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers();
+
+        GW_ASSERT(NULL != ph);
+
+        return ph->RunHandlers(gw, sd, is_handled);
     }
 
     // Push given chunk to database queue.

@@ -81,7 +81,7 @@ public:
     {
         if (uri_matching_code_)
         {
-            delete [] uri_matching_code_;
+            GwDeleteArray(uri_matching_code_);
             uri_matching_code_ = NULL;
         }
     }

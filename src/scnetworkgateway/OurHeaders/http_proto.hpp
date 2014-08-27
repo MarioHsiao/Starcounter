@@ -137,6 +137,10 @@ public:
             // Checking if database index is the same.
             if (handler_lists_[i]->get_db_index() == db_index)
             {
+                // Deleting the entry.
+                GwDeleteSingle(handler_lists_[i]);
+                handler_lists_[i] = NULL;
+
                 handler_lists_.RemoveByIndex(i);
                 i--;
 
@@ -164,15 +168,15 @@ public:
         is_gateway_uri_ = is_gateway_uri;
     }
 
-    // Adding new handlers list.
-    void Add(HandlersList* handlers_list)
-    {
-        handler_lists_.Add(handlers_list);
-    }
-
     // Resetting entry.
     void Reset()
     {
+        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++) {
+            // Deleting the entry.
+            GwDeleteSingle(handler_lists_[i]);
+            handler_lists_[i] = NULL;
+        }
+
         // Removing all handlers lists.
         handler_lists_.Clear();
 

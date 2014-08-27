@@ -13,6 +13,7 @@ using System.IO;
 
 namespace Starcounter.CLI {
     using Severity = Sc.Tools.Logging.Severity;
+using Starcounter.Server;
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
@@ -54,7 +55,9 @@ namespace Starcounter.CLI {
         /// code needs to use the CLI services of this assembly from a
         /// CLI client process).
         /// </summary>
-        public static void InitCLIContext() {
+        public static void InitCLIContext(string client = KnownClientContexts.UnknownContext) {
+            SharedCLI.ClientContext.Current = client;
+
             // Install custom assembly resolver to be able to resolve
             // third-party web socket library
             // TODO:
@@ -168,23 +171,33 @@ namespace Starcounter.CLI {
         /// </summary>
         public static class ClientContext {
             /// <summary>
-            /// Gets a string including the user information and the
-            /// file/process name of the calling client.
+            /// The current context. Set by client applications.
             /// </summary>
-            /// <remarks>
-            /// <example>per@per-vaio (via foo.exe)</example>
-            /// </remarks>
-            public static string UserAndProgram {
-                get {
-                    var program = Process.GetCurrentProcess().MainModule.ModuleName;
-                    try {
-                        return string.Format("{0}@{1} (via {2})",
-                            Environment.UserName.ToLowerInvariant(), 
-                            Environment.MachineName.ToLowerInvariant(), program
-                            );
-                    } catch {
-                        return program;
-                    }
+            public static string Current = KnownClientContexts.UnknownContext;
+
+            /// <summary>
+            /// Creates a string containing the current client context
+            /// information, including information about the current client
+            /// and the user.
+            /// </summary>
+            /// <returns>A string representing the current context.</returns>
+            public static string GetCurrentContextInfo() {
+                return Make(Current);
+            }
+
+            static string Make(string context) {
+                // Note:
+                // Don't change this format unless also changing the parser
+                // method KnownClientContext.FromContextInfo() in Starcounter.Server.
+                var program = Process.GetCurrentProcess().MainModule.ModuleName;
+                try {
+                    return string.Format("{0}, {1}@{2} (via {3})",
+                        context,
+                        Environment.UserName.ToLowerInvariant(),
+                        Environment.MachineName.ToLowerInvariant(), program
+                        );
+                } catch {
+                    return string.Format("{0}, {1}", context, program);
                 }
             }
         }

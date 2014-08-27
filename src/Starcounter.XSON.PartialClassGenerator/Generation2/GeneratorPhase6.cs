@@ -91,8 +91,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (cls.InheritedClass != null) {
                         CreateClassAliases(cls.InheritedClass);
                     }
-                    if (cls is AstJsonClass) {
-                        CreateClassAliases((cls as AstJsonClass).NTemplateClass);
+
+                    var jsonClass = cls as AstJsonClass;
+                    if (jsonClass != null && jsonClass.NTemplateClass != null) {
+                        CreateClassAliases(jsonClass.NTemplateClass);
                       //  CreateClassAliases((cls as AstJsonClass).NMetadataClass);
                     }
                 }

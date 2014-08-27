@@ -63,8 +63,20 @@ uint32_t PortAggregator(
             {
                 // Getting port handler.
                 port_index_type port_index = g_gateway.FindServerPortIndex(ags->port_number_);
-                GW_ASSERT(INVALID_PORT_INDEX != port_index);
 
+                // Checking if port exists.
+                if (INVALID_PORT_INDEX == port_index) {
+
+                    // Nullifying the aggregation structure.
+                    memset(ags, 0, sizeof(AggregationStruct));
+
+                    // Sending data on aggregation socket.
+                    err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
+
+                    // NOTE: If problem finding port - breaking the sequence.
+                    break;
+                }
+                
                 // Getting new socket index.
                 ags->socket_info_index_ = gw->ObtainFreeSocketIndex(INVALID_SOCKET, port_index, false);
 

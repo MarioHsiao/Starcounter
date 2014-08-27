@@ -121,7 +121,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 userArgs[i++] = arg.dummy;
             }
 
-            return new AppInfo(exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs);
+            return new AppInfo(exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs, exe.StartedBy);
         }
     }
 }

@@ -65,7 +65,7 @@ namespace Starcounter.Templates {
 						return BindingStrategy.Unbound;
 
 					while (!(parent is TObject))
-						parent = Parent;
+						parent = parent.Parent;
 					return ((TObject)parent).BindChildren;
 				}
 

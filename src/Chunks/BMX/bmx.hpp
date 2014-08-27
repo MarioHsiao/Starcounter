@@ -506,25 +506,11 @@ namespace bmx
             uint16_t port_num,
             BMX_HANDLER_INDEX_TYPE* handler_index);
 
-        uint32_t FindSubportHandler(
-            uint16_t port_num,
-            BMX_SUBPORT_TYPE subport_num,
-            BMX_HANDLER_INDEX_TYPE* handler_index);
-
         // Registers port handler.
         uint32_t RegisterPortHandler(
             const uint16_t port_num,
             const char* app_name,
             const GENERIC_HANDLER_CALLBACK port_handler,
-            const uint16_t managed_handler_index,
-            BMX_HANDLER_TYPE* phandler_info);
-
-        // Registers sub-port handler.
-        uint32_t RegisterSubPortHandler(
-            const uint16_t port,
-            const char* app_name,
-            const BMX_SUBPORT_TYPE subport,
-            const GENERIC_HANDLER_CALLBACK subport_handler,
             const uint16_t managed_handler_index,
             BMX_HANDLER_TYPE* phandler_info);
 

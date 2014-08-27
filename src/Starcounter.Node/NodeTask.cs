@@ -10,17 +10,49 @@ using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Starcounter {
+
+    /// <summary>
+    /// Wrapper around socket, which is closed on disposal.
+    /// </summary>
+    internal class SocketWrapper {
+
+        Socket socket_;
+
+        public Socket SocketObj {
+
+            get {
+                Debug.Assert(socket_ != null);
+                return socket_;
+            }
+
+            set { socket_ = value; }
+        }
+
+        public void Destroy() {
+
+            if (null != socket_) {
+
+                socket_.Close();
+                socket_ = null;
+            }
+        }
+
+        ~SocketWrapper() {
+            Destroy();            
+        }
+    }
+
     internal class NodeTask
     {
         /// <summary>
         /// Private buffer size for each connection.
         /// </summary>
-        public const Int32 PrivateBufferSize = 8192;
+        const Int32 PrivateBufferSize = 8192;
 
         /// <summary>
         /// Maximum number of pending asynchronous tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 4096 * 2;
+        public const Int32 MaxNumPendingAsyncTasks = 1024;
 
         /// <summary>
         /// Maximum number of pending aggregated tasks.
@@ -28,94 +60,110 @@ namespace Starcounter {
         public const Int32 MaxNumPendingAggregatedTasks = 8192 * 2;
 
         /// <summary>
-        /// Tcp client.
+        /// Socket wrapper around currently used socket.
         /// </summary>
-        public TcpClient TcpClientObj = null;
-
-        /// <summary>
-        /// Connection socket.
-        /// </summary>
-        public Socket SocketObj = null;
+        SocketWrapper socketWrapper_;
 
         /// <summary>
         /// Buffer used for accumulation.
         /// </summary>
-        internal Byte[] AccumBuffer = null;
+        Byte[] accumBuffer_ = null;
 
         /// <summary>
         /// Timer used for receive timeout.
         /// </summary>
-        public Timer ReceiveTimer = null;
+        Timer receiveTimer_ = null;
 
         /// <summary>
         /// Indicates if connection has timed out.
         /// </summary>
-        public Boolean ConnectionTimedOut = false;
+        Boolean connectionTimedOut_ = false;
 
         /// <summary>
         /// Response.
         /// </summary>
-        public Response Resp = null;
+        Response resp_ = null;
 
         /// <summary>
         /// Total received bytes.
         /// </summary>
-        public Int32 TotallyReceivedBytes = 0;
+        Int32 totallyReceivedBytes_ = 0;
 
         /// <summary>
         /// Current receive offset.
         /// </summary>
-        public Int32 ReceiveOffsetBytes = 0;
+        Int32 receiveOffsetBytes_ = 0;
 
         /// <summary>
         /// Response size bytes.
         /// </summary>
-        public Int32 ResponseSizeBytes = 0;
+        Int32 responseSizeBytes_ = 0;
 
         /// <summary>
         /// Request bytes.
         /// </summary>
-        public Byte[] RequestBytes = null;
+        Byte[] requestBytes_ = null;
+
+        /// <summary>
+        /// Request bytes.
+        /// </summary>
+        public Byte[] RequestBytes {
+            get { return requestBytes_; }
+        }
 
         /// <summary>
         /// Size of request in bytes.
         /// </summary>
-        public Int32 RequestBytesLength = 0;
+        Int32 requestBytesLength_ = 0;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Int32 RequestBytesLength {
+            get { return requestBytesLength_; }
+        }
 
         /// <summary>
         /// User delegate.
         /// </summary>
-        public Action<Response, Object> UserDelegate = null;
+        Action<Response, Object> userDelegate_ = null;
 
         /// <summary>
         /// Aggregation message delegate.
         /// </summary>
-        public Action<Node.AggregationStruct> AggrMsgDelegate = null;
+        Action<Node.AggregationStruct> aggrMsgDelegate_ = null;
+
+        /// <summary>
+        /// Aggregation message delegate.
+        /// </summary>
+        public Action<Node.AggregationStruct> AggrMsgDelegate {
+            get { return aggrMsgDelegate_; }
+        }
 
         /// <summary>
         /// Bound scheduler id.
         /// </summary>
-        public Byte BoundSchedulerId = 0;
+        Byte boundSchedulerId_ = 0;
 
         /// <summary>
         /// User object.
         /// </summary>
-        public Object UserObject = null;
+        Object userObject_ = null;
 
         /// <summary>
         /// Memory stream.
         /// </summary>
-        public MemoryStream MemStream = null;
+        MemoryStream memStream_ = null;
 
         /// <summary>
         /// Node to which this connection belongs.
         /// </summary>
-        public Node NodeInst = null;
+        Node nodeInst_ = null;
 
         /// <summary>
         /// Receive timeout in milliseconds.
         /// </summary>
-        public Int32 ReceiveTimeoutMs { get; set; }
+        Int32 receiveTimeoutMs_;
 
         /// <summary>
         /// Type of aggregation message for the task.
@@ -123,9 +171,9 @@ namespace Starcounter {
         public MixedCodeConstants.AggregationMessageTypes AggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
 
         /// <summary>
-        /// Resets the connection details.
+        /// Resets the connection details, but keeps the existing socket.
         /// </summary>
-        public void Reset(
+        public void ResetButKeepSocket(
             Byte[] requestBytes,
             Int32 requestBytesLength,
             Action<Response, Object> userDelegate,
@@ -135,24 +183,24 @@ namespace Starcounter {
             Byte boundSchedulerId,
             MixedCodeConstants.AggregationMessageTypes aggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA)
         {
-            Resp = null;
-            TotallyReceivedBytes = 0;
-            ReceiveOffsetBytes = 0;
-            ResponseSizeBytes = 0;
+            resp_ = null;
+            totallyReceivedBytes_ = 0;
+            receiveOffsetBytes_ = 0;
+            responseSizeBytes_ = 0;
 
-            RequestBytes = requestBytes;
-            RequestBytesLength = requestBytesLength;
+            requestBytes_ = requestBytes;
+            requestBytesLength_ = requestBytesLength;
 
-            UserDelegate = userDelegate;
-            UserObject = userObject;
+            userDelegate_ = userDelegate;
+            userObject_ = userObject;
 
-            ReceiveTimeoutMs = receiveTimeoutMs;
-            ConnectionTimedOut = false;
+            receiveTimeoutMs_ = receiveTimeoutMs;
+            connectionTimedOut_ = false;
 
-            MemStream = new MemoryStream();
-            BoundSchedulerId = boundSchedulerId;
+            memStream_ = new MemoryStream();
+            boundSchedulerId_ = boundSchedulerId;
             AggrMsgType = aggrMsgType;
-            AggrMsgDelegate = aggrMsgDelegate;
+            aggrMsgDelegate_ = aggrMsgDelegate;
         }
 
         /// <summary>
@@ -162,36 +210,10 @@ namespace Starcounter {
         /// <param name="portNumber"></param>
         public NodeTask(Node nodeInst)
         {
-            NodeInst = nodeInst;
+            nodeInst_ = nodeInst;
 
-            if (!NodeInst.UsesAggregation())
-                AccumBuffer = new Byte[NodeTask.PrivateBufferSize];
-        }
-
-        /// <summary>
-        /// Returns True if connection is established.
-        /// </summary>
-        public Boolean IsConnectionEstablished()
-        {
-            return (null != TcpClientObj);
-        }
-
-        /// <summary>
-        /// Closes the connection.
-        /// </summary>
-        public void Close()
-        {
-            if (null != TcpClientObj)
-            {
-                TcpClientObj.Close();
-                TcpClientObj = null;
-            }
-
-            if (null != SocketObj)
-            {
-                SocketObj.Close();
-                SocketObj = null;
-            }
+            if (!nodeInst_.UsesAggregation())
+                accumBuffer_ = new Byte[NodeTask.PrivateBufferSize];
         }
 
         /// <summary>
@@ -203,41 +225,41 @@ namespace Starcounter {
             try
             {
                 // Checking if connection was timed out.
-                if (ConnectionTimedOut)
+                if (connectionTimedOut_)
                     throw new IOException("Connection timed out.");
 
                 // Calling end read to indicate finished read operation.
-                Int32 recievedBytes = SocketObj.EndReceive(ar);
+                Int32 recievedBytes = socketWrapper_.SocketObj.EndReceive(ar);
 
                 // Checking if remote host has closed the connection.
                 if (0 == recievedBytes)
                     throw new IOException("Remote host closed the connection.");
 
                 // Dumping data to memory stream.
-                MemStream.Write(AccumBuffer, ReceiveOffsetBytes, recievedBytes);
+                memStream_.Write(accumBuffer_, receiveOffsetBytes_, recievedBytes);
 
                 // Adding to total received size.
-                TotallyReceivedBytes += recievedBytes;
+                totallyReceivedBytes_ += recievedBytes;
 
                 // Process the bytes here.
-                if (Resp == null)
+                if (resp_ == null)
                 {
                     try
                     {
                         // Trying to parse the response.
-                        Resp = new Response(AccumBuffer, 0, TotallyReceivedBytes, null, false);
+                        resp_ = new Response(accumBuffer_, 0, totallyReceivedBytes_, null, false);
 
                         // Setting offset bytes to 0.
-                        ReceiveOffsetBytes = 0;
+                        receiveOffsetBytes_ = 0;
 
                         // Getting the whole response size.
-                        ResponseSizeBytes = Resp.ResponseSizeBytes;
+                        responseSizeBytes_ = resp_.ResponseSizeBytes;
                     }
                     catch (Exception exc)
                     {
                         // Continue to receive when there is not enough data.
-                        Resp = null;
-                        ReceiveOffsetBytes = TotallyReceivedBytes;
+                        resp_ = null;
+                        receiveOffsetBytes_ = totallyReceivedBytes_;
 
                         // Trying to fetch recognized error code.
                         UInt32 code;
@@ -251,21 +273,21 @@ namespace Starcounter {
                 }
 
                 // Checking if we have received everything.
-                if ((Resp != null) && (TotallyReceivedBytes == ResponseSizeBytes))
+                if ((resp_ != null) && (totallyReceivedBytes_ == responseSizeBytes_))
                 {
                     // Setting the response buffer.
-                    Resp.SetResponseBuffer(MemStream.GetBuffer(), MemStream, TotallyReceivedBytes);
+                    resp_.SetResponseBuffer(memStream_.GetBuffer(), memStream_, totallyReceivedBytes_);
 
                     // Invoking user delegate.
-                    NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject, BoundSchedulerId);
+                    nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
 
                     // Freeing connection resources.
-                    NodeInst.FreeConnection(this, false);
+                    nodeInst_.FreeConnection(this, false);
                 }
                 else
                 {
                     // Read again. This callback will be called again.
-                    SocketObj.BeginReceive(AccumBuffer, ReceiveOffsetBytes, PrivateBufferSize - ReceiveOffsetBytes, SocketFlags.None, NetworkOnReceiveCallback, null);
+                    socketWrapper_.SocketObj.BeginReceive(accumBuffer_, receiveOffsetBytes_, PrivateBufferSize - receiveOffsetBytes_, SocketFlags.None, NetworkOnReceiveCallback, null);
                 }
             }
             catch (Exception exc)
@@ -280,9 +302,13 @@ namespace Starcounter {
         /// <param name="obj"></param>
         void OnReceiveTimeout(object obj)
         {
-            ReceiveTimer.Dispose();
-            ConnectionTimedOut = true;
-            SocketObj.Close(); // Closing the Socket cancels the async operation.
+            receiveTimer_.Dispose();
+            connectionTimedOut_ = true;
+
+            if (null != socketWrapper_) {
+                socketWrapper_.Destroy();
+                socketWrapper_ = null;
+            }
         }
 
         /// <summary>
@@ -294,29 +320,29 @@ namespace Starcounter {
             try
             {
                 // Calling end write to indicate finished write operation.
-                Int32 numBytesSent = SocketObj.EndSend(ar);
+                Int32 numBytesSent = socketWrapper_.SocketObj.EndSend(ar);
 
                 // Setting the receive timeout.
-                SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
+                socketWrapper_.SocketObj.ReceiveTimeout = receiveTimeoutMs_;
 
                 // Checking for correct number of bytes sent.
-                if (numBytesSent != RequestBytesLength)
+                if (numBytesSent != requestBytesLength_)
                 {
                     CallUserDelegateOnFailure(new Exception("Socket has sent wrong amount of data!"), false);
                     return;
                 }
 
                 // Starting read operation.
-                IAsyncResult res = SocketObj.BeginReceive(AccumBuffer, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
+                IAsyncResult res = socketWrapper_.SocketObj.BeginReceive(accumBuffer_, 0, PrivateBufferSize, SocketFlags.None, NetworkOnReceiveCallback, null);
 
                 // Checking if receive is not completed immediately.
                 if(!res.IsCompleted)
                 {
                     // Checking if we have timeout on receive.
-                    if (ReceiveTimeoutMs != 0)
+                    if (receiveTimeoutMs_ != 0)
                     {
                         // Scheduling a timer timeout job.
-                        ReceiveTimer = new Timer(OnReceiveTimeout, null, ReceiveTimeoutMs, Timeout.Infinite);
+                        receiveTimer_ = new Timer(OnReceiveTimeout, null, receiveTimeoutMs_, Timeout.Infinite);
                     }
                 }
             }
@@ -334,12 +360,9 @@ namespace Starcounter {
         {
             try
             {
-                SocketObj.EndConnect(ar);
+                socketWrapper_.SocketObj.EndConnect(ar);
 
-                TcpClientObj = new TcpClient();
-                TcpClientObj.Client = SocketObj;
-
-                SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
+                socketWrapper_.SocketObj.BeginSend(requestBytes_, 0, requestBytesLength_, SocketFlags.None, NetworkOnSendCallback, null);
             }
             catch (Exception exc)
             {
@@ -355,11 +378,13 @@ namespace Starcounter {
             try
             {
                 // Obtaining existing or creating new connection.
-                if (null == SocketObj)
+                if (null == socketWrapper_)
                 {
-                    SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    socketWrapper_ = new SocketWrapper();
 
-                    SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
+                    socketWrapper_.SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                    socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
                 }
                 else
                 {
@@ -367,25 +392,24 @@ namespace Starcounter {
                     try
                     {
 #endif
-                        SocketObj.BeginSend(RequestBytes, 0, RequestBytesLength, SocketFlags.None, NetworkOnSendCallback, null);
+                        socketWrapper_.SocketObj.BeginSend(requestBytes_, 0, requestBytesLength_, SocketFlags.None, NetworkOnSendCallback, null);
 #if RECONNECT
                     }
                     catch
                     {
-                        // Seems connection was closed so reconnecting.
-                        SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                        // Seems the connection was closed so trying to reconnect.
 
-                        SocketObj.BeginConnect(NodeInst.HostName, NodeInst.PortNumber, NetworkOnConnectCallback, null);
+                        socketWrapper_ = new SocketWrapper();
+
+                        socketWrapper_.SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
+                        socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
                     }
 #endif
                 }
             }
             catch (Exception exc)
             {
-                // Connection wasn't established.
-                SocketObj = null;
-                TcpClientObj = null;
-
                 CallUserDelegateOnFailure(exc, false);
             }
         }
@@ -398,26 +422,26 @@ namespace Starcounter {
             try
             {
                 // Trying to parse the response.
-                Resp = new Response(bytes, offset, resp_len_bytes, null, false);
+                resp_ = new Response(bytes, offset, resp_len_bytes, null, false);
 
                 // Getting the whole response size.
-                ResponseSizeBytes = Resp.ResponseSizeBytes;
+                responseSizeBytes_ = resp_.ResponseSizeBytes;
             }
             catch (Exception exc)
             {
                 // Continue to receive when there is not enough data.
-                Resp = null;
+                resp_ = null;
 
                 // Trying to fetch recognized error code.
                 UInt32 code;
                 if ((!ErrorCode.TryGetCode(exc, out code)) || (code != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS))
                 {
                     // Logging the exception to server log.
-                    if (NodeInst.ShouldLogErrors)
+                    if (nodeInst_.ShouldLogErrors)
                         Node.NodeLogException_(exc);
 
                     // Freeing connection resources.
-                    NodeInst.FreeConnection(this, false);
+                    nodeInst_.FreeConnection(this, false);
 
                     throw exc;
                 }
@@ -426,10 +450,10 @@ namespace Starcounter {
             // Setting the response buffer.
             Byte[] resp_bytes = new Byte[resp_len_bytes];
             Buffer.BlockCopy(bytes, offset, resp_bytes, 0, resp_len_bytes);
-            Resp.SetResponseBuffer(resp_bytes, null, resp_len_bytes);
+            resp_.SetResponseBuffer(resp_bytes, null, resp_len_bytes);
 
             // Invoking user delegate.
-            NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject, BoundSchedulerId);
+            nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
         }
 
         /// <summary>
@@ -445,83 +469,88 @@ namespace Starcounter {
                 {
 #endif
                     // Checking if we are connected.
-                    if (null == SocketObj)
+                    if (null == socketWrapper_)
                     {
-                        TcpClientObj = new TcpClient(NodeInst.HostName, NodeInst.PortNumber);
-                        SocketObj = TcpClientObj.Client;
+                        socketWrapper_ = new SocketWrapper();
+
+                        // Connection wasn't established.
+                        socketWrapper_.SocketObj = new Socket(SocketType.Stream, ProtocolType.Tcp);
+
+                        // Assuming that existing TCP connection is down.
+                        // So we need to create a new one.
+                        socketWrapper_.SocketObj.Connect(nodeInst_.HostName, nodeInst_.PortNumber);
                     }
 
                     // Sending the request.
-                    Int32 bytesSent = SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
-                    Debug.Assert(RequestBytesLength == bytesSent);
+                    Int32 bytesSent = socketWrapper_.SocketObj.Send(requestBytes_, 0, requestBytesLength_, SocketFlags.None);
+                    Debug.Assert(requestBytesLength_ == bytesSent);
 #if RECONNECT
                 }
                 catch
                 {
+                    socketWrapper_ = new SocketWrapper();
+
                     // Connection wasn't established.
-                    SocketObj = null;
-                    TcpClientObj = null;
+                    socketWrapper_.SocketObj = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
                     // Assuming that existing TCP connection is down.
                     // So we need to create a new one.
-                    TcpClientObj = new TcpClient(NodeInst.HostName, NodeInst.PortNumber);
-                    SocketObj = TcpClientObj.Client;
+                    socketWrapper_.SocketObj.Connect(nodeInst_.HostName, nodeInst_.PortNumber);
 
-                    SocketObj.Send(RequestBytes, 0, RequestBytesLength, SocketFlags.None);
+                    // Sending the request.
+                    socketWrapper_.SocketObj.Send(requestBytes_, 0, requestBytesLength_, SocketFlags.None);
                 }
 #endif
 
                 Int32 recievedBytes = 0;
 
                 // Setting the receive timeout.
-                SocketObj.ReceiveTimeout = ReceiveTimeoutMs;
+                socketWrapper_.SocketObj.ReceiveTimeout = receiveTimeoutMs_;
 
                 // Looping until we get everything.
                 while (true)
                 {
                     // Reading the response into predefined buffer.
-                    recievedBytes = SocketObj.Receive(AccumBuffer, ReceiveOffsetBytes, PrivateBufferSize - ReceiveOffsetBytes, SocketFlags.None);
-                    if (recievedBytes <= 0)
-                    {
-                        SocketObj = null;
+                    recievedBytes = socketWrapper_.SocketObj.Receive(accumBuffer_, receiveOffsetBytes_, PrivateBufferSize - receiveOffsetBytes_, SocketFlags.None);
+                    if (recievedBytes <= 0) {
                         throw new IOException("Remote host closed the connection.");
                     }
 
                     // Dumping data to memory stream.
-                    MemStream.Write(AccumBuffer, ReceiveOffsetBytes, recievedBytes);
+                    memStream_.Write(accumBuffer_, receiveOffsetBytes_, recievedBytes);
 
                     // Adding to total received size.
-                    TotallyReceivedBytes += recievedBytes;
+                    totallyReceivedBytes_ += recievedBytes;
 
-                    if (Resp == null)
+                    if (resp_ == null)
                     {
                         try
                         {
                             // Trying to parse the response.
-                            Resp = new Response(AccumBuffer, 0, TotallyReceivedBytes, null, false);
+                            resp_ = new Response(accumBuffer_, 0, totallyReceivedBytes_, null, false);
 
                             // Setting offset bytes to 0.
-                            ReceiveOffsetBytes = 0;
+                            receiveOffsetBytes_ = 0;
 
                             // Getting the whole response size.
-                            ResponseSizeBytes = Resp.ResponseSizeBytes;
+                            responseSizeBytes_ = resp_.ResponseSizeBytes;
                         }
                         catch (Exception exc)
                         {
                             // Continue to receive when there is not enough data.
-                            Resp = null;
-                            ReceiveOffsetBytes = TotallyReceivedBytes;
+                            resp_ = null;
+                            receiveOffsetBytes_ = totallyReceivedBytes_;
 
                             // Trying to fetch recognized error code.
                             UInt32 code;
                             if ((!ErrorCode.TryGetCode(exc, out code)) || (code != Error.SCERRAPPSHTTPPARSERINCOMPLETEHEADERS))
                             {
                                 // Logging the exception to server log.
-                                if (NodeInst.ShouldLogErrors)
+                                if (nodeInst_.ShouldLogErrors)
                                     Node.NodeLogException_(exc);
 
                                 // Freeing connection resources.
-                                NodeInst.FreeConnection(this, true);
+                                nodeInst_.FreeConnection(this, true);
 
                                 throw exc;
                             }
@@ -529,22 +558,22 @@ namespace Starcounter {
                     }
 
                     // Checking if we have received everything.
-                    if ((Resp != null) && (TotallyReceivedBytes == ResponseSizeBytes))
+                    if ((resp_ != null) && (totallyReceivedBytes_ == responseSizeBytes_))
                         break;
                 }
 
                 // Setting the response buffer.
-                Resp.SetResponseBuffer(MemStream.GetBuffer(), MemStream, TotallyReceivedBytes);
+                resp_.SetResponseBuffer(memStream_.GetBuffer(), memStream_, totallyReceivedBytes_);
 
                 // Freeing connection resources.
-                NodeInst.FreeConnection(this, true);
+                nodeInst_.FreeConnection(this, true);
             }
             catch (Exception exc)
             {
                 CallUserDelegateOnFailure(exc, true);
             }
 
-            return Resp;
+            return resp_;
         }
 
         /// <summary>
@@ -553,11 +582,17 @@ namespace Starcounter {
         /// <param name="exc"></param>
         void CallUserDelegateOnFailure(Exception exc, Boolean isSyncCall)
         {
+            // We don't want to use failing socket anymore.
+            if (null != socketWrapper_) {
+                socketWrapper_.Destroy();
+                socketWrapper_ = null;
+            }
+
             // Logging the exception to server log.
-            if (NodeInst.ShouldLogErrors)
+            if (nodeInst_.ShouldLogErrors)
                 Node.NodeLogException_(exc);
 
-            Resp = new Response()
+            resp_ = new Response()
             {
                 StatusCode = 503,
                 StatusDescription = "Service Unavailable",
@@ -566,15 +601,15 @@ namespace Starcounter {
             };
 
             // Parsing the response.
-            Resp.ConstructFromFields();
-            Resp.ParseResponseFromPlainBuffer();
+            resp_.ConstructFromFields();
+            resp_.ParseResponseFromPlainBuffer();
 
             // Invoking user delegate.
-            if (null != UserDelegate)
-                NodeInst.CallUserDelegate(Resp, UserDelegate, UserObject, BoundSchedulerId);
+            if (null != userDelegate_)
+                nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
 
             // Freeing connection resources.
-            NodeInst.FreeConnection(this, isSyncCall);
+            nodeInst_.FreeConnection(this, isSyncCall);
         }
     }
 }

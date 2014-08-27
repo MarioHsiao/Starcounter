@@ -65,6 +65,29 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 			return DefaultJsonArray;
 		}
 
+        public AstInstanceClass GetJsonArrayClass(string instanceTypeName) {
+            var astArray = new AstInstanceClass(this);
+            var genericTypeClass = new AstJsonClass(this) {  ClassStemIdentifier = instanceTypeName, ParentProperty = astArray };
+            genericTypeClass.CodebehindClass = new Starcounter.XSON.Metadata.CodeBehindClassInfo(null) { ClassName = instanceTypeName };
+
+            astArray.Generic = new AstClass[] { genericTypeClass };
+            astArray.ClassStemIdentifier = "Arr";
+            astArray.Namespace = "Starcounter";
+
+            astArray.NTemplateClass = new AstTemplateClass(this) {
+                NValueClass = astArray,
+                ClassStemIdentifier = "TArray",
+                Namespace = "Starcounter.Templates",
+                Generic = new AstClass[] { genericTypeClass },
+            };
+
+            astArray.NMetadataClass = new AstMetadataClass(this) {
+                NValueClass = astArray,
+                ClassStemIdentifier = "Metadata"
+            };
+            return astArray;
+        }
+
         /// <summary>
         /// 
         /// </summary>

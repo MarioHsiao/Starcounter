@@ -25,36 +25,6 @@ namespace Starcounter
 	);
 
     /// <summary>
-    /// Struct SubportHandlerParams
-    /// </summary>
-    public struct SubportHandlerParams
-    {
-        /// <summary>
-        /// The user session id
-        /// </summary>
-        public UInt64 UserSessionId;
-
-        /// <summary>
-        /// The subport id
-        /// </summary>
-        public UInt32 SubportId;
-
-        /// <summary>
-        /// The data stream
-        /// </summary>
-        public NetworkDataStream DataStream;
-    }
-
-    /// <summary>
-    /// Delegate SubportCallback
-    /// </summary>
-    /// <param name="info">The info.</param>
-    /// <returns>Boolean.</returns>
-    public delegate Boolean SubportCallback(
-        SubportHandlerParams info
-    );
-
-    /// <summary>
     /// Class GatewayHandlers
     /// </summary>
 	public unsafe class GatewayHandlers
@@ -75,17 +45,11 @@ namespace Starcounter
         static UInt16 num_raw_port_handlers_ = 0;
 
         /// <summary>
-        /// The subport_handlers_
-        /// </summary>
-        private static SubportCallback[] subport_handlers_;
-        
-        /// <summary>
         /// Initializes static members of the <see cref="GatewayHandlers" /> class.
         /// </summary>
         static GatewayHandlers()
 		{
             raw_port_handlers_ = new RawSocketCallback[MAX_HANDLERS];
-            subport_handlers_ = new SubportCallback[MAX_HANDLERS];
 		}
 
         /// <summary>
@@ -188,58 +152,12 @@ namespace Starcounter
                     raw_chunk = null;
                 }
 
+                // Clearing current session.
+                Session.End();
             }
 
 			return 0;
 		}
-
-        /// <summary>
-        /// Subports the outer handler.
-        /// </summary>
-        /// <param name="session_id">The session_id.</param>
-        /// <param name="raw_chunk">The raw_chunk.</param>
-        /// <param name="task_info">The task_info.</param>
-        /// <param name="is_handled">The is_handled.</param>
-        /// <returns>UInt32.</returns>
-        private unsafe static UInt32 SubportOuterHandler(
-            UInt16 managed_handler_id,
-            Byte* raw_chunk,
-            bmx.BMX_TASK_INFO* task_info,
-            Boolean* is_handled)
-        {
-            *is_handled = false;
-
-            UInt32 chunk_index = task_info->chunk_index;
-            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
-
-            // Fetching the callback.
-            SubportCallback user_callback = subport_handlers_[managed_handler_id];
-            if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
-
-            // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
-
-            // Releasing linked chunks if not single.
-            if (!is_single_chunk)
-                throw new NotImplementedException();
-
-            // Creating parameters.
-            SubportHandlerParams handler_params = new SubportHandlerParams
-            {
-                UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SESSION_LINEAR_INDEX),
-                SubportId = 0,
-                DataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id)
-            };
-
-            // Calling user callback.
-            *is_handled = user_callback(handler_params);
-            
-            // Reset managed task state before exiting managed task entry point.
-            TaskHelper.Reset();
-
-            return 0;
-        }
 
         static String AggrRespString =
             "HTTP/1.1 200 OK\r\n" +
@@ -356,6 +274,8 @@ namespace Starcounter
 
             } finally {
 
+                // Clearing current session.
+                Session.End();
             }
 
             return 0;
@@ -507,7 +427,7 @@ namespace Starcounter
 
                         Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
 
-                        ws = new WebSocket(wsInternal, null, dataBytes, WebSocket.WsHandlerType.BinaryData);
+                        ws = new WebSocket(wsInternal, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
                         break;
                     }
@@ -520,14 +440,14 @@ namespace Starcounter
                             *(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
                             Encoding.UTF8);
 
-                        ws = new WebSocket(wsInternal, dataString, null, WebSocket.WsHandlerType.StringMessage);
+                        ws = new WebSocket(wsInternal, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
 
                         break;
                     }
 
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_CLOSE:
                     {
-                        ws = new WebSocket(wsInternal, null, null, WebSocket.WsHandlerType.Disconnect);
+                        ws = new WebSocket(wsInternal, null, null, false, WebSocket.WsHandlerType.Disconnect);
 
                         break;
                     }
@@ -580,6 +500,9 @@ namespace Starcounter
                     BitsAndBytes.Free((IntPtr)raw_chunk);
                     raw_chunk = null;
                 }
+
+                // Clearing current session.
+                Session.End();
             }
 
             return 0;
@@ -707,82 +630,5 @@ namespace Starcounter
                 }
             }
 		}
-
-        /// <summary>
-        /// Registers the subport handler.
-        /// </summary>
-        public static void RegisterSubportHandler(
-            UInt16 port,
-            String appName,
-            UInt32 subport,
-            SubportCallback subportCallback,
-            UInt16 managedHandlerIndex,
-            out UInt64 handlerInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (subport_handlers_)
-            {
-                bmx.BMX_HANDLER_CALLBACK fp = SubportOuterHandler;
-                GCHandle gch = GCHandle.Alloc(fp);
-                IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
-
-                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, appName, subport, pinned_delegate, managedHandlerIndex, out handlerInfo);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
-
-                subport_handlers_[managedHandlerIndex] = subportCallback;
-
-                String dbName = StarcounterEnvironment.DatabaseNameLower;
-
-                String portInfo =
-                    dbName + " " +
-                    appName + " " +
-                    handlerInfo + " " +
-                    port + " " + 
-                    subport + " ";
-
-                portInfo += "\r\n\r\n\r\n\r\n";
-
-                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
-
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
-
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
-                }
-            }
-        }
-
-        public static void UnregisterSubport(
-            UInt16 port,
-            UInt32 subport,
-            UInt64 handlerInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (subport_handlers_)
-            {
-                UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
-
-                String dbName = StarcounterEnvironment.DatabaseNameLower;
-
-                String portInfo =
-                    dbName + " " +
-                    handlerInfo + " " +
-                    port + " " +
-                    subport + " ";
-
-                portInfo += "\r\n\r\n\r\n\r\n";
-
-                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
-
-                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
-
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
-                }
-            }
-        }
 	}
 }

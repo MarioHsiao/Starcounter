@@ -13,6 +13,7 @@ Json\
 ProjectTemplates\
 
 # Public assemblies
+Public Assemblies\Starcounter.ClientResolver.dll
 Public Assemblies\Starcounter.dll
 Public Assemblies\Starcounter.Apps.JsonPatch.dll
 Public Assemblies\Starcounter.Bootstrap.dll
@@ -215,6 +216,8 @@ staradmin.exe.config
 Starcounter.dll
 Starcounter.pdb
 Starcounter.XML
+Starcounter.ClientResolver.dll
+Starcounter.ClientResolver.pdb
 Starcounter.Apps.JsonPatch.dll
 Starcounter.Apps.JsonPatch.pdb
 Starcounter.Apps.JsonPatch.XML

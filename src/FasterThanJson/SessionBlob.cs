@@ -184,7 +184,7 @@ namespace Starcounter.Internal
          // Default size is 2Kb
          Int32 size = 2048;
          Debug.WriteLine("Allocating {0} of session state memory", size);
-         SessionBlob* blob = (SessionBlob*)System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
+         SessionBlob* blob = (SessionBlob*) BitsAndBytes.Alloc(size);
 #if DEBUG
          for (int t = 0 ; t < size ; t++ )
          {
@@ -213,7 +213,7 @@ namespace Starcounter.Internal
       /// <param name="Handle">The handle.</param>
       public static unsafe void FreeBlob(IntPtr Handle)
       {
-         System.Runtime.InteropServices.Marshal.FreeHGlobal((IntPtr)Handle);
+        BitsAndBytes.Free((IntPtr)Handle);
       }
 
       /// <summary>
