@@ -153,6 +153,9 @@ uint32_t PortAggregator(
                 sd_push_to_db->set_unique_aggr_index(ags->unique_aggr_index_);
                 sd_push_to_db->set_aggregated_flag();
 
+                // FIXME: Obtaining the aggregation socket client IP instead of real client-client IP.
+                sd_push_to_db->set_client_ip_info(sd->get_client_ip_info());
+
                 // Changing accumulative buffer accordingly.
                 sd_push_to_db->get_accum_buf()->SetAccumulation(ags->size_bytes_, 0);
 
