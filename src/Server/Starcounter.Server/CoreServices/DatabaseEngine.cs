@@ -10,6 +10,7 @@ using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel;
+using Starcounter.Server.PublicModel.Commands;
 using StarcounterInternal.Bootstrap;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
+using Starcounter.Rest.ExtensionMethods;
 
 namespace Starcounter.Server {
 
@@ -427,6 +429,69 @@ namespace Starcounter.Server {
 
         internal void SafeClose(Process p) {
             try { p.Close(); } catch { }
+        }
+
+        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, Database database) {
+            var restartCommand = new ActionCommand<int, Database>(
+                this.Server,
+                RestartCodeHost,
+                terminatingCodeHostProcess.Id,
+                database,
+                "Attempting to restart code host for {0}",
+                database.Name
+                );
+            this.Server.CurrentPublicModel.Execute(restartCommand);
+        }
+
+        void RestartCodeHost(ICommandProcessor processor, int terminatingCodeHostProcessId, Database database) {
+            // The database should reflect what applications we want started.
+
+            // Check the database is either not bound to any code host or that
+            // its bound to the one found terminating.
+
+            var boundProcess = database.CodeHostProcess;
+            if (boundProcess != null && boundProcess.Id != terminatingCodeHostProcessId) {
+                // The database is bound to some other process. We should
+                // let it be.
+                // Log this as debug?
+                // TODO:
+            }
+
+            // Grab the set of applications that we'll try to restart and
+            // then reset the internal state.
+
+            var apps = database.Apps.ToArray();
+            ResetToCodeHostNotRunning(database);
+
+            Process restartedHost;
+            var started = StartCodeHostProcess(database, out restartedHost);
+            if (!started) {
+                // Woot?
+                // TODO:
+            }
+
+            try {
+                var node = Node.LocalhostSystemPortNode;
+                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+
+                foreach (var app in apps) {
+                    var exe = app.ToExecutable();
+
+                    if (exe.RunEntrypointAsynchronous) {
+                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+                    } else {
+                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null);
+                        response.FailIfNotSuccess();
+                    }
+
+                    app.Info.LastRestart = DateTime.Now;
+                    database.Apps.Add(app);
+                }
+
+            } finally {
+                var result = Server.CurrentPublicModel.UpdateDatabase(database);
+                processor.SetResult(result);
+            }
         }
 
         Process DoStartEngineProcess(ProcessStartInfo startInfo, Database database, DataReceivedEventHandler errorDataRecevied = null) {
