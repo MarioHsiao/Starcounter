@@ -2,14 +2,14 @@
 using System.Runtime.InteropServices;
 
 namespace Starcounter.Advanced.XSON {
-    internal unsafe class JsonReader {
+    public unsafe class JsonReader {
         private byte* pBuffer;
         private int offset;
         private int bufferSize;
         private byte* currentPropertyPtr;
         private bool isArray;
 
-        internal JsonReader(IntPtr buffer, int bufferSize) {
+        public JsonReader(IntPtr buffer, int bufferSize) {
             this.pBuffer = (byte*)buffer;
             this.bufferSize = bufferSize;
             this.offset = 0;
@@ -17,11 +17,15 @@ namespace Starcounter.Advanced.XSON {
             FindFirstItem();
         }
 
-        internal int Used {
+        public int Used {
             get {
                 // The offset is zero-bound so we add one to get the correct number of bytes read.
                 return offset + 1;
             }
+        }
+
+        public int Size {
+            get { return this.bufferSize; }
         }
 
         private string CurrentPropertyName {
@@ -36,15 +40,15 @@ namespace Starcounter.Advanced.XSON {
             }
         }
 
-        internal IntPtr CurrentPtr {
+        public IntPtr CurrentPtr {
             get { return (IntPtr)pBuffer; }
         }
 
-        internal JsonReader CreateSubReader() {
+        public JsonReader CreateSubReader() {
             return new JsonReader((IntPtr)pBuffer, bufferSize - offset);
         }
 
-        internal void Skip(int value) {
+        public void Skip(int value) {
             if (value > (bufferSize - offset))
                 JsonHelper.ThrowUnexpectedEndOfContentException();
 
@@ -52,7 +56,7 @@ namespace Starcounter.Advanced.XSON {
             offset += value;
         }
 
-        internal int SkipValue() {
+        public int SkipValue() {
             bool needsDecoding = false;
             int size;
             
@@ -67,7 +71,7 @@ namespace Starcounter.Advanced.XSON {
             return size;
         }
 
-        internal void ReadRaw(byte[] target, out int valueSize) {
+        public void ReadRaw(byte[] target, out int valueSize) {
             byte* pstart = pBuffer;
             int size = SkipValue();
 
@@ -78,7 +82,7 @@ namespace Starcounter.Advanced.XSON {
             Marshal.Copy((IntPtr)pstart, target, 0, size);
         }
 
-        internal string ReadString() {
+        public string ReadString() {
             int valueSize;
             string value;
 
@@ -93,7 +97,7 @@ namespace Starcounter.Advanced.XSON {
             return value;
         }
 
-        internal bool ReadBool() {
+        public bool ReadBool() {
             int valueSize;
             bool value;
 
@@ -108,7 +112,7 @@ namespace Starcounter.Advanced.XSON {
             return value;
         }
 
-        internal decimal ReadDecimal() {
+        public decimal ReadDecimal() {
             int valueSize;
             decimal value;
 
@@ -123,7 +127,7 @@ namespace Starcounter.Advanced.XSON {
             return value;
         }
 
-        internal double ReadDouble() {
+        public double ReadDouble() {
             int valueSize;
             double value;
 
@@ -138,7 +142,7 @@ namespace Starcounter.Advanced.XSON {
             return value;
         }
 
-        internal long ReadLong() {
+        public long ReadLong() {
             int valueSize;
             long value;
 
@@ -153,7 +157,7 @@ namespace Starcounter.Advanced.XSON {
             return value;
         }
 
-        internal void PopulateObject(Json obj) {
+        public void PopulateObject(Json obj) {
             int valueSize;
             
             valueSize = obj.PopulateFromJson((IntPtr)pBuffer, bufferSize - offset);
@@ -216,7 +220,7 @@ namespace Starcounter.Advanced.XSON {
         //    }
         //}
 
-        internal bool GotoProperty() {
+        public bool GotoProperty() {
             byte current;
 
             while (true) {
@@ -245,7 +249,7 @@ namespace Starcounter.Advanced.XSON {
             return true;
         }
 
-        internal void GotoValue() {
+        public void GotoValue() {
             while (*pBuffer != ':') {
                 offset++;
                 if (bufferSize <= offset)
@@ -265,7 +269,7 @@ namespace Starcounter.Advanced.XSON {
             }
         }
 
-        internal bool GotoNextObject() {
+        public bool GotoNextObject() {
             while (true) {
                 if (*pBuffer == ']' || (!isArray && *pBuffer == '}')) {
                     return false;
