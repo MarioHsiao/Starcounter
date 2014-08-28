@@ -103,6 +103,8 @@ namespace Starcounter.Server.Commands {
 
             WithinTask(Task.Run, (task) => {
                 Exception codeHostExited = null;
+                var databaseStateSnapshot = database.ToPublicModel();
+
                 try {
 
                     var node = Node.LocalhostSystemPortNode;
@@ -156,13 +158,13 @@ namespace Starcounter.Server.Commands {
 
                 } catch (Exception ex) {
                     if (codeHostExited != null && ex.Equals(codeHostExited)) {
-                        Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, database);
+                        Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, databaseStateSnapshot);
                         throw;
                     }
 
                     codeHostExited = CreateExceptionIfCodeHostTerminated(codeHostProcess, database, ex);
                     if (codeHostExited != null) {
-                        Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, database);
+                        Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, databaseStateSnapshot);
                         throw codeHostExited;
                     }
                     throw;

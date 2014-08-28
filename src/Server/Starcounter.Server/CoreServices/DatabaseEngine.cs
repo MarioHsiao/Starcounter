@@ -431,23 +431,35 @@ namespace Starcounter.Server {
             try { p.Close(); } catch { }
         }
 
-        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, Database database) {
-            var restartCommand = new ActionCommand<int, Database>(
+        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, DatabaseInfo databaseInfo) {
+            var restartCommand = new ActionCommand<int, DatabaseInfo>(
                 this.Server,
                 RestartCodeHost,
                 terminatingCodeHostProcess.Id,
-                database,
+                databaseInfo,
                 "Attempting to restart code host for {0}",
-                database.Name
+                databaseInfo.Name
                 );
             this.Server.CurrentPublicModel.Execute(restartCommand);
         }
 
-        void RestartCodeHost(ICommandProcessor processor, int terminatingCodeHostProcessId, Database database) {
+        void RestartCodeHost(ICommandProcessor processor, int terminatingCodeHostProcessId, DatabaseInfo databaseInfo) {
             // The database should reflect what applications we want started.
 
             // Check the database is either not bound to any code host or that
             // its bound to the one found terminating.
+
+            // Get database by name, not by reference.
+            // After fetched, it either has to have no reference to any code host
+            // OR be attached to the one now terminating (check PID). We restart
+            // the applications we've got copied.
+
+            Database database;
+            var databaseExist = Server.Databases.TryGetValue(databaseInfo.Name, out database);
+            if (!databaseExist) {
+                // Might have been deleted.
+                // TODO:
+            }
 
             var boundProcess = database.CodeHostProcess;
             if (boundProcess != null && boundProcess.Id != terminatingCodeHostProcessId) {
@@ -460,7 +472,6 @@ namespace Starcounter.Server {
             // Grab the set of applications that we'll try to restart and
             // then reset the internal state.
 
-            var apps = database.Apps.ToArray();
             ResetToCodeHostNotRunning(database);
 
             Process restartedHost;
@@ -471,11 +482,15 @@ namespace Starcounter.Server {
             }
 
             try {
+                var apps = databaseInfo.Engine.HostedApps;
                 var node = Node.LocalhostSystemPortNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                 foreach (var app in apps) {
-                    var exe = app.ToExecutable();
+
+                    var restartedApp = new DatabaseApplication(app);
+                    restartedApp.IsStartedWithAsyncEntrypoint = true;
+                    var exe = restartedApp.ToExecutable();
 
                     if (exe.RunEntrypointAsynchronous) {
                         node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
@@ -484,8 +499,8 @@ namespace Starcounter.Server {
                         response.FailIfNotSuccess();
                     }
 
-                    app.Info.LastRestart = DateTime.Now;
-                    database.Apps.Add(app);
+                    restartedApp.Info.LastRestart = DateTime.Now;
+                    database.Apps.Add(restartedApp);
                 }
 
             } finally {
