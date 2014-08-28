@@ -1084,9 +1084,17 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
-    
+
     // Checking if was rebalanced.
     if (0 == worker_id_) {
+
+        // Checking client IP address information.
+        sockaddr_in client_addr = *(sockaddr_in *)(sd->get_accept_or_params_data() + sizeof(sockaddr_in) + 16);
+        sd->set_client_ip_info(client_addr.sin_addr.S_un.S_addr);
+
+        // Checking if white list is on.
+        if (!g_gateway.CheckIpForWhiteList(sd->get_client_ip_info()))
+            return SCERRGWIPISNOTONWHITELIST;
 
         // Decreasing number of accepting sockets.
         int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
@@ -1113,7 +1121,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             if (NULL == rsi) {
                 rsi = (RebalancedSocketInfo*) GwNewAligned(sizeof(RebalancedSocketInfo));
             }
-            rsi->Init(sd->GetPortIndex(), sd->GetSocket());
+            rsi->Init(sd->GetPortIndex(), sd->GetSocket(), sd->get_client_ip_info());
 
             // Removing from active sockets.
             RemoveFromActiveSockets(sd->GetPortIndex());
@@ -1151,14 +1159,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
     // This socket data is socket representation.
     GW_ASSERT(true == sd->get_socket_representer_flag());
-
-    // Checking client IP address information.
-    sockaddr_in client_addr = *(sockaddr_in *)(sd->get_accept_or_params_data() + sizeof(sockaddr_in) + 16);
-    sd->set_client_ip_info(client_addr.sin_addr.S_un.S_addr);
-
-    // Checking if white list is on.
-    if (!g_gateway.CheckIpForWhiteList(sd->get_client_ip_info()))
-        return SCERRGWIPISNOTONWHITELIST;
 
     // Performing receive.
     return Receive(sd);
@@ -1257,8 +1257,10 @@ void GatewayWorker::ProcessRebalancedSockets() {
 
     if (NULL != rsi) {
 
+        // Getting all saved properties.
         port_index_type pi = rsi->get_port_index();
         SOCKET s = rsi->get_socket();
+        ip_info_type client_ip_info = rsi->get_client_ip_info();
 
         // Returning socket info back to origin.
         g_gateway.get_worker(0)->PushRebalanceSocketInfo(rsi);
@@ -1307,6 +1309,9 @@ void GatewayWorker::ProcessRebalancedSockets() {
 
         // This socket data is socket representation.
         new_sd->set_socket_representer_flag();
+
+        // Setting saved client IP address.
+        new_sd->set_client_ip_info(client_ip_info);
 
         // Adding to active sockets for this worker.
         AddToActiveSockets(new_sd->GetPortIndex());
