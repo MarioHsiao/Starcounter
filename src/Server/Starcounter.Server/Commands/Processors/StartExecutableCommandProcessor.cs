@@ -156,11 +156,15 @@ namespace Starcounter.Server.Commands {
 
                 } catch (Exception ex) {
                     if (codeHostExited != null && ex.Equals(codeHostExited)) {
+                        Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, database);
                         throw;
                     }
+
                     codeHostExited = CreateExceptionIfCodeHostTerminated(codeHostProcess, database, ex);
-                    if (codeHostExited != null)
+                    if (codeHostExited != null) {
+                        Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, database);
                         throw codeHostExited;
+                    }
                     throw;
                 }
             });
