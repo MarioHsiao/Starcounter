@@ -458,15 +458,15 @@ namespace Starcounter.Server {
             var databaseExist = Server.Databases.TryGetValue(databaseInfo.Name, out database);
             if (!databaseExist) {
                 // Might have been deleted.
-                // TODO:
+                // Take no action.
+                return;
             }
 
             var boundProcess = database.CodeHostProcess;
             if (boundProcess != null && boundProcess.Id != terminatingCodeHostProcessId) {
                 // The database is bound to some other process. We should
                 // let it be.
-                // Log this as debug?
-                // TODO:
+                return;
             }
 
             // Grab the set of applications that we'll try to restart and
@@ -475,11 +475,7 @@ namespace Starcounter.Server {
             ResetToCodeHostNotRunning(database);
 
             Process restartedHost;
-            var started = StartCodeHostProcess(database, out restartedHost);
-            if (!started) {
-                // Woot?
-                // TODO:
-            }
+            StartCodeHostProcess(database, out restartedHost);
 
             try {
                 var apps = databaseInfo.Engine.HostedApps;
