@@ -18,11 +18,10 @@ namespace Starcounter.Internal.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_index_id = 1;
-            internal static int columnHandle_table_id = 2;
-            internal static int columnHandle_table = 3;
-            internal static int columnHandle_name = 4;
-            internal static int columnHandle_unique = 5;
+            internal static int columnHandle_Table;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_NameToken;
+            internal static int columnHandle_Unique;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -41,42 +40,6 @@ namespace Starcounter.Internal.Metadata {
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-#if false
-            var systemTableDef = new TableDef(
-                "materialized_index",
-                new ColumnDef[]
-                {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("index_id", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("unique", sccoredb.STAR_TYPE_ULONG, false, false),
-                }
-                );
-
-            var sysIndexTypeDef = new TypeDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("IndexId", DbTypeCode.UInt64, false) { ColumnName = "index_id" },
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedTable") 
-                    { ColumnName = "table" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("Unique", DbTypeCode.Boolean, false) { ColumnName = "unique" },
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedIndex"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.UInt64, DbTypeCode.Object,
-                    DbTypeCode.String, DbTypeCode.UInt64
-                }
-                );
-
-            return sysIndexTypeDef;
-#endif
         }
 
         /// <summary>
@@ -87,20 +50,14 @@ namespace Starcounter.Internal.Metadata {
 
         /// <summary>
         /// </summary>
-        public ulong IndexId {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_index_id); }
-        }
-
-        /// <summary>
-        /// </summary>
-        public ulong TableId {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table_id); }
+        public ulong NameToken {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_NameToken); }
         }
 
         /// <summary>
         /// </summary>
         public MaterializedTable Table {
-            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_table); }
+            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Table); }
         }
 
         /// <summary>
@@ -108,7 +65,7 @@ namespace Starcounter.Internal.Metadata {
         /// </summary>
         /// <value>The name.</value>
         public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_name); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
         }
 
         /// <summary>
@@ -116,7 +73,7 @@ namespace Starcounter.Internal.Metadata {
         /// </summary>
         /// <value><c>true</c> if unique; otherwise, <c>false</c>.</value>
         public bool Unique {
-            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_unique); }
+            get { return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Unique); }
         }
     }
 

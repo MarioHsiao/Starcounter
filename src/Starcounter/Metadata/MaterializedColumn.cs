@@ -44,48 +44,6 @@ namespace Starcounter.Internal.Metadata {
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-#if false
-            var systemTableDef = new TableDef(
-                "materialized_column",
-                new ColumnDef[]
-                {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("index", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("name", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("primitive_type", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("always_unique", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("nullable", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("inherited", sccoredb.STAR_TYPE_ULONG, false, false),
-                }
-                );
-
-            var sysColumnTypeDef = new TypeDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("TableId", DbTypeCode.UInt64, false) { ColumnName = "table_id" },
-                    new PropertyDef("Table", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedTable") { ColumnName = "table" },
-                    new PropertyDef("Index", DbTypeCode.UInt64, false) { ColumnName = "index" },
-                    new PropertyDef("Name", DbTypeCode.String, true) { ColumnName = "name" },
-                    new PropertyDef("PrimitiveType", DbTypeCode.UInt64, false) { ColumnName = "primitive_type" },
-                    new PropertyDef("AlwaysUnique", DbTypeCode.Boolean, false) { ColumnName = "always_unique" },
-                    new PropertyDef("Nullable", DbTypeCode.Boolean, false) { ColumnName = "nullable" },
-                    new PropertyDef("Inherited", DbTypeCode.Boolean, false) { ColumnName = "inherited" },
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedColumn"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, DbTypeCode.UInt64, DbTypeCode.Object, DbTypeCode.UInt64,
-                    DbTypeCode.String, DbTypeCode.UInt64, DbTypeCode.UInt64, DbTypeCode.UInt64,
-                    DbTypeCode.UInt64
-                }
-                );
-
-            return sysColumnTypeDef;
-#endif
         }
 
         /// <inheritdoc />
