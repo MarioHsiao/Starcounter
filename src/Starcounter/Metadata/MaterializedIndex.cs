@@ -86,10 +86,10 @@ namespace Starcounter.Internal.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_index = 1;
-            internal static int columnHandle_place = 2;
-            internal static int columnHandle_column = 3;
-            internal static int columnHandle_order = 4;
+            internal static int columnHandle_Index;
+            internal static int columnHandle_Place;
+            internal static int columnHandle_Column;
+            internal static int columnHandle_Order;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -108,39 +108,6 @@ namespace Starcounter.Internal.Metadata {
         static internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-#if false
-            var systemTableDef = new TableDef(
-                "materialized_index_column",
-                new ColumnDef[]
-                {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
-                    new ColumnDef("index", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("place", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("column", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("order", sccoredb.STAR_TYPE_ULONG, false, false)
-                }
-                );
-
-            var sysIndexTypeDef = new TypeDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
-                null,
-                new PropertyDef[]
-                {
-                    new PropertyDef("Index", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedIndex") { ColumnName = "index" },
-                    new PropertyDef("Place", DbTypeCode.UInt64, false) { ColumnName = "place" },
-                    new PropertyDef("Column", DbTypeCode.Object, true, "Starcounter.Internal.Metadata.MaterializedColumn") { ColumnName = "column" },
-                    new PropertyDef("Order", DbTypeCode.UInt64, false) { ColumnName = "order" }
-                },
-                new TypeLoader(new AssemblyName("Starcounter"), "Starcounter.Internal.Metadata.MaterializedIndexColumn"),
-                systemTableDef,
-                new DbTypeCode[] {
-                    DbTypeCode.Key, DbTypeCode.Object, DbTypeCode.UInt64, DbTypeCode.Object,
-                    DbTypeCode.UInt64
-                }
-                );
-
-            return sysIndexTypeDef;
-#endif
         }
 
         /// <summary>
@@ -150,26 +117,26 @@ namespace Starcounter.Internal.Metadata {
         /// <summary>
         /// </summary>
         public MaterializedIndex Index {
-            get { return (MaterializedIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_index); }
+            get { return (MaterializedIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Index); }
         }
 
 
         /// <summary>
         /// </summary>
         public ulong Place {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_place); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Place); }
         }
 
         /// <summary>
         /// </summary>
         public MaterializedColumn Column {
-            get { return (MaterializedColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_column); }
+            get { return (MaterializedColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Column); }
         }
 
         /// <summary>
         /// </summary>
         public ulong Order {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_order); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Order); }
         }
     }
 }
