@@ -4164,6 +4164,12 @@
         No application with the given name is running.
       </message>
     </code>
+    <code hex="0026" severity="Error" name="ScErrServerNotSignaling">
+      <message>
+        The admin server is taken longer than normal to start; it didn't
+        signal it was ready in time.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->

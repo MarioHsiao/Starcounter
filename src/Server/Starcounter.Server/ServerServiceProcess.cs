@@ -201,10 +201,11 @@ namespace Starcounter.Server {
                 while (true) {
                     retries--;
                     if (retries == 0)
-                        throw ErrorCode.ToException(Error.SCERRWAITTIMEOUT);
+                        throw ErrorCode.ToException(Error.SCERRSERVERNOTSIGNALING);
 
                     if (serverOnlineEvent == null && !EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
-                        Thread.Sleep(100);
+                        Thread.Sleep(50);
+                        retries++;
                     } else {
                         signaled = serverOnlineEvent.WaitOne(timeout);
                         if (signaled)
