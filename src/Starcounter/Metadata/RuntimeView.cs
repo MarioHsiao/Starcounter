@@ -113,7 +113,7 @@ namespace Starcounter.Metadata {
 
         public RawView(Uninitialized u) : base(u) { }
         internal RawView() : this(null) {
-            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
     }
 
@@ -172,7 +172,7 @@ namespace Starcounter.Metadata {
         
         internal ClrClass()
             : this(null) {
-            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
         public String AssemblyName {

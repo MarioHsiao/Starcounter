@@ -148,11 +148,11 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Name == "base_table");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Internal.Metadata.HostMaterializedTable);
-            Trace.Assert(c.Type.Name == "materialized_table");
+            Trace.Assert(c.Type.Name == "MaterializedTable");
             Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable != null);
-            Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).FullName == "materialized_table");
+            Trace.Assert((c.Type as Starcounter.Internal.Metadata.HostMaterializedTable).FullName == "Starcounter.Internal.Metadata.MaterializedTable");
             Trace.Assert(c.Table != null);
-            Trace.Assert(c.Table.Name == "materialized_table");
+            Trace.Assert(c.Table.Name == "MaterializedTable");
             Trace.Assert(c.Table is RawView);
             Trace.Assert((c.Table as RawView).Inherits == null);
             Trace.Assert(c.MaterializedColumn != null);

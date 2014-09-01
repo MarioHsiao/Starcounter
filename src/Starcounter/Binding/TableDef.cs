@@ -211,7 +211,7 @@ namespace Starcounter.Binding
                     iil = new IndexInfo[ic];
                     for (int i = 0; i < ic; i++)
                     {
-                        iil[i] = CreateIndexInfo(pii + i);
+                        iil[i] = CreateIndexInfo(pii + i, null);
                     }
                     return iil;
                 }
@@ -228,8 +228,8 @@ namespace Starcounter.Binding
             unsafe
             {
                 sccoredb.SC_INDEX_INFO ii;
-                uint r = sccoredb.sccoredb_get_index_info_by_name(TableId, name, &ii);
-                if (r == 0) return CreateIndexInfo(&ii);
+                uint r = systables.star_get_index_info_by_name(TableId, name, &ii);
+                if (r == 0) return CreateIndexInfo(&ii, name);
                 if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
                 throw ErrorCode.ToException(r);
             }
@@ -240,16 +240,18 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="pii">The pii.</param>
         /// <returns>IndexInfo.</returns>
-        internal unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii)
+        internal unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii, string name=null)
         {
-            string name;
             short attributeCount;
             ushort tempSortMask;
             SortOrder[] sortOrderings;
             int[] columnIndexes;
             ColumnDef[] columnDefs;
 
-            name = new String(pii->name);
+            if (name == null)
+                name  = systables.star_get_label(pii->name_token);
+
+            //name = new String(pii->name);
             // Get the number of attributes.
             attributeCount = pii->attributeCount;
             if (attributeCount < 1 || attributeCount > 10)

@@ -20,9 +20,9 @@ namespace Starcounter.Internal.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandleName;
-            internal static int columnHandleBaseTable;
-            internal static int columnHandleNameToken;
+            internal static int columnHandle_Name;
+            internal static int columnHandle_BaseTable;
+            internal static int columnHandle_NameToken;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -57,17 +57,17 @@ namespace Starcounter.Internal.Metadata {
         /// </summary>
         /// <value>The name.</value>
         public string Name {
-            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandleName); }
+            get { return DbState.ReadString(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Name); }
         }
 
         /// <summary>
         /// </summary>
         public MaterializedTable BaseTable {
-            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandleBaseTable); }
+            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_BaseTable); }
         }
 
         public ulong NameToken {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandleNameToken); }
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_NameToken); }
         }
     }
 }

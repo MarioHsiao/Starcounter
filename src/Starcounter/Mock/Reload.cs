@@ -136,7 +136,7 @@ namespace Starcounter {
                         stmt += nextStmt;
                         nextStmt = file.ReadLine();
                     }
-                    Db.SystemTransaction(delegate {
+                    Db.Transaction(delegate {
                         nrObjs += Db.Update(stmt);
                     });
                     stmt = nextStmt;

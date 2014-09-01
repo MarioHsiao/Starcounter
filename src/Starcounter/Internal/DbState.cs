@@ -121,6 +121,7 @@ namespace Starcounter.Internal
             Insert(tableId, ref oid, ref address);
         }
 
+#if false
         internal static void SystemInsert(ushort tableId, ref ulong oid, ref ulong address) {
             uint dr;
             ulong oid_local;
@@ -136,8 +137,9 @@ namespace Starcounter.Internal
             }
 
             CheckImplicitTransactionUpgradeOrThrow(dr);
-            SystemInsert(tableId, ref oid, ref address);
+            Insert(tableId, ref oid, ref address);
         }
+#endif
 
         /// <summary>
         /// 

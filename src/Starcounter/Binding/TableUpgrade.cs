@@ -144,7 +144,9 @@ namespace Starcounter.Binding
                     if (inheritedTableName.StartsWith(PendingUpdateTableNamePrefix))
                     {
                         inheritedTableName = inheritedTableName.Substring(PendingUpdateTableNamePrefix.Length);
-                        Db.RenameTable(directlyInheritedTableDef.TableId, inheritedTableName);
+                        Db.Transaction(() => {
+                            Db.RenameTable(directlyInheritedTableDef.TableId, inheritedTableName);
+                        });
                     }
                 }
 
@@ -154,10 +156,14 @@ namespace Starcounter.Binding
 
                 MoveRecordsToNewTable();
 
-                DropOldTable();
+                Db.Transaction(() => {
+                    DropOldTable();
+                });
             }
 
-            RenameNewTable();
+            Db.Transaction(() => {
+                RenameNewTable();
+            });
 
             Db.Transaction(() =>
             {
@@ -340,7 +346,7 @@ namespace Starcounter.Binding
                 // the createindex function, so we need to store them locally before we create any new indexes.
                 indexNameArr = new string[indexCount];
                 for (int i = 0; i < indexCount; i++) {
-                    indexNameArr[i] = new string(indexArr[i].name);
+                    indexNameArr[i] = systables.star_get_label(indexArr[i].name_token);
                 }
 
                 for (int i = 0; i < indexCount; i++)
@@ -409,15 +415,14 @@ namespace Starcounter.Binding
                         attrIndexArr[oai] = newAttributeIndex;
                     } // End for attributeCount.
 
-                    if (createIndex) 
-                    {
-                        fixed (Int16* paii = &(attrIndexArr[0])) 
-                        {
-                            ec = sccoredb.star_create_index(0, newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
-                        }
+                    if (createIndex) {
+                        Db.Transaction(delegate {
+                            fixed (Int16* paii = &(attrIndexArr[0])) {
+                                ec = systables.star_create_index2(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
+                            }
+                        });
 
-                        if (ec != 0) 
-                        {
+                        if (ec != 0) {
                             if (ec == Error.SCERRNAMEDINDEXALREADYEXISTS)
                                 continue;
                             throw ErrorCode.ToException(ec);

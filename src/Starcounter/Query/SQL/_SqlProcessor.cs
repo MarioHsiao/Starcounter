@@ -122,7 +122,7 @@ internal static class SqlProcessor
         Int16[] attributeIndexArr;
         Int32 factor;
         UInt16 sortMask;
-        UInt32 errorCode;
+        UInt32 errorCode = 0;
         UInt32 flags = 0;
         
         // Parse the statement and prepare variables to call kernel
@@ -238,10 +238,11 @@ internal static class SqlProcessor
         unsafe
         {
             var tableId = typeBind.TableId;
-            fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
-            {
-                errorCode = sccoredb.star_create_index(0, tableId, indexName, sortMask, attributeIndexesPointer, flags);
-            }
+            Db.Transaction(delegate {
+                fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0])) {
+                    errorCode = systables.star_create_index2(tableId, indexName, sortMask, attributeIndexesPointer, flags);
+                }
+            });
         }
         if (errorCode != 0)
         {
@@ -360,10 +361,12 @@ internal static class SqlProcessor
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found", exc);
 
         // Call kernel
-        UInt32 errorCode;
+        UInt32 errorCode = 0;
         unsafe
         {
-            errorCode = sccoredb.star_drop_index(0, typeBind.Name, indexName);
+            Db.Transaction(delegate {
+                errorCode = systables.star_drop_index2(typeBind.Name, indexName);
+            });
         }
         if (errorCode != 0) {
             Exception ex = ErrorCode.ToException(errorCode);
@@ -394,10 +397,12 @@ internal static class SqlProcessor
         }
 
         // Call kernel
-        UInt32 errorCode;
+        UInt32 errorCode = 0;
         unsafe
         {
-            errorCode = sccoredb.star_drop_table(0, typePath);
+            Db.Transaction(delegate {
+                errorCode = systables.star_drop_table2(typePath);
+            });
         }
         if (errorCode != 0) {
             Exception ex = ErrorCode.ToException(errorCode);

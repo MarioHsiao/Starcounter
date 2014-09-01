@@ -54,7 +54,9 @@ namespace Starcounter.Binding
             // Check that the first columns of the table definition matches
             // that of the inherited table. Do this in Db.CreateTable?
 
-            Db.CreateTable(tableDef, inheritedTableDef);
+            Db.Transaction(() => {
+                Db.CreateTable(tableDef, inheritedTableDef);
+            });
 
             TableDef newTableDef = null;
 

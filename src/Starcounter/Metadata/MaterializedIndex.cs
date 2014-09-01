@@ -19,8 +19,8 @@ namespace Starcounter.Internal.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Table;
-            internal static int columnHandle_Name;
             internal static int columnHandle_NameToken;
+            internal static int columnHandle_Name;
             internal static int columnHandle_Unique;
         }
 #pragma warning disable 0628, 0169
@@ -50,14 +50,14 @@ namespace Starcounter.Internal.Metadata {
 
         /// <summary>
         /// </summary>
-        public ulong NameToken {
-            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_NameToken); }
+        public MaterializedTable Table {
+            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Table); }
         }
 
         /// <summary>
         /// </summary>
-        public MaterializedTable Table {
-            get { return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_Table); }
+        public ulong NameToken {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_NameToken); }
         }
 
         /// <summary>

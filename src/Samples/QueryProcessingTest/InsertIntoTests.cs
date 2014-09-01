@@ -100,7 +100,7 @@ namespace QueryProcessingTest {
             Trace.Assert(!visits.MoveNext());
             // Test insert __id value
             Db.Transaction(delegate { v.Delete(); });
-            Db.SystemTransaction(delegate {
+            Db.Transaction(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (__id, id, company, UserAgent) values (object " +
                     vId + ",1, object " +
                     co.GetObjectNo() + ",'Opera')");
