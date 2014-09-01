@@ -40,8 +40,10 @@ namespace staradmin.Commands {
                         var app = args.GetCommandParameterOrNull(1);
                         command = new StopAppCommand(app);
                         break;
-                    case ObjectType.Database:
                     case ObjectType.CodeHost:
+                        command = new StopCodeHostCommand();
+                        break;
+                    case ObjectType.Database:
                         command = new ReportBadInputCommand(string.Format("Stopping '{0}' is yet not implemented.", typeToStop.ToString()));
                         break;
                     default:
