@@ -204,7 +204,8 @@ namespace Starcounter.Server {
                         throw ErrorCode.ToException(Error.SCERRWAITTIMEOUT);
 
                     if (serverOnlineEvent == null && !EventWaitHandle.TryOpenExisting(serverOnlineEventName, out serverOnlineEvent)) {
-                        Thread.Sleep(100);
+                        Thread.Sleep(50);
+                        retries++;
                     } else {
                         signaled = serverOnlineEvent.WaitOne(timeout);
                         if (signaled)
