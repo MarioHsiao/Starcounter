@@ -92,6 +92,10 @@ namespace QueryProcessingTest {
                     };
                 }
             });
+            if (Db.SQL("select a from agent a").First == null)
+                Db.Transaction(delegate {
+                    new Agent();
+                });
         }
     }
 }

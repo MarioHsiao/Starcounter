@@ -205,6 +205,9 @@ namespace Starcounter
             if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return;
 
+            // Removing object from GC.
+            GC.SuppressFinalize(this);
+
             // Checking if this request is garbage collected.
             if (!isStarcounterThread)
             {

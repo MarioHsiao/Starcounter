@@ -10,8 +10,23 @@
                 <button type="button" ng-disabled="isBusy == true" class="btn btn-default btn-warning" ng-model="model.filter.warning" btn-checkbox>Warning</button>
                 <button type="button" ng-disabled="isBusy == true" class="btn btn-default btn-danger" ng-model="model.filter.error" btn-checkbox>Error</button>
             </div>
-            <button ng-hide="model.isWebsocketSupport == true" class="btn btn-default pull-right" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="glyphicon glyphicon-repeat"></i></button>
 
+            <div class="btn-group pull-right">
+                <button ng-hide="model.isWebsocketSupport == true" class="btn btn-default" ng-disabled="isBusy == true" ng-click="btnRefresh()"><i class="glyphicon glyphicon-repeat"></i></button>
+            </div>
+
+            <div class="btn-group pull-right">
+                <!-- Maxitems -->
+
+                <select  title="Max Items" style="min-width: 120px"  class="form-control" ng-model="model.filter.maxitems" name="MaxItems">
+                    <option value="30">30 items</option>
+                    <option value="50">50 items</option>
+                    <option value="150">150 items</option>
+                    <option value="300">300 items</option>
+                    <option value="500">500 items</option>
+                    <option value="1000">1000 items</option>
+                </select>
+            </div>
         </div>
 
         <div class="row" style="margin-top: 15px; margin-bottom: 15px">

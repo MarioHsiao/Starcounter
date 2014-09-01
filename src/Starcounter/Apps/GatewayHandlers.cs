@@ -25,39 +25,9 @@ namespace Starcounter
 	);
 
     /// <summary>
-    /// Struct SubportHandlerParams
-    /// </summary>
-    public struct SubportHandlerParams
-    {
-        /// <summary>
-        /// The user session id
-        /// </summary>
-        public UInt64 UserSessionId;
-
-        /// <summary>
-        /// The subport id
-        /// </summary>
-        public UInt32 SubportId;
-
-        /// <summary>
-        /// The data stream
-        /// </summary>
-        public NetworkDataStream DataStream;
-    }
-
-    /// <summary>
-    /// Delegate SubportCallback
-    /// </summary>
-    /// <param name="info">The info.</param>
-    /// <returns>Boolean.</returns>
-    public delegate Boolean SubportCallback(
-        SubportHandlerParams info
-    );
-
-    /// <summary>
     /// Class GatewayHandlers
     /// </summary>
-	internal unsafe class GatewayHandlers
+	public unsafe class GatewayHandlers
 	{
         /// <summary>
         /// Maximum number of user handlers to register.
@@ -75,17 +45,11 @@ namespace Starcounter
         static UInt16 num_raw_port_handlers_ = 0;
 
         /// <summary>
-        /// The subport_handlers_
-        /// </summary>
-        private static SubportCallback[] subport_handlers_;
-        
-        /// <summary>
         /// Initializes static members of the <see cref="GatewayHandlers" /> class.
         /// </summary>
         static GatewayHandlers()
 		{
             raw_port_handlers_ = new RawSocketCallback[MAX_HANDLERS];
-            subport_handlers_ = new SubportCallback[MAX_HANDLERS];
 		}
 
         /// <summary>
@@ -102,128 +66,98 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
 		{
-            *is_handled = false;
+            Boolean is_single_chunk = false;
 
-            UInt32 chunk_index = task_info->chunk_index;
+            try {
 
-            // Fetching the callback.
-            RawSocketCallback user_callback = raw_port_handlers_[managed_handler_id];
-			if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
+                *is_handled = false;
 
-            // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
+                UInt32 chunk_index = task_info->chunk_index;
 
-            Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+                // Fetching the callback.
+                RawSocketCallback user_callback = raw_port_handlers_[managed_handler_id];
+                if (user_callback == null)
+                    throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
-            NetworkDataStream dataStream;
+                // Determining if chunk is single.
+                is_single_chunk = ((task_info->flags & 0x01) == 0);
 
-            // Checking if we need to process linked chunks.
-            if (!is_single_chunk) {
+                NetworkDataStream dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-                UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
+                // Checking if we need to process linked chunks.
+                if (!is_single_chunk) {
 
-                // Allocating space to copy linked chunks (freed on Request destruction).
-                IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
+                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
-                // Copying all chunks data.
-                UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                    chunk_index,
-                    raw_chunk,
-                    (Byte*) plain_chunks_data);
+                    // Allocating space to copy linked chunks (freed on Request destruction).
+                    IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
 
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode);
+                    // Copying all chunks data.
+                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                        chunk_index,
+                        raw_chunk,
+                        (Byte*)plain_chunks_data);
 
-                // Adjusting pointers to a new plain byte array.
-                raw_chunk = (Byte*) plain_chunks_data;
-                socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+                    if (errorCode != 0)
+                        throw ErrorCode.ToException(errorCode);
+
+                    // Adjusting pointers to a new plain byte array.
+                    raw_chunk = (Byte*)plain_chunks_data;
+                }
+
+                SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
+
+                // Checking if socket exists and legal.
+                if (null == sc) {
+
+                    dataStream.Destroy(true);
+                    return 0;
+                }
+
+                RawSocket rawSocket = sc.Rs;
+                Debug.Assert(null != rawSocket);
+
+                Byte[] dataBytes = null;
+
+                // Checking if its a socket disconnect.
+                if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
+
+                    dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+
+                    Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+
+                } else {
+
+                    // Making socket unusable.
+                    rawSocket.Destroy();
+                }
+
+                // Calling user callback.
+                user_callback(rawSocket, dataBytes);
+
+                // Destroying original chunk etc.
+                rawSocket.DestroyDataStream();
+
+                *is_handled = true;
+
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
+
+            } finally {
+
+                // Cleaning the linear buffer in case of multiple chunks.
+                if (!is_single_chunk) {
+
+                    BitsAndBytes.Free((IntPtr)raw_chunk);
+                    raw_chunk = null;
+                }
+
+                // Clearing current session.
+                Session.End();
             }
-
-            // Creating network data stream object.
-            dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
-
-            Byte[] dataBytes = null;
-
-            // Obtaining socket index and unique id.
-            UInt32 socketIndex = *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
-            UInt64 socketUniqueId = *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
-            Byte gwWorkerId = dataStream.GatewayWorkerId;
-
-            RawSocket rawSocket = new RawSocket(socketIndex, socketUniqueId, gwWorkerId, dataStream);
-
-            // Checking if its a socket disconnect.
-            if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
-
-                dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
-
-                Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
-
-            } else {
-
-                // Making socket unusable.
-                dataStream.Destroy(true);
-                rawSocket.Reset();
-            }
-
-            // Calling user callback.
-            user_callback(rawSocket, dataBytes);
-
-            *is_handled = true;
-            
-            // Reset managed task state before exiting managed task entry point.
-            TaskHelper.Reset();
 
 			return 0;
 		}
-
-        /// <summary>
-        /// Subports the outer handler.
-        /// </summary>
-        /// <param name="session_id">The session_id.</param>
-        /// <param name="raw_chunk">The raw_chunk.</param>
-        /// <param name="task_info">The task_info.</param>
-        /// <param name="is_handled">The is_handled.</param>
-        /// <returns>UInt32.</returns>
-        private unsafe static UInt32 SubportOuterHandler(
-            UInt16 managed_handler_id,
-            Byte* raw_chunk,
-            bmx.BMX_TASK_INFO* task_info,
-            Boolean* is_handled)
-        {
-            *is_handled = false;
-
-            UInt32 chunk_index = task_info->chunk_index;
-            //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
-
-            // Fetching the callback.
-            SubportCallback user_callback = subport_handlers_[managed_handler_id];
-            if (user_callback == null)
-                throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
-
-            // Determining if chunk is single.
-            Boolean is_single_chunk = ((task_info->flags & 0x01) == 0);
-
-            // Releasing linked chunks if not single.
-            if (!is_single_chunk)
-                throw new NotImplementedException();
-
-            // Creating parameters.
-            SubportHandlerParams handler_params = new SubportHandlerParams
-            {
-                UserSessionId = *(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SESSION_LINEAR_INDEX),
-                SubportId = 0,
-                DataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id)
-            };
-
-            // Calling user callback.
-            *is_handled = user_callback(handler_params);
-            
-            // Reset managed task state before exiting managed task entry point.
-            TaskHelper.Reset();
-
-            return 0;
-        }
 
         static String AggrRespString =
             "HTTP/1.1 200 OK\r\n" +
@@ -236,12 +170,14 @@ namespace Starcounter
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
-        internal unsafe static UInt32 HandleIncomingHttpRequest(
+        internal unsafe static UInt32 HandleHttpRequest(
             UInt16 managed_handler_id,
             Byte* raw_chunk,
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
         {
+            Boolean is_single_chunk = false;
+
             try
             {
                 *is_handled = false;
@@ -250,7 +186,7 @@ namespace Starcounter
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
                 // Determining if chunk is single.
-                Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+                is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
                 // Socket data begin.
                 Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
@@ -330,11 +266,16 @@ namespace Starcounter
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
-            }
-            catch (Exception exc)
-            {
+
+            } catch (Exception exc) {
+
                 LogSources.Hosting.LogException(exc);
                 return Error.SCERRUNSPECIFIED;
+
+            } finally {
+
+                // Clearing current session.
+                Session.End();
             }
 
             return 0;
@@ -356,7 +297,7 @@ namespace Starcounter
             unsafe {
                 fixed (Byte* pp = nativeParamTypes) {
 
-                    bmx.BMX_HANDLER_CALLBACK fp = HandleIncomingHttpRequest;
+                    bmx.BMX_HANDLER_CALLBACK fp = HandleHttpRequest;
                     GCHandle gch = GCHandle.Alloc(fp);
                     IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
 
@@ -400,7 +341,7 @@ namespace Starcounter
 
             Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-            Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+            Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
             if (r.StatusCode != 200) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register URI string: \"" + originalUriInfo + "\". Error message: " + r.Body);
@@ -425,6 +366,8 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
         {
+            Boolean is_single_chunk = false;
+
             try
             {
                 *is_handled = false;
@@ -433,24 +376,27 @@ namespace Starcounter
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
                 // Determining if chunk is single.
-                Boolean is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+                is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
-                Byte* socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
-
-                MixedCodeConstants.WebSocketDataTypes wsType = (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
+                MixedCodeConstants.WebSocketDataTypes wsType = 
+                    (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
 
                 WebSocket ws = null;
 
                 // Creating network data stream object.
                 NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
 
-                // Checking if WebSocket is legitimate.
-                WebSocketInternal wsInternal = WebSocket.ObtainWebSocketInternal(data_stream);
-                if ((wsInternal == null) || (wsInternal.IsDead()))
-                {
+                SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForWebSocket(data_stream);
+
+                // Checking if WebSocket exists and legal.
+                if (sc == null) {
                     data_stream.Destroy(true);
                     return 0;
                 }
+
+                WebSocketInternal wsInternal = sc.Ws;
+                Debug.Assert(null != wsInternal);
+                Debug.Assert(null != wsInternal.SocketContainer);
 
                 // Checking if we need to process linked chunks.
                 if (!is_single_chunk)
@@ -471,7 +417,6 @@ namespace Starcounter
 
                     // Adjusting pointers to a new plain byte array.
                     raw_chunk = (Byte*) plain_chunks_data;
-                    socket_data_begin = raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
                 }
 
                 switch (wsType)
@@ -480,9 +425,9 @@ namespace Starcounter
                     {
                         Byte[] dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
 
-                        Marshal.Copy((IntPtr)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
+                        Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
 
-                        ws = new WebSocket(wsInternal, data_stream, null, dataBytes, WebSocket.WsHandlerType.BinaryData);
+                        ws = new WebSocket(wsInternal, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
                         break;
                     }
@@ -490,19 +435,19 @@ namespace Starcounter
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT:
                     {
                         String dataString = new String(
-                            (SByte*)(socket_data_begin + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
+                            (SByte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
                             0,
                             *(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
                             Encoding.UTF8);
 
-                        ws = new WebSocket(wsInternal, data_stream, dataString, null, WebSocket.WsHandlerType.StringMessage);
+                        ws = new WebSocket(wsInternal, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
 
                         break;
                     }
 
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_CLOSE:
                     {
-                        ws = new WebSocket(wsInternal, data_stream, null, null, WebSocket.WsHandlerType.Disconnect);
+                        ws = new WebSocket(wsInternal, null, null, false, WebSocket.WsHandlerType.Disconnect);
 
                         break;
                     }
@@ -511,17 +456,11 @@ namespace Starcounter
                         throw new Exception("Unknown WebSocket frame type: " + wsType);
                 }
 
-                // Cleaning the linear buffer in case of multiple chunks.
-                if (!is_single_chunk)
-                {
-                    BitsAndBytes.Free((IntPtr)raw_chunk);
-                }
-
-                ScSessionStruct* session_ = (ScSessionStruct*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
+                ScSessionStruct session_ = 
+                    *(ScSessionStruct*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
 
                 // Obtaining corresponding Apps session.
-                IAppsSession apps_session =
-                    GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref *session_);
+                IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref session_);
 
                 // Searching the existing session.
                 ws.Session = apps_session;
@@ -537,19 +476,33 @@ namespace Starcounter
                 // Setting statically available current WebSocket.
                 WebSocket.Current = ws;
 
+                Debug.Assert(null != wsInternal.SocketContainer);
+
                 // Adding session reference.
                 *is_handled = AllWsChannels.WsManager.RunHandler(managed_handler_id, ws);
 
                 // Destroying original chunk etc.
-                ws.ManualDestroy();
+                ws.WsInternal.DestroyDataStream();
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
-            }
-            catch (Exception exc)
-            {
+
+            } catch (Exception exc) {
+
                 LogSources.Hosting.LogException(exc);
                 return Error.SCERRUNSPECIFIED;
+
+            } finally {
+
+                // Cleaning the linear buffer in case of multiple chunks.
+                if (!is_single_chunk) {
+
+                    BitsAndBytes.Free((IntPtr)raw_chunk);
+                    raw_chunk = null;
+                }
+
+                // Clearing current session.
+                Session.End();
             }
 
             return 0;
@@ -599,7 +552,7 @@ namespace Starcounter
 
                 Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register WebSocket channel: \"" + channelName + "\". Error message: " + r.Body);
@@ -642,7 +595,7 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
                         
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + ". Error message: " + r.Body);
@@ -670,89 +623,12 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
                 if (r.StatusCode != 200) {
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + ". Error message: " + r.Body);
                 }
             }
 		}
-
-        /// <summary>
-        /// Registers the subport handler.
-        /// </summary>
-        public static void RegisterSubportHandler(
-            UInt16 port,
-            String appName,
-            UInt32 subport,
-            SubportCallback subportCallback,
-            UInt16 managedHandlerIndex,
-            out UInt64 handlerInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (subport_handlers_)
-            {
-                bmx.BMX_HANDLER_CALLBACK fp = SubportOuterHandler;
-                GCHandle gch = GCHandle.Alloc(fp);
-                IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
-
-                UInt32 errorCode = bmx.sc_bmx_register_subport_handler(port, appName, subport, pinned_delegate, managedHandlerIndex, out handlerInfo);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
-
-                subport_handlers_[managedHandlerIndex] = subportCallback;
-
-                String dbName = StarcounterEnvironment.DatabaseNameLower;
-
-                String portInfo =
-                    dbName + " " +
-                    appName + " " +
-                    handlerInfo + " " +
-                    port + " " + 
-                    subport + " ";
-
-                portInfo += "\r\n\r\n\r\n\r\n";
-
-                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
-
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
-
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
-                }
-            }
-        }
-
-        public static void UnregisterSubport(
-            UInt16 port,
-            UInt32 subport,
-            UInt64 handlerInfo)
-        {
-            // Ensuring correct multi-threading handlers creation.
-            lock (subport_handlers_)
-            {
-                UInt32 errorCode = bmx.sc_bmx_unregister_subport(port, subport);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Port number: " + port + ", Sub-port number: " + subport);
-
-                String dbName = StarcounterEnvironment.DatabaseNameLower;
-
-                String portInfo =
-                    dbName + " " +
-                    handlerInfo + " " +
-                    port + " " +
-                    subport + " ";
-
-                portInfo += "\r\n\r\n\r\n\r\n";
-
-                Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
-
-                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/subport", portInfoBytes, null, 0, new HandlerOptions() { ExternalOnly = true });
-
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + " Subport: " + subport + ". Error message: " + r.Body);
-                }
-            }
-        }
 	}
 }

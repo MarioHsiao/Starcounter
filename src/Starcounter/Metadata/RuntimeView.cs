@@ -1,6 +1,7 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
+using System.Reflection;
 
 namespace Starcounter.Metadata {
     public abstract class Table : Type {
@@ -9,11 +10,11 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
             internal static int columnHandle_UniqueIdentifierReversed;
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_UniqueIdentifier;
+            internal static int columnHandle_Name; // Put in different order, to check that the order does not metter
             internal static int columnHandle_FullName;
         }
 #pragma warning disable 0628, 0169
@@ -32,25 +33,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
-                "Starcounter.Metadata.Table", "Starcounter.Metadata.Type",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, false),
-                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, false),
-                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
-                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String)
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <inheritdoc />
@@ -125,27 +108,7 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.RawView", "Starcounter.Internal.Metadata.HostMaterializedTable",
-                "Starcounter.Metadata.RawView", "Starcounter.Internal.Metadata.HostMaterializedTable",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
-                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable")
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public RawView(Uninitialized u) : base(u) { }
@@ -173,27 +136,7 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.VMView", "Starcounter.Internal.Metadata.HostMaterializedTable",
-                "Starcounter.Metadata.VMView", "Starcounter.Internal.Metadata.HostMaterializedTable",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
-                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable")
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public VMView(Uninitialized u) : base(u) { }
@@ -220,34 +163,9 @@ namespace Starcounter.Metadata {
         #endregion
 
         static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
-                "Starcounter.Metadata.ClrClass", "Starcounter.Metadata.VMView",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("AssemblyName", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("AppDomainName", sccoredb.STAR_TYPE_STRING, true, false),
-                    new ColumnDef("FullClassName", sccoredb.STAR_TYPE_STRING, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
-                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable"),
-                    new PropertyDef("AssemblyName", DbTypeCode.String),
-                    new PropertyDef("AppDomainName", DbTypeCode.String),
-                    new PropertyDef("FullClassName", DbTypeCode.String)
-                });
+            System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
+            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
+            return typeDef;
         }
 
         public ClrClass(Uninitialized u) : base(u) { }
@@ -312,27 +230,7 @@ namespace Starcounter.Internal.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             return TypeDef.CreateTypeTableDef(
-                "Starcounter.Internal.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
-                "Starcounter.Internal.Metadata.HostMaterializedTable", "Starcounter.Metadata.Table",
-                new ColumnDef[] {
-                    new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, true),
-                    new ColumnDef("Name", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("UniqueIdentifierReversed", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("Inherits", sccoredb.STAR_TYPE_REFERENCE, true, true),
-                    new ColumnDef("Updatable", sccoredb.STAR_TYPE_ULONG, false, true),
-                    new ColumnDef("UniqueIdentifier", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("FullName", sccoredb.STAR_TYPE_STRING, true, true),
-                    new ColumnDef("MaterializedTable", sccoredb.STAR_TYPE_REFERENCE, true, false)
-                },
-                new PropertyDef[] {
-                    new PropertyDef("Name", DbTypeCode.String),
-                    new PropertyDef("UniqueIdentifierReversed", DbTypeCode.String),
-                    new PropertyDef("Inherits", DbTypeCode.Object, "Starcounter.Metadata.Table"),
-                    new PropertyDef("Updatable", DbTypeCode.Boolean),
-                    new PropertyDef("UniqueIdentifier", DbTypeCode.String),
-                    new PropertyDef("FullName", DbTypeCode.String),
-                    new PropertyDef("MaterializedTable", DbTypeCode.Object, "Starcounter.Internal.Metadata.MaterializedTable")
-                });
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public HostMaterializedTable(Uninitialized u) : base(u) { }
@@ -353,6 +251,4 @@ namespace Starcounter.Internal.Metadata {
             }
         }
     }
-
-
 }

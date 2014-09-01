@@ -3,22 +3,169 @@ using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Starcounter.Templates;
-using Starcounter.XSON.JsonPatch;
+using Starcounter.XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
-    class EvaluateJsonPatchTests {
-        [TestFixtureSetUp]
-        public static void Setup() {
-            // Initializing global sessions.
-            GlobalSessions.InitGlobalSessions(1);
-            StarcounterEnvironment.AppName = "Test";
+    class EvaluateJsonPatchTests : GenerateJsonPatchTests {
+        //[TestFixtureSetUp]
+        //public static void Setup() {
+        //    // Initializing global sessions.
+        //    GlobalSessions.InitGlobalSessions(1);
+        //    StarcounterEnvironment.AppName = "Test";
+        //}
+
+        //[TearDown]
+        //public static void AfterTest() {
+        //    // Making sure that we are ending the session even if the test failed.
+        //    Session.End();
+        //}
+
+        [Test]
+        public static void TestIncomingPatchWithInteger() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TLong>("Total");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+
+            json.Total = 1L;
+            patch = string.Format(Helper.PATCH, "/Total", "3");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3L, json.Total);
+
+            json.Total = 1L;
+            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3"));
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3L, json.Total);
         }
 
-        [TearDown]
-        public static void AfterTest() {
-            // Making sure that we are ending the session even if the test failed.
-            Session.End();
+
+        [Test]
+        public static void TestMultipleIncomingPatchesWithInteger() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TLong>("Total");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+
+            json.Total = 1L;
+            patch = "[" 
+                    + string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3"))
+                    + ","
+                    + string.Format(Helper.PATCH, "/Total", Helper.Jsonify("66"))
+                    + ","
+                    + string.Format(Helper.PATCH, "/Total", Helper.Jsonify("666")) 
+                    + "]";
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 3);
+            Assert.AreEqual(666L, json.Total);
         }
+
+        [Test]
+        public static void TestIncomingPatchWithDecimal() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TDecimal>("Total");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+
+            json.Total = 1.0m;
+            patch = string.Format(Helper.PATCH, "/Total", "3.3");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3.3m, json.Total);
+
+            json.Total = 1.0m;
+            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3.3"));
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3.3m, json.Total);
+        }
+
+        [Test]
+        public static void TestIncomingPatchWithDouble() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TDouble>("Total");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+
+            json.Total = 1.0d;
+            patch = string.Format(Helper.PATCH, "/Total", "3.3");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3.3d, json.Total);
+
+            json.Total = 1.0d;
+            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3.3"));
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(3.3d, json.Total);
+        }
+
+        [Test]
+        public static void TestIncomingPatchWithBoolean() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TBool>("IsTotal");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+
+            json.IsTotal = false;
+            patch = string.Format(Helper.PATCH, "/IsTotal", "true");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(true, json.IsTotal);
+
+            json.IsTotal = false;
+            patch = string.Format(Helper.PATCH, "/IsTotal", Helper.Jsonify("true"));
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(true, json.IsTotal);
+        }
+
+
 
         [Test]
         public static void TestIncomingPatches() {
@@ -36,7 +183,7 @@ namespace Starcounter.Internal.XSON.Tests {
             patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             
-            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, patchCount);
             Assert.AreEqual("Alpha", json.VirtualValue);
 
@@ -44,7 +191,7 @@ namespace Starcounter.Internal.XSON.Tests {
             patchStr = string.Format(Helper.PATCH, "/BaseValue", Helper.Jsonify("Beta"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             var ex = Assert.Throws<JsonPatchException>(() => {
-                JsonPatch.EvaluatePatches(session, patchBytes);
+                jsonPatch.EvaluatePatches(session, patchBytes);
             });
             Console.WriteLine(ex.Message);
 
@@ -57,7 +204,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(3, patchCount);
             Assert.AreEqual("Apa", json.VirtualValue);
             Assert.AreEqual("Peta", json.AbstractValue);
@@ -70,7 +217,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(null, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(null, patchBytes);
             Assert.AreEqual(2, patchCount);
 
         }
@@ -122,7 +269,7 @@ namespace Starcounter.Internal.XSON.Tests {
             // Setting a value on a editable property
             patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, handledCount);
             Assert.AreEqual(1, patchCount);
            
@@ -137,7 +284,7 @@ namespace Starcounter.Internal.XSON.Tests {
                        + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = JsonPatch.EvaluatePatches(session, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(3, handledCount);
             Assert.AreEqual(3, patchCount);
         }
@@ -226,26 +373,26 @@ namespace Starcounter.Internal.XSON.Tests {
                 JsonProperty aat = Helper.CreateSampleApp();
                 dynamic app = aat.Json;
 
-                JsonProperty obj = JsonPointer.Evaluate(app, "/FirstName");
+                JsonProperty obj = JsonProperty.Evaluate("/FirstName", app);
                 String value = ((Property<string>)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(value, "Cliff");
 
-                obj = JsonPointer.Evaluate(app, "/LastName");
+                obj = JsonProperty.Evaluate("/LastName", app);
                 value = ((Property<string>)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(value, "Barnes");
 
-                obj = JsonPointer.Evaluate(app, "/Items/0/Description");
+                obj = JsonProperty.Evaluate("/Items/0/Description", app);
                 value = ((Property<string>)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(value, "Take a nap!");
 
-                obj = JsonPointer.Evaluate(app, "/Items/1/IsDone");
+                obj = JsonProperty.Evaluate("/Items/1/IsDone", app);
                 bool b = ((TBool)obj.Property).Getter(obj.Json);
                 Assert.AreEqual(b, true);
 
-                obj = JsonPointer.Evaluate(app, "/Items/1");
+                obj = JsonProperty.Evaluate("/Items/1", app);
                 //                Assert.IsInstanceOf<SampleApp.ItemsApp>(obj);
 
-                var jpex = Assert.Throws<JsonPatchException>(() => { JsonPointer.Evaluate(app, "/Nonono"); });
+                var jpex = Assert.Throws<JsonPatchException>(() => { JsonProperty.Evaluate("/Nonono", app); });
                 Assert.IsTrue(jpex.Message.Contains("Unknown property"));
             });
         }

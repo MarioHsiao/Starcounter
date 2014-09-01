@@ -203,11 +203,9 @@ namespace Starcounter.Internal {
                     // Standard response send.
                     req.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
 
-                    //resp.Destroy();
-                    //GC.SuppressFinalize(resp);
-
+                    // Destroying request and response objects.
+                    resp.Destroy();
                     req.Destroy();
-                    GC.SuppressFinalize(req);
 
                     break;
                 }

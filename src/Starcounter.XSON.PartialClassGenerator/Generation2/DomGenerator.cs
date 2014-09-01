@@ -10,11 +10,7 @@ using System.Collections.Generic;
 using Starcounter.XSON.Metadata;
 using TJson = Starcounter.Templates.TObject;
 
-
 namespace Starcounter.Internal.MsBuild.Codegen {
-
-
-
     /// <summary>
     /// Simple code-dom generator for the Template class. In a Template tree structure,
     /// each Template will be represented by a temporary CsGen_Template object. The reason
@@ -28,6 +24,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// there is no need for the programmer to have deep nesting of class declarations in
     /// JSON trees.</remarks>
     public partial class Gen2DomGenerator {
+        internal const string InstanceDataTypeName = "InstanceDataTypeName";
+        internal const string Reuse = "Reuse";
+
         internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TJson template, Type defaultNewObjTemplateType, CodeBehindMetadata metadata) {
             DefaultObjTemplate = (TJson)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             CodeBehindMetadata = metadata;

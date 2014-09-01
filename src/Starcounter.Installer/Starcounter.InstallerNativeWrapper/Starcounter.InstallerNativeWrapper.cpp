@@ -283,8 +283,10 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         
         // Running elevated wrapper.
         err_code = RunAndWaitForProgram(cur_exe_path, ElevatedParam, true, true, true);
+        
+        // Just returning error code.
         if (err_code)
-            goto SETUP_FAILED;
+            return err_code;
 
         // Starting Starcounter service.
         StartScService();
@@ -364,7 +366,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 SETUP_FAILED:
 
     wchar_t err_str[256];
-    swprintf_s(err_str, 256, L"Starcounter setup failed. Error code: %d", err_code);
+    swprintf_s(err_str, 256, L"Starcounter setup failed. Returned error code: %d", err_code);
 
     MessageBox(
         NULL,

@@ -15,12 +15,12 @@ using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
-namespace Starcounter.XSON.JsonPatch {
+namespace Starcounter.XSON {
     /// <summary>
     /// Class for evaluating, handling and creating json-patch to and from typed json objects 
     /// and logged changes done in a typed json object during a request.
     /// 
-    /// The json-patch is implemented according to http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-10
+    /// The json-patch is implemented according to http://tools.ietf.org/html/rfc6902
     /// </summary>
     public class JsonPatch {
         private const Int32 UNDEFINED = 0;
@@ -30,6 +30,8 @@ namespace Starcounter.XSON.JsonPatch {
 
         private static byte[][] _patchOpUtf8Arr;
         private static byte[] _emptyPatchArr = { (byte)'[', (byte)']' };
+
+        private Action<Session, JsonPointer, IntPtr, int> patchHandler = HandleParsedPatch;
 
         private enum JsonPatchMember {
             Invalid,
@@ -46,12 +48,16 @@ namespace Starcounter.XSON.JsonPatch {
             _patchOpUtf8Arr[ADD] = Encoding.UTF8.GetBytes("add");    
         }
 
+        public void SetPatchHandler(Action<Session, JsonPointer, IntPtr, int> handler) {
+            patchHandler = handler;
+        }
+
         /// <summary>
         /// Generates a JSON-Patch array for all changes made to the session data
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public static string CreateJsonPatch(Session session, bool flushLog) {
+        public string CreateJsonPatch(Session session, bool flushLog) {
             byte[] patchArr;
             int size = CreateJsonPatchBytes(session, flushLog, out patchArr);
             return Encoding.UTF8.GetString(patchArr, 0, size);
@@ -62,7 +68,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public static int CreateJsonPatchBytes(Session session, bool flushLog, out byte[] patches) {
+        public int CreateJsonPatchBytes(Session session, bool flushLog, out byte[] patches) {
             int patchSize;
             List<Change> changes;
 
@@ -87,7 +93,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="changeLog"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        internal static int CreatePatches(List<Change> changes, out byte[] patches) {
+        internal int CreatePatches(List<Change> changes, out byte[] patches) {
             byte[] buffer;
             int size;
             int[] pathSizes;
@@ -140,7 +146,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="from">From.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        private static void WritePatch(Change change, ref Utf8Writer writer, int pathSize) {
+        private void WritePatch(Change change, ref Utf8Writer writer, int pathSize) {
 			Json childJson = null;
 
             // TODO:
@@ -152,7 +158,6 @@ namespace Starcounter.XSON.JsonPatch {
             if (change.Property != null) {
                 WritePath(ref writer, change, pathSize);
             } else {
-                writer.Write('/');
                 childJson = change.Obj;
             }
             writer.Write('"');
@@ -237,6 +242,8 @@ namespace Starcounter.XSON.JsonPatch {
             pathSize = CalculateSizeOfPath(change.Obj, false);
             if (change.Property != null)
                 pathSize += change.Property.TemplateName.Length;
+            else
+                pathSize--; // Path for root is empty, ""
 
             if (change.Index != -1)
                 pathSize += GetSizeOfIntAsUtf8(change.Index) + 1;
@@ -266,7 +273,8 @@ namespace Starcounter.XSON.JsonPatch {
             } else {
                 parent = json.Parent;
 
-                if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
+//                if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
+                if (!fromStepParent && json._appName != null) {
                     size += json._appName.Length + 1;
                 }
                 fromStepParent = false;
@@ -297,7 +305,7 @@ namespace Starcounter.XSON.JsonPatch {
             return size;
         }
 
-        private static void WritePath(ref Utf8Writer writer, Change change, int pathSize) {
+        private void WritePath(ref Utf8Writer writer, Change change, int pathSize) {
             int sizeToWrite = change.Property.TemplateName.Length + 1;
             
             if (change.Index != -1) {
@@ -320,7 +328,7 @@ namespace Starcounter.XSON.JsonPatch {
             }
         }
 
-        private static void WritePath_2(ref Utf8Writer writer, Json json, int prevSize, bool fromStepParent) {
+        private void WritePath_2(ref Utf8Writer writer, Json json, int prevSize, bool fromStepParent) {
             int size;
             Json parent;
             Template template;
@@ -336,7 +344,8 @@ namespace Starcounter.XSON.JsonPatch {
                 size = 0;
                 parent = json.Parent;
                 if (parent != null) {
-                    if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
+//                    if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
+                    if (!fromStepParent &&  json._appName != null) {
                         size = json.GetAppName().Length + 1;
                         writer.Skip(-(size + prevSize));
                         writer.Write('/');
@@ -400,7 +409,7 @@ namespace Starcounter.XSON.JsonPatch {
         ///// <param name="session">The session the root json is retrieved from.</param>
         ///// <param name="patchArray">The bytearray containing all patches.</param>
         ///// <returns>The number of patches evaluated.</returns>
-        public static int EvaluatePatches(Session session, byte[] patchArray) {
+        public int EvaluatePatches(Session session, byte[] patchArray) {
             int patchCount;
 
             unsafe {
@@ -417,7 +426,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="rootApp">the root app for this request.</param>
         /// <param name="body">The body of the request.</param>
         /// <returns>The number of patches evaluated.</returns>
-        public static int EvaluatePatches(Session session, IntPtr patchArrayPtr, int patchArraySize) {
+        public int EvaluatePatches(Session session, IntPtr patchArrayPtr, int patchArraySize) {
             int used = 0;
             int patchCount = 0;
             int patchStart = -1;
@@ -478,7 +487,9 @@ namespace Starcounter.XSON.JsonPatch {
 
                         used += reader.Used;
                         patchCount++;
-                        HandleParsedPatch(session, pointer, valuePtr, valueSize);
+
+                        if (patchHandler != null)
+                            patchHandler(session, pointer, valuePtr, valueSize);
                     }
                 }
             } catch (JsonPatchException jpex) {
@@ -497,7 +508,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="patchEnd"></param>
         /// <param name="data"></param>
         /// <param name="msg"></param>
-        private static void ThrowPatchException(int patchStart, IntPtr data, int dataSize, string msg) {
+        private void ThrowPatchException(int patchStart, IntPtr data, int dataSize, string msg) {
             throw new JsonPatchException(msg, GetPatchAsString(patchStart, data, dataSize));
         }
 
@@ -508,7 +519,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="data"></param>
         /// <param name="dataSize"></param>
         /// <returns></returns>
-        private static string GetPatchAsString(int patchStart, IntPtr data, int dataSize) {
+        private string GetPatchAsString(int patchStart, IntPtr data, int dataSize) {
             if (patchStart == -1)
                 return "";
 
@@ -528,7 +539,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="patchStart"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        private static int GetPatchLength(int patchStart, IntPtr data, int dataSize) {
+        private int GetPatchLength(int patchStart, IntPtr data, int dataSize) {
             int bracketCount = 1;
             int patchEnd = patchStart + 1;
 
@@ -557,7 +568,7 @@ namespace Starcounter.XSON.JsonPatch {
         /// <param name="contentArr"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
-        private static int GotoMember(byte[] contentArr, int offset, bool first) {
+        private int GotoMember(byte[] contentArr, int offset, bool first) {
             if (!first) {
                 while (offset < contentArr.Length && contentArr[offset] != ',')
                     offset++;
@@ -680,7 +691,7 @@ namespace Starcounter.XSON.JsonPatch {
 
             if (session == null) return;
 
-            JsonProperty aat = pointer.Evaluate(session.GetFirstData());
+            JsonProperty aat = JsonProperty.Evaluate(pointer, session.GetFirstData());
 
             if (!aat.Property.Editable) {
                 throw new JsonPatchException(
@@ -754,8 +765,9 @@ namespace Starcounter.XSON.JsonPatch {
 
         private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
             long value;
+            int realValueSize;
 
-            if (!Utf8Helper.IntFastParseFromAscii(valuePtr, valueSize, out value))
+            if (!JsonHelper.ParseInt(valuePtr, valueSize, out value, out realValueSize))
                 JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
             property.ProcessInput(parent, value);
         }

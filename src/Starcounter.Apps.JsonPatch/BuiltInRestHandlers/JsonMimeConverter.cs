@@ -1,13 +1,15 @@
 using System;
 using System.Text;
 using Starcounter.Advanced;
-using Starcounter.XSON.JsonPatch;
+using Starcounter.XSON;
 
 namespace Starcounter.Internal {
     /// <summary>
     /// 
     /// </summary>
     public class JsonMimeConverter : IResponseConverter {
+        private JsonPatch jsonPatch = new JsonPatch();
+ 
         /// <summary>
         /// 
         /// </summary>
@@ -45,7 +47,7 @@ namespace Starcounter.Internal {
                         throw new UnsupportedMimeTypeException(
                             String.Format("Cannot supply mime-type {0} for the JSON resource. There is no session, so no JSON-Patch message can be generated.", mimeType.ToString()));
                     }
-                    int size =  JsonPatch.CreateJsonPatchBytes(s, true, out ret);
+                    int size = jsonPatch.CreateJsonPatchBytes(s, true, out ret);
                     if (ret.Length != size) {
                         byte[] tmp = new byte[size];
                         Buffer.BlockCopy(ret, 0, tmp, 0, size);

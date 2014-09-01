@@ -1,9 +1,9 @@
 ﻿{
 	"$": { Namespace: "Starcounter.Administrator.Server" },
-	"Name" : "personal",
-    "SystemHttpPort": 8080,
-	"Version" : "2.0.0.0",
-	"VersionDate" : "2012-04-23T18:25:43.511Z",
-	"Channel" : "nightlybuild",
-	"Edition" : "starcounter"
+	"Name" : "", // "personal",
+    "SystemHttpPort": 0, //8080,
+	"Version" : "", // "2.0.0.0",
+	"VersionDate" : "", // "2012-04-23T18:25:43.511Z",
+	"Channel" : "", // "nightlybuild",
+	"Edition" : "", // "starcounter"
 }

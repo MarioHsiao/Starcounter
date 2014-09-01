@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Starcounter.XSON.JsonPatch {
+namespace Starcounter.XSON {
     public class JsonPatchException : Exception {
         private string patch;
 

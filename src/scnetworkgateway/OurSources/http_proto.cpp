@@ -159,34 +159,30 @@ inline uint32_t GetMethodAndUri(
         pos++;
     }
 
-    // TODO!
+    // Checking if method and URI has correct length.
+    if (pos > uri_max_len)
+        return SCERRGWWRONGHTTPDATA;
+
     // Checking that we have HTTP protocol.
-    if (pos < http_data_len)
+    if (pos < (http_data_len - 4))
     {
         // Checking for HTTP keyword.
         if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
         {
             // Wrong protocol.
-            return SCERRGWNONHTTPPROTOCOL;
+            return SCERRGWWRONGHTTPDATA;
         }
     }
     else
     {
         // Either wrong protocol or not enough accumulated data.
-        return SCERRGWNONHTTPPROTOCOL;
+        return SCERRGWRECEIVEMORE;
     }
 
-    // Checking if method and URI has correct length.
-    if (pos < uri_max_len)
-    {
-        // Setting output length.
-        *out_method_and_uri_len = pos;
+    // Setting output length.
+    *out_method_and_uri_len = pos;
 
-        return 0;
-    }
-
-    // Wrong protocol.
-    return SCERRGWNONHTTPPROTOCOL;
+    return 0;
 }
 
 // Fetches method and URI from HTTP request data.
@@ -194,7 +190,7 @@ inline uint32_t GetMethodAndUriLowerCase(
     char* http_data,
     uint32_t http_data_len,
     char* out_methoduri_lower_case,
-    uint32_t* out_len,
+    uint32_t* out_method_and_uri_len,
     uint32_t* out_uri_offset,
     uint32_t uri_max_len)
 {
@@ -225,40 +221,36 @@ inline uint32_t GetMethodAndUriLowerCase(
         pos++;
     }
 
-    // TODO!
+    // Checking if method and URI has correct length.
+    if (pos > uri_max_len)
+        return SCERRGWWRONGHTTPDATA;
+
     // Checking that we have HTTP protocol.
-    if (pos < http_data_len)
+    if (pos < (http_data_len - 4))
     {
         // Checking for HTTP keyword.
         if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
         {
             // Wrong protocol.
-            return SCERRGWNONHTTPPROTOCOL;
+            return SCERRGWWRONGHTTPDATA;
         }
     }
     else
     {
         // Either wrong protocol or not enough accumulated data.
-        return SCERRGWNONHTTPPROTOCOL;
+        return SCERRGWRECEIVEMORE;
     }
 
-    // Checking if method and URI has correct length.
-    if (pos < uri_max_len)
-    {
-        // Copying string.
-        strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
+    // Copying string.
+    strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
 
-        // Converting to lower case.
-        _strlwr_s(out_methoduri_lower_case + (*out_uri_offset), pos + 1 - (*out_uri_offset));
+    // Converting to lower case.
+    _strlwr_s(out_methoduri_lower_case + (*out_uri_offset), pos + 1 - (*out_uri_offset));
 
-        // Setting output length.
-        *out_len = pos;
+    // Setting output length.
+    *out_method_and_uri_len = pos;
 
-        return 0;
-    }
-
-    // Wrong protocol.
-    return SCERRGWNONHTTPPROTOCOL;
+    return 0;
 }
 
 inline int HttpProto::OnMessageBegin(http_parser* p)
@@ -349,19 +341,6 @@ inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* s
 
     // Checking if we have session related socket.
     sd->SetGlobalSessionIfEmpty();
-
-    // Comparing with global session now.
-    // NOTE: We don't care what session the socket has.
-    /*if (!sd->CompareGlobalSessionSalt())
-    {
-#ifdef GW_SESSIONS_DIAG
-        GW_COUT << "Session stored in the HTTP header is wrong/outdated." << GW_ENDL;
-#endif
-
-        // Resetting the session information.
-        http_request_.session_string_offset_ = 0;
-        sd->ResetSdSession();
-    }*/
 }
 
 inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
@@ -529,11 +508,11 @@ uint32_t HttpProto::HttpUriDispatcher(
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
-        char* method_and_uri = (char*)sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+        char* method_and_uri = (char*) sd->get_accum_buf()->get_chunk_orig_buf_ptr();
         uint32_t method_and_uri_len, uri_offset;
 
         // Getting method and URI information.
@@ -559,26 +538,33 @@ uint32_t HttpProto::HttpUriDispatcher(
         */
 
         // Checking for any errors.
-        if (err_code)
-        {
-            // Checking if we are proxying.
-            if (sd->HasProxySocket())
-            {
-                // Set the unknown proxied protocol here.
-                sd->set_unknown_proxied_proto_flag();
+        if (err_code) {
 
-                // Just running proxy processing.
-                return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
+            if (SCERRGWRECEIVEMORE == err_code) {
+
+                // Checking if we are proxying.
+                if (sd->HasProxySocket()) {
+
+                    // Set the unknown proxied protocol here.
+                    sd->set_unknown_proxied_proto_flag();
+
+                    // Just running proxy processing.
+                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
+                }
+
+                // Returning socket to receiving state.
+                err_code = gw->Receive(sd);
+                GW_ERR_CHECK(err_code);
+
+                // Handled successfully.
+                *is_handled = true;
+
+                return 0;
+
+            } else {
+
+                return err_code;
             }
-
-            // Returning socket to receiving state.
-            err_code = gw->Receive(sd);
-            GW_ERR_CHECK(err_code);
-
-            // Handled successfully.
-            *is_handled = true;
-
-            return 0;
         }
 
         // Now we have method and URI and ready to search specific URI handler.
@@ -684,7 +670,7 @@ HANDLER_MATCHED:
 }
 
 // Resets the parser related fields.
-void HttpProto::ResetParser(SocketDataChunkRef sd)
+void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
@@ -717,11 +703,11 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Resetting the parsing structure.
-        ResetParser(sd);
+        ResetParser(gw, sd);
 
         // We can immediately set the request offset.
         http_request_.request_offset_ = sd->GetAccumOrigBufferSocketDataOffset();
@@ -929,7 +915,7 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->IsWebSocket())
+        if (sd->is_web_socket())
             return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
 
         // Handled successfully.
@@ -1000,7 +986,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 
         // Finished receiving from proxied server,
         // now sending to the original user.
-        sd->ExchangeToProxySocket();
+        sd->ExchangeToProxySocket(gw);
 
         // Setting number of bytes to send.
         sd->get_accum_buf()->PrepareToSendOnProxy();
@@ -1045,7 +1031,18 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
 // Profilers statistics for Gateway.
 uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    char* test_msg = "Starcounter gateway test response :)";
+#ifdef GW_DEV_DEBUG
+    std::stringstream str_stream;
+    str_stream << "Number of allocations: " << g_NumAllocationsCounter << " " << g_NumAlignedAllocationsCounter;
+    std::string tmp_str = str_stream.str();
+
+    const char* test_msg = tmp_str.c_str(); //"Starcounter gateway test response :)";
+
+#else
+
+    const char* test_msg = "Starcounter gateway test response :)";
+
+#endif
 
     *is_handled = true;
 

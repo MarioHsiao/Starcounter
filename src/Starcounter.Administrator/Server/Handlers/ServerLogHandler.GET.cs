@@ -61,6 +61,11 @@ namespace Starcounter.Administrator.Server.Handlers {
                             logApp.FilterSource = filter_sourceList;
                         }
 
+                        long filter_maxitems;
+                        if (long.TryParse(collection["maxitems"], out filter_maxitems) ) {
+                            logApp.FilterMaxItems = filter_maxitems;
+                        }
+
                         #endregion
 
                         logApp.RefreshLogEntriesList();

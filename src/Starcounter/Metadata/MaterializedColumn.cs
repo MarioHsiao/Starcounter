@@ -59,7 +59,7 @@ namespace Starcounter.Internal.Metadata {
                 );
 
             var sysColumnTypeDef = new TypeDef(
-                "Starcounter.Internal.Metadata.MaterializedColumn",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
                 null,
                 new PropertyDef[]
                 {

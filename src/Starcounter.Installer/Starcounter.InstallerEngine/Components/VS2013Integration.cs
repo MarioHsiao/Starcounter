@@ -136,6 +136,10 @@ namespace Starcounter.InstallerEngine {
 
         /// <inheritdoc/>
         public override Boolean IsInstalled() {
+
+            if (!DependenciesCheck.VStudio2013Installed())
+                return false;
+
             var manifest = VSIXUtilities.FindManifestFile(
                 GetUserExtensionsRootFolder(VisualStudioVersion.VS2013),
                 VSIXPackageInfo.VS2013.ExtensionIdentity);

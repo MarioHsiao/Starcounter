@@ -71,18 +71,28 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="valueSize">The size of the unparsed value in bytes</param>
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
         public static bool ParseInt(IntPtr ptr, int size, out long value, out int valueSize) {
+            bool dummy;
             long result;
+            IntPtr start = IntPtr.Zero;
 
             unsafe {
                 byte* pfrag = (byte*)ptr;
-                valueSize = SizeToDelimiterOrEnd(pfrag, size);
-                if (IsNullValue(pfrag, valueSize)) {
-                    value = 0;
-                    return true;
+
+                if (*pfrag != (byte)'"') {
+                    valueSize = SizeToDelimiterOrEnd(pfrag, size);
+                    if (IsNullValue(pfrag, valueSize)) {
+                        value = 0;
+                        return true;
+                    }
+                } else {
+                    pfrag++;
+                    valueSize = SizeToDelimiterOrEndString(pfrag, size, out dummy);
                 }
+
+                start = (IntPtr)pfrag;
             }
 
-            if (Utf8Helper.IntFastParseFromAscii(ptr, valueSize, out result)) {
+            if (Utf8Helper.IntFastParseFromAscii(start, valueSize, out result)) {
                 value = result;
                 return true;
             }
@@ -146,12 +156,18 @@ namespace Starcounter.Advanced.XSON {
         /// <returns><c>true</c> if value was succesfully parsed, <c>false</c> otherwise</returns>
         public static bool ParseBoolean(IntPtr ptr, int size, out bool value, out int valueSize) {
             bool success = false;
+            int extraSize = 0;
 
             value = false;
             valueSize = -1;
             if (size != 0) {
                 unsafe {
                     byte* p = (byte*)ptr;
+
+                    if (*p == '"') {
+                        extraSize = 2;
+                        p++;
+                    }
 
                     switch (*p) {
                         case (byte)'t':
@@ -182,6 +198,8 @@ namespace Starcounter.Advanced.XSON {
                             }
                             break;
                     }
+
+                    valueSize += extraSize;
                 }
             }
             return success;
@@ -617,7 +635,7 @@ namespace Starcounter.Advanced.XSON {
             int statusCode = 500;
             try { statusCode = response.StatusCode; } catch { }
 
-            if (response.StatusCode > 400) {
+            if (statusCode > 400) {
                 var str = response.Body;
                 if (str != null) {
                     var index = str.IndexOf("HResult");

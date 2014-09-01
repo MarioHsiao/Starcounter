@@ -69,7 +69,14 @@ namespace Starcounter.Binding
         /// <summary>
         /// The column defs
         /// </summary>
-        public ColumnDef[] ColumnDefs;
+        private ColumnDef[] _ColumnDefs;
+        public ColumnDef[] ColumnDefs {
+            get {
+                Debug.Assert(_ColumnDefs != null);
+                return _ColumnDefs;
+            }
+            internal set { _ColumnDefs = value; }
+        }
 
         /// <summary>
         /// The table id

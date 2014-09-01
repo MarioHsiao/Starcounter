@@ -13,64 +13,60 @@ namespace Starcounter {
         /// <summary>
         /// Unique socket id on gateway.
         /// </summary>
-        UInt64 socketUniqueId_;
+        public UInt64 SocketUniqueId { get { return socketContainer_.SocketUniqueId; } }
 
         /// <summary>
-        /// Unique socket id on gateway.
+        /// Cargo ID getter.
         /// </summary>
-        public UInt64 SocketUniqueId { get { return socketUniqueId_; } }
+        public UInt64 CargoId {
+            get { return socketContainer_.CargoId; }
+            set { socketContainer_.CargoId = value; }
+        } 
 
         /// <summary>
-        /// Socket index on gateway.
+        /// Socket container.
         /// </summary>
-        UInt32 socketIndexNum_;
-
-        /// <summary>
-        /// Socket index on gateway.
-        /// </summary>
-        internal UInt32 SocketIndexNum { get { return socketIndexNum_; } }
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
-        Byte gatewayWorkerId_;
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
-        internal Byte GatewayWorkerId { get { return gatewayWorkerId_; } }
-
-        /// <summary>
-        /// Network data stream.
-        /// </summary>
-        NetworkDataStream dataStream_;
-
-        /// <summary>
-        /// Network data stream.
-        /// </summary>
-        public NetworkDataStream DataStream { get { return dataStream_; } }
+        SchedulerResources.SocketContainer socketContainer_;
 
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="socketIndexNum"></param>
-        /// <param name="socketUniqueId"></param>
-        /// <param name="gatewayWorkerId"></param>
-        /// <param name="dataStream"></param>
-        internal RawSocket(
-            UInt32 socketIndexNum,
-            UInt64 socketUniqueId,
-            Byte gatewayWorkerId,
-            NetworkDataStream dataStream) {
+        internal RawSocket(SchedulerResources.SocketContainer outerSocketContainer) {
 
-            socketIndexNum_ = socketIndexNum;
-            socketUniqueId_ = socketUniqueId;
-            gatewayWorkerId_ = gatewayWorkerId;
-            dataStream_ = dataStream;
+            socketContainer_ = outerSocketContainer;
         }
 
-        internal void Reset() {
-            gatewayWorkerId_ = 255;
+        /// <summary>
+        /// Current RawSocket object.
+        /// </summary>
+        [ThreadStatic]
+        internal static RawSocket Current_;
+
+        /// <summary>
+        /// Current RawSocket object.
+        /// </summary>
+        public static RawSocket Current {
+            get { return Current_; }
+            set { Current_ = value; }
+        }
+
+        /// <summary>
+        /// Destroys only data stream.
+        /// </summary>
+        /// <param name="isStarcounterThread"></param>
+        internal void DestroyDataStream() {
+            if (null != socketContainer_)
+                socketContainer_.DestroyDataStream();
+        }
+
+        /// <summary>
+        /// Resets the socket.
+        /// </summary>
+        internal void Destroy() {
+            if (null != socketContainer_) {
+                SchedulerResources.ReturnSocketContainer(socketContainer_);
+                socketContainer_ = null;
+            }
         }
 
         /// <summary>
@@ -78,7 +74,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public Boolean IsDead() {
-            return (gatewayWorkerId_ == 255);
+            return ((null == socketContainer_) || (socketContainer_.IsDead()));
         }
 
         /// <summary>
@@ -93,7 +89,7 @@ namespace Starcounter {
 
             PushServerMessage(TempDisconnectBuffer, 0, 1, Response.ConnectionFlags.DisconnectImmediately);
 
-            Reset();
+            Destroy();
         }
 
         /// <summary>
@@ -131,18 +127,20 @@ namespace Starcounter {
             UInt32 chunk_index;
             Byte* chunk_mem;
 
+            NetworkDataStream dataStream = socketContainer_.DataStream;
+
             // Checking if we still have the data stream with original chunk available.
-            if (dataStream_ == null || dataStream_.IsDestroyed()) {
+            if (dataStream == null || dataStream.IsDestroyed()) {
 
                 UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunk_index, &chunk_mem);
                 if (0 != err_code)
                     throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
 
-                data_stream = new NetworkDataStream(chunk_mem, chunk_index, gatewayWorkerId_);
+                data_stream = new NetworkDataStream(chunk_mem, chunk_index, socketContainer_.GatewayWorkerId);
 
             } else {
 
-                data_stream = dataStream_;
+                data_stream = dataStream;
                 chunk_index = data_stream.ChunkIndex;
                 chunk_mem = data_stream.RawChunk;
             }
@@ -155,14 +153,82 @@ namespace Starcounter {
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) MixedCodeConstants.NetworkProtocolType.PROTOCOL_RAW_PORT;
 
-            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = socketIndexNum_;
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketUniqueId_;
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = gatewayWorkerId_;
+            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = socketContainer_.SocketIndexNum;
+            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketContainer_.SocketUniqueId;
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketContainer_.GatewayWorkerId;
 
             (*(UInt16*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             data_stream.SendResponse(data, offset, dataLen, connFlags);
+        }
+
+        /// <summary>
+        /// Running the given action on raw sockets that meet given criteria.
+        /// </summary>
+        /// <param name="cargoId">Cargo ID filter (UInt64.MaxValue for all).</param>
+        public static void ForEach(UInt64 cargoId, Action<RawSocket> action) {
+
+            // For each scheduler.
+            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+
+                Byte schedId = i;
+
+                // Running asynchronous task.
+                ScSessionClass.DbSession.RunAsync(() => {
+
+                    // Saving current socket since we are going to set other.
+                    RawSocket origCurrentSocket = RawSocket.Current;
+
+                    try {
+                        SchedulerResources.SchedulerSockets ss = SchedulerResources.AllHostSockets.GetSchedulerSockets(schedId);
+
+                        // Going through each gateway worker.
+                        for (Byte gwWorkerId = 0; gwWorkerId < StarcounterEnvironment.Gateway.NumberOfWorkers; gwWorkerId++) {
+
+                            SchedulerResources.SocketsPerSchedulerPerGatewayWorker spspgw = ss.GetSocketsPerGatewayWorker(gwWorkerId);
+
+                            // Going through each active socket.
+                            foreach (UInt32 wsIndex in spspgw.ActiveSocketIndexes) {
+
+                                // Getting socket container.
+                                SchedulerResources.SocketContainer sc = spspgw.GetSocket(wsIndex);
+
+                                // Checking if its a raw socket.
+                                if ((sc != null) && (!sc.IsDead())) {
+
+                                    RawSocket rs = sc.Rs;
+
+                                    // Checking if socket is alive.
+                                    if (null != rs) {
+
+                                        // Comparing given cargo ID if any.
+                                        if ((cargoId == UInt64.MaxValue) || (cargoId == sc.CargoId)) {
+
+                                            // Setting current socket.
+                                            RawSocket.Current = rs;
+
+                                            // Running user delegate with socket as parameter.
+                                            action(rs);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } finally {
+                        // Restoring original current socket.
+                        RawSocket.Current = origCurrentSocket;
+                    }
+
+                }, schedId);
+            }
+        }
+
+        /// <summary>
+        /// Disconnecting Raw Sockets that meet given criteria.
+        /// </summary>
+        public static void DisconnectEach(UInt64 cargoId = UInt64.MaxValue) {
+            ForEach(cargoId, (RawSocket s) => { s.Disconnect(); });
         }
     }
 }

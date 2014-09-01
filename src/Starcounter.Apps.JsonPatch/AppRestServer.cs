@@ -114,7 +114,15 @@ namespace Starcounter.Internal.Web {
 
                 // Running all available HTTP handlers.
                 Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
-                UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+
+                var manager = UriHandlersManager.GetUriHandlersManager(handlerLevel);
+
+                // TODO: 
+                // Move closer to actual call to delegate.
+                Db.MicroTask(() => {
+                    manager.RunDelegate(request, out resp);
+                });
+
                 Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
                 // Checking if we still have no response.
@@ -157,6 +165,7 @@ namespace Starcounter.Internal.Web {
                 // Checking if a new session was created during handler call.
                 if ((null != Session.Current) && (!request.IsInternal))
                     Session.End();
+                Session.InitialRequest = null;
             }
         }
 

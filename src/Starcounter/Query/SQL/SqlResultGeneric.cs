@@ -140,7 +140,7 @@ namespace Starcounter
                     // Setting the fetch first only flag.
                     execEnum.SetFirstOnlyFlag();
 
-                    if (execEnum.MoveNext())
+                    if (execEnum.MoveNext() && execEnum.Current != null)
                         current = execEnum.Current;
                 }
                 finally {

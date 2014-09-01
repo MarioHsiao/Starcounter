@@ -146,6 +146,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             // Releasing IPC chunks.
             ReturnLinkedChunksToPool(ipc_first_chunk_index);
 
+            // Setting socket info reference.
+            sd->set_socket_info_reference(gw);
+
             // Checking that socket arrived on correct worker.
             GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
 
@@ -153,7 +156,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             if (!sd->CompareUniqueSocketId())
             {
                 gw->DisconnectAndReleaseChunk(sd);
+
                 continue;
+
             } else {
 
                 // Checking that socket is bound to the correct worker.
@@ -161,10 +166,11 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             }
 
             // Initializing socket data that arrived from database.
-            sd->PreInitSocketDataFromDb();
+            sd->PreInitSocketDataFromDb(gw);
 
             // Checking for socket data correctness.
-            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections());
+            GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
+            GW_ASSERT(sd->get_socket_info_index() < g_gateway.setting_max_connections_per_worker());
 
 #ifdef GW_CHUNKS_DIAG
             GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
@@ -381,6 +387,8 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     GW_PRINT_WORKER_DB << "Pushing chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);
+
     uint16_t num_ipc_chunks;
     core::chunk_index ipc_first_chunk_index;
     SocketDataChunk* ipc_sd;
@@ -504,7 +512,7 @@ WorkerDbInterface::WorkerDbInterface(
 
     // Allocating channels.
     num_schedulers_ = static_cast<int32_t> (shared_int_.common_scheduler_interface().number_of_active_schedulers());
-    channels_ = new core::channel_number[num_schedulers_];
+    channels_ = GwNewArray(core::channel_number, num_schedulers_);
 
     // Getting unique client interface for this worker.
     bool shared_int_acquired = shared_int_.acquire_client_number2(worker_id);

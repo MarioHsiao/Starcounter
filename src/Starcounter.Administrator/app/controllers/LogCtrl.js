@@ -13,7 +13,8 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
             notice: false,
             warning: true,
             error: true,
-            source: ""
+            source: "",
+            maxitems: 30
         },
         isWebsocketSupport: LogService.isWebsocketSupport
     };

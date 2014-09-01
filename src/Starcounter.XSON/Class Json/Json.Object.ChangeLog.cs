@@ -18,6 +18,9 @@ namespace Starcounter {
 			_Dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
+
+            if (_stepParent != null)
+                _stepParent.Dirtyfy();
 		}
 
 		/// <summary>
@@ -45,6 +48,12 @@ namespace Starcounter {
                             }
                         },
                         (TObject)Template);
+
+                    if (this._stepSiblings != null) {
+                        foreach (Json stepSibling in _stepSiblings) {
+                            stepSibling.CheckpointChangeLog();
+                        }
+                    }
 				}
 			}
 			_Dirty = false;
@@ -212,6 +221,12 @@ namespace Starcounter {
                         }
                     }
                 }
+
+                if (_stepSiblings != null) {
+                    foreach (var stepSibling in _stepSiblings) {
+                        stepSibling.LogValueChangesWithDatabase(session);
+                    }
+                }
             },
             session);
 		}
@@ -237,6 +252,12 @@ namespace Starcounter {
                                 if (vt != null)
                                     vt.CheckAndSetBoundValue(this, false);
                             }
+                        }
+                    }
+
+                    if (_stepSiblings != null) {
+                        foreach (var stepSibling in _stepSiblings) {
+                            stepSibling.SetBoundValuesInTuple();
                         }
                     }
                 });

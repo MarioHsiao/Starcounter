@@ -53,7 +53,7 @@ namespace Starcounter.Internal.Metadata {
                 );
 
             var sysIndexTypeDef = new TypeDef(
-                "Starcounter.Internal.Metadata.MaterializedIndex",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
                 null,
                 new PropertyDef[]
                 {
@@ -158,7 +158,7 @@ namespace Starcounter.Internal.Metadata {
                 );
 
             var sysIndexTypeDef = new TypeDef(
-                "Starcounter.Internal.Metadata.MaterializedIndexColumn",
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType.FullName,
                 null,
                 new PropertyDef[]
                 {

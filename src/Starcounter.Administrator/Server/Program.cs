@@ -153,7 +153,17 @@ namespace Starcounter.Administrator.Server {
                 return "hello";
             });
 
+            Handle.GET("/native-allocs", () => {
+                return "Number of native allocations: " + BitsAndBytes.NumNativeAllocations;
+            });
+
             Handle.GET("/echotestws", (Request req) => {
+
+                // Checking for client IP address.
+                String clientIp = req.ClientIpAddress.ToString();
+                if (clientIp != "127.0.0.1")
+                    throw new Exception("Wrong client IP address: " + clientIp);
+
                 if (req.WebSocketUpgrade) {
                     Interlocked.Increment(ref WsHandshakesCounter);
 
@@ -166,6 +176,11 @@ namespace Starcounter.Administrator.Server {
             });
 
             Handle.GET("/wscounters", (Request req) => {
+
+                // Checking for client IP address.
+                String clientIp = req.ClientIpAddress.ToString();
+                if (clientIp != "127.0.0.1")
+                    throw new Exception("Wrong client IP address: " + clientIp);
 
                 Int32 e = WsEchoesCounter,
                     d = WsDisconnectsCounter,
@@ -198,6 +213,11 @@ namespace Starcounter.Administrator.Server {
 
             Handle.DELETE("/resetcounters", (Request req) => {
 
+                // Checking for client IP address.
+                String clientIp = req.ClientIpAddress.ToString();
+                if (clientIp != "127.0.0.1")
+                    throw new Exception("Wrong client IP address: " + clientIp);
+
                 WsEchoesCounter = 0;
                 WsDisconnectsCounter = 0;
                 WsHandshakesCounter = 0;
@@ -208,6 +228,11 @@ namespace Starcounter.Administrator.Server {
 
             Handle.GET("/httpcounters", (Request req) => {
 
+                // Checking for client IP address.
+                String clientIp = req.ClientIpAddress.ToString();
+                if (clientIp != "127.0.0.1")
+                    throw new Exception("Wrong client IP address: " + clientIp);
+
                 Int32 e = HttpEchoesCounter;
 
                 HttpEchoesCounter = 0;
@@ -216,6 +241,12 @@ namespace Starcounter.Administrator.Server {
             });
 
             Handle.POST("/echotest", (Request req) => {
+
+                // Checking for client IP address.
+                String clientIp = req.ClientIpAddress.ToString();
+                if (clientIp != "127.0.0.1")
+                    throw new Exception("Wrong client IP address: " + clientIp);
+
                 Interlocked.Increment(ref HttpEchoesCounter);
 
                 return new Response() { BodyBytes = req.BodyBytes };

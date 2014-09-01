@@ -13,38 +13,17 @@ namespace Starcounter.Templates {
     /// 
     /// </summary>
     public class TString : PrimitiveProperty<string> {
-        private string _DefaultValue = "";
+        public TString() {
+            DefaultValue = "";
+        }
 
         public override Type MetadataType {
             get { return typeof(StringMetadata<Json>); }
         }
 
-        /// <summary>
-        /// Gets or sets the default value.
-        /// </summary>
-        /// <value>The default value.</value>
-        public string DefaultValue {
-            get { return _DefaultValue; }
-            set { _DefaultValue = value; }
-        }
-
         internal override void SetDefaultValue(Json parent) {
             UnboundSetter(parent, DefaultValue);
         }
-
-        ///// <summary>
-        ///// Contains the default value for the property represented by this
-        ///// Template for each new App object.
-        ///// </summary>
-        ///// <value>The default value as object.</value>
-        //public override object DefaultValueAsObject {
-        //    get {
-        //        return DefaultValue;
-        //    }
-        //    set {
-        //        DefaultValue = (string)value;
-        //    }
-        //}
 
         /// <summary>
         /// The .NET type of the instance represented by this template.

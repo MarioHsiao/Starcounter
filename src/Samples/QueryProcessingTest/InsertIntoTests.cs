@@ -137,17 +137,31 @@ namespace QueryProcessingTest {
                 Trace.Assert(u.PatronymicName == null);
                 Trace.Assert(!users.MoveNext());
                 Db.SQL("insert into account(accountid,client,amount,accounttype,notactive,amountdouble)"+
-                    "values(1000000,object "+u.GetObjectNo()+",10.2,'savings',false,10.2)");
+                    "values(1000000,object "+u.GetObjectNo()+",-10.2,'savings',false,10.2)");
                 var accounts = Db.SQL<Account>("select a from account a where client = ?", u).GetEnumerator();
                 Trace.Assert(accounts.MoveNext());
                 Account a = accounts.Current;
                 Trace.Assert(a != null);
                 Trace.Assert(a.AccountId == 1000000);
                 Trace.Assert(a.Client.Equals(u));
-                Trace.Assert(a.Amount == 10.2m);
+                Trace.Assert(a.Amount == -10.2m);
                 Trace.Assert(a.AccountType == "savings");
                 Trace.Assert(a.NotActive == false);
                 Trace.Assert(a.AmountDouble == 10.2);
+                Trace.Assert(!accounts.MoveNext());
+                a.Delete();
+                Db.SQL("insert into account(accountid,client,amount,accounttype,notactive,amountdouble)" +
+                    "values(1000000,object " + u.GetObjectNo() + ",10.243000,'savings',false,10)");
+                accounts = Db.SQL<Account>("select a from account a where client = ?", u).GetEnumerator();
+                Trace.Assert(accounts.MoveNext());
+                a = accounts.Current;
+                Trace.Assert(a != null);
+                Trace.Assert(a.AccountId == 1000000);
+                Trace.Assert(a.Client.Equals(u));
+                Trace.Assert(a.Amount == 10.243000m);
+                Trace.Assert(a.AccountType == "savings");
+                Trace.Assert(a.NotActive == false);
+                Trace.Assert(a.AmountDouble == 10);
                 Trace.Assert(!accounts.MoveNext());
                 a.Delete();
                 u.Delete();

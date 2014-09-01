@@ -39,6 +39,15 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Gets a value holding information about who started the
+        /// current application (what client and, possibly, user).
+        /// </summary>
+        public string StartedBy {
+            get;
+            internal set;
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="AppInfo"/>.
         /// </summary>
         /// <param name="name">The name of the application.</param>
@@ -46,8 +55,10 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="applicationBinaryFile">The application binary.</param>
         /// <param name="workingDirectory">The working directory.</param>
         /// <param name="arguments">The arguments with which the application was started.</param>
-        public AppInfo(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments)
+        /// <param name="startedBy">The context from where the application was started.</param>
+        public AppInfo(string name, string applicationFile, string applicationBinaryFile, string workingDirectory, string[] arguments, string startedBy)
             : base(name, applicationFile, applicationBinaryFile, workingDirectory, arguments) {
+            StartedBy = startedBy;
         }
 
         /// <summary>

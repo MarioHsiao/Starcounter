@@ -171,7 +171,7 @@ namespace NodeTest
             if (ProtocolTypes.ProtocolWebSockets == ProtocolType) {
 
                 if ((NumEchoesPerWorker % NumEchoesPerConnection) != 0) {
-                    throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerWsConnection!");
+                    throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerConnection!");
                 }
 
                 if ((AsyncModes.ModeSync != AsyncMode) || (true == UseAggregation)) {
@@ -180,7 +180,7 @@ namespace NodeTest
             } else if (ProtocolTypes.ProtocolRawPort == ProtocolType) {
 
                 if ((NumEchoesPerWorker % NumEchoesPerConnection) != 0) {
-                    throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerWsConnection!");
+                    throw new ArgumentException("NumEchoesPerWorker is not divisible by NumEchoesPerConnection!");
                 }
 
                 if ((AsyncModes.ModeSync != AsyncMode) || (true == UseAggregation)) {

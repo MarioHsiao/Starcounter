@@ -3214,6 +3214,14 @@
         column.
       </remarks>
     </code>
+    <code hex="0116" severity="Error" name="ScErrAmbiguousImplicitTransaction">
+      <message>
+        Ambiguous implicit transaction. Please put code inside a transaction scope.
+      </message>
+    </code>
+    <code hex="0117" severity="Error" name="ScErrTokenNotFound">
+      <message>Internal error: token for the given name is not found.</message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -4154,6 +4162,12 @@
     <code hex="0025" severity="Error" name="ScErrApplicationNotRunning">
       <message>
         No application with the given name is running.
+      </message>
+    </code>
+    <code hex="0026" severity="Error" name="ScErrServerNotSignaling">
+      <message>
+        The admin server is taken longer than normal to start; it didn't
+        signal it was ready in time.
       </message>
     </code>
   </facility>

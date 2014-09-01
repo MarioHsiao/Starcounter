@@ -185,7 +185,7 @@ namespace Starcounter.Internal
 
         internal void InitWebSockets(RegisterWsChannelHandlerNativeDelegate registerWsChannelHandlerNative) {
             RegisterWsChannelHandlerNative_ = registerWsChannelHandlerNative;
-            WebSocket.InitWebSocketsInternal();
+            SchedulerResources.InitSockets();
         }
 
         WsChannelInfo CreateWsChannel(UInt16 port, String internalChannelName)

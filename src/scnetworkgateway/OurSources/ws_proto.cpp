@@ -165,7 +165,7 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 }
 
 // Obtains user handler info from channel name of the WebSocket.
-inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(SocketDataChunkRef sd)
+inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
     ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
@@ -183,7 +183,7 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsDisconnects);
 
     // Obtaining handler info from channel id.
-    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(sd);
+    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
         return 0;
 
@@ -225,7 +225,7 @@ uint32_t WsProto::ProcessWsDataToDb(
     uint32_t err_code = 0;
 
     // Obtaining handler info from channel id.
-    user_handler_id = SearchUserHandlerInfoByChannelId(sd);
+    user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
         return SCERRGWWEBSOCKET;
 

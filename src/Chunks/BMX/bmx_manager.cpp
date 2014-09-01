@@ -147,35 +147,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     _SC_END_FUNC
 };
 
-// Registers sub-port handler.
-EXTERN_C uint32_t __stdcall sc_bmx_register_subport_handler(
-    const uint16_t port_num,
-    const char* app_name,
-    const BMX_SUBPORT_TYPE sub_port,
-    const GENERIC_HANDLER_CALLBACK callback,
-    const uint16_t managed_handler_index,
-    BMX_HANDLER_TYPE* phandler_info
-    )
-{
-    _SC_BEGIN_FUNC
-
-    _SC_ASSERT(NULL != g_bmx_data);
-
-    BMX_HANDLER_INDEX_TYPE handler_index;
-    uint32_t err_code = g_bmx_data->FindSubportHandler(port_num, sub_port, &handler_index);
-    if (0 == err_code)
-        return SCERRHANDLERALREADYREGISTERED;
-
-    // Performing operation on a copy.
-    BmxData* g_bmx_data_copy = EnterSafeBmxManagement();
-    err_code = g_bmx_data_copy->RegisterSubPortHandler(port_num, app_name, sub_port, callback, managed_handler_index, phandler_info);
-    LeaveSafeBmxManagement(g_bmx_data_copy);
-
-    return err_code;
-
-    _SC_END_FUNC
-}
-
 EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
     const uint16_t port_num,
     const char* app_name,
@@ -293,25 +264,6 @@ uint32_t sc_bmx_unregister_port(uint16_t port_num)
     uint32_t err_code;
 
     err_code = g_bmx_data->FindPortHandler(port_num, &handler_index);
-    if (err_code)
-        return err_code;
-
-    err_code = sc_bmx_unregister_handler(handler_index);
-
-    return err_code;
-
-    _SC_END_FUNC
-}
-
-// Unregisters a handler.
-uint32_t sc_bmx_unregister_subport(uint16_t port_num, BMX_SUBPORT_TYPE subport_num)
-{
-    _SC_BEGIN_FUNC
-
-    BMX_HANDLER_INDEX_TYPE handler_index;
-    uint32_t err_code;
-
-    err_code = g_bmx_data->FindSubportHandler(port_num, subport_num, &handler_index);
     if (err_code)
         return err_code;
 

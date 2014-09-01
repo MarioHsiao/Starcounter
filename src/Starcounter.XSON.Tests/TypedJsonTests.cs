@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Templates;
-using Starcounter.XSON.JsonPatch;
 using Starcounter.XSON.Tests;
 
 namespace Starcounter.Internal.XSON.Tests {

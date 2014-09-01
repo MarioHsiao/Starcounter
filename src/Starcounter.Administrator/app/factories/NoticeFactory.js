@@ -18,6 +18,11 @@ adminModule.service('NoticeFactory', ['$log', function ($log) {
      * @return {object} Notice
      */
     factory.ShowNotice = function (notice) {
+
+        if (factory.IsDuplicate(notice)) {
+            return factory.notises[factory.notises.length - 1];
+        }
+
         factory.notises.push(notice);
         return notice;
     }
@@ -42,6 +47,25 @@ adminModule.service('NoticeFactory', ['$log', function ($log) {
         }
     }
 
-    return factory;
 
+    /**
+     * Check if a notice is duplicated
+     * Note: This only compares the notice with
+     * the last notice
+     * @param {object} notice Notice
+     */
+    factory.IsDuplicate = function (notice) {
+
+        if (factory.notises.length == 0) return false;
+
+        var lastNotice = factory.notises[factory.notises.length - 1];
+
+        if (notice.msg == lastNotice.msg && notice.type == lastNotice.type) {
+            return true;
+        }
+
+        return false;
+    }
+
+    return factory;
 }]);

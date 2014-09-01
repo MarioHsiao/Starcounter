@@ -331,6 +331,11 @@ namespace NetworkIoTestApp
 
                     Handle.GET(8080, "/shutdown", (Request req) =>
                     {
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
+
                         return new Response()
                         {
                             Body = "Closing connection",
@@ -340,6 +345,11 @@ namespace NetworkIoTestApp
 
                     Handle.GET(8080, "/echotestws", (Request req) =>
                     {
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
+
                         if (req.WebSocketUpgrade)
                         {
                             Interlocked.Increment(ref WsHandshakesCounter);
@@ -354,6 +364,11 @@ namespace NetworkIoTestApp
 
                     Handle.DELETE(8080, "/resetcounters", (Request req) => {
 
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
+
                         WsEchoesCounter = 0;
                         WsDisconnectsCounter = 0;
                         WsHandshakesCounter = 0;
@@ -365,6 +380,11 @@ namespace NetworkIoTestApp
                     });
 
                     Handle.GET(8080, "/wscounters", (Request req) => {
+
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
 
                         Int32 e = WsEchoesCounter,
                             d = WsDisconnectsCounter,
@@ -400,6 +420,11 @@ namespace NetworkIoTestApp
 
                     Handle.GET(8080, "/httpcounters", (Request req) => {
 
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
+
                         Int32 e = HttpEchoesCounter;
 
                         HttpEchoesCounter = 0;
@@ -408,6 +433,12 @@ namespace NetworkIoTestApp
                     });
 
                     Handle.POST(8080, "/echotest", (Request req) => {
+
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
+
                         Interlocked.Increment(ref HttpEchoesCounter);
 
                         return new Response() { BodyBytes = req.BodyBytes };
@@ -419,6 +450,11 @@ namespace NetworkIoTestApp
                     });
 
                     Handle.GET(8080, "/rawportcounters", (Request req) => {
+
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
 
                         Int32 e = RawPortBytesCounter,
                             d = RawPortDisconnectsCounter;
@@ -511,7 +547,7 @@ namespace NetworkIoTestApp
                         return resp;
                     });
 
-                    Handle.PUT( "/upload/{?}", (Request req, String uploadId) =>
+                    Handle.PUT("/upload/{?}", (Request req, String uploadId) =>
                     {
                         // Checking that dictionary contains the upload.
                         if (!uploadedFiles.ContainsKey(uploadId))
@@ -590,6 +626,11 @@ namespace NetworkIoTestApp
                     // Registering WebSocket handler.
                     Handle.GET("/ws", (Request req) =>
                     {
+                        // Checking for client IP address.
+                        String clientIp = req.ClientIpAddress.ToString();
+                        if (clientIp != "127.0.0.1")
+                            throw new Exception("Wrong client IP address: " + clientIp);
+
                         if (req.WebSocketUpgrade)
                         {
                             Byte schedId = StarcounterEnvironment.CurrentSchedulerId;

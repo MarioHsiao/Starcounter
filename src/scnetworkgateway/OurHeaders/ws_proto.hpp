@@ -152,15 +152,14 @@ public:
 
     RegisteredWsChannel(HandlersList* handler_list)
     {
-        Reset();
-
         handler_list_ = handler_list;
     }
 
     // Resetting entry.
-    void Reset()
+    void Erase()
     {
-
+        GwDeleteSingle(handler_list_);
+        handler_list_ = NULL;
     }
 
     // Removes certain entry.
@@ -172,12 +171,6 @@ public:
     BMX_HANDLER_TYPE GetHandlerInfo()
     {
         return handler_list_->get_handler_info();
-    }
-
-    // Removes certain entry.
-    db_index_type GetDbIndex()
-    {
-        return handler_list_->get_db_index();
     }
 };
 
@@ -250,6 +243,8 @@ public:
             // Checking if database index is the same.
             if (reg_ws_channels_[i].ContainsDb(db_index))
             {
+                reg_ws_channels_[i].Erase();
+
                 reg_ws_channels_.RemoveByIndex(i);
                 i--;
 
@@ -270,7 +265,7 @@ public:
         {
             stats_stream << "    \"" << reg_ws_channels_[i].get_channel_name() << "\" in";
 
-            stats_stream << " database \"" << g_gateway.GetDatabase(reg_ws_channels_[i].GetDbIndex())->get_db_name() << "\"";
+            stats_stream << " database \"" << g_gateway.GetDatabase(reg_ws_channels_[i].get_db_index())->get_db_name() << "\"";
 
             stats_stream << "<br>";
         }
@@ -346,9 +341,9 @@ public:
         const char* channel_name,
         db_index_type db_index)
     {
-        HandlersList* h = new HandlersList();
+        HandlersList* hl = GwNewConstructor(HandlersList);
 
-        uint32_t err_code = h->Init(
+        uint32_t err_code = hl->Init(
             bmx::HANDLER_TYPE::WS_HANDLER,
             handler_info,
             port_number_,
@@ -365,7 +360,7 @@ public:
 
         GW_ASSERT(0 == err_code);
 
-        RegisteredWsChannel w(h);        
+        RegisteredWsChannel w(hl);        
         reg_ws_channels_.Add(w);
     }
 };

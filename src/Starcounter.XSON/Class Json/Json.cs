@@ -121,6 +121,9 @@ namespace Starcounter {
         /// </summary>
         public Session Session {
             get {
+                if (_stepParent != null) {
+                    return _stepParent.Session;
+                }
                 if (_Session == null && Parent != null) {
                     return Parent.Session;
                 }

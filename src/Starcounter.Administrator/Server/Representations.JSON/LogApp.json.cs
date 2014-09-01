@@ -34,7 +34,13 @@ namespace Starcounter.Administrator.Server {
 
             this.LogEntries.Clear(); // Clearlist
 
-            int limit = 30;   // Limith the result
+ 
+
+            long limit = 30;   // Limith the result
+
+            if (this.FilterMaxItems > 0) {
+                limit = this.FilterMaxItems;
+            }
 
             var lr = new LogReader();
             var i = 0;

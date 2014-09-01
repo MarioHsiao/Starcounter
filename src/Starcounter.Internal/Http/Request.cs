@@ -367,7 +367,7 @@ namespace Starcounter {
             if (w == null)
                 throw new Exception("Specified WebSocket channel is not registered: " + channelName);
 
-            WebSocket ws = new WebSocket(null, null, null, null, WebSocket.WsHandlerType.Empty);
+            WebSocket ws = new WebSocket(null, null, null, false, WebSocket.WsHandlerType.Empty);
 
             if (resp == null)
                 resp = new Response();
@@ -459,6 +459,9 @@ namespace Starcounter {
                 // Checking if already destroyed.
                 if (http_request_struct_ == null)
                     return;
+
+                // Removing object from GC.
+                GC.SuppressFinalize(this);
 
                 // Checking if we have constructed this Request
                 // internally in Apps or externally in Gateway.
