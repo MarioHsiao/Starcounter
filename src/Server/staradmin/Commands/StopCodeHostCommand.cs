@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Starcounter.CLI;
 
 namespace staradmin.Commands {
 
     internal class StopCodeHostCommand : StopCommand {
+
         protected override void Stop() {
-            throw new NotImplementedException();
+            var cmd = StopDatabaseCommand.Create();
+            cmd.StopCodeHostOnly = true;
+            if (!string.IsNullOrEmpty(Context.Database)) {
+                cmd.DatabaseName = Context.Database;
+            }
+
+            cmd.Execute();
         }
     }
 }
