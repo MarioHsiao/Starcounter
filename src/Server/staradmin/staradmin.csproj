@@ -59,6 +59,7 @@
     <Compile Include="Commands\StopAppCommand.cs" />
     <Compile Include="Commands\StopCodeHostCommand.cs" />
     <Compile Include="Commands\StopCommand.cs" />
+    <Compile Include="Commands\StopDbCommand.cs" />
     <Compile Include="Commands\UnloadCommand.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="Commands\ICommand.cs" />
