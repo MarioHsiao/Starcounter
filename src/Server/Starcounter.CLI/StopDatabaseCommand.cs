@@ -75,18 +75,15 @@ namespace Starcounter.CLI {
                 var engine = new Engine();
                 engine.PopulateFromJson(response.Body);
 
-                if (StopCodeHostOnly) {
-                    if (engine.CodeHostProcess.PID == 0) {
-                        var notRunning = ErrorCode.ToMessage(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
-                        SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
-                    }
-
-                    response = node.DELETE(node.ToLocal(engine.CodeHostProcess.Uri), (string)null, null);
-                    response.FailIfNotSuccess();
-
-                } else {
-                    throw new NotImplementedException("Stopping databases are yet not supported");
+                if (StopCodeHostOnly && engine.CodeHostProcess.PID == 0) {
+                    var notRunning = ErrorCode.ToMessage(Error.SCERRDATABASEENGINENOTRUNNING, string.Format("Database: \"{0}\".", databaseName));
+                    SharedCLI.ShowErrorAndSetExitCode(notRunning, true);
                 }
+
+                var uri = StopCodeHostOnly ? engine.CodeHostProcess.Uri : engine.Uri;
+                
+                response = node.DELETE(node.ToLocal(uri), (string)null, null);
+                response.FailIfNotSuccess();
 
                 Status.CompleteJob("stopped");
 
