@@ -44,7 +44,7 @@ namespace staradmin.Commands {
                         command = new StopCodeHostCommand();
                         break;
                     case ObjectType.Database:
-                        command = new ReportBadInputCommand(string.Format("Stopping '{0}' is yet not implemented.", typeToStop.ToString()));
+                        command = new StopDbCommand();
                         break;
                     default:
                         command = CreateUnrecognizedType(type);
