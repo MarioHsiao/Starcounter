@@ -74,6 +74,7 @@
     <Compile Include="StartApplicationCommand.cs" />
     <Compile Include="StatusConsole.cs" />
     <Compile Include="StopApplicationCommand.cs" />
+    <Compile Include="StopDatabaseCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
