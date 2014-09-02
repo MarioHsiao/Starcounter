@@ -165,11 +165,15 @@ namespace Starcounter
             Transaction(action, 0, forceSnapshot, maxRetries);
         }
 
-#if false
+        /// <summary>
+        /// System transactions is used to insert data with OIDs, e.g., for upgrade.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="forceSnapshot"></param>
+        /// <param name="maxRetries"></param>
         internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
             Transaction(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
         }
-#endif
 
         internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100)
         {

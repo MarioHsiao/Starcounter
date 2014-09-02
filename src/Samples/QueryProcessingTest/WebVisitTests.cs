@@ -31,6 +31,7 @@ namespace QueryProcessingTest {
                 and i2.WebPage.Title = ? GROUP BY v ORDER BY v.Start DESC", "About Us", "Contact", "Welcome"))
                 Trace.Assert(v.Id >= 0);
             Db.SQL("drop index impressionvisit on Impression");
+            Db.Transaction(delegate { }); // Trick to invalidate cache before the next query
             foreach (Visit v in Db.SQL<Visit>("select v from Visit v " +
                 "INNER JOIN Impression i0 ON i0.Visit = v INNER JOIN Impression i1 ON i1.Visit = v " +
                 "INNER JOIN Impression i2 ON i2.Visit = v where i0.WebPage.Title = ? AND i1.WebPage.Title = ? " +

@@ -156,9 +156,7 @@ namespace Starcounter.Binding
 
                 MoveRecordsToNewTable();
 
-                Db.Transaction(() => {
-                    DropOldTable();
-                });
+                DropOldTable();
             }
 
             Db.Transaction(() => {
@@ -491,7 +489,9 @@ namespace Starcounter.Binding
         /// </summary>
         private void DropOldTable()
         {
-            Db.DropTable(oldTableDef_.Name);
+            Db.Transaction(delegate {
+                Db.DropTable(oldTableDef_.Name);
+            });
         }
 
         /// <summary>
@@ -499,7 +499,9 @@ namespace Starcounter.Binding
         /// </summary>
         private void RenameNewTable()
         {
-            Db.RenameTable(newTableDef_.TableId, tableName_);
+            Db.Transaction(delegate {
+                Db.RenameTable(newTableDef_.TableId, tableName_);
+            });
         }
 
         /// <summary>

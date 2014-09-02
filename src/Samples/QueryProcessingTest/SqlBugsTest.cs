@@ -269,11 +269,13 @@ namespace QueryProcessingTest {
             Trace.Assert(s.Name == "QueryProcessingTest.Account");
             Trace.Assert(s.NameToken == accountTableId);
             e.Dispose();
-            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = 10").
+            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where NameToken = "+
+                accountTableId).
                 GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
-            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = 1.0E1").
+            e = Db.SlowSQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where NameToken = " +
+                accountTableId / 10 + "." + accountTableId % 10 + "E1").
                 GetEnumerator();
             Trace.Assert(e.MoveNext());
             e.Dispose();
