@@ -56,9 +56,10 @@ namespace QueryProcessingTest {
             try {
                 Db.Transaction(delegate {
                     Db.SQL("create index indx on account (accountid)");
+                    Db.SQL("create index indx on account (accountid)");
                 });
-            } catch (DbException ex) {
-                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED);
+            } catch (InvalidOperationException ex) {
+                Trace.Assert((uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRINVALIDOPERATION);
                 wasException = true;
             }
             Trace.Assert(wasException);
