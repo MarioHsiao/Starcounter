@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
+    <Compile Include="CLIClientCommand.cs" />
     <Compile Include="FilterableLogReader.cs" />
     <Compile Include="KeyValueTable\KeyValueTable.cs" />
     <Compile Include="KeyValueTable\ValueSplitOptions.cs" />
@@ -73,6 +74,7 @@
     <Compile Include="StartApplicationCommand.cs" />
     <Compile Include="StatusConsole.cs" />
     <Compile Include="StopApplicationCommand.cs" />
+    <Compile Include="StopDatabaseCommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
