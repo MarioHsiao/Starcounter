@@ -16,6 +16,14 @@ using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
 namespace Starcounter.XSON {
+    public enum JsonPatchOperation : int {
+        Undefined = 0,
+        Remove    = 1,
+        Replace   = 2,
+        Add       = 3,
+        Test      = 4
+    }
+
     /// <summary>
     /// Class for evaluating, handling and creating json-patch to and from typed json objects 
     /// and logged changes done in a typed json object during a request.
@@ -23,15 +31,10 @@ namespace Starcounter.XSON {
     /// The json-patch is implemented according to http://tools.ietf.org/html/rfc6902
     /// </summary>
     public class JsonPatch {
-        private const Int32 UNDEFINED = 0;
-        private const Int32 REMOVE = 1;
-        private const Int32 REPLACE = 2;
-        private const Int32 ADD = 3;
-
         private static byte[][] _patchOpUtf8Arr;
         private static byte[] _emptyPatchArr = { (byte)'[', (byte)']' };
 
-        private Action<Session, JsonPointer, IntPtr, int> patchHandler = HandleParsedPatch;
+        private Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = HandleParsedPatch;
 
         private enum JsonPatchMember {
             Invalid,
@@ -41,14 +44,15 @@ namespace Starcounter.XSON {
         }
 
         static JsonPatch() {
-            _patchOpUtf8Arr = new byte[4][];
-            _patchOpUtf8Arr[UNDEFINED] = Encoding.UTF8.GetBytes("undefined");
-            _patchOpUtf8Arr[REMOVE] = Encoding.UTF8.GetBytes("remove");
-            _patchOpUtf8Arr[REPLACE] = Encoding.UTF8.GetBytes("replace");
-            _patchOpUtf8Arr[ADD] = Encoding.UTF8.GetBytes("add");    
+            _patchOpUtf8Arr = new byte[5][];
+            _patchOpUtf8Arr[(int)JsonPatchOperation.Undefined] = Encoding.UTF8.GetBytes("undefined");
+            _patchOpUtf8Arr[(int)JsonPatchOperation.Remove] = Encoding.UTF8.GetBytes("remove");
+            _patchOpUtf8Arr[(int)JsonPatchOperation.Replace] = Encoding.UTF8.GetBytes("replace");
+            _patchOpUtf8Arr[(int)JsonPatchOperation.Add] = Encoding.UTF8.GetBytes("add");
+            _patchOpUtf8Arr[(int)JsonPatchOperation.Test] = Encoding.UTF8.GetBytes("test");    
         }
 
-        public void SetPatchHandler(Action<Session, JsonPointer, IntPtr, int> handler) {
+        public void SetPatchHandler(Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
             patchHandler = handler;
         }
 
@@ -162,7 +166,7 @@ namespace Starcounter.XSON {
             }
             writer.Write('"');
 
-            if (change.ChangeType != REMOVE) {
+            if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 writer.Write(",\"value\":");
                 if (childJson == null && change.Property is TContainer) {
                     childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
@@ -249,7 +253,7 @@ namespace Starcounter.XSON {
                 pathSize += GetSizeOfIntAsUtf8(change.Index) + 1;
             size += pathSize;
 
-            if (change.ChangeType != REMOVE) {
+            if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 size += 9;
                 size += change.Obj.AddAndReturnInScope<Change, int>(
                             (Change c) => {
@@ -430,7 +434,7 @@ namespace Starcounter.XSON {
             int used = 0;
             int patchCount = 0;
             int patchStart = -1;
-            int patchVerb = -1;
+            JsonPatchOperation patchOp = JsonPatchOperation.Undefined;
             int valueSize;
             IntPtr valuePtr;
             JsonPatchMember member;
@@ -458,7 +462,7 @@ namespace Starcounter.XSON {
                             switch (member) {
                                 case JsonPatchMember.Op:
                                     reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                                    JsonPatch.GetPatchVerb(tmpBuf, 1, out patchVerb);
+                                    patchOp = JsonPatch.GetPatchOperation(tmpBuf, 0, usedTmpBufSize);
                                     break;
                                 case JsonPatchMember.Path:
                                     reader.ReadRaw(tmpBuf, out usedTmpBufSize);
@@ -476,20 +480,20 @@ namespace Starcounter.XSON {
                             }
                         }
 
-                        if (patchVerb != JsonPatch.REPLACE)
+                        if (patchOp == JsonPatchOperation.Undefined)
                             ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unsupported patch operation in patch.");
 
                         if (pointer == null)
                             ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No path found in patch.");
 
-                        if (valuePtr == IntPtr.Zero)
+                        if ((patchOp != JsonPatchOperation.Remove) && (valuePtr == IntPtr.Zero))
                             ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No value found in patch.");
 
                         used += reader.Used;
                         patchCount++;
 
                         if (patchHandler != null)
-                            patchHandler(session, pointer, valuePtr, valueSize);
+                            patchHandler(session, patchOp, pointer, valuePtr, valueSize);
                     }
                 }
             } catch (JsonPatchException jpex) {
@@ -649,18 +653,40 @@ namespace Starcounter.XSON {
         /// <param name="patchType">Type of the patch.</param>
         /// <returns>Int32.</returns>
         /// <exception cref="System.Exception">Unsupported json-patch</exception>
-        private static Int32 GetPatchVerb(Byte[] contentArr, Int32 offset, out Int32 patchType) {
-            byte[] replaceArr = _patchOpUtf8Arr[REPLACE];
+        private static JsonPatchOperation GetPatchOperation(Byte[] contentArr, int offset, int valueSize) {
+            byte current = contentArr[offset];
+            var op = JsonPatchOperation.Undefined;
 
-            if (contentArr[offset] == '"')
+            if (current == '"') {
                 offset++;
+                current = contentArr[offset];
+            }
 
-            if (IsPatchVerb(replaceArr, contentArr, offset, contentArr.Length)) {
-                patchType = REPLACE;
-                offset += replaceArr.Length;
-            } else
-                patchType = UNDEFINED;
-            return offset;
+            switch (current){
+                case (byte)'a':
+                    if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Add], contentArr, offset, valueSize))
+                        op = JsonPatchOperation.Add;
+                    break;
+                case (byte)'t':
+                    if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Test], contentArr, offset, valueSize))
+                        op = JsonPatchOperation.Test;
+                    break;
+                case (byte)'r':
+                    if (valueSize > 2) {
+                        if (contentArr[offset + 2] == 'p') {
+                            if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Replace], contentArr, offset, valueSize))
+                                op = JsonPatchOperation.Replace;
+                        } else {
+                            if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Remove], contentArr, offset, valueSize))
+                                op = JsonPatchOperation.Remove;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+            
+            return op;
         }
 
         /// <summary>
@@ -670,7 +696,7 @@ namespace Starcounter.XSON {
         /// <param name="buffer">The buffer containing the value to check</param>
         /// <param name="offset">The offset in the buffer</param>
         /// <param name="length">The length of the buffer</param>
-        private static bool IsPatchVerb(byte[] verbName, byte[] buffer, int offset, int length) {
+        private static bool IsPatchOperation(byte[] verbName, byte[] buffer, int offset, int length) {
             int i;
 
             for (i = 0; i < verbName.Length; i++) {
@@ -686,7 +712,10 @@ namespace Starcounter.XSON {
             return true;
         }
 
-        private static void HandleParsedPatch(Session session, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
+        private static void HandleParsedPatch(Session session, JsonPatchOperation patchOp, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
+            if (patchOp != JsonPatchOperation.Replace)
+                throw new JsonPatchException("Unsupported patch operation in patch.");
+
             Debug.WriteLine("Handling patch for: " + pointer.ToString());
 
             if (session == null) return;
