@@ -63,9 +63,6 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Table;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_Type;
             internal static int columnHandle_MaterializedColumn;
             internal static int columnHandle_Unique;
         }
@@ -114,9 +111,6 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Table;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_Type;
             internal static int columnHandle_Polymorphic;
         }
 #pragma warning disable 0628, 0169

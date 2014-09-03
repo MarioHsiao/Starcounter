@@ -14,7 +14,6 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_Inherits;
             internal static int columnHandle_Updatable;
             internal static int columnHandle_UniqueIdentifier;
-            internal static int columnHandle_Name; // Put in different order, to check that the order does not metter
             internal static int columnHandle_FullName;
         }
 #pragma warning disable 0628, 0169
@@ -95,13 +94,6 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_UniqueIdentifierReversed;
-            internal static int columnHandle_Inherits;
-            internal static int columnHandle_Updatable;
-            internal static int columnHandle_UniqueIdentifier;
-            internal static int columnHandle_FullName;
-            internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -123,13 +115,6 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_UniqueIdentifierReversed;
-            internal static int columnHandle_Inherits;
-            internal static int columnHandle_Updatable;
-            internal static int columnHandle_UniqueIdentifier;
-            internal static int columnHandle_FullName;
-            internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -148,13 +133,6 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_UniqueIdentifierReversed;
-            internal static int columnHandle_Inherits;
-            internal static int columnHandle_Updatable;
-            internal static int columnHandle_UniqueIdentifier;
-            internal static int columnHandle_FullName;
-            internal static int columnHandle_MaterializedTable;
             internal static int columnHandle_AssemblyName;
             internal static int columnHandle_AppDomainName;
             internal static int columnHandle_FullClassName;
@@ -217,12 +195,6 @@ namespace Starcounter.Internal.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_Name;
-            internal static int columnHandle_UniqueIdentifierReversed;
-            internal static int columnHandle_Inherits;
-            internal static int columnHandle_Updatable;
-            internal static int columnHandle_UniqueIdentifier;
-            internal static int columnHandle_FullName;
             internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
