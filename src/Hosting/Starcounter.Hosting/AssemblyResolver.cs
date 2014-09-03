@@ -61,14 +61,14 @@ namespace Starcounter.Hosting {
             // looking for them in our private bin store.
 
             var requesting = args.RequestingAssembly;
-            if (requesting == null) {
-                return ResolveApplicationReferenceUnscoped(name);
-            }
+            var pick =  requesting != null ? 
+                ResolveApplicationReferenceScoped(name, requesting) : 
+                ResolveApplicationReferenceUnscoped(name);
 
-            return ResolveApplicationReferenceScoped(name, requesting);
+            return pick == null ? null : Load(pick.Name, pick.FilePath);
         }
 
-        Assembly ResolveApplicationReferenceUnscoped(AssemblyName name) {
+        PrivateBinaryFile ResolveApplicationReferenceUnscoped(AssemblyName name) {
             // No requesting assembly usually means a bind failed from an
             // Assembly.Load() call, with a partial name. For our resolver,
             // it means we'll all assemblies in any running application
@@ -90,10 +90,10 @@ namespace Starcounter.Hosting {
                 return null;
             }
 
-            return Load(pick.Name, pick.FilePath);
+            return pick;
         }
 
-        Assembly ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly) {
+        PrivateBinaryFile ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly) {
             var scope = requestingAssembly.Location;
             var applicationDirectory = Path.GetDirectoryName(scope);
             if (!PrivateAssemblies.IsApplicationDirectory(applicationDirectory)) {
@@ -120,7 +120,7 @@ namespace Starcounter.Hosting {
                 return null;
             }
 
-            return Load(pick.Name, pick.FilePath);
+            return pick;
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
