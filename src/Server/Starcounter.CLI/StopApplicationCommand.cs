@@ -176,7 +176,7 @@ namespace Starcounter.CLI {
                 CLIArguments = args,
                 DatabaseName = db
             };
-            SharedCLI.ResolveAdminServer(args, out cmd.ServerHost, out cmd.ServerPort, out cmd.ServerName);
+            cmd.ResolveServer(args);
             return cmd;
         }
 
@@ -205,7 +205,7 @@ namespace Starcounter.CLI {
         /// <summary>
         /// Creates a new instance of the <see cref="StopApplicationFromFileCommand"/>
         /// class based on the given arguments. This instance can thereafter be
-        /// executed with the <see cref="ApplicationCLICommand.Execute"/> method.
+        /// executed with the <see cref="CLIClientCommand.Execute"/> method.
         /// </summary>
         /// <param name="applicationFilePath">The application file.</param>
         /// <param name="exePath">The compiled application file.</param>
@@ -232,7 +232,7 @@ namespace Starcounter.CLI {
                 AdminAPI = new AdminAPI(),
                 CLIArguments = args
             };
-            SharedCLI.ResolveAdminServer(args, out command.ServerHost, out command.ServerPort, out command.ServerName);
+            command.ResolveServer(args);
 
             return command;
         }
