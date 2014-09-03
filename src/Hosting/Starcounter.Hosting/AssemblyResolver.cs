@@ -62,18 +62,36 @@ namespace Starcounter.Hosting {
 
             var requesting = args.RequestingAssembly;
             if (requesting == null) {
-                // We don't resolve references if we don't have a requesting
-                // assembly. There is a likelyhood this resolver is not what
-                // fits the needs, and we must tribute possible other resolvers.
-                Trace("Failed resolving {0}: no requesting assembly", name.FullName);
-                return null;
+                return ResolveApplicationReferenceUnscoped(name);
             }
 
-            var applicationDirectory = Path.GetDirectoryName(requesting.Location);
+            return ResolveApplicationReferenceScoped(name, requesting);
+        }
+
+        Assembly ResolveApplicationReferenceUnscoped(AssemblyName name) {
+            // No requesting assembly usually means a bind failed from an
+            // Assembly.Load() call, with a partial name. For our resolver,
+            // it means we'll all assemblies in any running application
+            // that match the name, and pick one. We first try on with the
+            // exact same Major.Minor version, prioritizing the first one
+            // present. Then we'll do the same, but with just matching on
+            // major number.
+            // TODO:
+
+            // We don't resolve references if we don't have a requesting
+            // assembly. There is a likelyhood this resolver is not what
+            // fits the needs, and we must tribute possible other resolvers.
+            Trace("Failed resolving {0}: no requesting assembly", name.FullName);
+            return null;
+        }
+
+        Assembly ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly) {
+            var scope = requestingAssembly.Location;
+            var applicationDirectory = Path.GetDirectoryName(scope);
             if (!PrivateAssemblies.IsApplicationDirectory(applicationDirectory)) {
                 // We only resolve references between assemblies stored in any
                 // of the application directories.
-                Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, requesting.Location);
+                Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, scope);
                 return null;
             }
 
