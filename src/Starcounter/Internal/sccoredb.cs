@@ -233,11 +233,6 @@ namespace Starcounter.Internal
 #endif
 
         /// <summary>
-        /// The MD b_ ATTRFLA g_ DERIVED
-        /// </summary>
-        public const ushort MDB_ATTRFLAG_DERIVED = 0x0002;
-
-        /// <summary>
         /// The MD b_ ATTRFLA g_ NULLABLE
         /// </summary>
         public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
