@@ -68,10 +68,7 @@ namespace Starcounter.Hosting {
             var columns = binding.TypeDef.TableDef.ColumnDefs;
             for (int ci = 1; ci < columns.Length; ci++) {
                 var column = columns[ci];
-
-                if (!column.IsInherited) {
-                    typeSpecification.SetColumnIndex(column.Name, ci);   
-                }
+                typeSpecification.SetColumnIndex(column.Name, ci);   
             }
         }
     }
