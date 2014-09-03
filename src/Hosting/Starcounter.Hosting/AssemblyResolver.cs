@@ -78,11 +78,19 @@ namespace Starcounter.Hosting {
             // major number.
             // TODO:
 
-            // We don't resolve references if we don't have a requesting
-            // assembly. There is a likelyhood this resolver is not what
-            // fits the needs, and we must tribute possible other resolvers.
-            Trace("Failed resolving {0}: no requesting assembly", name.FullName);
-            return null;
+            var candidates = PrivateAssemblies.GetAssemblies(name.Name);
+            if (candidates.Length == 0) {
+                Trace("Failed resolving {0}: no such assemblies found among private assemblies", name.FullName);
+                return null;
+            }
+
+            var pick = MatchOne(name, candidates);
+            if (pick == null) {
+                Trace("Failed resolving {0}: none of the {1} found assembly files matched.", name.FullName, candidates.Length);
+                return null;
+            }
+
+            return Load(pick.Name, pick.FilePath);
         }
 
         Assembly ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly) {
@@ -135,17 +143,21 @@ namespace Starcounter.Hosting {
             });
         }
 
-        PrivateBinaryFile MatchOne(AssemblyName name, PrivateBinaryFile[] alternatives, string requestingApplicationDirectory) {
+        PrivateBinaryFile MatchOne(AssemblyName name, PrivateBinaryFile[] alternatives, string requestingApplicationDirectory = null) {
             // The match is:
             //   1. A compatible one in the same directory as the one requsting the file.
             //   2. A semantically matching version (from any directory).
             //   3. The first other that compatible.
             //   4. None.
 
-            var pick = alternatives.FirstOrDefault((candidate) => {
-                return IsCompatibleVersions(candidate.Name, name) && 
-                    candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
-            });
+            PrivateBinaryFile pick = null;
+
+            if (requestingApplicationDirectory != null) {
+                pick = alternatives.FirstOrDefault((candidate) => {
+                    return IsCompatibleVersions(candidate.Name, name) &&
+                        candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
+                });
+            }
 
             pick = pick ?? alternatives.FirstOrDefault((candidate) => {
                 return IsCompatibleVersions(candidate.Name, name, true);
