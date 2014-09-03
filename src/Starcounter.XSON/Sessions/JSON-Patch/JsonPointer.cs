@@ -188,6 +188,14 @@ namespace Starcounter.XSON {
         }
 
         /// <summary>
+        /// Checks if additional elements exists but does not advance the enumerator.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsLastElement() {
+            return (offset == pointer.Length);
+        }
+
+        /// <summary>
         /// Sets the enumerator to its initial position, which is before the first element in the collection.
         /// </summary>
         public void Reset() {
