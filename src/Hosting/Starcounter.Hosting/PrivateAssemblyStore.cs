@@ -78,7 +78,7 @@ namespace Starcounter.Hosting {
             var assemblies = fileToIdentity.Values.Where((candidate) => {
                 return candidate.IsAssembly && candidate.Name.Name == assemblyName;
             });
-            return assemblies.ToArray();
+            return assemblies.OrderBy(file => file.Resolved).ToArray();
         }
 
         public static bool EqualDirectories(string dir1, string dir2) {
