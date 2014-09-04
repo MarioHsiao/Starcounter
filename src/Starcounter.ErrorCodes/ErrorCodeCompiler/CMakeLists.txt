@@ -1,6 +1,6 @@
 # level1/src/Starcounter.ErrorCodes/ErrorCodeCompiler/CMakeLists.txt
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.8)
 
 find_package(CSharp)
 include(UseCSharp)
