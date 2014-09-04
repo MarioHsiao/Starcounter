@@ -138,8 +138,8 @@ namespace IndexQueryTest.InheritedIndex {
             Trace.Assert(indexes[7].Name == "employeeBoss");
             // Type Person
             Trace.Assert(indexes[8].Name == "auto");
-            Trace.Assert(indexes[9].Name == "personBirthdayGender");
-            Trace.Assert(indexes[10].Name == "personName");
+            Trace.Assert(indexes[10].Name == "personBirthdayGender");
+            Trace.Assert(indexes[9].Name == "personName");
         }
 
         internal static void TestGetInheritedIndexInfo() {
