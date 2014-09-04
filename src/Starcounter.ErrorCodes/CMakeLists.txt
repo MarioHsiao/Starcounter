@@ -5,15 +5,15 @@ cmake_minimum_required(VERSION 2.8)
 find_package(CSharp)
 include(UseCSharp)
 
-add_subdirectory(scerrres)
 add_subdirectory(Starcounter.Errors)
 add_subdirectory(ErrorCodeCompiler)
+add_subdirectory(scerrres)
 
 add_custom_target(CompileXMLErrorsToCSharp
-  COMMANDS
-    ${CSHARP_INTERPRETER} cserrcc ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
+  COMMAND
+    ${CSHARP_INTERPRETER} scerrcc ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
   DEPENDS
-    cserrcc
+    scerrcc
     errorcodes.xml
   WORKING_DIRECTORY
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
