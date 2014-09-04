@@ -392,7 +392,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
 
                     if (bfTypeName == null)
-                        bfTypeName = HelperFunctions.GetClassDeclarationSyntax(prop.Template.InstanceType);
+                        bfTypeName = HelperFunctions.GetGlobalClassSpecifier(prop.Template.InstanceType, true);
 
                     a.Prefix.Add("    private "
                                 + bfTypeName
