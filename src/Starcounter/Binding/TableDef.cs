@@ -26,11 +26,13 @@ namespace Starcounter.Binding
             ushort tableId = tableInfo.table_id;
             uint columnCount = tableInfo.column_count;
             string baseName = null;
+            uint inheritedColumnCount = 0;
 
             if (tableInfo.inherited_table_id != ushort.MaxValue) {
                 var r = sccoredb.sccoredb_get_table_info(tableInfo.inherited_table_id, out tableInfo);
                 if (r == 0) {
                     baseName = new String(tableInfo.name);
+                    inheritedColumnCount = tableInfo.column_count;
                 }
                 else {
                     throw ErrorCode.ToException(r);
@@ -46,7 +48,7 @@ namespace Starcounter.Binding
                         new string(columnInfo.name),
                         columnInfo.type,
                         (columnInfo.flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
-                        (columnInfo.flags & sccoredb.MDB_ATTRFLAG_DERIVED) != 0
+                        i < inheritedColumnCount
                         );
                 }
                 else {

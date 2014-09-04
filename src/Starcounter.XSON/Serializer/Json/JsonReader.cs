@@ -62,13 +62,36 @@ namespace Starcounter.Advanced.XSON {
             
             if (*pBuffer == '"') {
                 size = JsonHelper.SizeToDelimiterOrEndString(pBuffer + 1, bufferSize - offset - 1, out needsDecoding) + 2;
+                pBuffer += size;
+                offset += size;
+            } else if (*pBuffer == '{') {
+                size = SkipObject();
+            } else if (*pBuffer == '[') {
+                size = SkipArray();
             } else {
-               size = JsonHelper.SizeToDelimiterOrEnd(pBuffer, bufferSize - offset);
+                size = JsonHelper.SizeToDelimiterOrEnd(pBuffer, bufferSize - offset);
+                pBuffer += size;
+                offset += size;
             }
-
-            pBuffer += size;
-            offset += size;
             return size;
+        }
+
+        private int SkipObject() {
+            int before = Used;
+            while (GotoProperty()) {
+                GotoValue();
+                SkipValue();
+            }
+            Skip(1); // Skip '}'
+            return (Used - before);
+        }
+
+        private int SkipArray() {
+            int before = Used;
+            while (GotoNextObject())
+                SkipObject();
+            Skip(1); // Skip ']'
+            return (Used - before);
         }
 
         public void ReadRaw(byte[] target, out int valueSize) {
