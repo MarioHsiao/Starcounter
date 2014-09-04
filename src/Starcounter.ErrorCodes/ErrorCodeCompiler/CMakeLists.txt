@@ -11,3 +11,4 @@ csharp_add_executable(scerrcc
     scerrcc/CommandLine.cs
     scerrcc/Properties/AssemblyInfo.cs
 )
+add_dependencies(scerrcc Starcounter.Errors)
