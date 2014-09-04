@@ -7,7 +7,18 @@ using System.Linq;
 using System.Reflection;
 
 namespace Starcounter.Hosting {
-
+    /// <summary>
+    /// Implements the Starcounter Code Host Assembly resolver.
+    /// The primary service offered by the assembly resolver is
+    /// to locate referenced assemblies the CLR don't know how
+    /// to load.
+    /// </summary>
+    /// <remarks>
+    /// There is an article about the assembly resolver on the
+    /// wiki: /wiki/How-the-Code-Host-Locates-Assemblies. Make
+    /// sure to update this article of any of the resolving
+    /// internals change.
+    /// </remarks>
     internal sealed class AssemblyResolver {
         readonly LogSource log;
 
@@ -70,14 +81,8 @@ namespace Starcounter.Hosting {
 
         PrivateBinaryFile ResolveApplicationReferenceUnscoped(AssemblyName name) {
             // No requesting assembly usually means a bind failed from an
-            // Assembly.Load() call, with a partial name. For our resolver,
-            // it means we'll all assemblies in any running application
-            // that match the name, and pick one. We first try on with the
-            // exact same Major.Minor version, prioritizing the first one
-            // present. Then we'll do the same, but with just matching on
-            // major number.
-            // TODO:
-
+            // Assembly.Load() call, with a partial name.
+            
             var candidates = PrivateAssemblies.GetAssemblies(name.Name);
             if (candidates.Length == 0) {
                 Trace("Failed resolving {0}: no such assemblies found among private assemblies", name.FullName);
