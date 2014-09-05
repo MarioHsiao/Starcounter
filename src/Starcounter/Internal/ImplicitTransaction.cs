@@ -10,7 +10,7 @@ namespace Starcounter.Internal {
     /// Class wrapping an implicit transaction, that is a transaction that is created
     /// when no transaction is explicitly created by the user. This transaction can be both
     /// readonly and readwrite depending by what is needed. Used together with Db.MicroTask(...)
-    /// and created with callback from kernel.
+    /// and created in the beginning of the task.
     /// </summary>
     internal sealed class ImplicitTransaction {
         [ThreadStatic]
@@ -29,11 +29,12 @@ namespace Starcounter.Internal {
             return current;
         }
 
-        // TODO:
-        // We just check if it is created sometime during this task here. Is there some way to get
-        // the current transaction from kernel?
-        internal bool IsCurrent() {
-            return (handle != 0);
+        internal static bool SetCurrentIfCreated() {
+            if (current != null) {
+                current.SetCurrent();
+                return true;
+            }
+            return false;
         }
 
         internal bool IsWritable() {
@@ -54,14 +55,18 @@ namespace Starcounter.Internal {
                     return;
                 }
             } else {
-                // TODO:
-                // writable should never be set here since then it will also be locked to the thread and used in scope.
                 Debug.Assert(isWritable == false);
                 
                 ec = sccoredb.sccoredb_set_current_transaction(0, this.handle, this.verify);
                 if (ec == 0)
                     return;
             }
+            throw ErrorCode.ToException(ec);
+        }
+
+        internal void SetCurrent() {
+            uint ec = sccoredb.sccoredb_set_current_transaction(0, this.handle, this.verify);
+            if (ec == 0) return;
             throw ErrorCode.ToException(ec);
         }
 
@@ -93,21 +98,21 @@ namespace Starcounter.Internal {
             this.isWritable = false;
         }
 
-        internal void ReleaseReadOnly() {
+        internal uint ReleaseReadOnly() {
             // TODO:
             // throw exception instead if writable?
             Debug.Assert(isWritable == false);
 
             if (this.handle == 0 || this.isWritable)
-                return;
+                return 0;
 
             uint r = sccoredb.sccoredb_free_transaction(this.handle, this.verify);
             if (r == 0) {
                 this.handle = 0;
                 this.verify = 0xFF;
-                return;
+                return 0;
             }
-            throw ErrorCode.ToException(r);
+            return r;
         }
 
         internal uint ReleaseLocked() {

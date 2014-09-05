@@ -181,6 +181,7 @@ namespace Starcounter
             uint r;
             ulong handle;
             ulong verify;
+            ImplicitTransaction it;
 
             if (maxRetries < 0) {
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
@@ -197,7 +198,8 @@ namespace Starcounter
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0)
                 {
-                    ImplicitTransaction.Current(true).explicitTransactionCreated = true;
+                    it = ImplicitTransaction.Current(true);
+                    it.explicitTransactionCreated = true;
                     var currentTransaction = Starcounter.Transaction._current;
                     Starcounter.Transaction._current = null;
 
@@ -228,6 +230,8 @@ namespace Starcounter
                             // thread).
 
                             Starcounter.Transaction.SetCurrent(currentTransaction);
+                        } else {
+                            it.SetCurrent();     
                         }
                     }
                 }
@@ -256,20 +260,26 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// A microtask don't create a transaction directly but relies on the implicit transaction.
-        /// After the task is executed and an implicit transaction exists, it is committed and released
-        /// if it's upgraded to a readwrite transaction. Apart form that it works the same as an ordinary 
-        /// transactionscope with retries.
+        /// An implicit scope wraps an autocreated readonly transaction, that is always set as current after
+        /// an ordinary transactionscope is ended. It will also upgrade the implicit transaction to write if 
+        /// needed with automatic retries. After the task is executed and an implicit transaction exists, it 
+        /// is committed if it's writeable and released. 
         /// </summary>
         /// <remarks>
-        /// Currently there are two microtasks, main entrypoint for an application
-        /// and calls to rest-handlers.
+        /// Currently there are three places where this scope is used, main entrypoint for an application, calls to 
+        /// rest-handlers and scheduled tasks.
         /// </remarks>
         /// <param name="action"></param>
         /// <param name="maxRetries"></param>
-        internal static void MicroTask(Action action, int maxRetries = 100) {
+        internal static void ImplicitScope(Action action, int maxRetries = 100) {
             int retries;
             ImplicitTransaction it;
+
+            if (!Environment.HasDatabase) {
+                // Running with nodb switch, which means that no database is initialized. Just invoke the action and return.
+                action();
+                return;
+            }
 
             if (maxRetries < 0)
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
@@ -279,6 +289,7 @@ namespace Starcounter
 
             if (!it.insideMicroTask) {
                 it.insideMicroTask = true;
+                it.CreateOrSetReadOnly();
                 try {
                     for (; ; ) {
 
@@ -313,6 +324,7 @@ namespace Starcounter
                     }
                 } finally {
                     it.insideMicroTask = false;
+                    it.ReleaseReadOnly();
                 }
             } else {
                 try {

@@ -146,7 +146,9 @@ namespace Starcounter.Hosting {
             try {
                 OnProcessingStarted();
 
-                UpdateDatabaseSchemaAndRegisterTypes();
+                Db.ImplicitScope(() => {
+                    UpdateDatabaseSchemaAndRegisterTypes();
+                }, 0);
 
                 if (application != null && !StarcounterEnvironment.IsAdministratorApp)
                     AppsBootstrapper.Bootstrap(application.WorkingDirectory);
@@ -203,13 +205,16 @@ namespace Starcounter.Hosting {
                     // Call CLR class clean up
                     Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
                     OnCleanClrMetadata();
+
+                    ImplicitTransaction.Current(true).SetCurrent();
+
                     // Populate properties and columns .NET metadata
                     for (int i = 0; i < typeDefs.Length; i++)
                         typeDefs[i].PopulatePropertyDef();
                     OnPopulateMetadataDefs();
                 }
-
                 List<TypeDef> updateColumns = new List<TypeDef>();
+
                 for (int i = 0; i < typeDefs.Length; i++)
                 {
                     var typeDef = typeDefs[i];
@@ -335,14 +340,14 @@ namespace Starcounter.Hosting {
             try {
                 if (entrypoint.GetParameters().Length == 0) {
 
-                    Db.MicroTask(() => {
+                    Db.ImplicitScope(() => {
                         entrypoint.Invoke(null, null);
                     });
 
                 } else {
                     var arguments = application.Arguments ?? new string[0];
 
-                    Db.MicroTask(() => {
+                    Db.ImplicitScope(() => {
                         entrypoint.Invoke(null, new object[] { arguments });
                     });
 

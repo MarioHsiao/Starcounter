@@ -7,7 +7,18 @@ using System.Linq;
 using System.Reflection;
 
 namespace Starcounter.Hosting {
-
+    /// <summary>
+    /// Implements the Starcounter Code Host Assembly resolver.
+    /// The primary service offered by the assembly resolver is
+    /// to locate referenced assemblies the CLR don't know how
+    /// to load.
+    /// </summary>
+    /// <remarks>
+    /// There is an article about the assembly resolver on the
+    /// wiki: /wiki/How-the-Code-Host-Locates-Assemblies. Make
+    /// sure to update this article of any of the resolving
+    /// internals change.
+    /// </remarks>
     internal sealed class AssemblyResolver {
         readonly LogSource log;
 
@@ -61,19 +72,39 @@ namespace Starcounter.Hosting {
             // looking for them in our private bin store.
 
             var requesting = args.RequestingAssembly;
-            if (requesting == null) {
-                // We don't resolve references if we don't have a requesting
-                // assembly. There is a likelyhood this resolver is not what
-                // fits the needs, and we must tribute possible other resolvers.
-                Trace("Failed resolving {0}: no requesting assembly", name.FullName);
+            var pick =  requesting != null ? 
+                ResolveApplicationReferenceScoped(name, requesting) : 
+                ResolveApplicationReferenceUnscoped(name);
+
+            return pick == null ? null : Load(pick.Name, pick.FilePath);
+        }
+
+        PrivateBinaryFile ResolveApplicationReferenceUnscoped(AssemblyName name) {
+            // No requesting assembly usually means a bind failed from an
+            // Assembly.Load() call, with a partial name.
+            
+            var candidates = PrivateAssemblies.GetAssemblies(name.Name);
+            if (candidates.Length == 0) {
+                Trace("Failed resolving {0}: no such assemblies found among private assemblies", name.FullName);
                 return null;
             }
 
-            var applicationDirectory = Path.GetDirectoryName(requesting.Location);
+            var pick = MatchOne(name, candidates);
+            if (pick == null) {
+                Trace("Failed resolving {0}: none of the {1} found assembly files matched.", name.FullName, candidates.Length);
+                return null;
+            }
+
+            return pick;
+        }
+
+        PrivateBinaryFile ResolveApplicationReferenceScoped(AssemblyName name, Assembly requestingAssembly) {
+            var scope = requestingAssembly.Location;
+            var applicationDirectory = Path.GetDirectoryName(scope);
             if (!PrivateAssemblies.IsApplicationDirectory(applicationDirectory)) {
                 // We only resolve references between assemblies stored in any
                 // of the application directories.
-                Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, requesting.Location);
+                Trace("Failed resolving {0}: requesting assembly not from a known path ({1})", name.FullName, scope);
                 return null;
             }
 
@@ -94,7 +125,7 @@ namespace Starcounter.Hosting {
                 return null;
             }
 
-            return Load(pick.Name, pick.FilePath);
+            return pick;
         }
 
         Assembly Load(AssemblyName name, string assemblyFilePath) {
@@ -117,17 +148,21 @@ namespace Starcounter.Hosting {
             });
         }
 
-        PrivateBinaryFile MatchOne(AssemblyName name, PrivateBinaryFile[] alternatives, string requestingApplicationDirectory) {
+        PrivateBinaryFile MatchOne(AssemblyName name, PrivateBinaryFile[] alternatives, string requestingApplicationDirectory = null) {
             // The match is:
             //   1. A compatible one in the same directory as the one requsting the file.
             //   2. A semantically matching version (from any directory).
             //   3. The first other that compatible.
             //   4. None.
 
-            var pick = alternatives.FirstOrDefault((candidate) => {
-                return IsCompatibleVersions(candidate.Name, name) && 
-                    candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
-            });
+            PrivateBinaryFile pick = null;
+
+            if (requestingApplicationDirectory != null) {
+                pick = alternatives.FirstOrDefault((candidate) => {
+                    return IsCompatibleVersions(candidate.Name, name) &&
+                        candidate.IsFromApplicaionDirectory(requestingApplicationDirectory);
+                });
+            }
 
             pick = pick ?? alternatives.FirstOrDefault((candidate) => {
                 return IsCompatibleVersions(candidate.Name, name, true);
