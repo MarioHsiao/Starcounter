@@ -1297,7 +1297,7 @@ namespace Starcounter.Internal
         internal static void CheckImplicitTransactionUpgradeOrThrow(uint errorCode) {
             if (errorCode == Error.SCERRREADONLYTRANSACTION) {
                 var it = ImplicitTransaction.Current(false);
-                if (it != null && it.insideMicroTask && it.IsCurrent()) {
+                if (it != null && it.insideMicroTask) {
                     it.UpgradeToReadWrite();
                     return;
                 }

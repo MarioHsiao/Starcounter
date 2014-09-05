@@ -119,7 +119,7 @@ namespace Starcounter.Internal.Web {
 
                 // TODO: 
                 // Move closer to actual call to delegate.
-                Db.MicroTask(() => {
+                Db.ImplicitScope(() => {
                     manager.RunDelegate(request, out resp);
                 });
 

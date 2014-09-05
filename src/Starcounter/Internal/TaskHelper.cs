@@ -14,20 +14,11 @@ namespace Starcounter.Internal {
         }
 
         private static void ResetCurrentTransaction() {
-            // TODO
-            // Set current to null in kernel.
+            uint r = sccoredb.sccoredb_set_current_transaction(0, 0, 0);
             var it = ImplicitTransaction.Current(false);
             if (it != null)
                 it.ReleaseReadOnly();
-
-            if (Transaction._current != null) {
-                uint r = sccoredb.sccoredb_set_current_transaction(0, 0, 0);
-                if (r == 0) {
-                    Transaction._current = null;
-                    return;
-                }
-                throw ErrorCode.ToException(r);
-            }
+            Transaction._current = null;
         }
     }
 }
