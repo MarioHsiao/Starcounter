@@ -183,8 +183,8 @@ namespace Starcounter.Hosting {
         }
 
         [Conditional("TRACE")]
-        static void Trace(string message, params object[] args) {
-            System.Diagnostics.Trace.WriteLine(string.Format(message, args));
+        void Trace(string message, params object[] args) {
+            Diagnostics.WriteTrace(log.Source, 0, string.Format(message, args));
         }
     }
 }
