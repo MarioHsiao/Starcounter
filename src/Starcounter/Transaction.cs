@@ -79,7 +79,6 @@ namespace Starcounter
         /// </summary>
         /// <param name="value">Transaction to set as current.</param>
         public static void SetCurrent(Transaction value) {
-
             // Checking if current transaction is the same.
             if (value == _current)
                 return;
@@ -90,19 +89,29 @@ namespace Starcounter
             if (value != null) {
                 handle = value._handle;
                 verify = value._verify;
+
+                uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
+                if (r == 0) {
+                    _current = value;
+                    return;
+                }
+                throw ToException(value, r);
             }
             else {
                 handle = 0;
                 verify = _INVALID_VERIFY;
-            }
 
-            uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
-            if (r == 0) {
-                _current = value;
-                return;
+                if (ImplicitTransaction.SetCurrentIfCreated()) {
+                    _current = null;
+                } else {
+                    uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
+                    if (r == 0) {
+                        _current = value;
+                        return;
+                    }
+                    throw ToException(value, r);
+                }
             }
-
-            throw ToException(value, r);
         }
 
         /// <summary>
@@ -272,13 +281,13 @@ namespace Starcounter
         /// </summary>
         /// <param name="action">Delegate that is called on transaction.</param>
         public void Add(Action action) {
-			Transaction old = _current;
-			try {
-				SetCurrent(this);
-				action.Invoke();
-			} finally {
-				SetCurrent(old);
-			}
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                action.Invoke();
+            } finally {
+                SetCurrent(old);
+            }
         }
 
         void ITransaction.Add<T>(Action<T> action, T arg) {
@@ -350,6 +359,7 @@ namespace Starcounter
                 SetCurrent(old);
             }
         }
+		
 
         /// <summary>
         /// Commits changes made on transaction.
