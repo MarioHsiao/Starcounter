@@ -8,6 +8,7 @@ using Starcounter.Metadata;
 namespace QueryProcessingTest {
     public static class SqlBugsTest {
         public static void QueryTests() {
+            GetObjectTest();
             TestConjunctionBug1350();
             TestFetchOrderBy();
             TestLike();
@@ -30,6 +31,29 @@ namespace QueryProcessingTest {
             TestIndexQueryOptimization();
             TestShortClassNames();
             TestDDLStmts();
+        }
+
+        public static void GetObjectTest() {
+            HelpMethods.LogEvent("Test obtaining object id.");
+            ulong accountId = 0;
+            Db.Transaction(delegate {
+                accountId = new Account().GetObjectNo();
+            });
+            Trace.Assert(accountId > 0);
+            IObjectView a = null;
+            Db.Transaction(delegate {
+                a = DbHelper.FromID(accountId);
+            });
+            Db.Transaction(delegate {
+                a.Delete();
+            });
+            Trace.Assert(a != null);
+            Trace.Assert(a.GetObjectNo() == accountId);
+            Db.Transaction(delegate {
+                a = DbHelper.FromID(accountId);
+            });
+            Trace.Assert(a == null);
+            HelpMethods.LogEvent("Finished testing obtaining object id.");
         }
 
         public static void TestFetchOrderBy() {

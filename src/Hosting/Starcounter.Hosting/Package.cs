@@ -194,7 +194,7 @@ namespace Starcounter.Hosting {
 
             if (typeDefs.Length != 0)
             {
-                if (typeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
+                if (typeDefs[0].Name == "Starcounter.Internal.Metadata.Token") {
                     uint e = systables.star_prepare_system_tables();
                     if (e != 0) throw ErrorCode.ToException(e);
 
@@ -244,7 +244,7 @@ namespace Starcounter.Hosting {
                 // the installed host manager on first use (via an emitted call
                 // in the static class constructor). For system classes, we
                 // have to do this by hand.
-                if (typeDefs[0].TableDef.Name == "Starcounter.Internal.Metadata.MaterializedTable") {
+                if (typeDefs[0].TableDef.Name == "Starcounter.Internal.Metadata.Token") {
                     InitTypeSpecifications();
                     OnTypeSpecificationsInitialized();
                 }
@@ -255,6 +255,7 @@ namespace Starcounter.Hosting {
         }
 
         private void InitTypeSpecifications() {
+            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.Token.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedColumn.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndex.__starcounterTypeSpecification));

@@ -74,7 +74,8 @@ namespace StarcounterInternal.Hosting
             // Add view meta-data
 
             Package package = new Package(
-                new TypeDef[] { sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
+                new TypeDef[] { Starcounter.Internal.Metadata.Token.CreateTypeDef(), 
+                    sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
                     Starcounter.Metadata.Type.CreateTypeDef(), Starcounter.Metadata.DbPrimitiveType.CreateTypeDef(), 
                     Starcounter.Metadata.MapPrimitiveType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
                     Table.CreateTypeDef(), Starcounter.Internal.Metadata.HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),

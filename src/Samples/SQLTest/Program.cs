@@ -33,12 +33,15 @@ namespace SQLTest
         static int Test1and2(String outputPath)
         {
             int nrFailedQueries = 0;
+#if false
             TestRunner.Initialize("SqlTest2", outputPath, false, true, false);
             SQLTest.EmployeeDb.EmployeeData.CreateIndexes();
             SQLTest.EmployeeDb.EmployeeData.CreateData();
             nrFailedQueries += TestRunner.RunTest();
             SQLTest.EmployeeDb.EmployeeData.DropIndexes();
+#endif
             TestRunner.Initialize("SqlTest1", outputPath, false, true, false);
+            SQLTest.EmployeeDb.EmployeeData.CreateData();
             nrFailedQueries += TestRunner.RunTest();
             SQLTest.EmployeeDb.EmployeeData.DeleteData();
             return nrFailedQueries;
