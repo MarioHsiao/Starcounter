@@ -114,15 +114,7 @@ namespace Starcounter.Internal.Web {
 
                 // Running all available HTTP handlers.
                 Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
-
-                var manager = UriHandlersManager.GetUriHandlersManager(handlerLevel);
-
-                // TODO: 
-                // Move closer to actual call to delegate.
-                Db.ImplicitScope(() => {
-                    manager.RunDelegate(request, out resp);
-                });
-
+                UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
                 Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
                 // Checking if we still have no response.
