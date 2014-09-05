@@ -1,4 +1,5 @@
-﻿using Starcounter.Logging;
+﻿using Starcounter.Internal;
+using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +27,7 @@ namespace Starcounter.Hosting {
 
         public AssemblyResolver(PrivateAssemblyStore store) {
             PrivateAssemblies = store;
-            log = LogSources.Hosting;
+            log = LogSources.CodeHostAssemblyResolver;
         }
 
         public Assembly ResolveApplication(string applicationHostFile) {
