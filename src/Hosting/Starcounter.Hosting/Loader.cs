@@ -42,7 +42,7 @@ namespace StarcounterInternal.Hosting
     {
         static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
 
-        static LogSource Log = LogSources.CodeHostLoader;
+        internal static LogSource Log = LogSources.CodeHostLoader;
 
         [ThreadStatic]
         private static Stopwatch stopwatch_;
