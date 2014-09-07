@@ -38,14 +38,8 @@ uint32_t PortAggregator(
         // Processing current frame.
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
-        // Checking type of the message.
-        MixedCodeConstants::AggregationMessageTypes msg_type = (MixedCodeConstants::AggregationMessageTypes) (*cur_data_ptr);
-
-        // Getting the frame info.
-        ags = (AggregationStruct*) (cur_data_ptr + 1);
-
         // Checking if frame is complete.
-        if (num_accum_bytes - num_processed_bytes <= AggregationStructSizeBytes)
+        if (num_accum_bytes - num_processed_bytes < AggregationStructSizeBytes)
         {
             // Checking if we need to move current data up.
             cur_data_ptr = big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
@@ -54,12 +48,18 @@ uint32_t PortAggregator(
             return gw->Receive(sd);
         }
 
+        // Getting the frame info.
+        ags = (AggregationStruct*) cur_data_ptr;
+
+        // Checking type of the message.
+        MixedCodeConstants::AggregationMessageTypes msg_type = (MixedCodeConstants::AggregationMessageTypes) ags->msg_type_;
+
         // Shifting to data structure size.
-        num_processed_bytes += AggregationStructSizeBytes + 1;
+        num_processed_bytes += AggregationStructSizeBytes;
 
         switch (msg_type)
         {
-            case starcounter::MixedCodeConstants::AGGR_CREATE_SOCKET:
+            case MixedCodeConstants::AGGR_CREATE_SOCKET:
             {
                 // Getting port handler.
                 port_index_type port_index = g_gateway.FindServerPortIndex(ags->port_number_);
@@ -69,6 +69,7 @@ uint32_t PortAggregator(
 
                     // Nullifying the aggregation structure.
                     memset(ags, 0, sizeof(AggregationStruct));
+                    ags->msg_type_ = (uint8_t) MixedCodeConstants::AGGR_CREATE_SOCKET;
 
                     // Sending data on aggregation socket.
                     err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
@@ -103,7 +104,7 @@ uint32_t PortAggregator(
                 break;
             }
 
-            case starcounter::MixedCodeConstants::AGGR_DESTROY_SOCKET:
+            case MixedCodeConstants::AGGR_DESTROY_SOCKET:
             {
                 // TODO: Research what to do on disconnect.
 
@@ -117,20 +118,23 @@ uint32_t PortAggregator(
                 break;
             }
 
-            case starcounter::MixedCodeConstants::AGGR_DATA:
+            case MixedCodeConstants::AGGR_DATA:
             {
                 // Checking if whole request is received.
                 if (num_processed_bytes + ags->size_bytes_ > num_accum_bytes)
                 {
                     // Checking if we need to move current data up.
-                    big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes + AggregationStructSizeBytes + 1);
+                    big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes + AggregationStructSizeBytes);
 
                     // Returning socket to receiving state.
                     return gw->Receive(sd);
                 }
 
                 // Checking if we have already created socket.
-                GW_ASSERT(true == gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_));
+                if (true != gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
+                    // NOTE: If wrong unique index, breaking the whole aggregated receive.
+                    break;
+                }
 
                 // Cloning chunk to push it to database.
                 err_code = sd->CreateSocketDataFromBigBuffer(gw, ags->socket_info_index_, ags->size_bytes_, orig_data_ptr + num_processed_bytes, &sd_push_to_db);
@@ -302,7 +306,7 @@ WRITE_TO_AGGR_SD:
 }
 
 // Performs a send of given socket data on aggregation socket.
-uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd)
+uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCodeConstants::AggregationMessageTypes msg_type)
 {
     socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
     SocketDataChunk* aggr_sd = FindAggregationSdBySocketIndex(aggr_socket_info_index);
@@ -328,6 +332,7 @@ WRITE_TO_AGGR_SD:
             aggr_struct->socket_info_index_ = sd->get_socket_info_index();
             aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
             aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
+            aggr_struct->msg_type_ = msg_type;
 
             // Writing given buffer to send.
             aggr_accum_buf->WriteBytesToSend(aggr_struct, total_num_bytes);
@@ -336,7 +341,7 @@ WRITE_TO_AGGR_SD:
             ReturnSocketDataChunksToPool(sd);
 
             // Checking if aggregation buffer is filled.
-            if (0 == aggr_accum_buf->get_chunk_num_available_bytes())
+            if (AggregationStructSizeBytes > aggr_accum_buf->get_chunk_num_available_bytes())
             {
                 // Removing this aggregation socket data from list.
                 aggr_sds_to_send_.RemoveEntry(aggr_sd);

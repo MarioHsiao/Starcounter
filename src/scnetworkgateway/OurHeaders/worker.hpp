@@ -240,7 +240,7 @@ public:
     }
     
     // Performs a send of given socket data on aggregation socket.
-    uint32_t SendOnAggregationSocket(SocketDataChunkRef sd);
+    uint32_t SendOnAggregationSocket(SocketDataChunkRef sd, MixedCodeConstants::AggregationMessageTypes msg_type);
 
     // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(
