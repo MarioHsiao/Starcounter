@@ -310,12 +310,16 @@ uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCode
 {
     socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
     SocketDataChunk* aggr_sd = FindAggregationSdBySocketIndex(aggr_socket_info_index);
+
     uint32_t err_code;
 
 WRITE_TO_AGGR_SD:
 
     if (aggr_sd)
     {
+        GW_ASSERT(aggr_sd->get_bound_worker_id() == worker_id_);
+        GW_ASSERT(aggr_sd->GetBoundWorkerId() == worker_id_);
+
         // Checking if data fits in socket data.
         AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
         uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
