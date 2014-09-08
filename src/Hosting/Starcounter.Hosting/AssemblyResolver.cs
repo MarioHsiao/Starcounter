@@ -21,13 +21,13 @@ namespace Starcounter.Hosting {
     /// internals change.
     /// </remarks>
     internal sealed class AssemblyResolver {
-        readonly LogSource log;
+        readonly LogSource log = LogSources.CodeHostAssemblyResolver;
 
         public readonly PrivateAssemblyStore PrivateAssemblies;
 
         public AssemblyResolver(PrivateAssemblyStore store) {
+            Trace("Assembly resolver created in process {0}", Process.GetCurrentProcess().Id);
             PrivateAssemblies = store;
-            log = LogSources.CodeHostAssemblyResolver;
         }
 
         public Assembly ResolveApplication(string applicationHostFile) {
