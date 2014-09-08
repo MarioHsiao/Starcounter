@@ -6,7 +6,6 @@ using System.Linq;
 using System.Xml;
 using System.Globalization;
 using System.Web;
-using System.Web.Services; // For HttpUtility in Mono
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Starcounter.Errors;
@@ -36,7 +35,7 @@ class Program
             Console.Error.WriteLine("VERBOSE: " + fmt, args);
         }
     }
-
+    
     static void Main(string[] args)
     {
         Stream instream = null;

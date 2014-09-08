@@ -6,6 +6,7 @@ find_package(CSharp)
 include(UseCSharp)
 
 csharp_add_executable(scerrcc
+    System.Web.dll
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Starcounter.Errors.dll
     scerrcc/Program.cs
     scerrcc/CommandLine.cs

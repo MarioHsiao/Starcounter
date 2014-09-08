@@ -11,7 +11,7 @@ add_subdirectory(scerrres)
 
 add_custom_target(CompileXMLErrorsToCSharp
   COMMAND
-    ${CSHARP_INTERPRETER} scerrcc ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
+    ${CSHARP_INTERPRETER} scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
   DEPENDS
     scerrcc
     errorcodes.xml
@@ -24,7 +24,7 @@ if(0)
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
       COMMAND
-        ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
+        ${CSHARP_INTERPRETER} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
       COMMAND
         mc.exe -r ${CMAKE_CURRENT_BINARY_DIR}/scerrres -v ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
       WORKING_DIRECTORY
@@ -37,7 +37,7 @@ add_custom_command(
   OUTPUT
     ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
   COMMAND
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc -ch ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
+    ${CSHARP_INTERPRETER} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc -ch ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
   WORKING_DIRECTORY
     ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
   DEPENDS
