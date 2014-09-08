@@ -296,11 +296,16 @@ namespace Starcounter
                 DoAsyncTransfer(null, 0, null, (AggregationStruct aggr_struct) => {
                     unsafe { this_node_aggr_struct_ = aggr_struct; }
                     nodeAggrInitialized = true;
-                }, null, 0, MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET);
+                }, null, 0);
 
                 // Waiting for socket creation result.
-                while (!nodeAggrInitialized)
+                Int32 numRetries = 5000;
+                while (!nodeAggrInitialized) {
                     Thread.Sleep(1);
+                    numRetries--;
+                    if (0 == numRetries)
+                        throw new Exception("Can't create aggregation socket!");
+                }
             }
         }
 
@@ -841,8 +846,7 @@ namespace Starcounter
             Action<Response, Object> userDelegate,
             Action<AggregationStruct> aggrMsgDelegate = null,
             Object userObject = null,
-            Int32 receiveTimeoutMs = 0,
-            MixedCodeConstants.AggregationMessageTypes aggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA)
+            Int32 receiveTimeoutMs = 0)
         {
             // Setting the receive timeout.
             if (0 == receiveTimeoutMs)
@@ -872,7 +876,7 @@ namespace Starcounter
                 currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
             // Initializing connection.
-            nt.ResetButKeepSocket(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId, aggrMsgType);
+            nt.ResetButKeepSocket(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
 
             // Checking if we don't use aggregation.
             if (!UsesAggregation()) {
@@ -1015,6 +1019,7 @@ namespace Starcounter
             public UInt32 socket_info_index_;
             public Int32 unique_aggr_index_;
             public UInt16 port_number_;
+            public Byte msg_type_;
         }
 
         /// <summary>
@@ -1094,7 +1099,8 @@ START_RECEIVING:
                                 Interlocked.Decrement(ref sent_received_balance_);
 
                                 // Checking type of node task.
-                                switch (nt.AggrMsgType) {
+                                switch ((MixedCodeConstants.AggregationMessageTypes) ags->msg_type_) {
+
                                     case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA: {
 
                                         // Constructing the response from received bytes and calling user delegate.
@@ -1177,45 +1183,34 @@ START_RECEIVING:
                                     send_bytes_offset = 0;
                                 }
 
-                                // Setting the message type.
-                                *(Byte*)(sb + send_bytes_offset) = (Byte)nt.AggrMsgType;
-                                send_bytes_offset++;
+                                // Checking if we have any request bytes.
+                                if (nt.RequestBytesLength > 0) {
 
-                                switch (nt.AggrMsgType)
-                                {
-                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DATA:
-                                    {
-                                        // Creating the aggregation struct.
-                                        AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
-                                        *ags = this_node_aggr_struct_;
-                                        ags->size_bytes_ = nt.RequestBytesLength;
-                                        ags->unique_aggr_index_ = free_task_index;
+                                    // Creating the aggregation struct.
+                                    AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
+                                    *ags = this_node_aggr_struct_;
+                                    ags->size_bytes_ = nt.RequestBytesLength;
+                                    ags->unique_aggr_index_ = free_task_index;
+                                    ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
 
-                                        // Using fast memory copy here.
-                                        Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
+                                    // Using fast memory copy here.
+                                    Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
 
-                                        // Shifting offset in the array.
-                                        send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
+                                    // Shifting offset in the array.
+                                    send_bytes_offset += AggregationStructSizeBytes + ags->size_bytes_;
 
-                                        break;
-                                    }
+                                } else {
 
-                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET:
-                                    case MixedCodeConstants.AggregationMessageTypes.AGGR_DESTROY_SOCKET:
-                                    {
-                                        // Creating the aggregation struct.
-                                        AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
-                                        *ags = this_node_aggr_struct_;
-                                        ags->size_bytes_ = 0;
-                                        ags->unique_aggr_index_ = free_task_index;
+                                    // Creating the aggregation struct.
+                                    AggregationStruct* ags = (AggregationStruct*)(sb + send_bytes_offset);
+                                    *ags = this_node_aggr_struct_;
+                                    ags->size_bytes_ = 0;
+                                    ags->unique_aggr_index_ = free_task_index;
+                                    ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET;
 
-                                        // Shifting offset in the array.
-                                        send_bytes_offset += AggregationStructSizeBytes;
-
-                                        break;
-                                    }
+                                    // Shifting offset in the array.
+                                    send_bytes_offset += AggregationStructSizeBytes;
                                 }
-
                             }
 
                             // Sending last processed requests.
