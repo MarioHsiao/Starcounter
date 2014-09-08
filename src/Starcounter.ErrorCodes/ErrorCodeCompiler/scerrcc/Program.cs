@@ -6,6 +6,7 @@ using System.Linq;
 using System.Xml;
 using System.Globalization;
 using System.Web;
+using System.Web.Services; // For HttpUtility in Mono
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using Starcounter.Errors;
