@@ -60,6 +60,11 @@ namespace staradmin.Commands {
                 return;
             }
 
+            string databaseFilter = null;
+            if (!context.TryGetGlobalProperty(staradmin.CommandLine.Options.Database.Name, out databaseFilter)) {
+                databaseFilter = null;
+            }
+
             // Read and filter the log and send the result
             // to the console
             try {
@@ -67,7 +72,8 @@ namespace staradmin.Commands {
                 var reader = new FilterableLogReader() {
                     Count = count,
                     TypeOfLogs = types,
-                    Source = source
+                    Source = source,
+                    Database = databaseFilter
                 };
                 reader.Fetch((log) => { console.Write(log); });
             } catch (Exception e) {
