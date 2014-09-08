@@ -129,7 +129,9 @@ namespace StarcounterInternal.Bootstrap {
                 OnKernelMemoryConfigured();
 
                 ulong hlogs = ConfigureLogging(configuration, hmenv);
-                if (arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging)) {
+                var activateTraceLogging = Diagnostics.IsGlobalTraceLoggingEnabled 
+                    || arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
+                if (activateTraceLogging) {
                     System.Diagnostics.Trace.Listeners.Add(new LogTraceListener());
                 }
                 OnLoggingConfigured();
