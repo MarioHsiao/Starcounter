@@ -12,6 +12,17 @@ namespace Starcounter.Internal
     public static class Diagnostics
     {
         /// <summary>
+        /// If set, assures that relevant primary processes enable trace
+        /// logging.
+        /// </summary>
+        public static bool IsGlobalTraceLoggingEnabled {
+            get {
+                var v = Environment.GetEnvironmentVariable(StarcounterEnvironment.VariableNames.GlobalTraceLogging);
+                return !string.IsNullOrEmpty(v);
+            }
+        }
+
+        /// <summary>
         /// </summary>
         /// <param name="source"></param>
         /// <param name="elapsedTicks"></param>
