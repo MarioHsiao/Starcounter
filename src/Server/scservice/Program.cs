@@ -40,6 +40,9 @@ namespace scservice {
                 }
                 else if (arg.Equals("--sc-debug", ignoreCase)) {
                     debug = true;
+                } 
+                else if (arg.Equals("--tracelogging", ignoreCase)) {
+                    Environment.SetEnvironmentVariable(StarcounterEnvironment.VariableNames.GlobalTraceLogging, "True");
                 }
                 else {
                     Console.WriteLine("Ignoring parameter \"{0}\"", arg);
