@@ -18,6 +18,7 @@ using Starcounter.Hosting;
 using Starcounter.Internal;
 using Starcounter.Metadata;
 using System.Threading;
+using Starcounter.Logging;
 
 namespace StarcounterInternal.Hosting
 {
@@ -40,6 +41,8 @@ namespace StarcounterInternal.Hosting
     public static class Loader
     {
         static AssemblyResolver assemblyResolver = new AssemblyResolver(new PrivateAssemblyStore());
+
+        internal static LogSource Log = LogSources.CodeHostLoader;
 
         [ThreadStatic]
         private static Stopwatch stopwatch_;
@@ -281,9 +284,9 @@ namespace StarcounterInternal.Hosting
         [Conditional("TRACE")]
         private static void Trace(string message)
         {
-            Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
+            Diagnostics.WriteTrace(Log.Source, stopwatch_.ElapsedTicks, message);
 
-            Diagnostics.WriteTimeStamp("LOADER", message);
+            Diagnostics.WriteTimeStamp(Log.Source, message);
         }
     }
 }

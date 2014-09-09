@@ -83,5 +83,15 @@ namespace staradmin {
         public bool TryGetCommandProperty(string name, out string value) {
             return args.TryGetProperty(name, CommandLineSection.CommandParametersAndOptions, out value);
         }
+
+        /// <summary>
+        /// Gets a global property by name.
+        /// </summary>
+        /// <param name="name">The property to get.</param>
+        /// <param name="value">The value of the property if found.</param>
+        /// <returns><c>true</c> if found; <c>false</c> otherwise.</returns>
+        public bool TryGetGlobalProperty(string name, out string value) {
+            return args.TryGetProperty(name, CommandLineSection.GlobalOptions, out value);
+        }
     }
 }

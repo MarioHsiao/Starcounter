@@ -16,6 +16,7 @@ using System.IO;
 using Starcounter.Metadata;
 using Starcounter.SqlProcessor;
 using System.Collections.Generic;
+using StarcounterInternal.Hosting;
 
 namespace Starcounter.Hosting {
 
@@ -379,9 +380,8 @@ namespace Starcounter.Hosting {
         [Conditional("TRACE")]
         private void Trace(string message)
         {
-            Diagnostics.WriteTrace("loader", stopwatch_.ElapsedTicks, message);
-
-            Diagnostics.WriteTimeStamp("PACKAGE", message);
+            Diagnostics.WriteTrace(Loader.Log.Source, stopwatch_.ElapsedTicks, message);
+            Diagnostics.WriteTimeStamp(Loader.Log.Source, message);
         }
     }
 }

@@ -31,6 +31,11 @@ namespace Starcounter.CLI {
         public string Source { get; set; }
 
         /// <summary>
+        /// Filters logs fetched on a specified database.
+        /// </summary>
+        public string Database { get; set; }
+
+        /// <summary>
         /// Specifies a filter that ignores any log entry
         /// older than the given value.
         /// </summary>
@@ -85,6 +90,17 @@ namespace Starcounter.CLI {
             if (entry.Severity < type) return true;
             if (source != null && !entry.Source.Equals(source, StringComparison.InvariantCultureIgnoreCase))
                 return true;
+
+            if (Database != null) {
+                var uri = ScUri.FromString(entry.HostName);
+                if (uri.Kind != ScUriKind.Database) {
+                    return true;
+                }
+
+                if (!uri.DatabaseName.Equals(Database)) {
+                    return true;
+                }
+            }
 
             return false;
         }
