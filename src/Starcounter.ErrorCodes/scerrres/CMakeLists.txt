@@ -8,3 +8,4 @@ add_library(scerrres SHARED
   format.h
   ../errorcodes.xml
 )
+set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")

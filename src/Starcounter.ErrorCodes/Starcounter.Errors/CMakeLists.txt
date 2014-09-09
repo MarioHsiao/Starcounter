@@ -12,3 +12,4 @@ csharp_add_library(Starcounter.Errors
     Facility.cs
     Severity.cs
 )
+set_property(TARGET Starcounter.Errors PROPERTY FOLDER "level1/Starcounter.ErrorCodes")

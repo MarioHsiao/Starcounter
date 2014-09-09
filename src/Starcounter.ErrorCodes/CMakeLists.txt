@@ -18,6 +18,7 @@ add_custom_target(CompileXMLErrorsToCSharp
   WORKING_DIRECTORY
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
+set_property(TARGET CompileXMLErrorsToCSharp PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 
 add_custom_command(
   OUTPUT
@@ -34,3 +35,4 @@ add_custom_target(Generate_SCERRRES_H
   DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
 )
+set_property(TARGET Generate_SCERRRES_H PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
