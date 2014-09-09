@@ -13,7 +13,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
 EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     starcounter::core::chunk_index first_chunk_index,
     uint8_t* first_chunk_data,
-    uint8_t* buffer
+    uint8_t* buffer,
+    int32_t num_available_bytes
     )
 {
     _SC_BEGIN_FUNC
@@ -36,6 +37,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
         // Copying the whole chunk data.
         memcpy(buffer + cur_offset, chunk_mem, starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         cur_offset += starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
+        _SC_ASSERT(cur_offset < num_available_bytes);
 
         // Getting next chunk.
         cur_chunk_index = smc->get_link();

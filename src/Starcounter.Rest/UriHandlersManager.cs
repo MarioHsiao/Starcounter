@@ -57,21 +57,23 @@ namespace Starcounter.Rest
             {
                 original_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(original_uri_info_.Length + 1);
                 Byte[] temp = Encoding.ASCII.GetBytes(original_uri_info_);
+                Byte* p = (Byte*) original_uri_info_ascii_bytes_.ToPointer();
                 fixed (Byte* t = temp)
                 {
-                    BitsAndBytes.MemCpy((Byte*)original_uri_info_ascii_bytes_, t, (uint)original_uri_info_.Length);
+                    BitsAndBytes.MemCpy(p, t, (uint)original_uri_info_.Length);
                 }
 
-                ((Byte*)original_uri_info_ascii_bytes_)[original_uri_info_.Length] = 0;
+                p[original_uri_info_.Length] = 0;
 
                 processed_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(processed_uri_info_.Length + 1);
                 temp = Encoding.ASCII.GetBytes(processed_uri_info_);
+                p = (Byte*) processed_uri_info_ascii_bytes_.ToPointer();
                 fixed (Byte* t = temp)
                 {
-                    BitsAndBytes.MemCpy((Byte*)processed_uri_info_ascii_bytes_, t, (uint)processed_uri_info_.Length);
+                    BitsAndBytes.MemCpy(p, t, (uint)processed_uri_info_.Length);
                 }
 
-                ((Byte*)processed_uri_info_ascii_bytes_)[processed_uri_info_.Length] = 0;
+                p[processed_uri_info_.Length] = 0;
             }
         }
 
