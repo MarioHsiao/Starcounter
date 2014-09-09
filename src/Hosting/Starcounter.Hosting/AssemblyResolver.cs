@@ -1,4 +1,5 @@
-﻿using Starcounter.Logging;
+﻿using Starcounter.Internal;
+using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,13 +21,13 @@ namespace Starcounter.Hosting {
     /// internals change.
     /// </remarks>
     internal sealed class AssemblyResolver {
-        readonly LogSource log;
+        readonly LogSource log = LogSources.CodeHostAssemblyResolver;
 
         public readonly PrivateAssemblyStore PrivateAssemblies;
 
         public AssemblyResolver(PrivateAssemblyStore store) {
+            Trace("Assembly resolver created in process {0}", Process.GetCurrentProcess().Id);
             PrivateAssemblies = store;
-            log = LogSources.Hosting;
         }
 
         public Assembly ResolveApplication(string applicationHostFile) {
@@ -182,8 +183,8 @@ namespace Starcounter.Hosting {
         }
 
         [Conditional("TRACE")]
-        static void Trace(string message, params object[] args) {
-            System.Diagnostics.Trace.WriteLine(string.Format(message, args));
+        void Trace(string message, params object[] args) {
+            Diagnostics.WriteTrace(log.Source, 0, string.Format(message, args));
         }
     }
 }

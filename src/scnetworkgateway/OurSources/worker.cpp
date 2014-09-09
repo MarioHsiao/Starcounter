@@ -601,7 +601,7 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
         worker_stats_sent_num_++;
         g_gateway.num_aggregated_send_queued_messages_++;
 
-        return SendOnAggregationSocket(sd);
+        return SendOnAggregationSocket(sd, MixedCodeConstants::AggregationMessageTypes::AGGR_DATA);
     }
 
     // Start sending on socket.
@@ -832,6 +832,10 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         // Setting unique socket id.
         GenerateUniqueSocketInfoIds(sd->get_socket_info_index());
 
+        // Aggregated sockets are treated specifically.
+        if (sd->GetSocketAggregatedFlag())
+            goto RELEASE_CHUNK_TO_POOL;
+
         // NOTE: Not checking for correctness here.
         g_gateway.DisconnectSocket(sd->GetSocket());
 
@@ -851,6 +855,10 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
         // Setting unique socket id.
         GenerateUniqueSocketInfoIds(sd->get_socket_info_index());
+
+        // Aggregated sockets are treated specifically.
+        if (sd->GetSocketAggregatedFlag())
+            goto RELEASE_CHUNK_TO_POOL;
 
         // NOTE: Not checking for correctness here.
         g_gateway.DisconnectSocket(sd->GetSocket());
@@ -1213,7 +1221,7 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 {
     char body[1024];
     int32_t body_len = sd->get_http_proto()->get_http_request()->content_len_bytes_;
-    GW_ASSERT (body_len <= 1024);
+    GW_ASSERT(body_len <= 1024);
 
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
 

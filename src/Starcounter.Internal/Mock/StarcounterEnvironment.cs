@@ -291,6 +291,12 @@ namespace Starcounter.Internal
             /// and/or machines.
             /// </summary>
             public const string DefaultServerSystemPort = "StarcounterServerSystemPort";
+
+            /// <summary>
+            /// Gets the name of the variable we use to indicate if primary runtime
+            /// processes should enable trace logging.
+            /// </summary>
+            public const string GlobalTraceLogging = "SC_ENABLE_TRACE_LOGGING";
         }
 
         /// <summary>
