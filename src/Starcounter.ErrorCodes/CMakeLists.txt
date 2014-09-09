@@ -19,20 +19,6 @@ add_custom_target(CompileXMLErrorsToCSharp
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 
-if(0)
-    add_custom_command(
-      OUTPUT
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
-      COMMAND
-        ${CSHARP_INTERPRETER} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
-      COMMAND
-        mc.exe -r ${CMAKE_CURRENT_BINARY_DIR}/scerrres -v ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
-      DEPENDS
-        scerrcc
-    )
-endif()
 add_custom_command(
   OUTPUT
     ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
