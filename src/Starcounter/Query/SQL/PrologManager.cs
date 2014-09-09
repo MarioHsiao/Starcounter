@@ -995,8 +995,13 @@ namespace Starcounter.Query.Sql
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("Query", query);
                     bindings.bind("DatabaseId", databaseId);
-                    answer = session.executeQuery("sql_prolog(DatabaseId,Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
-                    e = CheckQueryAnswerForError(answer);
+                    try {
+                        answer = session.executeQuery("sql_prolog(DatabaseId,Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
+                        e = CheckQueryAnswerForError(answer);
+                    }
+                    catch (NullReferenceException ex) {
+                        e = ex;
+                    }
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
