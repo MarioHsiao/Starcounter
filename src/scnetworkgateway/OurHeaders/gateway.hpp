@@ -84,7 +84,6 @@ typedef uint32_t ws_channel_id_type;
 //#define WORKER_NO_SLEEP
 //#define FAST_LOOPBACK
 #define LEAST_USED_SCHEDULING
-//#define DONT_CHECK_ECHOES
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -330,33 +329,10 @@ struct AggregationStruct
     socket_index_type socket_info_index_;
     int32_t unique_aggr_index_;
     uint16_t port_number_;
+    uint8_t msg_type_;
 };
 
 const int32_t AggregationStructSizeBytes = sizeof(AggregationStruct);
-
-const int32_t NumGatewayModes = 7;
-const char* const GatewayTestingModeStrings[NumGatewayModes] = 
-{
-    "MODE_GATEWAY_HTTP",
-    "MODE_GATEWAY_SMC_HTTP",
-    "MODE_GATEWAY_SMC_APPS_HTTP",
-
-    "MODE_GATEWAY_RAW",
-    "MODE_GATEWAY_SMC_RAW",
-    "MODE_GATEWAY_SMC_APPS_RAW",
-
-    "MODE_GATEWAY_UNKNOWN"
-};
-
-inline GatewayTestingMode GetGatewayTestingMode(std::string modeString)
-{
-    for (int32_t i = 0; i < NumGatewayModes; i++)
-    {
-        if (modeString == GatewayTestingModeStrings[i])
-            return (GatewayTestingMode)i;
-    }
-    return GatewayTestingMode::MODE_GATEWAY_UNKNOWN;
-}
 
 struct HttpTestInformation
 {

@@ -686,52 +686,42 @@ namespace Starcounter.Internal
         /// </summary>
         public void InactiveSessionsCleanupRoutine()
         {
-            try
+            // Incrementing global time.
+            CurrentTimeTick++;
+
+            UInt32 num_checked_sessions = 0;
+            LinkedListNode<UInt32> used_session_index_node = used_session_indexes_.First;
+            while (used_session_index_node != null)
             {
-                //Console.WriteLine("Cleaning up inactive sessions!");
-                
-                // Incrementing global time.
-                CurrentTimeTick++;
+                LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
 
-                UInt32 num_checked_sessions = 0;
-                LinkedListNode<UInt32> used_session_index_node = used_session_indexes_.First;
-                while (used_session_index_node != null)
+                // Getting session instance.
+                ScSessionClass s = GetAppsSessionIfAlive(used_session_index_node.Value);
+
+                // Checking if session is created at all.
+                if (s != null)
                 {
-                    LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
-
-                    // Getting session instance.
-                    ScSessionClass s = GetAppsSessionIfAlive(used_session_index_node.Value);
-
-                    // Checking if session is created at all.
-                    if (s != null)
+                    // Checking if session is outdated.
+                    if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) 
                     {
-                        // Checking if session is outdated.
-                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) 
-                        {
-                            // Destroying old session.
-                            DestroySession(s.session_struct_);
-                        }
-
-                        num_checked_sessions++;
-                    } 
-                    else 
-                    {
-                        // NOTE: Apps session was destroyed already so deleting the wrapper.
+                        // Destroying old session.
                         DestroySession(s.session_struct_);
                     }
 
-                    // Getting next used session.
-                    used_session_index_node = next_used_session_index_node;
-
-                    // Checking if we have scanned all created sessions.
-                    if (num_checked_sessions >= used_session_indexes_.Count)
-                        break;
+                    num_checked_sessions++;
+                } 
+                else 
+                {
+                    // NOTE: Apps session was destroyed already so deleting the wrapper.
+                    DestroySession(s.session_struct_);
                 }
-            }
-            catch (Exception exc)
-            {
-                Console.WriteLine(exc);
-                Environment.Exit((int)Error.SCERRSESSIONMANAGERDIED);
+
+                // Getting next used session.
+                used_session_index_node = next_used_session_index_node;
+
+                // Checking if we have scanned all created sessions.
+                if (num_checked_sessions >= used_session_indexes_.Count)
+                    break;
             }
         }
     }

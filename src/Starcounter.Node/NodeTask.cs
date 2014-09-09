@@ -166,11 +166,6 @@ namespace Starcounter {
         Int32 receiveTimeoutMs_;
 
         /// <summary>
-        /// Type of aggregation message for the task.
-        /// </summary>
-        public MixedCodeConstants.AggregationMessageTypes AggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
-
-        /// <summary>
         /// Resets the connection details, but keeps the existing socket.
         /// </summary>
         public void ResetButKeepSocket(
@@ -180,8 +175,7 @@ namespace Starcounter {
             Action<Node.AggregationStruct> aggrMsgDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
-            Byte boundSchedulerId,
-            MixedCodeConstants.AggregationMessageTypes aggrMsgType = MixedCodeConstants.AggregationMessageTypes.AGGR_DATA)
+            Byte boundSchedulerId)
         {
             resp_ = null;
             totallyReceivedBytes_ = 0;
@@ -199,7 +193,6 @@ namespace Starcounter {
 
             memStream_ = new MemoryStream();
             boundSchedulerId_ = boundSchedulerId;
-            AggrMsgType = aggrMsgType;
             aggrMsgDelegate_ = aggrMsgDelegate;
         }
 

@@ -187,9 +187,12 @@ namespace Starcounter.Internal {
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(Request req) {
+            Response resp = null;
 
             // Handling request on initial level.
-            Response resp = AppServer_.HandleRequest(req, 0);
+            Db.ImplicitScope(() => {
+                resp = AppServer_.HandleRequest(req, 0);
+            });
 
             // Checking if response was handled.
             if (resp == null)
