@@ -25,6 +25,21 @@ namespace StarcounterInternal.Bootstrap {
     /// </summary>
     public class Control // TODO: Make internal.
     {
+        /// <summary>
+        /// Log source to be used when logging/tracing application
+        /// level events.
+        /// </summary>
+        public static LogSource ApplicationLogSource;
+
+        /// <summary>
+        /// The log source established at the time of creation of the
+        /// Control instance;
+        /// </summary>
+        readonly LogSource log;
+
+        private Control(LogSource logSource) {
+            log = logSource;
+        }
 
         /// <summary>
         /// Defines the entry point of the application.
@@ -34,7 +49,7 @@ namespace StarcounterInternal.Bootstrap {
             try {
                 //Debugger.Launch();
 
-                Control c = new Control();
+                Control c = new Control(Control.ApplicationLogSource);
                 c.OnProcessInitialized();
                 bool b = c.Setup(args);
                 if (b) {
@@ -114,7 +129,9 @@ namespace StarcounterInternal.Bootstrap {
                 OnKernelMemoryConfigured();
 
                 ulong hlogs = ConfigureLogging(configuration, hmenv);
-                if (arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging)) {
+                var activateTraceLogging = Diagnostics.IsGlobalTraceLoggingEnabled 
+                    || arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
+                if (activateTraceLogging) {
                     System.Diagnostics.Trace.Listeners.Add(new LogTraceListener());
                 }
                 OnLoggingConfigured();
@@ -559,9 +576,8 @@ namespace StarcounterInternal.Bootstrap {
                 ticksElapsedBetweenProcessStartAndMain_ = 0;
             }
             long elapsedTicks = stopwatch_.ElapsedTicks + ticksElapsedBetweenProcessStartAndMain_;
-            Diagnostics.WriteTrace("control", elapsedTicks, message);
-
-            Diagnostics.WriteTimeStamp("CONTROL", message);
+            Diagnostics.WriteTrace(log.Source, elapsedTicks, message);
+            Diagnostics.WriteTimeStamp(log.Source, message);
         }
 
         private void OnProcessInitialized() {

@@ -410,9 +410,8 @@ namespace Starcounter.Server.Commands {
         {
             message = string.Format(message, args);
             if (restartWatch) stopwatch.Restart();
-            Diagnostics.WriteTrace("server", stopwatch.ElapsedTicks, message);
-
-            Diagnostics.WriteTimeStamp("SERVER", message);
+            Diagnostics.WriteTrace(Log.Source, stopwatch.ElapsedTicks, message);
+            Diagnostics.WriteTimeStamp(Log.Source, message);
         }
 
         #region Progress tracking
