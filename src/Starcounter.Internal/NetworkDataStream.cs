@@ -105,7 +105,7 @@ namespace Starcounter
 
                 // Copying the data to user buffer.
                 Marshal.Copy(
-                    (IntPtr)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
+                    new IntPtr(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
                     buffer,
                     offset,
                     PayloadSize);

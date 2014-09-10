@@ -963,6 +963,16 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Socket data buffer pointer.
+        /// </summary>
+        IntPtr socketDataIntPtr_ = IntPtr.Zero;
+
+        /// <summary>
+        /// Response buffer pointer.
+        /// </summary>
+        IntPtr responseStructIntPtr_ = IntPtr.Zero;
+
+        /// <summary>
         /// Internal structure with HTTP response information.
         /// </summary>
         unsafe HttpResponseInternal* http_response_struct_ = null;
@@ -1032,19 +1042,22 @@ namespace Starcounter
             unsafe
             {
                 // Checking if have not allocated anything yet.
-                if (null != http_response_struct_->socket_data_)
-                {
+                if (IntPtr.Zero != socketDataIntPtr_) {
+
                     // Releasing internal resources here.
-                    BitsAndBytes.Free((IntPtr)http_response_struct_->socket_data_);
-                    http_response_struct_->socket_data_ = null;
+                    BitsAndBytes.Free(socketDataIntPtr_);
+                    socketDataIntPtr_ = IntPtr.Zero;
                 }
 
                 // Setting the response data pointer.
-                http_response_struct_->socket_data_ = (Byte*) BitsAndBytes.Alloc(responseSizeBytes_);
+                socketDataIntPtr_ = BitsAndBytes.Alloc(responseSizeBytes_);
+                System.Diagnostics.Debug.Assert(null != http_response_struct_);
+                http_response_struct_->socket_data_ = (Byte*) socketDataIntPtr_.ToPointer();
 
                 // Copying HTTP response data.
-                fixed (Byte* fixed_response_buf = response_buf)
+                fixed (Byte* fixed_response_buf = response_buf) {
                     BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)responseSizeBytes_);
+                }
             }
         }
 
@@ -1074,8 +1087,14 @@ namespace Starcounter
                 // Indicating that we internally constructing Response.
                 isInternalResponse_ = true;
 
+                if (IntPtr.Zero != responseStructIntPtr_) {
+                    BitsAndBytes.Free(responseStructIntPtr_);
+                    responseStructIntPtr_ = IntPtr.Zero;
+                }
+
                 // Allocating space just for response structure.
-                http_response_struct_ = (HttpResponseInternal*) BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
+                responseStructIntPtr_ = BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
+                http_response_struct_ = (HttpResponseInternal*) responseStructIntPtr_.ToPointer();
                 http_response_struct_->socket_data_ = null;
 
                 // Checking if we have a complete response.
@@ -1157,15 +1176,20 @@ namespace Starcounter
                 if (isInternalResponse_)
                 {
                     // Checking if have not allocated anything yet.
-                    if (null != http_response_struct_->socket_data_)
+                    if (IntPtr.Zero != socketDataIntPtr_)
                     {
                         // Releasing response data.
-                        BitsAndBytes.Free((IntPtr)http_response_struct_->socket_data_);
-                        http_response_struct_->socket_data_ = null;
+                        BitsAndBytes.Free(socketDataIntPtr_);
+                        socketDataIntPtr_ = IntPtr.Zero;
                     }
 
-                    // Releasing internal resources here.
-                    BitsAndBytes.Free((IntPtr)http_response_struct_);
+                    // Checking if response structure is allocated.
+                    if (IntPtr.Zero != responseStructIntPtr_) {
+
+                        // Releasing internal resources here.
+                        BitsAndBytes.Free(responseStructIntPtr_);
+                        responseStructIntPtr_ = IntPtr.Zero;
+                    }
                 }
 
                 http_response_struct_ = null;
@@ -1672,7 +1696,7 @@ namespace Starcounter
         internal Byte[] GetResponseByte_Slow()
         {
             Byte[] respBytes = new Byte[response_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + response_offset_), respBytes, 0, (int)response_len_bytes_);
+            Marshal.Copy(new IntPtr(socket_data_ + response_offset_), respBytes, 0, (int)response_len_bytes_);
             return respBytes;
         }
 
@@ -1683,7 +1707,7 @@ namespace Starcounter
         /// <param name="sizeBytes">The size bytes.</param>
         public IntPtr GetRawParametersInfo()
         {
-            return (IntPtr)(socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+            return new IntPtr(socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
         }
 
         /// <summary>
@@ -1714,7 +1738,7 @@ namespace Starcounter
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
             Byte[] content_bytes = new Byte[content_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + content_offset_), content_bytes, 0, content_len_bytes_);
+            Marshal.Copy(new IntPtr(socket_data_ + content_offset_), content_bytes, 0, content_len_bytes_);
 
             return content_bytes;
         }
@@ -1822,7 +1846,7 @@ namespace Starcounter
         {
             // Constructing the string if its the first time.
             if (headersString == null)
-                headersString = Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
+                headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             List<String> headerValues = new List<String>();
             Int32 hend = 0;
@@ -1864,7 +1888,7 @@ namespace Starcounter
         {
             // Constructing the string if its the first time.
             if (headersString == null)
-                headersString = Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
+                headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             // Getting needed substring.
             Int32 hstart = headersString.IndexOf(headerName);
