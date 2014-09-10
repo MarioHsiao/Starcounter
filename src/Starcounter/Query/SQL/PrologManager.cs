@@ -178,8 +178,14 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("DatabaseId", databaseId);
-                    answer = session.executeQuery("delete_schemainfo_prolog(DatabaseId)", bindings);
-                    e = CheckQueryAnswerForError(answer);
+                    try {
+                        answer = session.executeQuery("delete_schemainfo_prolog(DatabaseId)", bindings);
+                        e = CheckQueryAnswerForError(answer);
+                    } catch (NullReferenceException ex) {
+                        e = ex;
+                    } catch (ObjectDisposedException ex) {
+                        e = ex;
+                    }
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
@@ -345,11 +351,18 @@ namespace Starcounter.Query.Sql
         {
             PrologSession session = null;
             Exception e = null;
+            QueryAnswer answer = null;
             try
             {
                 EstablishConnectedSession(ref session, null);
-                QueryAnswer answer = session.executeQuery("process_version_prolog(Version)");
-                e = CheckQueryAnswerForError(answer);
+                try {
+                    answer = session.executeQuery("process_version_prolog(Version)");
+                    e = CheckQueryAnswerForError(answer);
+                } catch (NullReferenceException ex) {
+                    e = ex;
+                } catch (ObjectDisposedException ex) {
+                    e = ex;
+                }
                 if (e == null) {
                     String existingProcessVersion = answer.getValue("Version").ToString();
                     return existingProcessVersion;
@@ -385,6 +398,7 @@ namespace Starcounter.Query.Sql
 
             PrologSession session = null;
             se.sics.prologbeans.Bindings bindings = null;
+            QueryAnswer answer = null;
 
             Exception e = null;
             try
@@ -392,9 +406,14 @@ namespace Starcounter.Query.Sql
                 EstablishConnectedSession(ref session, scheduler);
                 bindings = new se.sics.prologbeans.Bindings();
                 bindings.bind("DatabaseId", databaseId);
-                QueryAnswer answer = session.executeQuery("process_version_and_delete_schemainfo_prolog(DatabaseId,Version)", bindings);
-
-                e = CheckQueryAnswerForError(answer);
+                try {
+                    answer = session.executeQuery("process_version_and_delete_schemainfo_prolog(DatabaseId,Version)", bindings);
+                    e = CheckQueryAnswerForError(answer);
+                } catch (NullReferenceException ex) {
+                    e = ex;
+                } catch (ObjectDisposedException ex) {
+                    e = ex;
+                }
                 if (e == null) {
                     String existingProcessVersion = answer.getValue("Version").ToString();
                     schemaFilePathList.Clear();
@@ -682,8 +701,14 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaInfo", schemaInfo);
-                    answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
-                    e = CheckQueryAnswerForError(answer);
+                    try {
+                        answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
+                        e = CheckQueryAnswerForError(answer);
+                    } catch (NullReferenceException ex) {
+                        e = ex;
+                    } catch (ObjectDisposedException ex) {
+                        e = ex;
+                    }
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
@@ -896,8 +921,15 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaFile", schemaFilePath);
-                    answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
-                    e = CheckQueryAnswerForError(answer);
+                    try {
+                        answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
+                        e = CheckQueryAnswerForError(answer);
+                    } catch (NullReferenceException ex) {
+                        e = ex;
+                    } catch (ObjectDisposedException ex) {
+                        e = ex;
+                    }
+
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
@@ -922,8 +954,14 @@ namespace Starcounter.Query.Sql
             try {
                 while (loopCount < QueryModule.MaxQueryRetries) {
                     EstablishConnectedSession(ref session, scheduler);
-                    answer = session.executeQuery("current_schemafiles_prolog(SchemaFiles)");
-                    e = CheckQueryAnswerForError(answer);
+                    try {
+                        answer = session.executeQuery("current_schemafiles_prolog(SchemaFiles)");
+                        e = CheckQueryAnswerForError(answer);
+                    } catch (NullReferenceException ex) {
+                        e = ex;
+                    } catch (ObjectDisposedException ex) {
+                        e = ex;
+                    }
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
@@ -991,6 +1029,7 @@ namespace Starcounter.Query.Sql
             // Try maximum maxQueryRetries times to process the query.
             try {
                 while (loopCount < QueryModule.MaxQueryRetries) {
+                    e = null;
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("Query", query);
@@ -1000,6 +1039,8 @@ namespace Starcounter.Query.Sql
                         e = CheckQueryAnswerForError(answer);
                     }
                     catch (NullReferenceException ex) {
+                        e = ex;
+                    } catch (ObjectDisposedException ex) {
                         e = ex;
                     }
                     if (e == null)
