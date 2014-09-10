@@ -154,6 +154,10 @@ namespace Weaver {
                     ExecuteVerifyCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
                     break;
 
+                case ProgramCommands.ShowSchema:
+                    ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
+                    break;
+
                 default:
                     error = Error.SCERRBADCOMMANDLINESYNTAX;
                     ReportProgramError(
@@ -223,6 +227,16 @@ namespace Weaver {
             // error itself.
 
             weaver.Execute();
+        }
+
+        static void ExecuteSchemaCommand(
+            string inputDirectory,
+            string outputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+                
+            throw new NotImplementedException("Displaying the schema is not yet implemented");
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
@@ -390,6 +404,9 @@ namespace Weaver {
             // Optional flag instructing the program not to use the weaver cache when
             // analyzing/weaving code.
             commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
+
+            // Display schema command
+            syntaxDefinition.DefineCommand(ProgramCommands.ShowSchema, "Displays the schema of the given application", 1);
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
