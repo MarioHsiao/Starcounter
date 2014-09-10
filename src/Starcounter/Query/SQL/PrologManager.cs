@@ -178,14 +178,8 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("DatabaseId", databaseId);
-                    try {
-                        answer = session.executeQuery("delete_schemainfo_prolog(DatabaseId)", bindings);
-                        e = CheckQueryAnswerForError(answer);
-                    } catch (NullReferenceException ex) {
-                        e = ex;
-                    } catch (ObjectDisposedException ex) {
-                        e = ex;
-                    }
+                    answer = ExecuteQuery(session, "delete_schemainfo_prolog(DatabaseId)", bindings);
+                    e = CheckQueryAnswerForError(answer);
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
@@ -343,6 +337,23 @@ namespace Starcounter.Query.Sql
             }
         }
 
+        private static QueryAnswer ExecuteQuery(PrologSession session, System.String query, se.sics.prologbeans.Bindings bindings = null) {
+            Exception e = null;
+            Debug.Assert(session != null);
+            for (int i = 0; i < 5; i++) {
+                try {
+                    return session.executeQuery(query, bindings);
+                }
+                catch (NullReferenceException ex) {
+                    e = ex;
+                }
+                catch (ObjectDisposedException ex) {
+                    e = ex;
+                }
+            }
+            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, e);
+        }
+
         /// <summary>
         /// Gets the version of existing SQL process, if there is one.
         /// </summary>
@@ -401,27 +412,19 @@ namespace Starcounter.Query.Sql
             QueryAnswer answer = null;
 
             Exception e = null;
-            try
-            {
+            try {
                 EstablishConnectedSession(ref session, scheduler);
                 bindings = new se.sics.prologbeans.Bindings();
                 bindings.bind("DatabaseId", databaseId);
-                try {
-                    answer = session.executeQuery("process_version_and_delete_schemainfo_prolog(DatabaseId,Version)", bindings);
-                    e = CheckQueryAnswerForError(answer);
-                } catch (NullReferenceException ex) {
-                    e = ex;
-                } catch (ObjectDisposedException ex) {
-                    e = ex;
-                }
+                answer = ExecuteQuery(session, "process_version_and_delete_schemainfo_prolog(DatabaseId,Version)", bindings);
+                e = CheckQueryAnswerForError(answer);
                 if (e == null) {
                     String existingProcessVersion = answer.getValue("Version").ToString();
                     schemaFilePathList.Clear();
                     return existingProcessVersion;
                 }
             }
-            catch (SocketException)
-            {
+            catch (SocketException) {
                 return null;
             }
             finally
@@ -701,14 +704,8 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaInfo", schemaInfo);
-                    try {
-                        answer = session.executeQuery("add_schemainfo_prolog(SchemaInfo)", bindings);
-                        e = CheckQueryAnswerForError(answer);
-                    } catch (NullReferenceException ex) {
-                        e = ex;
-                    } catch (ObjectDisposedException ex) {
-                        e = ex;
-                    }
+                    answer = ExecuteQuery(session, "add_schemainfo_prolog(SchemaInfo)", bindings);
+                    e = CheckQueryAnswerForError(answer);
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
@@ -921,14 +918,8 @@ namespace Starcounter.Query.Sql
                     EstablishConnectedSession(ref session, scheduler);
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("SchemaFile", schemaFilePath);
-                    try {
-                        answer = session.executeQuery("load_schemainfo_prolog(SchemaFile)", bindings);
-                        e = CheckQueryAnswerForError(answer);
-                    } catch (NullReferenceException ex) {
-                        e = ex;
-                    } catch (ObjectDisposedException ex) {
-                        e = ex;
-                    }
+                    answer = ExecuteQuery(session, "load_schemainfo_prolog(SchemaFile)", bindings);
+                    e = CheckQueryAnswerForError(answer);
 
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
@@ -1034,23 +1025,18 @@ namespace Starcounter.Query.Sql
                     bindings = new se.sics.prologbeans.Bindings();
                     bindings.bind("Query", query);
                     bindings.bind("DatabaseId", databaseId);
-                    try {
-                        answer = session.executeQuery("sql_prolog(DatabaseId,Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
-                        e = CheckQueryAnswerForError(answer);
-                    }
-                    catch (NullReferenceException ex) {
-                        e = ex;
-                    } catch (ObjectDisposedException ex) {
-                        e = ex;
-                    }
+                    answer = ExecuteQuery(session, "sql_prolog(DatabaseId,Query,TypeDef,ExecInfo,VarNum,ErrList)", bindings);
+                    e = CheckQueryAnswerForError(answer);
                     if (e == null)
                         loopCount = QueryModule.MaxQueryRetries;
                     else {
-                        logSource.LogWarning("Failed to process query: " + query, e);
+                        logSource.LogWarning(e, "Failed to process query: " + query);
+#if false // The disabled code does not work
                         EstablishSqlProcess();
                         logSource.LogWarning("Restarted process: " + QueryModule.ProcessFolder + QueryModule.ProcessFileName + " " +
                             QueryModule.ProcessPort);
                         ReExportAllSchemaInfo(scheduler);
+#endif
                         loopCount++;
                     }
                 }
