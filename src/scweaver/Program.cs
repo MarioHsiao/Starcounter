@@ -234,9 +234,12 @@ namespace Weaver {
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
-                
-            
+
             var schemaFiles = new DirectoryInfo(outputDirectory).GetFiles("*.schema");
+            if (schemaFiles.Length == 0) {
+                Console.WriteLine("No schema found (looked in '{0}')", outputDirectory);
+                return;
+            }
 
             var schema = new DatabaseSchema();
             var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
