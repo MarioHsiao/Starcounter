@@ -151,7 +151,7 @@ namespace Weaver {
                     break;
 
                 case ProgramCommands.Verify:
-                    ExecuteVerifyCommand(inputDirectory, cacheDirectory, fileName, arguments);
+                    ExecuteVerifyCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
                     break;
 
                 default:
@@ -200,11 +200,13 @@ namespace Weaver {
         /// Executes the command "Verify".
         /// </summary>
         /// <param name="inputDirectory">The input directory.</param>
+        /// <param name="outputDirectory">The output directory.</param>
         /// <param name="cacheDirectory">The cache directory.</param>
         /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteVerifyCommand(
             string inputDirectory,
+            string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
@@ -213,7 +215,7 @@ namespace Weaver {
             // Create the code weaver facade and configure it properly. Then
             // execute the underlying weaver engine.
 
-            weaver = new CodeWeaver(inputDirectory, fileName, null, cacheDirectory);
+            weaver = new CodeWeaver(inputDirectory, fileName, outputDirectory, cacheDirectory);
             weaver.RunWeaver = false;
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
 
