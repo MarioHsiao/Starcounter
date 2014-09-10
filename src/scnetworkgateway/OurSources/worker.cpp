@@ -1104,18 +1104,22 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
         if (!g_gateway.CheckIpForWhiteList(sd->get_client_ip_info()))
             return SCERRGWIPISNOTONWHITELIST;
 
+        // Port index for the corresponding socket.
+        port_index_type port_index = sd->GetPortIndex();
+
+        // Getting least used worker.
+        worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(port_index);
+
         // Decreasing number of accepting sockets.
-        int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
+        int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(port_index, -1);
 
         // Checking if we need to extend number of accepting sockets.
         if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
         {
             // Creating new set of prepared connections.
             // NOTE: Ignoring error code on purpose.
-            CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, sd->GetPortIndex());
+            CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, port_index);
         }
-
-        worker_id_type least_busy_worker_id = GetLeastBusyWorkerId(sd->GetPortIndex());
 
         // NOTE: All handlers must be registered on worker 0.
         if (sd->GetPortNumber() == g_gateway.get_setting_internal_system_port())
@@ -1124,15 +1128,19 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
         // Checking if rebalanced worker is different.
         if (0 != least_busy_worker_id) {
 
+            // Decreasing number of active sockets on worker 0.
+            RemoveFromActiveSockets(port_index);
+
+            // Adding to active sockets of the other worker.
+            ServerPort* sp = g_gateway.get_server_port(port_index);
+            sp->AddToActiveSockets(least_busy_worker_id);
+
             // Getting temporary rebalance container.
             RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
             if (NULL == rsi) {
                 rsi = (RebalancedSocketInfo*) GwNewAligned(sizeof(RebalancedSocketInfo));
             }
-            rsi->Init(sd->GetPortIndex(), sd->GetSocket(), sd->get_client_ip_info());
-
-            // Removing from active sockets.
-            RemoveFromActiveSockets(sd->GetPortIndex());
+            rsi->Init(port_index, sd->GetSocket(), sd->get_client_ip_info());
 
             // Returning all allocated resources except socket.
             sd->ResetAllFlags();
@@ -1320,9 +1328,6 @@ void GatewayWorker::ProcessRebalancedSockets() {
 
         // Setting saved client IP address.
         new_sd->set_client_ip_info(client_ip_info);
-
-        // Adding to active sockets for this worker.
-        AddToActiveSockets(new_sd->GetPortIndex());
 
         // Finishing accept.
         new_sd->set_type_of_network_oper(ACCEPT_SOCKET_OPER);

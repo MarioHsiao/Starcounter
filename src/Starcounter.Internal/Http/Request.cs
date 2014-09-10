@@ -57,6 +57,11 @@ namespace Starcounter {
         Boolean isSingleChunk_;
 
         /// <summary>
+        /// Socket data buffer.
+        /// </summary>
+        IntPtr socketDataIntPtr_;
+
+        /// <summary>
         /// Internal structure with HTTP request information.
         /// </summary>
         unsafe HttpRequestInternal* http_request_struct_;
@@ -322,6 +327,7 @@ namespace Starcounter {
             UInt16 managed_handler_id,
             Byte* http_request_begin,
             Byte* socket_data,
+            IntPtr socket_data_intptr,
             NetworkDataStream data_stream,
             Boolean webSocketUpgrade,
             Boolean isAggregated)
@@ -335,6 +341,7 @@ namespace Starcounter {
             isAggregated_ = isAggregated;
             isSingleChunk_ = single_chunk;
             origChunk_ = chunk_data;
+            socketDataIntPtr_ = socket_data_intptr;
 
             // Checking if session is correct.
             GetAppsSessionInterface();
@@ -360,7 +367,7 @@ namespace Starcounter {
 
                 // Checking if we should copy the WebSocket handshake data.
                 wsHandshakeResp = new Byte[*(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
-                Marshal.Copy((IntPtr)(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
+                Marshal.Copy(new IntPtr(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
             }
 
             WsChannelInfo w = AllWsChannels.WsManager.FindChannel(PortNumber, channelName);
@@ -409,23 +416,30 @@ namespace Starcounter {
                 if (params_info_ptr != null)
                     alloc_size += MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES;
 
-                Byte* request_native_buf = (Byte*) BitsAndBytes.Alloc(alloc_size);
+                if (IntPtr.Zero != socketDataIntPtr_) {
+                    BitsAndBytes.Free(socketDataIntPtr_);
+                    socketDataIntPtr_ = IntPtr.Zero;
+                }
+
+                socketDataIntPtr_ = BitsAndBytes.Alloc(alloc_size);
+                Byte* requestNativeBuf = (Byte*) socketDataIntPtr_.ToPointer();
+
                 fixed (Byte* fixed_buf = buf)
                 {
                     // Copying HTTP request data.
-                    BitsAndBytes.MemCpy(request_native_buf, fixed_buf, (UInt32)buf_len);
+                    BitsAndBytes.MemCpy(requestNativeBuf, fixed_buf, (UInt32)buf_len);
                 }
 
                 // Pointing to HTTP request structure.
-                http_request_struct_ = (HttpRequestInternal*)(request_native_buf + buf_len);
+                http_request_struct_ = (HttpRequestInternal*) (requestNativeBuf + buf_len);
 
                 // Setting the request data pointer.
-                http_request_struct_->socket_data_ = request_native_buf;
+                http_request_struct_->socket_data_ = requestNativeBuf;
 
                 // Checking if we have parameters info supplied.
                 if (params_info_ptr != null)
                 {
-                    http_request_struct_->params_info_ptr_ = request_native_buf + buf_len + sizeof(HttpRequestInternal);
+                    http_request_struct_->params_info_ptr_ = requestNativeBuf + buf_len + sizeof(HttpRequestInternal);
                     BitsAndBytes.MemCpy(http_request_struct_->params_info_ptr_, params_info_ptr, MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES);
                 }
                 
@@ -436,7 +450,7 @@ namespace Starcounter {
                 // Simply on which socket to send this "request"?
 
                 // Executing HTTP request parser and getting Request structure as result.
-                UInt32 err_code = sc_parse_http_request(request_native_buf, (UInt32)buf_len, (Byte*)http_request_struct_);
+                UInt32 err_code = sc_parse_http_request(requestNativeBuf, (UInt32)buf_len, (Byte*)http_request_struct_);
 
                 // Checking if any error occurred.
                 if (err_code != 0)
@@ -467,18 +481,23 @@ namespace Starcounter {
                 // internally in Apps or externally in Gateway.
                 if (isInternalRequest_)
                 {
-                    // Releasing internal resources here.
-                    // NOTE: Socket_data_ points to complete memory including http_request_struct_,
-                    // so freeing it frees everything.
-                    BitsAndBytes.Free((IntPtr)http_request_struct_->socket_data_);
+                    if (IntPtr.Zero != socketDataIntPtr_) {
+                        BitsAndBytes.Free(socketDataIntPtr_);
+                        socketDataIntPtr_ = IntPtr.Zero;
+                    }
                 }
                 else
                 {
                     origChunk_ = null;
 
                     // Releasing the plain buffer that was allocated when linked chunks were copied.
-                    if (!isSingleChunk_)
-                        BitsAndBytes.Free(new IntPtr((Byte*)http_request_struct_ - MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA - MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST));
+                    if (!isSingleChunk_) {
+
+                        if (IntPtr.Zero != socketDataIntPtr_) {
+                            BitsAndBytes.Free(socketDataIntPtr_);
+                            socketDataIntPtr_ = IntPtr.Zero;
+                        }
+                    }
 
                     // Releasing data stream resources like chunks, etc.
                     dataStream_.Destroy(isStarcounterThread);
@@ -562,9 +581,9 @@ namespace Starcounter {
                     throw new ArgumentException("HTTP request not initialized.");
 
                 if (!isInternalRequest_)
-                    return (IntPtr)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+                    return new IntPtr(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
 
-                return (IntPtr)http_request_struct_->params_info_ptr_;
+                return new IntPtr(http_request_struct_->params_info_ptr_);
             }
         }
 
@@ -1637,7 +1656,7 @@ namespace Starcounter {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
             Byte[] content_bytes = new Byte[(Int32)content_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + content_offset_), content_bytes, 0, (Int32)content_len_bytes_);
+            Marshal.Copy(new IntPtr(socket_data_ + content_offset_), content_bytes, 0, (Int32)content_len_bytes_);
 
             return content_bytes;
         }
@@ -1655,7 +1674,7 @@ namespace Starcounter {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
             Byte[] request_bytes = new Byte[(Int32)request_len_bytes_];
-            Marshal.Copy((IntPtr)(socket_data_ + request_offset_), request_bytes, 0, (Int32)request_len_bytes_);
+            Marshal.Copy(new IntPtr(socket_data_ + request_offset_), request_bytes, 0, (Int32)request_len_bytes_);
 
             return request_bytes;
         }
@@ -1701,7 +1720,7 @@ namespace Starcounter {
         /// <param name="sizeBytes">The size bytes.</param>
         public IntPtr GetRawMethodAndUri() {
             // NOTE: Method and URI must always exist.
-            return (IntPtr)(socket_data_ + request_offset_);
+            return new IntPtr(socket_data_ + request_offset_);
         }
 
         /// <summary>
@@ -1772,7 +1791,7 @@ namespace Starcounter {
 
             // Constructing the string if its the first time.
             if (headersString == null)
-                headersString = Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
+                headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             // Getting needed substring.
             Int32 hstart = headersString.IndexOf(headerName);
@@ -1801,7 +1820,7 @@ namespace Starcounter {
         public String Uri {
             get {
                 if (uri_len_bytes_ > 0)
-                    return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + uri_offset_), (Int32)uri_len_bytes_);
+                    return Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + uri_offset_), (Int32)uri_len_bytes_);
 
                 return null;
             }
@@ -1835,7 +1854,7 @@ namespace Starcounter {
                     }
 
                     if (method_len > 0)
-                        return Marshal.PtrToStringAnsi((IntPtr)(socket_data_ + request_offset_), (Int32)method_len);
+                        return Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + request_offset_), (Int32)method_len);
 
                 }
 

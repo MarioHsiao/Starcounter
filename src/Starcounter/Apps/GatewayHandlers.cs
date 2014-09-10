@@ -62,17 +62,18 @@ namespace Starcounter
         /// <returns>UInt32.</returns>
         private unsafe static UInt32 HandleRawSocket(
             UInt16 managed_handler_id,
-            Byte* raw_chunk,
+            Byte* rawChunk,
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
 		{
             Boolean is_single_chunk = false;
+            IntPtr plainChunksData = IntPtr.Zero;
 
             try {
 
                 *is_handled = false;
 
-                UInt32 chunk_index = task_info->chunk_index;
+                UInt32 chunkIndex = task_info->chunk_index;
 
                 // Fetching the callback.
                 RawSocketCallback user_callback = raw_port_handlers_[managed_handler_id];
@@ -82,27 +83,31 @@ namespace Starcounter
                 // Determining if chunk is single.
                 is_single_chunk = ((task_info->flags & 0x01) == 0);
 
-                NetworkDataStream dataStream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+                NetworkDataStream dataStream = new NetworkDataStream(rawChunk, task_info->chunk_index, task_info->client_worker_id);
 
                 // Checking if we need to process linked chunks.
                 if (!is_single_chunk) {
 
-                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
+                    UInt16 num_chunks = *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
                     // Allocating space to copy linked chunks (freed on Request destruction).
-                    IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
+                    Int32 totalBytes = num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE;
+                    plainChunksData = BitsAndBytes.Alloc(totalBytes);
+
+                    Byte* plainRawPtr = (Byte*) plainChunksData.ToPointer();
 
                     // Copying all chunks data.
                     UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                        chunk_index,
-                        raw_chunk,
-                        (Byte*)plain_chunks_data);
+                        chunkIndex,
+                        rawChunk,
+                        plainRawPtr,
+                        totalBytes);
 
                     if (errorCode != 0)
                         throw ErrorCode.ToException(errorCode);
 
                     // Adjusting pointers to a new plain byte array.
-                    raw_chunk = (Byte*)plain_chunks_data;
+                    rawChunk = plainRawPtr;
                 }
 
                 SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
@@ -120,11 +125,11 @@ namespace Starcounter
                 Byte[] dataBytes = null;
 
                 // Checking if its a socket disconnect.
-                if (((*(UInt32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
+                if (((*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
 
-                    dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+                    dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
 
-                    Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+                    Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
 
                 } else {
 
@@ -148,8 +153,9 @@ namespace Starcounter
                 // Cleaning the linear buffer in case of multiple chunks.
                 if (!is_single_chunk) {
 
-                    BitsAndBytes.Free((IntPtr)raw_chunk);
-                    raw_chunk = null;
+                    BitsAndBytes.Free(plainChunksData);
+                    plainChunksData = IntPtr.Zero;
+                    rawChunk = null;
                 }
 
                 // Clearing current session.
@@ -214,13 +220,17 @@ namespace Starcounter
                     UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
                     // Allocating space to copy linked chunks (freed on Request destruction).
-                    IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
+                    Int32 totalBytes = num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE;
+                    IntPtr plainChunksData = BitsAndBytes.Alloc(totalBytes);
+
+                    Byte* plainRawPtr = (Byte*) plainChunksData.ToPointer();
 
                     // Copying all chunks data.
                     UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
                         chunk_index,
                         raw_chunk,
-                        (Byte*) plain_chunks_data);
+                        plainRawPtr,
+                        totalBytes);
 
                     if (errorCode != 0)
                         throw ErrorCode.ToException(errorCode);
@@ -231,8 +241,9 @@ namespace Starcounter
                         is_single_chunk,
                         chunk_index,
                         managed_handler_id,
-                        (Byte*) plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
-                        (Byte*) plain_chunks_data + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
+                        plainRawPtr + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
+                        plainRawPtr + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA,
+                        plainChunksData,
                         data_stream,
                         wsUpgradeRequest,
                         isAggregated);
@@ -256,6 +267,7 @@ namespace Starcounter
                         managed_handler_id,
                         socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_HTTP_REQUEST,
                         socket_data_begin,
+                        IntPtr.Zero,
                         data_stream,
                         wsUpgradeRequest,
                         isAggregated);
@@ -362,29 +374,30 @@ namespace Starcounter
         /// </summary>
         internal unsafe static UInt32 HandleWebSocket(
             UInt16 managed_handler_id,
-            Byte* raw_chunk,
+            Byte* rawChunk,
             bmx.BMX_TASK_INFO* task_info,
             Boolean* is_handled)
         {
-            Boolean is_single_chunk = false;
+            Boolean isSingleChunk = false;
+            IntPtr plainChunksData = IntPtr.Zero;
 
             try
             {
                 *is_handled = false;
 
-                UInt32 chunk_index = task_info->chunk_index;
+                UInt32 chunkIndex = task_info->chunk_index;
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
                 // Determining if chunk is single.
-                is_single_chunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+                isSingleChunk = ((task_info->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
                 MixedCodeConstants.WebSocketDataTypes wsType = 
-                    (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
+                    (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
 
                 WebSocket ws = null;
 
                 // Creating network data stream object.
-                NetworkDataStream data_stream = new NetworkDataStream(raw_chunk, task_info->chunk_index, task_info->client_worker_id);
+                NetworkDataStream data_stream = new NetworkDataStream(rawChunk, task_info->chunk_index, task_info->client_worker_id);
 
                 SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForWebSocket(data_stream);
 
@@ -399,33 +412,37 @@ namespace Starcounter
                 Debug.Assert(null != wsInternal.SocketContainer);
 
                 // Checking if we need to process linked chunks.
-                if (!is_single_chunk)
+                if (!isSingleChunk)
                 {
-                    UInt16 num_chunks = *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
+                    UInt16 num_chunks = *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
                     // Allocating space to copy linked chunks (freed on Request destruction).
-                    IntPtr plain_chunks_data = BitsAndBytes.Alloc(num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE);
+                    Int32 totalBytes = num_chunks * MixedCodeConstants.SHM_CHUNK_SIZE;
+                    plainChunksData = BitsAndBytes.Alloc(totalBytes);
+
+                    Byte* plainRawPtr = (Byte*) plainChunksData.ToPointer();
 
                     // Copying all chunks data.
                     UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                        chunk_index,
-                        raw_chunk,
-                        (Byte*)plain_chunks_data);
+                        chunkIndex,
+                        rawChunk,
+                        plainRawPtr,
+                        totalBytes);
 
                     if (errorCode != 0)
                         throw ErrorCode.ToException(errorCode);
 
                     // Adjusting pointers to a new plain byte array.
-                    raw_chunk = (Byte*) plain_chunks_data;
+                    rawChunk = plainRawPtr;
                 }
 
                 switch (wsType)
                 {
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY:
                     {
-                        Byte[] dataBytes = new Byte[*(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
+                        Byte[] dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
 
-                        Marshal.Copy((IntPtr)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
+                        Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
 
                         ws = new WebSocket(wsInternal, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
@@ -435,9 +452,9 @@ namespace Starcounter
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT:
                     {
                         String dataString = new String(
-                            (SByte*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
+                            (SByte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
                             0,
-                            *(Int32*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
+                            *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
                             Encoding.UTF8);
 
                         ws = new WebSocket(wsInternal, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
@@ -457,7 +474,7 @@ namespace Starcounter
                 }
 
                 ScSessionStruct session_ = 
-                    *(ScSessionStruct*)(raw_chunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
+                    *(ScSessionStruct*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
 
                 // Obtaining corresponding Apps session.
                 IAppsSession apps_session = GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref session_);
@@ -495,10 +512,11 @@ namespace Starcounter
             } finally {
 
                 // Cleaning the linear buffer in case of multiple chunks.
-                if (!is_single_chunk) {
+                if (!isSingleChunk) {
 
-                    BitsAndBytes.Free((IntPtr)raw_chunk);
-                    raw_chunk = null;
+                    BitsAndBytes.Free(plainChunksData);
+                    plainChunksData = IntPtr.Zero;
+                    rawChunk = null;
                 }
 
                 // Clearing current session.

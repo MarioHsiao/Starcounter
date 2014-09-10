@@ -61,6 +61,10 @@ namespace Starcounter.Logging
             LogManager.Warning(_source, string.Format(message, args), null);
         }
 
+        public void LogWarning(Exception exception, string message) {
+            LogManager.Warning(_source, message, exception);
+        }
+
         public void LogError(string message)
         {
             LogManager.Error(_source, message, null);
