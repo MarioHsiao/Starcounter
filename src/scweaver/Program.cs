@@ -144,27 +144,24 @@ namespace Weaver {
 
             // Decide what command to run and invoke the proper method.
 
-            switch (arguments.Command) {
+            var cmd = arguments.Command;
+            var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
+            
+            if (cmd.Equals(ProgramCommands.Weave, caseInsensitive)) {
+                ExecuteWeaveCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
-                case ProgramCommands.Weave:
-                    ExecuteWeaveCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
-                    break;
+            } else if (cmd.Equals(ProgramCommands.Verify, caseInsensitive)) {
+                ExecuteVerifyCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
-                case ProgramCommands.Verify:
-                    ExecuteVerifyCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
-                    break;
+            } else if (cmd.Equals(ProgramCommands.ShowSchema, caseInsensitive)) {
+                ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
-                case ProgramCommands.ShowSchema:
-                    ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
-                    break;
-
-                default:
-                    error = Error.SCERRBADCOMMANDLINESYNTAX;
-                    ReportProgramError(
-                        error,
-                        ErrorCode.ToMessage(error, string.Format("Command {0} not recognized.", arguments.Command))
-                        );
-                    break;
+            } else {
+                error = Error.SCERRBADCOMMANDLINESYNTAX;
+                ReportProgramError(
+                    error,
+                    ErrorCode.ToMessage(error, string.Format("Command {0} not recognized.", arguments.Command))
+                    );
             }
         }
 
