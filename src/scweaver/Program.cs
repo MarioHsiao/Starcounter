@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 
 namespace Weaver {
+    using Sc.Server.Weaver.Schema;
+    using System.CodeDom.Compiler;
     using Error = Starcounter.Error;
 
     class Program {
@@ -233,7 +235,22 @@ namespace Weaver {
             string fileName,
             ApplicationArguments arguments) {
                 
-            throw new NotImplementedException("Displaying the schema is not yet implemented");
+            
+            var schemaFiles = new DirectoryInfo(outputDirectory).GetFiles("*.schema");
+
+            var schema = new DatabaseSchema();
+            var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
+            databaseAssembly.SetSchema(schema);
+            schema.Assemblies.Add(databaseAssembly);
+
+            for (int i = 0; i < schemaFiles.Length; i++) {
+                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
+                schema.Assemblies.Add(databaseAssembly);
+            }
+
+            schema.AfterDeserialization();
+
+            schema.DebugOutput(new IndentedTextWriter(Console.Out));
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
