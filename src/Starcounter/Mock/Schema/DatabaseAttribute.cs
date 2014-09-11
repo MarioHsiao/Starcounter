@@ -113,6 +113,13 @@ namespace Sc.Server.Weaver.Schema {
             get {
                 return (specialFlags & SpecialFlags.TypeReference) > 0;
             }
+            set {
+                if (value) {
+                    specialFlags |= SpecialFlags.TypeReference;
+                } else if ((specialFlags & SpecialFlags.TypeReference) > 0) {
+                    specialFlags ^= SpecialFlags.TypeReference;
+                }
+            }
         }
 
         //    public bool IsPublicWrite { get; set; }
