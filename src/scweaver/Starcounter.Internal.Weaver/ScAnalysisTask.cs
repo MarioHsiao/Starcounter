@@ -91,6 +91,12 @@ namespace Starcounter.Internal.Weaver {
         private IType _synonymousToAttributeType;
 
         /// <summary>
+        /// The type corresponding to the <see cref="TypeAttribute"/> .NET
+        /// custom attribute.
+        /// </summary>
+        private IType _typeAttributeType;
+
+        /// <summary>
         /// Gets the <see cref="DatabaseSchema" /> for the current application.
         /// </summary>
         /// <value>The database schema.</value>
@@ -363,6 +369,7 @@ namespace Starcounter.Internal.Weaver {
         void InitializeModuleThatReferenceStarcounter() {
             _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+            _typeAttributeType = FindStarcounterType(typeof(TypeAttribute));
             databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
         }
 
@@ -707,6 +714,11 @@ namespace Starcounter.Internal.Weaver {
                         }
                     }
                 }
+            }
+
+
+            if (databaseAttribute.IsTypeReference) {
+                DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
             }
         }
 
@@ -1068,6 +1080,11 @@ namespace Starcounter.Internal.Weaver {
                 CustomAttributeDeclaration synonymToAttribute = field.CustomAttributes.GetOneByType(this._synonymousToAttributeType);
                 if (synonymToAttribute != null) {
                     this._synonymousToAttributes.Add(databaseAttribute, (string)synonymToAttribute.ConstructorArguments[0].Value.GetRuntimeValue());
+                }
+
+                var typeAttribute = field.CustomAttributes.GetOneByType(this._typeAttributeType);
+                if (typeAttribute != null) {
+                    databaseAttribute.IsTypeReference = true;
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();

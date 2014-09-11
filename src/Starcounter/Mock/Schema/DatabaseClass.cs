@@ -9,6 +9,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Runtime.Serialization;
+using System.Linq;
 
 namespace Sc.Server.Weaver.Schema
 {
@@ -126,6 +127,22 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
             return this.BaseClass.FindAttributeInAncestors(name);
         }
         return null;
+    }
+
+    /// <summary>
+    /// Searches an attribute by name in the current class and in all ancestors, using
+    /// a specified predicate to determine if attributes are considered matches or not.
+    /// </summary>
+    /// <param name="predicate">The predicate that determine if an attribute match.</param>
+    /// <returns>An attribute if found; null if not.</returns>
+    public DatabaseAttribute FindAttributeInAncestors(Func<DatabaseAttribute, bool> predicate) {
+        var result = this.attributes.FirstOrDefault(predicate);
+        if (result == null) {
+            if (baseClass != null) {
+                return BaseClass.FindAttributeInAncestors(predicate);
+            }
+        }
+        return result;
     }
 
     //PI110503

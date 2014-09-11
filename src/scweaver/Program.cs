@@ -11,6 +11,8 @@ using System.IO;
 using System.Linq;
 
 namespace Weaver {
+    using Sc.Server.Weaver.Schema;
+    using System.CodeDom.Compiler;
     using Error = Starcounter.Error;
 
     class Program {
@@ -144,23 +146,24 @@ namespace Weaver {
 
             // Decide what command to run and invoke the proper method.
 
-            switch (arguments.Command) {
+            var cmd = arguments.Command;
+            var caseInsensitive = StringComparison.InvariantCultureIgnoreCase;
+            
+            if (cmd.Equals(ProgramCommands.Weave, caseInsensitive)) {
+                ExecuteWeaveCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
-                case ProgramCommands.Weave:
-                    ExecuteWeaveCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
-                    break;
+            } else if (cmd.Equals(ProgramCommands.Verify, caseInsensitive)) {
+                ExecuteVerifyCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
-                case ProgramCommands.Verify:
-                    ExecuteVerifyCommand(inputDirectory, cacheDirectory, fileName, arguments);
-                    break;
+            } else if (cmd.Equals(ProgramCommands.ShowSchema, caseInsensitive)) {
+                ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
-                default:
-                    error = Error.SCERRBADCOMMANDLINESYNTAX;
-                    ReportProgramError(
-                        error,
-                        ErrorCode.ToMessage(error, string.Format("Command {0} not recognized.", arguments.Command))
-                        );
-                    break;
+            } else {
+                error = Error.SCERRBADCOMMANDLINESYNTAX;
+                ReportProgramError(
+                    error,
+                    ErrorCode.ToMessage(error, string.Format("Command {0} not recognized.", arguments.Command))
+                    );
             }
         }
 
@@ -200,11 +203,13 @@ namespace Weaver {
         /// Executes the command "Verify".
         /// </summary>
         /// <param name="inputDirectory">The input directory.</param>
+        /// <param name="outputDirectory">The output directory.</param>
         /// <param name="cacheDirectory">The cache directory.</param>
         /// <param name="fileName">The name of the file to give the weaver.</param>
         /// <param name="arguments">Parsed and verified program arguments.</param>
         static void ExecuteVerifyCommand(
             string inputDirectory,
+            string outputDirectory,
             string cacheDirectory,
             string fileName,
             ApplicationArguments arguments) {
@@ -213,7 +218,7 @@ namespace Weaver {
             // Create the code weaver facade and configure it properly. Then
             // execute the underlying weaver engine.
 
-            weaver = new CodeWeaver(inputDirectory, fileName, null, cacheDirectory);
+            weaver = new CodeWeaver(inputDirectory, fileName, outputDirectory, cacheDirectory);
             weaver.RunWeaver = false;
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
 
@@ -221,6 +226,34 @@ namespace Weaver {
             // error itself.
 
             weaver.Execute();
+        }
+
+        static void ExecuteSchemaCommand(
+            string inputDirectory,
+            string outputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+
+            var schemaFiles = new DirectoryInfo(outputDirectory).GetFiles("*.schema");
+            if (schemaFiles.Length == 0) {
+                Console.WriteLine("No schema found (looked in '{0}')", outputDirectory);
+                return;
+            }
+
+            var schema = new DatabaseSchema();
+            var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
+            databaseAssembly.SetSchema(schema);
+            schema.Assemblies.Add(databaseAssembly);
+
+            for (int i = 0; i < schemaFiles.Length; i++) {
+                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
+                schema.Assemblies.Add(databaseAssembly);
+            }
+
+            schema.AfterDeserialization();
+
+            schema.DebugOutput(new IndentedTextWriter(Console.Out));
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
@@ -388,6 +421,9 @@ namespace Weaver {
             // Optional flag instructing the program not to use the weaver cache when
             // analyzing/weaving code.
             commandDefinition.DefineFlag("nocache", "Instructs the weaver not to use the weaver cache.");
+
+            // Display schema command
+            syntaxDefinition.DefineCommand(ProgramCommands.ShowSchema, "Displays the schema of the given application", 1);
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
