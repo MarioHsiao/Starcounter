@@ -953,6 +953,13 @@ public:
         return socket_info_->aggr_socket_info_index_;
     }
 
+    random_salt_type GetAggregationSocketUniqueId()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->aggr_unique_socket_id_;
+    }
+
     void SetWebSocketChannelId(ws_channel_id_type ws_channel_id)
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
