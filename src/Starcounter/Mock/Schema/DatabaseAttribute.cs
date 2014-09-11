@@ -258,6 +258,18 @@ namespace Sc.Server.Weaver.Schema {
         }
 
         /// <summary>
+        /// Gets a value indicating of the current attribute is considered
+        /// transient, i.e. not stored in the database or part of the database
+        /// schema.
+        /// </summary>
+        public bool IsTransient {
+            get {
+                return this.attributeKind == DatabaseAttributeKind.TransientField ||
+                    this.attributeKind == DatabaseAttributeKind.TransientProperty;
+            }
+        }
+
+        /// <summary>
         /// Gets the <see cref="DatabaseSchema"/> to which the current database attribute belongs.
         /// </summary>
         public override DatabaseSchema Schema {
