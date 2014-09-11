@@ -1076,6 +1076,11 @@ namespace Starcounter.Internal.Weaver {
                 if (synonymToAttribute != null) {
                     this._synonymousToAttributes.Add(databaseAttribute, (string)synonymToAttribute.ConstructorArguments[0].Value.GetRuntimeValue());
                 }
+
+                var typeAttribute = field.CustomAttributes.GetOneByType(this._typeAttributeType);
+                if (typeAttribute != null) {
+                    databaseAttribute.IsTypeReference = true;
+                }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
         }
