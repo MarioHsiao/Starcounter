@@ -22,6 +22,10 @@ namespace Starcounter.Internal.Weaver {
             if (attribute.IsTypeReference) {
                 ValidateTypeReference(attribute);
             }
+
+            if (attribute.IsInheritsReference) {
+                ValidateInheritsReference(attribute);
+            }
         }
 
         static void ValidateTypeReference(DatabaseAttribute attribute) {
@@ -65,6 +69,10 @@ namespace Starcounter.Internal.Weaver {
             // Check if it's incompatible with other type decorations, like
             // if its a TypeName or Inherits
             // TODO:
+        }
+
+        static void ValidateInheritsReference(DatabaseAttribute attribute) {
+            throw new NotImplementedException();
         }
     }
 }
