@@ -1081,7 +1081,8 @@ public:
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
 
-        bool is_equal = (socket_info_->unique_socket_id_ == unique_socket_id_);
+        bool is_equal = (socket_info_->unique_socket_id_ == unique_socket_id_) &&
+            (INVALID_SESSION_SALT != unique_socket_id_);
 
         return is_equal;
     }

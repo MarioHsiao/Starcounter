@@ -250,91 +250,24 @@ uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCode
     socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
     random_salt_type aggr_unique_socket_id = sd->GetAggregationSocketUniqueId();
 
-    // Making sure we are sending on a correct aggregation socket.
-    SocketDataChunk* aggr_sd = FindAggregationSd(aggr_socket_info_index, aggr_unique_socket_id);
+    uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
 
-    uint32_t err_code;
+    AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
+    aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
+    aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
+    aggr_struct->socket_info_index_ = sd->get_socket_info_index();
+    aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
+    aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
+    aggr_struct->msg_type_ = msg_type;
 
-WRITE_TO_AGGR_SD:
+    uint32_t err_code = SendOnAggregationSocket(aggr_socket_info_index, aggr_unique_socket_id, (uint8_t*) aggr_struct, total_num_bytes);
 
-    if (aggr_sd)
-    {
-        GW_ASSERT(aggr_sd->get_bound_worker_id() == worker_id_);
-        GW_ASSERT(aggr_sd->GetBoundWorkerId() == worker_id_);
-
-        // Checking if data fits in socket data.
-        AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
-        uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
-
-        // NOTE: Asserting that maximum data to send fits in big aggregation chunk.
-        GW_ASSERT(total_num_bytes < aggr_accum_buf->get_chunk_orig_buf_len_bytes());
-
-        // Checking if data fits in the current buffer space.
-        if (aggr_accum_buf->get_chunk_num_available_bytes() >= total_num_bytes)
-        {
-            AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
-            aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
-            aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
-            aggr_struct->socket_info_index_ = sd->get_socket_info_index();
-            aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
-            aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
-            aggr_struct->msg_type_ = msg_type;
-
-            // Writing given buffer to send.
-            aggr_accum_buf->WriteBytesToSend(aggr_struct, total_num_bytes);
-            
-            // Releasing the chunk.
-            ReturnSocketDataChunksToPool(sd);
-
-            // Checking if aggregation buffer is filled.
-            if (AggregationStructSizeBytes > aggr_accum_buf->get_chunk_num_available_bytes())
-            {
-                // Removing this aggregation socket data from list.
-                aggr_sds_to_send_.RemoveEntry(aggr_sd);
-
-                // Reverting accumulating buffer before send.
-                aggr_accum_buf->RevertBeforeSend();
-
-                // Sending it.
-                err_code = Send(aggr_sd);
-                if (err_code)
-                    return err_code;
-            }
-
-            return 0;
-        }
-        else
-        {
-            // Removing this aggregation socket data from list.
-            aggr_sds_to_send_.RemoveEntry(aggr_sd);
-
-            // Reverting accumulating buffer before send.
-            aggr_accum_buf->RevertBeforeSend();
-
-            // Sending it.
-            err_code = Send(aggr_sd);
-            if (err_code)
-                return err_code;
-
-            GW_ASSERT(NULL == aggr_sd);
-
-            goto WRITE_TO_AGGR_SD;
-        }
-    }
-    else
-    {
-        // Creating new socket data.
-        err_code = CreateSocketData(aggr_socket_info_index, aggr_sd);
-        if (err_code)
-            return err_code;
-
-        // Adding new aggregation sd to list.
-        aggr_sds_to_send_.Add(aggr_sd);
-
-        goto WRITE_TO_AGGR_SD;
+    if (!err_code) {
+        // Releasing the chunk.
+        ReturnSocketDataChunksToPool(sd);
     }
 
-    return 0;
+    return err_code;
 }
 
 // Performs a send of given socket data on aggregation socket.
@@ -344,8 +277,25 @@ uint32_t GatewayWorker::SendOnAggregationSocket(
     const uint8_t* data,
     const int32_t data_len)
 {
+    // Checking if socket is valid.
+    if (!CompareUniqueSocketId(aggr_socket_info_index, aggr_unique_socket_id)) {
+        return SCERRGWOPERATIONONWRONGSOCKET;
+    }
+
     // Making sure we are sending on a correct aggregation socket.
     SocketDataChunk* aggr_sd = FindAggregationSd(aggr_socket_info_index, aggr_unique_socket_id);
+
+    // Checking if socket is correct.
+    if (aggr_sd && (!aggr_sd->CompareUniqueSocketId())) {
+
+        // Removing this aggregation socket data from list.
+        aggr_sds_to_send_.RemoveEntry(aggr_sd);
+
+        // Disconnect aggregation socket data.
+        DisconnectAndReleaseChunk(aggr_sd);
+
+        return SCERRGWOPERATIONONWRONGSOCKET;
+    }
 
     uint32_t err_code;
 
@@ -382,6 +332,8 @@ WRITE_TO_AGGR_SD:
                 err_code = Send(aggr_sd);
                 if (err_code)
                     return err_code;
+
+                GW_ASSERT(aggr_sd->CompareUniqueSocketId());
             }
 
             return 0;
@@ -399,6 +351,8 @@ WRITE_TO_AGGR_SD:
             if (err_code)
                 return err_code;
 
+            GW_ASSERT(aggr_sd->CompareUniqueSocketId());
+
             GW_ASSERT(NULL == aggr_sd);
 
             goto WRITE_TO_AGGR_SD;
@@ -410,6 +364,9 @@ WRITE_TO_AGGR_SD:
         err_code = CreateSocketData(aggr_socket_info_index, aggr_sd);
         if (err_code)
             return err_code;
+
+        // Checking if socket is correct.
+        GW_ASSERT(aggr_sd->CompareUniqueSocketId());
 
         // Adding new aggregation sd to list.
         aggr_sds_to_send_.Add(aggr_sd);
