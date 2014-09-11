@@ -97,6 +97,7 @@
     <Compile Include="Starcounter.Internal.Weaver\DatabaseTypeConfiguration.cs" />
     <Compile Include="Starcounter.Internal.Weaver\DatabaseTypePolicy.cs" />
     <Compile Include="Starcounter.Internal.Weaver\DbStateMethodProvider.cs" />
+    <Compile Include="Starcounter.Internal.Weaver\DynamicTypesHelper.cs" />
     <Compile Include="Starcounter.Internal.Weaver\EntityConstructorCallAdvice.cs" />
     <Compile Include="Starcounter.Internal.Weaver\EqualityImpl\ImplementsEquality.cs" />
     <Compile Include="Starcounter.Internal.Weaver\HashHelper.cs" />

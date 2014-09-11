@@ -281,6 +281,10 @@ namespace Starcounter.Internal.Weaver {
                 }
             } else if (databaseAttribute.AttributeType is DatabaseClass) {
                 string methodName = operation + "Object";
+                if (databaseAttribute.IsTypeReference) {
+                    methodName = operation + "TypeReference";
+                }
+
                 MethodInfo methodInfo;
 
                 methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);

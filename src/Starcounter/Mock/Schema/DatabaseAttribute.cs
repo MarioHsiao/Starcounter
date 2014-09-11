@@ -33,6 +33,13 @@ namespace Sc.Server.Weaver.Schema {
         private readonly DatabaseClass declaringClass;
         private object initialValue;
         private DatabaseAttributeRef backingField;
+        private int specialFlags = 0;
+
+        class SpecialFlags {
+            public const int TypeReference = 1;
+            public const int IneritsReference = 2;
+            public const int TypeName = 4;
+        }
 
         /// <summary>
         /// Initializes a new <see cref="DatabaseAttribute"/>.
@@ -96,6 +103,24 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         /// <value><c>true</c> if this instance is public read; otherwise, <c>false</c>.</value>
         public bool IsPublicRead { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating of the current attribute is to be
+        /// considered a type reference, part of Starcounter dynamic
+        /// types.
+        /// </summary>
+        public bool IsTypeReference {
+            get {
+                return (specialFlags & SpecialFlags.TypeReference) > 0;
+            }
+            set {
+                if (value) {
+                    specialFlags |= SpecialFlags.TypeReference;
+                } else if ((specialFlags & SpecialFlags.TypeReference) > 0) {
+                    specialFlags ^= SpecialFlags.TypeReference;
+                }
+            }
+        }
 
         //    public bool IsPublicWrite { get; set; }
 
@@ -233,6 +258,18 @@ namespace Sc.Server.Weaver.Schema {
         }
 
         /// <summary>
+        /// Gets a value indicating of the current attribute is considered
+        /// transient, i.e. not stored in the database or part of the database
+        /// schema.
+        /// </summary>
+        public bool IsTransient {
+            get {
+                return this.attributeKind == DatabaseAttributeKind.TransientField ||
+                    this.attributeKind == DatabaseAttributeKind.TransientProperty;
+            }
+        }
+
+        /// <summary>
         /// Gets the <see cref="DatabaseSchema"/> to which the current database attribute belongs.
         /// </summary>
         public override DatabaseSchema Schema {
@@ -261,6 +298,10 @@ namespace Sc.Server.Weaver.Schema {
         public override string ToString() {
             StringBuilder builder = new StringBuilder();
             builder.AppendFormat(" {0} : {1}, {2}", this.name, this.attributeKind, this.attributeType);
+            if (IsTypeReference) {
+                builder.Append(", [Type]");
+            }
+
             if (this.isInitOnly) {
                 builder.Append(", init only");
             }
