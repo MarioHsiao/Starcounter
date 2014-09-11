@@ -33,6 +33,13 @@ namespace Sc.Server.Weaver.Schema {
         private readonly DatabaseClass declaringClass;
         private object initialValue;
         private DatabaseAttributeRef backingField;
+        private int specialFlags = 0;
+
+        class SpecialFlags {
+            public const int TypeReference = 1;
+            public const int IneritsReference = 2;
+            public const int TypeName = 4;
+        }
 
         /// <summary>
         /// Initializes a new <see cref="DatabaseAttribute"/>.
@@ -96,6 +103,17 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         /// <value><c>true</c> if this instance is public read; otherwise, <c>false</c>.</value>
         public bool IsPublicRead { get; set; }
+
+        /// <summary>
+        /// Gets a value indicating of the current attribute is to be
+        /// considered a type reference, part of Starcounter dynamic
+        /// types.
+        /// </summary>
+        public bool IsTypeReference {
+            get {
+                return (specialFlags & SpecialFlags.TypeReference) > 0;
+            }
+        }
 
         //    public bool IsPublicWrite { get; set; }
 
