@@ -41,6 +41,22 @@ namespace Starcounter.Internal.Weaver {
                         ));
                 }
 
+                var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
+                    return candidate != attribute && candidate.IsTypeReference;
+                });
+
+                if (other != null) {
+                    ScMessageSource.WriteError(
+                        MessageLocation.Unknown,
+                        Error.SCERRINVALIDTYPEREFERENCE,
+                        string.Format("Attribute {0}.{1} is marked a type; {2}.{3} is too.",
+                        attribute.DeclaringClass.Name,
+                        attribute.Name,
+                        other.DeclaringClass.Name,
+                        other.Name
+                        ));
+                }
+
                 // Check if it's incompatible with other type decorations, like
                 // if its a TypeName or Inherits
                 // TODO:
