@@ -286,6 +286,10 @@ namespace Sc.Server.Weaver.Schema {
         public override string ToString() {
             StringBuilder builder = new StringBuilder();
             builder.AppendFormat(" {0} : {1}, {2}", this.name, this.attributeKind, this.attributeType);
+            if (IsTypeReference) {
+                builder.Append(", [Type]");
+            }
+
             if (this.isInitOnly) {
                 builder.Append(", init only");
             }
