@@ -140,6 +140,24 @@ namespace Sc.Server.Weaver.Schema {
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating if the current attribute is to be
+        /// considered holding the type name of a class part of the new
+        /// dynamic types domain.
+        /// </summary>
+        public bool IsTypeName {
+            get {
+                return (specialFlags & SpecialFlags.TypeName) > 0;
+            }
+            set {
+                if (value) {
+                    specialFlags |= SpecialFlags.TypeName;
+                } else if ((specialFlags & SpecialFlags.TypeName) > 0) {
+                    specialFlags ^= SpecialFlags.TypeName;
+                }
+            }
+        }
+
         //    public bool IsPublicWrite { get; set; }
 
         /// <summary>
