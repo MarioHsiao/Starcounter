@@ -251,6 +251,8 @@ namespace Starcounter.Internal.Weaver {
                             this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
                             new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
                     }
+                } else if (databaseAttribute.IsTypeName) {
+                    methodName = operation + "TypeName";
                 } else {
                     methodName = operation + primitive.ToString();
                 }

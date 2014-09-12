@@ -90,6 +90,10 @@ namespace Starcounter.Hosting {
             return DbStateRedirect.Target.ReadInherits(oid, address, index);
         }
 
+        public static IObjectView ReadTypeName(ulong oid, ulong address, int index) {
+            return DbStateRedirect.Target.ReadTypeName(oid, address, index);
+        }
+
         public static sbyte ReadSByte(ulong oid, ulong address, int index) {
             return DbStateRedirect.Target.ReadSByte(oid, address, index);
         }
@@ -228,6 +232,10 @@ namespace Starcounter.Hosting {
 
         public static void WriteInherits(ulong oid, ulong address, int index, Binding.IObjectProxy value) {
             DbStateRedirect.Target.WriteInherits(oid, address, index, value);
+        }
+
+        public static void WriteTypeName(ulong oid, ulong address, int index, Binding.IObjectProxy value) {
+            DbStateRedirect.Target.WriteTypeName(oid, address, index, value);
         }
 
         public static void WriteSByte(ulong oid, ulong address, int index, sbyte value) {
