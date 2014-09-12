@@ -26,6 +26,7 @@ namespace Starcounter.Hosting {
         IObjectView ReadObject(ulong oid, ulong address, int index);
         IObjectView ReadTypeReference(ulong oid, ulong address, int index);
         IObjectView ReadInherits(ulong oid, ulong address, int index);
+        IObjectView ReadTypeName(ulong oid, ulong address, int index);
         sbyte ReadSByte(ulong oid, ulong address, int index);
         Nullable<sbyte> ReadNullableSByte(ulong oid, ulong address, int index);
         float ReadSingle(ulong oid, ulong address, int index);
@@ -61,6 +62,7 @@ namespace Starcounter.Hosting {
         void WriteObject(ulong oid, ulong address, int index, IObjectProxy value);
         void WriteTypeReference(ulong oid, ulong address, int index, IObjectProxy value);
         void WriteInherits(ulong oid, ulong address, int index, IObjectProxy value);
+        void WriteTypeName(ulong oid, ulong address, int index, IObjectProxy value);
         void WriteSByte(ulong oid, ulong address, int index, sbyte value);
         void WriteNullableSByte(ulong oid, ulong address, int index, Nullable<sbyte> value);
         void WriteSingle(ulong oid, ulong address, int index, float value);
