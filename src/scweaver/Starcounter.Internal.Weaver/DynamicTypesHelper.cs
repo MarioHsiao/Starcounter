@@ -26,6 +26,10 @@ namespace Starcounter.Internal.Weaver {
             if (attribute.IsInheritsReference) {
                 ValidateInheritsReference(attribute);
             }
+
+            if (attribute.IsTypeName) {
+                ValidateTypeName(attribute);
+            }
         }
 
         static void ValidateTypeReference(DatabaseAttribute attribute) {
@@ -120,6 +124,19 @@ namespace Starcounter.Internal.Weaver {
                     MessageLocation.Unknown,
                     Error.SCERRINVALIDTYPEREFERENCE,
                     string.Format("Attribute {0}.{1} is marked [Inherits]; it can not also be marked [Type]",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
+        }
+
+        static void ValidateTypeName(DatabaseAttribute attribute) {
+            var type = attribute.AttributeType as DatabasePrimitiveType;
+            if (type == null || type.Primitive != DatabasePrimitive.String) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDTYPENAME,
+                    string.Format("Attribute {0}.{1} is not a string.",
                     attribute.DeclaringClass.Name,
                     attribute.Name
                     ));
