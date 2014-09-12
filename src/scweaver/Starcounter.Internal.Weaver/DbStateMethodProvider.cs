@@ -286,6 +286,9 @@ namespace Starcounter.Internal.Weaver {
                 }
                 else if (databaseAttribute.IsInheritsReference) {
                     methodName = operation + "Inherits";
+                } 
+                else if (databaseAttribute.IsTypeName) {
+                    methodName = operation + "TypeName";
                 }
 
                 MethodInfo methodInfo;
