@@ -387,6 +387,7 @@
     <Compile Include="TransactionConflictDbException.cs" />
     <Compile Include="TransactionConflictException.cs" />
     <Compile Include="TypeAttribute.cs" />
+    <Compile Include="TypeNameAttribute.cs" />
     <Compile Include="UnhandledTransactionConflictException.cs" />
   </ItemGroup>
   <ItemGroup>
