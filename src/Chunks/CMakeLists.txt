@@ -5,3 +5,7 @@ cmake_minimum_required(VERSION 2.8.10)
 add_definitions(-D_UNICODE -DUNICODE)
 
 add_subdirectory(server)
+add_subdirectory(server_test)
+add_subdirectory(BMX)
+add_subdirectory(scipcmonitor)
+add_subdirectory(test)

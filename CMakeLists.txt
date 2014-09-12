@@ -8,8 +8,8 @@ enable_testing()
 # project relies on cmake scripts provided
 # by the superbuild parent project,
 # specifically CSharp helpers.
-if(NOT CSHARP_FOUND)
-  message(ERROR "Parent project must provide CSharp")
-endif()
+
+find_package(CSharp REQUIRED)
 
 add_subdirectory(src)
+# add_subdirectory(StarcounterJs)
