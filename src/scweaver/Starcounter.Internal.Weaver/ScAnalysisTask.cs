@@ -91,6 +91,24 @@ namespace Starcounter.Internal.Weaver {
         private IType _synonymousToAttributeType;
 
         /// <summary>
+        /// The type corresponding to the <see cref="TypeAttribute"/> .NET
+        /// custom attribute.
+        /// </summary>
+        private IType _typeAttributeType;
+
+        /// <summary>
+        /// The type corresponding to the <see cref="InheritsAttribute"/> .NET
+        /// custom attribute.
+        /// </summary>
+        private IType _inheritsAttributeType;
+
+        /// <summary>
+        /// The type corresponding to the <see cref="TypeNameAttribute"/> .NET
+        /// custom attribute.
+        /// </summary>
+        private IType _typeNameAttributeType;
+
+        /// <summary>
         /// Gets the <see cref="DatabaseSchema" /> for the current application.
         /// </summary>
         /// <value>The database schema.</value>
@@ -363,6 +381,9 @@ namespace Starcounter.Internal.Weaver {
         void InitializeModuleThatReferenceStarcounter() {
             _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
+            _typeAttributeType = FindStarcounterType(typeof(TypeAttribute));
+            _inheritsAttributeType = FindStarcounterType(typeof(InheritsAttribute));
+            _typeNameAttributeType = FindStarcounterType(typeof(TypeNameAttribute));
             databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
         }
 
@@ -708,6 +729,8 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
             }
+
+            DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
         }
 
         /// <summary>
@@ -1068,6 +1091,21 @@ namespace Starcounter.Internal.Weaver {
                 CustomAttributeDeclaration synonymToAttribute = field.CustomAttributes.GetOneByType(this._synonymousToAttributeType);
                 if (synonymToAttribute != null) {
                     this._synonymousToAttributes.Add(databaseAttribute, (string)synonymToAttribute.ConstructorArguments[0].Value.GetRuntimeValue());
+                }
+
+                var typeAttribute = field.CustomAttributes.GetOneByType(this._typeAttributeType);
+                if (typeAttribute != null) {
+                    databaseAttribute.IsTypeReference = true;
+                }
+
+                var inheritsAttribute = field.CustomAttributes.GetOneByType(this._inheritsAttributeType);
+                if (inheritsAttribute != null) {
+                    databaseAttribute.IsInheritsReference = true;
+                }
+
+                var typeNameAttribute = field.CustomAttributes.GetOneByType(this._typeNameAttributeType);
+                if (typeNameAttribute != null) {
+                    databaseAttribute.IsTypeName = true;
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();

@@ -251,6 +251,8 @@ namespace Starcounter.Internal.Weaver {
                             this.module.FindType(typeof(Nullable<>), BindingOptions.RequireGenericDefinition),
                             new ITypeSignature[] { this.module.Cache.GetIntrinsic(MapDatabasePrimitiveToInstrinsic(primitive)) });
                     }
+                } else if (databaseAttribute.IsTypeName) {
+                    methodName = operation + "TypeName";
                 } else {
                     methodName = operation + primitive.ToString();
                 }
@@ -281,6 +283,13 @@ namespace Starcounter.Internal.Weaver {
                 }
             } else if (databaseAttribute.AttributeType is DatabaseClass) {
                 string methodName = operation + "Object";
+                if (databaseAttribute.IsTypeReference) {
+                    methodName = operation + "TypeReference";
+                }
+                else if (databaseAttribute.IsInheritsReference) {
+                    methodName = operation + "Inherits";
+                }
+
                 MethodInfo methodInfo;
 
                 methodInfo = codeGeneratedDbStateType == null ? null : codeGeneratedDbStateType.GetMethod(methodName);

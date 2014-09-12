@@ -82,6 +82,18 @@ namespace Starcounter.Hosting {
             return DbStateRedirect.Target.ReadObject(oid, address, index);
         }
 
+        public static IObjectView ReadTypeReference(ulong oid, ulong address, int index) {
+            return DbStateRedirect.Target.ReadTypeReference(oid, address, index);
+        }
+
+        public static IObjectView ReadInherits(ulong oid, ulong address, int index) {
+            return DbStateRedirect.Target.ReadInherits(oid, address, index);
+        }
+
+        public static IObjectView ReadTypeName(ulong oid, ulong address, int index) {
+            return DbStateRedirect.Target.ReadTypeName(oid, address, index);
+        }
+
         public static sbyte ReadSByte(ulong oid, ulong address, int index) {
             return DbStateRedirect.Target.ReadSByte(oid, address, index);
         }
@@ -212,6 +224,18 @@ namespace Starcounter.Hosting {
 
         public static void WriteObject(ulong oid, ulong address, int index, Binding.IObjectProxy value) {
             DbStateRedirect.Target.WriteObject(oid, address, index, value);
+        }
+
+        public static void WriteTypeReference(ulong oid, ulong address, int index, Binding.IObjectProxy value) {
+            DbStateRedirect.Target.WriteTypeReference(oid, address, index, value);
+        }
+
+        public static void WriteInherits(ulong oid, ulong address, int index, Binding.IObjectProxy value) {
+            DbStateRedirect.Target.WriteInherits(oid, address, index, value);
+        }
+
+        public static void WriteTypeName(ulong oid, ulong address, int index, Binding.IObjectProxy value) {
+            DbStateRedirect.Target.WriteTypeName(oid, address, index, value);
         }
 
         public static void WriteSByte(ulong oid, ulong address, int index, sbyte value) {

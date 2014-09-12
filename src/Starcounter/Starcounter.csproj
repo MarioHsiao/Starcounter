@@ -96,6 +96,7 @@
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Hosting\ApplicationBase.cs" />
+    <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
     <Compile Include="Internal\Entity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
@@ -386,6 +387,8 @@
     <Compile Include="TransactionAbortedException.cs" />
     <Compile Include="TransactionConflictDbException.cs" />
     <Compile Include="TransactionConflictException.cs" />
+    <Compile Include="TypeAttribute.cs" />
+    <Compile Include="TypeNameAttribute.cs" />
     <Compile Include="UnhandledTransactionConflictException.cs" />
   </ItemGroup>
   <ItemGroup>
