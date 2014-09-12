@@ -2,13 +2,9 @@
 
 cmake_minimum_required(VERSION 2.8.10)
 
-PROJECT(server)
+project(server)
 
-# find_package(Boost)
-# include_directories(${Boost_INCLUDE_DIRS})
-# link_directories(${Boost_LIBRARY_DIRS})
-
-SET(server_SOURCE_FILES
+set(server_SOURCE_FILES
     ../common/mapped_region.cpp
     ../common/shared_memory_object.cpp
     initialize.cpp
@@ -18,7 +14,7 @@ SET(server_SOURCE_FILES
     server.def
 )
 
-SET(server_HEADER_FILES
+set(server_HEADER_FILES
     # ../../common/impl/database_number.hpp # doesn't exist
     # ../common/database_number.hpp # doesn't exist
     ../common/atomic_bounded_buffer.hpp
@@ -48,7 +44,5 @@ SET(server_HEADER_FILES
     server.hpp
 )
 
-SET_SOURCE_FILES_PROPERTIES(server_HEADER_FILES PROPERTIES HEADER_FILE_ONLY TRUE)
-LIST(APPEND server_SOURCE_FILES ${server_HEADER_FILES})
-
-ADD_LIBRARY(server SHARED ${server_SOURCE_FILES})
+add_library(server SHARED ${server_SOURCE_FILES} ${server_HEADER_FILES})
+set_property(TARGET server PROPERTY FOLDER "level1")

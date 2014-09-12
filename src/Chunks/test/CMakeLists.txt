@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 2.8.10)
 
 project(scipctest)
 
+include_directories(../../../../level0/src/include)
+
 set(scipctest_SOURCE_FILES
     ../common/mapped_region.cpp
     ../common/shared_memory_object.cpp
@@ -41,4 +43,8 @@ set(scipctest_HEADER_FILES
 )
 
 add_executable(scipctest ${scipctest_SOURCE_FILES} ${scipctest_HEADER_FILES})
+set_property(TARGET scipctest PROPERTY FOLDER "level1")
+target_link_libraries(scipctest
+    bmx
+)
 add_test(NAME scipctest COMMAND $<TARGET_FILE:scipctest>)

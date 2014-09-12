@@ -14,8 +14,12 @@ set(sccoreapp_HEADER_FILES
     external.h
     internal.h
 )
-add_executable(sccoreapp ${sccoreapp_SOURCE_FILES} ${sccoreapp_HEADER_FILES})
+add_library(sccoreapp SHARED ${sccoreapp_SOURCE_FILES} ${sccoreapp_HEADER_FILES})
+set_property(TARGET sccoreapp PROPERTY FOLDER "level1")
 target_link_libraries(sccoreapp
-    scerrres
+    sccoredbg
+    coalmine
+    sccorelib
+    sccorelog
     bmx
 )

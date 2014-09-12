@@ -13,8 +13,13 @@ set(sccoredbh_HEADER_FILES
     external.h
     internal.h
 )
-add_executable(sccoredbh ${sccoredbh_SOURCE_FILES} ${sccoredbh_HEADER_FILES})
+add_library(sccoredbh SHARED ${sccoredbh_SOURCE_FILES} ${sccoredbh_HEADER_FILES})
+set_property(TARGET sccoredbh PROPERTY FOLDER "level1")
 target_link_libraries(sccoredbh
-    scerrres
-    bmx
+    coalmine
+    sccoredb
+    sccorelib
+    sccorelog
+    sccoreapp
+    sunflower
 )
