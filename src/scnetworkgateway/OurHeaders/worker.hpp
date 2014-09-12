@@ -242,14 +242,14 @@ public:
     // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(SocketDataChunkRef sd, MixedCodeConstants::AggregationMessageTypes msg_type);
 
-    // Performs a send of given socket data on aggregation socket.
     uint32_t SendOnAggregationSocket(
         const socket_index_type aggr_socket_info_index,
+        const random_salt_type aggr_unique_socket_id,
         const uint8_t* data,
         const int32_t data_len);
 
     // Tries to find current aggregation socket data from aggregation socket index.
-    SocketDataChunk* FindAggregationSdBySocketIndex(socket_index_type aggr_socket_info_index);
+    SocketDataChunk* FindAggregationSd(socket_index_type aggr_socket_info_index, random_salt_type aggr_unique_socket_id);
 
     // Returns given socket data chunk to private chunk pool.
     void ReturnSocketDataChunksToPool(SocketDataChunkRef sd);
@@ -589,11 +589,15 @@ public:
     }
 
     // Setting aggregation socket index.
-    void SetAggregationSocketIndex(socket_index_type socket_index, socket_index_type aggr_socket_info_index)
+    void SetAggregationSocketInfo(
+        socket_index_type socket_index,
+        socket_index_type aggr_socket_info_index,
+        random_salt_type aggr_unique_socket_id)
     {
         GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
 
         sockets_infos_[socket_index].aggr_socket_info_index_ = aggr_socket_info_index;
+        sockets_infos_[socket_index].aggr_unique_socket_id_ = aggr_unique_socket_id;
     }
 
     // Getting reference to a particular socket info.
