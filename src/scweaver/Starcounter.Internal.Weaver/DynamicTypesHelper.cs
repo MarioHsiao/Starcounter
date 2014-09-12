@@ -141,6 +141,22 @@ namespace Starcounter.Internal.Weaver {
                     attribute.Name
                     ));
             }
+
+            var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
+                return candidate != attribute && candidate.IsTypeName;
+            });
+
+            if (other != null) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDTYPENAME,
+                    string.Format("Attribute {0}.{1} is marked [TypeName]; {2}.{3} is too.",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name,
+                    other.DeclaringClass.Name,
+                    other.Name
+                    ));
+            }
         }
     }
 }
