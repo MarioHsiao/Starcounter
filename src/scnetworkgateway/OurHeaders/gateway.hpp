@@ -939,6 +939,9 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Unique number for socket.
     random_salt_type unique_socket_id_;
 
+    // Unique number for aggregation socket.
+    random_salt_type aggr_unique_socket_id_;
+
     // Socket number.
     SOCKET socket_;
 

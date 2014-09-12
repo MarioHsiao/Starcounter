@@ -15,7 +15,7 @@ namespace network {
 uint32_t PortAggregator(
     HandlersList* hl,
     GatewayWorker *gw,
-    SocketDataChunkRef sd,
+    SocketDataChunkRef aggr_sd,
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled)
 {
@@ -24,14 +24,14 @@ uint32_t PortAggregator(
     // Handled successfully.
     *is_handled = true;
 
-    AccumBuffer* big_accum_buf = sd->get_accum_buf();
+    AccumBuffer* big_accum_buf = aggr_sd->get_accum_buf();
 
-    SocketDataChunk* sd_push_to_db = NULL;
+    SocketDataChunk* new_sd = NULL;
     uint8_t* orig_data_ptr = big_accum_buf->get_chunk_orig_buf_ptr();
     int32_t num_accum_bytes = big_accum_buf->get_accum_len_bytes(), num_processed_bytes = 0;
     AggregationStruct* ags;
 
-    socket_index_type aggr_socket_info_index = sd->get_socket_info_index();
+    socket_index_type aggr_socket_info_index = aggr_sd->get_socket_info_index();
 
     while (num_processed_bytes < num_accum_bytes)
     {
@@ -45,7 +45,7 @@ uint32_t PortAggregator(
             cur_data_ptr = big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
 
             // Returning socket to receiving state.
-            return gw->Receive(sd);
+            return gw->Receive(aggr_sd);
         }
 
         // Getting the frame info.
@@ -65,14 +65,18 @@ uint32_t PortAggregator(
                 port_index_type port_index = g_gateway.FindServerPortIndex(ags->port_number_);
 
                 // Checking if port exists.
-                if (INVALID_PORT_INDEX == port_index) {
+                if ((0 != ags->size_bytes_) || (INVALID_PORT_INDEX == port_index)) {
 
                     // Nullifying the aggregation structure.
                     memset(ags, 0, sizeof(AggregationStruct));
                     ags->msg_type_ = (uint8_t) MixedCodeConstants::AGGR_CREATE_SOCKET;
 
                     // Sending data on aggregation socket.
-                    err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
+                    err_code = gw->SendOnAggregationSocket(
+                        aggr_sd->get_socket_info_index(),
+                        aggr_sd->get_unique_socket_id(),
+                        (const uint8_t*) ags,
+                        AggregationStructSizeBytes);
 
                     // NOTE: If problem finding port - breaking the sequence.
                     break;
@@ -88,13 +92,18 @@ uint32_t PortAggregator(
                     break;
                 }
 
+                // Getting unique socket id.
                 ags->unique_socket_id_ = gw->GetUniqueSocketId(ags->socket_info_index_);
 
                 // Setting some socket options.
                 gw->SetSocketAggregatedFlag(ags->socket_info_index_);
 
                 // Sending data on aggregation socket.
-                err_code = gw->SendOnAggregationSocket(sd->get_socket_info_index(), (const uint8_t*) ags, AggregationStructSizeBytes);
+                err_code = gw->SendOnAggregationSocket(
+                    aggr_sd->get_socket_info_index(),
+                    aggr_sd->get_unique_socket_id(),
+                    (const uint8_t*) ags,
+                    AggregationStructSizeBytes);
 
                 if (err_code) {
                     // NOTE: If problems obtaining chunk, breaking the whole aggregated receive.
@@ -127,7 +136,7 @@ uint32_t PortAggregator(
                     big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes + AggregationStructSizeBytes);
 
                     // Returning socket to receiving state.
-                    return gw->Receive(sd);
+                    return gw->Receive(aggr_sd);
                 }
 
                 // Checking if we have already created socket.
@@ -137,7 +146,7 @@ uint32_t PortAggregator(
                 }
 
                 // Cloning chunk to push it to database.
-                err_code = sd->CreateSocketDataFromBigBuffer(gw, ags->socket_info_index_, ags->size_bytes_, orig_data_ptr + num_processed_bytes, &sd_push_to_db);
+                err_code = aggr_sd->CreateSocketDataFromBigBuffer(gw, ags->socket_info_index_, ags->size_bytes_, orig_data_ptr + num_processed_bytes, &new_sd);
 
                 // Payload size has been checked, so we can add payload as processed.
                 num_processed_bytes += static_cast<uint32_t>(ags->size_bytes_);
@@ -148,31 +157,34 @@ uint32_t PortAggregator(
                 }
 
                 // Applying special parameters to socket data.
-                gw->ApplySocketInfoToSocketData(sd_push_to_db, ags->socket_info_index_, ags->unique_socket_id_);
+                gw->ApplySocketInfoToSocketData(new_sd, ags->socket_info_index_, ags->unique_socket_id_);
 
                 // Setting this aggregation socket.
-                gw->SetAggregationSocketIndex(ags->socket_info_index_, sd->get_socket_info_index());
+                gw->SetAggregationSocketInfo(
+                    ags->socket_info_index_,
+                    aggr_sd->get_socket_info_index(),
+                    aggr_sd->get_unique_socket_id());
 
                 // Setting aggregation socket.
-                sd_push_to_db->set_unique_aggr_index(ags->unique_aggr_index_);
-                sd_push_to_db->set_aggregated_flag();
+                new_sd->set_unique_aggr_index(ags->unique_aggr_index_);
+                new_sd->set_aggregated_flag();
 
                 // FIXME: Obtaining the aggregation socket client IP instead of real client-client IP.
-                sd_push_to_db->set_client_ip_info(sd->get_client_ip_info());
+                new_sd->set_client_ip_info(aggr_sd->get_client_ip_info());
 
                 // Changing accumulative buffer accordingly.
-                sd_push_to_db->get_accum_buf()->SetAccumulation(ags->size_bytes_, 0);
+                new_sd->get_accum_buf()->SetAccumulation(ags->size_bytes_, 0);
 
                 g_gateway.num_aggregated_recv_messages_++;
 
                 // Running handler.
-                err_code = gw->RunReceiveHandlers(sd_push_to_db);
+                err_code = gw->RunReceiveHandlers(new_sd);
 
                 if (err_code) {
 
                     // Releasing the cloned chunk.
-                    if (NULL != sd_push_to_db)
-                        gw->ReturnSocketDataChunksToPool(sd_push_to_db);
+                    if (NULL != new_sd)
+                        gw->ReturnSocketDataChunksToPool(new_sd);
 
                     // NOTE: If problems obtaining chunk, breaking the whole aggregated receive.
                     break;
@@ -188,7 +200,7 @@ uint32_t PortAggregator(
 
     // Returning socket to original receiving state.
     big_accum_buf->ResetToOriginalState();
-    return gw->Receive(sd);
+    return gw->Receive(aggr_sd);
 }
 
 // Processes all aggregated chunks.
@@ -216,31 +228,84 @@ uint32_t GatewayWorker::SendAggregatedChunks()
 }
 
 // Tries to find current aggregation socket data from aggregation socket index.
-SocketDataChunk* GatewayWorker::FindAggregationSdBySocketIndex(socket_index_type aggr_socket_info_index)
+SocketDataChunk* GatewayWorker::FindAggregationSd(
+    socket_index_type aggr_socket_info_index,
+    random_salt_type aggr_unique_socket_id)
 {
     for (int32_t i = 0; i < aggr_sds_to_send_.get_num_entries(); i++)
     {
-        if (aggr_socket_info_index == aggr_sds_to_send_[i]->get_socket_info_index())
+        if ((aggr_socket_info_index == aggr_sds_to_send_[i]->get_socket_info_index()) &&
+            (aggr_unique_socket_id == aggr_sds_to_send_[i]->get_unique_socket_id())) {
+
             return aggr_sds_to_send_[i];
+        }
     }
 
     return NULL;
 }
 
+// Performs a send of given socket data on aggregation socket.
+uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCodeConstants::AggregationMessageTypes msg_type)
+{
+    socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
+    random_salt_type aggr_unique_socket_id = sd->GetAggregationSocketUniqueId();
+
+    uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
+
+    AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
+    aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
+    aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
+    aggr_struct->socket_info_index_ = sd->get_socket_info_index();
+    aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
+    aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
+    aggr_struct->msg_type_ = msg_type;
+
+    uint32_t err_code = SendOnAggregationSocket(aggr_socket_info_index, aggr_unique_socket_id, (uint8_t*) aggr_struct, total_num_bytes);
+
+    if (!err_code) {
+        // Releasing the chunk.
+        ReturnSocketDataChunksToPool(sd);
+    }
+
+    return err_code;
+}
 
 // Performs a send of given socket data on aggregation socket.
 uint32_t GatewayWorker::SendOnAggregationSocket(
     const socket_index_type aggr_socket_info_index,
+    const random_salt_type aggr_unique_socket_id,
     const uint8_t* data,
     const int32_t data_len)
 {
-    SocketDataChunk* aggr_sd = FindAggregationSdBySocketIndex(aggr_socket_info_index);
+    // Checking if socket is valid.
+    if (!CompareUniqueSocketId(aggr_socket_info_index, aggr_unique_socket_id)) {
+        return SCERRGWOPERATIONONWRONGSOCKET;
+    }
+
+    // Making sure we are sending on a correct aggregation socket.
+    SocketDataChunk* aggr_sd = FindAggregationSd(aggr_socket_info_index, aggr_unique_socket_id);
+
+    // Checking if socket is correct.
+    if (aggr_sd && (!aggr_sd->CompareUniqueSocketId())) {
+
+        // Removing this aggregation socket data from list.
+        aggr_sds_to_send_.RemoveEntry(aggr_sd);
+
+        // Disconnect aggregation socket data.
+        DisconnectAndReleaseChunk(aggr_sd);
+
+        return SCERRGWOPERATIONONWRONGSOCKET;
+    }
+
     uint32_t err_code;
 
 WRITE_TO_AGGR_SD:
 
-    if (aggr_sd)
-    {
+    if (aggr_sd) {
+
+        GW_ASSERT(aggr_sd->get_bound_worker_id() == worker_id_);
+        GW_ASSERT(aggr_sd->GetBoundWorkerId() == worker_id_);
+
         // Checking if data fits in socket data.
         AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
         uint32_t total_num_bytes = data_len;
@@ -255,96 +320,6 @@ WRITE_TO_AGGR_SD:
             aggr_accum_buf->WriteBytesToSend((void*)data, total_num_bytes);
 
             // Checking if aggregation buffer is filled.
-            if (0 == aggr_accum_buf->get_chunk_num_available_bytes())
-            {
-                // Removing this aggregation socket data from list.
-                aggr_sds_to_send_.RemoveEntry(aggr_sd);
-
-                // Reverting accumulating buffer before send.
-                aggr_accum_buf->RevertBeforeSend();
-
-                // Sending it.
-                err_code = Send(aggr_sd);
-                if (err_code)
-                    return err_code;
-            }
-
-            return 0;
-        }
-        else
-        {
-            // Removing this aggregation socket data from list.
-            aggr_sds_to_send_.RemoveEntry(aggr_sd);
-
-            // Reverting accumulating buffer before send.
-            aggr_accum_buf->RevertBeforeSend();
-
-            // Sending it.
-            err_code = Send(aggr_sd);
-            if (err_code)
-                return err_code;
-
-            GW_ASSERT(NULL == aggr_sd);
-
-            goto WRITE_TO_AGGR_SD;
-        }
-    }
-    else
-    {
-        // Creating new socket data.
-        err_code = CreateSocketData(aggr_socket_info_index, aggr_sd);
-        if (err_code)
-            return err_code;
-
-        // Adding new aggregation sd to list.
-        aggr_sds_to_send_.Add(aggr_sd);
-
-        goto WRITE_TO_AGGR_SD;
-    }
-
-    return 0;
-}
-
-// Performs a send of given socket data on aggregation socket.
-uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCodeConstants::AggregationMessageTypes msg_type)
-{
-    socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
-    SocketDataChunk* aggr_sd = FindAggregationSdBySocketIndex(aggr_socket_info_index);
-
-    uint32_t err_code;
-
-WRITE_TO_AGGR_SD:
-
-    if (aggr_sd)
-    {
-        GW_ASSERT(aggr_sd->get_bound_worker_id() == worker_id_);
-        GW_ASSERT(aggr_sd->GetBoundWorkerId() == worker_id_);
-
-        // Checking if data fits in socket data.
-        AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
-        uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
-
-        // NOTE: Asserting that maximum data to send fits in big aggregation chunk.
-        GW_ASSERT(total_num_bytes < aggr_accum_buf->get_chunk_orig_buf_len_bytes());
-
-        // Checking if data fits in the current buffer space.
-        if (aggr_accum_buf->get_chunk_num_available_bytes() >= total_num_bytes)
-        {
-            AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
-            aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
-            aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
-            aggr_struct->socket_info_index_ = sd->get_socket_info_index();
-            aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
-            aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
-            aggr_struct->msg_type_ = msg_type;
-
-            // Writing given buffer to send.
-            aggr_accum_buf->WriteBytesToSend(aggr_struct, total_num_bytes);
-            
-            // Releasing the chunk.
-            ReturnSocketDataChunksToPool(sd);
-
-            // Checking if aggregation buffer is filled.
             if (AggregationStructSizeBytes > aggr_accum_buf->get_chunk_num_available_bytes())
             {
                 // Removing this aggregation socket data from list.
@@ -357,6 +332,8 @@ WRITE_TO_AGGR_SD:
                 err_code = Send(aggr_sd);
                 if (err_code)
                     return err_code;
+
+                GW_ASSERT(aggr_sd->CompareUniqueSocketId());
             }
 
             return 0;
@@ -374,6 +351,8 @@ WRITE_TO_AGGR_SD:
             if (err_code)
                 return err_code;
 
+            GW_ASSERT(aggr_sd->CompareUniqueSocketId());
+
             GW_ASSERT(NULL == aggr_sd);
 
             goto WRITE_TO_AGGR_SD;
@@ -385,6 +364,9 @@ WRITE_TO_AGGR_SD:
         err_code = CreateSocketData(aggr_socket_info_index, aggr_sd);
         if (err_code)
             return err_code;
+
+        // Checking if socket is correct.
+        GW_ASSERT(aggr_sd->CompareUniqueSocketId());
 
         // Adding new aggregation sd to list.
         aggr_sds_to_send_.Add(aggr_sd);

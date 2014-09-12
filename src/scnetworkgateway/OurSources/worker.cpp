@@ -816,6 +816,8 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Disconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    GW_ASSERT(NULL != sd);
+
     // Checking that socket data is valid.
     sd->CheckForValidity();
 
