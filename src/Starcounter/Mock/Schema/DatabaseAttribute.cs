@@ -333,10 +333,18 @@ namespace Sc.Server.Weaver.Schema {
         /// <returns></returns>
         public override string ToString() {
             StringBuilder builder = new StringBuilder();
-            builder.AppendFormat(" {0} : {1}, {2}", this.name, this.attributeKind, this.attributeType);
+
+            var kind = this.attributeKind.ToString();
+            
             if (IsTypeReference) {
-                builder.Append(", [Type]");
+                kind = "[Type] " + kind;
+            } else if (IsInheritsReference) {
+                kind = "[Inherits] " + kind;
+            } else if (IsTypeName) {
+                kind = "[TypeName] " + kind;
             }
+
+            builder.AppendFormat(" {0} : {1}, {2}", this.name, kind, this.attributeType);
 
             if (this.isInitOnly) {
                 builder.Append(", init only");
