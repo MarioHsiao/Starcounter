@@ -72,7 +72,42 @@ namespace Starcounter.Internal.Weaver {
         }
 
         static void ValidateInheritsReference(DatabaseAttribute attribute) {
-            throw new NotImplementedException();
+            var referencedType = attribute.AttributeType as DatabaseClass;
+            if (referencedType == null) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDINHERITSREFERENCE,
+                    string.Format("Attribute {0}.{1} is not a reference to a database class",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
+
+            if (attribute.IsTransient) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDINHERITSREFERENCE,
+                    string.Format("Attribute {0}.{1} is marked transient.",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
+
+            var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
+                return candidate != attribute && candidate.IsInheritsReference;
+            });
+
+            if (other != null) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDINHERITSREFERENCE,
+                    string.Format("Attribute {0}.{1} is marked [Inherits]; {2}.{3} is too.",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name,
+                    other.DeclaringClass.Name,
+                    other.Name
+                    ));
+            }
         }
     }
 }

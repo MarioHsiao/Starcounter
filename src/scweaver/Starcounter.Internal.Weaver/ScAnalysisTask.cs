@@ -723,10 +723,7 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
 
-
-            if (databaseAttribute.IsTypeReference) {
-                DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
-            }
+            DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
         }
 
         /// <summary>
