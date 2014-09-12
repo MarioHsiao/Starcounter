@@ -66,9 +66,15 @@ namespace Starcounter.Internal.Weaver {
                     ));
             }
 
-            // Check if it's incompatible with other type decorations, like
-            // if its a TypeName or Inherits
-            // TODO:
+            if (attribute.IsInheritsReference) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDTYPEREFERENCE,
+                    string.Format("Attribute {0}.{1} is marked a type; it can not also be marked [Inherits]",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
         }
 
         static void ValidateInheritsReference(DatabaseAttribute attribute) {
@@ -106,6 +112,16 @@ namespace Starcounter.Internal.Weaver {
                     attribute.Name,
                     other.DeclaringClass.Name,
                     other.Name
+                    ));
+            }
+
+            if (attribute.IsTypeReference) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRINVALIDTYPEREFERENCE,
+                    string.Format("Attribute {0}.{1} is marked [Inherits]; it can not also be marked [Type]",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
                     ));
             }
         }
