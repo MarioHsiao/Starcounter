@@ -122,6 +122,24 @@ namespace Sc.Server.Weaver.Schema {
             }
         }
 
+        /// <summary>
+        /// Gets a value indicating if the current attribute is to be
+        /// considered a reference to a base type, part of Starcounter
+        /// dynamic types.
+        /// </summary>
+        public bool IsInheritsReference {
+            get {
+                return (specialFlags & SpecialFlags.IneritsReference) > 0;
+            }
+            set {
+                if (value) {
+                    specialFlags |= SpecialFlags.IneritsReference;
+                } else if ((specialFlags & SpecialFlags.IneritsReference) > 0) {
+                    specialFlags ^= SpecialFlags.IneritsReference;
+                }
+            }
+        }
+
         //    public bool IsPublicWrite { get; set; }
 
         /// <summary>

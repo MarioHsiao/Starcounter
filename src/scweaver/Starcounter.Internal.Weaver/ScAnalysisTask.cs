@@ -97,6 +97,12 @@ namespace Starcounter.Internal.Weaver {
         private IType _typeAttributeType;
 
         /// <summary>
+        /// The type corresponding to the <see cref="InheritsAttribute"/> .NET
+        /// custom attribute.
+        /// </summary>
+        private IType _inheritsAttributeType;
+
+        /// <summary>
         /// Gets the <see cref="DatabaseSchema" /> for the current application.
         /// </summary>
         /// <value>The database schema.</value>
@@ -370,6 +376,7 @@ namespace Starcounter.Internal.Weaver {
             _transientAttributeType = FindStarcounterType(typeof(TransientAttribute));
             _synonymousToAttributeType = FindStarcounterType(typeof(SynonymousToAttribute));
             _typeAttributeType = FindStarcounterType(typeof(TypeAttribute));
+            _inheritsAttributeType = FindStarcounterType(typeof(InheritsAttribute));
             databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
         }
 
@@ -716,10 +723,7 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
 
-
-            if (databaseAttribute.IsTypeReference) {
-                DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
-            }
+            DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
         }
 
         /// <summary>
@@ -1085,6 +1089,11 @@ namespace Starcounter.Internal.Weaver {
                 var typeAttribute = field.CustomAttributes.GetOneByType(this._typeAttributeType);
                 if (typeAttribute != null) {
                     databaseAttribute.IsTypeReference = true;
+                }
+
+                var inheritsAttribute = field.CustomAttributes.GetOneByType(this._inheritsAttributeType);
+                if (inheritsAttribute != null) {
+                    databaseAttribute.IsInheritsReference = true;
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
