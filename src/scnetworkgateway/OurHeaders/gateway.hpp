@@ -82,7 +82,6 @@ typedef uint32_t ws_channel_id_type;
 #endif
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
-//#define FAST_LOOPBACK
 #define LEAST_USED_SCHEDULING
 
 #ifdef GW_DEV_DEBUG

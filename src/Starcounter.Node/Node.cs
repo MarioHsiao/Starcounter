@@ -1,5 +1,4 @@
-﻿//#define FAST_LOOPBACK
-// ***********************************************************************
+﻿// ***********************************************************************
 // <copyright file="Node.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -262,16 +261,18 @@ namespace Starcounter
             {
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-#if FAST_LOOPBACK
-                const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
+                try {
+                    const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
                 
-                Byte[] OptionInValue = BitConverter.GetBytes(1);
+                    Byte[] OptionInValue = BitConverter.GetBytes(1);
 
-                aggrSocket_.IOControl(
-                    SIO_LOOPBACK_FAST_PATH,
-                    OptionInValue,
-                    null);
-#endif
+                    aggrSocket_.IOControl(
+                        SIO_LOOPBACK_FAST_PATH,
+                        OptionInValue,
+                        null);
+                } catch {
+                    // Simply ignoring the error if fast loopback is not supported.
+                }
 
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);

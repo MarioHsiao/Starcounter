@@ -947,7 +947,6 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     // Special settings for aggregation sockets.
     if (port_num == setting_aggregation_port_)
     {
-#ifdef FAST_LOOPBACK
         int32_t OptionValue = 1;
         DWORD numberOfBytesReturned = 0;
 
@@ -964,9 +963,8 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
             0);
 
         if (SOCKET_ERROR == status) {
-            GW_ASSERT(false);
+            // Simply ignoring the error if fast loopback is not supported.
         }
-#endif
     
         int32_t bufSize = 1 << 19;
         if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(int)) == -1) {
