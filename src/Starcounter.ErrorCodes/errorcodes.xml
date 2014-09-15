@@ -3227,6 +3227,16 @@
         The [Type] attribute is not valid on the given target.
       </message>
     </code>
+    <code hex="0119" severity="Error" name="ScErrInvalidInheritsReference">
+      <message>
+        The [Inherits] attribute is not valid on the given target.
+      </message>
+    </code>
+    <code hex="011A" severity="Error" name="ScErrInvalidTypeName">
+      <message>
+        The [TypeName] attribute is not valid on the given target.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

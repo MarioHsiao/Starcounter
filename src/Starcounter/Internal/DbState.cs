@@ -487,6 +487,28 @@ namespace Starcounter.Internal
         /// <param name="address"></param>
         /// <param name="index"></param>
         /// <returns></returns>
+        public static IObjectView ReadInherits(ulong oid, ulong address, Int32 index) {
+            return ReadObject(oid, address, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oid"></param>
+        /// <param name="address"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public static string ReadTypeName(ulong oid, ulong address, Int32 index) {
+            return ReadString(oid, address, index);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oid"></param>
+        /// <param name="address"></param>
+        /// <param name="index"></param>
+        /// <returns></returns>
         public static SByte ReadSByte(ulong oid, ulong address, Int32 index) {
             return (SByte)ReadInt64(oid, address, index);
         }
@@ -1054,6 +1076,28 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteTypeReference(ulong oid, ulong address, Int32 index, IObjectProxy value) {
             WriteObject(oid, address, index, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oid"></param>
+        /// <param name="address"></param>
+        /// <param name="index"></param>
+        /// <param name="value"></param>
+        public static void WriteInherits(ulong oid, ulong address, Int32 index, IObjectProxy value) {
+            WriteObject(oid, address, index, value);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="oid"></param>
+        /// <param name="address"></param>
+        /// <param name="index"></param>
+        /// <param name="value"></param>
+        public static void WriteTypeName(ulong oid, ulong address, Int32 index, String value) {
+            WriteString(oid, address, index, value);
         }
 
         /// <summary>
