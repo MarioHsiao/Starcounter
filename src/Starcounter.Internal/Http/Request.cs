@@ -379,15 +379,7 @@ namespace Starcounter {
             if (resp == null)
                 resp = new Response();
 
-            if (session != null)
-            {
-                // Creating session on Request as well.
-                UInt32 errCode = GenerateNewSession(session);
-                if (errCode != 0)
-                    throw ErrorCode.ToException(errCode);
-
-                ws.Session = session;
-            }
+            ws.Session = session;
 
             resp.WsHandshakeResp = wsHandshakeResp;
             resp.ConstructFromFields();
