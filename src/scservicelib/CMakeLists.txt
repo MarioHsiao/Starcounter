@@ -2,9 +2,13 @@
 
 cmake_minimum_required(VERSION 2.8.10)
 
-include_directories(../../../level0/src/include)
+include_directories(
+	../../../level0/src/include
+)
 
-set(scservicelib_SOURCE_FILES
+add_definitions(-D_UNICODE -DUNICODE)
+
+set(scservice_SOURCE_FILES
     config.cpp
     logging.cpp
     main.cpp
@@ -12,16 +16,18 @@ set(scservicelib_SOURCE_FILES
     win32_acl.cpp
     scservicelib.def
 )
-set(scservicelib_HEADER_FILES
+set(scservice_HEADER_FILES
     internal.hpp
     rapidxml.hpp
 )
 
-add_library(scservicelib SHARED ${scservicelib_SOURCE_FILES} ${scservicelib_HEADER_FILES})
-target_link_libraries(scservicelib
+add_library(scservice SHARED ${scservice_SOURCE_FILES} ${scservice_HEADER_FILES})
+target_link_libraries(scservice
     sccoredbg
     sccorelib
     sccorelog
+	scerrres
+	urihelp
 )
-set_property(TARGET scservicelib PROPERTY FOLDER "level1")
+set_property(TARGET scservice PROPERTY FOLDER "level1")
 

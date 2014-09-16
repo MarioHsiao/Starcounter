@@ -5,7 +5,12 @@ cmake_minimum_required(VERSION 2.8.10)
 include_directories(
     ThirdPartyHeaders
     OurHeaders
+	../Chunks
+	../Starcounter.ErrorCodes/scerrres
+	../../../level0/src/include
 )
+
+add_definitions(-D_UNICODE -DUNICODE)
 
 set(scnetworkgateway_SOURCE_FILES
     ../HTTP/HttpParser/ThirdPartySources/http_parser.c
@@ -49,5 +54,13 @@ set(scnetworkgateway_HEADER_FILES
 
 add_executable(scnetworkgateway ${scnetworkgateway_SOURCE_FILES} ${scnetworkgateway_HEADER_FILES})
 set_property(TARGET scnetworkgateway PROPERTY FOLDER "level1/scnetworkgateway")
-
+TARGET_LINK_LIBRARIES(scnetworkgateway
+	coalmine
+	sccoredbg
+	sccorelib
+	sccorelog
+	scerrres
+	urihelp
+	bmx
+)
 add_subdirectory(GatewayToClrProxy)
