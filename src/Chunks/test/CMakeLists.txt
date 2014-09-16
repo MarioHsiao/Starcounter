@@ -43,7 +43,7 @@ set(scipctest_HEADER_FILES
 )
 
 add_executable(scipctest ${scipctest_SOURCE_FILES} ${scipctest_HEADER_FILES})
-set_property(TARGET scipctest PROPERTY FOLDER "level1")
+set_property(TARGET scipctest PROPERTY FOLDER "level1/Chunks")
 target_link_libraries(scipctest
     bmx
 )

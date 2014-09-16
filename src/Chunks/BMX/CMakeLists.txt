@@ -19,4 +19,4 @@ target_link_libraries(bmx
     sccorelib
     sccorelog
 )
-set_property(TARGET bmx PROPERTY FOLDER "level1")
+set_property(TARGET bmx PROPERTY FOLDER "level1/Chunks")

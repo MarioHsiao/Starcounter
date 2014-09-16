@@ -15,7 +15,7 @@ set(sccoreapp_HEADER_FILES
     internal.h
 )
 add_library(sccoreapp SHARED ${sccoreapp_SOURCE_FILES} ${sccoreapp_HEADER_FILES})
-set_property(TARGET sccoreapp PROPERTY FOLDER "level1")
+set_property(TARGET sccoreapp PROPERTY FOLDER "level1/Hosting")
 target_link_libraries(sccoreapp
     sccoredbg
     coalmine

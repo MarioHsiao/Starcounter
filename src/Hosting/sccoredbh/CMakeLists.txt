@@ -14,7 +14,7 @@ set(sccoredbh_HEADER_FILES
     internal.h
 )
 add_library(sccoredbh SHARED ${sccoredbh_SOURCE_FILES} ${sccoredbh_HEADER_FILES})
-set_property(TARGET sccoredbh PROPERTY FOLDER "level1")
+set_property(TARGET sccoredbh PROPERTY FOLDER "level1/Hosting")
 target_link_libraries(sccoredbh
     coalmine
     sccoredb
