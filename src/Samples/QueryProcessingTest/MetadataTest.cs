@@ -124,6 +124,7 @@ namespace QueryProcessingTest {
                 count++;
             }
             Trace.Assert(count == 15);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Table>("select t from \"table\" t").First != null);
         }
 
         public static void TestRuntimeColumnMetadata() {
@@ -275,7 +276,7 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrCc == 4);
             Trace.Assert(nrcc == 2);
-            Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
+            Column c = Db.SQL<Column>("select c from column c where name = ? and c.table is ClrClass", 
                 "UserIdNr").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "UserIdNr");
