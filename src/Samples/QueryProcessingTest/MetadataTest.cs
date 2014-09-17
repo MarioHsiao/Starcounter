@@ -69,14 +69,14 @@ namespace QueryProcessingTest {
             Trace.Assert(rv != null);
             Trace.Assert(rv.UniqueIdentifierReversed == "Type.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
-            //Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
+            Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits == null);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "ClrClass").First;
             Trace.Assert(rv != null);
             Trace.Assert(rv.UniqueIdentifierReversed == "ClrClass.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
-            //Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
+            Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits != null);
             Trace.Assert(rv.Inherits.FullName == "Starcounter.Metadata.VMView");
@@ -92,7 +92,7 @@ namespace QueryProcessingTest {
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
                 Trace.Assert(v.MaterializedTable != null);
-                //Trace.Assert(v.MaterializedTable.Name == v.FullName);
+                Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
             Trace.Assert(count == 38);
@@ -100,7 +100,7 @@ namespace QueryProcessingTest {
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
                 Trace.Assert(v.MaterializedTable != null);
-                //Trace.Assert(v.MaterializedTable.Name == v.FullName);
+                Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 Trace.Assert(v.UniqueIdentifier == v.UniqueIdentifierReversed.ReverseOrderDotWords());
                 count++;
             }
@@ -112,7 +112,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.UniqueIdentifierReversed == "materialized_index.Raw.Starcounter");
             Trace.Assert(rv.UniqueIdentifier == rv.UniqueIdentifierReversed.ReverseOrderDotWords());
             Trace.Assert(rv.MaterializedTable != null);
-            //Trace.Assert(rv.MaterializedTable.Name == rv.Name);
+            Trace.Assert(rv.MaterializedTable.Name == rv.Name);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits == null);
 #endif
