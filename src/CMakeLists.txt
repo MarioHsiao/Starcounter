@@ -19,30 +19,35 @@ add_subdirectory(Utilities)
 #
 # autogenerate CMakeLists.txt from .csproj
 #
-macro(sc_generate_cmakelists_for_csproj)
+macro(sc_process_all_csproj)
   file(GLOB_RECURSE CSPROJ_PATH_LIST RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.csproj)
   foreach(CSPROJ_PATH ${CSPROJ_PATH_LIST})
     get_filename_component(CSPROJ_DIR ${CSPROJ_PATH} DIRECTORY)
     get_filename_component(CSPROJ_FILENAME ${CSPROJ_PATH} NAME)
     string(REPLACE ".csproj" "" CSPROJ_NAME ${CSPROJ_FILENAME})
     string(REPLACE " " "_" CSPROJ_NAME ${CSPROJ_NAME})
-    message("CSPROJ_PATH ${CSPROJ_PATH}")
-    add_custom_command(
-        OUTPUT
-            "${CSPROJ_DIR}/${CSPROJ_NAME}.cmake"
-        COMMAND
-            $<TARGET_FILE:csproj2cmake> "${CSPROJ_PATH}" "${CSPROJ_NAME}.cmake"
-        WORKING_DIRECTORY
-            ${CMAKE_CURRENT_SOURCE_DIR}
-        DEPENDS
-            "${CSPROJ_PATH}"
-            csproj2cmake
-        COMMENT
-            "csproj2cmake ${CSPROJ_NAME}"
-    )
-    add_custom_target(CSPROJ2CMAKE_${CSPROJ_NAME} ALL DEPENDS "${CSPROJ_DIR}/${CSPROJ_NAME}.cmake")
-    set_property(TARGET CSPROJ2CMAKE_${CSPROJ_NAME} PROPERTY FOLDER "level1/csproj2cmake/${CSPROJ_DIR}")
+    if(WIN32)
+        include_external_msproject(${CSPROJ_NAME} "${CMAKE_CURRENT_SOURCE_DIR}/${CSPROJ_PATH}" TYPE FAE04EC0-301F-11D3-BF4B-00C04F79EFBC)
+        set_property(TARGET ${CSPROJ_NAME} PROPERTY FOLDER "level1")
+    else()
+        message(SEND_WARNING "TODO: CSPROJ_PATH ${CSPROJ_PATH}")
+        add_custom_command(
+            OUTPUT
+                "${CSPROJ_DIR}/${CSPROJ_NAME}.cmake"
+            COMMAND
+                $<TARGET_FILE:csproj2cmake> "${CSPROJ_PATH}" "${CSPROJ_NAME}.cmake"
+            WORKING_DIRECTORY
+                ${CMAKE_CURRENT_SOURCE_DIR}
+            DEPENDS
+                "${CSPROJ_PATH}"
+                csproj2cmake
+            COMMENT
+                "csproj2cmake ${CSPROJ_NAME}"
+        )
+        add_custom_target(CSPROJ2CMAKE_${CSPROJ_NAME} ALL DEPENDS "${CSPROJ_DIR}/${CSPROJ_NAME}.cmake")
+        set_property(TARGET CSPROJ2CMAKE_${CSPROJ_NAME} PROPERTY FOLDER "level1/csproj2cmake/${CSPROJ_DIR}")
+    endif()
   endforeach()
 endmacro()
 
-sc_generate_cmakelists_for_csproj()
+sc_process_all_csproj()
