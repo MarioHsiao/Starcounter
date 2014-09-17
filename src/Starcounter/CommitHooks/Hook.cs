@@ -62,11 +62,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="callback">The delegate to be invoked.</param>
         public static void OnDelete(Action<ulong> callback) {
-            // For deletes, we need to track methods with a single
-            // ulong argument (being the object identifier)
-            // TODO:
-
-            throw new NotImplementedException();
+            var delegateRef = Hook<ulong>.AddDelegate(callback);
+            InstallHook(typeof(T), InvokableHook.Delete, delegateRef);
         }
 
         static HookDelegateListEntry<T> AddDelegate(Action<T> callback) {
