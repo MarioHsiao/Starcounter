@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Starcounter.CommitHooks {
+namespace Starcounter {
     /// <summary>
     /// List of delegates with the same signature type.
     /// </summary>

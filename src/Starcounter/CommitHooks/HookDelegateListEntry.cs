@@ -1,5 +1,5 @@
 ﻿
-namespace Starcounter.CommitHooks {
+namespace Starcounter {
     /// <summary>
     /// Pairs a HookDelegateList<T> with an index, and support invoking
     /// the delegate method being adressed.
