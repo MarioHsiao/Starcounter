@@ -838,12 +838,6 @@ namespace Starcounter.Controls
             }
 
             Assembly _assembly = this.GetType().Assembly;
-
-            string[] names = _assembly.GetManifestResourceNames();
-            foreach (string name in names) {
-                Console.WriteLine(name);
-            }
-
             Assembly myAssembly = Assembly.GetExecutingAssembly();
             Stream s = myAssembly.GetManifestResourceStream(string.Format("Starcounter.Controls.images.{0}",fileName));
 
