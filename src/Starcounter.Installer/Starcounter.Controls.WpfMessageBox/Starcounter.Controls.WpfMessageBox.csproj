@@ -85,9 +85,6 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="images\small.jpg" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="images\StatusAnnotations_Critical_32xLG_color.png" />
     <EmbeddedResource Include="images\StatusAnnotations_Help_and_inconclusive_32xLG_color.png" />
     <EmbeddedResource Include="images\StatusAnnotations_Information_32xLG_color.png" />
