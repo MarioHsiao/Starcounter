@@ -103,6 +103,17 @@ namespace Starcounter.InstallerWPF.Pages {
 
         #region Properties
 
+        private bool _GoToWiki = true;
+        public  bool GoToWiki {
+            get {
+                return _GoToWiki;
+            }
+            set {
+                this._GoToWiki = value;
+                this.OnPropertyChanged("GoToWiki");
+            }
+        }
+
         private bool _CanGoNext = false;
         public override bool CanGoNext {
             get {

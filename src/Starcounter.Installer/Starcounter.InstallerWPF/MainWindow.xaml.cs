@@ -127,21 +127,30 @@ namespace Starcounter.InstallerWPF {
                 this.linksUserClickedOn += e.Parameter + Environment.NewLine;
 
                 try {
-                    Process.Start(new ProcessStartInfo(e.Parameter as string));
+                    this.OpenBrowser(e.Parameter as string);
                     e.Handled = true;
                 }
-                catch (Win32Exception) {
-
-                    try {
-                        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
-                        e.Handled = true;
-                    }
-                    catch (Win32Exception ee) {
-                        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
-                        this.OnError(new Exception(message));
-                    }
-
+                catch (Win32Exception ee) {
+                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    this.OnError(new Exception(message));
                 }
+
+                //try {
+                //    Process.Start(new ProcessStartInfo(e.Parameter as string));
+                //    e.Handled = true;
+                //}
+                //catch (Win32Exception) {
+
+                //    try {
+                //        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
+                //        e.Handled = true;
+                //    }
+                //    catch (Win32Exception ee) {
+                //        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                //        this.OnError(new Exception(message));
+                //    }
+
+                //}
                 return;
             }
 
@@ -178,6 +187,21 @@ namespace Starcounter.InstallerWPF {
                 e.Handled = true;
             }
 
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="link"></param>
+        /// <returns></returns>
+        private void OpenBrowser(string link) {
+
+            try {
+                Process.Start(new ProcessStartInfo(link));
+            }
+            catch (Win32Exception) {
+                Process.Start(new ProcessStartInfo("explorer.exe", link));
+            }
         }
 
 
@@ -256,6 +280,21 @@ namespace Starcounter.InstallerWPF {
 
             // Filtering post-start applications.
             InstallerMain.FilterStartupFile(true, bStartDemoComponent);
+
+            IFinishedPage finishPage = this.pages_lb.Items.CurrentItem as IFinishedPage;
+
+            if (finishPage != null && finishPage.GoToWiki) {
+
+                try {
+                    string link = @"https://github.com/starcounter/starcounter/wiki";
+                    this.OpenBrowser(link);
+                }
+                catch (Win32Exception ee) {
+                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    this.OnError(new Exception(message));
+                    return;
+                }
+            }
 
             this.Close();   // Close Installer program and lets the waiting parent process continue
         }
@@ -890,7 +929,7 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void RegisterFirstInstallationPages() {
 
-//            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+            //            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
 
             if (this.ChangeAdditionalSettings) {
                 //this.RegisterPage(new WelcomePage());
