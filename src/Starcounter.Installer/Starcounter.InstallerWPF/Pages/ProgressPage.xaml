@@ -1,8 +1,11 @@
 ﻿<pages:BasePage x:Class="Starcounter.InstallerWPF.Pages.ProgressPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
     xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
+    xmlns:local="clr-namespace:Starcounter.InstallerWPF"
     DisplayName="Finalizing"
+                FocusManager.FocusedElement="{Binding ElementName=_close_btn}"
 >
 
     <pages:BasePage.CommandBindings>
@@ -11,6 +14,8 @@
     </pages:BasePage.CommandBindings>
 
     <pages:BasePage.Resources>
+
+        <converters:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
 
         <SolidColorBrush x:Key="Level2Brush" Color="#FF707070" />
 
@@ -94,20 +99,24 @@
             <Grid Grid.Row="1"  >
                 <GroupBox Style="{DynamicResource PageButtonBar}">
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
-                        <Button x:Name="btn_Next" Margin="2.5,0,2.5,0" Command="NavigationCommands.NextPage" IsDefault="True"  Content="_Next"  Background="{DynamicResource GreenButtonBackground}"/>
-                        <!--<Button Margin="2.5,0,0,0" Command="ApplicationCommands.Close" IsDefault="True" IsCancel="True" Content="_Close" Background="{DynamicResource GreenButtonBackground}"/>-->
-                        <!--<Button Command="NavigationCommands.GoToPage"  CommandParameter="FinishedPage" Content="_Close"  Background="{DynamicResource GreenButtonBackground}"/>-->
-                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Margin="3,3,0,0" Visibility="{Binding Path=CanClose, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}}, Converter={StaticResource booleanToVisibilityConverter}, ConverterParameter=false}" > 
+                                To continue visit our 
+                                <Hyperlink Command="NavigationCommands.GoToPage" CommandParameter="https://github.com/starcounter/starcounter/wiki">wiki</Hyperlink>
+                            </TextBlock>
 
+                        </StackPanel>
+
+                        <Button x:Name="close_btn" Margin="2.5,0,2.5,0" Grid.Column="2" Command="{x:Static local:MainWindow.StartRoutedCommand}" IsDefault="True"  Content="_Finish"  Background="{DynamicResource GreenButtonBackground}"/>
+                    </Grid>
                 </GroupBox>
-
             </Grid>
-
         </Grid>
-
-
     </pages:BasePage.Content>
-
 </pages:BasePage>

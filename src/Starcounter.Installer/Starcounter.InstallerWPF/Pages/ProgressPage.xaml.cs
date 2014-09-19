@@ -26,7 +26,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for Page4.xaml
     /// </summary>
-    public partial class ProgressPage : BasePage {
+    public partial class ProgressPage : BasePage, IFinishedPage {
 
         #region Win32 import
 
@@ -356,6 +356,8 @@ namespace Starcounter.InstallerWPF.Pages {
                     NavigationCommands.NextPage.Execute(null, Application.Current.MainWindow);
                 }
             }
+
+            this.DisplayName = "Finished";
 
             CommandManager.InvalidateRequerySuggested();
         }

@@ -183,6 +183,23 @@ namespace Starcounter.InstallerWPF {
 
         #endregion
 
+        #region Open License Agreement
+
+        public static RoutedUICommand OpenLicenseAgreementRoutedCommand = new RoutedUICommand();
+
+        private void CanExecute_OpenLicenseAgreement_Command(object sender, CanExecuteRoutedEventArgs e) {
+            e.Handled = true;
+            e.CanExecute = true;
+        }
+        private void Execute_OpenLicenseAgreement_Command(object sender, ExecutedRoutedEventArgs e) {
+
+            e.Handled = true;
+            LicenseAgreementWindow win = new LicenseAgreementWindow() { Owner = this };
+            win.ShowDialog();
+
+        }
+        #endregion
+
         #region Commands
         private void CanExecute_ChooseFolder_Command(object sender, CanExecuteRoutedEventArgs e) {
             e.Handled = true;
@@ -342,6 +359,25 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
+
+        private bool _ChangeAdditionalSettings = false;
+        public bool ChangeAdditionalSettings {
+            get {
+                return this._ChangeAdditionalSettings;
+            }
+            set {
+                this._ChangeAdditionalSettings = value;
+
+                // Clear previous pages setup
+                //while (this.Pages.Count > 1) {
+                //    this.Pages.RemoveAt(1);
+                //}
+                this.OnPropertyChanged("ChangeAdditionalSettings");
+                this.OnPropertyChanged("SetupOptions");
+            }
+        }
+
+
         //private Boolean[] _InstalledComponents;
         //public Boolean[] InstalledComponents
         //{
@@ -427,8 +463,6 @@ namespace Starcounter.InstallerWPF {
             return false;
         }
 
-
-
         void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e) {
             if ("SetupOptions".Equals(e.PropertyName)) {
 
@@ -441,11 +475,8 @@ namespace Starcounter.InstallerWPF {
 
                 switch (this.SetupOptions) {
                     case SetupOptions.Install:
-
                         this.UpdateComponentsCommand(ComponentCommand.Install);
-
                         this.RegisterFirstInstallationPages();
-
                         break;
 
                     case SetupOptions.Ask:
@@ -524,6 +555,7 @@ namespace Starcounter.InstallerWPF {
             WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
             if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
+                this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
@@ -534,6 +566,7 @@ namespace Starcounter.InstallerWPF {
                 // Checking system recommendations.
                 CheckHardwareStatus();
 
+            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
@@ -856,15 +889,21 @@ namespace Starcounter.InstallerWPF {
         /// Registers the first installation pages.
         /// </summary>
         private void RegisterFirstInstallationPages() {
-            this.RegisterPage(new WelcomePage());
-            this.RegisterPage(new LicenseAgreementPage());
-            this.RegisterPage(new InstallationPathPage());
-            this.RegisterPage(new DatabaseEnginesPage());
-            //this.RegisterPage(new AdministrationToolsPage());
-            //this.RegisterPage(new ConnectivityPage());
-            this.RegisterPage(new DeveloperToolsPage());
+
+//            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+
+            if (this.ChangeAdditionalSettings) {
+                //this.RegisterPage(new WelcomePage());
+                //this.RegisterPage(new LicenseAgreementPage());
+                this.RegisterPage(new InstallationPathPage());
+                this.RegisterPage(new DatabaseEnginesPage());
+                //this.RegisterPage(new AdministrationToolsPage());
+                //this.RegisterPage(new ConnectivityPage());
+                this.RegisterPage(new DeveloperToolsPage());
+            }
+
             this.RegisterPage(new ProgressPage());
-            this.RegisterPage(new FinishedPage());
+            //this.RegisterPage(new FinishedPage());
         }
 
         /// <summary>
@@ -895,7 +934,7 @@ namespace Starcounter.InstallerWPF {
         /// Registers the add components pages.
         /// </summary>
         private void RegisterAddComponentsPages() {
-            this.RegisterPage(new LicenseAgreementPage());
+            //this.RegisterPage(new LicenseAgreementPage());
             this.RegisterPage(new DatabaseEnginesPage());
             //this.RegisterPage(new AdministrationToolsPage());
             //this.RegisterPage(new ConnectivityPage());
