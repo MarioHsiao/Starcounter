@@ -75,8 +75,20 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
             // Trying to pop the chunk from channel.
-            if (false == the_channel.out.try_pop_back(&ipc_first_chunk_index))
+            if (false == the_channel.out.try_pop_back(&ipc_first_chunk_index)) {
+
+#ifdef GW_LOOPBACK_AGGREGATION
+
+                // Pushing to simulated queue.
+                if (0 != simulated_shared_memory_queue_.get_num_entries())
+                    ipc_first_chunk_index = simulated_shared_memory_queue_.PopFront();
+                else
+                    continue;
+
+#else
                 continue;
+#endif
+            }
 
             // Chunk was found.
             chunk_popped = true;
@@ -176,7 +188,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             GW_PRINT_WORKER_DB << "Popping chunk: socket index " << sd->get_socket_info_index() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
-#ifdef GW_SMC_LOOPBACK_AGGREGATION
+#if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
 
             // Checking if data was aggregated.
             if (sd->GetSocketAggregatedFlag())
@@ -312,10 +324,22 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
 // Push given chunk to database queue.
 bool WorkerDbInterface::PushLinkedChunksToDb(
     core::chunk_index the_chunk_index,
-    int16_t sched_id)
+    int16_t sched_id,
+    bool is_aggregated)
 {
     // Assuring that session goes to correct scheduler.
     GW_ASSERT (sched_id < num_schedulers_);
+
+#ifdef GW_LOOPBACK_AGGREGATION
+
+    // Pushing to simulated queue.
+    if (is_aggregated) {
+
+        simulated_shared_memory_queue_.PushBack(the_chunk_index);
+        return true;
+    }
+
+#endif
 
     // Obtaining the channel.
     core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
@@ -422,7 +446,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     GW_ASSERT(sched_id < num_schedulers_);
 
     // Pushing socket data as a chunk.
-   if (!PushLinkedChunksToDb(ipc_first_chunk_index, sched_id)) {
+   if (!PushLinkedChunksToDb(ipc_first_chunk_index, sched_id, sd->GetSocketAggregatedFlag())) {
 
         // Releasing management chunks.
         ReturnLinkedChunksToPool(ipc_first_chunk_index);
@@ -467,7 +491,7 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     request->write_wstring(err_msg, static_cast<uint32_t> (wcslen(err_msg)));
 
     // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk_index, sched_id);
+    PushLinkedChunksToDb(new_chunk_index, sched_id, false);
 
     return 0;
 }

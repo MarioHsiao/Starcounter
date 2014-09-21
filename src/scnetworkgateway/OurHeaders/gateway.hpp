@@ -141,10 +141,10 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 10;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 100;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 50;
+const int32_t MAX_FETCHED_OVLS = 10;
 
 // Maximum number of attempts to push overflow SDs.
 const int32_t MAX_OVERFLOW_ATTEMPTS = 100;
@@ -1628,6 +1628,9 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Find certain URI entry.
+    uri_index_type CheckIfGatewayHandler(const char* method_uri_space, const int32_t method_uri_space_len);
 
     int32_t setting_inactive_socket_timeout_seconds() {
        return setting_inactive_socket_timeout_seconds_;
