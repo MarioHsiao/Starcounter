@@ -127,21 +127,30 @@ namespace Starcounter.InstallerWPF {
                 this.linksUserClickedOn += e.Parameter + Environment.NewLine;
 
                 try {
-                    Process.Start(new ProcessStartInfo(e.Parameter as string));
+                    this.OpenBrowser(e.Parameter as string);
                     e.Handled = true;
                 }
-                catch (Win32Exception) {
-
-                    try {
-                        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
-                        e.Handled = true;
-                    }
-                    catch (Win32Exception ee) {
-                        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
-                        this.OnError(new Exception(message));
-                    }
-
+                catch (Win32Exception ee) {
+                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    this.OnError(new Exception(message));
                 }
+
+                //try {
+                //    Process.Start(new ProcessStartInfo(e.Parameter as string));
+                //    e.Handled = true;
+                //}
+                //catch (Win32Exception) {
+
+                //    try {
+                //        Process.Start(new ProcessStartInfo("explorer.exe", e.Parameter as string));
+                //        e.Handled = true;
+                //    }
+                //    catch (Win32Exception ee) {
+                //        string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                //        this.OnError(new Exception(message));
+                //    }
+
+                //}
                 return;
             }
 
@@ -180,7 +189,39 @@ namespace Starcounter.InstallerWPF {
 
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="link"></param>
+        /// <returns></returns>
+        private void OpenBrowser(string link) {
 
+            try {
+                Process.Start(new ProcessStartInfo(link));
+            }
+            catch (Win32Exception) {
+                Process.Start(new ProcessStartInfo("explorer.exe", link));
+            }
+        }
+
+
+        #endregion
+
+        #region Open License Agreement
+
+        public static RoutedUICommand OpenLicenseAgreementRoutedCommand = new RoutedUICommand();
+
+        private void CanExecute_OpenLicenseAgreement_Command(object sender, CanExecuteRoutedEventArgs e) {
+            e.Handled = true;
+            e.CanExecute = true;
+        }
+        private void Execute_OpenLicenseAgreement_Command(object sender, ExecutedRoutedEventArgs e) {
+
+            e.Handled = true;
+            LicenseAgreementWindow win = new LicenseAgreementWindow() { Owner = this };
+            win.ShowDialog();
+
+        }
         #endregion
 
         #region Commands
@@ -239,6 +280,21 @@ namespace Starcounter.InstallerWPF {
 
             // Filtering post-start applications.
             InstallerMain.FilterStartupFile(true, bStartDemoComponent);
+
+            IFinishedPage finishPage = this.pages_lb.Items.CurrentItem as IFinishedPage;
+
+            if (finishPage != null && finishPage.GoToWiki) {
+
+                try {
+                    string link = @"https://github.com/starcounter/starcounter/wiki";
+                    this.OpenBrowser(link);
+                }
+                catch (Win32Exception ee) {
+                    string message = "Can not open external browser." + Environment.NewLine + ee.Message + Environment.NewLine + e.Parameter;
+                    this.OnError(new Exception(message));
+                    return;
+                }
+            }
 
             this.Close();   // Close Installer program and lets the waiting parent process continue
         }
@@ -342,6 +398,25 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
+
+        private bool _ChangeAdditionalSettings = false;
+        public bool ChangeAdditionalSettings {
+            get {
+                return this._ChangeAdditionalSettings;
+            }
+            set {
+                this._ChangeAdditionalSettings = value;
+
+                // Clear previous pages setup
+                //while (this.Pages.Count > 1) {
+                //    this.Pages.RemoveAt(1);
+                //}
+                this.OnPropertyChanged("ChangeAdditionalSettings");
+                this.OnPropertyChanged("SetupOptions");
+            }
+        }
+
+
         //private Boolean[] _InstalledComponents;
         //public Boolean[] InstalledComponents
         //{
@@ -427,8 +502,6 @@ namespace Starcounter.InstallerWPF {
             return false;
         }
 
-
-
         void MainWindow_PropertyChanged(object sender, PropertyChangedEventArgs e) {
             if ("SetupOptions".Equals(e.PropertyName)) {
 
@@ -441,11 +514,8 @@ namespace Starcounter.InstallerWPF {
 
                 switch (this.SetupOptions) {
                     case SetupOptions.Install:
-
                         this.UpdateComponentsCommand(ComponentCommand.Install);
-
                         this.RegisterFirstInstallationPages();
-
                         break;
 
                     case SetupOptions.Ask:
@@ -524,6 +594,7 @@ namespace Starcounter.InstallerWPF {
             WpfMessageBoxResult result = WpfMessageBox.Show("Simulate Clean installation?", "DEBUG", WpfMessageBoxButton.YesNo, WpfMessageBoxImage.Question);
 
             if (!this.HasCurrentInstalledComponents() || (result == WpfMessageBoxResult.Yes)) {
+                this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
@@ -534,6 +605,7 @@ namespace Starcounter.InstallerWPF {
                 // Checking system recommendations.
                 CheckHardwareStatus();
 
+            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
                 this.SetupOptions = SetupOptions.Install;
             }
             else {
@@ -856,15 +928,21 @@ namespace Starcounter.InstallerWPF {
         /// Registers the first installation pages.
         /// </summary>
         private void RegisterFirstInstallationPages() {
-            this.RegisterPage(new WelcomePage());
-            this.RegisterPage(new LicenseAgreementPage());
-            this.RegisterPage(new InstallationPathPage());
-            this.RegisterPage(new DatabaseEnginesPage());
-            //this.RegisterPage(new AdministrationToolsPage());
-            //this.RegisterPage(new ConnectivityPage());
-            this.RegisterPage(new DeveloperToolsPage());
+
+            //            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+
+            if (this.ChangeAdditionalSettings) {
+                //this.RegisterPage(new WelcomePage());
+                //this.RegisterPage(new LicenseAgreementPage());
+                this.RegisterPage(new InstallationPathPage());
+                this.RegisterPage(new DatabaseEnginesPage());
+                //this.RegisterPage(new AdministrationToolsPage());
+                //this.RegisterPage(new ConnectivityPage());
+                this.RegisterPage(new DeveloperToolsPage());
+            }
+
             this.RegisterPage(new ProgressPage());
-            this.RegisterPage(new FinishedPage());
+            //this.RegisterPage(new FinishedPage());
         }
 
         /// <summary>
@@ -895,7 +973,7 @@ namespace Starcounter.InstallerWPF {
         /// Registers the add components pages.
         /// </summary>
         private void RegisterAddComponentsPages() {
-            this.RegisterPage(new LicenseAgreementPage());
+            //this.RegisterPage(new LicenseAgreementPage());
             this.RegisterPage(new DatabaseEnginesPage());
             //this.RegisterPage(new AdministrationToolsPage());
             //this.RegisterPage(new ConnectivityPage());

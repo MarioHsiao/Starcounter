@@ -19,6 +19,14 @@ namespace Starcounter.InstallerWPF.Pages
     /// </summary>
     public partial class RemoveComponentsFinishedPage : BasePage, IFinishedPage
     {
+        public bool GoToWiki {
+            get {
+                return false;
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
         public RemoveComponentsFinishedPage()
         {
             InitializeComponent();

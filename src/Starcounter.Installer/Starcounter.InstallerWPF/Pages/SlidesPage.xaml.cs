@@ -19,6 +19,14 @@ namespace Starcounter.InstallerWPF.Pages
     /// </summary>
     public partial class SlidesPage : BasePage, IFinishedPage
     {
+        public bool GoToWiki {
+            get {
+                return false;
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
         public SlidesPage()
         {
             InitializeComponent();
