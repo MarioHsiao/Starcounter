@@ -149,7 +149,9 @@ namespace Starcounter.VisualStudio.Projects {
             int statusCode;
             string headers;
 
+            AppsEvents.OnDebuggerProcessChange = DebuggerStateChanged;
             ResponseExtensions.OnUnexpectedResponse = this.HandleUnexpectedResponse;
+
             SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
             SharedCLI.ResolveDatabase(args, out databaseName);
             var admin = new AdminAPI();
@@ -316,6 +318,7 @@ namespace Starcounter.VisualStudio.Projects {
                     response.FailIfNotSuccess();
                 }
             }
+
             return true;
         }
 
@@ -371,6 +374,15 @@ namespace Starcounter.VisualStudio.Projects {
 
                 throw comException;
             }
+        }
+
+        // See AppsEvents.OnDebuggerProcessChange
+        void DebuggerStateChanged(int processId, string processName, bool debuggerWasDetached) {
+            WriteLine("Debugger was {0} process {1}, PID {2}.", 
+                debuggerWasDetached ? "detached from" : "attached to",
+                processName,
+                processId 
+                );
         }
 
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
