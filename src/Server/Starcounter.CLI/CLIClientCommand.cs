@@ -13,6 +13,7 @@ namespace Starcounter.CLI {
     public abstract class CLIClientCommand {
         internal ApplicationArguments CLIArguments;
         internal AdminAPI AdminAPI;
+        internal DateTime executionStartTime;
 
         /// <summary>
         /// Gets or sets the host of the admin server to
@@ -55,9 +56,9 @@ namespace Starcounter.CLI {
         /// on the target database on the target server.
         /// </summary>
         public void Execute() {
+            executionStartTime = DateTime.Now;
             Node = new Node(ServerHost, (ushort)ServerPort);
             Status = StatusConsole.Open();
-            var start = DateTime.Now;
 
             try {
                 Run();
@@ -67,7 +68,7 @@ namespace Starcounter.CLI {
             }
 
             if (SharedCLI.ShowLogs) {
-                WriteLogsToConsole(start);
+                WriteLogsToConsole(executionStartTime);
             }
         }
 
@@ -151,7 +152,7 @@ namespace Starcounter.CLI {
             }
         }
 
-        internal static void HandleUnexpectedResponse(Response response) {
+        internal void HandleUnexpectedResponse(Response response) {
             var red = ConsoleColor.Red;
             int exitCode = response.StatusCode;
 
@@ -173,6 +174,9 @@ namespace Starcounter.CLI {
                 ConsoleUtil.ToConsoleWithColor("  Response:", red);
                 ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
             } finally {
+                if (SharedCLI.ShowLogs) {
+                    WriteLogsToConsole(executionStartTime);
+                }
                 Environment.Exit(exitCode);
             }
         }
