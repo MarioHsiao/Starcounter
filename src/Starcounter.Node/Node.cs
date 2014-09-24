@@ -1021,6 +1021,7 @@ namespace Starcounter
             public Int32 unique_aggr_index_;
             public UInt16 port_number_;
             public Byte msg_type_;
+            public Byte msg_flags_;
         }
 
         /// <summary>
@@ -1193,6 +1194,7 @@ START_RECEIVING:
                                     ags->size_bytes_ = nt.RequestBytesLength;
                                     ags->unique_aggr_index_ = free_task_index;
                                     ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
+                                    ags->msg_flags_ = 0;
 
                                     // Using fast memory copy here.
                                     Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
@@ -1208,6 +1210,7 @@ START_RECEIVING:
                                     ags->size_bytes_ = 0;
                                     ags->unique_aggr_index_ = free_task_index;
                                     ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET;
+                                    ags->msg_flags_ = 0;
 
                                     // Shifting offset in the array.
                                     send_bytes_offset += AggregationStructSizeBytes;

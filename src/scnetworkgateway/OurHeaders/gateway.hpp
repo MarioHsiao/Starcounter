@@ -76,10 +76,6 @@ typedef uint32_t ws_channel_id_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 //#define GW_SESSIONS_DIAG
-//#define GW_LOOPBACK_AGGREGATION
-#ifdef GW_SMC_LOOPBACK_AGGREGATION
-#undef GW_LOOPBACK_AGGREGATION
-#endif
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
 #define LEAST_USED_SCHEDULING
@@ -329,6 +325,7 @@ struct AggregationStruct
     int32_t unique_aggr_index_;
     uint16_t port_number_;
     uint8_t msg_type_;
+    uint8_t msg_flags_;
 };
 
 const int32_t AggregationStructSizeBytes = sizeof(AggregationStruct);

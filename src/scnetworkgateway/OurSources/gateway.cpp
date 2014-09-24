@@ -895,6 +895,7 @@ uint32_t Gateway::AssertCorrectState()
     if (err_code)
         goto FAILED;
 
+    GW_ASSERT(24 == AggregationStructSizeBytes);
     GW_ASSERT(core::chunk_type::link_size == MixedCodeConstants::CHUNK_LINK_SIZE);
     GW_ASSERT(sizeof(core::chunk_type::link_type) == MixedCodeConstants::CHUNK_LINK_SIZE / 2);
 
