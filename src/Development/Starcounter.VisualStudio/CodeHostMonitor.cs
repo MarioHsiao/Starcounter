@@ -8,8 +8,11 @@ using Starcounter.CLI;
 using Sc.Tools.Logging;
 using Microsoft.VisualStudio.Shell;
 using System.IO;
+using Starcounter.Internal;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Starcounter.VisualStudio {
+    using Severity = Sc.Tools.Logging.Severity;
 
     internal class CodeHostMonitor {
         const string codeHostName = Starcounter.Internal.StarcounterConstants.ProgramNames.ScCode + ".exe";
@@ -58,12 +61,7 @@ namespace Starcounter.VisualStudio {
                     var debugOutput = package.DebugOutputPane;
 
                     log.Fetch((entry) => {
-                        var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, entry.Message, (uint)entry.ErrorCode);
-                        task.ErrorCategory = entry.Severity == Severity.Warning ? TaskErrorCategory.Warning : TaskErrorCategory.Error;
-                        package.ErrorList.Tasks.Add(task);
-                        if (entry.Severity != Severity.Warning) {
-                            debugOutput.OutputString(entry.Message);
-                        }
+                        WriteLogEntryToOuput(entry, package, debugOutput);
                     });
 
                     package.ErrorList.Refresh();
@@ -81,6 +79,26 @@ namespace Starcounter.VisualStudio {
                 result = processName.EndsWith(Path.GetFileNameWithoutExtension(codeHostName), StringComparison.InvariantCultureIgnoreCase);
             }
             return result;
+        }
+
+        void WriteLogEntryToOuput(LogEntry entry, VsPackage package, IVsOutputWindowPane debugOutput) {
+            StarcounterErrorTask task;
+            string debugOutputMsg;
+
+            try {
+                var msg = ErrorMessage.Parse(entry.Message);
+                task = package.ErrorList.NewTask(ErrorTaskSource.Debug, msg);
+                debugOutputMsg = msg.Message;
+            } catch {
+                task = package.ErrorList.NewTask(ErrorTaskSource.Debug, entry.Message, (uint)entry.ErrorCode);
+                debugOutputMsg = entry.Message;
+            }
+
+            task.ErrorCategory = entry.Severity == Severity.Warning ? TaskErrorCategory.Warning : TaskErrorCategory.Error;
+            package.ErrorList.Tasks.Add(task);
+            if (entry.Severity != Severity.Warning) {
+                debugOutput.OutputString(debugOutputMsg + Environment.NewLine);
+            }
         }
     }
 }
