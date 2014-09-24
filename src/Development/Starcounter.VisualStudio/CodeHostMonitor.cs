@@ -1,22 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using Starcounter.CLI;
-using Sc.Tools.Logging;
-using Microsoft.VisualStudio.Shell;
-using System.IO;
-using Starcounter.Internal;
+﻿using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Sc.Tools.Logging;
+using Starcounter.CLI;
+using Starcounter.Internal;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 
 namespace Starcounter.VisualStudio {
     using Severity = Sc.Tools.Logging.Severity;
 
+    internal class MonitoredCodeHostProcess {
+        public readonly Process Process;
+        public readonly DateTime MonitoredSince;
+
+        public MonitoredCodeHostProcess(Process p) {
+            Process = p;
+            MonitoredSince = DateTime.Now;
+        }
+    }
+
     internal class CodeHostMonitor {
         const string codeHostName = Starcounter.Internal.StarcounterConstants.ProgramNames.ScCode + ".exe";
-        Dictionary<int, Process> hosts = new Dictionary<int, Process>();
+        Dictionary<int, MonitoredCodeHostProcess> hosts = new Dictionary<int, MonitoredCodeHostProcess>();
         object sync = new object();
 
         public static CodeHostMonitor Current = new CodeHostMonitor();
@@ -31,13 +38,14 @@ namespace Starcounter.VisualStudio {
                     if (p == null || !IsCodeHost(p.ProcessName)) {
                         throw new Exception(string.Format("Can not monitor process with ID {0}", processId));
                     }
-                    hosts[processId] = p;
+                    hosts[processId] = new MonitoredCodeHostProcess(p);
                 }
             }
         }
 
         public void ProcessDetatched(int processId, string processName, VsPackage package) {
-            Process process;
+            MonitoredCodeHostProcess process;
+            Process p;
 
             if (!IsCodeHost(processName)) {
                 return;
@@ -48,14 +56,15 @@ namespace Starcounter.VisualStudio {
                     return;
                 }
 
-                process.Refresh();
-                if (process.HasExited) {
+                p = process.Process;
+                p.Refresh();
+                if (p.HasExited) {
                     // We can't get the error code; we must check if the log contains
                     // any errors.
 
                     var log = new FilterableLogReader() {
                         Count = 10,
-                        Since = process.StartTime,
+                        Since = process.MonitoredSince,
                         TypeOfLogs = Severity.Warning
                     };
                     var debugOutput = package.DebugOutputPane;
