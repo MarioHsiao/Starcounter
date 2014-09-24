@@ -64,6 +64,7 @@
   <ItemGroup>
     <Compile Include="BaseVsPackage.cs" />
     <Compile Include="AppsEvents.cs" />
+    <Compile Include="CodeHostMonitor.cs" />
     <Compile Include="ErrorListProvider.cs" />
     <Compile Include="ErrorTask.cs" />
     <Compile Include="Projects\AppExeProject.cs" />
@@ -239,6 +240,10 @@
     <ProjectReference Include="..\..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
       <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
       <Name>Newtonsoft.Json</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Utilities\Sc.Tools.Logging\Sc.Tools.Logging.csproj">
+      <Project>{d41f6760-fb7d-413b-b07b-3062a9741ef5}</Project>
+      <Name>Sc.Tools.Logging</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
