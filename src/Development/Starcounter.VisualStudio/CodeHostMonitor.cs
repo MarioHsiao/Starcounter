@@ -55,15 +55,20 @@ namespace Starcounter.VisualStudio {
                         Since = process.StartTime,
                         TypeOfLogs = Severity.Warning
                     };
+                    var debugOutput = package.DebugOutputPane;
 
                     log.Fetch((entry) => {
                         var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, entry.Message, (uint)entry.ErrorCode);
                         task.ErrorCategory = entry.Severity == Severity.Warning ? TaskErrorCategory.Warning : TaskErrorCategory.Error;
                         package.ErrorList.Tasks.Add(task);
+                        if (entry.Severity != Severity.Warning) {
+                            debugOutput.OutputString(entry.Message);
+                        }
                     });
 
                     package.ErrorList.Refresh();
                     package.ErrorList.Show();
+                    debugOutput.Activate();
                 }
 
                 hosts.Remove(processId);
