@@ -41,24 +41,23 @@ namespace Starcounter.VisualStudio {
 
                 process.Refresh();
                 if (process.HasExited) {
-                    var exitCode = process.ExitCode;
-                    if (process.ExitCode > 0) {
-                        // Get errors since it has started!
-                        // TODO:
-                        var log = new FilterableLogReader() {
-                            Since = process.StartTime,
-                            TypeOfLogs = Severity.Warning
-                        };
+                    // We can't get the error code; we must check if the log contains
+                    // any errors
 
-                        log.Fetch((entry) => {
-                            var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, entry.Message, (uint)entry.ErrorCode);
-                            task.ErrorCategory = entry.Severity == Severity.Warning ? TaskErrorCategory.Warning : TaskErrorCategory.Error;
-                            package.ErrorList.Tasks.Add(task);
-                        });
-                        
-                        package.ErrorList.Refresh();
-                        package.ErrorList.Show();
-                    }
+                    var log = new FilterableLogReader() {
+                        Count = 10,
+                        Since = process.StartTime,
+                        TypeOfLogs = Severity.Warning
+                    };
+
+                    log.Fetch((entry) => {
+                        var task = package.ErrorList.NewTask(ErrorTaskSource.Debug, entry.Message, (uint)entry.ErrorCode);
+                        task.ErrorCategory = entry.Severity == Severity.Warning ? TaskErrorCategory.Warning : TaskErrorCategory.Error;
+                        package.ErrorList.Tasks.Add(task);
+                    });
+
+                    package.ErrorList.Refresh();
+                    package.ErrorList.Show();
                 }
 
                 hosts.Remove(processId);
