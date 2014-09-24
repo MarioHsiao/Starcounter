@@ -334,6 +334,7 @@ namespace Starcounter.VisualStudio.Projects {
                 foreach (Process3 process in debugger.LocalProcesses) {
                     if (process.ProcessID == engine.CodeHostProcess.PID) {
                         process.Attach();
+                        CodeHostMonitor.Current.AssureMonitored(process.ProcessID);
                         attached = true;
                         break;
                     }
@@ -381,8 +382,12 @@ namespace Starcounter.VisualStudio.Projects {
             WriteLine("Debugger was {0} process {1}, PID {2}.", 
                 debuggerWasDetached ? "detached from" : "attached to",
                 processName,
-                processId 
+                processId
                 );
+
+            if (debuggerWasDetached) {
+                CodeHostMonitor.Current.ProcessDetatched(processId, processName, package);
+            }
         }
 
         static void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
