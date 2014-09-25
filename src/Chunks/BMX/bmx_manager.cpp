@@ -112,11 +112,11 @@ EXTERN_C void __stdcall sc_profiler_reset(
 // well as sending any responses back.
 uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 {
-    //_SC_BEGIN_FUNC
+    _SC_BEGIN_FUNC
 
     return g_bmx_data->HandleBmxChunk(task_data);
 
-    //_SC_END_FUNC
+    _SC_END_FUNC
 }
 
 // Registers port handler.

@@ -420,6 +420,51 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_FLAGS_UPGRADE_APPROVED;
     }
 
+    bool get_gateway_no_ipc_test_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_TEST) != 0;
+    }
+
+    void set_gateway_no_ipc_test_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_TEST;
+    }
+
+    void reset_gateway_no_ipc_test_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_TEST;
+    }
+
+    bool get_gateway_no_ipc_no_chunks_test_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST) != 0;
+    }
+
+    void set_gateway_no_ipc_no_chunks_test_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST;
+    }
+
+    void reset_gateway_no_ipc_no_chunks_test_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST;
+    }
+    
+    bool get_gateway_and_ipc_test_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_AND_IPC_TEST) != 0;
+    }
+
+    void set_gateway_and_ipc_test_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_AND_IPC_TEST;
+    }
+
+    void reset_gateway_and_ipc_test_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_AND_IPC_TEST;
+    }
+
     bool get_just_push_disconnect_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT) != 0;

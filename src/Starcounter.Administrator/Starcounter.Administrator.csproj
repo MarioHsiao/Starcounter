@@ -50,8 +50,11 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="API\Handlers\DatabaseCollectionHandler.cs" />
@@ -81,8 +84,17 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
-    <Compile Include="Server\Handlers\ApplicationCollectionHandler.GET.cs" />
+    <Compile Include="Server\ApplicationContainer\AppConfig.cs" />
+    <Compile Include="Server\ApplicationContainer\AppsContainer.cs" />
+    <Compile Include="Server\ApplicationContainer\Package.cs" />
+    <Compile Include="Server\ApplicationContainer\PackageConfig.cs" />
+    <Compile Include="Server\Handlers\RunningApplicationCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\CollationFilesCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\AppStoreCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\InstalledApplicationCollectionHandler.POST.cs" />
+    <Compile Include="Server\Handlers\InstalledApplicationCollectionHandler.DELETE.cs" />
+    <Compile Include="Server\Handlers\InstalledApplicationCollectionHandler.PUT.cs" />
+    <Compile Include="Server\Handlers\InstalledApplicationCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseSettingsHandler.GET.cs" />
     <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
@@ -102,6 +114,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\controllers\ApplicationCtrl.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\controllers\AppStoreCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\controllers\DatabaseSettingsCtrl.js">
@@ -182,6 +197,9 @@
     <Content Include="app\partials\application.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="app\partials\appStore.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\partials\databaseDeleteModal.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -225,6 +243,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\services\ConsoleService.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\services\AppStoreService.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\services\InstalledApplicationService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\services\HostModelService.js">
@@ -436,6 +460,18 @@
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\AppStoreItems.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\AppStoreItem.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\Application.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\Applications.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Representations.JSON\WorkingFolders.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>

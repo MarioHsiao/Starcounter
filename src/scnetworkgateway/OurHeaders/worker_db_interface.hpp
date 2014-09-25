@@ -31,11 +31,8 @@ class WorkerDbInterface
     // Private chunk pool.
     core::chunk_pool<core::chunk_index> private_chunk_pool_;
 
-#ifdef GW_LOOPBACK_AGGREGATION
-
     // Simulation queue for the shared memory.
     LinearQueue<core::chunk_index, MAX_WORKER_CHUNKS> simulated_shared_memory_queue_;
-#endif
 
     // Database index.
     db_index_type db_index_;
@@ -202,7 +199,7 @@ public:
     bool PushLinkedChunksToDb(
         core::chunk_index chunk_index,
         int16_t scheduler_id,
-        bool is_aggregated);
+        bool is_gateway_no_ipc_test);
 
     uint32_t PushSocketDataToDb(GatewayWorker* gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id);
 
