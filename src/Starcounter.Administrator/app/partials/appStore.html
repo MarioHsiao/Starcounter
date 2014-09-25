@@ -1,0 +1,78 @@
+﻿<div class="panel panel panel-primary" ng-show="appStoreService.Enabled">
+    <div class="panel-heading">
+        App Store
+
+            <div class="btn-group pull-right" data-toggle="buttons-radio">
+                <button type="button" class="btn btn-default btn-xs" ng-model="view" btn-radio="'list'" title="List view"><span class="glyphicon glyphicon-list"></span></button>
+                <button type="button" class="btn btn-default btn-xs" ng-model="view" btn-radio="'icon'" title="Icon view"><span class="glyphicon glyphicon-th"></span></button>
+            </div>
+
+    </div>
+
+    <div class="panel-body">
+
+        <table class="table table-condensed" ng-show="view=='list'">
+            <thead>
+                <tr>
+                    <th>Image</th>
+                    <th>Namespace</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Size (bytes)</th>
+                    <th>Version</th>
+                    <th>NewVersion</th>
+                    <th>IsInstalled</th>
+                    <th>Updated</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr ng-repeat="appStoreApplication in appStoreApplications">
+                    <td>
+                        <img style="height: auto; width: auto; max-width: 32px; max-height: 32px;" src="{{appStoreApplication.ImageUri}}" />
+                    </td>
+                    <td>{{appStoreApplication.Namespace}}
+                    </td>
+
+                    <td>{{appStoreApplication.DisplayName}}
+                    </td>
+
+                    <td>{{appStoreApplication.Description}}
+                    </td>
+
+                    <td>{{appStoreApplication.Size}}
+                    </td>
+                    <td>{{appStoreApplication.Version}}
+                    </td>
+                    <td>{{appStoreApplication.IsNewVersionAvailable}}
+                    </td>
+                    <td>{{appStoreApplication.IsInstalled}}
+                    </td>
+                    <td>{{appStoreApplication.VersionDate | date:'shortDate'}}
+                    </td>
+
+                    <td>
+                        <div class="pull-right">
+                            <button class="btn btn-default btn-sm btn-success" ng-hide="{{appStoreApplication.IsInstalled}}" ng-click="btnInstall(appStoreApplication)" title="Install">Install</button>
+                            <button class="btn btn-default btn-sm btn-danger" ng-show="{{appStoreApplication.IsInstalled}}" ng-click="btnUninstall(appStoreApplication)" title="Install">Uninstall</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+</div>
+
+
+<div ng-hide="appStoreService.Enabled">
+
+    <div class="jumbotron">
+        <h1>App Store</h1>
+        <p>Comming Soon...</p>
+        <!--<p><a class="btn btn-primary btn-lg" role="button">Learn more</a></p>-->
+    </div>
+</div>
+

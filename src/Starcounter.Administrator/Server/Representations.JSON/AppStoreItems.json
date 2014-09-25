@@ -1,0 +1,18 @@
+﻿{
+	"$": { Namespace: "Representations.JSON" },
+    "Items": [
+        {
+			"ID": "", 
+			"Namespace": "", 
+			"Channel" : "",
+			"Company" : "",
+			"Version" : "",
+			"DisplayName": "", 
+			"Description": "",
+			"VersionDate" : "",
+			"Size" : 0,
+			"ImageUri" : "",
+			"Url" : ""
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+﻿{
+	"$": { Namespace: "Representations.JSON" },
+	"ID": "", 
+	"Namespace": "", 
+	"Channel" : "",
+	"Version" : "",
+	"DisplayName": "", 
+	"Description": "",
+	"Company" : "",
+	"VersionDate" : "",
+	"RelativeStartUri" : "",
+	"Executable" : "",
+	"ResourceFolder" : "",
+	"Size" : 0,
+	"ImageUri" : "",
+	"Url" : "",
+	"IsInstalled" : false,
+	"IsNewVersionAvailable" : false
+}

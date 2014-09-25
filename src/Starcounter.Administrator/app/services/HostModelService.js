@@ -4,7 +4,7 @@
  * Refreshes the databases model and the applications model
  * ----------------------------------------------------------------------------
  */
-adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'DatabaseService', 'ApplicationService', function ($http, $log, UtilsFactory, DatabaseService, ApplicationService) {
+adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'DatabaseService', 'ApplicationService', 'InstalledApplicationService', function ($http, $log, UtilsFactory, DatabaseService, ApplicationService, InstalledApplicationService) {
 
     // List of databases
     // {
@@ -46,6 +46,9 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
     //  }
     this.applications = ApplicationService.applications;
 
+
+    // Installed applications
+    this.installedApplications = InstalledApplicationService.installedApplications;
 
     /**
      * Get Application
@@ -100,6 +103,23 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
             if (typeof (errorCallback) == "function") {
                 errorCallback(messageObject);
             }
+        });
+
+
+        InstalledApplicationService.refreshInstalledApplications(function () {
+
+            // Success
+            if (typeof (successCallback) == "function") {
+                successCallback();
+            }
+
+        }, function (messageObject) {
+
+            // Error
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
+            }
+
         });
     }
 

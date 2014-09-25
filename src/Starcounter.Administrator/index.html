@@ -63,6 +63,8 @@
     <script src="/app/services/ConsoleService.js"></script>
     <script src="/app/services/DatabaseService.js"></script>
     <script src="/app/services/ApplicationService.js"></script>
+    <script src="/app/services/InstalledApplicationService.js"></script>
+    <script src="/app/services/AppStoreService.js"></script>
     <script src="/app/services/SqlService.js"></script>
     <script src="/app/services/LogService.js"></script>
     <script src="/app/services/NetworkService.js"></script>
@@ -88,6 +90,7 @@
     <script src="/app/controllers/LogCtrl.js"></script>
     <script src="/app/controllers/NetworkCtrl.js"></script>
     <script src="/app/controllers/ServerSettingsCtrl.js"></script>
+    <script src="/app/controllers/AppStoreCtrl.js"></script>
 
     <!-- Directives -->
     <script src="/app/directives/Notices.js"></script>
@@ -145,8 +148,12 @@
                 </ul>
 
                 <ul class="nav navbar-nav navbar-right">
+                    <li ng-show="appStoreService.Enabled" data-ng-class="{active: getClass('/appStore') }"><a href="#/appStore">App Store</a></li>
                     <li><a href="https://github.com/starcounter/starcounter/wiki" target="_blank">Help</a></li>
+
                 </ul>
+
+                
 
             </div>
         </div>
