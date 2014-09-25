@@ -147,6 +147,18 @@ namespace Starcounter.VisualStudio {
             private set;
         }
 
+        public IVsOutputWindowPane DebugOutputPane {
+            get {
+                IVsOutputWindow outWindow = Package.GetGlobalService(typeof(SVsOutputWindow)) as IVsOutputWindow;
+
+                Guid debugPaneGuid = VSConstants.GUID_OutWindowDebugPane;
+                IVsOutputWindowPane debugPane;
+                outWindow.GetPane(ref debugPaneGuid, out debugPane);
+
+                return debugPane;
+            }
+        }
+
         #endregion
 
         #region Branding

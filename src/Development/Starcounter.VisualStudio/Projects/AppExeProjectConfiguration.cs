@@ -149,7 +149,9 @@ namespace Starcounter.VisualStudio.Projects {
             int statusCode;
             string headers;
 
+            AppsEvents.OnDebuggerProcessChange = DebuggerStateChanged;
             ResponseExtensions.OnUnexpectedResponse = this.HandleUnexpectedResponse;
+
             SharedCLI.ResolveAdminServer(args, out serverHost, out serverPort, out serverName);
             SharedCLI.ResolveDatabase(args, out databaseName);
             var admin = new AdminAPI();
@@ -316,6 +318,7 @@ namespace Starcounter.VisualStudio.Projects {
                     response.FailIfNotSuccess();
                 }
             }
+
             return true;
         }
 
@@ -331,6 +334,7 @@ namespace Starcounter.VisualStudio.Projects {
                 foreach (Process3 process in debugger.LocalProcesses) {
                     if (process.ProcessID == engine.CodeHostProcess.PID) {
                         process.Attach();
+                        CodeHostMonitor.Current.AssureMonitored(process.ProcessID);
                         attached = true;
                         break;
                     }
@@ -370,6 +374,19 @@ namespace Starcounter.VisualStudio.Projects {
                 }
 
                 throw comException;
+            }
+        }
+
+        // See AppsEvents.OnDebuggerProcessChange
+        void DebuggerStateChanged(int processId, string processName, bool debuggerWasDetached) {
+            WriteLine("Debugger was {0} process {1}, PID {2}.", 
+                debuggerWasDetached ? "detached from" : "attached to",
+                processName,
+                processId
+                );
+
+            if (debuggerWasDetached) {
+                CodeHostMonitor.Current.ProcessDetatched(processId, processName, package);
             }
         }
 
