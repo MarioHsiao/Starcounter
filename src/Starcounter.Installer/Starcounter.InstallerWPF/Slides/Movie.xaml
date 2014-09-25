@@ -31,7 +31,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <Border Width="50" Height="50">
+                        <Border x:Name="_spinner" Width="50" Height="50">
                             <Border.Resources>
 
                                 <SolidColorBrush x:Key="SpinnerRectangleBrush" Color="Black"/>
@@ -180,7 +180,7 @@
 
                         </Border>
 
-                        <TextBlock Margin="0,20,0,0" Grid.Row="1"  Text="Please wait while components are installed..." HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="_textBox" Margin="0,20,0,0" Grid.Row="1"  Text="Please wait while components are installed..." HorizontalAlignment="Center"/>
 
                     </Grid>
 
