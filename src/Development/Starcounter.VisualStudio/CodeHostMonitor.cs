@@ -68,10 +68,11 @@ namespace Starcounter.VisualStudio {
                         TypeOfLogs = Severity.Warning
                     };
                     var debugOutput = package.DebugOutputPane;
+                    var snapshot = LogSnapshot.Take(log);
 
-                    log.Fetch((entry) => {
+                    foreach (var entry in snapshot.All) {
                         WriteLogEntryToOuput(entry, package, debugOutput);
-                    });
+                    }
 
                     package.ErrorList.Refresh();
                     package.ErrorList.Show();
