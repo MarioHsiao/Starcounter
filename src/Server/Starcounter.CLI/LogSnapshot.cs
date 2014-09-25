@@ -1,6 +1,7 @@
 ﻿using Sc.Tools.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Starcounter.CLI {
 
@@ -24,7 +25,18 @@ namespace Starcounter.CLI {
         /// </summary>
         public LogEntry[] DatabaseLogs {
             get {
-                throw new NotImplementedException();
+                List<LogEntry> result = null;
+                if (!string.IsNullOrEmpty(Database)) {
+                    result = entries.FindAll((candidate) => {
+                        var uri = ScUri.FromString(candidate.HostName);
+                        if (uri.Kind == ScUriKind.Database) {
+                            return uri.DatabaseName.Equals(Database, StringComparison.InvariantCultureIgnoreCase);
+                        }
+                        return false;
+                    });
+                }
+
+                return result == null ? new LogEntry[0] : result.ToArray();
             }
         }
 
@@ -33,7 +45,7 @@ namespace Starcounter.CLI {
         /// </summary>
         public LogEntry[] All {
             get {
-                throw new NotImplementedException();
+                return entries.ToArray();
             }
         }
 
