@@ -3,8 +3,11 @@ using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 using System;
 using System.Net.Sockets;
+using Sc.Tools.Logging;
 
 namespace Starcounter.CLI {
+    using LogEntry = Sc.Tools.Logging.LogEntry;
+
     /// <summary>
     /// Represents a command that execute in the scope of a CLI
     /// application and that communicates with a target admin
@@ -153,30 +156,58 @@ namespace Starcounter.CLI {
         }
 
         internal void HandleUnexpectedResponse(Response response) {
+            ErrorDetail detail = null;
             var red = ConsoleColor.Red;
             int exitCode = response.StatusCode;
+            var showLogSummary = SharedCLI.ShowLogs;
 
             Console.WriteLine();
+
+            var log = new FilterableLogReader() {
+                Count = int.MaxValue,
+                Since = executionStartTime,
+                TypeOfLogs = Severity.Error
+            };
+            var errors = LogSnapshot.Take(log, DatabaseName);
+            var errorsToDisplay = errors.DatabaseLogs;
+            if (errorsToDisplay.Length == 0) {
+                errorsToDisplay = errors.All;
+            }
+
+            var errorLogsWritten = WriteLoggedErrorsToConsole(errorsToDisplay) && errorsToDisplay.Length > 0;
+
             // Try extracting an error detail from the body, but make
             // sure that if we fail doing so, we just dump out the full
             // content in it's rawest format (dictated by the
             // Response.ToString implementation).
+
             try {
-                var detail = new ErrorDetail();
+                detail = new ErrorDetail();
                 detail.PopulateFromJson(response.Body);
-                ConsoleUtil.ToConsoleWithColor(detail.Text, red);
-                Console.WriteLine();
-                SharedCLI.ShowHints((uint)detail.ServerCode);
                 exitCode = (int)detail.ServerCode;
             } catch {
-                ConsoleUtil.ToConsoleWithColor("Unexpected response from server - unable to continue.", red);
-                ConsoleUtil.ToConsoleWithColor(string.Format("  Response status code: {0}", response.StatusCode), red);
-                ConsoleUtil.ToConsoleWithColor("  Response:", red);
-                ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
+                // Use the error code/message from the response as a final
+                // fallback; done above.
             } finally {
-                if (SharedCLI.ShowLogs) {
+
+                if (!errorLogsWritten || SharedCLI.Verbose) {
+                    if (detail != null) {
+                        ConsoleUtil.ToConsoleWithColor(detail.Text, red);
+                        Console.WriteLine();
+                        SharedCLI.ShowHints((uint)detail.ServerCode);
+                    } else {
+                        showLogSummary = true;
+                        ConsoleUtil.ToConsoleWithColor("Unexpected response from server - unable to continue.", red);
+                        ConsoleUtil.ToConsoleWithColor(string.Format("  Response status code: {0}", response.StatusCode), red);
+                        ConsoleUtil.ToConsoleWithColor("  Response:", red);
+                        ConsoleUtil.ToConsoleWithColor(response.ToString(), red);
+                    }
+                }
+
+                if (showLogSummary) {
                     WriteLogsToConsole(executionStartTime);
                 }
+
                 Environment.Exit(exitCode);
             }
         }
@@ -203,6 +234,21 @@ namespace Starcounter.CLI {
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
+        }
+
+        static bool WriteLoggedErrorsToConsole(LogEntry[] entries) {
+            try {
+                var console = new LogConsole();
+                foreach (var entry in entries) {
+                    console.Write(entry);
+                }
+                
+            } catch (Exception e) {
+                ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
+                return false;
+            }
+
+            return true;
         }
     }
 }
