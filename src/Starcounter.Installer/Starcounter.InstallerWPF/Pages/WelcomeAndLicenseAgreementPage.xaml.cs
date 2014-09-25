@@ -11,23 +11,38 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Resources;
+using System.IO;
 
 namespace Starcounter.InstallerWPF.Pages
 {
     /// <summary>
-    /// Interaction logic for UninstallFinishedPage.xaml
+    /// Interaction logic for WelcomePage.xaml
     /// </summary>
-    public partial class UninstallFinishedPage : BasePage, IFinishedPage
+    public partial class WelcomeAndLicenseAgreementPage : BasePage
     {
-        public bool GoToWiki {
-            get {
-                return false;
-            }
-            set {
-                throw new NotImplementedException();
+        #region Properties
+
+        public override bool CanGoBack
+        {
+            get
+            {
+                return !HasErrors;
             }
         }
-        public UninstallFinishedPage()
+
+        public override bool CanGoNext
+        {
+            get
+            {
+                return !HasErrors;
+            }
+
+        }
+
+        #endregion
+
+        public WelcomeAndLicenseAgreementPage()
         {
             InitializeComponent();
         }

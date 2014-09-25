@@ -1,5 +1,4 @@
-﻿//#define FAST_LOOPBACK
-// ***********************************************************************
+﻿// ***********************************************************************
 // <copyright file="Node.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -262,16 +261,18 @@ namespace Starcounter
             {
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-#if FAST_LOOPBACK
-                const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
+                try {
+                    const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
                 
-                Byte[] OptionInValue = BitConverter.GetBytes(1);
+                    Byte[] OptionInValue = BitConverter.GetBytes(1);
 
-                aggrSocket_.IOControl(
-                    SIO_LOOPBACK_FAST_PATH,
-                    OptionInValue,
-                    null);
-#endif
+                    aggrSocket_.IOControl(
+                        SIO_LOOPBACK_FAST_PATH,
+                        OptionInValue,
+                        null);
+                } catch {
+                    // Simply ignoring the error if fast loopback is not supported.
+                }
 
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
@@ -1020,6 +1021,7 @@ namespace Starcounter
             public Int32 unique_aggr_index_;
             public UInt16 port_number_;
             public Byte msg_type_;
+            public Byte msg_flags_;
         }
 
         /// <summary>
@@ -1192,6 +1194,7 @@ START_RECEIVING:
                                     ags->size_bytes_ = nt.RequestBytesLength;
                                     ags->unique_aggr_index_ = free_task_index;
                                     ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_DATA;
+                                    ags->msg_flags_ = 0;
 
                                     // Using fast memory copy here.
                                     Buffer.BlockCopy(nt.RequestBytes, 0, aggregate_send_blob_, send_bytes_offset + AggregationStructSizeBytes, ags->size_bytes_);
@@ -1207,6 +1210,7 @@ START_RECEIVING:
                                     ags->size_bytes_ = 0;
                                     ags->unique_aggr_index_ = free_task_index;
                                     ags->msg_type_ = (Byte) MixedCodeConstants.AggregationMessageTypes.AGGR_CREATE_SOCKET;
+                                    ags->msg_flags_ = 0;
 
                                     // Shifting offset in the array.
                                     send_bytes_offset += AggregationStructSizeBytes;

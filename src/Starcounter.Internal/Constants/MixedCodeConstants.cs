@@ -71,7 +71,10 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_ON_HOST_ACCUMULATION = 2 << 12,
             HTTP_WS_FLAGS_UPGRADE_APPROVED = 2 << 13,
             HTTP_WS_FLAGS_UPGRADE_REQUEST = 2 << 14,
-            HTTP_WS_JUST_PUSH_DISCONNECT = 2 << 16
+            HTTP_WS_JUST_PUSH_DISCONNECT = 2 << 16,
+            SOCKET_DATA_GATEWAY_NO_IPC_TEST = 2 << 17,
+            SOCKET_DATA_GATEWAY_AND_IPC_TEST = 2 << 18,
+            SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19
         };
 
         /// <summary>
@@ -82,6 +85,16 @@ namespace Starcounter.Internal
             AGGR_CREATE_SOCKET,
             AGGR_DESTROY_SOCKET,
             AGGR_DATA
+        };
+
+        /// <summary>
+        /// Different specific flags for aggregation.
+        /// </summary>
+        public enum AggregationMessageFlags {
+            AGGR_MSG_NO_FLAGS,
+            AGGR_MSG_GATEWAY_NO_IPC,
+            AGGR_MSG_GATEWAY_AND_IPC,
+            AGGR_MSG_GATEWAY_NO_IPC_NO_CHUNKS
         };
 
         /// <summary>
@@ -307,8 +320,6 @@ namespace Starcounter.Internal
         char* gen_code_str,
         uint32_t* gen_code_str_num_bytes
         );
-
-    //#define GW_SMC_LOOPBACK_AGGREGATION
 
 #undef public
 }

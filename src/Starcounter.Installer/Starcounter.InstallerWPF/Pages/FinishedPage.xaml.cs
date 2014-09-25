@@ -21,6 +21,14 @@ namespace Starcounter.InstallerWPF.Pages
     public partial class FinishedPage : BasePage, IFinishedPage
     {
 
+        public bool GoToWiki {
+            get {
+                return false;
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
         public override bool CanGoBack {
             get {
                 return false;

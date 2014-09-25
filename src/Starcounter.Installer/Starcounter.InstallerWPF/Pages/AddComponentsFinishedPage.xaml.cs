@@ -23,5 +23,14 @@ namespace Starcounter.InstallerWPF.Pages
         {
             InitializeComponent();
         }
+
+        public bool GoToWiki {
+            get {
+                return false;
+            }
+            set {
+                throw new NotImplementedException();
+            }
+        }
     }
 }

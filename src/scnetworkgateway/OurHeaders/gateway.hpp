@@ -76,13 +76,8 @@ typedef uint32_t ws_channel_id_type;
 //#define GW_CHUNKS_DIAG
 #define GW_DATABASES_DIAG
 //#define GW_SESSIONS_DIAG
-//#define GW_LOOPBACK_AGGREGATION
-#ifdef GW_SMC_LOOPBACK_AGGREGATION
-#undef GW_LOOPBACK_AGGREGATION
-#endif
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
-//#define FAST_LOOPBACK
 #define LEAST_USED_SCHEDULING
 
 #ifdef GW_DEV_DEBUG
@@ -142,10 +137,10 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 10;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 100;
 
 // Maximum number of fetched OVLs at once.
-const int32_t MAX_FETCHED_OVLS = 50;
+const int32_t MAX_FETCHED_OVLS = 10;
 
 // Maximum number of attempts to push overflow SDs.
 const int32_t MAX_OVERFLOW_ATTEMPTS = 100;
@@ -330,6 +325,7 @@ struct AggregationStruct
     int32_t unique_aggr_index_;
     uint16_t port_number_;
     uint8_t msg_type_;
+    uint8_t msg_flags_;
 };
 
 const int32_t AggregationStructSizeBytes = sizeof(AggregationStruct);
@@ -1629,6 +1625,9 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Find certain URI entry.
+    uri_index_type CheckIfGatewayHandler(const char* method_uri_space, const int32_t method_uri_space_len);
 
     int32_t setting_inactive_socket_timeout_seconds() {
        return setting_inactive_socket_timeout_seconds_;

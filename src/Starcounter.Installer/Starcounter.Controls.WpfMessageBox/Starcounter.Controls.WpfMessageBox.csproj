@@ -84,6 +84,15 @@
     </None>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="images\StatusAnnotations_Critical_32xLG_color.png" />
+    <EmbeddedResource Include="images\StatusAnnotations_Help_and_inconclusive_32xLG_color.png" />
+    <EmbeddedResource Include="images\StatusAnnotations_Information_32xLG_color.png" />
+    <EmbeddedResource Include="images\StatusAnnotations_Warning_32xLG_color.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="images\StatusAnnotations_Complete_and_ok_32xLG_color.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

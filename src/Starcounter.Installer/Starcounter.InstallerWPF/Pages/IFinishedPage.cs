@@ -7,5 +7,6 @@ namespace Starcounter.InstallerWPF.Pages
 {
     interface IFinishedPage
     {
+        bool GoToWiki { get; set; }
     }
 }

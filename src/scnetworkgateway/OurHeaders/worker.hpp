@@ -202,12 +202,8 @@ class GatewayWorker
 
 public:
 
-#if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
-
     // Processes socket info for aggregation loopback.
     void LoopbackForAggregation(SocketDataChunkRef sd);
-
-#endif
 
     // Checks if there is anything in overflow buffer and pushes all chunks from there.
     void PushOverflowChunks(uint32_t* next_sleep_interval_ms);

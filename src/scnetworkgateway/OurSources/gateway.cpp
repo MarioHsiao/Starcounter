@@ -895,6 +895,7 @@ uint32_t Gateway::AssertCorrectState()
     if (err_code)
         goto FAILED;
 
+    GW_ASSERT(24 == AggregationStructSizeBytes);
     GW_ASSERT(core::chunk_type::link_size == MixedCodeConstants::CHUNK_LINK_SIZE);
     GW_ASSERT(sizeof(core::chunk_type::link_type) == MixedCodeConstants::CHUNK_LINK_SIZE / 2);
 
@@ -947,7 +948,6 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     // Special settings for aggregation sockets.
     if (port_num == setting_aggregation_port_)
     {
-#ifdef FAST_LOOPBACK
         int32_t OptionValue = 1;
         DWORD numberOfBytesReturned = 0;
 
@@ -964,9 +964,8 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
             0);
 
         if (SOCKET_ERROR == status) {
-            GW_ASSERT(false);
+            // Simply ignoring the error if fast loopback is not supported.
         }
-#endif
     
         int32_t bufSize = 1 << 19;
         if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(int)) == -1) {
@@ -1807,27 +1806,6 @@ void Gateway::RegisterGatewayHandlers() {
 
     uint32_t err_code = 0;
 
-    // Registering all proxies.
-    for (int32_t i = 0; i < num_reversed_proxies_; i++)
-    {
-        // Registering URI handlers.
-        err_code = AddUriHandler(
-            &gw_workers_[0],
-            reverse_proxies_[i].sc_proxy_port_,
-            "gateway",
-            reverse_proxies_[i].matching_method_and_uri_.c_str(),
-            reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
-            NULL,
-            0,
-            bmx::BMX_INVALID_HANDLER_INFO,
-            INVALID_DB_INDEX,
-            GatewayUriProcessProxy,
-            false,
-            reverse_proxies_ + i);
-
-        GW_ASSERT(0 == err_code);
-    }
-
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
         &gw_workers_[0],
@@ -1924,6 +1902,27 @@ void Gateway::RegisterGatewayHandlers() {
 
     GW_ASSERT(0 == err_code);
 
+    // Registering all proxies.
+    for (int32_t i = 0; i < num_reversed_proxies_; i++)
+    {
+        // Registering URI handlers.
+        err_code = AddUriHandler(
+            &gw_workers_[0],
+            reverse_proxies_[i].sc_proxy_port_,
+            "gateway",
+            reverse_proxies_[i].matching_method_and_uri_.c_str(),
+            reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
+            NULL,
+            0,
+            bmx::BMX_INVALID_HANDLER_INFO,
+            INVALID_DB_INDEX,
+            GatewayUriProcessProxy,
+            false,
+            reverse_proxies_ + i);
+
+        GW_ASSERT(0 == err_code);
+    }
+
     if (0 != setting_aggregation_port_)
     {
         // Registering port handler for aggregation.
@@ -1958,6 +1957,31 @@ void Gateway::PrintWorkersStatistics(std::stringstream& stats_stream)
         gw_workers_[w].PrintInfo(stats_stream);
     }
     stats_stream << "]";
+}
+
+const int32_t NumGatewayUri = 3;
+
+// Gateway URIs that are used for handlers registration and tests.
+const char* GatewayHandlers[] = {
+    "POST /gw/handler/uri ",
+    "POST /gw/handler/ws ",
+    "POST /gw/handler/port "
+};
+
+// Find certain URI entry.
+uri_index_type Gateway::CheckIfGatewayHandler(const char* method_uri_space, const int32_t method_uri_space_len)
+{
+    // Going through all entries.
+    for (uri_index_type i = 0; i < NumGatewayUri; i++) {
+
+        // Doing exact comparison.
+        if (0 == strncmp(method_uri_space, GatewayHandlers[i], method_uri_space_len)) {
+            return i;
+        }
+    }
+
+    // Returning negative if nothing is found.
+    return INVALID_URI_INDEX;
 }
 
 // Printing statistics for all ports.

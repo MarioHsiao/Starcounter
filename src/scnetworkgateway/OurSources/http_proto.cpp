@@ -584,11 +584,20 @@ uint32_t HttpProto::HttpUriDispatcher(
             if (port_uris->IsEmpty())
                 return SCERRREQUESTONUNREGISTEREDURI;
 
-            // Trying to fetch the matched index using direct comparison.
-            matched_index = port_uris->FindRegisteredUri(method_and_uri, method_and_uri_len);
+            // Checking if its gateway handlers.
+            if (server_port->get_port_number() == g_gateway.get_setting_internal_system_port()) {
+
+                // Checking if its a gateway handler.
+                matched_index = g_gateway.CheckIfGatewayHandler(method_and_uri, method_and_uri_len);
+
+                // Checking that its correct index for URI.
+                if (INVALID_URI_INDEX != matched_index) {
+                    GW_ASSERT(0 == strncmp(method_and_uri, port_uris->GetEntryByIndex(matched_index)->get_processed_uri_info(), method_and_uri_len));
+                }
+            }
 
             // Checking if we failed to find again.
-            if (matched_index < 0)
+            if (INVALID_URI_INDEX == matched_index)
             {
                 // Entering global lock.
                 gw->EnterGlobalLock();
@@ -600,7 +609,10 @@ uint32_t HttpProto::HttpUriDispatcher(
                     UriMatcherCacheEntry* cached_uri_matcher = server_port->TryGetUriMatcherFromCache();
 
                     if (NULL != cached_uri_matcher) {
+
+                        // Setting URI matcher from cache.
                         port_uris->SetGeneratedUriMatcher(cached_uri_matcher);
+
                     } else {
                         // Generating and loading URI matcher.
                         err_code = g_gateway.GenerateUriMatcher(server_port, port_uris);
@@ -881,22 +893,10 @@ ALL_DATA_ACCUMULATED:
             // Resetting user data parameters.
             sd->ResetUserDataOffset();
 
-#ifdef GW_LOOPBACK_AGGREGATION
-
-            // Performing aggregation loop on gateway.
-            if (sd->GetSocketAggregatedFlag())
-            {
-                gw->LoopbackForAggregation(sd);
-            }
-            else
-
-#endif
-            {
-                // Push chunk to corresponding channel/scheduler.
-                err_code = gw->PushSocketDataToDb(sd, handler_id);
-                if (err_code)
-                    return err_code;
-            }
+            // Push chunk to corresponding channel/scheduler.
+            err_code = gw->PushSocketDataToDb(sd, handler_id);
+            if (err_code)
+                return err_code;
 
 #endif
 
