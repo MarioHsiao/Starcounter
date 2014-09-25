@@ -61,8 +61,10 @@ uint32_t PortAggregator(
         {
             case MixedCodeConstants::AGGR_CREATE_SOCKET:
             {
+                uint16_t port_num = ags->port_number_;
+
                 // Getting port handler.
-                port_index_type port_index = g_gateway.FindServerPortIndex(ags->port_number_);
+                port_index_type port_index = g_gateway.FindServerPortIndex(port_num);
 
                 // Checking if port exists.
                 if ((0 != ags->size_bytes_) || (INVALID_PORT_INDEX == port_index)) {
@@ -175,6 +177,22 @@ uint32_t PortAggregator(
                 // Changing accumulative buffer accordingly.
                 new_sd->get_accum_buf()->SetAccumulation(ags->size_bytes_, 0);
 
+                // Checking if its a no IPC test.
+                switch ((MixedCodeConstants::AggregationMessageFlags) ags->msg_flags_) {
+
+                    case MixedCodeConstants::AggregationMessageFlags::AGGR_MSG_GATEWAY_NO_IPC:
+                        new_sd->set_gateway_no_ipc_test_flag();
+                        break;
+
+                    case MixedCodeConstants::AggregationMessageFlags::AGGR_MSG_GATEWAY_AND_IPC:
+                        new_sd->set_gateway_and_ipc_test_flag();
+                        break;
+
+                    case MixedCodeConstants::AggregationMessageFlags::AGGR_MSG_GATEWAY_NO_IPC_NO_CHUNKS:
+                        new_sd->set_gateway_no_ipc_no_chunks_test_flag();
+                        break;
+                }
+
                 g_gateway.num_aggregated_recv_messages_++;
 
                 // Running handler.
@@ -259,6 +277,7 @@ uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCode
     aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
     aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
     aggr_struct->msg_type_ = msg_type;
+    aggr_struct->msg_flags_ = 0;
 
     uint32_t err_code = SendOnAggregationSocket(aggr_socket_info_index, aggr_unique_socket_id, (uint8_t*) aggr_struct, total_num_bytes);
 

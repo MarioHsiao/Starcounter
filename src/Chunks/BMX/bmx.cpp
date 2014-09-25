@@ -476,10 +476,8 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
     if (smc->get_link() != smc->link_terminator)
         task_info.flags |= MixedCodeConstants::LINKED_CHUNKS_FLAG;
 
-#ifdef GW_SMC_LOOPBACK_AGGREGATION
-
     // Send the response back.
-    if (((*(uint32_t*)(raw_chunk + MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants::SOCKET_DATA_FLAGS_AGGREGATED) != 0)
+    if (((*(uint32_t*)(raw_chunk + MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants::SOCKET_DATA_GATEWAY_AND_IPC_TEST) != 0)
     {
         err_code = cm_send_to_client(task_info.client_worker_id, task_info.the_chunk_index);
         if (err_code != 0)
@@ -487,8 +485,6 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
 
         goto finish;
     }
-
-#endif
 
     // Checking for the unique handler number.
     if (handler_info == registered_handlers_[handler_index].get_handler_info())

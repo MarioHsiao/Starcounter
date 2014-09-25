@@ -1224,8 +1224,6 @@ __forceinline uint32_t GatewayWorker::ProcessReceiveClones(bool just_delete_clon
     return err_code;
 }
 
-#if defined(GW_LOOPBACK_AGGREGATION) || defined(GW_SMC_LOOPBACK_AGGREGATION)
-
 // Processes socket info for aggregation loopback.
 void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 {
@@ -1235,7 +1233,7 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
 
-    GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_accum_buf()->get_chunk_num_available_bytes());
+    GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_accum_buf()->get_chunk_orig_buf_len_bytes());
 
     uint8_t* dest_data = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
 
@@ -1257,12 +1255,14 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
     // Prepare buffer to send outside.
     sd->PrepareForSend(dest_data, kHttpGenericHtmlHeaderLength + body_len);
 
+    // Running the handlers.
     uint32_t err_code = RunFromDbHandlers(sd);
 
-    GW_ASSERT (0 == err_code);
+    if (0 != err_code) {
+        // Disconnecting this socket data.
+        DisconnectAndReleaseChunk(sd);
+    }
 }
-
-#endif
 
 // Processes rebalanced sockets from worker 0.
 void GatewayWorker::ProcessRebalancedSockets() {
