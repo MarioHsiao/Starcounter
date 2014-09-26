@@ -24,7 +24,7 @@
                                 <ul class="dropdown-menu pull-right">
 
                                     <li ng-repeat="application in recentApplications track by $index | orderBy:reverse">
-                                        <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}}</a>
+                                        <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}} ({{application.databaseName}})</a>
                                     </li>
 
                                 </ul>

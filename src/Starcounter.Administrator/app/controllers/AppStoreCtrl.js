@@ -3,13 +3,12 @@
  * Applications page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'ApplicationService', 'InstalledApplicationService', 'AppStoreService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, ApplicationService, InstalledApplicationService, AppStoreService, UserMessageFactory) {
+adminModule.controller('AppStoreCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'ApplicationService', 'InstalledApplicationService', 'AppStoreService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, ApplicationService, InstalledApplicationService, AppStoreService, UserMessageFactory) {
 
     // List of applications
-    $scope.applications = HostModelService.applications;
     $scope.installedApplications = HostModelService.installedApplications;
-    $scope.appStoreServiceEnabled = AppStoreService.appStoreServiceEnabled;
-
+    $scope.appStoreApplications = AppStoreService.appStoreApplications;
+    $scope.appStoreService = AppStoreService.appStoreService;
     /**
      * Filter Applications
      * @param {object} application Application
@@ -22,51 +21,40 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     }
 
     /**
-     * Get Console output
-     * @param {object} application Application
+     * Install (Install) AppStore Application
+     * @param {object} appStoreApplication AppStore Application
      */
-    $scope.btnGetConsoleOutput = function (application) {
+    $scope.btnInstall = function (appStoreApplication) {
 
-        ApplicationService.refreshConsoleOuput(application, function () {
+        var title = "Install application";
+        var message = "Do you want to install the application " + appStoreApplication.DisplayName;
+        var buttons = [{ result: 0, label: 'Install', cssClass: 'btn-success' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
-            // Success
-        }, function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
-        });
-    }
+            if (result == 0) {
 
-    /**
-     * Start Application
-     * @param {object} application Application
-     */
-    $scope.btnStart = function (application) {
+                AppStoreService.installApplication(appStoreApplication, function () { },
+                    function (messageObject) {
+                        // Error
 
-        ApplicationService.startApplication(application, function () {
+                        if (messageObject.isError) {
+                            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                        }
+                        else {
+                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+                        }
+                    });
 
-            // Success
-
-        }, function (messageObject) {
-
-            // Error
-
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
             }
-            else {
-                NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-            }
-
         });
-
     }
 
     /**
      * Start Installed Application
      * @param {object} application Application
      */
-    $scope.btnStartInstalled = function (installedapplication) {
+    $scope.btnStart = function (installedapplication) {
 
         // Create application object
         var application = {
@@ -96,6 +84,37 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         });
 
     }
+    
+
+    /**
+     * Delete (Uninstall) Application
+     * @param {object} installedApplication Installed Application
+     */
+    $scope.btnUninstall = function (installedApplication) {
+
+        var title = "Uninstall application";
+        var message = "Do you want to uninstall the application " + installedApplication.DisplayName;
+        var buttons = [{ result: 0, label: 'Uninstall', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
+
+            if (result == 0) {
+
+                InstalledApplicationService.deleteInstalledApplication(installedApplication, function () { },
+                    function (messageObject) {
+                        // Error
+
+                        if (messageObject.isError) {
+                            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                        }
+                        else {
+                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+                        }
+                    });
+            }
+        });
+    }
+
 
     /**
      * Stop Application
@@ -127,6 +146,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
         });
     }
+
 
     /**
      * Restart Application
@@ -162,6 +182,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         });
     }
 
+
     /**
      * Remove Application from Cache/History
      * @param {object} application Application
@@ -172,36 +193,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         ApplicationService.removeFromHistory(application);
 
     }
-
-    /**
-     * Delete (Uninstall) Application
-     * @param {object} installedApplication Installed Application
-     */
-    $scope.btnUninstall = function (installedApplication) {
-
-        var title = "Uninstall application";
-        var message = "Do you want to uninstall the application " + installedApplication.DisplayName;
-        var buttons = [{ result: 0, label: 'Uninstall', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
-
-        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
-
-            if (result == 0) {
-
-                InstalledApplicationService.deleteInstalledApplication(installedApplication, function () { },
-                    function (messageObject) {
-                        // Error
-
-                        if (messageObject.isError) {
-                            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                        }
-                        else {
-                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                        }
-                    });
-            }
-        });
-    }
-   
+ 
 
     // Init
     // Refresh host model
@@ -211,9 +203,17 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
 
+
+    AppStoreService.refreshApplications(function () {
+    }, function (messageObject) {
+        // Error
+//        NoticeFactory.ShowNotice({ type: 'info', msg: "The Appstore is not available!" });
+    });
+
+
     // Get user state 'view'  (Icon/List)
-    if (localStorage.getItem('applicationsViewMode') != null) {
-        $scope.view = localStorage.getItem('applicationsViewMode');
+    if (localStorage.getItem('appStoreViewMode') != null) {
+        $scope.view = localStorage.getItem('appStoreViewMode');
     }
     else {
         $scope.view = "icon";
@@ -221,19 +221,6 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
     $scope.$watch('view', function (newValue, oldValue) {
         // Save user state
-        localStorage.setItem('applicationsViewMode', newValue);
-    });
-
-
-    // Get user state 'filterview' (Running/History)
-    if (localStorage.getItem('applicationsFilterView') != null) {
-        $scope.filterview = localStorage.getItem('applicationsFilterView');
-    }
-    else {
-        $scope.filterview = "running";
-    }
-    $scope.$watch('filterview', function (newValue, oldValue) {
-        // Save user state
-        localStorage.setItem('applicationsFilterView', newValue);
+        localStorage.setItem('appStoreViewMode', newValue);
     });
 }]);

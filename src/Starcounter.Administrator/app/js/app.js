@@ -46,6 +46,11 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
         controller: 'SqlCtrl'
     });
 
+    $routeProvider.when('/appStore', {
+        templateUrl: '/app/partials/appstore.html',
+        controller: 'AppStoreCtrl'
+    });
+
     $routeProvider.when('/log', {
         templateUrl: '/app/partials/log.html',
         controller: 'LogCtrl',
@@ -86,10 +91,12 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
  * Navbar Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, HostModelService) {
+adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'HostModelService', 'AppStoreService', function ($scope, $rootScope, $location, $log, NoticeFactory, HostModelService, AppStoreService) {
 
 
     $scope.newVersion = null;
+    $scope.appStoreServiceEnabled = AppStoreService.appStoreServiceEnabled;
+    $scope.appStoreService = AppStoreService.appStoreService;
 
     // TODO: Keep querystate
     $rootScope.queryState = {
@@ -125,6 +132,7 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
         // Error
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
     });
+
 
 }]);
 
