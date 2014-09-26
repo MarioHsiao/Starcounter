@@ -5,6 +5,7 @@
     xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
     ResizeMode="NoResize"
     Foreground="White"
+    Background="Black"
     SnapsToDevicePixels="true"
     TextOptions.TextFormattingMode="Display"        
     Title="Starcounter Setup" Width="776" Height="493">
@@ -19,7 +20,6 @@
         <SolidColorBrush x:Key="Icon_Sc_Logo_0_Foreground" Color="#ffffffff"/>
         <SolidColorBrush x:Key="Icon_Sc_Logo_1_Foreground" Color="#fffd7f02"/>
         <SolidColorBrush x:Key="Icon_Sc_Logo_2_Foreground" Color="#fffdbb02"/>
-
 
         <DataTemplate x:Key="icon_sc_symbol">
             <Viewbox>
@@ -66,12 +66,13 @@
         <CommandBinding Command="ApplicationCommands.Close" CanExecute="CanExecute_Close_Command" Executed="Executed_Close_Command"  />
         <CommandBinding Command="ApplicationCommands.Open" CanExecute="CanExecute_ChooseFolder_Command" Executed="Executed_ChooseFolder_Command"/>
         <CommandBinding Command="{x:Static local:MainWindow.StartRoutedCommand}"  Executed="Executed_Start_Command" CanExecute="CanExecute_Start_Command" />
+        <CommandBinding Command="{x:Static local:MainWindow.OpenLicenseAgreementRoutedCommand}" CanExecute="CanExecute_OpenLicenseAgreement_Command" Executed="Execute_OpenLicenseAgreement_Command"/>
     </Window.CommandBindings>
+    
 
-
-    <Window.Background>
+    <!--<Window.Background>
         <ImageBrush ImageSource="resources/carbon_wallpaper.jpg" Stretch="UniformToFill" Viewport="0,0,1,1" Viewbox="0,0,1,1" TileMode="Tile" />
-    </Window.Background>
+    </Window.Background>-->
 
     <Grid SnapsToDevicePixels="True" >
 
@@ -126,7 +127,7 @@
 
                     <Polygon.Effect>
 
-                        <DropShadowEffect Direction="270" Opacity="1" Color="#FF000000" BlurRadius="10" ShadowDepth="5" />
+                        <DropShadowEffect Direction="270" Opacity="1" Color="#FF000000" BlurRadius="5" ShadowDepth="2" />
 
                     </Polygon.Effect>
 

@@ -2,15 +2,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
   <!-- Colors -->
+  
+        <SolidColorBrush x:Key="Selector_Background" Color="#FF202020" />
+        <SolidColorBrush x:Key="Selector_Foreground" Color="#FF505050" />
+        <SolidColorBrush x:Key="Selector_Background_IsSelected" Color="#ff202020" />
+        <SolidColorBrush x:Key="Selector_Foreground_IsSelected" Color="#fff0f0f0" />
 
 
-    <SolidColorBrush x:Key="Selector_Background" Color="#FF202020" />
-    <SolidColorBrush x:Key="Selector_Foreground" Color="#FF505050" />
-    <SolidColorBrush x:Key="Selector_Background_IsSelected" Color="#ff202020" />
-    <SolidColorBrush x:Key="Selector_Foreground_IsSelected" Color="#fff0f0f0" />
-
-
-    <LinearGradientBrush x:Key="SelectedItem" StartPoint="0,0" EndPoint="0,1">
+        <LinearGradientBrush x:Key="SelectedItem" StartPoint="0,0" EndPoint="0,1">
             <GradientStop Color="#80000000" Offset="0"/>
             <GradientStop Color="#40000000" Offset="0.2"/>
             <GradientStop Color="#40000000" Offset="0.5"/>
@@ -18,20 +17,20 @@
             <GradientStop Color="#25ffffff" Offset="1"/>
         </LinearGradientBrush>
 
-        <SolidColorBrush x:Key="ThemeColor" Color="#7020ff20" />
+        <SolidColorBrush x:Key="ThemeColor" Color="#ff1f5a1f" />
 
         <SolidColorBrush x:Key="Highlight" Color="#FF383838" />
         <SolidColorBrush x:Key="Shadow" Color="#FF101010" />
 
         <LinearGradientBrush x:Key="ButtonOuterBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#10ffffff" Offset="0"/>
-            <GradientStop Color="#10000000" Offset="1"/>
+            <GradientStop Color="#00000000" Offset="0"/>
+            <GradientStop Color="#00000000" Offset="1"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="GreenButtonBackground" StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#d0206820" Offset="0"/>
-            <GradientStop Color="#d0206820" Offset="0.5"/>
-            <GradientStop Color="#d0206820" Offset="1"/>
+            <GradientStop Color="#ff1f5a1f" Offset="0"/>
+            <GradientStop Color="#ff1f5a1f" Offset="0.5"/>
+            <GradientStop Color="#ff1f5a1f" Offset="1"/>
         </LinearGradientBrush>
 
         <LinearGradientBrush x:Key="RedButtonBackground" StartPoint="0,0" EndPoint="0,1">
@@ -40,23 +39,24 @@
             <GradientStop Color="#d0682020" Offset="1"/>
         </LinearGradientBrush>
 
-    <LinearGradientBrush x:Key="Page_Background"  StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#ef1f1f1f" Offset="0"/>
-        <GradientStop Color="#ef1f1f1f" Offset="0.4"/>
-        <GradientStop Color="#ef1f1f1f" Offset="0.7"/>
-        <GradientStop Color="#ef191919" Offset="1"/>
-    </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Page_Background"  StartPoint="0,0" EndPoint="0,1">
+            <GradientStop Color="#ef1f1f1f" Offset="0"/>
+            <GradientStop Color="#ef1f1f1f" Offset="0.4"/>
+            <GradientStop Color="#ef1f1f1f" Offset="0.7"/>
+            <GradientStop Color="#ef191919" Offset="1"/>
+        </LinearGradientBrush>
 
 
-    <LinearGradientBrush x:Key="LeftPanel_Background" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#ef303030" Offset="0"/>
-        <GradientStop Color="#ef353535" Offset="0.4"/>
-        <GradientStop Color="#ef353535" Offset="0.6"/>
-        <GradientStop Color="#ef303030" Offset="1"/>
-    </LinearGradientBrush>
+        <LinearGradientBrush x:Key="LeftPanel_Background" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#ef303030" Offset="0"/>
+            <GradientStop Color="#ef353535" Offset="0.4"/>
+            <GradientStop Color="#ef353535" Offset="0.6"/>
+            <GradientStop Color="#ef303030" Offset="1"/>
+        </LinearGradientBrush>
 
-    <!-- Combobox -->
-    <Color x:Key="ShadowedBoxInnerShadow" A="255" B="0" G="0" R="0"/>
-    <Color x:Key="ShadowedBoxOuterShadow" A="0" B="0" G="0" R="0"/>
+        <!-- Combobox -->
+        <Color x:Key="ShadowedBoxInnerShadow" A="255" B="0" G="0" R="0"/>
+        <Color x:Key="ShadowedBoxOuterShadow" A="0" B="0" G="0" R="0"/>
+
 
 </ResourceDictionary>

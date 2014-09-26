@@ -26,7 +26,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for Page4.xaml
     /// </summary>
-    public partial class ProgressPage : BasePage {
+    public partial class ProgressPage : BasePage, IFinishedPage {
 
         #region Win32 import
 
@@ -102,6 +102,17 @@ namespace Starcounter.InstallerWPF.Pages {
         #endregion
 
         #region Properties
+
+        private bool _GoToWiki = true;
+        public  bool GoToWiki {
+            get {
+                return _GoToWiki;
+            }
+            set {
+                this._GoToWiki = value;
+                this.OnPropertyChanged("GoToWiki");
+            }
+        }
 
         private bool _CanGoNext = false;
         public override bool CanGoNext {
@@ -348,14 +359,26 @@ namespace Starcounter.InstallerWPF.Pages {
             this._CanGoNext = true;
 
             if (this.Slides.Count > 0) {
-                ISlide currentClide = this.Slides[this.CurrentIndex] as ISlide;
+                ISlide currentSlide = this.Slides[this.CurrentIndex] as ISlide;
 
-                if (currentClide.AutoClose) {
+                if (currentSlide is Movie) {
+
+                    Movie movie = (Movie)currentSlide;
+                    if (movie.MediaCanBePlayed == false) {
+                        movie._textBox.Text = "Starcounter was successfully installed.";
+                        movie._spinner.Visibility = System.Windows.Visibility.Collapsed;
+                    }
+                }
+
+
+                if (currentSlide.AutoClose) {
 
                     // Go to next "page"
                     NavigationCommands.NextPage.Execute(null, Application.Current.MainWindow);
                 }
             }
+
+            this.DisplayName = "Finished";
 
             CommandManager.InvalidateRequerySuggested();
         }

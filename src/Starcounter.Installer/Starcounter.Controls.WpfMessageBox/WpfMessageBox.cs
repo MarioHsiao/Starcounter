@@ -18,6 +18,8 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Globalization;
+using System.Reflection;
+using System.IO;
 
 namespace Starcounter.Controls
 {
@@ -441,7 +443,6 @@ namespace Starcounter.Controls
             this.SourceInitialized += new EventHandler(WpfMessageBox_SourceInitialized);
         }
 
-
         void WpfMessageBox_SourceInitialized(object sender, EventArgs e)
         {
             HwndSource hwndSource = PresentationSource.FromVisual(this) as HwndSource;
@@ -781,47 +782,71 @@ namespace Starcounter.Controls
         private ImageSource SetIcon(WpfMessageBoxImage image)
         {
             System.Drawing.Icon icon = System.Drawing.SystemIcons.Application;
-
+            string fileName = string.Empty;
 
             if (image == WpfMessageBoxImage.Asterisk)
             {
+                fileName = "StatusAnnotations_Information_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Asterisk;
             }
             else if (image == WpfMessageBoxImage.Error)
             {
+                fileName = "StatusAnnotations_Critical_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Error;
             }
             else if (image == WpfMessageBoxImage.Exclamation)
             {
+                fileName = "StatusAnnotations_Warning_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Exclamation;
             }
             else if (image == WpfMessageBoxImage.Hand)
             {
+                fileName = "StatusAnnotations_Critical_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Hand;
             }
             else if (image == WpfMessageBoxImage.Information)
             {
+                fileName = "StatusAnnotations_Information_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Information;
             }
             else if (image == WpfMessageBoxImage.None)
             {
+                return null;
             }
             else if (image == WpfMessageBoxImage.Question)
             {
+                fileName = "StatusAnnotations_Help_and_inconclusive_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Question;
             }
             else if (image == WpfMessageBoxImage.Stop)
             {
+                fileName = "StatusAnnotations_Critical_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Error;
             }
             else if (image == WpfMessageBoxImage.Warning)
             {
+                fileName = "StatusAnnotations_Warning_32xLG_color.png";
                 icon = System.Drawing.SystemIcons.Warning;
             }
+            else if (image == WpfMessageBoxImage.Ok) {
+                fileName = "StatusAnnotations_Complete_and_ok_32xLG_color.png";
+                icon = System.Drawing.SystemIcons.Information;
+            }
 
+            if( string.IsNullOrEmpty( fileName )) {
+                return null;
+            }
 
+            Assembly _assembly = this.GetType().Assembly;
+            Assembly myAssembly = Assembly.GetExecutingAssembly();
+            Stream s = myAssembly.GetManifestResourceStream(string.Format("Starcounter.Controls.images.{0}",fileName));
+
+            BitmapImage bs = new BitmapImage();
+            bs.BeginInit(); 
+            bs.StreamSource = s;
+            bs.EndInit();
      
-            BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
+            //BitmapSource bs = System.Windows.Interop.Imaging.CreateBitmapSourceFromHIcon(icon.Handle, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
             return bs;
 
         }
@@ -1134,6 +1159,10 @@ namespace Starcounter.Controls
         // Summary:
         //     The message box displays an asterisk icon.
         Asterisk = 64,
+        //
+        // Summary:
+        //     The message box displays an ok icon.
+        Ok = 128
     }
 
     public class IsDefaultConverter : IValueConverter
