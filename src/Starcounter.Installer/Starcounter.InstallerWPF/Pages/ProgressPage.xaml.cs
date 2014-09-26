@@ -359,9 +359,19 @@ namespace Starcounter.InstallerWPF.Pages {
             this._CanGoNext = true;
 
             if (this.Slides.Count > 0) {
-                ISlide currentClide = this.Slides[this.CurrentIndex] as ISlide;
+                ISlide currentSlide = this.Slides[this.CurrentIndex] as ISlide;
 
-                if (currentClide.AutoClose) {
+                if (currentSlide is Movie) {
+
+                    Movie movie = (Movie)currentSlide;
+                    if (movie.MediaCanBePlayed == false) {
+                        movie._textBox.Text = "Starcounter was successfully installed.";
+                        movie._spinner.Visibility = System.Windows.Visibility.Collapsed;
+                    }
+                }
+
+
+                if (currentSlide.AutoClose) {
 
                     // Go to next "page"
                     NavigationCommands.NextPage.Execute(null, Application.Current.MainWindow);

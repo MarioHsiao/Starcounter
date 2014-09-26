@@ -1,4 +1,5 @@
-﻿<div class="btn-group" style='margin-bottom: 15px'>
+﻿
+<div class="btn-group" style='margin-bottom: 15px'>
     <button ng-model="filterview" type="button" btn-radio="'running'" ng-class="{'btn-primary': filterview=='running'}" class="btn btn-default btn-sm">
         Running&nbsp;&nbsp;
                     <span class="badge">{{(applications | filter:{running:true}).length}}</span>
@@ -6,6 +7,10 @@
 
     <button ng-model="filterview" type="button" btn-radio="'recent'" ng-class="{'btn-primary': filterview=='recent'}" class="btn btn-default btn-sm">
         Recent
+    </button>
+
+    <button ng-show="{{appStoreServiceEnabled}}" ng-model="filterview" type="button" btn-radio="'installed'" ng-class="{'btn-primary': filterview=='installed'}" class="btn btn-default btn-sm">
+        Installed
     </button>
 </div>
 
@@ -68,7 +73,6 @@
                 <th></th>
             </tr>
         </thead>
-
         <tbody>
             <tr ng-repeat="application in applications | filter:filterApplications | orderBy: 'RuntimeInfo.Started':true track by $index">
                 <td><a href="#/databases/{{application.databaseName}}/applications/{{application.Name}}">{{application.Name}}</a>
@@ -97,8 +101,49 @@
                 </td>
             </tr>
         </tbody>
-
     </table>
+
+    <table class="table table-condensed" ng-show="view=='list' && filterview=='installed'">
+        <thead>
+            <tr>
+                <th>Namespace</th>
+                <th>Start Uri</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr ng-repeat="installedapplication in installedApplications">
+                <td>
+                    {{installedapplication.Namespace}}
+                    
+                </td>
+
+                <td>
+                    <a target="_blank" href="{{installedapplication.RelativeStartUri}}">{{installedapplication.RelativeStartUri}}</a>
+                </td>
+                <td>
+                    {{installedapplication.DisplayName}}
+                </td>
+
+                <td>
+                    {{installedapplication.Description}}
+                </td>
+
+                <td>
+                    <div class="pull-right">
+                        <div class="btn-group">
+                            <button class="btn btn-default btn-sm btn-success" ng-disabled="false" ng-click="btnStartInstalled(installedapplication)" title="Start Application">Start</button>
+                            <button class="btn btn-default btn-sm btn-primary" ng-disabled="true" ng-click="btnRestart(application)" title="Restart Application">Stop</button>
+                            <button class="btn btn-default btn-sm btn-danger" ng-disabled="false" ng-click="btnUninstall(installedapplication)" title="Uninstall Application">Uninstall</button>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </span>
 
     <span class="row" ng-show="view=='list' && filterview=='running' && (applications | filter:{running:true}).length==0">
         <div style='margin-top:15px;margin-left:15px;margin-right:15px;margin-bottom:-5px' >
@@ -119,5 +164,4 @@
             </div>
         </div>
     </div>
-
 </div>

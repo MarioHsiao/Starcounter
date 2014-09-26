@@ -107,12 +107,8 @@
                         </Grid.ColumnDefinitions>
                         <StackPanel Orientation="Horizontal">
 
-                            <CheckBox IsChecked="{Binding Path=GoToWiki,  RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}}}" Content="Take me to the wiki" >
-
-              
-
-                            </CheckBox>
-                            
+                            <CheckBox IsChecked="{Binding Path=GoToWiki,  RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}}}" Content="Take me to the wiki" Visibility="{Binding Path=CanClose, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}}, Converter={StaticResource booleanToVisibilityConverter}, ConverterParameter=false}" />
+                          
 
                             <!--<TextBlock Margin="3,3,0,0" Visibility="{Binding Path=CanClose, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}}, Converter={StaticResource booleanToVisibilityConverter}, ConverterParameter=false}" > 
                                 To continue visit our 

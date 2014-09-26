@@ -94,6 +94,12 @@ namespace Starcounter.Internal
             index = ErrorMessage.IndexOfHeaderBodyDelimiter(errorMessage);
             header = errorMessage.Substring(0, index);
             if (!header.Contains("(") || !header.Contains(")")) {
+                header = header.ToLowerInvariant();
+                if (header.Contains(".") && header.EndsWith("exception")) {
+                    errorMessage = errorMessage.Substring(index + 1);
+                    return InternalParseMessage(errorMessage);
+                }
+
                 throw ToParsingException(errorMessage);
             }
 
