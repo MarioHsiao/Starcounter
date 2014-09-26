@@ -207,8 +207,8 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             var database = self.databases[i];
             var bExists = false;
             // Check if it exist in newList
-            for (var i = 0; i < newDatabases.length; i++) {
-                var newDatabase = newDatabases[i];
+            for (var n = 0; n < newDatabases.length; n++) {
+                var newDatabase = newDatabases[n];
 
                 if (database.name == newDatabase.name) {
                     bExists = true;
@@ -228,7 +228,7 @@ adminModule.service('DatabaseService', ['$http', '$log', '$sce', 'UtilsFactory',
             if (index > -1) {
                 self.databases.splice(index, 1);
             }
-            this._onRemovedDatabase(database);
+            this._onRemovedDatabase(removeList[i]);
         }
 
         // Add new databases
