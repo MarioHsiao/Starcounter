@@ -74,7 +74,8 @@ namespace Starcounter.Internal
             HTTP_WS_JUST_PUSH_DISCONNECT = 2 << 16,
             SOCKET_DATA_GATEWAY_NO_IPC_TEST = 2 << 17,
             SOCKET_DATA_GATEWAY_AND_IPC_TEST = 2 << 18,
-            SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19
+            SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19,
+            SOCKET_DATA_HOST_LOOPING_CHUNKS = 2 << 20
         };
 
         /// <summary>

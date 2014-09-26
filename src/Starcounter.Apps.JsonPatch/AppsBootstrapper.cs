@@ -194,6 +194,16 @@ namespace Starcounter.Internal {
                 resp = AppServer_.HandleRequest(req, 0);
             });
 
+            // Simply returning if its a looping chunk.
+            if (req.IsLoopingHostChunk()) {
+
+                // Destroying request and response objects.
+                resp.Destroy();
+                req.Destroy();
+
+                return true;
+            }
+
             // Checking if response was handled.
             if (resp == null)
                 return false;

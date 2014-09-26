@@ -513,6 +513,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Checking if its a looping host chunk.
+        /// </summary>
+        /// <returns></returns>
+        internal unsafe Boolean IsLoopingHostChunk() {
+            return (((*(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0);
+        }
+
+        /// <summary>
         /// Initializes some WebSocket fields.
         /// </summary>
         /// <param name="ws"></param>

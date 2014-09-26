@@ -465,6 +465,21 @@ public:
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_AND_IPC_TEST;
     }
 
+    bool get_chunk_looping_host_flag()
+    {
+        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0;
+    }
+
+    void set_chunk_looping_host_flag()
+    {
+        flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_HOST_LOOPING_CHUNKS;
+    }
+
+    void reset_chunk_looping_host_flag()
+    {
+        flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_HOST_LOOPING_CHUNKS;
+    }
+
     bool get_just_push_disconnect_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::HTTP_WS_JUST_PUSH_DISCONNECT) != 0;
