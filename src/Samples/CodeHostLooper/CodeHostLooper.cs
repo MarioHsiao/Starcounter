@@ -10,9 +10,34 @@ using System.Threading.Tasks;
 namespace CodeHostLooper {
 
     class Settings {
+
         public UInt16 ServerPort;
+        public UInt16 ServerEchoPort;
         public String ServerIp;
         public Int32 NumberOfSchedulersToUse;
+
+        public void Init(string[] args) {
+
+            foreach (String arg in args) {
+
+                if (arg.StartsWith("-ServerIp=")) {
+                    
+                    ServerIp = arg.Substring("-ServerIp=".Length);
+
+                } else if (arg.StartsWith("-ServerPort=")) {
+
+                    ServerPort = UInt16.Parse(arg.Substring("-ServerPort=".Length));
+
+                } else if (arg.StartsWith("-ServerEchoPort=")) {
+
+                    ServerEchoPort = UInt16.Parse(arg.Substring("-ServerEchoPort=".Length));
+
+                } else if (arg.StartsWith("-NumberOfSchedulersToUse=")) {
+
+                    NumberOfSchedulersToUse = Int32.Parse(arg.Substring("-NumberOfSchedulersToUse=".Length));
+                }
+            }
+        }
     }
 
     class Program {
@@ -23,12 +48,40 @@ namespace CodeHostLooper {
 
                 Settings settings = new Settings() {
                     ServerPort = 12345,
+                    ServerEchoPort = 8080,
                     ServerIp = "127.0.0.1",
                     NumberOfSchedulersToUse = Environment.ProcessorCount - 1
                 };
 
+                settings.Init(args);
+
                 if (settings.NumberOfSchedulersToUse > Environment.ProcessorCount - 1)
                     throw new ArgumentException("Number of scheduler parameters should be less than number of virtual CPUs.");
+
+                // Waiting until host is available.
+                Boolean hostIsReady = false;
+                Console.Write("Waiting for the host to be ready");
+
+                Response resp;
+
+                for (Int32 i = 0; i < 10; i++) {
+
+                    resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerEchoPort + "/echotest", "Test!", null, 5000);
+
+                    if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
+
+                        hostIsReady = true;
+                        break;
+                    }
+
+                    Thread.Sleep(3000);
+                    Console.Write(".");
+                }
+
+                Console.WriteLine();
+
+                if (!hostIsReady)
+                    throw new Exception("Host is not ready by some reason!");
 
                 Node localNode = new Node(settings.ServerIp, settings.ServerPort);
 
@@ -36,7 +89,7 @@ namespace CodeHostLooper {
 
                     Console.WriteLine("Starting looping scheduler number " + i + "...");
 
-                    Response resp = localNode.GET("/loop/" + i);
+                    resp = localNode.GET("/loop/" + i);
 
                     if (!resp.IsSuccessStatusCode)
                         throw new ArgumentOutOfRangeException("Loop creation response is not successful.");
