@@ -89,7 +89,7 @@ namespace CodeHostLooper {
 
                     Console.WriteLine("Starting looping scheduler number " + i + "...");
 
-                    resp = localNode.GET("/loop/" + i);
+                    resp = localNode.GET("/loop/" + i, "SchedulerId: " + i + "\r\n" + "LoopHost: True\r\n");
 
                     if (!resp.IsSuccessStatusCode)
                         throw new ArgumentOutOfRangeException("Loop creation response is not successful.");
@@ -99,7 +99,7 @@ namespace CodeHostLooper {
                         Thread.Sleep(1000);
                     }
 
-                    resp = localNode.GET("/loopstats/0");
+                    resp = localNode.GET("/loopstats/0", "SchedulerId: 0\r\n");
 
                     if (!resp.IsSuccessStatusCode)
                         throw new ArgumentOutOfRangeException("Loop stats fetch response is not successful.");

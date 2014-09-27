@@ -28,6 +28,8 @@ enum HttpWsFields
     WS_PROTOCOL_FIELD,
     WS_EXTENSIONS_FIELD,
     WS_ACCEPT_FIELD,
+    SCHEDULER_ID_FIELD,
+    LOOP_HOST_FIELD,
     UNKNOWN_FIELD
 };
 
@@ -39,6 +41,8 @@ const int64_t CONTENT_LENGTH_HEADER_VALUE_8BYTES = 3275364211029339971;
 const int64_t UPGRADE_HEADER_VALUE_8BYTES = 4207879796541583445;
 const int64_t WEBSOCKET_HEADER_VALUE_8BYTES = 6008476277963711827;
 const int64_t COOKIE_HEADER_VALUE_8BYTES = 2322280061311348547;
+const int64_t SCHEDULER_ID_HEADER_VALUE_8BYTES = 7308345369373991763;
+const int64_t LOOP_HOST_HEADER_VALUE_8BYTES = 8391172887636045644;
 
 // Fast way to determine field type.
 inline HttpWsFields DetermineField(const char *at, size_t length)
@@ -97,6 +101,16 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
             }
 
             break;
+        }
+
+        case SCHEDULER_ID_HEADER_VALUE_8BYTES:
+        {
+            return SCHEDULER_ID_FIELD; // SchedulerId
+        }
+
+        case LOOP_HOST_HEADER_VALUE_8BYTES:
+        {
+            return LOOP_HOST_FIELD; // LoopHost
         }
     }
 

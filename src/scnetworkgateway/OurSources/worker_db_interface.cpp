@@ -409,42 +409,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = sd->get_scheduler_id();
 
-#if 1
-
-    // Checking if its a port for host looping chunks.
-    if (12345 == sd->GetPortNumber()) {
-
-        uint8_t* b = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
-
-        uint8_t offset = 9;
-
-        if ('/' == b[offset]) { // "GET /loop/3"
-
-            sched_id = b[offset + 1] - '0';
-
-            SocketDataChunk* sd_send_clone = NULL;
-            uint32_t err_code = sd->CloneToPush(gw, &sd_send_clone);
-            GW_ASSERT(0 == err_code);
-
-            // Sending OK response to the client so it does not wait.
-            err_code = gw->SendPredefinedMessage(sd_send_clone, kHttpOKResponse, kHttpOKResponseLength);
-            GW_ASSERT(0 == err_code);
-
-            sd->set_chunk_looping_host_flag();
-
-        } else if ('/' == b[offset + 5]) { // "GET /loopstats/0"
-
-            sched_id = b[offset + 6] - '0';
-
-        } else {
-            GW_ASSERT(false);
-        }
-
-        sd->set_scheduler_id(sched_id);
-    }
-
-#endif
-
     uint16_t num_ipc_chunks;
     core::chunk_index ipc_first_chunk_index;
     SocketDataChunk* ipc_sd;
