@@ -61,22 +61,9 @@ namespace Starcounter.VisualStudio {
                 if (p.HasExited) {
                     // We can't get the error code; we must check if the log contains
                     // any errors.
-
-                    var log = new FilterableLogReader() {
-                        Count = 10,
-                        Since = process.MonitoredSince,
-                        TypeOfLogs = Severity.Warning
-                    };
-                    var debugOutput = package.DebugOutputPane;
-                    var snapshot = LogSnapshot.Take(log);
-
-                    foreach (var entry in snapshot.All) {
-                        WriteLogEntryToOuput(entry, package, debugOutput);
-                    }
-
-                    package.ErrorList.Refresh();
-                    package.ErrorList.Show();
-                    debugOutput.Activate();
+                    new ErrorLogDisplay(
+                        package, 
+                        FilterableLogReader.LogsSince(Severity.Warning, process.MonitoredSince)).ShowInErrorList();
                 }
 
                 hosts.Remove(processId);
@@ -89,26 +76,6 @@ namespace Starcounter.VisualStudio {
                 result = processName.EndsWith(Path.GetFileNameWithoutExtension(codeHostName), StringComparison.InvariantCultureIgnoreCase);
             }
             return result;
-        }
-
-        void WriteLogEntryToOuput(LogEntry entry, VsPackage package, IVsOutputWindowPane debugOutput) {
-            StarcounterErrorTask task;
-            string debugOutputMsg;
-
-            try {
-                var msg = ErrorMessage.Parse(entry.Message);
-                task = package.ErrorList.NewTask(ErrorTaskSource.Debug, msg);
-                debugOutputMsg = msg.Message;
-            } catch {
-                task = package.ErrorList.NewTask(ErrorTaskSource.Debug, entry.Message, (uint)entry.ErrorCode);
-                debugOutputMsg = entry.Message;
-            }
-
-            task.ErrorCategory = entry.Severity == Severity.Warning ? TaskErrorCategory.Warning : TaskErrorCategory.Error;
-            package.ErrorList.Tasks.Add(task);
-            if (entry.Severity != Severity.Warning) {
-                debugOutput.OutputString(debugOutputMsg + Environment.NewLine);
-            }
         }
     }
 }
