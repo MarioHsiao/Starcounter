@@ -56,6 +56,21 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Factory method creating a reader from a set of parameters.
+        /// </summary>
+        /// <param name="typeOfLogs">The type of logs to include.</param>
+        /// <param name="since">Since-filter, specifying the oldest time of any
+        /// log.</param>
+        /// <returns>A reader scoped to the given arguments.</returns>
+        public static FilterableLogReader LogsSince(Severity typeOfLogs, DateTime since) {
+            return new FilterableLogReader() {
+                Count = int.MaxValue,
+                Since = since,
+                TypeOfLogs = typeOfLogs
+            };
+        }
+
+        /// <summary>
         /// Fetches a log entries from the server log and invokes the specified
         /// callback on every matching entry.
         /// </summary>
