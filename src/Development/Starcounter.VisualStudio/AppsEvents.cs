@@ -1,5 +1,6 @@
 ﻿using EnvDTE;
 using EnvDTE80;
+using System;
 using System.IO;
 
 namespace Starcounter.VisualStudio
@@ -23,6 +24,16 @@ namespace Starcounter.VisualStudio
 	{
         private ProjectItemsEvents projectEvents;
         private DocumentEvents documentEvents;
+        DebuggerProcessEvents debuggerProcessEvents;
+
+        /// <summary>
+        /// Internally used callback that is invoked by the extension
+        /// when it detects a change in debugger state. The arguments
+        /// passed is the process ID, the name of the process and a
+        /// boolean indicating if the debugger was attached (TRUE if
+        /// detached; otherwise FALSE, indicating attached.
+        /// </summary>
+        internal static Action<int, string, bool> OnDebuggerProcessChange;
 
         /// <summary>
         /// Registers handlers for all needed events.
@@ -43,7 +54,20 @@ namespace Starcounter.VisualStudio
             }
             this.documentEvents = e2.DocumentEvents;
             this.documentEvents.DocumentSaved += DocumentEvents_DocumentSaved;
+
+            if (this.debuggerProcessEvents != null) {
+                this.debuggerProcessEvents.OnProcessStateChanged -= debuggerEvents_OnProcessStateChanged;
+            }
+
+            this.debuggerProcessEvents = e2.DebuggerProcessEvents;
+            debuggerProcessEvents.OnProcessStateChanged += debuggerEvents_OnProcessStateChanged;
 		}
+
+        void debuggerEvents_OnProcessStateChanged(Process process, dbgProcessState processState) {
+            if (OnDebuggerProcessChange != null) {
+                OnDebuggerProcessChange(process.ProcessID, process.Name, processState == dbgProcessState.dbgProcessStateStop);
+            }
+        }
 
         /// <summary>
         /// Removes all registered eventslisteners.
@@ -57,6 +81,11 @@ namespace Starcounter.VisualStudio
             if (documentEvents != null) {
                 documentEvents.DocumentSaved -= DocumentEvents_DocumentSaved;
                 documentEvents = null;
+            }
+
+            if (debuggerProcessEvents != null) {
+                debuggerProcessEvents.OnProcessStateChanged -= debuggerEvents_OnProcessStateChanged;
+                debuggerProcessEvents = null;
             }
         }
 

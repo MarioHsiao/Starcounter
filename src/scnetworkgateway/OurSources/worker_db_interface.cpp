@@ -406,6 +406,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         return 0;
     }
 
+    // Obtaining the current scheduler id.
+    scheduler_id_type sched_id = sd->get_scheduler_id();
+
     uint16_t num_ipc_chunks;
     core::chunk_index ipc_first_chunk_index;
     SocketDataChunk* ipc_sd;
@@ -420,9 +423,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Setting number of chunks.
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
-    // Obtaining the current scheduler id.
-    scheduler_id_type sched_id = ipc_sd->get_scheduler_id();
-
     // Checking scheduler id validity.
     if (sched_id >= num_schedulers_)
     {
