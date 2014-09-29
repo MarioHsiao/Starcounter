@@ -55,6 +55,13 @@ namespace Starcounter.CLI {
         public string DatabaseName { get; set; }
 
         /// <summary>
+        /// Gets or sets a value that dictates of the command should
+        /// write error logs to the console when <see cref="Run"/> has
+        /// exited.
+        /// </summary>
+        public bool WriteErrorLogsToConsoleAfterRun { get; set; }
+
+        /// <summary>
         /// Executes the logic of the given CLI arguments on the
         /// on the target database on the target server.
         /// </summary>
@@ -68,6 +75,10 @@ namespace Starcounter.CLI {
             } finally {
                 Node = null;
                 Status = null;
+            }
+
+            if (WriteErrorLogsToConsoleAfterRun) {
+                CaptureAndWriteLoggedErrorsToConsole();
             }
 
             if (SharedCLI.ShowLogs) {
