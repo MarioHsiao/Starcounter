@@ -621,19 +621,9 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
             }
         }
 
-        // Checking for error code after registrations.
+        // Checking for error code.
         if (err_code)
-        {
-            switch (err_code)
-            {
-                case SCERRGWFAILEDTOBINDPORT:
-                    // Ignore.
-                    break;
-
-                default:
-                    return err_code;
-            }
-        }
+            return err_code;
 
         offset = resp_chunk->get_offset();
     }

@@ -355,8 +355,14 @@ namespace Starcounter
 
             Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
-            if (r.StatusCode != 200) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register URI string: \"" + originalUriInfo + "\". Error message: " + r.Body);
+            if (!r.IsSuccessStatusCode) {
+
+                String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                if (null != errCodeStr)
+                    throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                else
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
             }
         }
 
@@ -572,8 +578,14 @@ namespace Starcounter
 
                 Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register WebSocket channel: \"" + channelName + "\". Error message: " + r.Body);
+                if (!r.IsSuccessStatusCode) {
+
+                    String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                    if (null != errCodeStr)
+                        throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                    else
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
                 }
             }
         }
@@ -614,9 +626,15 @@ namespace Starcounter
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
                 Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
-                        
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Register port number: " + port + ". Error message: " + r.Body);
+
+                if (!r.IsSuccessStatusCode) {
+
+                    String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                    if (null != errCodeStr)
+                        throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                    else
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
                 }
             }
 		}
@@ -643,8 +661,14 @@ namespace Starcounter
 
                 Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
-                if (r.StatusCode != 200) {
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "Unregister port number: " + port + ". Error message: " + r.Body);
+                if (!r.IsSuccessStatusCode) {
+
+                    String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                    if (null != errCodeStr)
+                        throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                    else
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
                 }
             }
 		}

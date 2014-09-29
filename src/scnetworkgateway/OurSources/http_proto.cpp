@@ -96,6 +96,29 @@ inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_byte
     return offset;
 }
 
+// Constructs HTTP 400 response.
+int32_t ConstructHttp400(
+    char* const dest_buf,
+    const int32_t dest_buf_max_bytes,
+    const std::string& body,
+    const int32_t err_code)
+{
+    std::stringstream ss;
+    ss << "HTTP/1.1 400 Bad Request" << "\r\n";
+    ss << MixedCodeConstants::ScErrorCodeHttpHeader << ": " << err_code << "\r\n";
+    ss << "Content-Length: " << body.length() << "\r\n";
+    ss << "\r\n";
+    ss << body;
+
+    int32_t size_bytes = static_cast<int32_t> (ss.tellp());
+    GW_ASSERT(size_bytes < dest_buf_max_bytes);
+
+    ss.seekg(0);
+    ss.rdbuf()->sgetn(dest_buf, size_bytes);
+
+    return size_bytes;
+}
+
 // Destructor.
 RegisteredUris::~RegisteredUris()
 {

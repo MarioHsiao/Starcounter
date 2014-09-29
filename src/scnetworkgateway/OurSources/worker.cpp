@@ -1832,23 +1832,23 @@ uint32_t GatewayWorker::SendHttpBody(
     const char* body,
     const int32_t body_len)
 {
-    GW_ASSERT(body_len < 3800);
-    char temp_resp[4096];
+    GW_ASSERT(body_len < (TEMP_BIG_BUFFER_SIZE - 512));
+    char temp_buf[TEMP_BIG_BUFFER_SIZE];
 
     // Copying predefined header.
-    memcpy(temp_resp, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
+    memcpy(temp_buf, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
 
     // Making length a white space.
-    *(uint64_t*)(temp_resp + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
+    *(uint64_t*)(temp_buf + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
 
     // Converting content length to string.
-    WriteUIntToString(temp_resp + kHttpGenericHtmlHeaderInsertPoint, body_len);
+    WriteUIntToString(temp_buf + kHttpGenericHtmlHeaderInsertPoint, body_len);
 
     // Copying body to response.
-    memcpy(temp_resp + kHttpGenericHtmlHeaderLength, body, body_len);
+    memcpy(temp_buf + kHttpGenericHtmlHeaderLength, body, body_len);
 
     // Sending predefined response.
-    return SendPredefinedMessage(sd, temp_resp, kHttpGenericHtmlHeaderLength + body_len);
+    return SendPredefinedMessage(sd, temp_buf, kHttpGenericHtmlHeaderLength + body_len);
 }
 
 // Sends given predefined response.
