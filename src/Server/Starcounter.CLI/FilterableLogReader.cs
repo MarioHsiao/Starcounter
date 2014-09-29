@@ -15,6 +15,8 @@ namespace Starcounter.CLI {
     /// filtering.
     /// </summary>
     public sealed class FilterableLogReader {
+        DateTime sinceResolution;
+
         /// <summary>
         /// Number of log records to fetch.
         /// </summary>
@@ -39,7 +41,12 @@ namespace Starcounter.CLI {
         /// Specifies a filter that ignores any log entry
         /// older than the given value.
         /// </summary>
-        public DateTime Since { get; set; }
+        public DateTime Since { 
+            get { return sinceResolution; }
+            set {
+                sinceResolution = new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind);
+            }
+        }
 
         /// <summary>
         /// Initialize a new <see cref="FilterableLogReader"/>.
@@ -58,7 +65,7 @@ namespace Starcounter.CLI {
             int read = 0;
             bool stop = false;
             int count = Count;
-            
+
             var logDirectory = GetLogDirectory();
             var logReader = new LogReader();
             logReader.Open(logDirectory, ReadDirection.Reverse, 1024 * 32);
@@ -78,7 +85,7 @@ namespace Starcounter.CLI {
         }
 
         bool FilterAway(LogEntry entry, ref bool stop) {
-            var since = Since;
+            var since = sinceResolution;
             var type = TypeOfLogs;
             var source = Source;
 
