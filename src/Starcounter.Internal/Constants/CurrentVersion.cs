@@ -18,17 +18,17 @@ namespace Starcounter.Internal
         /// <summary>
         /// This Starcounter version.
         /// </summary>
-        public const String Version = "2.0.0.0";
+        public static readonly String Version = "2.0.0.0";
 
         /// <summary>
         /// This name of channel for this version.
         /// </summary>
-        public const String ChannelName = "NightlyBuilds";
+        public static readonly String ChannelName = "NightlyBuilds";
 
         /// <summary>
         /// This name of edition for this version.
         /// </summary>
-        public const String EditionName = "Starcounter";
+        public static readonly String EditionName = "Starcounter";
 
         /// <summary>
         /// This Starcounter version date.
