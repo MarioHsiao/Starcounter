@@ -233,6 +233,11 @@ namespace Starcounter.Internal
         public const String ServerConfigParentXmlName = "service";
 
         /// <summary>
+        /// HTTP header used for Starcounter error code transfer.
+        /// </summary>
+        public const String ScErrorCodeHttpHeader = "ScErrorCode";
+
+        /// <summary>
         /// Session cookie length.
         /// </summary>
         public const int ScSessionCookieNameLength = 15;

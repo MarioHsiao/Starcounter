@@ -4527,6 +4527,12 @@
                 </para>
             </remarks>
         </code>
+
+        <code hex="0006" severity="Error" name="ScErrNetworkPortIsOccupied">
+            <message>
+                Gateway tried to bind a socket on network port that is occupied.
+            </message>
+        </code>
         
     </facility>
 

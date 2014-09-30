@@ -561,7 +561,31 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         /// <returns></returns>
         private string GetVersionString() {
-            return "Version " + CurrentVersion.Version;
+
+            string truncated;
+            this.TruncateVersion(CurrentVersion.Version, 3, out truncated);
+
+            return "Version " + truncated;
+        }
+
+        /// <summary>
+        /// Truncate the version number.
+        /// Example: from 4 parts like "2.0.0.0" to three parts "2.0.0"
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="parts"></param>
+        /// <param name="truncated"></param>
+        private void TruncateVersion(string version, int parts, out string truncated) {
+
+            string[] partlist = version.Split('.');
+            truncated = string.Empty;
+
+            for (int i = 0; i < parts && i < partlist.Length; i++) {
+                if (i > 0) {
+                    truncated += ".";
+                }
+                truncated += partlist[i];
+            }
         }
 
         /// <summary>

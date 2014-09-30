@@ -114,7 +114,6 @@ enum GatewayErrorCodes
     SCERRGWCONNECTEXFAILED,
     SCERRGWOPERATIONONWRONGSOCKET,
     SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING,
-    SCERRGWFAILEDTOBINDPORT,
     SCERRGWFAILEDTOATTACHSOCKETTOIOCP,
     SCERRGWFAILEDTOLISTENONSOCKET,
     SCERRGWIPISNOTONWHITELIST,
@@ -1680,7 +1679,7 @@ public:
     void PrintWorkersStatistics(std::stringstream& stats_stream);
 
     // Registering all gateway handlers.
-    void RegisterGatewayHandlers();
+    uint32_t RegisterGatewayHandlers();
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()

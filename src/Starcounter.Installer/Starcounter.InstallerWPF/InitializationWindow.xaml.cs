@@ -283,24 +283,17 @@ namespace Starcounter.InstallerWPF {
                     // Asking to launch previous version uninstaller.
                     String installDir = GetInstalledDirFromEnv();
 
-                    // Trying "Starcounter-[Version]-Setup.exe".
-                    String prevSetupExeName = "Starcounter-" + previousVersion + "-Setup.exe";
-                    String prevSetupExePath = System.IO.Path.Combine(installDir, prevSetupExeName);
-                    if (!File.Exists(prevSetupExePath)) {
-                        // Trying "Starcounter-Setup.exe".
-                        prevSetupExeName = ScInstallerGUI + ".exe";
-                        prevSetupExePath = System.IO.Path.Combine(installDir, prevSetupExeName);
-                        if (!File.Exists(prevSetupExePath)) {
-                            System.Windows.MessageBox.Show(
-                                "Can't find " + prevSetupExeName + " for Starcounter " + previousVersion +
-                                " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
-
-                            return true;
-                        }
+                    String prevSetupExeFile;
+                    this.FindSetupExe(installDir, out prevSetupExeFile );
+                    if (prevSetupExeFile == null) {
+                        System.Windows.MessageBox.Show(
+                            "Can't find previous setup exe for Starcounter " + previousVersion +
+                            " in '" + installDir + "'. Please uninstall previous version of Starcounter manually.");
+                        return true;
                     }
 
                     Process prevSetupProcess = new Process();
-                    prevSetupProcess.StartInfo.FileName = prevSetupExePath;
+                    prevSetupProcess.StartInfo.FileName = prevSetupExeFile;
                     prevSetupProcess.StartInfo.Arguments = "DontCheckOtherInstances";
                     prevSetupProcess.Start();
 
@@ -328,6 +321,17 @@ namespace Starcounter.InstallerWPF {
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Find Starcounter setup exe in a folder
+        /// The file must start with "starcounter-" and end with "-setup.exe"
+        /// </summary>
+        /// <param name="folder"></param>
+        /// <param name="file"></param>
+        private void FindSetupExe(string folder, out string file) {
+            var files = Directory.EnumerateFiles(folder, "*.*", SearchOption.TopDirectoryOnly).Where(s => System.IO.Path.GetFileName(s).StartsWith("starcounter-", StringComparison.InvariantCultureIgnoreCase) && s.EndsWith("-setup.exe", StringComparison.InvariantCultureIgnoreCase));
+            file = files.FirstOrDefault();
         }
 
         Dispatcher _dispatcher;
