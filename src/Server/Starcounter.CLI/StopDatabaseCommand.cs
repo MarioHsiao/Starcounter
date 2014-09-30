@@ -89,6 +89,7 @@ namespace Starcounter.CLI {
 
             } catch (Exception e) {
                 SharedCLI.ShowErrorAndSetExitCode(e, true, false);
+                WriteErrorLogsToConsoleAfterRun = true;
                 return;
             }
         }
