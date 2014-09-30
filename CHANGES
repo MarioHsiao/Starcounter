@@ -1,0 +1,16 @@
+Changes with Starcounter 2.0.0 (2014-09-30)
+
+* The first public 2.0 version
+* Improved performance
+* Improved scalability
+* API changed to non-verbose
+* Faster development cycles
+* Improved integration with Visual Studio
+* Improved command-line tools (star, ...)
++ Server-side Starcounter apps available
++ Integrated Web Server (HTTP, Sockets, WebSockets)
++ REST communication support
++ Mirrored View models (MVC/MVVM/DMV)
++ Native JSON-based View models
++ Web-based database administrator
++ Integration with Polymer UX
