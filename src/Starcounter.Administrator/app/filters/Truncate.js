@@ -40,3 +40,26 @@ adminModule.filter('truncate', function () {
  * "This is an e ->"
  *
  */
+
+
+adminModule.filter('truncateversion', function () {
+    return function (text, parts) {
+
+        if (text == null) return text;
+
+        if (isNaN(parts))
+            parts = 3;
+
+        var truncated = "";
+        var partlist = text.split(".");
+
+        for ( i = 0; i < parts && i < partlist.length; i++) {
+            if (i > 0) {
+                truncated += ".";
+            }
+            truncated += partlist[i];
+        }
+
+        return truncated;
+    };
+});
