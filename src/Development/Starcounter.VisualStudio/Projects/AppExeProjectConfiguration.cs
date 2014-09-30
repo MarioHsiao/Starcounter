@@ -101,7 +101,15 @@ namespace Starcounter.VisualStudio.Projects {
             if (!ServerServiceProcess.IsOnline()) {
                 this.WriteDebugLaunchStatus("starting");
                 this.WriteLine("Starting personal server.");
-                ServerServiceProcess.StartInteractiveOnDemand();
+                var startServerTime = DateTime.Now;
+                try {
+                    ServerServiceProcess.StartInteractiveOnDemand();
+                } catch {
+                    new ErrorLogDisplay(
+                        package,
+                        FilterableLogReader.LogsSince(Sc.Tools.Logging.Severity.Warning, startServerTime)).ShowInErrorList();
+                    throw;
+                }
             }
             this.WriteDebugLaunchStatus("online");
             

@@ -55,6 +55,13 @@ namespace Starcounter.CLI {
         public string DatabaseName { get; set; }
 
         /// <summary>
+        /// Gets or sets a value that dictates of the command should
+        /// write error logs to the console when <see cref="Run"/> has
+        /// exited.
+        /// </summary>
+        public bool WriteErrorLogsToConsoleAfterRun { get; set; }
+
+        /// <summary>
         /// Executes the logic of the given CLI arguments on the
         /// on the target database on the target server.
         /// </summary>
@@ -68,6 +75,10 @@ namespace Starcounter.CLI {
             } finally {
                 Node = null;
                 Status = null;
+            }
+
+            if (WriteErrorLogsToConsoleAfterRun) {
+                CaptureAndWriteLoggedErrorsToConsole();
             }
 
             if (SharedCLI.ShowLogs) {
@@ -163,18 +174,7 @@ namespace Starcounter.CLI {
 
             Console.WriteLine();
 
-            var log = new FilterableLogReader() {
-                Count = int.MaxValue,
-                Since = executionStartTime,
-                TypeOfLogs = Severity.Error
-            };
-            var errors = LogSnapshot.Take(log, DatabaseName);
-            var errorsToDisplay = errors.DatabaseLogs;
-            if (errorsToDisplay.Length == 0) {
-                errorsToDisplay = errors.All;
-            }
-
-            var errorLogsWritten = WriteLoggedErrorsToConsole(errorsToDisplay) && errorsToDisplay.Length > 0;
+            var errorLogsWritten = CaptureAndWriteLoggedErrorsToConsole();
 
             // Try extracting an error detail from the body, but make
             // sure that if we fail doing so, we just dump out the full
@@ -234,6 +234,21 @@ namespace Starcounter.CLI {
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
+        }
+
+        bool CaptureAndWriteLoggedErrorsToConsole() {
+            var log = new FilterableLogReader() {
+                Count = int.MaxValue,
+                Since = executionStartTime,
+                TypeOfLogs = Severity.Error
+            };
+            var errors = LogSnapshot.Take(log, DatabaseName);
+            var errorsToDisplay = errors.DatabaseLogs;
+            if (errorsToDisplay.Length == 0) {
+                errorsToDisplay = errors.All;
+            }
+
+            return WriteLoggedErrorsToConsole(errorsToDisplay) && errorsToDisplay.Length > 0;
         }
 
         static bool WriteLoggedErrorsToConsole(LogEntry[] entries) {
