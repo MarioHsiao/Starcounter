@@ -1091,10 +1091,6 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
         // Creating work event handle.
 		work_events[worker_id] = db_shared_int->open_client_work_event(db_shared_int->get_client_number());
 
-		// Waiting for all channels.
-		// TODO: Unset notify flag when worker thread is spinning.
-		db_shared_int->client_interface().set_notify_flag(true);
-
 		// Sending APC on the determined worker.
 		worker_thread_handle[worker_id] = g_gateway.get_worker_thread_handle(worker_id);
         

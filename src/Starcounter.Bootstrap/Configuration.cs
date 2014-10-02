@@ -63,6 +63,11 @@ namespace StarcounterInternal.Bootstrap
             {
                 SchedulerCount = (uint)Environment.ProcessorCount;
             }
+
+            // Checking if there are too many schedulers.
+            if (SchedulerCount >= 32) {
+                SchedulerCount = 31;
+            }
         }
 
         /// <summary>

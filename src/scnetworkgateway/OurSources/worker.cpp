@@ -1366,8 +1366,49 @@ uint32_t GatewayWorker::WorkerRoutine()
     // Starting worker infinite loop.
     while (TRUE)
     {
+        // Checking if there no work.
+        if (0 != next_sleep_interval_ms) {
+
+            // Since we are going to sleep, we need to set notification flag.
+            for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++) {
+
+                WorkerDbInterface *db = GetWorkerDb(i);
+                if (NULL != db) {
+                    db->get_shared_int()->client_interface().set_notify_flag(true);
+                }
+            }
+
+            // Checking again if we need to be notified.
+            err_code = ScanChannels(&next_sleep_interval_ms);
+            GW_ASSERT(0 == err_code);
+
+            // If we have some chunks, we need to reset notification.
+            if (0 == next_sleep_interval_ms) {
+
+                for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++) {
+
+                    WorkerDbInterface *db = GetWorkerDb(i);
+                    if (NULL != db) {
+                        db->get_shared_int()->client_interface().set_notify_flag(false);
+                    }
+                }
+            }
+        }
+
         // Getting IOCP status.
         compl_status = GetQueuedCompletionStatusEx(worker_iocp_, fetched_ovls, MAX_FETCHED_OVLS, (PULONG)&num_fetched_ovls, next_sleep_interval_ms, TRUE);
+
+        // Checking if he have slept, then disabling notification.
+        if (0 != next_sleep_interval_ms) {
+
+            for (int32_t i = 0; i < g_gateway.get_num_dbs_slots(); i++) {
+
+                WorkerDbInterface *db = GetWorkerDb(i);
+                if (NULL != db) {
+                    db->get_shared_int()->client_interface().set_notify_flag(false);
+                }
+            }
+        }
 
         // Check if global lock is set.
         if (g_gateway.global_lock())
@@ -1525,7 +1566,7 @@ uint32_t GatewayWorker::WorkerRoutine()
             err_code = WSAGetLastError();
 
             // Checking if it was an APC event.
-            GW_ASSERT ((STATUS_USER_APC == err_code) || (STATUS_TIMEOUT == err_code));
+            GW_ASSERT((STATUS_USER_APC == err_code) || (STATUS_TIMEOUT == err_code));
         }
 
         next_sleep_interval_ms = INFINITE;
@@ -1550,8 +1591,7 @@ uint32_t GatewayWorker::WorkerRoutine()
 
         // Scanning all channels.
         err_code = ScanChannels(&next_sleep_interval_ms);
-        if (err_code)
-            return err_code;
+        GW_ASSERT(0 == err_code);
 
         // Pushing overflow chunks if any.
         PushOverflowChunks(&next_sleep_interval_ms);

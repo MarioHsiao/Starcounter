@@ -142,11 +142,13 @@ namespace Starcounter.CLI {
                     ShowStartResultAndSetExitCode(Node, DatabaseName, engine, exe, CLIArguments);
                 } catch (SocketException se) {
                     ShowSocketErrorAndSetExitCode(se, Node.BaseAddress, ServerName);
+                    WriteErrorLogsToConsoleAfterRun = true;
                     return;
                 }
 
             } catch (Exception e) {
                 SharedCLI.ShowErrorAndSetExitCode(e, true, false);
+                WriteErrorLogsToConsoleAfterRun = true;
                 return;
             }
         }
