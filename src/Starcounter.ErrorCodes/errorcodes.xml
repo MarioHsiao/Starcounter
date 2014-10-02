@@ -3526,6 +3526,9 @@
     <code hex="004F" severity="Error" name="ScErrHandlerInfoExceedsLimits">
         <message>Handler info exceeds size limits.</message>
     </code>
+    <code hex="0050" severity="Error" name="ScErrUnexpectedResponse">
+      <message>An internal node call returned an unexpected response.</message>
+    </code>
  </facility>
 
   <!-- Error codes related to query processing. -->
