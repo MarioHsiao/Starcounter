@@ -67,7 +67,10 @@ namespace Starcounter.Rest.ExtensionMethods {
         }
 
         static void DefaultErrorHandler(Response response) {
-            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, response.ToString());
+            throw ErrorCode.ToException(
+                Error.SCERRUNEXPECTEDRESPONSE, 
+                string.Format("{0}: {1}", response.StatusCode, response.ToString())
+                );
         }
     }
 }
