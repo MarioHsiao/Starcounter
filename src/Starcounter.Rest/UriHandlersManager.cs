@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Linq.Expressions;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Rest
 {
@@ -205,7 +206,7 @@ namespace Starcounter.Rest
                     resp.AppName = appNames_[0];
                 }
 
-                if (UriInjectMethods.ResponsesMergerRoutine_ != null) {
+                if ((!req.IsDestroyed()) && (UriInjectMethods.ResponsesMergerRoutine_ != null)) {
                     responses = new List<Response>();
                     responses.Add(resp);
                     return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
