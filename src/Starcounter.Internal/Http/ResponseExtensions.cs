@@ -48,7 +48,7 @@ namespace Starcounter.Rest.ExtensionMethods {
         public static int FailIfNotSuccessOr(this Response response, params int[] codes) {
             var pass = response.IsSuccessOr(codes);
             if (!pass) {
-                OnUnexpectedResponse(response);
+                InvokeErrorHandler(response);
             }
             return response.StatusCode;
         }
@@ -56,12 +56,17 @@ namespace Starcounter.Rest.ExtensionMethods {
         public static int FailIfNotIsAnyOf(this Response response, params int[] codes) {
             var pass = response.IsAnyOf(codes);
             if (!pass) {
-                OnUnexpectedResponse(response);
+                InvokeErrorHandler(response);
             }
             return response.StatusCode;
         }
 
-        public static void DefaultErrorHandler(Response response) {
+        static void InvokeErrorHandler(Response response) {
+            var handler = OnUnexpectedResponse ?? DefaultErrorHandler;
+            handler(response);
+        }
+
+        static void DefaultErrorHandler(Response response) {
             throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, response.ToString());
         }
     }
