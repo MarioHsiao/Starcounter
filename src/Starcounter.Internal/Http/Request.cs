@@ -517,6 +517,10 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         internal unsafe Boolean IsLoopingHostChunk() {
+
+            if (null == origChunk_)
+                return false;
+
             return (((*(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0);
         }
 
