@@ -75,7 +75,14 @@ namespace staradmin.Commands {
                     Source = source,
                     Database = databaseFilter
                 };
-                reader.Fetch((log) => { console.Write(log); });
+                var capacity = Math.Min(count, 200);
+                var stack = new Stack<LogEntry>(capacity);
+
+                reader.Fetch((log) => { stack.Push(log); });
+                foreach (var entry in stack) {
+                    console.Write(entry);
+                }
+
             } catch (Exception e) {
                 ConsoleUtil.ToConsoleWithColor(string.Format("Failed getting logs: {0}", e.Message), ConsoleColor.Red);
             }
