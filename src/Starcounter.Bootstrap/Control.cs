@@ -536,7 +536,7 @@ namespace StarcounterInternal.Bootstrap {
             e = sccoredb.sccoredb_set_system_callbacks(&callbacks);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.star_configure(sccoredb.STAR_KEY_COLUMN_NAME_TOKEN, sccoredb.STAR_DEFAULT_INDEX_NAME_TOKEN);
+            e = sccoredb.star_configure(sccoredb.STAR_KEY_COLUMN_NAME_TOKEN, sccoredb.STAR_DEFAULT_INDEX_NAME_TOKEN, 0);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 

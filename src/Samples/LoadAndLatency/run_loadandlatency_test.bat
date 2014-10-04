@@ -31,7 +31,7 @@ START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 
 :: Starting database memory management process.
-START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
+START CMD /C "scdata.exe %DB_NAME% 0 %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting log writer process.
 START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"

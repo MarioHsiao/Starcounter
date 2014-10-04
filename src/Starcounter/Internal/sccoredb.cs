@@ -1089,7 +1089,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint star_configure(ulong key_column_name, ulong default_index_name);
+        public static extern uint star_configure(ulong key_column_name, ulong default_index_name, uint server_index);
     }
 
     /// <summary>

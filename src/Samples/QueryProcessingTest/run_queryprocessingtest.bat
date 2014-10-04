@@ -42,7 +42,7 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 "c:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
 
 :: Starting database memory management process.
-START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
+START CMD /C "scdata.exe %DB_NAME% 0 %DB_NAME% %DB_OUT_DIR%"
 
 :: Starting log writer process.
 START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"

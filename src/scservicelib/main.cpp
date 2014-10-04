@@ -424,7 +424,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 
 #ifdef WITH_DATABASE
 	// Creating scdata command
-	str_template = L"scdata.exe %s %s \"%s\"";
+	str_template = L"scdata.exe %s 0 %s \"%s\"";
 	str_num_chars = 
 		wcslen(str_template) + 
 		wcslen(admin_dbname_upr) +	// database name uppercase

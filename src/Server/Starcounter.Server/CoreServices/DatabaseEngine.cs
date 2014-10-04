@@ -534,6 +534,8 @@ namespace Starcounter.Server {
             arguments.Append(database.Name.ToUpperInvariant());
             arguments.Append(' ');
 
+            arguments.Append("0 ");
+
             arguments.Append('\"');
             arguments.Append(database.Uri);
             //arguments.Append(database.Name);
