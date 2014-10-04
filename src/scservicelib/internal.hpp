@@ -55,6 +55,9 @@ uint32_t OpenStarcounterLog(const char *server_name, const wchar_t* server_log_d
 void CloseStarcounterLog();
 
 // Write critical into log.
+void LogWriteCritical(const char* msg);
+
+// Write critical into log.
 void LogWriteCritical(const wchar_t* msg);
 
 // Write error into log.

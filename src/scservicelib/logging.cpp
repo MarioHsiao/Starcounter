@@ -35,7 +35,8 @@ uint32_t OpenStarcounterLog(const char *server_name, const wchar_t *server_log_d
 		err_code = sccorelog_init(0);
 		if (err_code) goto err;
 
-		err_code = sccorelog_connect_to_logs(host_name, server_log_dir, NULL, &g_sc_log_handle_);
+		err_code = sccorelog_connect_to_logs(reinterpret_cast<const ucs2_char *>(host_name),
+			reinterpret_cast<const ucs2_char *>(server_log_dir), NULL, &g_sc_log_handle_);
 		if (err_code) goto err;
 
 		goto end;
@@ -58,6 +59,19 @@ void CloseStarcounterLog()
 }
 
 // Write critical into log.
+void LogWriteCritical(const char* msg)
+{
+	uint32_t err_code;
+
+	if (msg)
+	{
+		err_code = star_kernel_write_to_logs_utf8(g_sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
+	}
+
+	err_code = sccorelog_flush_to_logs(g_sc_log_handle_);
+}
+
+// Write critical into log.
 void LogWriteCritical(const wchar_t* msg)
 {
 	// NOTE:
@@ -68,7 +82,8 @@ void LogWriteCritical(const wchar_t* msg)
 
 	if (msg)
 	{
-		err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_CRITICAL, 0, msg);
+		err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_CRITICAL, 0,
+			reinterpret_cast<const ucs2_char *>(msg));
 
 		//_SC_ASSERT(0 == err_code);
 	}
@@ -81,7 +96,8 @@ void LogWriteCritical(const wchar_t* msg)
 // Write error into log.
 void LogWriteError(const wchar_t* msg)
 {
-	uint32_t err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_ERROR, 0, msg);
+	uint32_t err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_ERROR, 0,
+		reinterpret_cast<const ucs2_char *>(msg));
 
 	_SC_ASSERT(0 == err_code);
 
@@ -93,7 +109,8 @@ void LogWriteError(const wchar_t* msg)
 // Write debug into log.
 void LogWriteDebug(const wchar_t* msg)
 {
-	uint32_t err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_DEBUG, 0, msg);
+	uint32_t err_code = sccorelog_kernel_write_to_logs(g_sc_log_handle_, SC_ENTRY_DEBUG, 0,
+		reinterpret_cast<const ucs2_char *>(msg));
 
 	_SC_ASSERT(0 == err_code);
 

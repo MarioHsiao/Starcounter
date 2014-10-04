@@ -8,6 +8,10 @@
 #include <string.h>
 #include <iostream> // TODO: Remove! Testing scservice_is_running_lock.
 
+#define _SC_UNHANDLED_CORE_EXCEPT (sccoredbg_unhandled_core_except(GetExceptionInformation(), __FILE__, __LINE__))
+#define _SC_BEGIN_FUNC __try {
+#define _SC_END_FUNC } __except(_SC_UNHANDLED_CORE_EXCEPT) { }
+
 extern "C" int32_t make_sc_process_uri(const char *server_name, const char *process_name, wchar_t *buffer, size_t *pbuffer_size);
 
 #define INHERIT_CONSOLE_IPC_MONITOR 0
@@ -51,7 +55,7 @@ static void __shutdown_event_handler()
 }
 
 // Is called when scservice crashes.
-VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
+void LogGatewayCrash(void *pc, const char *str)
 {
 	LogWriteCritical(str);
 }

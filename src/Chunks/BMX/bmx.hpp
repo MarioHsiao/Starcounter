@@ -36,6 +36,10 @@
 //#undef _SC_ASSERT
 //#define _SC_ASSERT assert
 
+#define _SC_UNHANDLED_CORE_EXCEPT (sccoredbg_unhandled_core_except(GetExceptionInformation(), __FILE__, __LINE__))
+#define _SC_BEGIN_FUNC __try {
+#define _SC_END_FUNC } __except(_SC_UNHANDLED_CORE_EXCEPT) { }
+
 // BMX task information.
 struct TASK_INFO_TYPE
 {
