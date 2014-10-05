@@ -108,10 +108,10 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
         break;
     }
 
-    int32_t onFlag = 1;
+    int32_t on_flag = 1;
 
     // Does not block close waiting for unsent data to be sent.
-    if (setsockopt(new_connect_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&onFlag, 4))
+    if (setsockopt(new_connect_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
     {
         GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
 
@@ -272,8 +272,8 @@ uint32_t GatewayWorker::CollectInactiveSockets()
             // Disconnecting socket.
             switch (si->type_of_network_protocol_)
             {
-            case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
-                {
+                case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1: {
+
                     // Updating unique socket id.
                     GenerateUniqueSocketInfoIds(i);
 
@@ -843,7 +843,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         g_gateway.DisconnectSocket(sd->GetSocket());
 
         // Making socket unusable.
-        InvalidateSocket(sd->get_socket_info_index());
+        sd->InvalidateSocket();
 
         goto RELEASE_CHUNK_TO_POOL;
     }
@@ -867,7 +867,7 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
         g_gateway.DisconnectSocket(sd->GetSocket());
 
         // Making socket unusable.
-        InvalidateSocket(sd->get_socket_info_index());
+        sd->InvalidateSocket();
 
         // Finish disconnect operation.
         err_code = FinishDisconnect(sd, true);
@@ -908,6 +908,9 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
     GW_PRINT_WORKER << "FinishDisconnect: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Making sure that its a socket representer.
+    GW_ASSERT(sd->get_socket_representer_flag());
+
     // Checking correct unique socket.
     if (false == sd->CompareUniqueSocketId()) {
         already_disconnected = true;
@@ -928,10 +931,11 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd, bo
     // Releasing socket resources.
     if (!already_disconnected) {
 
+        // Disconnecting socket handle.
         g_gateway.DisconnectSocket(sd->GetSocket());
 
         // Making socket unusable.
-        InvalidateSocket(sd->get_socket_info_index());
+        sd->InvalidateSocket();
     }
 
     // Removing from active sockets.
@@ -1134,10 +1138,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             // Decreasing number of active sockets on worker 0.
             RemoveFromActiveSockets(port_index);
 
-            // Adding to active sockets of the other worker.
-            ServerPort* sp = g_gateway.get_server_port(port_index);
-            sp->AddToActiveSockets(least_busy_worker_id);
-
             // Getting temporary rebalance container.
             RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
             if (NULL == rsi) {
@@ -1284,20 +1284,15 @@ void GatewayWorker::ProcessRebalancedSockets() {
         // Returning socket info back to origin.
         g_gateway.get_worker(0)->PushRebalanceSocketInfo(rsi);
 
+        // Adding to active sockets of the other worker.
+        AddToActiveSockets(pi);
+
         // Creating new socket data structure inside chunk.
         SocketDataChunk* new_sd = NULL;
 
         // Associating new socket with least busy worker IOCP.
         HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) s, worker_iocp_, 0, 1);
         GW_ASSERT(iocp_handler == worker_iocp_);
-
-        if (iocp_handler != worker_iocp_) {
-
-            // Just closing the socket.
-            g_gateway.DisconnectSocket(s);
-
-            return;
-        }
 
         // Getting new socket index.
         socket_index_type new_socket_index = ObtainFreeSocketIndex(s, pi, false);

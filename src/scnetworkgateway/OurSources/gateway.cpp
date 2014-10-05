@@ -1019,7 +1019,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     }
 
     // Listening to connections.
-    if (listen(sock, SOMAXCONN))
+    if (listen(sock, LISTENING_SOCKET_QUEUE_SIZE))
     {
         PrintLastError(true);
         closesocket(sock);

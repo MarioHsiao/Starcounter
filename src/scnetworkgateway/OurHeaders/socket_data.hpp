@@ -1054,8 +1054,17 @@ public:
     SOCKET GetSocket()
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
+        GW_ASSERT_DEBUG(socket_info_->socket_ != INVALID_SOCKET);
 
         return socket_info_->socket_;
+    }
+
+    // Setting new unique socket number.
+    void InvalidateSocket()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->socket_ = INVALID_SOCKET;
     }
 
     // Set scheduler id.

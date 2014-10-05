@@ -11,6 +11,7 @@ using System.IO.Compression;
 using Starcounter.Advanced;
 
 namespace Starcounter.Internal.Web {
+
     /// <summary>
     /// Manages the loading and caching of web resources such as .html files and images. Also keeps track 
     /// of non static web resources such as apps (having dynamic content). Each resource is represented 
@@ -18,6 +19,7 @@ namespace Starcounter.Internal.Web {
     /// <para><img src="http://www.rebelslounge.com/res/scweb/WebResource.png" /></para>
     /// </summary>
     public partial class StaticWebServer : IRestServer {
+
         /// <summary>
         /// The web server can accept multiple root catalogues/directories to resolve static
         /// file resources. If the same file can be found in the same relative path in multiple
@@ -41,10 +43,9 @@ namespace Starcounter.Internal.Web {
             ClearCache();
 
             // Adding only if does not contain this path already.
-            if (!workingDirectories.Contains(path))
-                workingDirectories.Add(path);
+            if (!workingDirectories_.Contains(path))
+                workingDirectories_.Add(path);
         }
-
 
         /// <summary>
         /// Get a list with all folders where static file resources such as .html files or images are kept.
@@ -52,7 +53,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="port"></param>
         /// <returns>List with folders</returns>
         public List<string> GetWorkingDirectories(UInt16 port) {
-            return this.workingDirectories;
+            return this.workingDirectories_;
         }
 
         /// <summary>
@@ -63,7 +64,7 @@ namespace Starcounter.Internal.Web {
         /// uncompressed versions. Compressed and uncompressed items are cached
         /// the first time they are retrieved.
         /// </remarks>
-        private Dictionary<string, Response> cacheOnUri;
+        private Dictionary<string, Response> cacheOnUri_;
 
         /// <summary>
         /// Http response cache keyed on file path on disk
@@ -73,7 +74,7 @@ namespace Starcounter.Internal.Web {
         /// uncompressed versions. Compressed and uncompressed items are cached
         /// the first time they are retrieved.
         /// </remarks>
-        private Dictionary<string, Response> cacheOnFilePath;
+        private Dictionary<string, Response> cacheOnFilePath_;
 
         /// <summary>
         /// Creates a new web server with an empty cache.
@@ -86,19 +87,9 @@ namespace Starcounter.Internal.Web {
         /// Empties the cache.
         /// </summary>
         public void ClearCache() {
-            cacheOnUri = new Dictionary<string, Response>();
-            cacheOnFilePath = new Dictionary<string, Response>();
+            cacheOnUri_ = new Dictionary<string, Response>();
+            cacheOnFilePath_ = new Dictionary<string, Response>();
             ClearWatchedParts();
-        }
-
-        /// <summary>
-        /// As a HttpRestServer, the static file server needs to implement the
-        /// Handle method to provide a response to an http request.
-        /// </summary>
-        /// <param name="request">The http request</param>
-        /// <returns>The http response</returns>
-        public Response HandleRequest(Request request, Int32 handlerLevel) {
-            return GetStatic(request.Uri, request);
         }
 
         /// <summary>
@@ -107,27 +98,40 @@ namespace Starcounter.Internal.Web {
         /// <param name="relativeUri">The URI of the resource</param>
         /// <param name="request">The http request as defined by Starcounter</param>
         /// <returns>The UTF8 encoded response</returns>
-        public Response GetStatic(string relativeUri, Request request) {
-            Response resource;
+        public Response GetStaticResponseClone(string relativeUri, Request request) {
+            Response resourceResp;
 
             relativeUri = relativeUri.ToLower();
-            if (cacheOnUri.TryGetValue(relativeUri, out resource)) {
-                return resource;
-            }
 
-            if (!Configuration.Current.FileServer.DisableAllCaching) {
-                // Locking because of possible multi-threaded calls.
-                lock (lockObject) {
-                    // Checking again if already processed the file..
-                    if (cacheOnUri.TryGetValue(relativeUri, out resource)) {
-                        Debug("(found cache2) " + relativeUri);
-                        return resource;
+            // Trying to get the resource from the cache.
+            if (!cacheOnUri_.TryGetValue(relativeUri, out resourceResp)) {
+
+                if (!Configuration.Current.FileServer.DisableAllCaching) {
+
+                    // Locking because of possible multi-threaded calls.
+                    lock (workingDirectories_) {
+                        // Checking again if already processed the file..
+                        if (cacheOnUri_.TryGetValue(relativeUri, out resourceResp)) {
+                            Debug("(found cache2) " + relativeUri);
+                            return resourceResp;
+                        }
                     }
                 }
             }
 
-            resource = GetFileResource(resource, relativeUri, request);
-            return resource;
+            if (resourceResp == null) {
+
+                // We need to lock here because of possible multiple file accesses.
+                lock (cacheOnUri_) {
+
+                    // Re-trying once again because of the lock.
+                    if (!cacheOnUri_.TryGetValue(relativeUri, out resourceResp)) {
+                        resourceResp = GetFileResource(resourceResp, relativeUri, request);
+                    }
+                }
+            }
+
+            return resourceResp.CloneStaticResourceResponse();
         }
 
         /// <summary>
@@ -149,13 +153,13 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// Housekeeps this instance.
+        /// House-keeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
         public int Housekeep() {
             //ClearCache(); // TODO! Only invalidate individual items
-            var invalidated = new List<Response>(cacheOnFilePath.Count);
-            foreach (var cached in this.cacheOnFilePath) {
+            var invalidated = new List<Response>(cacheOnFilePath_.Count);
+            foreach (var cached in this.cacheOnFilePath_) {
                 var path = cached.Value.FilePath;
                 bool was = cached.Value.FileExists;
                 bool exists = File.Exists(path);

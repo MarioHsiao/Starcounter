@@ -239,6 +239,9 @@ const uint16_t FIRST_BIND_PORT_NUM = 1500;
 // Maximum length of gateway statistics string.
 const int32_t MAX_STATS_LENGTH = 1024 * 64;
 
+// Size of the listening queue.
+const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
+
 // Gateway mode.
 enum GatewayTestingMode
 {
