@@ -1355,7 +1355,7 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnections();
+    int64_t NumberOfActiveSockets();
 
     // Retrieves the number of accepting sockets.
     int64_t get_num_accepting_sockets()
@@ -1956,8 +1956,8 @@ public:
         return server_ports_ + port_index;
     }
 
-    // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnectionsOnAllPorts()
+    // Retrieves the number of active sockets on all ports.
+    int64_t NumberOfActiveSocketsOnAllPorts()
     {
         int64_t num_active_conns = 0;
 
@@ -1976,7 +1976,7 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnectionsOnAllPortsForWorker(worker_id_type worker_id)
+    int64_t NumberOfActiveSocketsOnAllPortsForWorker(worker_id_type worker_id)
     {
         int64_t num_active_conns = 0;
 
