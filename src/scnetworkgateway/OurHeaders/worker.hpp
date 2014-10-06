@@ -470,7 +470,7 @@ public:
     HANDLE get_worker_iocp() { return worker_iocp_; }
 
     // Used to create new connections when reaching the limit.
-    uint32_t CreateNewConnections(int32_t how_many, port_index_type port_index);
+    uint32_t CreateAcceptingSockets(port_index_type port_index);
 
     // Allocates a bunch of new connections.
     uint32_t CreateProxySocket(SocketDataChunkRef proxy_sd);

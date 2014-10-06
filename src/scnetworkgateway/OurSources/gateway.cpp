@@ -976,7 +976,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     }
     
     // Attaching socket to IOCP.
-    HANDLE temp = CreateIoCompletionPort((HANDLE) sock, gw->get_worker_iocp(), 0, 1);
+    HANDLE temp = CreateIoCompletionPort((HANDLE) sock, gw->get_worker_iocp(), 0, 0);
     if (temp != gw->get_worker_iocp())
     {
         PrintLastError(true);
@@ -3151,14 +3151,10 @@ uint32_t Gateway::AddPortHandler(
         if (port_num == g_gateway.setting_aggregation_port())
             server_port->set_aggregating_flag();
 
-        // Checking if we need to extend number of accepting sockets.
-        if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
-        {
-            // Creating new connections if needed for this database.
-            err_code = g_gateway.get_worker(0)->CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, server_port->get_port_index());
-            if (err_code)
-                return err_code;
-        }
+        // Creating new connections if needed for this database.
+        err_code = g_gateway.get_worker(0)->CreateAcceptingSockets(server_port->get_port_index());
+        if (err_code)
+            return err_code;
     }
 
     // Registering URI handler.
