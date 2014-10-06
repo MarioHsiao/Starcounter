@@ -444,14 +444,14 @@ bool ServerPort::IsEmpty()
         return false;
 
     // Checking connections.
-    if (NumberOfActiveConnections())
+    if (NumberOfActiveSockets())
         return false;
 
     return true;
 }
 
-// Retrieves the number of active connections.
-int64_t ServerPort::NumberOfActiveConnections()
+// Retrieves the number of active sockets.
+int64_t ServerPort::NumberOfActiveSockets()
 {
     int64_t num_active_conns = 0;
 
@@ -578,9 +578,6 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 {
     stats_stream << "{\"port\":" << get_port_number() << ",";
     stats_stream << "\"acceptingSockets\":" << get_num_accepting_sockets() << ",";
-
-    stats_stream << "\"activeConnections\":" << NumberOfActiveConnections() << ",";
-
     stats_stream << "\"activeSockets\":\"";
 
     stats_stream << num_active_sockets_[0];
@@ -1019,7 +1016,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     }
 
     // Listening to connections.
-    if (listen(sock, SOMAXCONN))
+    if (listen(sock, LISTENING_SOCKET_QUEUE_SIZE))
     {
         PrintLastError(true);
         closesocket(sock);
@@ -1090,10 +1087,6 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 
         // Creating work event handle.
 		work_events[worker_id] = db_shared_int->open_client_work_event(db_shared_int->get_client_number());
-
-		// Waiting for all channels.
-		// TODO: Unset notify flag when worker thread is spinning.
-		db_shared_int->client_interface().set_notify_flag(true);
 
 		// Sending APC on the determined worker.
 		worker_thread_handle[worker_id] = g_gateway.get_worker_thread_handle(worker_id);
@@ -2436,6 +2429,7 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
+// Disconnecting given socket handle.
 void Gateway::DisconnectSocket(SOCKET s) {
 
     GW_ASSERT(INVALID_SOCKET != s);
@@ -2724,7 +2718,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_ 
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkers() 
-            << ",\"activeSockets\":" << g_gateway.NumberOfActiveConnectionsOnAllPorts() 
+            << ",\"activeSockets\":" << g_gateway.NumberOfActiveSocketsOnAllPorts() 
             << "}";
 
         first = true;
@@ -2741,7 +2735,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
                 global_statistics_stream_ 
                     << "{\"port\":" << server_ports_[p].get_port_number() 
-                    << ",\"activeConnections\":" << server_ports_[p].NumberOfActiveConnections()
+                    << ",\"activeSockets\":" << server_ports_[p].NumberOfActiveSockets()
                     << ",\"acceptingSockets\":" << server_ports_[p].get_num_accepting_sockets()
 
                     << "}";

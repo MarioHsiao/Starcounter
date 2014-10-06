@@ -31,7 +31,7 @@ namespace Starcounter.Tools.Service.Task {
             //        { 
             //            "port": 8181,
             //            "acceptSockets": 1,
-            //            "activeConnections": 9,
+            //            "activeSockets": 9,
             //            "registeredUris": [
             //                {
             //                    "uri": "GET /test",
@@ -55,7 +55,6 @@ namespace Starcounter.Tools.Service.Task {
             //            "packetsReceived": 63,
             //            "bytesSent": 349921,
             //            "packetsSent": 74,
-            //            "boundSockets": 11,
             //            "allocatedChunks": "2, 11, 1, 6"
             //        }
             //    ],

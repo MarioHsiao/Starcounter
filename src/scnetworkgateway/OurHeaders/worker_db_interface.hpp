@@ -31,8 +31,11 @@ class WorkerDbInterface
     // Private chunk pool.
     core::chunk_pool<core::chunk_index> private_chunk_pool_;
 
-    // Simulation queue for the shared memory.
-    LinearQueue<core::chunk_index, MAX_WORKER_CHUNKS> simulated_shared_memory_queue_;
+    // Simulation shared memory queue for the shared memory.
+    LinearQueue<core::chunk_index, 100000> simulated_shared_memory_queue_;
+
+    // Simulation shared memory queue using the socket data.
+    LinearQueue<SocketDataChunk*, 100000> simulated_shared_memory_queue_using_sd_;
 
     // Database index.
     db_index_type db_index_;

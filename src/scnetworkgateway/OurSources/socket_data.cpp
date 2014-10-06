@@ -137,7 +137,7 @@ uint32_t SocketDataChunk::Disconnect(GatewayWorker *gw)
 }
 
 // Resetting socket.
-void SocketDataChunk::ResetOnDisconnect(GatewayWorker *gw)
+void SocketDataChunk::ResetWhenDisconnectIsDone(GatewayWorker *gw)
 {
     // Checking if there is a proxy socket.
     if (HasProxySocket()) {

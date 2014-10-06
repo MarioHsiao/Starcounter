@@ -798,7 +798,7 @@ public:
         socket_index_type socket_info_index);
 
     // Resetting socket.
-    void ResetOnDisconnect(GatewayWorker *gw);
+    void ResetWhenDisconnectIsDone(GatewayWorker *gw);
 
     // Returns pointer to the beginning of user data.
     uint8_t* UserDataBuffer()
@@ -954,6 +954,16 @@ public:
         socket_info_->socket_timestamp_ = g_gateway.get_global_timer_unsafe();
     }
 
+    // Disconnects and invalidates socket.
+    void DisconnectSocket() {
+
+        // Disconnecting socket handle.
+        g_gateway.DisconnectSocket(GetSocket());
+
+        // Making socket handle unusable.
+        InvalidateSocket();
+    }
+
     // Invalidating socket number.
     bool IsInvalidSocket() {
 
@@ -1054,8 +1064,17 @@ public:
     SOCKET GetSocket()
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
+        GW_ASSERT_DEBUG(socket_info_->socket_ != INVALID_SOCKET);
 
         return socket_info_->socket_;
+    }
+
+    // Setting new unique socket number.
+    void InvalidateSocket()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->socket_ = INVALID_SOCKET;
     }
 
     // Set scheduler id.

@@ -25,6 +25,7 @@ namespace QueryProcessingTest {
             int count = 0;
             foreach (Starcounter.Metadata.DbPrimitiveType mt in
                 Db.SQL<Starcounter.Metadata.DbPrimitiveType>("select t from DbPrimitiveType t")) {
+                    Trace.Assert(!String.IsNullOrWhiteSpace(mt.Name));
                 acc += mt.PrimitiveType;
                 count++;
             }
@@ -43,6 +44,7 @@ namespace QueryProcessingTest {
             foreach (Starcounter.Metadata.MapPrimitiveType mpt in 
                 Db.SQL<Starcounter.Metadata.MapPrimitiveType>("select t from MapPrimitiveType t")) {
                 Trace.Assert(mpt.DbPrimitiveType != null);
+                Trace.Assert(!String.IsNullOrWhiteSpace(mpt.Name));
                 count++;
             }
             Trace.Assert(count == 15);
@@ -102,6 +104,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.MaterializedTable != null);
                 //Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 Trace.Assert(v.UniqueIdentifier == v.UniqueIdentifierReversed.ReverseOrderDotWords());
+                Trace.Assert(!String.IsNullOrWhiteSpace(v.Name));
                 count++;
             }
             Trace.Assert(count == 18);
@@ -123,6 +126,14 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(count == 15);
             Trace.Assert(Db.SQL<Starcounter.Metadata.Table>("select t from \"table\" t").First != null);
+            foreach (Starcounter.Metadata.Table table in
+                Db.SQL<Starcounter.Metadata.Table>("select t from Starcounter.Metadata.Table t")) {
+                    Trace.Assert(!String.IsNullOrWhiteSpace(table.Name));
+            }
+            foreach (String name in
+                Db.SQL<String>("select Name from Starcounter.Metadata.Table")) {
+                Trace.Assert(!String.IsNullOrWhiteSpace(name));
+            }
         }
 
         public static void TestRuntimeColumnMetadata() {
