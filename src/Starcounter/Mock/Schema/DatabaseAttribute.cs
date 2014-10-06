@@ -322,6 +322,13 @@ namespace Sc.Server.Weaver.Schema {
         }
 
         /// <summary>
+        /// Gets the current attributes special flags.
+        /// </summary>
+        internal int SpecialFlags {
+            get { return specialFlags; }
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <returns></returns>
