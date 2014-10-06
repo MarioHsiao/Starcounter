@@ -444,6 +444,47 @@ namespace NetworkIoTestApp
                         return new Response() { BodyBytes = req.BodyBytes };
                     });
 
+                    Int64[] LoopingHostNumRequests = new Int64 [StarcounterEnvironment.SchedulerCount];
+                    Stopwatch[] LoopingHostStopwatches = new Stopwatch[StarcounterEnvironment.SchedulerCount];
+
+                    Handle.GET(12345, "/loopstats/{?}", (Request req, Int32 schedId) => {
+
+                        String stats = "Looping host schedulers status" + Environment.NewLine + "--------------------------";
+                        double totalRps = 0;
+
+                        for (Byte s = 0; s < StarcounterEnvironment.SchedulerCount; s++) {
+
+                            if (null != LoopingHostStopwatches[s]) {
+
+                                Int64 numRequests = LoopingHostNumRequests[s];
+                                double rps = (numRequests * 1000.0) / LoopingHostStopwatches[s].ElapsedMilliseconds;
+                                totalRps += rps;
+                                stats += Environment.NewLine + "Scheduler " + s + ": processed requests " + numRequests + ", RPS " + rps;
+                            }
+                        }
+
+                        stats += Environment.NewLine + "Total RPS: " + totalRps;
+                        
+                        return stats;
+                    });
+
+                    Handle.GET(12345, "/loop/{?}", (Request req, Int32 schedId) => {
+
+                        Byte s = StarcounterEnvironment.CurrentSchedulerId;
+                        Debug.Assert(schedId == s);
+
+                        LoopingHostNumRequests[s]++;
+
+                        // Checking if stopwatch is started.
+                        if (LoopingHostStopwatches[s] == null) {
+                            LoopingHostStopwatches[s] = new Stopwatch();
+                            LoopingHostStopwatches[s].Start();
+                        }
+
+                        return new Response() { BodyBytes = req.BodyBytes };
+                    });
+
+
                     Handle.CUSTOM(8080, "{?} /{?}", (Request req, String method, String p1) =>
                     {
                         return "CUSTOM method " + method + " with parameter " + p1;

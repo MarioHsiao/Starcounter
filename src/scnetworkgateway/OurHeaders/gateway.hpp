@@ -114,7 +114,6 @@ enum GatewayErrorCodes
     SCERRGWCONNECTEXFAILED,
     SCERRGWOPERATIONONWRONGSOCKET,
     SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING,
-    SCERRGWFAILEDTOBINDPORT,
     SCERRGWFAILEDTOATTACHSOCKETTOIOCP,
     SCERRGWFAILEDTOLISTENONSOCKET,
     SCERRGWIPISNOTONWHITELIST,
@@ -137,7 +136,7 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 100;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 1000;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
@@ -210,7 +209,7 @@ const random_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 128;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 4096;
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE = MAX_CHUNKS_IN_PRIVATE_POOL * 2;
 
 // Size of local/remove address structure.
@@ -239,6 +238,9 @@ const uint16_t FIRST_BIND_PORT_NUM = 1500;
 
 // Maximum length of gateway statistics string.
 const int32_t MAX_STATS_LENGTH = 1024 * 64;
+
+// Size of the listening queue.
+const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
 
 // Gateway mode.
 enum GatewayTestingMode
@@ -1353,7 +1355,7 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnections();
+    int64_t NumberOfActiveSockets();
 
     // Retrieves the number of accepting sockets.
     int64_t get_num_accepting_sockets()
@@ -1680,7 +1682,7 @@ public:
     void PrintWorkersStatistics(std::stringstream& stats_stream);
 
     // Registering all gateway handlers.
-    void RegisterGatewayHandlers();
+    uint32_t RegisterGatewayHandlers();
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()
@@ -1954,8 +1956,8 @@ public:
         return server_ports_ + port_index;
     }
 
-    // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnectionsOnAllPorts()
+    // Retrieves the number of active sockets on all ports.
+    int64_t NumberOfActiveSocketsOnAllPorts()
     {
         int64_t num_active_conns = 0;
 
@@ -1974,7 +1976,7 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnectionsOnAllPortsForWorker(worker_id_type worker_id)
+    int64_t NumberOfActiveSocketsOnAllPortsForWorker(worker_id_type worker_id)
     {
         int64_t num_active_conns = 0;
 

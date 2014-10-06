@@ -22,16 +22,16 @@ namespace Starcounter.Advanced.Hypermedia {
     /// </remarks>
     public class HtmlMerger {
 
-        HtmlDoc DocA;
-        HtmlDoc DocB;
+        HtmlDoc docA_;
+        HtmlDoc docB_;
 
 //        Dictionary<string, HtmlNode> Nodes;
 
         public HtmlMerger(string a, string b) {
-            DocA = new HtmlDoc();
-            DocA.LoadHtml(a);
-            DocB = new HtmlDoc();
-            DocB.LoadHtml(b);
+            docA_ = new HtmlDoc();
+            docA_.LoadHtml(a);
+            docB_ = new HtmlDoc();
+            docB_.LoadHtml(b);
 //            UseLayoutFromA = true;
         }
 
@@ -41,7 +41,7 @@ namespace Starcounter.Advanced.Hypermedia {
         }
 
         public string GetString() {
-            return GetString(DocA) + "\r\n" + GetString(DocB);
+            return GetString(docA_) + "\r\n" + GetString(docB_);
         }
 
         private static string GetString(HtmlDocument doc) {

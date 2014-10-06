@@ -624,4 +624,13 @@ EXTERN_C uint32_t __stdcall sc_bmx_parse_pong(
     uint64_t* pong_data
     );
 
+EXTERN_C uint32_t __stdcall sc_bmx_clone_chunk(
+    starcounter::core::chunk_index src_chunk_index,
+    int32_t offset,
+    int32_t num_bytes_to_copy,
+    starcounter::core::chunk_index* new_chunk_index
+    );
+
+EXTERN_C uint32_t __stdcall sc_clone_linked_chunks(starcounter::core::chunk_index first_chunk_index, starcounter::core::chunk_index* out_chunk_index);
+
 #endif

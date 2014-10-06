@@ -20,7 +20,7 @@ static wchar_t BuildStatisticsFilePath[1024];
 // Reports statistics 
 void ReportStatistics(const char* stat_name, const double stat_value)
 {
-    char temp_str[512];
+    char temp_str[TEMP_BIG_BUFFER_SIZE];
 
     // Doing statistics initialization once.
     if (NULL == StatisticsCS)

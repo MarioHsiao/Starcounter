@@ -444,14 +444,14 @@ bool ServerPort::IsEmpty()
         return false;
 
     // Checking connections.
-    if (NumberOfActiveConnections())
+    if (NumberOfActiveSockets())
         return false;
 
     return true;
 }
 
-// Retrieves the number of active connections.
-int64_t ServerPort::NumberOfActiveConnections()
+// Retrieves the number of active sockets.
+int64_t ServerPort::NumberOfActiveSockets()
 {
     int64_t num_active_conns = 0;
 
@@ -578,9 +578,6 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 {
     stats_stream << "{\"port\":" << get_port_number() << ",";
     stats_stream << "\"acceptingSockets\":" << get_num_accepting_sockets() << ",";
-
-    stats_stream << "\"activeConnections\":" << NumberOfActiveConnections() << ",";
-
     stats_stream << "\"activeSockets\":\"";
 
     stats_stream << num_active_sockets_[0];
@@ -1014,12 +1011,12 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
         closesocket(sock);
         sock = INVALID_SOCKET;
        
-        GW_LOG_ERROR << L"Failed to bind server port: " << port_num << L". Please check that port is not occupied by any software." << GW_WENDL;
-        return SCERRGWFAILEDTOBINDPORT;
+        GW_LOG_ERROR << L"Failed to bind socket to port: " << port_num << L". Please check that port is not occupied by any software." << GW_WENDL;
+        return SCERRNETWORKPORTISOCCUPIED;
     }
 
     // Listening to connections.
-    if (listen(sock, SOMAXCONN))
+    if (listen(sock, LISTENING_SOCKET_QUEUE_SIZE))
     {
         PrintLastError(true);
         closesocket(sock);
@@ -1090,10 +1087,6 @@ uint32_t __stdcall DatabaseChannelsEventsMonitorRoutine(LPVOID params)
 
         // Creating work event handle.
 		work_events[worker_id] = db_shared_int->open_client_work_event(db_shared_int->get_client_number());
-
-		// Waiting for all channels.
-		// TODO: Unset notify flag when worker thread is spinning.
-		db_shared_int->client_interface().set_notify_flag(true);
 
 		// Sending APC on the determined worker.
 		worker_thread_handle[worker_id] = g_gateway.get_worker_thread_handle(worker_id);
@@ -1193,15 +1186,21 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 
     if (err_code) {
 
-        // Ignoring error code if its existing handler.
-        if (SCERRHANDLERALREADYREGISTERED == err_code)
-            err_code = 0;
+        std::stringstream ss;
+        ss << "Can't register URI handler \"" << original_uri_info << "\" on port " << port << ".";
+        
+        if (SCERRNETWORKPORTISOCCUPIED == err_code) {
+            ss << " Specified port is occupied.";
+        } else if (SCERRHANDLERALREADYREGISTERED == err_code) {
+            ss << " This handler is already registered.";
+        } else {
+            ss << " Error code: " << err_code << ".";
+        }
 
-        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
-        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register URI handler '%S' on port %d", original_uri_info, port);
+        char temp_buf[TEMP_BIG_BUFFER_SIZE];
+        int32_t size_bytes = ConstructHttp400(temp_buf, TEMP_BIG_BUFFER_SIZE, ss.str(), err_code);
 
-        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
-        return err_code;
+        return gw->SendPredefinedMessage(sd, temp_buf, size_bytes);
 
     } else {
 
@@ -1260,15 +1259,21 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
 
     if (err_code) {
 
-        // Ignoring error code if its existing handler.
-        if (SCERRHANDLERALREADYREGISTERED == err_code)
-            err_code = 0;
+        std::stringstream ss;
+        ss << "Can't register port handler on port " << port << ".";
 
-        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
-        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register PORT handler on port %d", port);
+        if (SCERRNETWORKPORTISOCCUPIED == err_code) {
+            ss << " Specified port is occupied.";
+        } else if (SCERRHANDLERALREADYREGISTERED == err_code) {
+            ss << " This handler is already registered.";
+        } else {
+            ss << " Error code: " << err_code << ".";
+        }
 
-        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
-        return err_code;
+        char temp_buf[TEMP_BIG_BUFFER_SIZE];
+        int32_t size_bytes = ConstructHttp400(temp_buf, TEMP_BIG_BUFFER_SIZE, ss.str(), err_code);
+
+        return gw->SendPredefinedMessage(sd, temp_buf, size_bytes);
 
     } else {
 
@@ -1338,7 +1343,8 @@ uint32_t RegisterWsHandler(
             0,
             OuterUriProcessData);
 
-        GW_ASSERT(0 == err_code);
+        if (err_code)
+            return err_code;
 
         server_port = g_gateway.FindServerPort(port);
 
@@ -1364,15 +1370,21 @@ uint32_t RegisterWsHandler(
 
     if (err_code) {
 
-        // Ignoring error code if its existing handler.
-        if (SCERRHANDLERALREADYREGISTERED == err_code)
-            err_code = 0;
+        std::stringstream ss;
+        ss << "Can't register WebSockets channel handler \"" << ws_channel_name << "\"" << " (channel id: " << ws_channel_id << ") on port " << port << ".";
 
-        char temp_str[MixedCodeConstants::MAX_URI_STRING_LEN];
-        sprintf_s(temp_str, MixedCodeConstants::MAX_URI_STRING_LEN, "Can't register WebSockets channel handler \"%S\":%d on port %d", ws_channel_name, ws_channel_id, port);
+        if (SCERRNETWORKPORTISOCCUPIED == err_code) {
+            ss << " Specified port is occupied.";
+        } else if (SCERRHANDLERALREADYREGISTERED == err_code) {
+            ss << " This handler is already registered.";
+        } else {
+            ss << " Error code: " << err_code << ".";
+        }
 
-        err_code = gw->SendHttpBody(sd, temp_str, (int32_t) strlen(temp_str));
-        return err_code;
+        char temp_buf[TEMP_BIG_BUFFER_SIZE];
+        int32_t size_bytes = ConstructHttp400(temp_buf, TEMP_BIG_BUFFER_SIZE, ss.str(), err_code);
+
+        return gw->SendPredefinedMessage(sd, temp_buf, size_bytes);
 
     } else {
 
@@ -1662,9 +1674,9 @@ uint32_t Gateway::Init()
     // Filling up worker parameters.
     for (int i = 0; i < setting_num_workers_; i++)
     {
-        int32_t errCode = gw_workers_[i].Init(i);
-        if (errCode != 0)
-            return errCode;
+        int32_t err_code = gw_workers_[i].Init(i);
+        if (err_code)
+            return err_code;
     }
 
     // Going throw all needed ports.
@@ -1784,7 +1796,9 @@ uint32_t Gateway::Init()
 #endif
 
     // Registering all gateway handlers.
-    RegisterGatewayHandlers();
+    int32_t err_code = RegisterGatewayHandlers();
+    if (err_code)
+        return err_code;
 
     // Indicating that network gateway is ready
     // (should be first line of the output).
@@ -1802,7 +1816,7 @@ uint32_t Gateway::Init()
     return 0;
 }
 
-void Gateway::RegisterGatewayHandlers() {
+uint32_t Gateway::RegisterGatewayHandlers() {
 
     uint32_t err_code = 0;
 
@@ -1820,7 +1834,8 @@ void Gateway::RegisterGatewayHandlers() {
         RegisterUriHandler,
         true);
 
-    GW_ASSERT(0 == err_code);
+    if (err_code)
+        return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -1836,7 +1851,8 @@ void Gateway::RegisterGatewayHandlers() {
         RegisterWsHandler,
         true);
 
-    GW_ASSERT(0 == err_code);
+    if (err_code)
+        return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -1852,7 +1868,8 @@ void Gateway::RegisterGatewayHandlers() {
         RegisterPortHandler,
         true);
 
-    GW_ASSERT(0 == err_code);
+    if (err_code)
+        return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -1868,7 +1885,8 @@ void Gateway::RegisterGatewayHandlers() {
         GatewayStatisticsInfo,
         true);
 
-    GW_ASSERT(0 == err_code);
+    if (err_code)
+        return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -1884,7 +1902,8 @@ void Gateway::RegisterGatewayHandlers() {
         GatewayTestSample,
         true);
 
-    GW_ASSERT(0 == err_code);
+    if (err_code)
+        return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -1900,7 +1919,8 @@ void Gateway::RegisterGatewayHandlers() {
         GatewayProfilersInfo,
         true);
 
-    GW_ASSERT(0 == err_code);
+    if (err_code)
+        return err_code;
 
     // Registering all proxies.
     for (int32_t i = 0; i < num_reversed_proxies_; i++)
@@ -1920,7 +1940,8 @@ void Gateway::RegisterGatewayHandlers() {
             false,
             reverse_proxies_ + i);
 
-        GW_ASSERT(0 == err_code);
+        if (err_code)
+            return err_code;
     }
 
     if (0 != setting_aggregation_port_)
@@ -1934,8 +1955,11 @@ void Gateway::RegisterGatewayHandlers() {
             INVALID_DB_INDEX,
             PortAggregator);
 
-        GW_ASSERT(0 == err_code);
+        if (err_code)
+            return err_code;
     }
+
+    return 0;
 }
 
 // Printing statistics for all workers.
@@ -2405,6 +2429,7 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
+// Disconnecting given socket handle.
 void Gateway::DisconnectSocket(SOCKET s) {
 
     GW_ASSERT(INVALID_SOCKET != s);
@@ -2693,7 +2718,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_ 
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkers() 
-            << ",\"activeSockets\":" << g_gateway.NumberOfActiveConnectionsOnAllPorts() 
+            << ",\"activeSockets\":" << g_gateway.NumberOfActiveSocketsOnAllPorts() 
             << "}";
 
         first = true;
@@ -2710,7 +2735,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
                 global_statistics_stream_ 
                     << "{\"port\":" << server_ports_[p].get_port_number() 
-                    << ",\"activeConnections\":" << server_ports_[p].NumberOfActiveConnections()
+                    << ",\"activeSockets\":" << server_ports_[p].NumberOfActiveSockets()
                     << ",\"acceptingSockets\":" << server_ports_[p].get_num_accepting_sockets()
 
                     << "}";

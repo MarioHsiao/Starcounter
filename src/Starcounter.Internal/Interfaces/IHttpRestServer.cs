@@ -21,13 +21,6 @@ namespace Starcounter.Advanced {
     public interface IRestServer {
 
         /// <summary>
-        /// As an example, GetResource("images/hello.jpg") should return a byte array containing a jpeg image.
-        /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns>The bytes containg the resource.</returns>
-        Response HandleRequest(Request request, Int32 handlerLevel);
-
-        /// <summary>
         /// The starcounter .EXE modules will provide a path where static file resources such as .html files or images
         /// are kept. This allows the web server to serve content from all modules without having to copy or deploy files to
         /// a single location.

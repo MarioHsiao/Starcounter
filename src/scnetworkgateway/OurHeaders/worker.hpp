@@ -478,7 +478,7 @@ public:
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunkRef sd, int32_t numBytesSent);
-    uint32_t FinishDisconnect(SocketDataChunkRef sd, bool socket_error);
+    uint32_t FinishDisconnect(SocketDataChunkRef sd);
     uint32_t FinishConnect(SocketDataChunkRef sd);
     uint32_t FinishAccept(SocketDataChunkRef sd);
 

@@ -15,6 +15,8 @@ namespace Starcounter.CLI {
     /// filtering.
     /// </summary>
     public sealed class FilterableLogReader {
+        DateTime sinceResolution;
+
         /// <summary>
         /// Number of log records to fetch.
         /// </summary>
@@ -39,13 +41,33 @@ namespace Starcounter.CLI {
         /// Specifies a filter that ignores any log entry
         /// older than the given value.
         /// </summary>
-        public DateTime Since { get; set; }
+        public DateTime Since { 
+            get { return sinceResolution; }
+            set {
+                sinceResolution = new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, value.Kind);
+            }
+        }
 
         /// <summary>
         /// Initialize a new <see cref="FilterableLogReader"/>.
         /// </summary>
         public FilterableLogReader() {
             Since = DateTime.MinValue;
+        }
+
+        /// <summary>
+        /// Factory method creating a reader from a set of parameters.
+        /// </summary>
+        /// <param name="typeOfLogs">The type of logs to include.</param>
+        /// <param name="since">Since-filter, specifying the oldest time of any
+        /// log.</param>
+        /// <returns>A reader scoped to the given arguments.</returns>
+        public static FilterableLogReader LogsSince(Severity typeOfLogs, DateTime since) {
+            return new FilterableLogReader() {
+                Count = int.MaxValue,
+                Since = since,
+                TypeOfLogs = typeOfLogs
+            };
         }
 
         /// <summary>
@@ -58,7 +80,7 @@ namespace Starcounter.CLI {
             int read = 0;
             bool stop = false;
             int count = Count;
-            
+
             var logDirectory = GetLogDirectory();
             var logReader = new LogReader();
             logReader.Open(logDirectory, ReadDirection.Reverse, 1024 * 32);
@@ -78,7 +100,7 @@ namespace Starcounter.CLI {
         }
 
         bool FilterAway(LogEntry entry, ref bool stop) {
-            var since = Since;
+            var since = sinceResolution;
             var type = TypeOfLogs;
             var source = Source;
 

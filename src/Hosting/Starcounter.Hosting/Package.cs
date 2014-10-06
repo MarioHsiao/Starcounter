@@ -193,7 +193,7 @@ namespace Starcounter.Hosting {
         /// Updates the database schema and register types.
         /// </summary>
         private void UpdateDatabaseSchemaAndRegisterTypes() {
-            var typeDefs = unregisteredTypeDefs_;
+            TypeDef[] typeDefs = unregisteredTypeDefs_;
 
             if (typeDefs.Length != 0)
             {
@@ -211,7 +211,7 @@ namespace Starcounter.Hosting {
 
                     // Populate properties and columns .NET metadata
                     for (int i = 0; i < typeDefs.Length; i++)
-                        typeDefs[i].PopulatePropertyDef();
+                        typeDefs[i].PopulatePropertyDef(typeDefs);
                     OnPopulateMetadataDefs();
                 }
                 List<TypeDef> updateColumns = new List<TypeDef>();

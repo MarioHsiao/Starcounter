@@ -68,6 +68,7 @@ __declspec(thread) http_parser g_ts_http_parser_;
 __declspec(thread) uint8_t g_ts_last_field_;
 __declspec(thread) bool g_xhreferer_read_;
 __declspec(thread) SocketDataChunk* g_ts_sd_;
+__declspec(thread) GatewayWorker* g_ts_gw_;
 __declspec(thread) HttpRequest* g_ts_http_request_;
 
 // Constructs HTTP 404 response.
@@ -93,6 +94,29 @@ inline int32_t ConstructHttp404(uint8_t* const dest, const int32_t dest_max_byte
         offset = InjectData(dest, offset, uri, uri_len);
 
     return offset;
+}
+
+// Constructs HTTP 400 response.
+int32_t ConstructHttp400(
+    char* const dest_buf,
+    const int32_t dest_buf_max_bytes,
+    const std::string& body,
+    const int32_t err_code)
+{
+    std::stringstream ss;
+    ss << "HTTP/1.1 400 Bad Request" << "\r\n";
+    ss << MixedCodeConstants::ScErrorCodeHttpHeader << ": " << err_code << "\r\n";
+    ss << "Content-Length: " << body.length() << "\r\n";
+    ss << "\r\n";
+    ss << body;
+
+    int32_t size_bytes = static_cast<int32_t> (ss.tellp());
+    GW_ASSERT(size_bytes < dest_buf_max_bytes);
+
+    ss.seekg(0);
+    ss.rdbuf()->sgetn(dest_buf, size_bytes);
+
+    return size_bytes;
 }
 
 // Destructor.
@@ -463,6 +487,33 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
 
             break;
         }
+
+        case SCHEDULER_ID_FIELD:
+        {
+            uint8_t sched_id = atoi(at);
+            g_ts_sd_->set_scheduler_id(sched_id);
+
+            break;
+        }
+
+        case LOOP_HOST_FIELD:
+        {
+            // Checking if value is true.
+            if (*(uint32_t*)at != *(uint32_t*)"True")
+                break;
+
+            g_ts_sd_->set_chunk_looping_host_flag();
+
+            SocketDataChunk* sd_send_clone = NULL;
+            uint32_t err_code = g_ts_sd_->CloneToPush(g_ts_gw_, &sd_send_clone);
+            GW_ASSERT(0 == err_code);
+
+            // Sending OK response to the client so it does not wait.
+            err_code = g_ts_gw_->SendPredefinedMessage(sd_send_clone, kHttpOKResponse, kHttpOKResponseLength);
+            GW_ASSERT(0 == err_code);
+
+            break;
+        }
     }
 
     return 0;
@@ -687,6 +738,7 @@ void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
     g_ts_last_field_ = UNKNOWN_FIELD;
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
     g_ts_sd_ = sd;
+    g_ts_gw_ = gw;
     g_xhreferer_read_ = false;
 
     http_request_.Reset();

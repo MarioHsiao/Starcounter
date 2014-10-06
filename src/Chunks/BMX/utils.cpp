@@ -9,6 +9,54 @@ EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
     return cm_acquire_shared_memory_chunk(new_chunk_index, new_chunk_mem);
 }
 
+uint32_t sc_clone_linked_chunks(starcounter::core::chunk_index first_chunk_index, starcounter::core::chunk_index* out_chunk_index) {
+
+    uint32_t err_code;
+    *out_chunk_index = shared_memory_chunk::link_terminator;
+
+    uint8_t* src_chunk_mem;
+    shared_memory_chunk* src_smc = NULL;
+    shared_memory_chunk* dest_smc = NULL;
+    starcounter::core::chunk_index src_chunk_index = first_chunk_index;
+    starcounter::core::chunk_index dest_chunk_index = shared_memory_chunk::link_terminator;
+
+    do {
+
+        // Obtaining chunk memory.
+        err_code = cm_get_shared_memory_chunk(src_chunk_index, &src_chunk_mem);
+        _SC_ASSERT(err_code == 0);
+
+        src_smc = (shared_memory_chunk*) src_chunk_mem;
+
+        // Acquiring new chunk.
+        uint8_t* dest_chunk_mem;
+        err_code = cm_acquire_shared_memory_chunk(&dest_chunk_index, &dest_chunk_mem);
+        if (err_code) {
+            if (dest_smc != NULL) {
+                cm_release_linked_shared_memory_chunks(*out_chunk_index);
+                *out_chunk_index = shared_memory_chunk::link_terminator;
+                return err_code;
+            }
+        }
+
+        if (dest_smc)
+            dest_smc->set_link(dest_chunk_index);
+        else
+            *out_chunk_index = dest_chunk_index;
+
+        dest_smc = (shared_memory_chunk*) dest_chunk_mem;
+
+        // Copying memory from original chunk to copy.
+        memcpy(dest_chunk_mem, src_chunk_mem, starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+
+        // Getting next chunk.
+        src_chunk_index = src_smc->get_link();
+
+    } while (src_chunk_index != shared_memory_chunk::link_terminator);
+
+    return 0;
+}
+
 // Writing linked chunks data to a given buffer and releasing all chunks except first.
 EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     starcounter::core::chunk_index first_chunk_index,

@@ -66,6 +66,7 @@
     <Compile Include="AppsEvents.cs" />
     <Compile Include="CodeHostMonitor.cs" />
     <Compile Include="ErrorListProvider.cs" />
+    <Compile Include="ErrorLogDisplay.cs" />
     <Compile Include="ErrorTask.cs" />
     <Compile Include="Projects\AppExeProject.cs" />
     <Compile Include="Projects\AppExeProjectConfiguration.cs" />

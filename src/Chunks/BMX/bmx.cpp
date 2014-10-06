@@ -486,6 +486,35 @@ uint32_t BmxData::HandleBmxChunk(CM2_TASK_DATA* task_data)
         goto finish;
     }
 
+    // Checking if its host looping chunks.
+    if (((*(uint32_t*)(raw_chunk + MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) & MixedCodeConstants::SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0) {
+
+        starcounter::core::chunk_index cur_chunk_index = task_info.the_chunk_index;
+
+        while (true) {
+
+            // Cloning current linked chunks.
+            starcounter::core::chunk_index new_chunk_index;
+            err_code = sc_clone_linked_chunks(cur_chunk_index, &new_chunk_index);
+            _SC_ASSERT(0 == err_code);
+
+            // Checking for the unique handler number.
+            _SC_ASSERT(handler_info == registered_handlers_[handler_index].get_handler_info());
+
+            // Running user handler.
+            err_code = registered_handlers_[handler_index].RunHandlers(smc, &task_info);
+            _SC_ASSERT(0 == err_code);
+
+            cur_chunk_index = new_chunk_index;
+            task_info.the_chunk_index = new_chunk_index;
+
+            err_code = cm_get_shared_memory_chunk(new_chunk_index, (uint8_t**) &smc);
+            _SC_ASSERT(err_code == 0);
+        }
+
+        goto finish;
+    }
+
     // Checking for the unique handler number.
     if (handler_info == registered_handlers_[handler_index].get_handler_info())
     {

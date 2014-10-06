@@ -74,23 +74,45 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             // Obtaining the channel.
             core::channel_type& the_channel = shared_int_.channel(channels_[sched_id]);
 
+            SocketDataChunk* sd = NULL;
+
             // Trying to pop the chunk from channel.
             if (false == the_channel.out.try_pop_back(&ipc_first_chunk_index)) {
 
                 // Pushing to simulated queue.
-                if (0 != simulated_shared_memory_queue_.get_num_entries())
+                if (0 != simulated_shared_memory_queue_.get_num_entries()) {
+
                     ipc_first_chunk_index = simulated_shared_memory_queue_.PopFront();
-                else
+
+                } else if (0 != simulated_shared_memory_queue_using_sd_.get_num_entries()) {
+
+                    SocketDataChunk* sd_copy = simulated_shared_memory_queue_using_sd_.PopFront();
+
+                    uint32_t err_code = sd_copy->CloneToPush(gw, &sd);
+                    GW_ASSERT(0 == err_code);
+
+                    // Returning gateway chunk to pool.
+                    gw->ReturnSocketDataChunksToPool(sd_copy);
+
+                    // Chunk was found.
+                    chunk_popped = true;
+                    num_popped_chunks++;
+
+                    goto READY_SOCKET_DATA;
+
+                } else {
                     continue;
+                }
+            } else {
+
+                // A message on channel ch was received. Notify the database
+                // that the out queue in this channel is not full.
+                the_channel.scheduler()->notify(shared_int_.scheduler_work_event(the_channel.get_scheduler_number()));
             }
 
             // Chunk was found.
             chunk_popped = true;
             num_popped_chunks++;
-
-            // A message on channel ch was received. Notify the database
-            // that the out queue in this channel is not full.
-            the_channel.scheduler()->notify(shared_int_.scheduler_work_event(the_channel.get_scheduler_number()));
 
             // Get the chunk.
             shared_memory_chunk* ipc_smc = (shared_memory_chunk*) GetSharedMemoryChunkFromIndex(ipc_first_chunk_index);
@@ -120,7 +142,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
             SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_length_bytes());
+            sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_length_bytes());
 
             // Checking if couldn't obtain chunk.
             if (NULL == sd) {
@@ -144,6 +166,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
                     // Releasing IPC chunks.
                     ReturnLinkedChunksToPool(ipc_first_chunk_index);
+                    ipc_smc = NULL;
+                    ipc_sd = NULL;
 
                     continue;
                 }
@@ -151,6 +175,10 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
             // Releasing IPC chunks.
             ReturnLinkedChunksToPool(ipc_first_chunk_index);
+            ipc_smc = NULL;
+            ipc_sd = NULL;
+
+READY_SOCKET_DATA:
 
             // Setting socket info reference.
             sd->set_socket_info_reference(gw);
@@ -184,7 +212,8 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
             // Checking if data was aggregated.
             if (sd->get_gateway_no_ipc_test_flag() ||
-                sd->get_gateway_and_ipc_test_flag())
+                sd->get_gateway_and_ipc_test_flag() ||
+                sd->get_gateway_no_ipc_no_chunks_test_flag())
             {
                 gw->LoopbackForAggregation(sd);
                 continue;
@@ -402,9 +431,23 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
 
     // Checking if we have no IPC/no chunks test.
     if (sd->get_gateway_no_ipc_no_chunks_test_flag()) {
-        gw->LoopbackForAggregation(sd);
+        
+        // Copying socket data to put it in simulated queue.
+        SocketDataChunk* sd_copy;
+        uint32_t err_code = sd->CloneToPush(gw, &sd_copy);
+        GW_ASSERT(0 == err_code);
+
+        // Returning gateway chunk to pool.
+        gw->ReturnSocketDataChunksToPool(sd);
+
+        // Pushing to simulated queue.
+        simulated_shared_memory_queue_using_sd_.PushBack(sd_copy);
+
         return 0;
     }
+
+    // Obtaining the current scheduler id.
+    scheduler_id_type sched_id = sd->get_scheduler_id();
 
     uint16_t num_ipc_chunks;
     core::chunk_index ipc_first_chunk_index;
@@ -420,9 +463,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Setting number of chunks.
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
-    // Obtaining the current scheduler id.
-    scheduler_id_type sched_id = ipc_sd->get_scheduler_id();
-
     // Checking scheduler id validity.
     if (sched_id >= num_schedulers_)
     {
@@ -621,19 +661,9 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
             }
         }
 
-        // Checking for error code after registrations.
+        // Checking for error code.
         if (err_code)
-        {
-            switch (err_code)
-            {
-                case SCERRGWFAILEDTOBINDPORT:
-                    // Ignore.
-                    break;
-
-                default:
-                    return err_code;
-            }
-        }
+            return err_code;
 
         offset = resp_chunk->get_offset();
     }

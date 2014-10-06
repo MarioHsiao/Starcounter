@@ -8,6 +8,9 @@
 namespace starcounter {
 namespace network {
 
+// Temporary big buffer.
+const int32_t TEMP_BIG_BUFFER_SIZE = 4096;
+
 // If you are debugging the gateway uncomment the following.
 //#define GW_DEV_DEBUG
 

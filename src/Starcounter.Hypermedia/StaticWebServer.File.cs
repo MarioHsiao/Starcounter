@@ -18,17 +18,16 @@ namespace Starcounter.Internal.Web {
     /// Class StaticWebServer
     /// </summary>
     public partial class StaticWebServer {
-        private Dictionary<string, FileSystemWatcher> watchedPaths;
+
+        /// <summary>
+        /// Watched file paths.
+        /// </summary>
+        private Dictionary<string, FileSystemWatcher> watchedPaths_;
 
         /// <summary>
         /// Contains the directories that may contain web resources such as .html files and other assets. 
         /// </summary>
-        internal List<string> workingDirectories = new List<string>();
-
-        /// <summary>
-        /// Object used for locking.
-        /// </summary>
-        private object lockObject = new object();
+        internal List<string> workingDirectories_ = new List<string>();
 
         /// <summary>
         /// Reads the file system to find the resource addressed by an uri without using any cached version.
@@ -64,7 +63,7 @@ namespace Starcounter.Internal.Web {
             statusCode = HttpStatusCode.OK;
             shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
 
-            if (workingDirectories.Count == 0) {
+            if (workingDirectories_.Count == 0) {
                 statusCode = HttpStatusCode.NotFound;
                 mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                 payload = Encoding.UTF8.GetBytes(
@@ -126,7 +125,10 @@ namespace Starcounter.Internal.Web {
                 if (response.FileExists) {
                     response.FileModified = File.GetLastWriteTime(path);
                 }
-                cacheOnUri[relativeUri] = response;
+
+                // Creating byte representation of the response.
+                response.ConstructFromFields();
+                cacheOnUri_[relativeUri] = response;
 
                 // TODO: 
                 // Should cacheOnFilePath really be the actual responses? Isn't it better to just
@@ -134,12 +136,12 @@ namespace Starcounter.Internal.Web {
                 // all entries since we might have different responses for different URI's pointing to
                 // the same physical file?
                 Response existing;
-                if (cacheOnFilePath.TryGetValue(fileSignature, out existing)) {
+                if (cacheOnFilePath_.TryGetValue(fileSignature, out existing)) {
                     if (existing.Uris == null)
                         existing.Uris = new List<string>();
                     existing.Uris.Add(relativeUri);
                 } else {
-                    cacheOnFilePath[fileSignature] = response;
+                    cacheOnFilePath_[fileSignature] = response;
                     WatchChange(dir, fileName + fileExtension);
                 }
             }
@@ -158,8 +160,8 @@ namespace Starcounter.Internal.Web {
         private bool ReadFile(string relativeUri, out string dir, out string fileName, out string fileExtension, out byte[] payload) {
             int len;
             
-            for (int t = 0; t < workingDirectories.Count; t++) {
-                ParseFileSpecifier(workingDirectories[t], relativeUri, out dir, out fileName, out fileExtension);
+            for (int t = 0; t < workingDirectories_.Count; t++) {
+                ParseFileSpecifier(workingDirectories_[t], relativeUri, out dir, out fileName, out fileExtension);
 
                 FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
                 if (f != null) {
@@ -200,7 +202,7 @@ namespace Starcounter.Internal.Web {
         private void WatchChange(string dir, string fileName) {
             FileSystemWatcher fsw;
             string fileSpecifier = dir + "\\" + fileName;
-            if (!watchedPaths.TryGetValue(fileSpecifier, out fsw)) {
+            if (!watchedPaths_.TryGetValue(fileSpecifier, out fsw)) {
                 if (Directory.Exists(dir)) {
                     fsw = new FileSystemWatcher(dir);
                     fsw.InternalBufferSize = 64 * 1024;
@@ -213,7 +215,7 @@ namespace Starcounter.Internal.Web {
                 } else {
                     fsw = null;
                 }
-                watchedPaths[fileSpecifier] = fsw;
+                watchedPaths_[fileSpecifier] = fsw;
             }
         }
 
@@ -233,12 +235,12 @@ namespace Starcounter.Internal.Web {
         /// Clears the watched parts.
         /// </summary>
         private void ClearWatchedParts() {
-            if (watchedPaths != null) {
-                foreach (var watcher in watchedPaths.Values) {
+            if (watchedPaths_ != null) {
+                foreach (var watcher in watchedPaths_.Values) {
                     ClearWatchedChange(watcher);
                 }
             }
-            watchedPaths = new Dictionary<string, FileSystemWatcher>();
+            watchedPaths_ = new Dictionary<string, FileSystemWatcher>();
         }
 
         /// <summary>
@@ -266,18 +268,18 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="fileSignature">The file to remove</param>
         private void DecacheByFilePath(string fileSignature) {
-            Response cached;
+            Response cachedResponse;
 
             // Locking because execution is done in separate thread.
-            lock (lockObject) {
-                if (cacheOnFilePath.TryGetValue(fileSignature, out cached)) {
-                    if (cached.Uris != null) {
-                        foreach (var uri in cached.Uris) {
+            lock (workingDirectories_) {
+                if (cacheOnFilePath_.TryGetValue(fileSignature, out cachedResponse)) {
+                    if (cachedResponse.Uris != null) {
+                        foreach (var uri in cachedResponse.Uris) {
                             Debug("(decache uri) " + uri);
-                            cacheOnUri.Remove(uri);
+                            cacheOnUri_.Remove(uri);
                         }
                         Debug("(decache file) " + fileSignature);
-                        cacheOnFilePath.Remove(fileSignature);
+                        cacheOnFilePath_.Remove(fileSignature);
                     }
                 }
             }

@@ -591,6 +591,12 @@ public:
         bool* is_handled);
 };
 
+int32_t ConstructHttp400(
+    char* const dest_buf,
+    const int32_t dest_buf_max_bytes,
+    const std::string& body,
+    const int32_t err_code);
+
 const char* const kHttpGenericHtmlHeader =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"

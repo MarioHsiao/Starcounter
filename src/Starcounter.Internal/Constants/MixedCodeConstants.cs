@@ -74,7 +74,8 @@ namespace Starcounter.Internal
             HTTP_WS_JUST_PUSH_DISCONNECT = 2 << 16,
             SOCKET_DATA_GATEWAY_NO_IPC_TEST = 2 << 17,
             SOCKET_DATA_GATEWAY_AND_IPC_TEST = 2 << 18,
-            SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19
+            SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19,
+            SOCKET_DATA_HOST_LOOPING_CHUNKS = 2 << 20
         };
 
         /// <summary>
@@ -230,6 +231,11 @@ namespace Starcounter.Internal
         /// Server directory parent XML element name.
         /// </summary>
         public const String ServerConfigParentXmlName = "service";
+
+        /// <summary>
+        /// HTTP header used for Starcounter error code transfer.
+        /// </summary>
+        public const String ScErrorCodeHttpHeader = "ScErrorCode";
 
         /// <summary>
         /// Session cookie length.
