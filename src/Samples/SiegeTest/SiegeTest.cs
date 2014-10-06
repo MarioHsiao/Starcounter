@@ -96,6 +96,8 @@ namespace SiegeTest {
 
                 proc.Close();
 
+                Console.Write("Siege output: " + Environment.NewLine + output + Environment.NewLine);
+
                 // Checking errors during execution.
                 Match match = Regex.Match(output, @"Failed transactions\:\s+(\d+)", RegexOptions.IgnoreCase);
 
