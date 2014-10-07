@@ -31,7 +31,7 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
     }
 
     // Creating IO completion port.
-    worker_iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 1);
+    worker_iocp_ = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL, 0, 0);
     GW_ASSERT(worker_iocp_ != NULL);
     if (worker_iocp_ == NULL)
     {
@@ -138,7 +138,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
     }
 
     // Associating new socket with current worker IOCP.
-    HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_connect_socket, worker_iocp_, 0, 1);
+    HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_connect_socket, worker_iocp_, 0, 0);
     if (iocp_handler != worker_iocp_) {
 #ifdef GW_ERRORS_DIAG
         GW_PRINT_WORKER << "Can't do socket CreateIoCompletionPort." << GW_ENDL;
@@ -296,14 +296,26 @@ uint32_t GatewayWorker::CollectInactiveSockets()
 }
 
 // Allocates a bunch of new connections.
-uint32_t GatewayWorker::CreateNewConnections(int32_t how_many, port_index_type port_index)
+uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
 {
+    int32_t how_many_sockets_to_accept = ACCEPT_ROOF_STEP_SIZE;
+    ServerPort* sp = g_gateway.get_server_port(port_index);
+    GW_ASSERT(NULL != sp);
+
+    // Checking if this is an aggregation port, then one accepting socket is enough.
+    if (sp->get_aggregating_flag())
+        how_many_sockets_to_accept = 1;
+
+    // Checking if we have not enough accepting sockets.
+    if (sp->get_num_accepting_sockets() >= how_many_sockets_to_accept)
+        return 0;
+
     GW_ASSERT(0 == worker_id_);
 
     uint32_t err_code;
     int32_t curIntNum = 0;
 
-    for (int32_t i = 0; i < how_many; i++)
+    for (int32_t i = 0; i < how_many_sockets_to_accept; i++)
     {
         SOCKET new_socket;
 
@@ -1101,13 +1113,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
         // Decreasing number of accepting sockets.
         int64_t cur_num_accept_sockets = ChangeNumAcceptingSockets(port_index, -1);
 
-        // Checking if we need to extend number of accepting sockets.
-        if (cur_num_accept_sockets < ACCEPT_ROOF_STEP_SIZE)
-        {
-            // Creating new set of prepared connections.
-            // NOTE: Ignoring error code on purpose.
-            CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, port_index);
-        }
+        // Creating new set of prepared connections.
+        // NOTE: Ignoring error code on purpose.
+        CreateAcceptingSockets(port_index);
 
         // NOTE: All handlers must be registered on worker 0.
         if (sd->GetPortNumber() == g_gateway.get_setting_internal_system_port())
@@ -1140,7 +1148,7 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
 
         } else {
             // Associating new socket with least busy worker IOCP.
-            HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) sd->GetSocket(), worker_iocp_, 0, 1);
+            HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) sd->GetSocket(), worker_iocp_, 0, 0);
             GW_ASSERT(iocp_handler == worker_iocp_);
             if (iocp_handler != worker_iocp_) {
                 return SCERRGWFAILEDACCEPTEX;
@@ -1272,7 +1280,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
         SocketDataChunk* new_sd = NULL;
 
         // Associating new socket with least busy worker IOCP.
-        HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) s, worker_iocp_, 0, 1);
+        HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) s, worker_iocp_, 0, 0);
         GW_ASSERT(iocp_handler == worker_iocp_);
 
         // Getting new socket index.
@@ -1582,13 +1590,9 @@ void GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
         // Checking that port is not empty.
         if (!server_port->IsEmpty())
         {
-            // Checking if we need to extend number of accepting sockets.
-            if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
-            {
-                // Creating new set of prepared connections.
-                // NOTE: Ignoring error code on purpose.
-                CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, p);
-            }
+            // Creating new set of prepared connections.
+            // NOTE: Ignoring error code on purpose.
+            CreateAcceptingSockets(p);
         }
     }
 }

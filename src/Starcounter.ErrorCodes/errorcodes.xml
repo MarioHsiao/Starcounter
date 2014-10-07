@@ -3237,6 +3237,11 @@
         The [TypeName] attribute is not valid on the given target.
       </message>
     </code>
+    <code hex="011B" severity="Error" name="ScErrDatabaseMemberNotPublic">
+      <message>
+        Fields/properties of this type must be declared public.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
