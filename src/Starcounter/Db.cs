@@ -172,7 +172,7 @@ namespace Starcounter
         /// <param name="forceSnapshot"></param>
         /// <param name="maxRetries"></param>
         internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transaction(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
+            Transaction(action, sccoredb.MDB_TRANSCREATE_SUPPRESS_HOOKS, forceSnapshot, maxRetries);
         }
 
         internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100)

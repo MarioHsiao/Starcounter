@@ -557,7 +557,7 @@ namespace Starcounter.Internal
             out ulong verify
             );
 
-        internal const uint MDB_TRANSCREATE_SYSTEM_PRIVILEGES = 0x0040;
+        internal const uint MDB_TRANSCREATE_SUPPRESS_HOOKS = 0x0040;
         /// <summary>
         /// Sccoredb_create_transaction_and_set_currents the specified lock_tran_on_thread.
         /// </summary>
