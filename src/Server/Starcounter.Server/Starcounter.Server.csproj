@@ -93,6 +93,7 @@
     <Compile Include="Commands\Processors\StopExecutableCommandProcessor.cs" />
     <Compile Include="Commands\Processors\StopExecutableCommandProcessor.Meta.cs" />
     <Compile Include="Configuration\Server\DatabaseStorageConfiguration.cs" />
+    <Compile Include="CoreServices\CodeHostProcessMonitor.cs" />
     <Compile Include="CoreServices\DatabaseEngineMonitor.cs" />
     <Compile Include="CoreServices\DatabaseHostingService.cs" />
     <Compile Include="CoreServices\DatabaseSetup.cs" />
