@@ -50,4 +50,4 @@ macro(sc_process_all_csproj)
   endforeach()
 endmacro()
 
-sc_process_all_csproj()
+# sc_process_all_csproj()
