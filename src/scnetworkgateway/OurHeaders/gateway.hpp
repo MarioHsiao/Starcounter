@@ -151,7 +151,7 @@ const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
 const int32_t MAX_PROXIED_URIS = 32;
 
 // Number of sockets to increase the accept roof.
-const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
+const int32_t ACCEPT_ROOF_STEP_SIZE = 16;
 
 // Maximum number of cached URI matchers.
 const int32_t MAX_CACHED_URI_MATCHERS = 32;
