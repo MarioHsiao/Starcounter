@@ -56,7 +56,7 @@ namespace Starcounter.Server {
             var server = this.Monitor.Server;
 
             if (Cancelled) {
-                log.Debug("Ignoring synchronization of server state for {0}; monitoring was cancelled.");
+                log.Debug("Ignoring synchronization of server state for {0}; monitoring was cancelled.", DatabaseName);
                 return;
             }
 
