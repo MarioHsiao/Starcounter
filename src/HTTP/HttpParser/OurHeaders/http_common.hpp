@@ -163,7 +163,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
     // Now checking with case insensitivity.
     char temp[32];
 
-    // Making the field lowercase.
+    // Making the header lowercase (setting bit 6).
     for (size_t i = 0; i < length; i++) {
         temp[i] = at[i] | 32;
     }
