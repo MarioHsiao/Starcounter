@@ -86,12 +86,15 @@ namespace Starcounter.Query.Execution {
             }
 
             IObjectView objValue = objExpr.EvaluateToObject(obj);
-            if (typeBinding == null || objValue == null) 
+            TypeBinding tb = this.typeBinding as TypeBinding;
+            if (tb == null && typeObject == null || objValue == null) 
                 return TruthValue.UNKNOWN;
-            ITypeBinding objTypeBind = objValue.TypeBinding;
-            if (objTypeBind is TypeBinding && typeBinding is TypeBinding)
+            TypeBinding objTypeBind = objValue.TypeBinding as TypeBinding;
+            if (objTypeBind == null)
+                return TruthValue.UNKNOWN;
+            if (tb is TypeBinding)
             {
-                if (((TypeBinding)objTypeBind).SubTypeOf((TypeBinding)typeBinding))
+                if (((TypeBinding)objTypeBind).SubTypeOf((TypeBinding)tb))
                 {
                     if (compOperator == ComparisonOperator.IS)
                         return TruthValue.TRUE;
