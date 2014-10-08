@@ -1,9 +1,6 @@
 ﻿
 using Starcounter.Internal;
 using Starcounter.Logging;
-using Starcounter.Server.Commands;
-using Starcounter.Server.PublicModel;
-using Starcounter.Server.PublicModel.Commands;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,7 +13,7 @@ namespace Starcounter.Server {
     internal sealed class DatabaseEngineMonitor {
         readonly LogSource log = ServerLogSources.Processes;
         readonly Dictionary<string, CodeHostProcessMonitor> currentHosts;
-        readonly List<CodeHostProcessMonitor> hostMonitors;
+        readonly HashSet<CodeHostProcessMonitor> hostMonitors;
 
         /// <summary>
         /// Gets the server that has instantiated this monitor.
@@ -38,7 +35,7 @@ namespace Starcounter.Server {
         internal DatabaseEngineMonitor(ServerEngine server) {
             this.Server = server;
             currentHosts = new Dictionary<string, CodeHostProcessMonitor>();
-            hostMonitors = new List<CodeHostProcessMonitor>();
+            hostMonitors = new HashSet<CodeHostProcessMonitor>(new CodeHostProcessMonitor.EqualityComparer());
         }
 
         /// <summary>
@@ -83,7 +80,7 @@ namespace Starcounter.Server {
 
             int cancelledMonitors = 0;
             foreach (var hostMonitor in hostMonitors) {
-                if (hostMonitor.IsMonitorigDatabase(database)) {
+                if (hostMonitor.IsMonitoringDatabase(database)) {
                     if (hostMonitor.Cancel()) {
                         cancelledMonitors++;
                     }
@@ -99,6 +96,12 @@ namespace Starcounter.Server {
         }
 
         internal void RemoveCodeHostMonitor(CodeHostProcessMonitor monitor) {
+            CodeHostProcessMonitor current;
+            if (currentHosts.TryGetValue(monitor.DatabaseName, out current)) {
+                if (object.ReferenceEquals(current, monitor)) {
+                    currentHosts.Remove(monitor.DatabaseName);
+                }
+            }
             hostMonitors.Remove(monitor);
         }
 
