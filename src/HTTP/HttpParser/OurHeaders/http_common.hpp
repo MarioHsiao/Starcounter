@@ -33,87 +33,134 @@ enum HttpWsFields
     UNKNOWN_FIELD
 };
 
-const int64_t ACCEPT_HEADER_VALUE_8BYTES = 2322296583949083457;
-const int64_t ACCEPT_ENCODING_HEADER_VALUE_8BYTES = 4984768388655178561;
-const int64_t REFERER_HEADER_VALUE_8BYTES = 4211540143546721618;
-const int64_t XREFERER_HEADER_VALUE_8BYTES = 7310016635636690264;
-const int64_t CONTENT_LENGTH_HEADER_VALUE_8BYTES = 3275364211029339971;
-const int64_t UPGRADE_HEADER_VALUE_8BYTES = 4207879796541583445;
-const int64_t WEBSOCKET_HEADER_VALUE_8BYTES = 6008476277963711827;
-const int64_t COOKIE_HEADER_VALUE_8BYTES = 2322280061311348547;
-const int64_t SCHEDULER_ID_HEADER_VALUE_8BYTES = 7308345369373991763;
-const int64_t LOOP_HOST_HEADER_VALUE_8BYTES = 8391172887636045644;
-
 // Fast way to determine field type.
 inline HttpWsFields DetermineField(const char *at, size_t length)
 {
-    int64_t header_8bytes = *(int64_t*)at;
-    switch(header_8bytes)
-    {
-        case REFERER_HEADER_VALUE_8BYTES:
-        {
-            return REFERRER_FIELD; // Referer
-        }
+    // Filtering too short and long headers.
+    char lower[32];
+    if ((length > 32) || (length < 4))
+        return UNKNOWN_FIELD;
 
-        case XREFERER_HEADER_VALUE_8BYTES:
-        {
-            if (*(int64_t*)(at + 2) == *(int64_t*)"Referer:")
-                return XREFERRER_FIELD; // X-Referer
+    // Making the field lowercase.
+    for (size_t i = 0; i < length; i++) {
+        lower[i] = tolower(at[i]);
+    }
 
-            break;
-        }
+    switch (length) {
 
-        case COOKIE_HEADER_VALUE_8BYTES:
-        {
-            return COOKIE_FIELD; // Cookie
-        }
+        case 6: { // Cookie
 
-        case ACCEPT_ENCODING_HEADER_VALUE_8BYTES:
-        {
-            if (*(int64_t*)(at + 7) == *(int64_t*)"Encoding")
-                return ACCEPT_ENCODING_FIELD; // Accept-Encoding
-
-            break;
-        }
-
-        case CONTENT_LENGTH_HEADER_VALUE_8BYTES:
-        {
-            if (*(int64_t*)(at + 6) == *(int64_t*)"t-Length")
-                return CONTENT_LENGTH_FIELD; // Content-Length
-
-            break;
-        }
-
-        case UPGRADE_HEADER_VALUE_8BYTES:
-        {
-            return UPGRADE_FIELD; // Upgrade
-        }
-        
-        case WEBSOCKET_HEADER_VALUE_8BYTES:
-        {
-            switch(length)
-            {
-                case 17: return WS_KEY_FIELD; // Sec-WebSocket-Key
-                case 21: return WS_VERSION_FIELD; // Sec-WebSocket-Version
-                case 22: return WS_PROTOCOL_FIELD; // Sec-WebSocket-Protocol
-                case 24: return WS_EXTENSIONS_FIELD; // Sec-WebSocket-Extensions
-                case 20: return WS_ACCEPT_FIELD; // Sec-WebSocket-Accept
+            if ((*(int32_t*)lower == *(int32_t*)"cookie") && (*(int32_t*) (lower + 2) == *(int32_t*)"okie")) {
+                return COOKIE_FIELD;
             }
 
             break;
         }
 
-        case SCHEDULER_ID_HEADER_VALUE_8BYTES:
-        {
-            return SCHEDULER_ID_FIELD; // SchedulerId
+        case 7: { // Referer
+
+            if ((*(int32_t*)lower == *(int32_t*)"upgrade") && (*(int32_t*)(lower + 3) == *(int32_t*)"rade")) {
+                return UPGRADE_FIELD;
+            }
+
+            if ((*(int32_t*)lower == *(int32_t*)"referer") && (*(int32_t*)(lower + 3) == *(int32_t*)"erer")) {
+                return REFERRER_FIELD;
+            }
+
+            break;
         }
 
-        case LOOP_HOST_HEADER_VALUE_8BYTES:
-        {
-            return LOOP_HOST_FIELD; // LoopHost
+        case 8: { // Loophost
+
+            if ((*(int64_t*)lower == *(int64_t*)"loophost")) {
+                return LOOP_HOST_FIELD;
+            }
+
+            break;
+        }
+
+        case 9: { // X-Referer
+
+            if ((*(int64_t*)lower == *(int64_t*)"x-referer")) {
+                return XREFERRER_FIELD;
+            }
+
+            break;
+        }
+
+        case 11: { // SchedulerId
+
+            if ((*(int64_t*)lower == *(int64_t*)"schedulerid") && (*(int64_t*)(lower + 3) == *(int64_t*)"edulerid")) {
+                return SCHEDULER_ID_FIELD;
+            }
+
+            break;
+        }
+
+        case 14: { // Content-Length
+
+            if ((*(int64_t*)lower == *(int64_t*)"content-length") && (*(int64_t*) (lower + 6) == *(int64_t*)"t-length")) {
+                return CONTENT_LENGTH_FIELD;
+            }
+
+            break;
+        }
+
+        case 15: { // Accept-Encoding
+
+            if ((*(int64_t*)lower == *(int64_t*)"accept-encoding") && (*(int64_t*)(lower + 7) == *(int64_t*)"encoding")) {
+                return ACCEPT_ENCODING_FIELD;
+            }
+
+            break;
+        }
+
+        case 17: { // Sec-WebSocket-Key
+
+            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-key") {
+                return WS_KEY_FIELD;
+            }
+
+            break;
+        }
+
+        case 20: { // Sec-WebSocket-Accept
+
+            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-acc") {
+                return WS_ACCEPT_FIELD;
+            }
+
+            break;
+        }
+
+        case 21: { // Sec-WebSocket-Version
+
+            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-ver") {
+                return WS_VERSION_FIELD;
+            }
+
+            break;
+        }
+
+        case 22: { // Sec-WebSocket-Protocol
+
+            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-pro") {
+                return WS_PROTOCOL_FIELD;
+            }
+
+            break;
+        }
+                         
+        case 24: { // Sec-WebSocket-Extensions
+
+            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-ext") {
+                return WS_EXTENSIONS_FIELD;
+            }
+
+            break;
         }
     }
-
+    
     return UNKNOWN_FIELD;
 }
 
