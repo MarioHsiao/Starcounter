@@ -11,6 +11,7 @@ namespace Starcounter.Query.Execution {
         IObjectExpression objExpr;
         ITypeExpression typeExpr;
         ITypeBinding typeBinding;
+        IObjectView typeObject;
 
         internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr1, ITypeExpression expr2)
         {
@@ -30,6 +31,7 @@ namespace Starcounter.Query.Execution {
             objExpr = expr1;
             typeExpr = expr2;
             typeBinding = null;
+            typeObject = null;
         }
 
         internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr, ITypeBinding value)
@@ -77,8 +79,11 @@ namespace Starcounter.Query.Execution {
                 "Comparison operator of IsTypePredicate should be either IS or ISNOT.");
 
             // If there is a typeExpr then create a typeBinding from that.
-            if (typeExpr != null)
+            if (typeExpr != null) {
                 typeBinding = typeExpr.EvaluateToType(obj);
+                if (typeBinding == null && typeExpr is TypeVariable)
+                    typeObject = ((TypeVariable)typeExpr).EvaluateToObject(obj);
+            }
 
             IObjectView objValue = objExpr.EvaluateToObject(obj);
             if (typeBinding == null || objValue == null) 

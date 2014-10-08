@@ -90,6 +90,10 @@ namespace Starcounter.Query.Execution
             return value;
         }
 
+        public IObjectView EvaluateToObject(IObjectView obj) {
+            return dynamicTypeValue;
+        }
+
         /// <summary>
         /// Examines if the value of this variable is null.
         /// </summary>
