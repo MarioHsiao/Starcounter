@@ -435,11 +435,9 @@ namespace Starcounter.Server {
         }
 
         internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, Database database, DatabaseInfo databaseInfo) {
-            // Reset the model already here - it must be "not started".
-            // And at the same time, capture the model we WANT it to be,
-            // and have that as part of the restart command (make a real
-            // clone!).
-            // TODO:
+            // Before queuing a restart, we first make sure that we
+            // reset the current model to reflect the terminating code host
+            // and also cancel any monitoring of this database.
 
             ResetToCodeHostNotRunning(database);
             Monitor.EndMonitoring(database);

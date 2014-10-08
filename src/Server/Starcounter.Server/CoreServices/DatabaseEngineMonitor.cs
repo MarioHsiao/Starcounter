@@ -54,16 +54,8 @@ namespace Starcounter.Server {
         /// <param name="database">The database the given engine process represent.</param>
         /// <param name="engineProc">The process to begin monitoring.</param>
         internal void BeginMonitoring(Database database, Process engineProc) {
-            var description = string.Format("Synchronizing server state for exiting engine \"{0}\"", database.Name);
-
+            
             if (engineProc.ProcessName.Equals(StarcounterConstants.ProgramNames.ScCode, StringComparison.InvariantCultureIgnoreCase)) {
-
-                // Create a unique instance - the database name, the PID and the TICKS. And
-                // specify it's instance method to be called when the process exit. And then
-                // allow this monitor object to be reteived and CANCELLED (should be done
-                // when we attempt to restart).
-                // TODO:
-
                 log.Debug("Begin monitoring code host process {0}, PID {1}, running database {2}",
                     engineProc.ProcessName,
                     engineProc.Id,
@@ -98,7 +90,7 @@ namespace Starcounter.Server {
                 }
             }
 
-            var msg = string.Format("Cancelled {0} monitors for database {1}", cancelledMonitors, database.Name);
+            var msg = string.Format("Cancelled {0} monitor(s) for database {1}", cancelledMonitors, database.Name);
             if (cancelledMonitors == 0) {
                 log.LogNotice(msg);
             } else {
