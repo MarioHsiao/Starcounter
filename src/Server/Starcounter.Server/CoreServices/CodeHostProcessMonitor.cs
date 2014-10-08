@@ -45,6 +45,14 @@ namespace Starcounter.Server {
         }
 
         public void Process(ICommandProcessor processor, Process process) {
+            try {
+                ProcessStateSynchronization(processor, process);
+            } finally {
+                Monitor.RemoveCodeHostMonitor(this);
+            }
+        }
+
+        void ProcessStateSynchronization(ICommandProcessor processor, Process process) {
             var server = this.Monitor.Server;
 
             if (Cancelled) {
@@ -66,6 +74,9 @@ namespace Starcounter.Server {
                 // let it be.
                 return;
             }
+
+            // Should we also remove from monitor.currentHosts?
+            // TODO:
 
             Monitor.ResetInternalAndPublicState(server.DatabaseEngine, database, process);
         }
