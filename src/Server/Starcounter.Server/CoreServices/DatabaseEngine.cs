@@ -23,6 +23,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Logging;
 
 namespace Starcounter.Server {
 
@@ -33,7 +34,8 @@ namespace Starcounter.Server {
     /// what exact input to use.
     /// </summary>
     internal sealed class DatabaseEngine {
-        
+        readonly LogSource log = ServerLogSources.Default;
+
         private static class Win32 {
             internal static UInt32 EVENT_MODIFY_STATE = 0x0002;
 
@@ -368,17 +370,6 @@ namespace Starcounter.Server {
         }
 
         internal bool StopCodeHostProcess(Database database) {
-            //var process = database.CodeHostProcess;
-            //if (process == null)
-            //    return false;
-
-            //process.Refresh();
-            //if (process.HasExited) {
-            //    ResetToCodeHostNotRunning(database);
-            //    SafeClose(process);
-            //    return false;
-            //}
-
             var process = Monitor.GetCodeHostProcess(database);
             if (process == null) {
                 ResetToCodeHostNotRunning(database);
@@ -469,6 +460,7 @@ namespace Starcounter.Server {
             if (!databaseExist) {
                 // Might have been deleted.
                 // Take no action.
+                log.Debug("Restarting of code host cancelled; the database {0} was not found", databaseInfo.Name);
                 return;
             }
 
@@ -481,8 +473,11 @@ namespace Starcounter.Server {
                 
                 // Log a notice about this. We want to keep an eye on it if
                 // it provokes some unpredicted behaviour.
-                // TODO:
-
+                log.LogNotice(
+                    "Restarting of code host cancelled; {0} has been started in process {1} already", 
+                    databaseInfo.Name,
+                    boundProcess.Id
+                    );
                 return;
             }
 
@@ -514,6 +509,7 @@ namespace Starcounter.Server {
 
                     restartedApp.Info.LastRestart = DateTime.Now;
                     database.Apps.Add(restartedApp);
+                    log.Debug("Restarted application {0} in {1}", app.Name, database.Name);
                 }
 
             } finally {
