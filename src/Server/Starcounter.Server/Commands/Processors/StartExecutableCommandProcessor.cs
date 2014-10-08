@@ -102,21 +102,26 @@ namespace Starcounter.Server.Commands {
             });
 
             WithinTask(Task.Run, (task) => {
-                Exception codeHostExited = null;
+                var node = Node.LocalhostSystemPortNode;
+                var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
+                
                 var databaseStateSnapshot = database.ToPublicModel();
+                command.Application.Key = exeKey;
+                command.Application.HostedFilePath = weavedExecutable;
+                
+                app = new DatabaseApplication(command.Application);
+                app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;
+                var exe = app.ToExecutable();
 
+                // It's within the below scope the database model might
+                // be affected - either by the successfull starting of a
+                // new application, or a terminating, faulty code host.
+                // Make sure to updat the public model no matter what
+                // (see the finally-clause)
+
+                Exception codeHostExited = null;
                 try {
 
-                    var node = Node.LocalhostSystemPortNode;
-                    var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-
-                    command.Application.Key = exeKey;
-                    command.Application.HostedFilePath = weavedExecutable;
-
-                    app = new DatabaseApplication(command.Application);
-                    app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;
-
-                    var exe = app.ToExecutable();
                     if (exe.RunEntrypointAsynchronous) {
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.
@@ -143,14 +148,15 @@ namespace Starcounter.Server.Commands {
 
                             timeout = 20;
                         }
+
                         confirmed.Dispose();
+                        codeHostExited = CreateExceptionIfCodeHostTerminated(codeHostProcess, database);
+                        if (codeHostExited != null) {
+                            throw codeHostExited;
+                        }
                         codeHostResponse.FailIfNotSuccess();
                     }
                     OnCodeHostExecRequestProcessed();
-
-                    // The app is successfully loaded in the worker process. We should
-                    // keep it referenced in the server and consider the execution of this
-                    // processor a success.
 
                     app.Info.Started = DateTime.Now;
                     database.Apps.Add(app);
@@ -167,15 +173,18 @@ namespace Starcounter.Server.Commands {
                         Engine.DatabaseEngine.QueueCodeHostRestart(codeHostProcess, database, databaseStateSnapshot);
                         throw codeHostExited;
                     }
+
                     throw;
+
+                } finally {
+                    var result = Engine.CurrentPublicModel.UpdateDatabase(database);
+                    SetResult(result);
+                    OnDatabaseStatusUpdated();
                 }
             });
-
-            var result = Engine.CurrentPublicModel.UpdateDatabase(database);
-            SetResult(result);
-
-            OnDatabaseStatusUpdated();
         }
+
+
 
         Exception CreateExceptionIfCodeHostTerminated(Process codeHostProcess, Database database, Exception ex = null) {
             Exception result = null;
