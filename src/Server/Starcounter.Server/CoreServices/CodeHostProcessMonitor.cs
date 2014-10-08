@@ -2,12 +2,34 @@
 using Starcounter.Server.Commands;
 using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Starcounter.Server {
 
     internal sealed class CodeHostProcessMonitor {
         readonly LogSource log;
+
+        public sealed class EqualityComparer : IEqualityComparer<CodeHostProcessMonitor> {
+
+            public bool Equals(CodeHostProcessMonitor m1, CodeHostProcessMonitor m2) {
+                if (m1 == null) {
+                    return m2 == null;
+                } else if (m2 == null) {
+                    return false; 
+                }
+
+                return
+                    m1.PID == m2.PID &&
+                    m1.StartTime == m2.StartTime &&
+                    m1.IsMonitoringDatabase(m2.DatabaseName); 
+            }
+
+            public int GetHashCode(CodeHostProcessMonitor m) {
+                var s = string.Format("{0}{1}{2}", m.DatabaseName, m.PID, m.StartTime.Ticks);
+                return s.GetHashCode();
+            }
+        }
 
         public DatabaseEngineMonitor Monitor { get; set; }
 
@@ -28,8 +50,12 @@ namespace Starcounter.Server {
             log = monitor.Log;
         }
 
-        public bool IsMonitorigDatabase(Database database) {
-            return DatabaseName.Equals(database.Name, StringComparison.InvariantCultureIgnoreCase);
+        public bool IsMonitoringDatabase(Database database) {
+            return IsMonitoringDatabase(database.Name);
+        }
+
+        public bool IsMonitoringDatabase(string database) {
+            return DatabaseName.Equals(database, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public bool Cancel() {
@@ -65,6 +91,7 @@ namespace Starcounter.Server {
             if (!databaseExist) {
                 // Might have been deleted.
                 // Take no action.
+                log.Debug("Ignoring synchronization of server state for {0}; database was not found.", DatabaseName);
                 return;
             }
 
@@ -72,11 +99,12 @@ namespace Starcounter.Server {
             if (boundProcess != null) {
                 // The database is bound to some other process. We should
                 // let it be.
+                log.Debug(
+                    "Ignoring synchronization of server state for {0}; it was restarted in process {1}", 
+                    DatabaseName,
+                    boundProcess.Id);
                 return;
             }
-
-            // Should we also remove from monitor.currentHosts?
-            // TODO:
 
             Monitor.ResetInternalAndPublicState(server.DatabaseEngine, database, process);
         }
