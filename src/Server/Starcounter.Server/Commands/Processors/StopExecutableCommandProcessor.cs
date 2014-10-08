@@ -93,7 +93,7 @@ namespace Starcounter.Server.Commands {
 
                 WithinTask(Task.RestartExecutables, (task) => {
 
-                    var node = Node.LocalhostSystemPortNode;
+                    var node = Engine.LocalHostSystemNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                     var isIDEApplication = KnownClientContexts.ParseFromContextInfo(app.Info.StartedBy) == KnownClientContexts.VisualStudio;

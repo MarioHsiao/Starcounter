@@ -97,6 +97,8 @@ namespace Starcounter.Server {
             private set;
         }
 
+
+
         /// <summary>
         /// Initializes a <see cref="DatabaseEngine"/> for the given
         /// <see cref="ServerEngine"/>.
@@ -380,14 +382,16 @@ namespace Starcounter.Server {
             // release the reference.
 
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-
-            var response = Node.LocalhostSystemPortNode.DELETE(serviceUris.Host, (String)null, null); 
+            var node = Server.LocalHostSystemNode;
+            
+            var response = node.DELETE(serviceUris.Host, (String)null, null); 
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
                 // be logged, describing this scenario.
                 throw ErrorCode.ToException(
-                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatDatabaseEngineProcessInfoString(database, process));
+                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP,
+                    FormatDatabaseEngineProcessInfoString(database, process));
             }
 
             // Wait for the user code process to exit. First wait for a short while,
@@ -491,7 +495,7 @@ namespace Starcounter.Server {
 
             try {
                 var apps = databaseInfo.Engine.HostedApps;
-                var node = Node.LocalhostSystemPortNode;
+                var node = Server.LocalHostSystemNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                 foreach (var app in apps) {

@@ -102,7 +102,7 @@ namespace Starcounter.Server.Commands {
             });
 
             WithinTask(Task.Run, (task) => {
-                var node = Node.LocalhostSystemPortNode;
+                var node = Engine.LocalHostSystemNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
                 
                 var databaseStateSnapshot = database.ToPublicModel();
