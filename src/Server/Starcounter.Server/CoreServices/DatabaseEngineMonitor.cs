@@ -106,6 +106,10 @@ namespace Starcounter.Server {
             }
         }
 
+        internal void RemoveCodeHostMonitor(CodeHostProcessMonitor monitor) {
+            hostMonitors.Remove(monitor);
+        }
+
         internal Process GetCodeHostProcess(Database database) {
             CodeHostProcessMonitor procRef;
             if (!currentHosts.TryGetValue(database.Name, out procRef)) {
