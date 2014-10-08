@@ -329,8 +329,6 @@ namespace Starcounter.Server {
             var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps, commandLineAdditions);
             process = DoStartEngineProcess(startInfo, database, (sender, e) => { database.CodeHostErrorOutput.Add(e.Data); });
             process.BeginErrorReadLine();
-            database.CodeHostProcess = process;
-            database.SupposedToBeStarted = true;
             database.CodeHostArguments = startInfo.Arguments;
             return true;
         }
@@ -370,14 +368,20 @@ namespace Starcounter.Server {
         }
 
         internal bool StopCodeHostProcess(Database database) {
-            var process = database.CodeHostProcess;
-            if (process == null)
-                return false;
+            //var process = database.CodeHostProcess;
+            //if (process == null)
+            //    return false;
 
-            process.Refresh();
-            if (process.HasExited) {
+            //process.Refresh();
+            //if (process.HasExited) {
+            //    ResetToCodeHostNotRunning(database);
+            //    SafeClose(process);
+            //    return false;
+            //}
+
+            var process = Monitor.GetCodeHostProcess(database);
+            if (process == null) {
                 ResetToCodeHostNotRunning(database);
-                SafeClose(process);
                 return false;
             }
 
@@ -416,22 +420,30 @@ namespace Starcounter.Server {
 
             ResetToCodeHostNotRunning(database);
             SafeClose(process);
+            Monitor.EndMonitoring(database);
             return true;
         }
 
         internal void ResetToCodeHostNotRunning(Database database) {
-            database.CodeHostProcess = null;
             database.CodeHostArguments = null;
             database.CodeHostErrorOutput.Clear();
             database.Apps.Clear();
-            database.SupposedToBeStarted = false;
         }
 
         internal void SafeClose(Process p) {
             try { p.Close(); } catch { }
         }
 
-        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, DatabaseInfo databaseInfo) {
+        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, Database database, DatabaseInfo databaseInfo) {
+            // Reset the model already here - it must be "not started".
+            // And at the same time, capture the model we WANT it to be,
+            // and have that as part of the restart command (make a real
+            // clone!).
+            // TODO:
+
+            ResetToCodeHostNotRunning(database);
+            Monitor.EndMonitoring(database);
+
             var restartCommand = new ActionCommand<int, DatabaseInfo>(
                 this.Server,
                 RestartCodeHost,
@@ -462,15 +474,22 @@ namespace Starcounter.Server {
                 return;
             }
 
-            var boundProcess = database.CodeHostProcess;
-            if (boundProcess != null && boundProcess.Id != terminatingCodeHostProcessId) {
+            var boundProcess = Monitor.GetCodeHostProcess(database);
+            if (boundProcess != null) {
                 // The database is bound to some other process. We should
-                // let it be.
+                // let it be. We can't predict what could possibly have
+                // happened, since clients can have started/restarted/stopped
+                // hosts/applications in between.
+                
+                // Log a notice about this. We want to keep an eye on it if
+                // it provokes some unpredicted behaviour.
+                // TODO:
+
                 return;
             }
 
-            // Grab the set of applications that we'll try to restart and
-            // then reset the internal state.
+            // We have the set of applications that we'll try to restart;
+            // reset the internal state prior to doing so.
 
             ResetToCodeHostNotRunning(database);
 
