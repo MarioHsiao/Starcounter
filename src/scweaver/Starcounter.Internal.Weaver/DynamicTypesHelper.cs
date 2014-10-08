@@ -79,6 +79,16 @@ namespace Starcounter.Internal.Weaver {
                     attribute.Name
                     ));
             }
+
+            if (!attribute.IsPublicRead) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRDATABASEMEMBERNOTPUBLIC,
+                    string.Format("Attribute {0}.{1} is marked a type; it must have public visibility",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
         }
 
         static void ValidateInheritsReference(DatabaseAttribute attribute) {
@@ -128,6 +138,16 @@ namespace Starcounter.Internal.Weaver {
                     attribute.Name
                     ));
             }
+
+            if (!attribute.IsPublicRead) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRDATABASEMEMBERNOTPUBLIC,
+                    string.Format("Attribute {0}.{1} is marked [Inherits]; it must have public visibility",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
         }
 
         static void ValidateTypeName(DatabaseAttribute attribute) {
@@ -155,6 +175,16 @@ namespace Starcounter.Internal.Weaver {
                     attribute.Name,
                     other.DeclaringClass.Name,
                     other.Name
+                    ));
+            }
+
+            if (!attribute.IsPublicRead) {
+                ScMessageSource.WriteError(
+                    MessageLocation.Unknown,
+                    Error.SCERRDATABASEMEMBERNOTPUBLIC,
+                    string.Format("Attribute {0}.{1} is marked [TypeName]; it must have public visibility",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
                     ));
             }
         }

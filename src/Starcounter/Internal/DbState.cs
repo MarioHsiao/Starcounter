@@ -117,8 +117,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(dr);
-            Insert(tableId, ref oid, ref address);
+            throw ErrorCode.ToException(dr);
         }
 
         internal static void SystemInsert(ushort tableId, ref ulong oid, ref ulong address) {
@@ -135,8 +134,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(dr);
-            SystemInsert(tableId, ref oid, ref address);
+            throw ErrorCode.ToException(dr);
         }
 
         /// <summary>
@@ -787,8 +785,7 @@ namespace Starcounter.Internal
             r = sccoredb.star_put_ulong(oid, address, index, value ? 1UL : 0UL);
             if (r == 0) return;
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteBoolean(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -877,8 +874,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteDateTimeEx(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -896,8 +892,7 @@ namespace Starcounter.Internal
             if (ec == 0)
                 return;
 
-            CheckImplicitTransactionUpgradeOrThrow(ec);
-            WriteDecimal(recordID, recordAddr, columnIndex, value);
+            throw ErrorCode.ToException(ec);
         }
 
         /// <summary>
@@ -929,8 +924,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteDouble(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1014,8 +1008,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteInt64(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1063,8 +1056,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteObject(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1140,8 +1132,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteSingle(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1182,8 +1173,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteString(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1237,8 +1227,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteTimeSpanEx(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1303,9 +1292,8 @@ namespace Starcounter.Internal
         public static void WriteUInt64(ulong oid, ulong address, Int32 index, UInt64 value) {
             var r = sccoredb.star_put_ulong(oid, address, index, value);
             if (r == 0) return;
-            
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteUInt64(oid, address, index, value);
+
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1342,8 +1330,7 @@ namespace Starcounter.Internal
                 return;
             }
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteBinary(oid, address, index, value);
+            throw ErrorCode.ToException(r);
         }
 
         /// <summary>
@@ -1356,20 +1343,7 @@ namespace Starcounter.Internal
             var r = sccoredb.star_put_default(oid, address, index);
             if (r == 0) return;
 
-            CheckImplicitTransactionUpgradeOrThrow(r);
-            WriteNull(oid, address, index);
-        }
-
-        internal static void CheckImplicitTransactionUpgradeOrThrow(uint errorCode) {
-            if (errorCode == Error.SCERRREADONLYTRANSACTION) {
-                var it = ImplicitTransaction.Current(false);
-                if (it != null && it.insideMicroTask) {
-                    it.UpgradeToReadWrite();
-                    return;
-                }
-
-            }
-            throw ErrorCode.ToException(errorCode);
+            throw ErrorCode.ToException(r);
         }
 	}
 }

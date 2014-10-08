@@ -105,6 +105,42 @@ namespace Starcounter.Binding
         /// </summary>
         public string ShortName { get { return shortname_; } internal set { shortname_ = value; } }
 
+        /// <summary>
+        /// Gets the property that is considered the dynamic type
+        /// of the current type binding, or null if no such reference
+        /// has been established.
+        /// </summary>
+        public PropertyBinding Type {
+            get {
+                var index = TypeDef.TypePropertyIndex;
+                return index == -1 ? null : GetPropertyBinding(index);
+            }
+        }
+
+        /// <summary>
+        /// Gets the property that is considered the dynamic base type
+        /// of the current type binding, or null if no such reference
+        /// has been established.
+        /// </summary>
+        public PropertyBinding Inherits {
+            get {
+                var index = TypeDef.InheritsPropertyIndex;
+                return index == -1 ? null : GetPropertyBinding(index);
+            }
+        }
+
+        /// <summary>
+        /// Gets the property that is considered the dynamic type name
+        /// of the current type binding, or null if no such reference
+        /// has been established.
+        /// </summary>
+        public PropertyBinding TypeName {
+            get {
+                var index = TypeDef.TypeNameIndex;
+                return index == -1 ? null : GetPropertyBinding(index);
+            }
+        }
+
         private ushort[] currentAndBaseTableIds_; // Sorted lowest to highest.
 
         internal void SetCurrentAndBaseTableIds(ushort[] currentAndBaseTableIds)
