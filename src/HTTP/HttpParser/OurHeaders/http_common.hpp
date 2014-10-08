@@ -36,21 +36,12 @@ enum HttpWsFields
 // Fast way to determine field type.
 inline HttpWsFields DetermineField(const char *at, size_t length)
 {
-    // Filtering too short and long headers.
-    char lower[32];
-    if ((length > 32) || (length < 4))
-        return UNKNOWN_FIELD;
-
-    // Making the field lowercase.
-    for (size_t i = 0; i < length; i++) {
-        lower[i] = tolower(at[i]);
-    }
-
+    // NOTE: First checking assuming "standard" case sensitivity.
     switch (length) {
 
         case 6: { // Cookie
 
-            if ((*(int32_t*)lower == *(int32_t*)"cookie") && (*(int32_t*) (lower + 2) == *(int32_t*)"okie")) {
+            if ((*(int32_t*)at == *(int32_t*)"Cookie") && (*(int32_t*) (at + 2) == *(int32_t*)"okie")) {
                 return COOKIE_FIELD;
             }
 
@@ -59,11 +50,11 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 7: { // Referer
 
-            if ((*(int32_t*)lower == *(int32_t*)"upgrade") && (*(int32_t*)(lower + 3) == *(int32_t*)"rade")) {
+            if ((*(int32_t*)at == *(int32_t*)"Upgrade") && (*(int32_t*)(at + 3) == *(int32_t*)"rade")) {
                 return UPGRADE_FIELD;
             }
 
-            if ((*(int32_t*)lower == *(int32_t*)"referer") && (*(int32_t*)(lower + 3) == *(int32_t*)"erer")) {
+            if ((*(int32_t*)at == *(int32_t*)"Referer") && (*(int32_t*)(at + 3) == *(int32_t*)"erer")) {
                 return REFERRER_FIELD;
             }
 
@@ -72,7 +63,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 8: { // Loophost
 
-            if ((*(int64_t*)lower == *(int64_t*)"loophost")) {
+            if ((*(int64_t*)at == *(int64_t*)"Loophost")) {
                 return LOOP_HOST_FIELD;
             }
 
@@ -81,7 +72,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 9: { // X-Referer
 
-            if ((*(int64_t*)lower == *(int64_t*)"x-referer")) {
+            if ((*(int64_t*)at == *(int64_t*)"X-Referer")) {
                 return XREFERRER_FIELD;
             }
 
@@ -90,7 +81,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 11: { // SchedulerId
 
-            if ((*(int64_t*)lower == *(int64_t*)"schedulerid") && (*(int64_t*)(lower + 3) == *(int64_t*)"edulerid")) {
+            if ((*(int64_t*)at == *(int64_t*)"SchedulerId") && (*(int64_t*)(at + 3) == *(int64_t*)"edulerId")) {
                 return SCHEDULER_ID_FIELD;
             }
 
@@ -99,7 +90,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 14: { // Content-Length
 
-            if ((*(int64_t*)lower == *(int64_t*)"content-length") && (*(int64_t*) (lower + 6) == *(int64_t*)"t-length")) {
+            if ((*(int64_t*)at == *(int64_t*)"Content-Length") && (*(int64_t*) (at + 6) == *(int64_t*)"t-Length")) {
                 return CONTENT_LENGTH_FIELD;
             }
 
@@ -108,7 +99,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 15: { // Accept-Encoding
 
-            if ((*(int64_t*)lower == *(int64_t*)"accept-encoding") && (*(int64_t*)(lower + 7) == *(int64_t*)"encoding")) {
+            if ((*(int64_t*)at == *(int64_t*)"Accept-Encoding") && (*(int64_t*)(at + 7) == *(int64_t*)"Encoding")) {
                 return ACCEPT_ENCODING_FIELD;
             }
 
@@ -117,7 +108,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 17: { // Sec-WebSocket-Key
 
-            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-key") {
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-Key") {
                 return WS_KEY_FIELD;
             }
 
@@ -126,7 +117,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 20: { // Sec-WebSocket-Accept
 
-            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-acc") {
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-Acc") {
                 return WS_ACCEPT_FIELD;
             }
 
@@ -135,7 +126,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 21: { // Sec-WebSocket-Version
 
-            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-ver") {
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-Ver") {
                 return WS_VERSION_FIELD;
             }
 
@@ -144,7 +135,7 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
         case 22: { // Sec-WebSocket-Protocol
 
-            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-pro") {
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-Pro") {
                 return WS_PROTOCOL_FIELD;
             }
 
@@ -153,11 +144,149 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
                          
         case 24: { // Sec-WebSocket-Extensions
 
-            if (*(int64_t*)(lower + 9) == *(int64_t*)"cket-ext") {
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-Ext") {
                 return WS_EXTENSIONS_FIELD;
             }
 
             break;
+        }
+
+        default: {
+            return UNKNOWN_FIELD;
+        }
+    }
+
+    // Filtering too short and long headers.
+    if ((length > 32) || (length < 4))
+        return UNKNOWN_FIELD;
+
+    // Now checking with case insensitivity.
+    char temp[32];
+
+    // Making the field lowercase.
+    for (size_t i = 0; i < length; i++) {
+        temp[i] = at[i] | 32;
+    }
+
+    // Pointing to lower case temporary array.
+    at = temp;
+
+    switch (length) {
+
+        case 6: { // Cookie
+
+            if ((*(int32_t*)at == *(int32_t*)"cookie") && (*(int32_t*) (at + 2) == *(int32_t*)"okie")) {
+                return COOKIE_FIELD;
+            }
+
+            break;
+        }
+
+        case 7: { // Referer
+
+            if ((*(int32_t*)at == *(int32_t*)"upgrade") && (*(int32_t*)(at + 3) == *(int32_t*)"rade")) {
+                return UPGRADE_FIELD;
+            }
+
+            if ((*(int32_t*)at == *(int32_t*)"referer") && (*(int32_t*)(at + 3) == *(int32_t*)"erer")) {
+                return REFERRER_FIELD;
+            }
+
+            break;
+        }
+
+        case 8: { // Loophost
+
+            if ((*(int64_t*)at == *(int64_t*)"loophost")) {
+                return LOOP_HOST_FIELD;
+            }
+
+            break;
+        }
+
+        case 9: { // X-Referer
+
+            if ((*(int64_t*)at == *(int64_t*)"x-referer")) {
+                return XREFERRER_FIELD;
+            }
+
+            break;
+        }
+
+        case 11: { // SchedulerId
+
+            if ((*(int64_t*)at == *(int64_t*)"schedulerid") && (*(int64_t*)(at + 3) == *(int64_t*)"edulerid")) {
+                return SCHEDULER_ID_FIELD;
+            }
+
+            break;
+        }
+
+        case 14: { // Content-Length
+
+            if ((*(int64_t*)at == *(int64_t*)"content-length") && (*(int64_t*) (at + 6) == *(int64_t*)"t-length")) {
+                return CONTENT_LENGTH_FIELD;
+            }
+
+            break;
+        }
+
+        case 15: { // Accept-Encoding
+
+            if ((*(int64_t*)at == *(int64_t*)"accept-encoding") && (*(int64_t*)(at + 7) == *(int64_t*)"encoding")) {
+                return ACCEPT_ENCODING_FIELD;
+            }
+
+            break;
+        }
+
+        case 17: { // Sec-WebSocket-Key
+
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-key") {
+                return WS_KEY_FIELD;
+            }
+
+            break;
+        }
+
+        case 20: { // Sec-WebSocket-Accept
+
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-acc") {
+                return WS_ACCEPT_FIELD;
+            }
+
+            break;
+        }
+
+        case 21: { // Sec-WebSocket-Version
+
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-ver") {
+                return WS_VERSION_FIELD;
+            }
+
+            break;
+        }
+
+        case 22: { // Sec-WebSocket-Protocol
+
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-pro") {
+                return WS_PROTOCOL_FIELD;
+            }
+
+            break;
+        }
+                         
+        case 24: { // Sec-WebSocket-Extensions
+
+            if (*(int64_t*)(at + 9) == *(int64_t*)"cket-ext") {
+                return WS_EXTENSIONS_FIELD;
+            }
+
+            break;
+        }
+
+        default: {
+            return UNKNOWN_FIELD;
         }
     }
     
