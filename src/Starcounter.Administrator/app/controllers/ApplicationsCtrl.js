@@ -8,7 +8,7 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     // List of applications
     $scope.applications = HostModelService.applications;
     $scope.installedApplications = HostModelService.installedApplications;
-    $scope.appStoreServiceEnabled = AppStoreService.appStoreServiceEnabled;
+    $scope.databases = HostModelService.databases;
 
     /**
      * Filter Applications
@@ -42,41 +42,6 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
      * @param {object} application Application
      */
     $scope.btnStart = function (application) {
-
-        ApplicationService.startApplication(application, function () {
-
-            // Success
-
-        }, function (messageObject) {
-
-            // Error
-
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-            }
-            else {
-                NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-            }
-
-        });
-
-    }
-
-    /**
-     * Start Installed Application
-     * @param {object} application Application
-     */
-    $scope.btnStartInstalled = function (installedapplication) {
-
-        // Create application object
-        var application = {
-            "Name": installedapplication.DisplayName,
-            "databaseName": "default",  // TODO:
-            "Path": installedapplication.Executable,
-            "ApplicationFilePath": installedapplication.Executable,
-            "WorkingDirectory": installedapplication.ResourceFolder,
-            "StartedBy": "Starcounter Administrator"
-        };
 
         ApplicationService.startApplication(application, function () {
 
@@ -174,7 +139,27 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
     }
 
     /**
-     * Delete (Uninstall) Application
+     * Start Installed Application
+     * @param {object} application Application
+     */
+    $scope.btnStartInstalled = function (installedapplication) {
+
+        ApplicationService.startInstalledApplication(installedapplication, installedapplication._databaseName, function () {
+            // Success
+        }, function (messageObject) {
+            // Error
+            installedapplication.task = null;
+            if (messageObject.isError) {
+                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            }
+            else {
+                NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+            }
+        });
+    }
+
+    /**
+     * Uninstall Application
      * @param {object} installedApplication Installed Application
      */
     $scope.btnUninstall = function (installedApplication) {
@@ -187,10 +172,14 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
 
             if (result == 0) {
 
-                InstalledApplicationService.deleteInstalledApplication(installedApplication, function () { },
+                AppStoreService.uninstall(installedApplication, function () {
+
+                    InstalledApplicationService.refreshApplications();
+                },
                     function (messageObject) {
                         // Error
-
+                        InstalledApplicationService.refreshApplications(); // TODO: Handle callbacks
+                        
                         if (messageObject.isError) {
                             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                         }
@@ -201,11 +190,11 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
             }
         });
     }
-   
 
     // Init
     // Refresh host model
     HostModelService.refreshHostModel(function () {
+
     }, function (messageObject) {
         // Error
         UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);

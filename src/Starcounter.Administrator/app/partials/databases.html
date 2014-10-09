@@ -1,12 +1,10 @@
 ﻿<div class="panel panel panel-primary">
     <div class="panel-heading">
         Databases
-
             <div class="btn-group pull-right" data-toggle="buttons-radio">
                 <button type="button" class="btn btn-default btn-xs" ng-model="view" btn-radio="'list'" title="List view"><span class="glyphicon glyphicon-list"></span></button>
                 <button type="button" class="btn btn-default btn-xs" ng-model="view" btn-radio="'icon'" title="Icon view"><span class="glyphicon glyphicon-th"></span></button>
             </div>
-
     </div>
 
     <div class="panel-body" ng-show="view=='icon' || databases.length == 0">
@@ -24,9 +22,10 @@
                 </h4>
 
                 <div class="btn-toolbar">
+                    <div style="margin-left: 5px" ng-show="database.task.Text" title="{{database.task.Text}}" class="spinner tiny"></div>
                     <div class="btn-group">
-                        <button ng-disabled='database.running == true' class="btn btn-default btn-xs btn-success" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
-                        <button ng-disabled='database.running == false' class="btn btn-default btn-xs btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
+                        <button ng-disabled='database.running == true || database.task != null' class="btn btn-default btn-xs btn-success" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
+                        <button ng-disabled='database.running == false || database.task != null' class="btn btn-default btn-xs btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
                     </div>
 
                     <div class="pull-right">
@@ -37,16 +36,13 @@
                 <div ng-style="{'height':'200px', 'width':'100%'}" title="Console output">
                     <consolewindow ng-model="database.console"></consolewindow>
                 </div>
-
             </li>
-
         </ul>
 
         <div ng-show="databases.length == 0">
             <label>There are no databases.</label>
         </div>
     </div>
-
 
     <table class="table table-condensed" ng-show="view=='list' && databases.length > 0">
 
@@ -66,20 +62,15 @@
                 </td>
 
                 <td>
-
-                    <div style='margin-top: 0px; margin-bottom: 0px' class="btn-toolbar pull-right">
+                    <div class="pull-right">
+                        <div ng-show="database.task.Text" title="{{database.task.Text}}" class="spinner tiny"></div>
                         <div class="btn-group">
-                            <button ng-disabled='database.running == true' class="btn btn-default btn-sm btn-success" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
-                            <button ng-disabled='database.running == false' class="btn btn-default btn-sm btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
+                            <button ng-disabled='database.running == true || database.task != null' class="btn btn-default btn-sm btn-success" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
+                            <button ng-disabled='database.running == false || database.task != null' class="btn btn-default btn-sm btn-danger" ng-click="btnStopDatabase(database)" title="Stop Database">Stop</button>
                         </div>
-
                     </div>
-
-
-
                 </td>
             </tr>
-
         </tbody>
     </table>
 
@@ -90,6 +81,5 @@
             </div>
         </div>
     </div>
-
 </div>
 

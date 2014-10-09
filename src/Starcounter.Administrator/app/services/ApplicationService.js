@@ -19,7 +19,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     //      "ResourceDirectories": [{"dummy":""}],
     //      "WorkingDirectory": "C:\\path\\to\\default\\resource\\directory",
     //      "IsTool":false,
-    //      "StartedBy": "Per Samuelsson, per@starcounter.com",
+    //      "StartedBy": "Starcounter Administrator",
     //      "Engine": {
     //          "Uri": "http://example.com/api/executables/foo"
     //      },
@@ -36,7 +36,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
     //      running : true
     //  }
     this.applications = [];
-
 
     /**
      * Get all running applications
@@ -117,7 +116,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         });
     }
 
-
     /**
      * Get Application
      * @param {string} databaseName Database name
@@ -133,7 +131,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         }
         return null;
     }
-
 
     /**
      * Pick an applications by opening a filedialog on the server
@@ -224,7 +221,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
     }
 
-
     /**
      * Refresh application console output
      * @param {object} application Application
@@ -249,7 +245,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         }, errorCallback);
 
     }
-
 
     /**
      * Callback when there is an incoming console message
@@ -276,7 +271,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         application.console = result;
     }
 
-
     /**
      * Merge New Applications with history applications
      * @return {array} Application list
@@ -288,6 +282,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         for (var i = 0; i < historyApplications.length ; i++) {
 
             var historyApplication = historyApplications[i];
+            historyApplication.task = null;
 
             var bExists = false;
 
@@ -311,7 +306,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
         return freshApplications;
     }
-
 
     /**
      * Update current application list with new list
@@ -403,14 +397,13 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
     }
 
-
     /**
      * On application started event
      * @param {object} application Database
      */
     this._onApplicationStarted = function (application) {
 
-        $log.info("Application started : " + application.Name + "(" + application.databaseName + ")");
+        $log.info("Application started, " + application.Name + " (" + application.databaseName + ")");
 
         application.running = true;
         application.console = "";
@@ -438,20 +431,18 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
     }
 
-
     /**
      * On application stopped event
      * @param {object} application Application
      */
     this._onApplicationStopped = function (application) {
 
-        $log.info("Application stopped : " + application.Name + "(" + application.databaseName + ")");
+        $log.info("Application stopped, " + application.Name + "(" + application.databaseName + ")");
 
         application.console = "";
 
         ConsoleService.unregisterEventListener(application.consoleListener);
     }
-
 
     /**
      * Get history applications
@@ -472,7 +463,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         return [];
     }
 
-
     /**
      * Save applications history
      * @return {array} Applications to be saved in history (this will replace current history)
@@ -487,7 +477,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         // Save to storage
         localStorage.setItem("historyApplications", JSON.stringify(applications));
     }
-
 
     /**
      * Remove application from history
@@ -504,7 +493,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         this._SaveHistory(self.applications);
 
     }
-
 
     /**
      * Restart Application
@@ -526,6 +514,45 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
         })
     }
 
+    /**
+      * Start Installed Application
+      * @param {object} installedapplication Installed Application
+      * @param {function} successCallback Success Callback function
+      * @param {function} errorCallback Error Callback function
+      */
+    this.startInstalledApplication = function (installedapplication, databaseName, successCallback, errorCallback) {
+
+        var appData = {
+            "Name": installedapplication.DisplayName,
+            "databaseName": databaseName,
+            "Path": installedapplication.Executable,
+            "ApplicationFilePath": installedapplication.Executable,
+            "WorkingDirectory": installedapplication.ResourceFolder,
+            "StartedBy": "Starcounter Administrator"
+        };
+
+        if (installedapplication._arguments) {
+            $log.warn("Using arguments is not yet implemented (" + installedapplication._arguments+")");
+        }
+
+        installedapplication.task = { "Text": "Starting" };
+
+        this.startApplication(appData, function () {
+            // Success
+            installedapplication.task = null;
+
+            if (typeof (successCallback) == "function") {
+                successCallback();
+            }
+        }, function (errorMessageObject) {
+            // Error
+            installedapplication.task = null;
+
+            if (typeof (errorCallback) == "function") {
+                errorCallback(errorMessageObject);
+            }
+        });
+    }
 
     /**
      * Start Application
@@ -535,7 +562,9 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this.startApplication = function (application, successCallback, errorCallback) {
 
-        this.startEngine(application.databaseName, function () {
+        application.task = { "Text": "Starting" };
+
+        this._startEngine(application.databaseName, function () {
             // Success
 
             var bodyData = {
@@ -560,10 +589,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
                 }
             };
 
+            //application.task = { "Text": "Starting" };
 
             // Add job
-            var job = { message: "Starting application " + application.Name + " in " + application.databaseName };
-            JobFactory.AddJob(job);
+//            var job = { message: "Starting application " + application.Name + " in " + application.databaseName };
+//            JobFactory.AddJob(job);
 
             // Example JSON response 
             //-----------------------
@@ -590,18 +620,25 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             // }
             $http.post('/api/engines/' + application.databaseName + '/executables', bodyData).then(function (response) {
                 // Success
-                JobFactory.RemoveJob(job);
+                //JobFactory.RemoveJob(job);
 
+                application.task = null;
                 $log.info("Application " + response.data.Path + " was successfully started");
 
                 // Refresh applications
                 self.refreshApplications(successCallback, errorCallback);
 
                 // TODO: Return the started application
+                if (typeof (successCallback) == "function") {
+                    successCallback();
+                }
 
             }, function (response) {
                 // Error
-                JobFactory.RemoveJob(job);
+
+                application.task = null;
+
+//                JobFactory.RemoveJob(job);
 
                 var errorHeader = "Failed to start application";
                 $log.error(errorHeader, response);
@@ -641,13 +678,14 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
         }, function (errorMessageObject) {
             // Error
+            application.task = null;
+
             if (typeof (errorCallback) == "function") {
                 errorCallback(errorMessageObject);
             }
         });
 
     }
-
 
     /**
      * Stop Application
@@ -657,14 +695,18 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      */
     this.stopApplication = function (application, successCallback, errorCallback) {
 
-        var job = { message: "Stopping application " + application.Name };
-        JobFactory.AddJob(job);
+//        var job = { message: "Stopping application " + application.Name };
+//        JobFactory.AddJob(job);
 
         var uri = UtilsFactory.toRelativePath(application.Uri);
 
+        application.task = { "Text": "Stopping" };
+
         $http.delete(uri).then(function (response) {
             // Success, 204 No Content 
-            JobFactory.RemoveJob(job);
+            //JobFactory.RemoveJob(job);
+
+            application.task = null;
 
             $log.info("Application " + application.Name + " was successfully stopped");
 
@@ -672,7 +714,8 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             self.refreshApplications(successCallback, errorCallback);
 
         }, function (response) {
-            JobFactory.RemoveJob(job);
+            //JobFactory.RemoveJob(job);
+            application.task = null;
 
             // Error
             var errorHeader = "Failed to stop application";
@@ -711,7 +754,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
     }
 
-
     /**
      * Start engine/database
      * @param {string} name Database name
@@ -719,12 +761,12 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
      * @param {function} errorCallback Error Callback function
      * @return {object} promise
      */
-    this.startEngine = function (name, successCallback, errorCallback) {
+    this._startEngine = function (name, successCallback, errorCallback) {
 
         var errorHeader = "Failed to start database";
 
-        var job = { message: "Starting database " + name };
-        JobFactory.AddJob(job);
+//        var job = { message: "Starting database " + name };
+//        JobFactory.AddJob(job);
 
         var engineData = { Name: name, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from arguments
         var uri = "/api/engines";
@@ -766,7 +808,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
             // 200 OK
             // 201 Created
 
-            JobFactory.RemoveJob(job);
+//            JobFactory.RemoveJob(job);
 
             $log.info("Engine " + name + " started successfully");
 
@@ -777,7 +819,7 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
         }, function (response) {
             // Error
-            JobFactory.RemoveJob(job);
+//            JobFactory.RemoveJob(job);
 
             var errorHeader = "Failed to start application";
             $log.error(errorHeader, response);
@@ -809,10 +851,6 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'ConsoleServ
 
                 errorCallback(messageObject);
             }
-
         });
-
     }
-
-
 }]);
