@@ -17,7 +17,6 @@
 
             <div class="btn-group pull-right">
                 <!-- Maxitems -->
-
                 <select  title="Max Items" style="min-width: 120px"  class="form-control" ng-model="model.filter.maxitems" name="MaxItems">
                     <option value="30">30 items</option>
                     <option value="50">50 items</option>
@@ -34,7 +33,6 @@
         </div>
 
         <div class="row">
-
             <div id="handsontableContainer" style="overflow-x: auto; margin-bottom: -15px; overflow-y: visible">
                 <ui-handsontable
                     id="handsontable"
@@ -53,16 +51,15 @@
                     afterrender="afterRender"
                     fragmentselection="true">
 
-      <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
-      <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
-      <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
-      <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
-      <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
+                    <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
+                    <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
+                    <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
+                    <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
+                    <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
 
-    </ui-handsontable>
+                </ui-handsontable>
             </div>
         </div>
-
     </div>
 </div>
 

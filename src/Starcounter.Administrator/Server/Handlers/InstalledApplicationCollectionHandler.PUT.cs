@@ -33,7 +33,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             //
             // Install Application zip package (from the body)
             //
-            Handle.PUT("/api/admin/installed/applications", (Request request) => {
+            Handle.PUT("/api/admin/installed/apps", (Request request) => {
 
                 try {
                     using (MemoryStream packageZip = new MemoryStream(request.BodyBytes)) {

@@ -53,6 +53,12 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 try {
 
+                    if (string.IsNullOrEmpty(appStoreHost)) {
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
+
                     string uri = appStoreHost + "/appstore/apps";
 
                     // Get App Store items (external source)
@@ -62,7 +68,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
 
                         ErrorResponse errorResponse = new ErrorResponse();
-                        errorResponse.Text = string.Format("App Store service is unavailable, {0}", appStoreHost);
+                        errorResponse.Text = string.Format("At the moment The App Store Service is not avaiable. Try again later.");
                         errorResponse.Helplink = appStoreHost;
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
                     }
@@ -73,7 +79,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     // Get Installed applications
                     Representations.JSON.Applications installedApplications = new Representations.JSON.Applications();
                     Response installedAppsResponse;
-                    X.GET("/api/admin/installed/applications", out installedAppsResponse, null, 10000);
+                    X.GET("/api/admin/installed/apps", out installedAppsResponse, null, 10000);
                     if (installedAppsResponse.StatusCode == (ushort)System.Net.HttpStatusCode.OK) {
                         installedApplications.PopulateFromJson(installedAppsResponse.Body);
                     }
@@ -93,12 +99,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                             if (installedItem.ID == item.ID) {
                                 returnedItem.IsInstalled = true;
                                 returnedItem.RelativeStartUri = installedItem.RelativeStartUri;
-
-                                Version installedVersion = new Version(installedItem.Version);
-                                Version appStoreVersion = new Version(item.Version);
-
-                                returnedItem.IsNewVersionAvailable = (appStoreVersion>installedVersion);
-                    
+                                returnedItem.IsNewVersionAvailable = (new Version(item.Version)>new Version(installedItem.Version));
                                 break;
                             }
                         }
@@ -113,11 +114,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                         returnedItem.Size = item.Size;
                         returnedItem.ImageUri = item.ImageUri;
                         returnedItem.Url = item.Url;
-
                     }
-
-
-                    // TODO: Merge with installed apps
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreApplications.ToJsonUtf8() };
 
@@ -146,6 +143,13 @@ namespace Starcounter.Administrator.Server.Handlers {
             Handle.GET("/api/admin/appstore/apps/{?}", (string nameSpace, Request req) => {
 
                 try {
+
+                    if (string.IsNullOrEmpty(appStoreHost)) {
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
+
                     Representations.JSON.Applications appStoreItems = new Representations.JSON.Applications();
 
                     string uri = appStoreHost + "/appstore/apps" + nameSpace;

@@ -85,6 +85,10 @@ namespace Administrator.Server.ApplicationContainer {
             catch (InvalidDataException) {
                 throw new Exception("Failed to install package, Invalid package format");
             }
+            catch (InvalidOperationException e) {
+                // Zip file error
+                throw new InvalidOperationException("Failed to install package, " + e.Message);
+            }
             catch (Exception e) {
                 // Zip file error
                 throw new Exception("Failed to install package, " + e.Message);

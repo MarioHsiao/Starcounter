@@ -83,6 +83,10 @@ adminModule.factory('UtilsFactory', ['$log', function ($log) {
 
                 var oldValue = destination[propertyName];
 
+                if (source == null || destination == null) {
+                    debugger;
+                }
+
                 destination[propertyName] = source[propertyName];
 
                 if (typeof (properyChangedCallback) == "function") {

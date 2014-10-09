@@ -91,12 +91,10 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ui.sele
  * Navbar Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'HostModelService', 'AppStoreService', function ($scope, $rootScope, $location, $log, NoticeFactory, HostModelService, AppStoreService) {
+adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, HostModelService) {
 
 
     $scope.newVersion = null;
-    $scope.appStoreServiceEnabled = AppStoreService.appStoreServiceEnabled;
-    $scope.appStoreService = AppStoreService.appStoreService;
 
     // TODO: Keep querystate
     $rootScope.queryState = {
