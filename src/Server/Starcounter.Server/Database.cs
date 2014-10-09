@@ -45,28 +45,10 @@ namespace Starcounter.Server {
         internal readonly string Uri;
 
         /// <summary>
-        /// Gets or sets the worker process associated with the
-        /// current <see cref="Database"/>.
-        /// </summary>
-        internal Process CodeHostProcess {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Gets or sets a value representing the exact command-line
         /// arguments string what was used to start the host.
         /// </summary>
         internal string CodeHostArguments {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Gets or sets a value indicating if the database is supposed to
-        /// be running or not.
-        /// </summary>
-        internal bool SupposedToBeStarted {
             get;
             set;
         }
@@ -176,12 +158,7 @@ namespace Starcounter.Server {
         /// </summary>
         /// <returns></returns>
         internal Process GetRunningCodeHostProcess() {
-            var p = CodeHostProcess;
-            if (p != null) {
-                p.Refresh();
-                p = p.HasExited ? null : p;
-            }
-            return p;
+            return Server.DatabaseEngine.Monitor.GetCodeHostProcess(this);
         }
     }
 }
