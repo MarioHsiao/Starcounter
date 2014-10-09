@@ -1127,6 +1127,10 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             // Decreasing number of active sockets on worker 0.
             RemoveFromActiveSockets(port_index);
 
+            // Adding to active sockets of the other worker.
+            ServerPort* sp = g_gateway.get_server_port(port_index);
+            sp->AddToActiveSockets(least_busy_worker_id);
+
             // Getting temporary rebalance container.
             RebalancedSocketInfo* rsi = PopRebalanceSocketInfo();
             if (NULL == rsi) {
@@ -1272,9 +1276,6 @@ void GatewayWorker::ProcessRebalancedSockets() {
 
         // Returning socket info back to origin.
         g_gateway.get_worker(0)->PushRebalanceSocketInfo(rsi);
-
-        // Adding to active sockets of the other worker.
-        AddToActiveSockets(pi);
 
         // Creating new socket data structure inside chunk.
         SocketDataChunk* new_sd = NULL;
