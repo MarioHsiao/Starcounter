@@ -4,7 +4,7 @@ using System.Text;
 using NUnit.Framework;
 using Starcounter.Templates;
 
-//#if !DEBUG // Serializer benchmark tests - only in release.
+#if !DEBUG // Serializer benchmark tests - only in release.
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -367,4 +367,4 @@ namespace Starcounter.Internal.XSON.Tests {
     }
 }
 
-//#endif // Serializer benchmark tests - only in release.
+#endif // Serializer benchmark tests - only in release.
