@@ -207,10 +207,6 @@ namespace Starcounter.Binding
             }
         }
 
-        public bool SubTypeOf(IObjectView superTypeBind) {
-            return false;
-        }
-
         /// <summary>
         /// Gets the property binding.
         /// </summary>

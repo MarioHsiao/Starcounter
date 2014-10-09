@@ -68,6 +68,27 @@ namespace Starcounter.Query.Execution {
             return objExpr.InvolvesCodeExecution();
         }
 
+        private static bool SubTypeOf(IObjectView objTypeValue, IObjectView typeValue) {
+            while (objTypeValue != null && !objTypeValue.Equals(typeValue)) {
+                // Read type object, on which objTypeValue is based.
+                TypeBinding tb = objTypeValue.TypeBinding as TypeBinding;
+                if (tb == null) {
+                    tb = Bindings.GetTypeBinding(objTypeValue.GetType().FullName);
+                    if (tb == null)
+                        throw ErrorCode.ToException(Error.SCERRQUERYEXECINTERNALERROR, "TypeBinding is not set for database object");
+                }
+                PropertyBinding prop = tb.Inherits;
+                if (prop == null)
+                    throw ErrorCode.ToException(Error.SCERRILLEGALTYPEOBJECT,
+                        "Object is of database type " + tb.Name + ", which misses [Inherits].");
+                objTypeValue = prop.GetObject(objTypeValue);
+            }
+            if (objTypeValue == null)
+                return false;
+            else
+                return true;
+        }
+
         /// <summary>
         /// Calculates the truth value of this operation when evaluated on an input object.
         /// All properties in this operation are evaluated on the input object.
@@ -87,29 +108,35 @@ namespace Starcounter.Query.Execution {
 
             IObjectView objValue = objExpr.EvaluateToObject(obj);
             TypeBinding tb = this.typeBinding as TypeBinding;
-            if (tb == null && typeObject == null || objValue == null) 
+            if (tb == null && typeObject == null || objValue == null)
                 return TruthValue.UNKNOWN;
             TypeBinding objTypeBind = objValue.TypeBinding as TypeBinding;
             if (objTypeBind == null)
-                return TruthValue.UNKNOWN;
-            if (tb is TypeBinding)
-            {
-                if (((TypeBinding)objTypeBind).SubTypeOf((TypeBinding)tb))
-                {
-                    if (compOperator == ComparisonOperator.IS)
-                        return TruthValue.TRUE;
-                    else
-                        return TruthValue.FALSE;
-                }
-                else
-                {
-                    if (compOperator == ComparisonOperator.IS)
-                        return TruthValue.FALSE;
-                    else
-                        return TruthValue.TRUE;
-                }
+                throw ErrorCode.ToException(Error.SCERRQUERYEXECINTERNALERROR, "TypeBinding is not set for database object");
+            bool isSubType;
+            if (tb != null)
+                isSubType = objTypeBind.SubTypeOf(tb);
+            else {
+                PropertyBinding prop = objTypeBind.Type;
+                if (prop == null)
+                    return TruthValue.FALSE;
+                IObjectView objType = prop.GetObject(objValue);
+                if (objType == null)
+                    return TruthValue.FALSE;
+                isSubType = SubTypeOf(objType, typeObject);
             }
-            return TruthValue.UNKNOWN; // Same as in cast
+            if (isSubType) {
+                if (compOperator == ComparisonOperator.IS)
+                    return TruthValue.TRUE;
+                else // IS NOT
+                    return TruthValue.FALSE;
+            }
+            else {
+                if (compOperator == ComparisonOperator.IS)
+                    return TruthValue.FALSE;
+                else // IS NOT
+                    return TruthValue.TRUE;
+            }
         }
     
         /// <summary>
