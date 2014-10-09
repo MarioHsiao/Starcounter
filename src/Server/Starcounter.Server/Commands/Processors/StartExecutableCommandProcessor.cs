@@ -62,7 +62,7 @@ namespace Starcounter.Server.Commands {
             }
 
             app = database.Apps.Find((candidate) => {
-                return candidate.Info.EqualBinaryFile(command.Application);
+                return candidate.Info.EqualApplicationFile(command.Application);
             });
             if (app != null) {
                 throw ErrorCode.ToException(
