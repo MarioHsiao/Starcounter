@@ -514,6 +514,17 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
 
             break;
         }
+
+        case CONNECTION_HEADER:
+        {
+            // Checking if this is Connection: Close.
+            if (*(int32_t*)(at + 1) == *(int32_t*)"lose") {
+                g_ts_sd_->set_disconnect_after_send_flag();
+            }
+
+            break;
+        }
+
     }
 
     return 0;
