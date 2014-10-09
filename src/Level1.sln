@@ -780,6 +780,7 @@ Global
 		{CC727D22-21B5-4698-ACFA-841D4FFA9645}.Release|x64.Build.0 = Release|Any CPU
 		{43C7287D-816A-4C82-A0CB-188A51E6C94A}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{43C7287D-816A-4C82-A0CB-188A51E6C94A}.Release|x64.ActiveCfg = Release|Any CPU
+		{43C7287D-816A-4C82-A0CB-188A51E6C94A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
