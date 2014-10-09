@@ -1273,11 +1273,13 @@ public:
     }
 
     void AddToActiveSockets(worker_id_type worker_id) {
-        num_active_sockets_[worker_id]++;
+
+        InterlockedIncrement((uint32_t*)num_active_sockets_ + worker_id);
     }
 
     void RemoveFromActiveSockets(worker_id_type worker_id) {
-        num_active_sockets_[worker_id]--;
+
+        InterlockedDecrement((uint32_t*)num_active_sockets_ + worker_id);
 
         GW_ASSERT(num_active_sockets_[worker_id] >= 0);
     }

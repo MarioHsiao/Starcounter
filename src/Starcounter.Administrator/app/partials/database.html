@@ -17,15 +17,20 @@
 
         <div class="btn-toolbar">
             <div class="btn-group">
-                <button ng-disabled='model.database.running == true' class="btn btn-default btn-success" ng-click="btnStartDatabase(model.database)" title="Start Database">Start</button>
-                <button ng-disabled='model.database.running == false' class="btn btn-default  btn-danger" ng-click="btnStopDatabase(model.database)" title="Stop Database">Stop</button>
+                <button ng-disabled='model.database.running == true || model.database.task != null' class="btn btn-default btn-success" ng-click="btnStartDatabase(model.database)" title="Start Database">Start</button>
+                <button ng-disabled='model.database.running == false || model.database.task != null' class="btn btn-default  btn-danger" ng-click="btnStopDatabase(model.database)" title="Stop Database">Stop</button>
             </div>
 
             <div class="btn-group">
 
                 <a class="btn btn-default btn-primary" href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>
-                <button ng-disabled='model.database.running == true' class="btn btn-default btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
+                <button ng-disabled='model.database.running == true|| model.database.task != null' class="btn btn-default btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
             </div>
+
+            <div class="btn-group">
+                <div style="margin-top:7px" ng-show="model.database.task.Text" title="{{model.database.task.Text}}" class="spinner tiny"></div>
+            </div>
+
         </div>
 
         <div class="btn-toolbar">
@@ -39,9 +44,7 @@
                 <consolewindow ng-model="model.database.console"></consolewindow>
             </div>
         </div>
-
     </div>
-
 </div>
 
 

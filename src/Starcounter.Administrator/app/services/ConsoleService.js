@@ -132,7 +132,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', '$
 
             var bCloseConnection = true;
             for (var x = 0; x < this.listeners.length; x++) {
-                if (this.connections[i].databaseName == this.listeners[i].databaseName) {
+                if (this.connections[i].databaseName == this.listeners[x].databaseName) {
                     // Connection is used
                     bCloseConnection = false;
                     break;
@@ -199,7 +199,7 @@ adminModule.service('ConsoleService', ['$http', '$log', '$sce', '$rootScope', '$
 
             // Socket Open
             connection.socket.onopen = function (evt) {
-                $log.info("Successfully connected to database " + databaseName);
+                $log.info("Successfully connected to database (" + databaseName+")");
             };
 
             // Socket closed
