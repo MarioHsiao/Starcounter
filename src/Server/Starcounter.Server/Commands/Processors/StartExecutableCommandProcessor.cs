@@ -67,7 +67,7 @@ namespace Starcounter.Server.Commands {
             if (app != null) {
                 throw ErrorCode.ToException(
                     Error.SCERREXECUTABLEALREADYRUNNING,
-                    string.Format("Executable {0} is already running in database {1}.", command.Application.BinaryFilePath, command.DatabaseName)
+                    string.Format("Application {0} is already running in database {1}.", command.Application.FilePath, command.DatabaseName)
                     );
             }
 
