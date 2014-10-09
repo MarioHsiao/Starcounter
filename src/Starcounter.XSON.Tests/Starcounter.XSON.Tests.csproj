@@ -96,6 +96,10 @@
       <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>
       <Name>Starcounter.XSON.PartialClassGenerator</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.Tests.CodegenJson\Starcounter.XSON.Tests.CodegenJson.csproj">
+      <Project>{4ff34488-5235-453b-9521-184045fcaca7}</Project>
+      <Name>Starcounter.XSON.Tests.CodegenJson</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON\Starcounter.XSON.csproj">
       <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
       <Name>Starcounter.XSON</Name>
