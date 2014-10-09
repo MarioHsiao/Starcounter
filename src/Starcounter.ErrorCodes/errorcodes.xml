@@ -3242,6 +3242,11 @@
         Fields/properties of this type must be declared public.
       </message>
     </code>
+    <code hex="011C" severity="Error" name="ScErrIllegalTypeObject">
+      <message>
+        Object cannot be used as a type.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
