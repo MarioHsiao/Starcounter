@@ -470,7 +470,7 @@ public:
     HANDLE get_worker_iocp() { return worker_iocp_; }
 
     // Used to create new connections when reaching the limit.
-    uint32_t CreateNewConnections(int32_t how_many, port_index_type port_index);
+    uint32_t CreateAcceptingSockets(port_index_type port_index);
 
     // Allocates a bunch of new connections.
     uint32_t CreateProxySocket(SocketDataChunkRef proxy_sd);
@@ -478,7 +478,7 @@ public:
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
     uint32_t FinishSend(SocketDataChunkRef sd, int32_t numBytesSent);
-    uint32_t FinishDisconnect(SocketDataChunkRef sd, bool socket_error);
+    uint32_t FinishDisconnect(SocketDataChunkRef sd);
     uint32_t FinishConnect(SocketDataChunkRef sd);
     uint32_t FinishAccept(SocketDataChunkRef sd);
 

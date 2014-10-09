@@ -1802,7 +1802,7 @@ namespace Starcounter {
                 headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             // Getting needed substring.
-            Int32 hstart = headersString.IndexOf(headerName);
+            Int32 hstart = headersString.IndexOf(headerName, StringComparison.InvariantCultureIgnoreCase);
             if (hstart < 0)
                 return null;
 
@@ -1814,7 +1814,7 @@ namespace Starcounter {
                 hstart++;
 
             // Going until end of line.
-            Int32 hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart);
+            Int32 hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart, StringComparison.InvariantCultureIgnoreCase);
             if (hend <= 0)
                 throw new ArgumentException("HTTP header is corrupted!");
 

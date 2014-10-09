@@ -78,7 +78,7 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// 
+        /// Searches for the injection point in response.
         /// </summary>
         /// <param name="response"></param>
         /// <returns></returns>
@@ -150,6 +150,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="injectionPoint">The point in the header where to inject the new values.</param>
         /// <returns>The complete response with header injected.</returns>
         public static byte[] InjectInHeader(byte[] original, byte[] toInject, int injectionPoint) {
+
             byte[] afterInjection = new byte[original.Length + toInject.Length];
 
             if (injectionPoint == -1)

@@ -16,7 +16,7 @@
                  <div ng-repeat="port in model.statistics.ports | orderBy: 'port'">
                     <h4>Port {{port.port}}</h4>
                     <div>Accepting sockets: {{port.acceptingSockets}}</div>
-                    <div>Active connections: {{port.activeConnections}}</div>
+                        <div>Active sockets: {{port.activeSockets}}</div>
 
                     <h5>Registered URIs</h5>
 
@@ -114,7 +114,6 @@
                             <th>Packets received</th>
                             <th>Bytes sent</th>
                             <th>Packets sent</th>
-                            <th>Bound sockets</th>
                             <th>Allocated chunks</th>
                         </tr>
                     </thead>
@@ -126,7 +125,6 @@
                             <td>{{worker.packetsReceived}}</td>
                             <td>{{worker.bytesSent}}</td>
                             <td>{{worker.packetsSent}}</td>
-                            <td>{{worker.boundSockets}}</td>
                             <td>{{worker.allocatedChunks}}</td>
                         </tr>
                     </tbody>                

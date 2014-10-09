@@ -144,6 +144,156 @@ namespace Starcounter
         LinkedListNode<Response> responseListNode_ = null;
 
         /// <summary>
+        /// Application name this response came from.
+        /// </summary>
+        String appName_;
+
+        /// <summary>
+        /// The plain response bytes.
+        /// </summary>
+        byte[] responseBytes_ = null;
+
+        /// <summary>
+        /// The plain response size bytes.
+        /// </summary>
+        int responseSizeBytes_ = 0;
+
+        /// <summary>
+        /// Response body offset.
+        /// </summary>
+        int responseBodyOffset_ = 0;
+
+        /// <summary>
+        /// Response body size.
+        /// </summary>
+        int responseBodySizeBytes_ = 0;
+
+        /// <summary>
+        /// URIs related to this static resource.
+        /// </summary>
+        List<string> uris_;
+
+        /// <summary>
+        /// File path to static resource.
+        /// </summary>
+        string filePath_;
+
+        /// <summary>
+        /// File directory for this file resource.
+        /// </summary>
+        string fileDirectory_;
+
+        /// <summary>
+        /// File name for this file resource.
+        /// </summary>
+        string fileName_;
+
+        /// <summary>
+        /// Does file for this static resource exist?
+        /// </summary>
+        bool fileExists_;
+
+        /// <summary>
+        /// Date of file modification for this file resource.
+        /// </summary>
+        DateTime fileModified_;
+
+        /// <summary>
+        /// Indicates if user wants to send custom response.
+        /// </summary>
+        Boolean customFields_;
+
+        /// <summary>
+        /// Status code.
+        /// </summary>
+        UInt16 statusCode_;
+
+        /// <summary>
+        /// Handling status.
+        /// </summary>
+        HandlerStatusInternal handlingStatus_;
+
+        /// <summary>
+        /// Connection flags.
+        /// </summary>
+        ConnectionFlags connectionFlags_ = ConnectionFlags.NoSpecialFlags;
+
+        /// <summary>
+        /// Body string.
+        /// </summary>
+        String bodyString_;
+
+        /// <summary>
+        /// Body bytes.
+        /// </summary>
+        Byte[] bodyBytes_;
+
+        /// <summary>
+        /// Status description string.
+        /// </summary>
+        String statusDescription_;
+
+        /// <summary>
+        /// Resource representation.
+        /// </summary>
+        IResource resource_;
+
+        /// <summary>
+        /// List of cookies.
+        /// </summary>
+        List<String> cookies_;
+
+        /// <summary>
+        /// Web-Socket handshake response bytes.
+        /// </summary>
+        Byte[] wsHandshakeResp_;
+
+        /// <summary>
+        /// Socket data buffer pointer.
+        /// </summary>
+        IntPtr socketDataIntPtr_ = IntPtr.Zero;
+
+        /// <summary>
+        /// Response buffer pointer.
+        /// </summary>
+        IntPtr responseStructIntPtr_ = IntPtr.Zero;
+
+        /// <summary>
+        /// Internal structure with HTTP response information.
+        /// </summary>
+        unsafe HttpResponseInternal* http_response_struct_ = null;
+
+        /// <summary>
+        /// Direct pointer to session data.
+        /// </summary>
+        unsafe ScSessionStruct* session_;
+
+        /// <summary>
+        /// Indicates if this Response is internally constructed from Apps.
+        /// </summary>
+        Boolean isInternalResponse_ = false;
+
+        /// <summary>
+        /// Reference to corresponding request.
+        /// </summary>
+        Request corrRequest_ = null;
+
+        /// <summary>
+        /// Underlying memory stream.
+        /// </summary>
+        MemoryStream memStream_ = null;
+
+        /// <summary>
+        /// Dictionary of simple user custom headers.
+        /// </summary>
+        Dictionary<String, String> customHeaderFields_;
+
+        /// <summary>
+        /// String containing all headers.
+        /// </summary>
+        String headersString_;
+
+        /// <summary>
         /// Returns the enumerator back to the cache.
         /// </summary>
         internal void ReturnToCache()
@@ -166,77 +316,97 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Clones existing static resource response object.
+        /// </summary>
+        /// <returns></returns>
+        internal Response CloneStaticResourceResponse() {
+
+            Response resp = new Response() {
+                statusCode_ = statusCode_,
+				statusDescription_ = statusDescription_,
+                uris_ = uris_,
+                filePath_ = filePath_,
+                fileDirectory_ = fileDirectory_,
+                fileName_ = fileName_,
+                fileExists_ = fileExists_,
+                fileModified_ = fileModified_,
+                responseBodySizeBytes_ = responseBodySizeBytes_,
+                responseBodyOffset_ = responseBodyOffset_,
+                responseBytes_ = responseBytes_,
+                responseSizeBytes_ = responseSizeBytes_,
+                customFields_ = customFields_,
+                bodyString_ = bodyString_,
+                bodyBytes_ = bodyBytes_,
+                customHeaderFields_ = customHeaderFields_,
+                headersString_ = headersString_
+            };
+
+            System.Diagnostics.Debug.Assert(null == memStream_);
+            System.Diagnostics.Debug.Assert(IntPtr.Zero == responseStructIntPtr_);
+            System.Diagnostics.Debug.Assert(null == corrRequest_);
+            System.Diagnostics.Debug.Assert(IntPtr.Zero == socketDataIntPtr_);
+            System.Diagnostics.Debug.Assert(null == wsHandshakeResp_);
+            System.Diagnostics.Debug.Assert(null == cookies_);
+            System.Diagnostics.Debug.Assert(null == resource_);
+
+            return resp;
+        }
+
+        /// <summary>
         /// Application by which the response was produced.
         /// </summary>
-        public String AppName;
-
-        /// <summary>
-        /// The plain response bytes.
-        /// </summary>
-        private byte[] responseBytes_ = null;
-
-        /// <summary>
-        /// The plain response size bytes.
-        /// </summary>
-        internal int responseSizeBytes_ = 0;
-
-        /// <summary>
-        /// Response body offset.
-        /// </summary>
-        internal int responseBodyOffset_ = 0;
-
-        /// <summary>
-        /// Response body size.
-        /// </summary>
-        internal int responseBodySizeBytes_ = 0;
+        public String AppName {
+            get { return appName_; }
+            set { appName_ = value; }
+        }
 
         /// <summary>
         /// The URIs.
         /// </summary>
-        internal List<string> Uris = null;
+        internal List<string> Uris {
+            get { return uris_; }
+            set { uris_ = value; }
+        }
 
         /// <summary>
         /// The file path
         /// </summary>
-        internal string FilePath;
+        internal string FilePath {
+            get { return filePath_; }
+            set { filePath_ = value; }
+        }
 
         /// <summary>
         /// The file directory
         /// </summary>
-        internal string FileDirectory;
+        internal string FileDirectory {
+            get { return fileDirectory_; }
+            set { fileDirectory_ = value; }
+        }
 
         /// <summary>
         /// The file name
         /// </summary>
-        internal string FileName;
+        internal string FileName {
+            get { return fileName_; }
+            set { fileName_ = value; }
+        } 
 
         /// <summary>
         /// The file exists
         /// </summary>
-        internal bool FileExists;
+        internal bool FileExists {
+            get { return fileExists_; }
+            set { fileExists_ = value; }
+        } 
 
         /// <summary>
-        /// The file modified
+        /// File modification date.
         /// </summary>
-        internal DateTime FileModified;
-
-        /// <summary>
-        /// As the session id is a fixed size field, the session id of a cached
-        /// response can easily be replaced with a current session id.
-        /// </summary>
-        /// <value>The session id offset.</value>
-        /// <remarks>The offset is only valid in the plain response.</remarks>
-        internal int SessionIdOffset { get; set; }
-
-        /// <summary>
-        /// Indicates if user wants to send custom response.
-        /// </summary>
-        Boolean customFields_;
-
-        /// <summary>
-        /// Status code.
-        /// </summary>
-        UInt16 statusCode_;
+        internal DateTime FileModified {
+            get { return fileModified_; }
+            set { fileModified_ = value; }
+        } 
 
         /// <summary>
         /// Handling status for this response.
@@ -248,11 +418,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Handling status.
-        /// </summary>
-        HandlerStatusInternal handlingStatus_;
-
-        /// <summary>
         /// Special connection flags.
         /// </summary>
         public enum ConnectionFlags
@@ -262,11 +427,6 @@ namespace Starcounter
             DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_DISCONNECT,
             GracefullyCloseConnection = MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_GRACEFULLY_CLOSE
         }
-
-        /// <summary>
-        /// Connection flags.
-        /// </summary>
-        ConnectionFlags connectionFlags_ = ConnectionFlags.NoSpecialFlags;
 
         /// <summary>
         /// Indicates if corresponding connection should be shut down.
@@ -312,8 +472,6 @@ namespace Starcounter
                 statusCode_ = value;
             }
         }
-
-        String statusDescription_;
 
         /// <summary>
         /// Status description.
@@ -361,7 +519,7 @@ namespace Starcounter
         }
 
 		/// <summary>
-		/// 
+		/// Cache control header string.
 		/// </summary>
 		public String CacheControl
         {
@@ -394,8 +552,6 @@ namespace Starcounter
             }
         }
 
-        String bodyString_;
-
         /// <summary>
         /// Body string.
         /// </summary>
@@ -411,9 +567,9 @@ namespace Starcounter
                         {
                             return Encoding.UTF8.GetString(bodyBytes_);
                         }
-                        else if (_Resource != null)
+                        else if (resource_ != null)
                         {
-                            return _Resource.AsMimeType(MimeType.Unspecified);
+                            return resource_.AsMimeType(MimeType.Unspecified);
                         }
                     }
 
@@ -431,7 +587,7 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// 
+        /// Getting content by type.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
@@ -450,8 +606,8 @@ namespace Starcounter
         /// </summary>
         /// <returns></returns>
         public string GetContentString(MimeType mimeType) {
-            if (null != _Resource)
-                return _Resource.AsMimeType(mimeType);
+            if (null != resource_)
+                return resource_.AsMimeType(mimeType);
 
             if (null != bodyBytes_)
                 return Encoding.UTF8.GetString(bodyBytes_);
@@ -474,9 +630,9 @@ namespace Starcounter
             if (bodyString_ != null)
                 return Encoding.UTF8.GetBytes(bodyString_);
 
-            if (_Resource != null) {
+            if (resource_ != null) {
                 MimeType discard;
-                return _Resource.AsMimeType(MimeType.Unspecified, out discard);
+                return resource_.AsMimeType(MimeType.Unspecified, out discard);
             }
 
             if (responseBytes_ != null) {
@@ -504,8 +660,8 @@ namespace Starcounter
         {
             get
             {
-                if (null != _Resource)
-                    return _Resource;
+                if (null != resource_)
+                    return resource_;
 
                 if (null != bodyBytes_)
                     return bodyBytes_;
@@ -523,7 +679,7 @@ namespace Starcounter
                 } else if (value is Byte[]) {
                     bodyBytes_ = (Byte[]) value;
                 } else if (value is IResource) {
-                    _Resource = (IResource) value;
+                    resource_ = (IResource) value;
                 } else {
                     throw new ArgumentException("Wrong content type assigned!");
                 }
@@ -531,8 +687,6 @@ namespace Starcounter
                 customFields_ = true;
             }
         }
-
-        Byte[] bodyBytes_;
 
         /// <summary>
         /// Body bytes.
@@ -549,10 +703,10 @@ namespace Starcounter
                         {
                             return Encoding.UTF8.GetBytes(bodyString_);
                         }
-                        else if (_Resource != null)
+                        else if (resource_ != null)
                         {
                             MimeType discard;
-                            return _Resource.AsMimeType(MimeType.Unspecified, out discard);
+                            return resource_.AsMimeType(MimeType.Unspecified, out discard);
                         }
                     }
 
@@ -581,10 +735,8 @@ namespace Starcounter
             statusDescription_ = null;
             statusCode_ = 0;
             AppsSession = null;
-            _Resource = null;
+            resource_ = null;
         }
-
-        private IResource _Resource;
 
         /// <summary>
         /// The response can be constructed in one of the following ways:
@@ -600,18 +752,13 @@ namespace Starcounter
         /// </summary>
         public IResource Resource {
             get {
-                return _Resource;
+                return resource_;
             }
             set {
                 customFields_ = true;
-                _Resource = value;
+                resource_ = value;
             }
         }
-
-        /// <summary>
-        /// List of cookies.
-        /// </summary>
-        List<String> _Cookies;
 
         /// <summary>
         /// List of Set-Cookie headers.
@@ -621,31 +768,29 @@ namespace Starcounter
         {
             get
             {
-                if (_Cookies != null)
-                    return _Cookies;
+                if (cookies_ != null)
+                    return cookies_;
 
-                _Cookies = new List<String>();
+                cookies_ = new List<String>();
 
                 // Adding new cookies list from response.
                 unsafe
                 {
                     if (http_response_struct_ != null)
                     {
-                        _Cookies = http_response_struct_->GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
+                        cookies_ = http_response_struct_->GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
                     }
                 }
 
-                return _Cookies;
+                return cookies_;
             }
 
             set
             {
                 customFields_ = true;
-                _Cookies = value;
+                cookies_ = value;
             }
         }
-
-        Byte[] WsHandshakeResp_;
 
         /// <summary>
         /// Saved WebSocket handshake response.
@@ -653,13 +798,13 @@ namespace Starcounter
         internal Byte[] WsHandshakeResp {
             get
             {
-                return WsHandshakeResp_;
+                return wsHandshakeResp_;
             }
 
             set
             {
                 customFields_ = true;
-                WsHandshakeResp_ = value;
+                wsHandshakeResp_ = value;
             }
         }
 
@@ -676,28 +821,28 @@ namespace Starcounter
             Utf8Writer writer;
 
 			byte[] bytes = bodyBytes_;
-			if (_Resource != null) {
+			if (resource_ != null) {
 
                 Profiler.Current.Start(ProfilerNames.GetPreferredMimeType);
-				var mimetype = request_.PreferredMimeType;
+				var mimetype = corrRequest_.PreferredMimeType;
                 Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
 
 				try {
-					bytes = _Resource.AsMimeType(mimetype, out mimetype);
+					bytes = resource_.AsMimeType(mimetype, out mimetype);
 					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
 				} catch (UnsupportedMimeTypeException exc) {
 					throw new Exception(
-						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", request_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
+						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", corrRequest_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
 				}
 
 				if (bytes == null) {
 					// The preferred requested mime type was not supported, try to see if there are
 					// other options.
-					IEnumerator<MimeType> secondaryChoices = request_.PreferredMimeTypes;
+					IEnumerator<MimeType> secondaryChoices = corrRequest_.PreferredMimeTypes;
 					secondaryChoices.MoveNext(); // The first one is already accounted for
 					while (bytes == null && secondaryChoices.MoveNext()) {
 						mimetype = secondaryChoices.Current;
-						bytes = _Resource.AsMimeType(mimetype, out mimetype);
+						bytes = resource_.AsMimeType(mimetype, out mimetype);
 					}
 					if (bytes == null) {
 						// None of the requested mime types were supported.
@@ -723,7 +868,7 @@ namespace Starcounter
 				fixed (byte* p = buf) {
                     writer = new Utf8Writer(p);
 
-                    if (WsHandshakeResp_ == null) {
+                    if (wsHandshakeResp_ == null) {
 
 					    writer.Write(HttpHeadersUtf8.Http11);
 
@@ -749,7 +894,7 @@ namespace Starcounter
 						    writer.Write(HttpHeadersUtf8.CRLF);
 					    }
                     } else {
-                        writer.Write(WsHandshakeResp_);
+                        writer.Write(wsHandshakeResp_);
                     }
 
 					writer.Write(HttpHeadersUtf8.ServerSc);
@@ -776,7 +921,7 @@ namespace Starcounter
                         writer.Write(HttpHeadersUtf8.CacheControlNoCache);
 
                     // Checking if session is defined.
-                    if (addSetCookie && (null != AppsSession) && (request_ == null || !request_.CameWithCorrectSession)) {
+                    if (addSetCookie && (null != AppsSession) && (corrRequest_ == null || !corrRequest_.CameWithCorrectSession)) {
                         if (AppsSession.use_session_cookie_) {
                             writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
                             writer.Write(AppsSession.ToAsciiString());
@@ -789,8 +934,8 @@ namespace Starcounter
                     }
 
                     // Checking the cookies list.
-                    if (null != _Cookies) {
-                        foreach (String c in _Cookies) {
+                    if (null != cookies_) {
+                        foreach (String c in cookies_) {
                             writer.Write(HttpHeadersUtf8.SetCookieStart);
                             writer.Write(c);
                             writer.Write(HttpHeadersUtf8.CRLF);
@@ -826,13 +971,19 @@ namespace Starcounter
 			customFields_ = false;
 		}
 
+        /// <summary>
+        /// Estimates the amount of bytes needed to represent this resource.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
 		private int EstimateNeededSize(byte[] bytes) {
+
 			// The sizes of the strings here is not accurate. We are mainly interested in making sure
 			// that we will never have a buffer overrun so we take the length of the strings * 2.
 			int size = HttpHeadersUtf8.TotalByteSize;
 
-            if (WsHandshakeResp_ != null) {
-                size += WsHandshakeResp_.Length;
+            if (wsHandshakeResp_ != null) {
+                size += wsHandshakeResp_.Length;
             }
 
 			if (statusDescription_ != null)
@@ -868,13 +1019,6 @@ namespace Starcounter
                 return (statusCode >= 200) && (statusCode <= 226);
             }
         }
-
-        /// <summary>
-        /// The number of bytes containing the http header in the uncompressed response. This is also
-        /// the offset of the first byte of the content.
-        /// </summary>
-        /// <value>The length of the header.</value>
-        public Int32 HeadersLength { get; set; }
 
         /// <summary>
         /// The number of bytes of the content (i.e. the resource) of the uncompressed http response.
@@ -963,31 +1107,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Socket data buffer pointer.
-        /// </summary>
-        IntPtr socketDataIntPtr_ = IntPtr.Zero;
-
-        /// <summary>
-        /// Response buffer pointer.
-        /// </summary>
-        IntPtr responseStructIntPtr_ = IntPtr.Zero;
-
-        /// <summary>
-        /// Internal structure with HTTP response information.
-        /// </summary>
-        unsafe HttpResponseInternal* http_response_struct_ = null;
-
-        /// <summary>
-        /// Direct pointer to session data.
-        /// </summary>
-        unsafe ScSessionStruct* session_;
-
-        /// <summary>
-        /// Indicates if this Response is internally constructed from Apps.
-        /// </summary>
-        Boolean isInternalResponse_ = false;
-
-        /// <summary>
         /// Parses internal HTTP response.
         /// </summary>
         [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
@@ -999,15 +1118,9 @@ namespace Starcounter
         /// <summary>
         /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
-        public Response()
-        {
+        public Response() {
             
         }
-
-        /// <summary>
-        /// Reference to corresponding request.
-        /// </summary>
-        Request request_ = null;
 
         /// <summary>
         /// A response may be associated with a request. If a response is created without a content type,
@@ -1015,17 +1128,12 @@ namespace Starcounter
         /// </summary>
         public Request Request {
             get {
-                return request_;
+                return corrRequest_;
             }
             set {
-                request_ = value;
+                corrRequest_ = value;
             }
         }
-
-        /// <summary>
-        /// Underlying memory stream.
-        /// </summary>
-        MemoryStream memStream_ = null;
 
         /// <summary>
         /// Setting the response buffer.
@@ -1146,7 +1254,7 @@ namespace Starcounter
                 TryParseResponse(buf, offset, lenBytes, complete);
 
                 // Setting corresponding HTTP request.
-                request_ = httpRequest;
+                corrRequest_ = httpRequest;
             }
         }
 
@@ -1255,7 +1363,7 @@ namespace Starcounter
                 unsafe
                 {
                     // Concatenating headers from dictionary.
-                    if ((null != customHeaderFields_) || (null != _Cookies))
+                    if ((null != customHeaderFields_) || (null != cookies_))
                     {
                         headersString_ = "";
 
@@ -1266,9 +1374,9 @@ namespace Starcounter
                         }
 
                         // Checking the cookies list.
-                        if (null != _Cookies)
+                        if (null != cookies_)
                         {
-                            foreach (String c in _Cookies)
+                            foreach (String c in cookies_)
                             {
                                 headersString_ += HttpHeadersUtf8.SetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
                             }
@@ -1462,16 +1570,6 @@ namespace Starcounter
         {
             throw new NotImplementedException();
         }
-
-        /// <summary>
-        /// Dictionary of simple user custom headers.
-        /// </summary>
-        Dictionary<String, String> customHeaderFields_;
-
-        /// <summary>
-        /// String containing all headers.
-        /// </summary>
-        String headersString_;
 
         /// <summary>
         /// Headers dictionary accessors.
@@ -1854,7 +1952,7 @@ namespace Starcounter
             while (true)
             {
                 // Getting needed substring.
-                Int32 hstart = headersString.IndexOf(headerName, hend); 
+                Int32 hstart = headersString.IndexOf(headerName, hend, StringComparison.InvariantCultureIgnoreCase); 
                 if (hstart < 0)
                     break;
 
@@ -1866,7 +1964,7 @@ namespace Starcounter
                     hstart++;
 
                 // Going until end of line.
-                hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart);
+                hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart, StringComparison.InvariantCultureIgnoreCase);
                 if (hend <= 0)
                     throw new ArgumentException("HTTP header is corrupted!");
 
@@ -1891,7 +1989,7 @@ namespace Starcounter
                 headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             // Getting needed substring.
-            Int32 hstart = headersString.IndexOf(headerName);
+            Int32 hstart = headersString.IndexOf(headerName, StringComparison.InvariantCultureIgnoreCase);
             if (hstart < 0)
                 return null;
 
@@ -1903,7 +2001,7 @@ namespace Starcounter
                 hstart++;
 
             // Going until end of line.
-            Int32 hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart);
+            Int32 hend = headersString.IndexOf(StarcounterConstants.NetworkConstants.CRLF, hstart, StringComparison.InvariantCultureIgnoreCase);
             if (hend <= 0)
                 throw new ArgumentException("HTTP header is corrupted!");
 

@@ -130,10 +130,14 @@ namespace Starcounter.Internal {
 
       public static IntPtr Alloc(int size) {
 #if MEMORY_LEAK_CHECK
-          Interlocked.Increment(ref NumNativeAllocations);
+            Interlocked.Increment(ref NumNativeAllocations);
 #endif
 
-          return System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
+            IntPtr ptr = System.Runtime.InteropServices.Marshal.AllocHGlobal(size);
+
+            Debug.Assert(ptr != IntPtr.Zero);
+
+            return ptr;
       }
 
       public static void Free(IntPtr prevAllocMemory) {

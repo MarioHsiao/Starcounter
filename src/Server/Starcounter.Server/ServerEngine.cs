@@ -133,6 +133,17 @@ namespace Starcounter.Server {
         internal DatabaseHostingService DatabaseHostService { get; private set; }
 
         /// <summary>
+        /// Gets a <see cref="Node"/> instance bound to the system port on
+        /// the local host.
+        /// </summary>
+        internal Node LocalHostSystemNode {
+            get {
+                // new Node("127.0.0.1", StarcounterEnvironment.Default.SystemHttpPort);
+                return Node.LocalhostSystemPortNode;
+            }
+        }
+
+        /// <summary>
         /// Initializes a <see cref="ServerEngine"/>.
         /// </summary>
         /// <param name="serverConfigurationPath">Path to the server configuration

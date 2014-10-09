@@ -103,15 +103,16 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
                 } else {
                     continue;
                 }
+            } else {
+
+                // A message on channel ch was received. Notify the database
+                // that the out queue in this channel is not full.
+                the_channel.scheduler()->notify(shared_int_.scheduler_work_event(the_channel.get_scheduler_number()));
             }
 
             // Chunk was found.
             chunk_popped = true;
             num_popped_chunks++;
-
-            // A message on channel ch was received. Notify the database
-            // that the out queue in this channel is not full.
-            the_channel.scheduler()->notify(shared_int_.scheduler_work_event(the_channel.get_scheduler_number()));
 
             // Get the chunk.
             shared_memory_chunk* ipc_smc = (shared_memory_chunk*) GetSharedMemoryChunkFromIndex(ipc_first_chunk_index);

@@ -63,7 +63,11 @@ namespace Starcounter.Advanced.XSON {
 
             if (addAppName) {
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
-                sizeBytes += "/polyjuice-merger?".Length + obj._appName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
+
+                if (null != obj.GetHtmlPartialUrl())
+                    sizeBytes += obj._appName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
+
+                sizeBytes += "/polyjuice-merger?".Length;
             }
 
             exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
@@ -123,12 +127,17 @@ namespace Starcounter.Advanced.XSON {
             }
 
             if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+
                 if ((!addAppName) && exposedProperties.Count > 0) {
                     sizeBytes++;
                 }
 
                 foreach (Json pp in obj._stepSiblings) {
-                    sizeBytes += 4 + pp._appName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
+
+                    if (null != pp.GetHtmlPartialUrl()) {
+                        sizeBytes += 4 + pp._appName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
+                    }
+                    
                     sizeBytes += pp._appName.Length + 1; // 1 for ":".
                     sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
                 }
@@ -190,7 +199,10 @@ namespace Starcounter.Advanced.XSON {
                     addAppName = (obj._stepParent == null && obj._appName != null);
 
                     if (addAppName) {
-                        htmlUriMerged = "/polyjuice-merger?" + obj._appName + "=" + obj.GetHtmlPartialUrl();
+
+                        if (null != obj.GetHtmlPartialUrl()) {
+                            htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
+                        }
 
                         valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
                         offset += valueSize;
@@ -294,8 +306,16 @@ namespace Starcounter.Advanced.XSON {
 
                         // Serializing every sibling first.
                         for (int kk = 0; kk < obj._stepSiblings.Count; kk++) {
+
                             var pp = obj._stepSiblings[kk];
-                            htmlUriMerged += "&" + pp._appName + "=" + pp.GetHtmlPartialUrl();
+
+                            if (null != pp.GetHtmlPartialUrl()) {
+
+                                if (htmlUriMerged != null)
+                                    htmlUriMerged += "&";
+
+                                htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                            }
 
                             valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp._appName);
                             offset += valueSize;
@@ -315,7 +335,7 @@ namespace Starcounter.Advanced.XSON {
                         }
                     }
 
-                    if (addAppName) {
+                    if (null != htmlUriMerged) {
                         *pfrag++ = (byte)',';
                         offset++;
 
@@ -327,7 +347,7 @@ namespace Starcounter.Advanced.XSON {
                         *pfrag++ = (byte)':';
                         offset++;
 
-                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlUriMerged);
+                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "/polyjuice-merger?" + htmlUriMerged);
                         offset += valueSize;
                         pfrag += valueSize;
                     }

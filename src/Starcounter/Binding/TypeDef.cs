@@ -36,7 +36,11 @@ namespace Starcounter.Binding
                 Debug.Assert(_PropertyDefs != null);
                 return _PropertyDefs;
             }
-            internal set {_PropertyDefs = value;}}
+            internal set {
+                _PropertyDefs = value;
+                AssignDymanicTypeInformation();
+            }
+        }
 
         /// <summary>
         /// The type loader
@@ -81,6 +85,27 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// Gets the index of the property that references the (dynamic)
+        /// type (if any) of the current TypeDef. Set to -1 when no such
+        /// information is available.
+        /// </summary>
+        public int TypePropertyIndex { get; set; }
+
+        /// <summary>
+        /// Gets the index of the property that references the (dynamic)
+        /// based type (if any) of the current TypeDef. Set to -1 when no such
+        /// information is available.
+        /// </summary>
+        public int InheritsPropertyIndex { get; set; }
+
+        /// <summary>
+        /// Gets the index of the property that references the (dynamic)
+        /// type name (if any) of the current TypeDef. Set to -1 when no such
+        /// information is available.
+        /// </summary>
+        public int TypeNameIndex { get; set; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TypeDef" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -122,7 +147,7 @@ namespace Starcounter.Binding
         /// Populates properties PropertyDefs, ColumnRuntimeTypes, and TableDef.ColumnDefs
         /// to describe meta-tables, since they cannot be created when TypeDef is created
         /// </summary>
-        internal void PopulatePropertyDef() {
+        internal void PopulatePropertyDef(TypeDef[] typeDefs) {
 #if DEBUG
             if (Name == "Starcounter.Internal.Metadata.MaterializedTable" || 
                 Name == "Starcounter.Internal.Metadata.MaterializedColumn" ||
@@ -134,28 +159,52 @@ namespace Starcounter.Binding
 #endif
             if (_PropertyDefs == null) {
                 TableDef tblDef = Db.LookupTable(Name);
+                PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
                 Debug.Assert(Db.LookupTable(Name) != null);
                 Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
-                PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
                 Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
+                
                 PropertyDef[] prpDefs = new PropertyDef[properties.Length];
                 DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
                 typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
-                for (int i = 0; i < prpDefs.Length; i++) {
+
+                // Find and use inherited properties in their order
+                int nrInheritedProperties = 0;
+                if (BaseName != null) {
+                    // Find Based on typedef
+                    int based = 0;
+                    while (based < typeDefs.Length && typeDefs[based].Name != BaseName)
+                        based++;
+                    Debug.Assert(based < typeDefs.Length);
+                    Debug.Assert(typeDefs[based].Name == BaseName);
+                    TypeDef baseType = typeDefs[based];
+
+                    Debug.Assert(baseType.PropertyDefs.Length <= prpDefs.Length);
+                    Debug.Assert(baseType.ColumnRuntimeTypes.Length == baseType.PropertyDefs.Length + 1); // Number of columns is bigger by 1 than number of properties
+
+                    for (; nrInheritedProperties < baseType.PropertyDefs.Length; nrInheritedProperties++) {
+                        prpDefs[nrInheritedProperties] = baseType.PropertyDefs[nrInheritedProperties];
+                        typeCodes[nrInheritedProperties+1] = baseType.ColumnRuntimeTypes[nrInheritedProperties+1];
+                    }
+                }
+
+                // Complete with none-inherited properties
+                for (int i = 0, curProp = nrInheritedProperties; i < prpDefs.Length - nrInheritedProperties; i++, curProp++) {
                     DbTypeCode dbTypeCode;
                     if (!System.Enum.TryParse<DbTypeCode>(properties[i].PropertyType.Name, out dbTypeCode)) {
                         dbTypeCode = DbTypeCode.Object;
-                        prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode,
+                        prpDefs[curProp] = new PropertyDef(properties[i].Name, dbTypeCode,
                             properties[i].PropertyType.FullName);
                     } else
-                        prpDefs[i] = new PropertyDef(properties[i].Name, dbTypeCode);
-                    prpDefs[i].ColumnName = prpDefs[i].Name;
-                    typeCodes[i + 1] = dbTypeCode;
-                    int j = 0;
-                    while (j < prpDefs.Length && !(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name))
+                        prpDefs[curProp] = new PropertyDef(properties[i].Name, dbTypeCode);
+                    prpDefs[curProp].ColumnName = prpDefs[curProp].Name;
+                    typeCodes[1 + curProp] = dbTypeCode;
+                    int j = 1;
+                    while (j < prpDefs.Length + 1 && !(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name))
                         j++;
-                    prpDefs[i].IsNullable = tblDef.ColumnDefs[j + 1].IsNullable;
-                    Debug.Assert(prpDefs[i].Name == tblDef.ColumnDefs[j + 1].Name);
+                    prpDefs[curProp].IsNullable = tblDef.ColumnDefs[j].IsNullable;
+                    Debug.Assert(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name);
                 }
                 _PropertyDefs = prpDefs;
                 TableDef.ColumnDefs = tblDef.ColumnDefs;
@@ -169,6 +218,26 @@ namespace Starcounter.Binding
                 return new IndexInfo2(indexInfo, this);
             }
             return null;
+        }
+
+        /// <summary>
+        /// Invoked every time _PropertyDefs is assigned. Reevaluates
+        /// dynamic type information for the current TypeDef.
+        /// </summary>
+        void AssignDymanicTypeInformation() {
+            TypeNameIndex = TypePropertyIndex = InheritsPropertyIndex = -1;
+            if (_PropertyDefs != null) {
+                for (int i = 0; i < _PropertyDefs.Length; i++) {
+                    var candidate = _PropertyDefs[i];
+                    if (candidate.IsTypeReference) {
+                        TypePropertyIndex = i;
+                    } else if (candidate.IsInheritsReference) {
+                        InheritsPropertyIndex = i;
+                    } else if (candidate.IsTypeName) {
+                        TypeNameIndex = i;
+                    }
+                }
+            }
         }
     }
 }

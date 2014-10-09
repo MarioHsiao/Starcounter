@@ -75,6 +75,19 @@ namespace Starcounter.Server.PublicModel {
         }
 
         /// <summary>
+        /// Gets a value indicating if the current instance represents
+        /// an application that was launched using the same application file as
+        /// <paramref name="other"/>.
+        /// </summary>
+        /// <param name="other">The application to compare against.</param>
+        /// <returns><c>true</c> if the current application reference the
+        /// same application file as <paramref name="other"/>; <c>false otherwise.
+        /// </c></returns>
+        public bool EqualApplicationFile(AppInfo other) {
+            return this.FilePath.Equals(other.FilePath, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        /// <summary>
         /// Creates a full clone of the current <see cref="AppInfo"/>.
         /// </summary>
         /// <returns>A clone of the current <see cref="AppInfo"/>.

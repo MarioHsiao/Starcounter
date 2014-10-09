@@ -151,7 +151,7 @@ const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
 const int32_t MAX_PROXIED_URIS = 32;
 
 // Number of sockets to increase the accept roof.
-const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
+const int32_t ACCEPT_ROOF_STEP_SIZE = 16;
 
 // Maximum number of cached URI matchers.
 const int32_t MAX_CACHED_URI_MATCHERS = 32;
@@ -238,6 +238,9 @@ const uint16_t FIRST_BIND_PORT_NUM = 1500;
 
 // Maximum length of gateway statistics string.
 const int32_t MAX_STATS_LENGTH = 1024 * 64;
+
+// Size of the listening queue.
+const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
 
 // Gateway mode.
 enum GatewayTestingMode
@@ -1270,11 +1273,13 @@ public:
     }
 
     void AddToActiveSockets(worker_id_type worker_id) {
-        num_active_sockets_[worker_id]++;
+
+        InterlockedIncrement((uint32_t*)num_active_sockets_ + worker_id);
     }
 
     void RemoveFromActiveSockets(worker_id_type worker_id) {
-        num_active_sockets_[worker_id]--;
+
+        InterlockedDecrement((uint32_t*)num_active_sockets_ + worker_id);
 
         GW_ASSERT(num_active_sockets_[worker_id] >= 0);
     }
@@ -1352,7 +1357,7 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnections();
+    int64_t NumberOfActiveSockets();
 
     // Retrieves the number of accepting sockets.
     int64_t get_num_accepting_sockets()
@@ -1953,8 +1958,8 @@ public:
         return server_ports_ + port_index;
     }
 
-    // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnectionsOnAllPorts()
+    // Retrieves the number of active sockets on all ports.
+    int64_t NumberOfActiveSocketsOnAllPorts()
     {
         int64_t num_active_conns = 0;
 
@@ -1973,7 +1978,7 @@ public:
     }
 
     // Retrieves the number of active connections.
-    int64_t NumberOfActiveConnectionsOnAllPortsForWorker(worker_id_type worker_id)
+    int64_t NumberOfActiveSocketsOnAllPortsForWorker(worker_id_type worker_id)
     {
         int64_t num_active_conns = 0;
 

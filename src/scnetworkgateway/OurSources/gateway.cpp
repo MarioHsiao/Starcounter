@@ -444,14 +444,14 @@ bool ServerPort::IsEmpty()
         return false;
 
     // Checking connections.
-    if (NumberOfActiveConnections())
+    if (NumberOfActiveSockets())
         return false;
 
     return true;
 }
 
-// Retrieves the number of active connections.
-int64_t ServerPort::NumberOfActiveConnections()
+// Retrieves the number of active sockets.
+int64_t ServerPort::NumberOfActiveSockets()
 {
     int64_t num_active_conns = 0;
 
@@ -578,9 +578,6 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 {
     stats_stream << "{\"port\":" << get_port_number() << ",";
     stats_stream << "\"acceptingSockets\":" << get_num_accepting_sockets() << ",";
-
-    stats_stream << "\"activeConnections\":" << NumberOfActiveConnections() << ",";
-
     stats_stream << "\"activeSockets\":\"";
 
     stats_stream << num_active_sockets_[0];
@@ -904,12 +901,6 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
-    GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == *(int64_t*)"Content-Length: ");
-    GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == *(int64_t*)"Upgrade:");
-    GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == *(int64_t*)"Sec-WebSocket: ");
-    GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == *(int64_t*)"Referer: ");
-    GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == *(int64_t*)"X-Referer: ");
-
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
     GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
@@ -979,7 +970,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     }
     
     // Attaching socket to IOCP.
-    HANDLE temp = CreateIoCompletionPort((HANDLE) sock, gw->get_worker_iocp(), 0, 1);
+    HANDLE temp = CreateIoCompletionPort((HANDLE) sock, gw->get_worker_iocp(), 0, 0);
     if (temp != gw->get_worker_iocp())
     {
         PrintLastError(true);
@@ -1019,7 +1010,7 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
     }
 
     // Listening to connections.
-    if (listen(sock, SOMAXCONN))
+    if (listen(sock, LISTENING_SOCKET_QUEUE_SIZE))
     {
         PrintLastError(true);
         closesocket(sock);
@@ -2432,6 +2423,7 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
+// Disconnecting given socket handle.
 void Gateway::DisconnectSocket(SOCKET s) {
 
     GW_ASSERT(INVALID_SOCKET != s);
@@ -2720,7 +2712,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
         global_statistics_stream_ 
             << ",\"misc\":{"
             << "\"overflowChunks\":" << g_gateway.NumberOverflowChunksAllWorkers() 
-            << ",\"activeSockets\":" << g_gateway.NumberOfActiveConnectionsOnAllPorts() 
+            << ",\"activeSockets\":" << g_gateway.NumberOfActiveSocketsOnAllPorts() 
             << "}";
 
         first = true;
@@ -2737,7 +2729,7 @@ uint32_t Gateway::StatisticsAndMonitoringRoutine()
 
                 global_statistics_stream_ 
                     << "{\"port\":" << server_ports_[p].get_port_number() 
-                    << ",\"activeConnections\":" << server_ports_[p].NumberOfActiveConnections()
+                    << ",\"activeSockets\":" << server_ports_[p].NumberOfActiveSockets()
                     << ",\"acceptingSockets\":" << server_ports_[p].get_num_accepting_sockets()
 
                     << "}";
@@ -3153,14 +3145,10 @@ uint32_t Gateway::AddPortHandler(
         if (port_num == g_gateway.setting_aggregation_port())
             server_port->set_aggregating_flag();
 
-        // Checking if we need to extend number of accepting sockets.
-        if (server_port->get_num_accepting_sockets() < ACCEPT_ROOF_STEP_SIZE)
-        {
-            // Creating new connections if needed for this database.
-            err_code = g_gateway.get_worker(0)->CreateNewConnections(ACCEPT_ROOF_STEP_SIZE, server_port->get_port_index());
-            if (err_code)
-                return err_code;
-        }
+        // Creating new connections if needed for this database.
+        err_code = g_gateway.get_worker(0)->CreateAcceptingSockets(server_port->get_port_index());
+        if (err_code)
+            return err_code;
     }
 
     // Registering URI handler.
