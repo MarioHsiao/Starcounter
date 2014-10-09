@@ -18,16 +18,33 @@ namespace QueryProcessingTest {
                 var jocke = new Person() { Name = "Joachim Wester" };
                 var myCar = new Car() { Model = porsche911turbo, Owner = jocke, LicensePlate = "GGU 567" };
                 var yourCar = new Car() { Model = porsche911, Owner = erik, LicensePlate = "ABC 123" };
-            Console.WriteLine("Print all porsche 911");
-            foreach (Car c in Db.SQL<Car>("SELECT c FROM Car C WHERE c IS ?", porsche911))
-                Console.WriteLine(c.LicensePlate);
-            Console.WriteLine("Print all porsche 911 turbo");
+                var justCar = new Car() { LicensePlate = "TSL 430" };
+                String[] resPlates = { "GGU 567", "ABC 123" };
+                int count = 0;
+                foreach (Car c in Db.SQL<Car>("SELECT c FROM Car C WHERE c IS ?", porsche911)) {
+                    Trace.Assert(resPlates[count] == c.LicensePlate);
+                    count++;
+                }
+                Trace.Assert(resPlates.Length == count);
 #if false // This code is not possible due to Prolog parser limitation
       foreach (Car c in Db.SQL<Car>("SELECT c FROM Car C WHERE c IS '911 Turbo'"))
             Console.WriteLine(c.LicensePlate);
 #endif
-            foreach (Car c in Db.SQL<Car>("SELECT c FROM Car C WHERE c IS ?", porsche911turbo))
-                Console.WriteLine(c.LicensePlate);
+                count = 0;
+                foreach (Car c in Db.SQL<Car>("SELECT c FROM Car C WHERE c IS ?", porsche911turbo)) {
+                    Trace.Assert(c.LicensePlate == resPlates[count]);
+                    count++;
+                }
+                Trace.Assert(count == 1);
+                Trace.Assert(Db.SQL<Car>("select c from car c where c is ? and owner = ?", porsche911turbo, erik).First == null);
+                Trace.Assert(Db.SQL<Car>("select c from car c where owner = ? and c is ?", erik, porsche911turbo).First == null);
+                count = 0;
+                foreach (Car c in Db.SQL<Car>("select c from car c where owner = ? and c is ?", jocke, porsche911)) {
+                    Trace.Assert(c.LicensePlate == resPlates[count]);
+                    count++;
+                }
+                Trace.Assert(count == 1);
+                Trace.Assert(Db.SQL("select p from person p where p is ?", porsche911).First == null);
             });
             HelpMethods.LogEvent("Finished testing kinds like behavior");
         }
