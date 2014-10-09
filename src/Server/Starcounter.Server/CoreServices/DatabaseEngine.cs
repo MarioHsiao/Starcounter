@@ -492,6 +492,7 @@ namespace Starcounter.Server {
 
             Process restartedHost;
             StartCodeHostProcess(database, out restartedHost);
+            WaitUntilCodeHostOnline(restartedHost, database);
 
             try {
                 var apps = databaseInfo.Engine.HostedApps;
