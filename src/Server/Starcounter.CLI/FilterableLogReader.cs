@@ -110,8 +110,16 @@ namespace Starcounter.CLI {
             }
 
             if (entry.Severity < type) return true;
-            if (source != null && !entry.Source.Equals(source, StringComparison.InvariantCultureIgnoreCase))
-                return true;
+            if (source != null) {
+                if (source.EndsWith("*")) {
+                    source = source.TrimEnd('*');
+                    if (!entry.Source.StartsWith(source, StringComparison.InvariantCultureIgnoreCase)) {
+                        return true;
+                    }
+                } else if (!entry.Source.Equals(source, StringComparison.InvariantCultureIgnoreCase)) {
+                    return true;
+                }
+            }
 
             if (Database != null) {
                 var uri = ScUri.FromString(entry.HostName);

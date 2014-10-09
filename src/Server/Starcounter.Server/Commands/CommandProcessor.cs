@@ -339,7 +339,9 @@ namespace Starcounter.Server.Commands {
                     Log.LogError(commandError.ToErrorMessage().ToString());
                 }
 
+                OnEndExecuteFailed();
                 this.SetFailed(errorsWithCommandError.ToArray());
+
             } finally {
                 _notifyStatusChangedCallback = null;
             }
@@ -400,9 +402,12 @@ namespace Starcounter.Server.Commands {
             Trace("Executing '{0}'", true, this.command.Description);
         }
 
-        private void OnEndExecute()
-        {
+        private void OnEndExecute() {
             Trace("Executing completed");
+        }
+
+        private void OnEndExecuteFailed() {
+            Trace("Executing completed (failed)");
         }
 
         [Conditional("TRACE")]
