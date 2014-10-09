@@ -901,12 +901,6 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
-    GW_ASSERT(CONTENT_LENGTH_HEADER_VALUE_8BYTES == *(int64_t*)"Content-Length: ");
-    GW_ASSERT(UPGRADE_HEADER_VALUE_8BYTES == *(int64_t*)"Upgrade:");
-    GW_ASSERT(WEBSOCKET_HEADER_VALUE_8BYTES == *(int64_t*)"Sec-WebSocket: ");
-    GW_ASSERT(REFERER_HEADER_VALUE_8BYTES == *(int64_t*)"Referer: ");
-    GW_ASSERT(XREFERER_HEADER_VALUE_8BYTES == *(int64_t*)"X-Referer: ");
-
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
     GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
