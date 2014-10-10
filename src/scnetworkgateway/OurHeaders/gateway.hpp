@@ -918,7 +918,8 @@ struct ScSessionStruct
 enum SOCKET_FLAGS
 {
     SOCKET_FLAGS_AGGREGATED = 1,
-    SOCKET_FLAGS_PROXY_CONNECT = 2
+    SOCKET_FLAGS_PROXY_CONNECT = 2,
+    SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1
 };
 
 // Structure that facilitates the socket.
@@ -1000,6 +1001,21 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     void set_socket_proxy_connect_flag()
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_PROXY_CONNECT;
+    }
+
+    bool get_disconnect_after_send_flag()
+    {
+        return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND) != 0;
+    }
+
+    void set_disconnect_after_send_flag()
+    {
+        flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    void reset_disconnect_after_send_flag()
+    {
+        flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
     SOCKET get_socket() {

@@ -528,13 +528,16 @@ public:
     // Getting disconnect after send flag.
     bool get_disconnect_after_send_flag()
     {
-        return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND) != 0;
+        return ((flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND) != 0) ||
+            (socket_info_->get_disconnect_after_send_flag());
     }
 
     // Setting disconnect after send flag.
     void set_disconnect_after_send_flag()
     {
         flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND;
+        GW_ASSERT(NULL != socket_info_);
+        socket_info_->set_disconnect_after_send_flag();
     }
 
     // ReSetting disconnect after send flag.

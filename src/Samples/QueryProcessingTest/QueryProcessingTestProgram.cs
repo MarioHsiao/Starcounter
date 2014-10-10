@@ -36,6 +36,7 @@ namespace QueryProcessingTest {
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
                 MetadataTest.TestPopulatedMetadata();
+                TestKinds.RunKindsTest();
                 if (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") == "True")
                     BenchmarkQueryCache.BenchQueryCache();
                 else
