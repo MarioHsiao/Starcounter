@@ -63,8 +63,8 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
 
             // Validate response
             if (response.data.hasOwnProperty("rows") == true && response.data.hasOwnProperty("columns") == true) {
-                $log.info("rows (" + response.data.rows.rows.length + ") successfully retrived");
-                $log.info("columns (" + response.data.columns.length + ") successfully retrived");
+                $log.info("SQL query rows (" + response.data.rows.rows.length + ") successfully retrived");
+                $log.info("SQL query columns (" + response.data.columns.length + ") successfully retrived");
                 if (typeof (successCallback) == "function") {
                     successCallback(response.data);
                 }

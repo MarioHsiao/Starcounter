@@ -23,6 +23,7 @@ using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Logging;
 
 namespace Starcounter.Server {
 
@@ -33,7 +34,8 @@ namespace Starcounter.Server {
     /// what exact input to use.
     /// </summary>
     internal sealed class DatabaseEngine {
-        
+        readonly LogSource log = ServerLogSources.Default;
+
         private static class Win32 {
             internal static UInt32 EVENT_MODIFY_STATE = 0x0002;
 
@@ -94,6 +96,8 @@ namespace Starcounter.Server {
             get;
             private set;
         }
+
+
 
         /// <summary>
         /// Initializes a <see cref="DatabaseEngine"/> for the given
@@ -329,8 +333,6 @@ namespace Starcounter.Server {
             var startInfo = GetCodeHostProcessStartInfo(database, startWithNoDb, applyLogSteps, commandLineAdditions);
             process = DoStartEngineProcess(startInfo, database, (sender, e) => { database.CodeHostErrorOutput.Add(e.Data); });
             process.BeginErrorReadLine();
-            database.CodeHostProcess = process;
-            database.SupposedToBeStarted = true;
             database.CodeHostArguments = startInfo.Arguments;
             return true;
         }
@@ -370,14 +372,9 @@ namespace Starcounter.Server {
         }
 
         internal bool StopCodeHostProcess(Database database) {
-            var process = database.CodeHostProcess;
-            if (process == null)
-                return false;
-
-            process.Refresh();
-            if (process.HasExited) {
+            var process = Monitor.GetCodeHostProcess(database);
+            if (process == null) {
                 ResetToCodeHostNotRunning(database);
-                SafeClose(process);
                 return false;
             }
 
@@ -385,14 +382,16 @@ namespace Starcounter.Server {
             // release the reference.
 
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-
-            var response = Node.LocalhostSystemPortNode.DELETE(serviceUris.Host, (String)null, null); 
+            var node = Server.LocalHostSystemNode;
+            
+            var response = node.DELETE(serviceUris.Host, (String)null, null); 
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
                 // be logged, describing this scenario.
                 throw ErrorCode.ToException(
-                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP, FormatDatabaseEngineProcessInfoString(database, process));
+                    Error.SCERRCODEHOSTPROCESSREFUSEDSTOP,
+                    FormatDatabaseEngineProcessInfoString(database, process));
             }
 
             // Wait for the user code process to exit. First wait for a short while,
@@ -416,22 +415,28 @@ namespace Starcounter.Server {
 
             ResetToCodeHostNotRunning(database);
             SafeClose(process);
+            Monitor.EndMonitoring(database);
             return true;
         }
 
         internal void ResetToCodeHostNotRunning(Database database) {
-            database.CodeHostProcess = null;
             database.CodeHostArguments = null;
             database.CodeHostErrorOutput.Clear();
             database.Apps.Clear();
-            database.SupposedToBeStarted = false;
         }
 
         internal void SafeClose(Process p) {
             try { p.Close(); } catch { }
         }
 
-        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, DatabaseInfo databaseInfo) {
+        internal void QueueCodeHostRestart(Process terminatingCodeHostProcess, Database database, DatabaseInfo databaseInfo) {
+            // Before queuing a restart, we first make sure that we
+            // reset the current model to reflect the terminating code host
+            // and also cancel any monitoring of this database.
+
+            ResetToCodeHostNotRunning(database);
+            Monitor.EndMonitoring(database);
+
             var restartCommand = new ActionCommand<int, DatabaseInfo>(
                 this.Server,
                 RestartCodeHost,
@@ -459,27 +464,39 @@ namespace Starcounter.Server {
             if (!databaseExist) {
                 // Might have been deleted.
                 // Take no action.
+                log.Debug("Restarting of code host cancelled; the database {0} was not found", databaseInfo.Name);
                 return;
             }
 
-            var boundProcess = database.CodeHostProcess;
-            if (boundProcess != null && boundProcess.Id != terminatingCodeHostProcessId) {
+            var boundProcess = Monitor.GetCodeHostProcess(database);
+            if (boundProcess != null) {
                 // The database is bound to some other process. We should
-                // let it be.
+                // let it be. We can't predict what could possibly have
+                // happened, since clients can have started/restarted/stopped
+                // hosts/applications in between.
+                
+                // Log a notice about this. We want to keep an eye on it if
+                // it provokes some unpredicted behaviour.
+                log.LogNotice(
+                    "Restarting of code host cancelled; {0} has been started in process {1} already", 
+                    databaseInfo.Name,
+                    boundProcess.Id
+                    );
                 return;
             }
 
-            // Grab the set of applications that we'll try to restart and
-            // then reset the internal state.
+            // We have the set of applications that we'll try to restart;
+            // reset the internal state prior to doing so.
 
             ResetToCodeHostNotRunning(database);
 
             Process restartedHost;
             StartCodeHostProcess(database, out restartedHost);
+            WaitUntilCodeHostOnline(restartedHost, database);
 
             try {
                 var apps = databaseInfo.Engine.HostedApps;
-                var node = Node.LocalhostSystemPortNode;
+                var node = Server.LocalHostSystemNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                 foreach (var app in apps) {
@@ -497,6 +514,7 @@ namespace Starcounter.Server {
 
                     restartedApp.Info.LastRestart = DateTime.Now;
                     database.Apps.Add(restartedApp);
+                    log.Debug("Restarted application {0} in {1}", app.Name, database.Name);
                 }
 
             } finally {

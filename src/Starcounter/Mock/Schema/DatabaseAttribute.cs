@@ -35,12 +35,6 @@ namespace Sc.Server.Weaver.Schema {
         private DatabaseAttributeRef backingField;
         private int specialFlags = 0;
 
-        class SpecialFlags {
-            public const int TypeReference = 1;
-            public const int IneritsReference = 2;
-            public const int TypeName = 4;
-        }
-
         /// <summary>
         /// Initializes a new <see cref="DatabaseAttribute"/>.
         /// </summary>
@@ -111,13 +105,13 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         public bool IsTypeReference {
             get {
-                return (specialFlags & SpecialFlags.TypeReference) > 0;
+                return (specialFlags & DatabaseAttributeFlags.TypeReference) > 0;
             }
             set {
                 if (value) {
-                    specialFlags |= SpecialFlags.TypeReference;
-                } else if ((specialFlags & SpecialFlags.TypeReference) > 0) {
-                    specialFlags ^= SpecialFlags.TypeReference;
+                    specialFlags |= DatabaseAttributeFlags.TypeReference;
+                } else if ((specialFlags & DatabaseAttributeFlags.TypeReference) > 0) {
+                    specialFlags ^= DatabaseAttributeFlags.TypeReference;
                 }
             }
         }
@@ -129,13 +123,13 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         public bool IsInheritsReference {
             get {
-                return (specialFlags & SpecialFlags.IneritsReference) > 0;
+                return (specialFlags & DatabaseAttributeFlags.IneritsReference) > 0;
             }
             set {
                 if (value) {
-                    specialFlags |= SpecialFlags.IneritsReference;
-                } else if ((specialFlags & SpecialFlags.IneritsReference) > 0) {
-                    specialFlags ^= SpecialFlags.IneritsReference;
+                    specialFlags |= DatabaseAttributeFlags.IneritsReference;
+                } else if ((specialFlags & DatabaseAttributeFlags.IneritsReference) > 0) {
+                    specialFlags ^= DatabaseAttributeFlags.IneritsReference;
                 }
             }
         }
@@ -147,13 +141,13 @@ namespace Sc.Server.Weaver.Schema {
         /// </summary>
         public bool IsTypeName {
             get {
-                return (specialFlags & SpecialFlags.TypeName) > 0;
+                return (specialFlags & DatabaseAttributeFlags.TypeName) > 0;
             }
             set {
                 if (value) {
-                    specialFlags |= SpecialFlags.TypeName;
-                } else if ((specialFlags & SpecialFlags.TypeName) > 0) {
-                    specialFlags ^= SpecialFlags.TypeName;
+                    specialFlags |= DatabaseAttributeFlags.TypeName;
+                } else if ((specialFlags & DatabaseAttributeFlags.TypeName) > 0) {
+                    specialFlags ^= DatabaseAttributeFlags.TypeName;
                 }
             }
         }
@@ -325,6 +319,13 @@ namespace Sc.Server.Weaver.Schema {
             set {
                 backingField = DatabaseAttributeRef.MakeRef(value);
             }
+        }
+
+        /// <summary>
+        /// Gets the current attributes special flags.
+        /// </summary>
+        internal int SpecialFlags {
+            get { return specialFlags; }
         }
 
         /// <summary>

@@ -190,10 +190,8 @@ namespace Starcounter.Internal {
             Response resp = null;
 
             // Handling request on initial level.
-            Db.ImplicitScope(() => {
-                resp = AppServer_.HandleRequest(req, 0);
-            });
-
+            resp = AppServer_.HandleRequest(req, 0);
+            
             // Checking if response was handled.
             if (resp == null)
                 return false;

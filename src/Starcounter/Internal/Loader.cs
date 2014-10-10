@@ -260,6 +260,7 @@ namespace Starcounter.Internal
                                  targetTypeName
                                  );
                             propertyDef.ColumnName = targetAttribute.Name;
+                            propertyDef.SpecialFlags = databaseAttribute.SpecialFlags;
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;
@@ -277,6 +278,7 @@ namespace Starcounter.Internal
                             if (backingField != null && backingField.AttributeKind == DatabaseAttributeKind.Field) {
                                 columnName = DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(backingField.Name);
                             }
+                            propertyDef.SpecialFlags = databaseAttribute.SpecialFlags;
                             propertyDef.ColumnName = columnName;
                             AddProperty(propertyDef, propertyDefs);
                         }

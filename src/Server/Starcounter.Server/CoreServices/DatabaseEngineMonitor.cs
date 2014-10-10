@@ -1,10 +1,8 @@
 ﻿
 using Starcounter.Internal;
 using Starcounter.Logging;
-using Starcounter.Server.Commands;
-using Starcounter.Server.PublicModel;
-using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Starcounter.Server {
@@ -14,11 +12,20 @@ namespace Starcounter.Server {
     /// </summary>
     internal sealed class DatabaseEngineMonitor {
         readonly LogSource log = ServerLogSources.Processes;
-        
+        readonly Dictionary<string, CodeHostProcessMonitor> currentHosts;
+        readonly HashSet<CodeHostProcessMonitor> hostMonitors;
+
         /// <summary>
         /// Gets the server that has instantiated this monitor.
         /// </summary>
         internal readonly ServerEngine Server;
+
+        /// <summary>
+        /// Gets the log source used by this component when logging.
+        /// </summary>
+        internal LogSource Log {
+            get { return log; }
+        }
 
         /// <summary>
         /// Initializes a <see cref="DatabaseEngineMonitor"/> for the given
@@ -27,6 +34,8 @@ namespace Starcounter.Server {
         /// <param name="server">The server engine.</param>
         internal DatabaseEngineMonitor(ServerEngine server) {
             this.Server = server;
+            currentHosts = new Dictionary<string, CodeHostProcessMonitor>();
+            hostMonitors = new HashSet<CodeHostProcessMonitor>(new CodeHostProcessMonitor.EqualityComparer());
         }
 
         /// <summary>
@@ -42,100 +51,80 @@ namespace Starcounter.Server {
         /// <param name="database">The database the given engine process represent.</param>
         /// <param name="engineProc">The process to begin monitoring.</param>
         internal void BeginMonitoring(Database database, Process engineProc) {
-            var description = string.Format("Synchronizing server state for exiting engine \"{0}\"", database.Name);
-
+            
             if (engineProc.ProcessName.Equals(StarcounterConstants.ProgramNames.ScCode, StringComparison.InvariantCultureIgnoreCase)) {
-                log.Debug("Begin monitoring code host process {0}, PID {1}, running database {2}", 
+                log.Debug("Begin monitoring code host process {0}, PID {1}, running database {2}",
                     engineProc.ProcessName,
                     engineProc.Id,
                     database.Name);
 
-                engineProc.EnableRaisingEvents = true;
-                engineProc.Exited += (sender, args) => {
-                    // Assure we check every exit in a thread-safe manner by
-                    // posting to the queue and doing no evaulation what-so-ever
-                    // here.
-                    var x = new ActionCommand<Process, Database>(this.Server, ReactToCodeHostExit, engineProc, database, description);
-                    this.Server.CurrentPublicModel.Execute(x);
+                var hostMonitor = new CodeHostProcessMonitor(this) {
+                    DatabaseName = database.Name,
+                    PID = engineProc.Id,
+                    StartTime = engineProc.StartTime
                 };
+                hostMonitors.Add(hostMonitor);
+                currentHosts[database.Name] = hostMonitor;
+
+                engineProc.EnableRaisingEvents = true;
+                engineProc.Exited += hostMonitor.CodeHostExited;
             }
         }
 
-        void ReactToCodeHostExit(ICommandProcessor processor, Process processExited, Database database) {
-            if (!database.SupposedToBeStarted) {
-                // We don't do anything with databases that are safely
-                // stopped (i.e. supposed not to run)
-                return;
-            }
-            var engineService = Server.DatabaseEngine;
-
-            // Try to get the process component currently associated with the
-            // database. We expect it to be one, since it's supposed to be running.
-            // If there isn't, we emit a warning and reset the database state to
-            // what we expect it to be (not-running).
-            int currentPID = GetProcessId(database.CodeHostProcess, database, log.LogWarning);
-            if (currentPID == -1) {
-                ResetInternalAndPublicState(engineService, database, processExited);
-                return;
+        internal void EndMonitoring(Database database) {
+            var removed = currentHosts.Remove(database.Name);
+            if (!removed) {
+                // Log a notice; lets keep an eye on this
+                log.LogNotice(string.Format("DatabaseEngineMonitor.EndMonitoring: Database {0} were not monitored", database.Name));
             }
 
-            // Try fetching the PID of the process component that has triggered
-            // this command by exiting. Since we can't control to 100% the state
-            // of this component, we just emit a notice if we can't access it
-            // and then let the database state be in whatever state it is.
-            int pid = GetProcessId(processExited, database, log.LogNotice);
-            if (pid == -1) {
-                engineService.SafeClose(processExited);
-                return;
-            }
-
-            log.Debug(
-                "Updating state due to the exiting of code host process with PID {0}, running engine {1}", 
-                pid, database.Name);
-
-            // Check if the current state indicates the same process as the one
-            // we have found exiting. If not, it's likely caused by a restart and
-            // we should preserve the current state. This is a bit unusual, but
-            // could happen in theory. Therefore, we log a notice about it.
-            if (currentPID != pid) {
-                log.LogNotice("Ignoring state update for code host with PID {0}; state already up-to-date.", pid);
-                engineService.SafeClose(processExited);
-                return;
-            }
-
-            // Update the state to reflect the unexpected exit of the
-            // process. It's a bit unclear how we should treat the flag
-            // SupposedToBeStarted - it could be advocated both that it
-            // should be cleared and should be kept intact.
-
-            ResetInternalAndPublicState(engineService, database, processExited);
-        }
-
-        void ResetInternalAndPublicState(DatabaseEngine engine, Database database, Process processExited) {
-            engine.ResetToCodeHostNotRunning(database);
-            engine.SafeClose(processExited);
-            Server.CurrentPublicModel.UpdateDatabase(database);
-        }
-
-        int GetProcessId(Process p, Database database, Action<string> logMethod = null) {
-            string msg = null;
-            if (p == null) {
-                msg = "Process reference not assigned";
-            } else {
-                try {
-                    int pid = p.Id;
-                    return pid;
-                } catch (Exception e) {
-                    msg = e.Message;
+            int cancelledMonitors = 0;
+            foreach (var hostMonitor in hostMonitors) {
+                if (hostMonitor.IsMonitoringDatabase(database)) {
+                    if (hostMonitor.Cancel()) {
+                        cancelledMonitors++;
+                    }
                 }
             }
 
-            if (logMethod != null) {
-                var entry = string.Format("Unable to retreive PID of code host process for engine \"{0}\". Error: {1}.", database.Name, msg);
-                logMethod(entry);
+            var msg = string.Format("Cancelled {0} monitor(s) for database {1}", cancelledMonitors, database.Name);
+            if (cancelledMonitors == 0) {
+                log.LogNotice(msg);
+            } else {
+                log.Debug(msg);
+            }
+        }
+
+        internal void RemoveCodeHostMonitor(CodeHostProcessMonitor monitor) {
+            CodeHostProcessMonitor current;
+            if (currentHosts.TryGetValue(monitor.DatabaseName, out current)) {
+                if (object.ReferenceEquals(current, monitor)) {
+                    currentHosts.Remove(monitor.DatabaseName);
+                }
+            }
+            hostMonitors.Remove(monitor);
+        }
+
+        internal Process GetCodeHostProcess(Database database) {
+            CodeHostProcessMonitor procRef;
+            if (!currentHosts.TryGetValue(database.Name, out procRef)) {
+                return null;
             }
 
-            return -1;
+            try {
+                return Process.GetProcessById(procRef.PID);
+            } catch (ArgumentException) {
+            }
+
+            return null;
+        }
+
+        internal void ResetInternalAndPublicState(DatabaseEngine engine, Database database, Process processExited) {
+            engine.ResetToCodeHostNotRunning(database);
+            Server.CurrentPublicModel.UpdateDatabase(database);
+            if (processExited != null) {
+                engine.SafeClose(processExited);
+            }
         }
     }
 }

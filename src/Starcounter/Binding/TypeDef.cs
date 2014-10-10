@@ -36,7 +36,11 @@ namespace Starcounter.Binding
                 Debug.Assert(_PropertyDefs != null);
                 return _PropertyDefs;
             }
-            internal set {_PropertyDefs = value;}}
+            internal set {
+                _PropertyDefs = value;
+                AssignDymanicTypeInformation();
+            }
+        }
 
         /// <summary>
         /// The type loader
@@ -79,6 +83,27 @@ namespace Starcounter.Binding
                 return ShortName_;
             }
         }
+
+        /// <summary>
+        /// Gets the index of the property that references the (dynamic)
+        /// type (if any) of the current TypeDef. Set to -1 when no such
+        /// information is available.
+        /// </summary>
+        public int TypePropertyIndex { get; set; }
+
+        /// <summary>
+        /// Gets the index of the property that references the (dynamic)
+        /// based type (if any) of the current TypeDef. Set to -1 when no such
+        /// information is available.
+        /// </summary>
+        public int InheritsPropertyIndex { get; set; }
+
+        /// <summary>
+        /// Gets the index of the property that references the (dynamic)
+        /// type name (if any) of the current TypeDef. Set to -1 when no such
+        /// information is available.
+        /// </summary>
+        public int TypeNameIndex { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TypeDef" /> class.
@@ -183,6 +208,26 @@ namespace Starcounter.Binding
                 return new IndexInfo2(indexInfo, this);
             }
             return null;
+        }
+
+        /// <summary>
+        /// Invoked every time _PropertyDefs is assigned. Reevaluates
+        /// dynamic type information for the current TypeDef.
+        /// </summary>
+        void AssignDymanicTypeInformation() {
+            TypeNameIndex = TypePropertyIndex = InheritsPropertyIndex = -1;
+            if (_PropertyDefs != null) {
+                for (int i = 0; i < _PropertyDefs.Length; i++) {
+                    var candidate = _PropertyDefs[i];
+                    if (candidate.IsTypeReference) {
+                        TypePropertyIndex = i;
+                    } else if (candidate.IsInheritsReference) {
+                        InheritsPropertyIndex = i;
+                    } else if (candidate.IsTypeName) {
+                        TypeNameIndex = i;
+                    }
+                }
+            }
         }
     }
 }

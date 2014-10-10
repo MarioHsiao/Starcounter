@@ -49,14 +49,14 @@ namespace Starcounter.Administrator.Server.Handlers {
             //      }
             //  ]
             //}
-            Handle.GET("/api/admin/installed/applications", (Request req) => {
+            Handle.GET("/api/admin/installed/apps", (Request req) => {
 
                 try {
 
                     Representations.JSON.Applications installedApplications = new Representations.JSON.Applications();
 
                     IList<AppConfig> apps = AppsContainer.GetInstallApps(appsRootFolder);
-                    string relative = "/api/admin/installed/applications";
+                    string relative = "/api/admin/installed/apps";
                     string url = new Uri(Starcounter.Administrator.API.Handlers.RootHandler.Host.BaseUri, relative).ToString();
 
                     string appBasefolder = appsRootFolder;

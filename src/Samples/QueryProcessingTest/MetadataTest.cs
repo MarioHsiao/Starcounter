@@ -97,7 +97,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
-            Trace.Assert(count == 38);
+            Trace.Assert(count == 41);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
@@ -242,7 +242,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.UniqueIdentifier);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 116);
+            Trace.Assert(nrColumns == 123);
 #endif
             Starcounter.Internal.Metadata.MaterializedIndex i = 
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
