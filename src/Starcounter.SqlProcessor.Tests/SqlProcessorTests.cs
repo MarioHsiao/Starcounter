@@ -10,7 +10,7 @@ namespace Starcounter.SqlProcessor.Tests {
 
         public static unsafe void ProcessQuery(uint expectedError, string query) {
             Exception ex = SqlProcessor.CallSqlProcessor(query);
-            Assert.AreEqual(expectedError, ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
+            Assert.AreEqual(expectedError, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
         }
 
         [Test]
@@ -197,6 +197,55 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select$1a");
             ProcessQuery(parseOK, "select 'System.Reflection.TargetInvocationException: Obiekt docelowy wywoÅ‚ania zgÅ‚osiÅ‚ wyjÄ…tek'");
             ProcessQuery(parseOK, "select NULL, 231");
+            ProcessQuery(parseOK, "SELECT d.Name, e.LastName FROM Department d JOIN Employee e ON e.Department = d WHERE e.FirstName = 'Bob' OPTION JOIN ORDER (e,d)");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT d.Name, e.LastName FROM Department d JOIN Employee e ON e.Department = d WHERE e.FirstName = 'Bob' OPTION JOIN ORDERs (e,d)");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT d.Name, e.LastName FROM Department d JOIN Employee e ON e.Department = d WHERE e.FirstName = 'Bob' OPTION JOIN dORDER (e,d)");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT d.Name, e.LastName FROM Department d JOIN Employee e ON e.Department = d WHERE e.FirstName = 'Bob' OPTION dJOIN ORDER (e,d)");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT d.Name, e.LastName FROM Department d JOIN Employee e ON e.Department = d WHERE e.FirstName = 'Bob' OPTION JOINs ORDER (e,d)");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT d.Name, e.LastName FROM Department d JOIN Employee e ON e.Department = d WHERE e.FirstName = 'Bob' OPTION JOINORDER (e,d)");
+            ProcessQuery(parseOK, "select t from myt t where t.\"when\" = ?");
+            ProcessQuery(parseOK, "select t from myt t where t.\"when\" = $1");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select t from myt t where t.when = :1");
+            ProcessQuery(parseOK, "select t from myt t where t.when = ?");
+            ProcessQuery(parseOK, "select 1 * 2");
+            ProcessQuery(parseOK, "select c from dsfa c where c.sadf * ? and 1 *c.sdfa");
+            ProcessQuery(parseOK, "select t from myt t where t.column = $4");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select t from myt t where when = ?");
+            ProcessQuery(parseOK, "SELECT e, m FROM Employee e JOIN Employee m ON e.Manager = m WHERE e.FirstName = 'John' AND e.LastName = 'Smith' AND m.FirstName = 'David' AND m.LastName = 'King' OPTION INDEX (e MyIndexOnLastName), INDEX(m MyIndexOnFirstName)");
+            ProcessQuery(parseOK, "SELECT x.Name FROM Person a, Person x, Parent p WHERE a = p.property AND p.object = x AND a.Name = 'Alice'");
+            ProcessQuery(parseOK, "SELECT a[Parent][Name] FROM Person a WHERE a[Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT a[Parent].Name FROM Person a WHERE a[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT a[Parent]Name FROM Person a WHERE a[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT a[Parent]Name] FROM Person a WHERE a[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT a[Parent][[Name] FROM Person a WHERE aName] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT a[Parent].[Name] FROM Person a WHERE a[Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT a[MyNamespace.Father].Name FROM Person a WHERE a.Name = 'Alice';SELECT a[MyNamespace.Father].Name FROM Person a WHERE a.Name = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person b, Person x WHERE { b Father+ x } AND b.Name = 'Bob'");
+            ProcessQuery(parseOK, "SELECT b.Father+.Name FROM Person b WHERE b.Name = 'Bob'");
+            ProcessQuery(parseOK, "SELECT b.Father+Name FROM Person b WHERE b.Name = 'Bob'");
+            ProcessQuery(parseOK, "SELECT b[Father]+.Name FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(parseOK, "SELECT b[Father]+Name FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(parseOK, "SELECT b[Father]+Name FROM Person b WHERE b[Name] = 'Bob'+?");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT b[Father]+Name FROM Person b WHERE b+[Name] = 'Bob'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x.Employer.^Employer.Name = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x.Employer^Employer.Name = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT ^x FROM Person x WHERE x.Employer.^Employer.Name = 'Alice'");
+            ProcessQuery(parseOK, "select 2^2=4");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x[Employer]^[Employer][Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x[Employer]^Employer[Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x[Employer^Employer][Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x[Employer^Employer][Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE x[Employer]^Employer][Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x.(Friend|Employer.^Employer)*.Name = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x.([Friend]|[Employer]^[Employer])*[Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE x.([Friend]|t[Employer]^[Employer])*[Name] = 'Alice'");
+            ProcessQuery(parseOK, "SELECT x FROM Person x WHERE (t[Friend]+t[Employer]^d[Employer])*v[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE (t[Friend]|t[Employer]^d[Employer])*v[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE (t[Friend]|t[Employer]^[Employer])*v[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE x(t[Friend]|t[Employer]^[Employer])*v[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE x(t[Friend]|t[Employer]^[Employer])*[Name] = 'Alice'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE x([Friend]|t[Employer]^[Employer])*t[Name] = 'Alice'");
+            ProcessQuery(parseOK, "select 1|2");
             // Fails on _SC_ASSERT_DEBUG in native SQL processor, since not meta-data tables are created
             //ProcessQuery(1004, "INSERT INTO Visit(Id, Company, Start, End, " +
             //    "Spent, PageViewCount, Ip, Referer, UserAgent, TrackingCookie, " +
