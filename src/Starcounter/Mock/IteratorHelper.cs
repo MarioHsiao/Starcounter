@@ -150,7 +150,7 @@ namespace Starcounter
                 {
                     fixed (byte* sameKey = firstKey)
                     {
-                        err = sccoredb.SCIteratorCreate(
+                        err = sccoredb.star_create_iterator(
                             indexHandle,
                             rangeFlags,
                             sameKey,
@@ -167,7 +167,7 @@ namespace Starcounter
                 {
                     fixed (byte* fk = firstKey, lk = lastKey)
                     {
-                        err = sccoredb.SCIteratorCreate(
+                        err = sccoredb.star_create_iterator(
                             indexHandle,
                             rangeFlags,
                             fk,
@@ -222,9 +222,9 @@ namespace Starcounter
 
             // Recreating iterator using obtained data.
             //SqlDebugHelper.PrintByteBuffer("IndexScan Using Recreation Key", recreationKey, true);
-            //Application.Profiler.Start("sc_recreate_iterator", 7);
+            //Application.Profiler.Start("star_recreate_iterator", 7);
             fixed (Byte* lastKeyPointer = lastKey) {
-                err = sccoredb.sc_recreate_iterator(
+                err = sccoredb.star_recreate_iterator(
                     indexHandle,
                     flags,
                     recreationKey,

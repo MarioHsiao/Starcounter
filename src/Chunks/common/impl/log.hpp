@@ -55,7 +55,7 @@ try {
 		}
 		
 		if (
-			(err = ::sccorelog_connect_to_logs(
+			(err = ::star_connect_to_logs(
 			reinterpret_cast<const ucs2_char *>(&host_name[0]),
 			reinterpret_cast<const ucs2_char *>(server_log_dir), 0, &handle_))
 			!= 0) {
@@ -69,7 +69,7 @@ catch (const std::bad_alloc&) {
 
 inline void log::close() {
 	if (is_open_) {
-		log_exception::error_code_type err = ::sccorelog_release_logs(handle_);
+		log_exception::error_code_type err = ::star_release_logs(handle_);
 		_SC_ASSERT(err == 0);
 		handle_ = 0;
 		is_open_ = false;
@@ -77,114 +77,114 @@ inline void log::close() {
 }
 
 inline void log::debug(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_debug, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::debug(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_debug, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::success_audit(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_success_audit, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::success_audit(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_success_audit, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::failure_audit(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_failure_audit, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::failure_audit(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_failure_audit, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::notice(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_notice, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::notice(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_notice, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::warning(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_warning, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::warning(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_warning, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::error(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_error, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::error(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_error, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::critical(uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_critical, error_code, 0);
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 
 inline void log::critical(const wchar_t* message, uint32_t error_code) {
-	log_exception::error_code_type err = ::sccorelog_kernel_write_to_logs(handle_,
+	log_exception::error_code_type err = ::star_kernel_write_to_logs(handle_,
 	entry_critical, error_code, reinterpret_cast<const ucs2_char *>(message));
 	_SC_ASSERT(err == 0);
-	err = ::sccorelog_flush_to_logs(handle_);
+	err = ::star_flush_to_logs(handle_);
 	_SC_ASSERT(err == 0);
 }
 

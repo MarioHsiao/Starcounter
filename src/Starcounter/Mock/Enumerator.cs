@@ -140,7 +140,7 @@ namespace Starcounter
             // Removing reference to current object.
             _current = null;
 
-            UInt32 err = sccoredb.SCIteratorFree(_handle, _verify);
+            UInt32 err = sccoredb.star_iterator_free(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
@@ -206,11 +206,11 @@ namespace Starcounter
             previousCCI = UInt16.MaxValue;
 
         next:
-            //Application.Profiler.Start("SCIteratorNext", 2);
+            //Application.Profiler.Start("star_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe
             {
-                r = sccoredb.SCIteratorNext(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
+                r = sccoredb.star_iterator_next(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
             }
             //Application.Profiler.Stop(2);
 

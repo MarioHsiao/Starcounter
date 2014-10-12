@@ -109,7 +109,7 @@ namespace Starcounter.Internal
             ulong addr_local;
 
             unsafe {
-                dr = sccoredb.sccoredb_insert(tableId, &oid_local, &addr_local);
+                dr = sccoredb.star_insert(tableId, &oid_local, &addr_local);
             }
             if (dr == 0) {
                 oid = oid_local;

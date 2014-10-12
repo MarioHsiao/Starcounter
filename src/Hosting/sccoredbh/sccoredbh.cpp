@@ -81,7 +81,7 @@ extern "C" void __stdcall sccoredbh_vproc_bgtask(void* hsched, uint8_t cpun, voi
 
 extern "C" void __stdcall sccoredbh_vproc_ctick(void* hsched, uint8_t cpun, uint32_t psec)
 {
-    sccoredb_advance_clock(cpun);
+    star_advance_clock(cpun);
 
     // TODO: Here be session clock advance.
 
@@ -93,9 +93,9 @@ extern "C" void __stdcall sccoredbh_vproc_ctick(void* hsched, uint8_t cpun, uint
 
 extern "C" int32_t __stdcall sccoredbh_vproc_idle(void* hsched, uint8_t cpun, void* p)
 {
-    int32_t callAgainIfStillIdle;
-    uint32_t r = SCIdleTask(&callAgainIfStillIdle);
-    if (r == 0) return callAgainIfStillIdle;
+    int32_t call_again_if_still_idle;
+    uint32_t r = star_idle_task(&call_again_if_still_idle);
+    if (r == 0) return call_again_if_still_idle;
     _fatal_error(r);
     return 0;
 }

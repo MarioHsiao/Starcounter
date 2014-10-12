@@ -246,7 +246,7 @@ namespace StarcounterInternal.Hosting
 
         private static unsafe void orange_vproc_ctick(void* hsched, byte cpun, uint psec)
         {
-            sccoredb.sccoredb_advance_clock(cpun);
+            sccoredb.star_advance_clock(cpun);
 
             // TODO: Here be session clock advance.
 
@@ -259,7 +259,7 @@ namespace StarcounterInternal.Hosting
         private static unsafe int orange_vproc_idle(void* hsched, byte cpun, void* p)
         {
             int callAgainIfStillIdle;
-            uint e = sccoredb.SCIdleTask(&callAgainIfStillIdle);
+            uint e = sccoredb.star_idle_task(&callAgainIfStillIdle);
             if (e == 0) return callAgainIfStillIdle;
             orange_fatal_error(e);
             return 0;

@@ -548,7 +548,7 @@ release_chunks:
 finish:
 
     // Resetting current transaction.
-    sccoredb_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
+    star_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
 
     return err_code;
 

@@ -14,7 +14,7 @@ namespace Starcounter.Internal {
         }
 
         private static void ResetCurrentTransaction() {
-            uint r = sccoredb.sccoredb_set_current_transaction(0, 0, 0);
+            uint r = sccoredb.star_set_current_transaction(0, 0, 0);
             var it = ImplicitTransaction.Current(false);
             if (it != null)
                 it.ReleaseReadOnly();

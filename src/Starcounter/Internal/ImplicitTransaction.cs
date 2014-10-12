@@ -47,7 +47,7 @@ namespace Starcounter.Internal {
             if (this.handle == 0) {
                 ulong handle;
                 ulong verify;
-                ec = sccoredb.sccoredb_create_transaction_and_set_current(sccoredb.MDB_TRANSCREATE_READ_ONLY, 0, out handle, out verify);
+                ec = sccoredb.star_create_transaction_and_set_current(sccoredb.MDB_TRANSCREATE_READ_ONLY, 0, out handle, out verify);
                 if (ec == 0) {
                     this.handle = handle;
                     this.verify = verify;
@@ -57,7 +57,7 @@ namespace Starcounter.Internal {
             } else {
                 Debug.Assert(isWritable == false);
                 
-                ec = sccoredb.sccoredb_set_current_transaction(0, this.handle, this.verify);
+                ec = sccoredb.star_set_current_transaction(0, this.handle, this.verify);
                 if (ec == 0)
                     return;
             }
@@ -65,7 +65,7 @@ namespace Starcounter.Internal {
         }
 
         internal void SetCurrent() {
-            uint ec = sccoredb.sccoredb_set_current_transaction(0, this.handle, this.verify);
+            uint ec = sccoredb.star_set_current_transaction(0, this.handle, this.verify);
             if (ec == 0) return;
             throw ErrorCode.ToException(ec);
         }
@@ -74,7 +74,7 @@ namespace Starcounter.Internal {
             ulong handle;
             ulong verify;
 
-            uint r = sccoredb.sccoredb_create_transaction_and_set_current(0, 1, out handle, out verify);
+            uint r = sccoredb.star_create_transaction_and_set_current(0, 1, out handle, out verify);
             if (r == 0) {
                 this.handle = handle;
                 this.verify = verify;
@@ -106,7 +106,7 @@ namespace Starcounter.Internal {
             if (this.handle == 0 || this.isWritable)
                 return 0;
 
-            uint r = sccoredb.sccoredb_free_transaction(this.handle, this.verify);
+            uint r = sccoredb.star_free_transaction(this.handle, this.verify);
             if (r == 0) {
                 this.handle = 0;
                 this.verify = 0xFF;
@@ -116,9 +116,9 @@ namespace Starcounter.Internal {
         }
 
         internal uint ReleaseLocked() {
-            uint ec = sccoredb.sccoredb_set_current_transaction(1, 0, 0);
+            uint ec = sccoredb.star_set_current_transaction(1, 0, 0);
             if (ec == 0) {
-                ec = sccoredb.sccoredb_free_transaction(this.handle, this.verify);
+                ec = sccoredb.star_free_transaction(this.handle, this.verify);
                 if (ec == 0) {
                     this.handle = 0;
                     this.verify = 0;

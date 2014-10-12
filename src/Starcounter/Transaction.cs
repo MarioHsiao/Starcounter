@@ -26,12 +26,12 @@ namespace Starcounter
             ulong viter;
 
             for (; ; ) {
-                r = sccoredb.sccoredb_begin_commit(tran_locked_on_thread, out hiter, out viter);
+                r = sccoredb.star_begin_commit(tran_locked_on_thread, out hiter, out viter);
                 if (r == 0) {
                     // TODO: Handle triggers. Call abort commit on failure.
-                    // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
+                    // r = sccoredb.star_abort_commit(tran_locked_on_thread);
 
-                    r = sccoredb.sccoredb_complete_commit(
+                    r = sccoredb.star_complete_commit(
                             tran_locked_on_thread, detach_and_free
                             );
                     if (r == 0) break;
@@ -90,7 +90,7 @@ namespace Starcounter
                 handle = value._handle;
                 verify = value._verify;
 
-                uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
+                uint r = sccoredb.star_set_current_transaction(0, handle, verify);
                 if (r == 0) {
                     _current = value;
                     return;
@@ -104,7 +104,7 @@ namespace Starcounter
                 if (ImplicitTransaction.SetCurrentIfCreated()) {
                     _current = null;
                 } else {
-                    uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
+                    uint r = sccoredb.star_set_current_transaction(0, handle, verify);
                     if (r == 0) {
                         _current = value;
                         return;
@@ -211,7 +211,7 @@ namespace Starcounter
             if (readOnly)
                 flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
 
-            uint r = sccoredb.sccoredb_create_transaction(
+            uint r = sccoredb.star_create_transaction(
                 flags,
                 out handle,
                 out verify
@@ -225,7 +225,7 @@ namespace Starcounter
                 }
                 catch (Exception) {
                     _verify = _INVALID_VERIFY;
-                    r = sccoredb.sccoredb_free_transaction(handle, verify);
+                    r = sccoredb.star_free_transaction(handle, verify);
                     if (r != 0) ExceptionManager.HandleInternalFatalError(r);
                     throw;
                 }
@@ -264,7 +264,7 @@ namespace Starcounter
             // context is always set to null before the context is disposed.
 
             if (_current == this) SetCurrent(null);
-            r = sccoredb.sccoredb_free_transaction(_handle, _verify);
+            r = sccoredb.star_free_transaction(_handle, _verify);
             if (r == 0) {
                 _verify = _INVALID_VERIFY;
                 GC.SuppressFinalize(this);
@@ -397,14 +397,14 @@ namespace Starcounter
         public void Rollback() {
             Transaction current = _current;
             if (current == this) {
-                uint r = sccoredb.sccoredb_rollback();
+                uint r = sccoredb.star_rollback();
                 if (r == 0) return;
                 throw ToException(this, r);
             }
             else {
                 Transaction.SetCurrent(this);
                 try {
-                    uint r = sccoredb.sccoredb_rollback();
+                    uint r = sccoredb.star_rollback();
                     if (r == 0) return;
                     throw ToException(this, r);
                 }
@@ -423,7 +423,7 @@ namespace Starcounter
                 uint r;
 
                 unsafe {
-                    r = sccoredb.Mdb_TransactionIsReadWrite(_handle, _verify, &isDirty);
+                    r = sccoredb.star_transaction_is_dirty(_handle, _verify, &isDirty);
                 }
 
                 if (r == 0)
@@ -450,7 +450,7 @@ namespace Starcounter
         internal Byte OwnerCpu { get { return (byte)_verify; } }
 
         internal void Cleanup() {
-            uint r = sccoredb.sccoredb_free_transaction(_handle, _verify);
+            uint r = sccoredb.star_free_transaction(_handle, _verify);
             if (r == 0) return;
             throw ErrorCode.ToException(r);
         }

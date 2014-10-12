@@ -554,7 +554,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
         if (dbObject != null)
         // Getting current position of the object in iterator.
-        err = sccoredb.sc_get_index_position_key(
+            err = sccoredb.star_get_index_position_key(
             indexInfo.Handle,
             dbObject.Identity,
             dbObject.ThisHandle,
@@ -643,7 +643,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
             if (dbObject != null) {
                 // Getting current position of the object in iterator.
-                err = sccoredb.sc_get_index_position_key(
+                err = sccoredb.star_get_index_position_key(
                     indexInfo.Handle,
                     dbObject.Identity,
                     dbObject.ThisHandle,

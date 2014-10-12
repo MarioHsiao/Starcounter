@@ -195,7 +195,7 @@ namespace Starcounter
 
             for (; ; )
             {
-                r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
+                r = sccoredb.star_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0)
                 {
                     it = ImplicitTransaction.Current(true);
@@ -209,9 +209,9 @@ namespace Starcounter
                         return;
                     }
                     catch (Exception ex) {
-                        r = sccoredb.sccoredb_set_current_transaction(1, 0, 0);
+                        r = sccoredb.star_set_current_transaction(1, 0, 0);
                         if (r == 0) {
-                            r = sccoredb.sccoredb_free_transaction(handle, verify);
+                            r = sccoredb.star_free_transaction(handle, verify);
                             if (r == 0) {
                                 if (ex is ITransactionConflictException) {
                                     if (++retries <= maxRetries) continue;
@@ -250,7 +250,7 @@ namespace Starcounter
                         // Operation will fail only if transaction is already
                         // aborted (in which case we need not abort it).
 
-                        sccoredb.sccoredb_external_abort();
+                        sccoredb.star_external_abort();
                         throw;
                     }
                     return;
@@ -346,7 +346,7 @@ namespace Starcounter
                     action();
                 } catch {
                     if (it.IsWritable())
-                        sccoredb.sccoredb_external_abort();
+                        sccoredb.star_external_abort();
                     throw;
                 }
                 return;
@@ -405,7 +405,7 @@ namespace Starcounter
             oid = proxy.Identity;
             address = proxy.ThisHandle;
 
-            var r = sccoredb.sccoredb_begin_delete(oid, address);
+            var r = sccoredb.star_begin_delete(oid, address);
             if (r != 0) {
                 // If the error is because the delete already was issued then
                 // we ignore it and just return. We are processing the delete
@@ -433,12 +433,12 @@ namespace Starcounter
                 // issued is released and this will be the case as long as none
                 // of the above errors occur.
 
-                sccoredb.sccoredb_abort_delete(oid, address);
+                sccoredb.star_abort_delete(oid, address);
                 if (ex is System.Threading.ThreadAbortException) throw;
                 throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
             }
 
-            r = sccoredb.sccoredb_complete_delete(oid, address);
+            r = sccoredb.star_complete_delete(oid, address);
             if (r == 0) return;
 
             throw ErrorCode.ToException(r);

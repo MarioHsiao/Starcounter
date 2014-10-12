@@ -321,7 +321,7 @@ namespace Starcounter.Binding
             
             unsafe 
             {
-                ec = sccoredb.sccoredb_get_index_infos(
+                ec = sccoredb.star_get_index_infos(
                     oldTableDef_.TableId,
                     &indexCount,
                     null
@@ -332,7 +332,7 @@ namespace Starcounter.Binding
                 indexArr = new sccoredb.SC_INDEX_INFO[indexCount];
                 fixed (sccoredb.SC_INDEX_INFO* pii = &(indexArr[0])) 
                 {
-                    ec = sccoredb.sccoredb_get_index_infos(
+                    ec = sccoredb.star_get_index_infos(
                         oldTableDef_.TableId,
                         &indexCount,
                         pii
@@ -520,7 +520,7 @@ namespace Starcounter.Binding
             uint e;
             unsafe
             {
-                e = sccoredb.sccoredb_replace(source.ObjectID, source.ETI, newTableDef_.TableId);
+                e = sccoredb.star_replace(source.ObjectID, source.ETI, newTableDef_.TableId);
             }
             if (e == 0)
             {
@@ -611,7 +611,7 @@ namespace Starcounter.Binding
             ulong viter;
             fixed (byte* ulk = lk, uhk = hk)
             {
-                e = sccoredb.SCIteratorCreate(
+                e = sccoredb.star_create_iterator(
                     indexHandle,
                     0,
                     ulk,
@@ -630,7 +630,7 @@ namespace Starcounter.Binding
                         ushort tableId;
                         ulong dummy;
 
-                        e = sccoredb.SCIteratorNext(hiter, viter, &source.ObjectID, &source.ETI, &tableId, &dummy);
+                        e = sccoredb.star_iterator_next(hiter, viter, &source.ObjectID, &source.ETI, &tableId, &dummy);
                         if (e == 0)
                         {
                             if (source.ObjectID != sccoredb.MDBIT_OBJECTID)
@@ -648,7 +648,7 @@ namespace Starcounter.Binding
                 }
                 finally
                 {
-                    e = sccoredb.SCIteratorFree(hiter, viter);
+                    e = sccoredb.star_iterator_free(hiter, viter);
                 }
             }
             if (e != 0) throw ErrorCode.ToException(e);

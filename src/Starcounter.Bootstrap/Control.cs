@@ -442,7 +442,7 @@ namespace StarcounterInternal.Bootstrap {
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.sccorelog_connect_to_logs(
+            e = sccorelog.star_connect_to_logs(
                 ScUri.MakeDatabaseUri(ScUri.GetMachineName(), c.ServerName, c.Name),
                 c.OutputDirectory,
                 null,
@@ -513,27 +513,27 @@ namespace StarcounterInternal.Bootstrap {
         private unsafe void ConfigureDatabase(Configuration c) {
             uint e;
 
-            e = sccoredb.sccoredb_set_system_variable("NAME", c.Name);
+            e = sccoredb.star_set_system_variable("NAME", c.Name);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
+            e = sccoredb.star_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("OLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.star_set_system_variable("OLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("TLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.star_set_system_variable("TLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("TEMPDIR", c.TempDirectory);
+            e = sccoredb.star_set_system_variable("TEMPDIR", c.TempDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
+            e = sccoredb.star_set_system_variable("OUTDIR", c.OutputDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             var callbacks = new sccoredb.sccoredb_callbacks();
             orange.orange_configure_database_callbacks(ref callbacks);
-            e = sccoredb.sccoredb_set_system_callbacks(&callbacks);
+            e = sccoredb.star_set_system_callbacks(&callbacks);
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccoredb.star_configure(sccoredb.STAR_KEY_COLUMN_NAME_TOKEN, sccoredb.STAR_DEFAULT_INDEX_NAME_TOKEN, 0);

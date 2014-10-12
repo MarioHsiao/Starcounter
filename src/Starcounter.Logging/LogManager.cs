@@ -17,8 +17,8 @@ namespace Starcounter.Logging
 
         public static void InternalFatal(uint errorCode, string message)
         {
-            sccorelog.sccorelog_kernel_write_to_logs(_hlogs, sccorelog.SC_ENTRY_CRITICAL, errorCode, message);
-            sccorelog.sccorelog_flush_to_logs(_hlogs);
+            sccorelog.star_kernel_write_to_logs(_hlogs, sccorelog.SC_ENTRY_CRITICAL, errorCode, message);
+            sccorelog.star_flush_to_logs(_hlogs);
         }
 
         internal static void Debug(String source, String message, Exception exception)
@@ -74,7 +74,7 @@ namespace Starcounter.Logging
             }
 
             if (0 != _hlogs)
-                sccorelog.sccorelog_write_to_logs(_hlogs, type, source, errorCode, message);
+                sccorelog.star_write_to_logs(_hlogs, type, source, errorCode, message);
         }
     }
 }

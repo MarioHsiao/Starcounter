@@ -3202,7 +3202,7 @@ uint32_t Gateway::OpenStarcounterLog()
 		err_code = sccorelog_init(0);
 		if (err_code) goto err;
 
-		err_code = sccorelog_connect_to_logs(reinterpret_cast<const ucs2_char *>(host_name),
+		err_code = star_connect_to_logs(reinterpret_cast<const ucs2_char *>(host_name),
 			reinterpret_cast<const ucs2_char *>(setting_server_output_dir_.c_str()), NULL,
 			&sc_log_handle_);
 		if (err_code) goto err;
@@ -3220,7 +3220,7 @@ end:
 // Closes Starcounter log.
 void Gateway::CloseStarcounterLog()
 {
-    uint32_t err_code = sccorelog_release_logs(sc_log_handle_);
+    uint32_t err_code = star_release_logs(sc_log_handle_);
 
     GW_ASSERT(0 == err_code);
 }
@@ -3259,7 +3259,7 @@ void Gateway::LogWriteGeneral(const char* msg, uint32_t log_type)
 	    err_code = star_kernel_write_to_logs_utf8(sc_log_handle_, log_type, 0, msg);
 	}
 
-    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+    err_code = star_flush_to_logs(sc_log_handle_);
 }
 
 void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
@@ -3272,13 +3272,13 @@ void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 	
 	if (msg)
 	{
-		err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, log_type, 0,
+		err_code = star_kernel_write_to_logs(sc_log_handle_, log_type, 0,
 			reinterpret_cast<const ucs2_char *>(msg));
 	
 	    //GW_ASSERT(0 == err_code);
 	}
 
-    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+    err_code = star_flush_to_logs(sc_log_handle_);
 
     //GW_ASSERT(0 == err_code);
 }

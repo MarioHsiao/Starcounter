@@ -81,7 +81,7 @@ void __critical_log_handler(void *c, const char *message)
 				hlogs, SC_ENTRY_CRITICAL, 0, message
 				);
 		}
-		sccorelog_flush_to_logs(hlogs);
+		star_flush_to_logs(hlogs);
 	}
 }
 
@@ -92,12 +92,12 @@ void __critical_log_handler(void *c, const wchar_t *message)
 	{
 		if (message)
 		{
-			sccorelog_kernel_write_to_logs(
+			star_kernel_write_to_logs(
 				hlogs, SC_ENTRY_CRITICAL, 0,
 				reinterpret_cast<const ucs2_char *>(message)
 				);
 		}
-		sccorelog_flush_to_logs(hlogs);
+		star_flush_to_logs(hlogs);
 	}
 }
 
