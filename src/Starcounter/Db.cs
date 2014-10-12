@@ -53,7 +53,7 @@ namespace Starcounter
                     return TableDef.ConstructTableDef(tableInfo);
                 }
                 if (r == Error.SCERRTABLENOTFOUND) return null;
-                throw ErrorCode.ToException(sccoredb.star_get_last_error());
+                throw ErrorCode.ToException(r);
             }
         }
 
@@ -209,17 +209,18 @@ namespace Starcounter
                         return;
                     }
                     catch (Exception ex) {
-                        if (
-                            sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
-                            sccoredb.sccoredb_free_transaction(handle, verify) == 0
-                            ) {
-                            if (ex is ITransactionConflictException) {
-                                if (++retries <= maxRetries) continue;
-                                throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                        r = sccoredb.sccoredb_set_current_transaction(1, 0, 0);
+                        if (r == 0) {
+                            r = sccoredb.sccoredb_free_transaction(handle, verify);
+                            if (r == 0) {
+                                if (ex is ITransactionConflictException) {
+                                    if (++retries <= maxRetries) continue;
+                                    throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                                }
+                                throw;
                             }
-                            throw;
                         }
-                        HandleFatalErrorInTransactionScope();
+                        HandleFatalErrorInTransactionScope(r);
                     }
                     finally {
                         if (currentTransaction != null) {
@@ -322,7 +323,8 @@ namespace Starcounter
                             }
 
                             if (it.IsWritable()) {
-                                if (it.ReleaseLocked() == 0) {
+                                ec = it.ReleaseLocked();
+                                if (ec == 0) {
                                     if (ex is ITransactionConflictException) {
                                         if (++retries <= maxRetries)
                                             continue;
@@ -330,7 +332,7 @@ namespace Starcounter
                                     }
                                     throw;
                                 }
-                                HandleFatalErrorInTransactionScope();
+                                HandleFatalErrorInTransactionScope(ec);
                             }
                             throw;
                         }
@@ -470,9 +472,8 @@ namespace Starcounter
             //}
         }
 
-        private static void HandleFatalErrorInTransactionScope()
+        private static void HandleFatalErrorInTransactionScope(uint e)
         {
-            uint e = sccoredb.star_get_last_error();
             ExceptionManager.HandleInternalFatalError(e);
         }
     }

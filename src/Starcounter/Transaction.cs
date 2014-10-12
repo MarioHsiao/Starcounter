@@ -41,7 +41,7 @@ namespace Starcounter
                 String additionalErrorInfo = null;
                 unsafe {
                     char* unsafeAdditionalErrorInfo;
-                    r = sccoredb.star_get_last_error(&unsafeAdditionalErrorInfo);
+                    r = sccoredb.star_get_additional_error_info(&unsafeAdditionalErrorInfo);
                     if (unsafeAdditionalErrorInfo != null) {
                         additionalErrorInfo = string.Concat(new string(unsafeAdditionalErrorInfo), ".");
                     }

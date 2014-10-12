@@ -80,15 +80,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_get_last_error(char **padditional_error_infomation);
-
-        /// <summary>
-        /// </summary>
-        public static uint star_get_last_error() {
-            unsafe {
-                return star_get_last_error((char **)0);
-            }
-        }
+        public static extern unsafe uint star_get_additional_error_info(char** padditional_error_infomation);
 
         /// <summary>
         /// Delegate ON_NEW_SCHEMA

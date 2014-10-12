@@ -167,7 +167,7 @@ namespace Starcounter
             UInt32 local_time;
             UInt32 err = sccoredb.sccoredb_iterator_get_local_time(_handle, _verify, &local_time);
             if (err != 0)
-                throw TranslateErrorCode(sccoredb.star_get_last_error());
+                throw TranslateErrorCode(err);
 
             return local_time;
         }
@@ -197,7 +197,7 @@ namespace Starcounter
             TypeBinding typeBinding = null;
             IObjectProxy current;
             UInt16 previousCCI;
-            UInt32 ir;
+            UInt32 r;
             ObjectRef currentRef;
             UInt16 currentCCI;
             UInt64 dummy;
@@ -210,11 +210,11 @@ namespace Starcounter
             Boolean newIterator = _handle == 0;
             unsafe
             {
-                ir = sccoredb.SCIteratorNext(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
+                r = sccoredb.SCIteratorNext(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
             }
             //Application.Profiler.Stop(2);
 
-            if (ir != 0)
+            if (r != 0)
                 goto err;
             Debug.Assert(_handle != 0);
 
@@ -263,7 +263,7 @@ namespace Starcounter
             return false;
 
         err:
-            throw TranslateErrorCode(sccoredb.star_get_last_error());
+            throw TranslateErrorCode(r);
         }
 
 #if false
@@ -451,7 +451,7 @@ namespace Starcounter
             UInt32 local_time;
             UInt32 err = sccoredb.filter_iterator_get_local_time(_handle, _verify, &local_time);
             if (err != 0)
-                throw TranslateErrorCode(sccoredb.star_get_last_error());
+                throw TranslateErrorCode(err);
 
             return local_time;
         }
@@ -465,7 +465,7 @@ namespace Starcounter
             TypeBinding typeBinding = null;
             IObjectProxy current;
             UInt16 previousCCI;
-            UInt32 ir;
+            UInt32 r;
             ObjectRef currentRef;
             UInt16 currentCCI;
             UInt64 dummy;
@@ -477,11 +477,11 @@ namespace Starcounter
             //Application.Profiler.Start("filter_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe {
-                ir = sccoredb.filter_iterator_next(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
+                r = sccoredb.filter_iterator_next(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
             }
             //Application.Profiler.Stop(2);
 
-            if (ir != 0)
+            if (r != 0)
                 goto err;
             Debug.Assert(_handle != 0);
 
@@ -528,7 +528,7 @@ namespace Starcounter
             return false;
 
         err:
-            throw TranslateErrorCode(sccoredb.star_get_last_error());
+            throw TranslateErrorCode(r);
         }
 
 #if false
