@@ -1,6 +1,7 @@
 
-LIBRARY	"scservice"
+LIBRARY "scservice"
 
 EXPORTS
-	Start
-	Stop
+  Start
+  Stop
+  OpenStarcounterLog
