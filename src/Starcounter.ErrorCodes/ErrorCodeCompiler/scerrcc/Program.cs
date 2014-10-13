@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -214,7 +214,7 @@ class Program
                 writer.WriteLine("/* {0} */", remparam);
             }
             writer.WriteLine("#define {0} ({1})", ec.ConstantName, ec.CodeWithFacility);
-            writer.WriteLine("#define {0}_TEXT (\"{1}\")", ec.ConstantName, ec.Description);
+            writer.WriteLine("#define {0}_TEXT (\"{1} (SCERR{2}): {3}\")", ec.ConstantName, ec.Name, ec.CodeWithFacility, ec.Description);
             writer.WriteLine();
         }
         writer.WriteLine("#endif /* STARCOUNTER_ERRORCODES_SCERRRES_H */");
