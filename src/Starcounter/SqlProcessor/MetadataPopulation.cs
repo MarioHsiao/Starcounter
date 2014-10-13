@@ -113,7 +113,7 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
-            Debug.Assert(Db.SQL<RawView>("select v from rawview v where v.Fullname = ?",
+            Debug.Assert(Db.SQL<ClrClass>("select v from clrclass v where v.Fullname = ?",
                 typeDef.TableDef.Name).First == null); // Always dropped and new created
             RawView thisType = Db.SQL<RawView>("select v from rawview v where UniqueIdentifier = ?",
                 GetUniqueIdentifier(typeDef.TableDef.Name)).First;
