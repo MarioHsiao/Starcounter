@@ -59,7 +59,7 @@ namespace Starcounter.Advanced.XSON {
             Json childObj;
             Template tProperty;
 
-            addAppName = (obj._stepParent == null && obj._appName != null);
+            addAppName = (obj._stepParent == null && !string.IsNullOrEmpty(obj._appName));
 
             if (addAppName) {
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
@@ -196,7 +196,7 @@ namespace Starcounter.Advanced.XSON {
                     *pfrag++ = (byte)'{';
                     offset++;
 
-                    addAppName = (obj._stepParent == null && obj._appName != null);
+                    addAppName = (obj._stepParent == null && !string.IsNullOrEmpty(obj._appName));
 
                     if (addAppName) {
 

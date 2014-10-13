@@ -9,7 +9,7 @@
 #include "interprocess.hpp"
 #include "config_param.hpp"
 #include "macro_definitions.hpp"
-#include <boost/thread/thread.hpp> /// thread debug info
+/* #include <boost/thread/thread.hpp> /// thread debug info */
 
 using namespace starcounter::core;
 
