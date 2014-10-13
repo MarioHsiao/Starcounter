@@ -246,6 +246,10 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE x(t[Friend]|t[Employer]^[Employer])*[Name] = 'Alice'");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person x WHERE x([Friend]|t[Employer]^[Employer])*t[Name] = 'Alice'");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select 1|2");
+            ProcessQuery(parseOK, "select * from \"table\" where name = 'Person'");
+            ProcessQuery(parseOK, "select * from \"table\" t, materializedtable m where t.name = 'Person' and t.materializedtable = m");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select * from table where name = 'Person'");
+            ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select * from table t, materializedtable m where t.name = 'Person' and t.materializedtable = m");
             // Fails on _SC_ASSERT_DEBUG in native SQL processor, since not meta-data tables are created
             //ProcessQuery(1004, "INSERT INTO Visit(Id, Company, Start, End, " +
             //    "Spent, PageViewCount, Ip, Referer, UserAgent, TrackingCookie, " +
