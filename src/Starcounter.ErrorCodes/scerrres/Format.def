@@ -1,4 +1,4 @@
-LIBRARY	"scerrres"
+LIBRARY "scerrres"
 
 EXPORTS
-	FormatStarcounterErrorMessage
+  FormatStarcounterErrorMessage
