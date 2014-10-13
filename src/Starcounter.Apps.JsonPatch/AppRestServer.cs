@@ -106,27 +106,9 @@ namespace Starcounter.Internal.Web {
             Response resp = null;
 
             try {
-                if (!request.IsInternal)
-                    Session.InitialRequest = request;
-
-                Profiler.Current.Start(ProfilerNames.Empty);
-                Profiler.Current.Stop(ProfilerNames.Empty);
-
-                // Running all available HTTP handlers.
-                Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
                 Db.ImplicitScope(() => {
-                    UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+                    resp = _HandleRequest(request, handlerLevel);
                 });
-                Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
-
-                // Checking if we still have no response.
-                if (resp == null || resp.HandlingStatus == HandlerStatusInternal.NotHandled)
-                    return null;
-
-                // Handling and returning the HTTP response.
-                Profiler.Current.Start(ProfilerNames.HandleResponse);
-                resp = OnResponseHttp(request, resp);
-                Profiler.Current.Stop(ProfilerNames.HandleResponse);
 
                 return resp;
             }
@@ -161,6 +143,38 @@ namespace Starcounter.Internal.Web {
                     Session.End();
                 Session.InitialRequest = null;
             }
+        }
+
+        // TODO:
+        // Can be moved back to method above when implicit transaction no longer depends on exceptions.
+
+        // Added a separate method that does not catch any exception to allow wrapping whole block
+        // in an implicit transaction. The current solution for the implicit is to catch exception
+        // and upgrade if necessary which does not work when we are catching all exceptions above.
+        private Response _HandleRequest(Request request, Int32 handlerLevel) {
+            Response resp = null;
+
+            if (!request.IsInternal)
+                Session.InitialRequest = request;
+
+            Profiler.Current.Start(ProfilerNames.Empty);
+            Profiler.Current.Stop(ProfilerNames.Empty);
+
+            // Running all available HTTP handlers.
+            Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
+            UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+            Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
+
+            // Checking if we still have no response.
+            if (resp == null || resp.HandlingStatus == HandlerStatusInternal.NotHandled)
+                return null;
+
+            // Handling and returning the HTTP response.
+            Profiler.Current.Start(ProfilerNames.HandleResponse);
+            resp = OnResponseHttp(request, resp);
+            Profiler.Current.Stop(ProfilerNames.HandleResponse);
+
+            return resp;
         }
 
         /// <summary>
