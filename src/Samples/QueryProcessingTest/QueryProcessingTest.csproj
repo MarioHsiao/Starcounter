@@ -70,6 +70,7 @@
     <Compile Include="SelectClauseExpressionsTests.cs" />
     <Compile Include="SqlBugsTest.cs" />
     <Compile Include="TestErrorMessages.cs" />
+    <Compile Include="TestKinds.cs" />
     <Compile Include="VersionSourceModel.cs" />
     <Compile Include="WebVisitDataModel.cs" />
     <Compile Include="WebVisitTests.cs" />

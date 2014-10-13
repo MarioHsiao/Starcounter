@@ -33,10 +33,16 @@ namespace Starcounter.Administrator.Server.Handlers {
             //
             // Install Application 
             //
-            Handle.POST("/api/admin/installed/applications", (Request request) => {
+            Handle.POST("/api/admin/installed/apps", (Request request) => {
 
                 try {
                     string host = request["Host"];
+
+                    if (string.IsNullOrEmpty(appStoreHost)) {
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
 
                     Representations.JSON.Application appStoreApplication = new Representations.JSON.Application();
                     appStoreApplication.PopulateFromJson(request.Body);
@@ -68,9 +74,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                         if (response.StatusCode == (ushort)System.Net.HttpStatusCode.ServiceUnavailable) {
                             errorResponse.Text += ", " + "Service Unavailable";
                         }
-
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-
                     }
                 }
                 catch (Exception e) {

@@ -48,7 +48,7 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
 
 
     // Installed applications
-    this.installedApplications = InstalledApplicationService.installedApplications;
+    this.installedApplications = InstalledApplicationService.applications;
 
     /**
      * Get Application
@@ -106,7 +106,7 @@ adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'Datab
         });
 
 
-        InstalledApplicationService.refreshInstalledApplications(function () {
+        InstalledApplicationService.refreshApplications(function () {
 
             // Success
             if (typeof (successCallback) == "function") {

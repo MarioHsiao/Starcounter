@@ -31,7 +31,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         public static void InstalledApplication_DELETE(string appsRootFolder) {
 
             // Delete installed application
-            Handle.DELETE("/api/admin/installed/applications/{?}", (string nameSpace, Request req) => {
+            Handle.DELETE("/api/admin/installed/apps/{?}", (string id, Request req) => {
 
                 try {
 
@@ -40,14 +40,16 @@ namespace Starcounter.Administrator.Server.Handlers {
                     // GET APP
                     IList<AppConfig> apps = AppsContainer.GetInstallApps(appsRootFolder);
                     foreach (AppConfig app in apps) {
-                        if (string.Compare(app.Namespace, nameSpace, true) == 0) {
+                        if (string.Compare(app.ID, id, true) == 0) {
                             appConfig = app;
                             break;
                         }
                     }
 
                     if (appConfig == null) {
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.Text = string.Format("Failed to uninstall application, application was not found.");
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                     }
 
                     AppsContainer.UnInstall(appConfig);

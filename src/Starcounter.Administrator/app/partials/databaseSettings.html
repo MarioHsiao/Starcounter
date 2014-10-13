@@ -1,18 +1,14 @@
 ﻿<div class="panel panel panel-primary">
     <div class="panel-heading">
         Database {{model.database.name}} Settings
-
       <div class="btn-group pull-right">
           <a class="btn btn-default btn-xs" href="#/databases" title="Show Databases"><i class="glyphicon glyphicon-resize-small"></i></a>
       </div>
-
-
     </div>
 
     <div class="panel-body">
 
         <form name="myForm" class="form-horizontal" role="form">
-
 
             <!-- DefaultUserHttpPort -->
             <div class="form-group" ng-class="{'has-error': myForm.DefaultUserHttpPort.$invalid, 'has-feedback': myForm.DefaultUserHttpPort.$invalid}">
@@ -24,7 +20,6 @@
                     <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.DefaultUserHttpPort.$error.validationError||myForm.DefaultUserHttpPort.$error.required"></span>
                 </div>
             </div>
-
 
             <!-- SqlAggregationSupport -->
             <div class="form-group" ng-class="{'has-error': myForm.SqlAggregationSupport.$invalid, 'has-feedback': myForm.SqlAggregationSupport.$invalid}">
@@ -61,19 +56,12 @@
                 </div>
             </div>
 
-
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-default btn-success" ng-click="btnSaveSettings(model.database,model.settings)">Save</button>
                     <button ng-disabled="myForm.$pristine  == true || isBusy == true" class="btn btn-default" ng-click="btnResetSettings()">Reset</button>
                 </div>
             </div>
-
-            <div>
-            </div>
-
         </form>
     </div>
-
-
 </div>
