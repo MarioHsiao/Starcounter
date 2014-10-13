@@ -5,7 +5,7 @@ namespace scerrcc
 {
 static class CommandLine
 {
-    public static void ParseArgs(string[] args, ref Stream instream, ref TextWriter csfile, ref TextWriter orangestdcsfile, ref TextWriter orangeintcsfile, ref TextWriter cheaderfile, ref TextWriter mcfile, ref TextWriter exceptionAssistantContentFile)
+    public static void ParseArgs(string[] args, ref Stream instream, ref TextWriter csfile, ref TextWriter orangestdcsfile, ref TextWriter orangeintcsfile, ref TextWriter mcfile, ref TextWriter exceptionAssistantContentFile)
     {
         if (args.Length == 0)
         {
@@ -28,9 +28,6 @@ static class CommandLine
                 case "-orangeintcs":
                     GetCSharpStream2(args, inputLastModified, ref orangeintcsfile, ref i);
                     break;
-                case "-ch":
-                    GetCHeaderStream(args, inputLastModified, ref cheaderfile, ref i);
-                    break;
                 case "-mc":
                     GetMcStream(args, inputLastModified, ref mcfile, ref i);
                     break;
@@ -51,7 +48,6 @@ static class CommandLine
         Console.Error.WriteLine("    {0} infile.xml [options]", System.Diagnostics.Process.GetCurrentProcess().ProcessName);
         Console.Error.WriteLine("Where [options] are:");
         Console.Error.WriteLine("-v             Verbose mode");
-        Console.Error.WriteLine("-ch [chfile]   Write C header file to \"chfile\"");
         Console.Error.WriteLine("-mc [mcfile]   Write native resource message file to \"mcfile\"");
         Console.Error.WriteLine("-cs [csfile]   Write constants to C# file \"csfile\"");
         Console.Error.WriteLine("-ea [contentfile]   Write VS exception assistant content file to \"contentfile\"");
@@ -118,29 +114,7 @@ static class CommandLine
             csfile = OpenWritableIfYounger(args[i], inputLastModified);
         }
     }
-
-    private static void GetCHeaderStream(string[] args, DateTime inputLastModified, ref TextWriter cheaderfile, ref int i)
-    {
-        if (++i == args.Length)
-        {
-            Program.Die("-ch switch requires a filename argument");
-        }
-        else if (cheaderfile != null)
-        {
-            Program.Die("C header file already opened");
-        }
-        else if (args[i] == "-")
-        {
-            Program.Verbose("Using stdout for C header output");
-            cheaderfile = Console.Out;
-        }
-        else
-        {
-            Program.Verbose("Using file {0} for C header output", args[i]);
-            cheaderfile = OpenWritableIfYounger(args[i], inputLastModified);
-        }
-    }
-
+    
     private static void GetMcStream(string[] args, DateTime inputLastModified, ref TextWriter mcfile, ref int i)
     {
         if (++i == args.Length)
