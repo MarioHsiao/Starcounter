@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Starcounter;
 
 // NOTE:
@@ -14,7 +15,8 @@ namespace UnloadDatabase {
     /// </summary>
     class Program {
         static void Main(string[] args) {
-            var filePath = @"C:\Users\Public\Documents\ReloadData.sql";
+            var fileName = Db.Environment.DatabaseNameLower + ".sql";
+            var filePath = Path.Combine(@"C:\Users\Public\Documents", fileName);
             if (args.Length == 1)
                 filePath = args[0];
 

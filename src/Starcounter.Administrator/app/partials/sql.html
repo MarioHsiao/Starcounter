@@ -9,8 +9,6 @@
         <div class="btn-toolbar" role="toolbar">
             <div class="btn-group ">
                 <!-- Query history -->
-                <!--<button ng-show="queryHistory.length==0" type="submit" class="btn btn-default btn-success input-medium" ng-disabled="!canExecute()" ng-click="btnExecute(queryState.sqlQuery,queryState.selectedDatabaseName)" title="Execute query (CTRL+Enter)">{{executeButtonTitle(isBusy)}}</button>-->
-
                 <button title="Execute Query" style="min-width: 100px" type="submit" class="btn btn-default btn-success" ng-disabled="!canExecute()" ng-click="btnExecute(queryState.sqlQuery,queryState.selectedDatabaseName)" title="Execute query (CTRL+Enter)">{{executeButtonTitle(isBusy)}}</button>
 
                 <button class="btn btn-default btn-success dropdown-toggle" data-toggle="dropdown" title="Query history">
@@ -32,6 +30,9 @@
 
             </div>
 
+            <div class="btn-group">
+                <div style="margin-top:7px"  ng-show="isBusy" title="{{executeButtonTitle(isBusy)}}" class="spinner tiny"></div>
+            </div>
 
         </div>
 
@@ -69,8 +70,6 @@
                     <div style="margin-left: 15px; margin-right: 15px" ng-bind-html="queryState.queryPlan"></div>
                </tab>
             </tabset>
-
         </div>
-
     </div>
 </div>

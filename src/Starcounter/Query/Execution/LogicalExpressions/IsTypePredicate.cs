@@ -11,6 +11,7 @@ namespace Starcounter.Query.Execution {
         IObjectExpression objExpr;
         ITypeExpression typeExpr;
         ITypeBinding typeBinding;
+        IObjectView typeObject;
 
         internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr1, ITypeExpression expr2)
         {
@@ -30,6 +31,7 @@ namespace Starcounter.Query.Execution {
             objExpr = expr1;
             typeExpr = expr2;
             typeBinding = null;
+            typeObject = null;
         }
 
         internal IsTypePredicate(ComparisonOperator compOp, IObjectExpression expr, ITypeBinding value)
@@ -66,6 +68,26 @@ namespace Starcounter.Query.Execution {
             return objExpr.InvolvesCodeExecution();
         }
 
+        private static bool SubTypeOf(IObjectView objTypeValue, IObjectView typeValue) {
+            while (objTypeValue != null && !objTypeValue.Equals(typeValue)) {
+                // Read type object, on which objTypeValue is based.
+                TypeBinding tb = objTypeValue.TypeBinding as TypeBinding;
+                Debug.Assert(tb != null);
+                //if (tb == null) {
+                //    throw ErrorCode.ToException(Error.SCERRQUERYEXECINTERNALERROR, "TypeBinding is not set for database object");
+                //}
+                PropertyBinding prop = tb.Inherits;
+                if (prop == null)
+                    throw ErrorCode.ToException(Error.SCERRILLEGALTYPEOBJECT,
+                        "Object is of database type " + tb.Name + ", which misses [Inherits].");
+                objTypeValue = prop.GetObject(objTypeValue);
+            }
+            if (objTypeValue == null)
+                return false;
+            else
+                return true;
+        }
+
         /// <summary>
         /// Calculates the truth value of this operation when evaluated on an input object.
         /// All properties in this operation are evaluated on the input object.
@@ -77,31 +99,43 @@ namespace Starcounter.Query.Execution {
                 "Comparison operator of IsTypePredicate should be either IS or ISNOT.");
 
             // If there is a typeExpr then create a typeBinding from that.
-            if (typeExpr != null)
+            if (typeExpr != null) {
                 typeBinding = typeExpr.EvaluateToType(obj);
+                if (typeBinding == null && typeExpr is TypeVariable)
+                    typeObject = ((TypeVariable)typeExpr).EvaluateToObject(obj);
+            }
 
             IObjectView objValue = objExpr.EvaluateToObject(obj);
-            if (typeBinding == null || objValue == null) 
+            TypeBinding tb = this.typeBinding as TypeBinding;
+            if (tb == null && typeObject == null || objValue == null)
                 return TruthValue.UNKNOWN;
-            ITypeBinding objTypeBind = objValue.TypeBinding;
-            if (objTypeBind is TypeBinding && typeBinding is TypeBinding)
-            {
-                if (((TypeBinding)objTypeBind).SubTypeOf((TypeBinding)typeBinding))
-                {
-                    if (compOperator == ComparisonOperator.IS)
-                        return TruthValue.TRUE;
-                    else
-                        return TruthValue.FALSE;
-                }
-                else
-                {
-                    if (compOperator == ComparisonOperator.IS)
-                        return TruthValue.FALSE;
-                    else
-                        return TruthValue.TRUE;
-                }
+            TypeBinding objTypeBind = objValue.TypeBinding as TypeBinding;
+            if (objTypeBind == null)
+                throw ErrorCode.ToException(Error.SCERRQUERYEXECINTERNALERROR, "TypeBinding is not set for database object");
+            bool isSubType;
+            if (tb != null)
+                isSubType = objTypeBind.SubTypeOf(tb);
+            else {
+                PropertyBinding prop = objTypeBind.Type;
+                if (prop == null)
+                    return TruthValue.FALSE;
+                IObjectView objType = prop.GetObject(objValue);
+                if (objType == null)
+                    return TruthValue.FALSE;
+                isSubType = SubTypeOf(objType, typeObject);
             }
-            return TruthValue.UNKNOWN; // Same as in cast
+            if (isSubType) {
+                if (compOperator == ComparisonOperator.IS)
+                    return TruthValue.TRUE;
+                else // IS NOT
+                    return TruthValue.FALSE;
+            }
+            else {
+                if (compOperator == ComparisonOperator.IS)
+                    return TruthValue.FALSE;
+                else // IS NOT
+                    return TruthValue.TRUE;
+            }
         }
     
         /// <summary>

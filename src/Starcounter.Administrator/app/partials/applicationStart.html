@@ -51,45 +51,14 @@
                     </div>
                 </div>
 
-
-
-                <!-- WorkingDirectory -->
-                <!--    <div class="control-group" ng-class="{error: myForm.WorkingDirectory.$invalid}">
-        <label class="control-label" for="WorkingDirectory">Working Directory</label>
-        <div class="controls">
-            <input type="text" name="WorkingDirectory" id="WorkingDirectory" class="col-xs-8"  placeholder="Working Directory" ng-model="selectedApplication.WorkingDirectory" >
-            <span ng-show="myForm.WorkingDirectory.$error.validationError" class="help-inline">Invalid format</span>
-            <span ng-show="myForm.WorkingDirectory.$error.required" class="help-inline">Required</span>
-        </div>
-    </div>-->
-
-
-                <!-- Database -->
-                <!--                <div class="control-group">
-                    <label class="control-label" for="database">Database</label>
-                    <div class="controls">
-
-                        <select class="input-lg" name="database" id="database" ui-select2 ng-model="selectedApplication.databaseName" required data-placeholder="Select a database">
-                            <option value=""></option>
-                            <option value="{{database.name}}" ng-repeat="database in databases | orderBy: 'name'">{{database.name}}</option>
-                        </select>
-
-                    </div>
-                </div>-->
-
-                <!--           <div>
-                    <button type="submit" ng-disabled="myForm.$invalid || selectedApplication.databaseName == ''" class="btn btn-default btn-success" ng-click="btnStart(selectedApplication)" type="button">Start Application</button>
-                </div>-->
-
                 <div class="form-group">
                     <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" ng-disabled="myForm.$invalid || selectedApplication.databaseName == ''" class="btn btn-default btn-success" ng-click="btnStart(selectedApplication)" type="button">Start Application</button>
+                        <button type="submit" ng-disabled="myForm.$invalid || selectedApplication.databaseName == '' || selectedApplication.task != null" class="btn btn-default btn-success" ng-click="btnStart(selectedApplication)" type="button">Start Application</button>
+                        <div ng-show="selectedApplication.task.Text" title="{{selectedApplication.task.Text}}" class="spinner tiny"></div>
+
                     </div>
                 </div>
-
             </form>
-
-
         </div>
     </div>
 </div>

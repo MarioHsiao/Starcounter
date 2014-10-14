@@ -10,10 +10,12 @@ namespace Starcounter.Query.Execution
     /// </summary>
     internal class TypeVariable : Variable, IVariable, ITypeExpression {
         ITypeBinding value;
+        IObjectView dynamicTypeValue;
 
         internal TypeVariable(Int32 number) {
             this.number = number;
             value = null;
+            dynamicTypeValue = null;
         }
 
         internal TypeVariable(Int32 number, Type value) {
@@ -86,6 +88,10 @@ namespace Starcounter.Query.Execution
         /// <returns>The value of this variable.</returns>
         public ITypeBinding EvaluateToType(IObjectView obj) {
             return value;
+        }
+
+        public IObjectView EvaluateToObject(IObjectView obj) {
+            return dynamicTypeValue;
         }
 
         /// <summary>
@@ -161,8 +167,24 @@ namespace Starcounter.Query.Execution
             else {
                 this.value = Bindings.GetTypeBinding(newValue.FullName);
                 if (this.value == null)
-                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
+                    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                        "The given type to IS is unknown: " + newValue.FullName);
             }
+        }
+
+        public override void SetValue(IObjectView newValue) {
+            if (newValue != null) {
+                TypeBinding tb = newValue.TypeBinding as TypeBinding;
+                Debug.Assert(tb != null);
+                if (tb.TypeName == null)
+                    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                        "Object without type name defined cannot be used as a type.");
+            }
+            else
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                    "Null cannot be used as type.");
+            this.dynamicTypeValue = newValue;
+            this.value = null;
         }
 
         // Throws an InvalidCastException if newValue is of an incompatible type.
@@ -171,7 +193,9 @@ namespace Starcounter.Query.Execution
                 SetValue((Type)newValue);
             else if (newValue is ITypeBinding)
                 SetValue((ITypeBinding)newValue);
-            else
+            else if ((newValue is IObjectView)) {
+                SetValue(newValue as IObjectView);
+            } else
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
 "Type of query variable value is expected to be a type, while actual type is " +
 newValue.GetType().ToString());

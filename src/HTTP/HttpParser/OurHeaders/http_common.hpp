@@ -30,6 +30,7 @@ enum HttpWsFields
     WS_ACCEPT_FIELD,
     SCHEDULER_ID_FIELD,
     LOOP_HOST_FIELD,
+    CONNECTION_HEADER,
     UNKNOWN_FIELD
 };
 
@@ -74,6 +75,15 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
             if ((*(int64_t*)at == *(int64_t*)"X-Referer")) {
                 return XREFERRER_FIELD;
+            }
+
+            break;
+        }
+
+        case 10: { // Connection
+
+            if ((*(int64_t*)at == *(int64_t*)"Connection") && (*(int16_t*)(at + 8) == *(int16_t*)"on")) {
+                return CONNECTION_HEADER;
             }
 
             break;
@@ -208,6 +218,15 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 
             if ((*(int64_t*)at == *(int64_t*)"x-referer")) {
                 return XREFERRER_FIELD;
+            }
+
+            break;
+        }
+
+        case 10: { // Connection
+
+            if ((*(int64_t*)at == *(int64_t*)"connection") && (*(int16_t*)(at + 8) == *(int16_t*)"on")) {
+                return CONNECTION_HEADER;
             }
 
             break;

@@ -22,7 +22,11 @@ namespace Starcounter.Administrator.Server.Handlers {
         public static void Bootstrap(ushort port, ServerEngine engine, IServerRuntime server) {
 
             // TODO: Get the AppStore url
+#if ANDWAH
             string appStoreHost = "http://127.0.0.1:8585";
+#else
+            string appStoreHost = "http://appstore.polyjuice.com:8585";
+#endif
 
             // TODO: Add an "apps" folder to the Server Configuration
             ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
@@ -53,7 +57,6 @@ namespace Starcounter.Administrator.Server.Handlers {
             StarcounterAdminAPI.CollationFiles_GET(port, server);
 
             StarcounterAdminAPI.ServerLog_GET(port);
-
         }
     }
 }

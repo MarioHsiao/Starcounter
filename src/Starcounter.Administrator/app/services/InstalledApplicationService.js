@@ -1,29 +1,31 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Applications Service
+ * Installed Applications Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'ConsoleService', 'UtilsFactory', 'JobFactory', function ($http, $log, $sce, ConsoleService, UtilsFactory, JobFactory) {
+adminModule.service('InstalledApplicationService', ['$http', '$log', 'UtilsFactory', function ($http, $log, UtilsFactory) {
 
     var self = this;
 
     // List of applications
     //  {
+    //      "ID" : "ABC123",
     //      "Namespace": "mycompany.myapp",
     //      "Name": "myapp",
     //      "Description" : "some description"
+    //      ....
     //  }
-    this.installedApplications = [];
+    this.applications = [];
 
     /**
-     * Get all running applications
+     * Get all installed applications
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.getInstalledApplications = function (successCallback, errorCallback) {
+    this._getApplications = function (successCallback, errorCallback) {
 
         var errorHeader = "Failed to retrieve a list of installed applications";
-        var uri = "/api/admin/installed/applications";
+        var uri = "/api/admin/installed/apps";
 
         // Example JSON response 
         //-----------------------
@@ -69,32 +71,30 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'Co
         });
     }
 
-
     /**
      * Get Installed Application
      * @param {string} databaseName Database name
      * @param {string} applicationName Application name
      * @return {object} Application or null
      */
-    this.getInstalledApplication = function (nameSpace) {
+    this._getApplication = function (id) {
 
-        for (var i = 0 ; i < self.installedApplications.length ; i++) {
-            if (self.installedApplications[i].Namespace == nameSpace) {
-                return self.installedApplications[i];
+        for (var i = 0 ; i < self.applications.length ; i++) {
+            if (self.applications[i].ID == id) {
+                return self.applications[i];
             }
         }
         return null;
     }
-
 
     /**
      * Refresh installed applications
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.refreshInstalledApplications = function (successCallback, errorCallback) {
+    this.refreshApplications = function (successCallback, errorCallback) {
 
-        this.getInstalledApplications(function (installedApplications) {
+        this._getApplications(function (installedApplications) {
             // Success
 
             // Update the current applications list with the new applications list
@@ -113,13 +113,11 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'Co
         });
     }
 
-
     /**
      * Update current installed applications list with new list
      * @param {array} installedApplications New installed application list
      */
     this._updateInstalledApplicationsList = function (newInstalledApplications) {
-
 
         var newList = [];
         var removeList = [];
@@ -127,7 +125,7 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'Co
         // Check for new installed applications and update current installed application
         for (var i = 0; i < newInstalledApplications.length; i++) {
             var newInstalledApplication = newInstalledApplications[i];
-            var installedApplication = this.getInstalledApplication(newInstalledApplication.Namespace);
+            var installedApplication = this._getApplication(newInstalledApplication.ID);
             if (installedApplication == null) {
                 newList.push(newInstalledApplication);
             } else {
@@ -148,17 +146,15 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'Co
             }
         }
 
-
         // Remove removed installed applications from installed application list
-        for (var i = 0; i < self.installedApplications.length; i++) {
+        for (var i = 0; i < self.applications.length; i++) {
 
-            var installedApplication = self.installedApplications[i];
+            var installedApplication = self.applications[i];
             var bExists = false;
             // Check if it exist in newList
             for (var n = 0; n < newInstalledApplications.length; n++) {
                 var newInstalledApplication = newInstalledApplications[n];
-
-                if (installedApplication.Namespace == newInstalledApplication.Namespace) {
+                if (installedApplication.ID == newInstalledApplication.ID) {
                     bExists = true;
                     break;
                 }
@@ -171,17 +167,17 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'Co
 
         // Remove installed applications from installed applications list
         for (var i = 0; i < removeList.length; i++) {
-            var index = self.installedApplications.indexOf(removeList[i]);
+            var index = self.applications.indexOf(removeList[i]);
             if (index > -1) {
-                self.installedApplications.splice(index, 1);
+                self.applications.splice(index, 1);
             }
-            this._onRemovedInstalledApplication(removeList[i]);
+            this._onRemovedApplication(removeList[i]);
         }
 
         // Add new installed applications
         for (var i = 0; i < newList.length; i++) {
-            self.installedApplications.push(newList[i]);
-            this._onNewInstalledApplication(newList[i]);
+            self.applications.push(newList[i]);
+            this._onNewApplication(newList[i]);
         }
 
     }
@@ -190,92 +186,13 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', '$sce', 'Co
      * On New installed application Event
      * @param {object} installedApplication installed application
      */
-    this._onNewInstalledApplication = function (installedApplication) {
+    this._onNewApplication = function (application) {
     }
 
     /**
      * On installed application Removed event
      * @param {object} installedApplication installed application
      */
-    this._onRemovedInstalledApplication = function (installedApplication) {
+    this._onRemovedApplication = function (application) {
     }
-
-    /**
-     * Get database
-     * @param {string} databaseName Database name
-     * @return {object} Database or null
-     */
-    this.getInstalledApplication = function (installedApplicicationNameSpace) {
-
-        for (var i = 0 ; i < self.installedApplications.length ; i++) {
-            if (self.installedApplications[i].Namespace == installedApplicicationNameSpace) {
-                return self.installedApplications[i];
-            }
-        }
-        return null;
-    }
-
-
-    /**
-     * Delete installed application
-     * @param {object} installedApplication Installed Application
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
-     */
-    this.deleteInstalledApplication = function (installedApplication, successCallback, errorCallback) {
-
-        var job = { message: "Uninstalling installed application " + installedApplication.Namespace };
-
-        JobFactory.AddJob(job);
-        var uri = UtilsFactory.toRelativePath(installedApplication.Uri);
-
-        $http.delete(uri).then(function (response) {
-
-            // Success (202, 204)
-            JobFactory.RemoveJob(job);
-            $log.info("Installed application " + installedApplication.Namespace + " was successfully uninstalled");
-
-            // TODO: Refresh applications (HostModelService)
-
-            // Refresh databases
-            self.refreshInstalledApplications(successCallback, errorCallback);
-
-        }, function (response) {
-
-            // Error
-            JobFactory.RemoveJob(job);
-            var errorHeader = "Failed to uninstall application";
-            var messageObject;
-
-            $log.error(errorHeader, response);
-
-            if (typeof (errorCallback) == "function") {
-
-                if (response instanceof SyntaxError) {
-                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
-                }
-                else if (response.status == 404) {
-                    // 404 A database with the specified name was not found.
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                }
-                else if (response.status == 409) {
-                    // 409 The database is already running or the Engine is not started.
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
-                }
-                else if (response.status == 500) {
-                    // 500 Server Error
-                    errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
-                }
-                else {
-                    // Unhandle Error
-                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
-                }
-                errorCallback(messageObject);
-            }
-
-        });
-
-    }
-
 }]);

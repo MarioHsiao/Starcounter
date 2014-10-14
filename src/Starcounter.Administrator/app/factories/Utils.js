@@ -89,13 +89,9 @@ adminModule.factory('UtilsFactory', ['$log', function ($log) {
                     properyChangedCallback({ propertyName: propertyName, source: destination, newValue: destination[propertyName], oldValue: oldValue });
 
                 }
-
             }
-
         }
-
     }
-
 
     return factory;
 
