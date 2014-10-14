@@ -40,9 +40,10 @@ namespace Starcounter
 #if true
                 String additionalErrorInfo = null;
                 unsafe {
+                    uint r2;
                     char* unsafeAdditionalErrorInfo;
-                    r = sccoredb.star_get_additional_error_info(&unsafeAdditionalErrorInfo);
-                    if (unsafeAdditionalErrorInfo != null) {
+                    r2 = sccoredb.star_get_additional_error_info(&unsafeAdditionalErrorInfo);
+                    if (r2 == 0 && unsafeAdditionalErrorInfo != null) {
                         additionalErrorInfo = string.Concat(new string(unsafeAdditionalErrorInfo), ".");
                     }
                 }
