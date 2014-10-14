@@ -394,7 +394,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeHostLooper", "Samples\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SiegeTest", "Samples\SiegeTest\SiegeTest.csproj", "{CC727D22-21B5-4698-ACFA-841D4FFA9645}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Tests.CompiledJson", "Starcounter.XSON.Tests.CodegenJson\Starcounter.XSON.Tests.CompiledJson.csproj", "{43C7287D-816A-4C82-A0CB-188A51E6C94A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON.Tests.CompiledJson", "Starcounter.XSON.Tests.CompiledJson\Starcounter.XSON.Tests.CompiledJson.csproj", "{43C7287D-816A-4C82-A0CB-188A51E6C94A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{B1EC8976-B515-4308-89C3-319543A0C7A9} = {B1EC8976-B515-4308-89C3-319543A0C7A9}
 	EndProjectSection
