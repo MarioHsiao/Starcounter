@@ -61,6 +61,16 @@ namespace Starcounter.Internal.XSON.Tests {
             RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), false);
 		}
 
+        [Test]
+        [Ignore("Requires fixing FTJ serializer")]
+        public static void TestFTJSerializerWithCompiledJson() {
+            RunFTJSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, false);
+            RunFTJSerializerTest("person.json", person.DefaultTemplate, false);
+            RunFTJSerializerTest("supersimple.json", supersimple.DefaultTemplate, false);
+            RunFTJSerializerTest("simple.json", simple.DefaultTemplate, false);
+            RunFTJSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, false);
+        }
+
 		[Test]
         [Ignore("Requires fixing FTJ serializer")]
 		public static void TestFTJCodegenSerializer() {
@@ -70,6 +80,16 @@ namespace Starcounter.Internal.XSON.Tests {
             RunFTJSerializerTest("simple.json", File.ReadAllText("Json\\simple.json"), true);
             RunFTJSerializerTest("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), true);
 		}
+
+        [Test]
+        [Ignore("Requires fixing FTJ serializer")]
+        public static void TestFTJCodegenSerializerWithCompiledJson() {
+            RunFTJSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, true);
+            RunFTJSerializerTest("person.json", person.DefaultTemplate, true);
+            RunFTJSerializerTest("supersimple.json", supersimple.DefaultTemplate, true);
+            RunFTJSerializerTest("simple.json", simple.DefaultTemplate, true);
+            RunFTJSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, true);
+        }
 
 		[Test]
 		public static void TestStandardSerializer() {
@@ -81,6 +101,16 @@ namespace Starcounter.Internal.XSON.Tests {
             RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"), false);
 		}
 
+        [Test]
+        public static void TestStandardSerializerWithCompiledJson() {
+            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, false);
+            RunStandardSerializerTest("person.json", person.DefaultTemplate, false);
+            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate, false);
+            RunStandardSerializerTest("simple.json", simple.DefaultTemplate, false);
+            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, false);
+            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate, false);
+        }
+
 		[Test]
 		public static void TestStandardCodegenSerializer() {
 			RunStandardSerializerTest("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), true);
@@ -91,20 +121,30 @@ namespace Starcounter.Internal.XSON.Tests {
             RunStandardSerializerTest("JsonWithFiller.json", File.ReadAllText("Json\\JsonWithFiller.json"), true);
 		}
 
-		private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
+        [Test]
+        public static void TestStandardCodegenSerializerWithCompiledJson() {
+            RunStandardSerializerTest("jsstyle.json", jsstyle.DefaultTemplate, true);
+            RunStandardSerializerTest("person.json", person.DefaultTemplate, true);
+            RunStandardSerializerTest("supersimple.json", supersimple.DefaultTemplate, true);
+            RunStandardSerializerTest("simple.json", simple.DefaultTemplate, true);
+            RunStandardSerializerTest("TestMessage.json", TestMessage.DefaultTemplate, true);
+            RunStandardSerializerTest("JsonWithFiller.json", JsonWithFiller.DefaultTemplate, true);
+        }
+
+        private static void RunFTJSerializerTest(string name, string jsonStr, bool useCodegen) {
+            TObject tObj = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
+            RunFTJSerializerTest(name, tObj, useCodegen);
+        }
+
+		private static void RunFTJSerializerTest(string name, TObject tObj, bool useCodegen) {
 			int serializedSize = 0;
 			int afterPopulateSize = 0;
-			TObject tObj;
 			Json original;
 			Json newJson;
 
 			TObject.UseCodegeneratedSerializer = false;
-			
-			tObj = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
-			original = (Json)tObj.CreateInstance();
 
-			// using standard json serializer to populate object with values.
-			original.PopulateFromJson(jsonStr);
+			original = (Json)tObj.CreateInstance();
 
 			TObject.UseCodegeneratedSerializer = useCodegen;
 			TObject.DontCreateSerializerInBackground = true;
@@ -123,23 +163,19 @@ namespace Starcounter.Internal.XSON.Tests {
 			Helper.AssertAreEqual(original, newJson);
 		}
 
-		private static void RunStandardSerializerTest(string name, string jsonStr, bool useCodegen) {
+        private static void RunStandardSerializerTest(string name, string jsonStr, bool useCodegen) {
+            TObject tObj = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
+            RunStandardSerializerTest(name, tObj, useCodegen);
+        }
+
+		private static void RunStandardSerializerTest(string name, TObject tObj, bool useCodegen) {
 			int serializedSize = 0;
 			int afterPopulateSize = 0;
-			TObject tObj;
 			Json original;
 			Json newJson;
 
             TObject.UseCodegeneratedSerializer = false;
-			
-			tObj = Helper.CreateJsonTemplateFromContent(Path.GetFileNameWithoutExtension(name), jsonStr);
 			original = (Json)tObj.CreateInstance();
-
-			// TODO:
-			// Change to newtonsoft for verification.
-
-			// using standard json serializer to populate object with values.
-			original.PopulateFromJson(jsonStr);
 
             TObject.UseCodegeneratedSerializer = useCodegen;
             TObject.DontCreateSerializerInBackground = true;
