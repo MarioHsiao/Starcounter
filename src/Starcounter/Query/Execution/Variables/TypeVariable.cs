@@ -167,17 +167,15 @@ namespace Starcounter.Query.Execution
             else {
                 this.value = Bindings.GetTypeBinding(newValue.FullName);
                 if (this.value == null)
-                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect value.");
+                    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                        "The given type to IS is unknown: " + newValue.FullName);
             }
         }
 
         public override void SetValue(IObjectView newValue) {
             if (newValue != null) {
                 TypeBinding tb = newValue.TypeBinding as TypeBinding;
-                if (tb == null) {
-                    tb = Bindings.GetTypeBinding(newValue.GetType().FullName);
-                    Debug.Assert(tb != null);
-                }
+                Debug.Assert(tb != null);
                 if (tb.TypeName == null)
                     throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
                         "Object without type name defined cannot be used as a type.");
