@@ -2,9 +2,9 @@
 using EnvDTE80;
 using System;
 using System.IO;
+using System.Linq;
 
-namespace Starcounter.VisualStudio
-{
+namespace Starcounter.VisualStudio {
     /// <summary>
     /// This class contains some extra functionality needed for Apps Exe projects.
     /// Currently it does two things:
@@ -20,8 +20,13 @@ namespace Starcounter.VisualStudio
     /// For this to work properly the json file and codebehind file MUST be grouped together 
     /// with the json file as root.
     /// </remarks>
-	internal class AppsEvents
-	{
+    internal class AppsEvents {
+        private const string PROPERTY_ITEMTYPE= "ItemType";
+        private const string PROPERTY_CUSTOMTOOL = "CustomTool";
+        private const string PROPERTY_FULLPATH = "FullPath";
+        private const string VALUE_TYPEDJSON = "TypedJSON";
+        private const string VALUE_COMPILE = "MsBuild:Compile";
+
         private ProjectItemsEvents projectEvents;
         private DocumentEvents documentEvents;
         DebuggerProcessEvents debuggerProcessEvents;
@@ -39,15 +44,16 @@ namespace Starcounter.VisualStudio
         /// Registers handlers for all needed events.
         /// </summary>
         /// <param name="package"></param>
-		internal void AddEventListeners(VsPackage package)
-		{
+        internal void AddEventListeners(VsPackage package) {
             Events2 e2 = (Events2)package.DTE.Events;
 
             if (this.projectEvents != null) {
                 this.projectEvents.ItemRenamed -= ProjectItemsEvents_ItemRenamed;
+                this.projectEvents.ItemAdded -= ProjectItemsEvents_ItemAdded;
             }
             this.projectEvents = e2.ProjectItemsEvents;
             this.projectEvents.ItemRenamed += ProjectItemsEvents_ItemRenamed;
+            this.projectEvents.ItemAdded += ProjectItemsEvents_ItemAdded;
 
             if (this.documentEvents != null) {
                 this.documentEvents.DocumentSaved -= DocumentEvents_DocumentSaved;
@@ -61,7 +67,7 @@ namespace Starcounter.VisualStudio
 
             this.debuggerProcessEvents = e2.DebuggerProcessEvents;
             debuggerProcessEvents.OnProcessStateChanged += debuggerEvents_OnProcessStateChanged;
-		}
+        }
 
         void debuggerEvents_OnProcessStateChanged(Process process, dbgProcessState processState) {
             if (OnDebuggerProcessChange != null) {
@@ -75,6 +81,7 @@ namespace Starcounter.VisualStudio
         internal void RemoveEventListeners() {
             if (projectEvents != null) {
                 projectEvents.ItemRenamed -= ProjectItemsEvents_ItemRenamed;
+                projectEvents.ItemAdded -= ProjectItemsEvents_ItemAdded;
                 projectEvents = null;
             }
 
@@ -98,7 +105,7 @@ namespace Starcounter.VisualStudio
                 return;
 
             parentItem = projectItem.Collection.Parent as ProjectItem;
-            if ((parentItem != null) && parentItem.Name.EndsWith(".json")) {
+            if ((parentItem != null) && parentItem.Name.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase)) {
                 if (!parentItem.IsOpen) {
                     // If the json file is not open in the studio we need to open it before we can save it.
                     windowForParent = parentItem.Open();
@@ -111,20 +118,79 @@ namespace Starcounter.VisualStudio
             }
         }
 
-        private void ProjectItemsEvents_ItemRenamed(ProjectItem projectItem, string oldName)
-        {
+        private void ProjectItemsEvents_ItemRenamed(ProjectItem projectItem, string oldName) {
             string extension;
             string newFileName;
 
-            if (oldName.EndsWith(".json"))
-            {
+            if (oldName.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase)) {
                 newFileName = projectItem.Name;
-                foreach (ProjectItem pi in projectItem.ProjectItems)
-                {
+                foreach (ProjectItem pi in projectItem.ProjectItems) {
                     extension = Path.GetExtension(pi.Name);
                     pi.Name = newFileName + extension;
                 }
             }
         }
-	}
+
+        private void ProjectItemsEvents_ItemAdded(ProjectItem projectItem) {
+            Property itemProperty;
+            ProjectItem otherItem;
+            string filename = projectItem.Name;
+
+            if (filename.EndsWith(".json", StringComparison.CurrentCultureIgnoreCase)) {
+                // A json file added. Lets set buildtype and custom tool for building.
+                itemProperty = FindProperty(projectItem.Properties, PROPERTY_CUSTOMTOOL);
+                if (itemProperty != null) 
+                    itemProperty.Value = VALUE_COMPILE;
+                itemProperty = FindProperty(projectItem.Properties, PROPERTY_ITEMTYPE);
+                if (itemProperty != null) 
+                    itemProperty.Value = VALUE_TYPEDJSON;
+
+                // If a codebehind file already exist in the project we nest it under the jsonfile.
+                otherItem = FindItem(projectItem.Collection.Parent, filename + ".cs");
+                if (otherItem != null) {
+                    ConnectProjectItems(projectItem, otherItem);
+                }
+            } else if (filename.EndsWith(".json.cs", StringComparison.CurrentCultureIgnoreCase)) {
+                // A codebehind file. Find projectitem for json (if it exists) and connect them.
+                otherItem = FindItem(projectItem.Collection.Parent, Path.GetFileNameWithoutExtension(filename));
+                if (otherItem != null) {
+                    ConnectProjectItems(otherItem, projectItem);
+                }
+            }
+        }
+
+        private ProjectItem FindItem(object parent, string nameWOExt) {
+            ProjectItems items;
+
+            if (parent is ProjectItem) {
+                items = ((ProjectItem)parent).ProjectItems;
+            } else if (parent is Project) {
+                items = ((Project)parent).ProjectItems;
+            } else {
+                return null;
+            }
+
+            foreach (ProjectItem pi in items) {
+                if (nameWOExt.Equals(pi.Name))
+                    return pi;
+            }
+            return null;
+        }
+
+        private Property FindProperty(EnvDTE.Properties properties, string propertyName) {
+            foreach (Property p in properties) {
+                if (propertyName.Equals(p.Name))
+                    return p;
+            }
+            return null;
+        }
+
+        private void ConnectProjectItems(ProjectItem root, ProjectItem child) {
+            Property itemProperty = FindProperty(child.Properties, PROPERTY_FULLPATH);
+            if (itemProperty != null) {
+                root.ProjectItems.AddFromFile((string)itemProperty.Value);
+                root.ExpandView();
+            }
+        }
+    }
 }
