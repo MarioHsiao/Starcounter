@@ -7,8 +7,8 @@
     <ProjectGuid>{43C7287D-816A-4C82-A0CB-188A51E6C94A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.Internal.XSON.Tests.CodegenJson</RootNamespace>
-    <AssemblyName>Starcounter.XSON.Tests.CodegenJson</AssemblyName>
+    <RootNamespace>Starcounter.Internal.XSON.Tests.CompiledJson</RootNamespace>
+    <AssemblyName>Starcounter.XSON.Tests.CompiledJson</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
@@ -25,7 +25,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\bin\Debug\Starcounter.XSON.Tests.CodegenJson.XML</DocumentationFile>
+    <DocumentationFile>..\..\bin\Debug\Starcounter.XSON.Tests.CompiledJson.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -37,7 +37,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <PlatformTarget>x64</PlatformTarget>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>..\..\bin\Release\Starcounter.XSON.Tests.CodegenJson.XML</DocumentationFile>
+    <DocumentationFile>..\..\bin\Release\Starcounter.XSON.Tests.CompiledJson.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
