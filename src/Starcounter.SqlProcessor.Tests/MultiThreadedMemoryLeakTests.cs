@@ -42,6 +42,7 @@ namespace Starcounter.SqlProcessor.Tests {
                 //"select d from Employee e left join Department d on e.Department = d",
                 //"select cast(p.Father as Employee).Department from SqlTest.Test1.Person p where cast(p.Father as Employee).Department.Name = 'Server'"
             };
+#if false
             Thread[] threads = new Thread[queries.Length];
             for (int i = 0; i < queries.Length; i++) {
                 threads[i] = new Thread(TestQuery);
@@ -49,7 +50,7 @@ namespace Starcounter.SqlProcessor.Tests {
             }
             for (int i = 0; i < queries.Length; i++)
                 threads[i].Join();
-
+#endif
             for (int i = 0; i < queries.Length; i++) {
                 TestQuery(queries[i]);
             }
