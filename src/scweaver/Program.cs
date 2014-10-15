@@ -293,9 +293,7 @@ namespace Weaver {
                         break;
 
                     default:
-                        // Don't change the default verbosity, initialized
-                        // statically.
-                        break;
+                        throw ErrorCode.ToException(Error.SCERRBADCOMMANDLINESYNTAX, string.Format("Unknown verbosity: {0}", propertyValue));
                 }
             }
 
