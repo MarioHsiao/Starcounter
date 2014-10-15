@@ -138,9 +138,9 @@ namespace Starcounter.Weaver {
         private string WeaverProjectFile;
 
         /// <summary>
-        /// The file manager used by the current weaver.
+        /// Gets the file manager used by the current weaver.
         /// </summary>
-        FileManager fileManager;
+        public FileManager FileManager { get; private set; }
 
         /// <summary>
         /// Holds a reference to the weaver cache we'll use when the weaver
@@ -190,7 +190,7 @@ namespace Starcounter.Weaver {
                 return false;
             }
 
-            var fm = fileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
+            var fm = FileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
 
             if (fm.OutdatedAssemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
@@ -452,7 +452,7 @@ namespace Starcounter.Weaver {
             // but to keep follow it's dependencies, return a project with
             // no tasks instead (like "ScIgnore.psproj").
 
-            if (!fileManager.Contains(file)) {
+            if (!FileManager.Contains(file)) {
                 return null;
             }
 
