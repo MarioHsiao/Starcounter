@@ -17,7 +17,7 @@ using Starcounter.Internal.Weaver;
 using System.Text.RegularExpressions;
 using Error = Starcounter.Internal.Error;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
 
     /// <summary>
     /// Exposes the facade of the code weaver engine.

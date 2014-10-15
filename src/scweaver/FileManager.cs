@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     
     /// <summary>
     /// Governs the management of files to be processed by the weaver

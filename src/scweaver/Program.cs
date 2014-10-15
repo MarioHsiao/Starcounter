@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     using Sc.Server.Weaver.Schema;
     using System.CodeDom.Compiler;
     using Error = Starcounter.Error;
