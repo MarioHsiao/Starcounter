@@ -475,6 +475,11 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
+                var configFile = databaseTypePolicy.Configuration.FilePath;
+                if (configFile != null) {
+                    AddModuleDependency(Path.GetFileName(configFile), configFile);
+                }
+
                 // Identify types and build the schema.
 
                 typeDefEnumerator = _module.GetDeclarationEnumerator(TokenType.TypeDef);
