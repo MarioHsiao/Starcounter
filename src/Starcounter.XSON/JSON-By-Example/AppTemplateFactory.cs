@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter;
 using Starcounter.Templates;
+using System.Reflection;
 
 namespace Starcounter.Internal.JsonTemplate
 {
@@ -403,6 +404,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (parent is MetaTemplate)
             {
                 ((MetaTemplate<OT,OTT>)parent).Set(name, value);
@@ -440,6 +443,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TLong() { TemplateName = name };
@@ -471,6 +476,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TDecimal() { TemplateName = name };
@@ -501,6 +508,8 @@ namespace Starcounter.Internal.JsonTemplate
         {
             OTT appTemplate;
             Template newTemplate;
+
+            VerifyPropertyName(dotNetName, debugInfo);
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
@@ -534,6 +543,8 @@ namespace Starcounter.Internal.JsonTemplate
         {
             OTT appTemplate;
             Template newTemplate;
+
+            VerifyPropertyName(dotNetName, debugInfo);
 
             if (parent is MetaTemplate<OT,OTT>)
             {
@@ -582,6 +593,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (parent is MetaTemplate<OT, OTT>) {
                 ((MetaTemplate<OT,OTT>)parent).Set(name, value);
                 return null;
@@ -624,6 +637,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             newTemplate = new TArray<OT>() { TemplateName = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
@@ -660,6 +675,8 @@ namespace Starcounter.Internal.JsonTemplate
         object ITemplateFactory.AddAppProperty(object parent, string name, string dotNetName, DebugInfo debugInfo)
         {
             Template newTemplate;
+
+            VerifyPropertyName(dotNetName, debugInfo);
 
             newTemplate = new OTT();
             if (parent != null)
@@ -786,6 +803,44 @@ namespace Starcounter.Internal.JsonTemplate
         {
             ((TValue)template).Bind = path;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="debugInfo"></param>
+        private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
+            bool throwError;
+            Type jsonType = typeof(Json);
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+
+            MemberInfo[] members = jsonType.GetMember(propertyName, flags);
+            if (members != null && members.Length > 0) {
+                throwError = false;
+                foreach (var member in members) {
+                    switch (member.MemberType){
+                        case MemberTypes.Field:
+                            var fi = (FieldInfo)member;
+                            if (fi.IsPublic || fi.IsFamily) throwError = true;
+                            break;
+                        case MemberTypes.Method:
+                            var mi = (MethodInfo)member;
+                            if (mi.IsPublic || mi.IsFamily) throwError = true;
+                            break;
+                        case MemberTypes.Property:
+                            var pi = (PropertyInfo)member;
+                            if (pi.CanRead) {
+                                var m = pi.GetGetMethod();
+                                if (m.IsPublic || m.IsFamily) throwError = true;
+                            }
+                            break;
+                    }
+
+                    if (throwError)
+                        ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -793,6 +848,17 @@ namespace Starcounter.Internal.JsonTemplate
     /// </summary>
     internal static class ErrorHelper
     {
+        internal static void RaisePropertyExistsError(string propertyName, DebugInfo debugInfo) {
+            Error.CompileError.Raise<Object>(
+                debugInfo.FileName 
+                + " already contains a definition for '" 
+                + propertyName 
+                + "'",
+                new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
+                debugInfo.FileName
+            );
+        }
+
         /// <summary>
         /// Raises the wrong value for property error.
         /// </summary>
