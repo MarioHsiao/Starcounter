@@ -27,6 +27,11 @@ namespace Weaver {
             get { return outdatedAssemblies; }
         }
 
+        public DatabaseTypeConfiguration TypeConfiguration {
+            get;
+            private set;
+        }
+
         private FileManager(string sourceDir, string targetDir, WeaverCache cache) {
             SourceDirectory = sourceDir;
             TargetDirectory = targetDir;
@@ -75,8 +80,15 @@ namespace Weaver {
         }
 
         FileManager Open() {
+            TypeConfiguration = DatabaseTypeConfiguration.Open(SourceDirectory);
+
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
+
+            var typeConfig = TypeConfiguration.FilePath;
+            if (typeConfig != null) {
+                filesToCopy.Add(typeConfig);
+            }
 
             foreach (var file in sourceFiles) {
                 // If it's not excluded, and if it's not in the cache,
@@ -104,6 +116,10 @@ namespace Weaver {
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.pdb"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
+            var targetConfigFile = new FileInfo(Path.Combine(TargetDirectory, DatabaseTypeConfiguration.TypeConfigFileName));
+            if (targetConfigFile.Exists) {
+                presentTargetFiles.Add(targetConfigFile.FullName);
+            }
 
             return this;
         }
