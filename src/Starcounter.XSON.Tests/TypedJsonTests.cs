@@ -348,6 +348,30 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestExistingPropertyNames() {
+            string json;
+            Exception ex;
+
+            // Parent is a public property in Json.
+            json = @"{""Parent"": 2}";
+            ex = Assert.Catch<Exception>(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+            Assert.IsTrue(ex.Message.Contains(" already contains a definition for 'Parent'"));
+
+            // _InitializeValues is a protected method in Json
+            json = @"{""_InitializeValues"": 2}";
+            ex = Assert.Catch<Exception>(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+            Assert.IsTrue(ex.Message.Contains(" already contains a definition for '_InitializeValues'"));
+
+            // HasThisRoot is an internal method in Json.
+            json = @"{""HasThisRoot"": 2}";
+            Assert.DoesNotThrow(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+
+            // _transaction is a private field in Json.
+            json = @"{""_transaction"": 2}";
+            Assert.DoesNotThrow(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+        }
+
+        [Test]
         public static void TestChangeBoundObject() {
             var template = new TObject();
             var pageTemplate = template.Add<TObject>("Number");
