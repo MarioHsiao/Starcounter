@@ -84,10 +84,26 @@ namespace Weaver {
 
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
+            
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.pdb"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
+            var targetConfigFile = new FileInfo(Path.Combine(TargetDirectory, DatabaseTypeConfiguration.TypeConfigFileName));
+            if (targetConfigFile.Exists) {
+                presentTargetFiles.Add(targetConfigFile.FullName);
+            }
 
             var typeConfig = TypeConfiguration.FilePath;
             if (typeConfig != null) {
                 filesToCopy.Add(typeConfig);
+                if (!targetConfigFile.Exists) {
+                    // If the type configuration file was added, we have to
+                    // invalidate every assembly in the cache. (If it is removed,
+                    // it is already tracked by the weaver assembly dependency
+                    // tracking mechanism).
+                    Cache.Disabled = true;
+                }
             }
 
             foreach (var file in sourceFiles) {
@@ -110,15 +126,6 @@ namespace Weaver {
                     WeaverUtilities.GetExtractionFailureReason(cached)
                     );
                 Include(file);
-            }
-
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.pdb"));
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
-            var targetConfigFile = new FileInfo(Path.Combine(TargetDirectory, DatabaseTypeConfiguration.TypeConfigFileName));
-            if (targetConfigFile.Exists) {
-                presentTargetFiles.Add(targetConfigFile.FullName);
             }
 
             return this;
