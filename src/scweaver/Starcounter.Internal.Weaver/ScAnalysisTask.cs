@@ -407,8 +407,7 @@ namespace Starcounter.Internal.Weaver {
             String name;
             TypeDefDeclaration typeDef;
 
-            ScMessageSource.Write(
-                SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
+            ScAnalysisTrace.Instance.WriteLine("Analyzing assembly {0}.", _module.Name);
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
 
