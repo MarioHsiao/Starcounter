@@ -26,6 +26,7 @@ namespace Starcounter.Internal.Weaver {
 
     using Starcounter.Binding;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+    using CodeWeaver = Starcounter.Weaver.CodeWeaver;
 
     /// <summary>
     /// Analytic part of the weaver. Discovers database classes in data assemblies,
@@ -384,7 +385,10 @@ namespace Starcounter.Internal.Weaver {
             _typeAttributeType = FindStarcounterType(typeof(TypeAttribute));
             _inheritsAttributeType = FindStarcounterType(typeof(InheritsAttribute));
             _typeNameAttributeType = FindStarcounterType(typeof(TypeNameAttribute));
-            databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
+            databaseTypePolicy = new DatabaseTypePolicy(
+                CodeWeaver.Current.FileManager.TypeConfiguration, 
+                FindStarcounterType(typeof(Starcounter.DatabaseAttribute))
+                );
         }
 
         /// <summary>
