@@ -28,6 +28,14 @@ namespace Weaver {
         const string WeaverProjectFileName = "ScTransform.psproj";
 
         /// <summary>
+        /// Gets a reference to the currently executing code weaver.
+        /// </summary>
+        public static CodeWeaver Current {
+            get;
+            private set;
+        }
+
+        /// <summary>
         /// The name of the default output directory, utilized by the weaver
         /// when no output directory is explicitly given.
         /// </summary>
@@ -155,7 +163,22 @@ namespace Weaver {
             }
         }
 
-        public bool Execute() {
+        /// <summary>
+        /// Executes the given weaver after first assigning it as the
+        /// weaver currently executing.
+        /// </summary>
+        /// <param name="weaver">The weaver to make current and execute.</param>
+        /// <returns>The result of the weaver.</returns>
+        public static bool ExecuteCurrent(CodeWeaver weaver) {
+            try {
+                CodeWeaver.Current = weaver;
+                return weaver.Execute();
+            } finally {
+                weaver = null;
+            }
+        }
+
+        bool Execute() {
             PostSharpObjectSettings postSharpSettings;
 
             if (SetupEngine() == false)

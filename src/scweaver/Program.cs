@@ -196,7 +196,7 @@ namespace Weaver {
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
 
-            weaver.Execute();
+            CodeWeaver.ExecuteCurrent(weaver);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace Weaver {
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
 
-            weaver.Execute();
+            CodeWeaver.ExecuteCurrent(weaver);
         }
 
         static void ExecuteSchemaCommand(
