@@ -5,10 +5,7 @@ using NUnit.Framework;
 namespace Starcounter.SqlProcessor.Tests {
     [TestFixture]
     public static class MultiThreadedMemoryLeakTests {
-        [Test]
-        [Category("LongRunning")]
-        public static void MultithreadedTest() {
-            String[] queries =
+        static String[] Queries =
             {
                 "select * from (select col1.ref1.ref2.ref3, ns1.ns2.ns3.ns4.fun(col2) as ncol, avg(col3) from tbl1, ns5.ns6.ns7.tbl2 group by ncol, col1.ref1.ref2.ref3 having ncol > 4) ntbl where col2 > 5",
                 "select distinct col1, col2 from tbl1, tbl2 where col2 in (select col9 from tbl2 where col1 order by col3.ref1.ref2.ref3.ref4)",
@@ -42,26 +39,41 @@ namespace Starcounter.SqlProcessor.Tests {
                 //"select d from Employee e left join Department d on e.Department = d",
                 //"select cast(p.Father as Employee).Department from SqlTest.Test1.Person p where cast(p.Father as Employee).Department.Name = 'Server'"
             };
-#if false
-            Thread[] threads = new Thread[queries.Length];
-            for (int i = 0; i < queries.Length; i++) {
+
+        static Exception[] exceptions = new Exception[Queries.Length];
+
+        [Test]
+        [Category("LongRunning")]
+        public static void MultithreadedTest() {
+            Thread[] threads = new Thread[Queries.Length];
+            for (int i = 0; i < Queries.Length; i++) {
                 threads[i] = new Thread(TestQuery);
-                threads[i].Start(queries[i]);
+                threads[i].Start(i);
             }
-            for (int i = 0; i < queries.Length; i++)
+            for (int i = 0; i < Queries.Length; i++)
                 threads[i].Join();
-#endif
-            for (int i = 0; i < queries.Length; i++) {
-                TestQuery(queries[i]);
+            for (int i = 0; i < Queries.Length; i++) {
+                Assert.NotNull(exceptions[i], "Query " + i + ": " + Queries[i]);
+                Assert.AreEqual(SqlProcessorTests.ParseOK, exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY],
+                    "Exception for query " + i + ": " + exceptions[i].Message);
             }
 #if DEBUG
             Assert.AreEqual(0, SqlProcessor.scsql_dump_memory_leaks());
 #endif
-            Console.WriteLine(queries.Length + " queries are executed in " + queries.Length + " threads.");
+            Console.WriteLine(Queries.Length + " queries are executed in " + Queries.Length + " threads.");
         }
 
-        private static void TestQuery(Object obj) {
-            SqlProcessorTests.ProcessQuery(Error.SCERRSQLNOTIMPLEMENTED, (String)obj);
+        [Test]
+        public static void SequentialTest() {
+            for (int i = 0; i < Queries.Length; i++) {
+                Exception ex = SqlProcessor.CallSqlProcessor(Queries[i]);
+                Assert.AreEqual(SqlProcessorTests.ParseOK, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
+            }
+        }
+
+        private static void TestQuery(object o) {
+            int i = (int)o;
+            exceptions[i] = SqlProcessor.CallSqlProcessor(Queries[i]);
         }
     }
 }
