@@ -262,7 +262,7 @@ namespace Weaver {
             // Consult global/shared parameters and apply them as specified by
             // their specification.
 
-            if (arguments.ContainsFlag("attachdebugger")) {
+            if (arguments.ContainsFlag("sc-debug")) {
                 if (Debugger.IsAttached)
                     WriteDebug("A debugger is already attached to the process.");
                 else {
@@ -340,7 +340,7 @@ namespace Weaver {
             // to the process when starting. Undocumented, internal flag.
 
             syntaxDefinition.DefineFlag(
-                "attachdebugger",
+                "sc-debug",
                 "Attaches a debugger to the process during startup."
                 );
 
