@@ -12,6 +12,15 @@ namespace Starcounter.Internal.Weaver {
 
         List<string> configuredNamespaces = new List<string>();
 
+        /// <summary>
+        /// Gets the path to the configuration file used to populate the
+        /// current configuration, or null if no such file was used.
+        /// </summary>
+        public string FilePath {
+            get;
+            private set;
+        }
+
         private DatabaseTypeConfiguration() {
         }
 
@@ -22,6 +31,8 @@ namespace Starcounter.Internal.Weaver {
             }
 
             var config = new DatabaseTypeConfiguration();
+            config.FilePath = configFile;
+
             var content = File.ReadAllLines(configFile);
             foreach (var line in content) {
                 var trimmed = line.Trim();
