@@ -414,7 +414,7 @@ namespace Starcounter.Internal
         /// <param name="pii">The pii.</param>
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 star_get_index_info_by_sort(
+        public unsafe extern static UInt32 stari_get_index_info_by_sort(
             ushort table_id,
             SCCOREDB_SORT_SPEC_ELEM *sort_spec,
             SC_INDEX_INFO *pii
