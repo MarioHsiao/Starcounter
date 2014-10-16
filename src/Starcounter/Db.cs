@@ -92,7 +92,7 @@ namespace Starcounter
                     inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                systables.STAR_COLUMN_DEFINITION[] column_definitions = new systables.STAR_COLUMN_DEFINITION2[columns.Length - implicitColumnCount + 1];
+                systables.STAR_COLUMN_DEFINITION[] column_definitions = new systables.STAR_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
                 Debug.Assert(column_definitions.Length > 0);
                 char* name = null;
                 try
