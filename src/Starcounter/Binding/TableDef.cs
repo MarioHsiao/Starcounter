@@ -183,7 +183,7 @@ namespace Starcounter.Binding
 
             unsafe
             {
-                ec = sccoredb.star_get_index_infos(
+                ec = sccoredb.stari_get_index_infos(
                     TableId,
                     &ic,
                     null
@@ -200,7 +200,7 @@ namespace Starcounter.Binding
                 iis = new sccoredb.SC_INDEX_INFO[ic];
                 fixed (sccoredb.SC_INDEX_INFO* pii = &(iis[0]))
                 {
-                    ec = sccoredb.star_get_index_infos(
+                    ec = sccoredb.stari_get_index_infos(
                         TableId,
                         &ic,
                         pii

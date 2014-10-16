@@ -427,7 +427,7 @@ namespace Starcounter.Internal
         /// <param name="piis">The piis.</param>
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_index_infos(
+        public unsafe extern static uint stari_get_index_infos(
             ushort table_id,
             uint* pic,
             SC_INDEX_INFO* piis
