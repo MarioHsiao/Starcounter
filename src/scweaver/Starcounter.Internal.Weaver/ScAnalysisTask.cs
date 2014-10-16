@@ -26,6 +26,7 @@ namespace Starcounter.Internal.Weaver {
 
     using Starcounter.Binding;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+    using CodeWeaver = Starcounter.Weaver.CodeWeaver;
 
     /// <summary>
     /// Analytic part of the weaver. Discovers database classes in data assemblies,
@@ -384,7 +385,10 @@ namespace Starcounter.Internal.Weaver {
             _typeAttributeType = FindStarcounterType(typeof(TypeAttribute));
             _inheritsAttributeType = FindStarcounterType(typeof(InheritsAttribute));
             _typeNameAttributeType = FindStarcounterType(typeof(TypeNameAttribute));
-            databaseTypePolicy = new DatabaseTypePolicy(Project.Properties["ScInputDirectory"], FindStarcounterType(typeof(Starcounter.DatabaseAttribute)));
+            databaseTypePolicy = new DatabaseTypePolicy(
+                CodeWeaver.Current.FileManager.TypeConfiguration, 
+                FindStarcounterType(typeof(Starcounter.DatabaseAttribute))
+                );
         }
 
         /// <summary>
@@ -407,8 +411,7 @@ namespace Starcounter.Internal.Weaver {
             String name;
             TypeDefDeclaration typeDef;
 
-            ScMessageSource.Write(
-                SeverityType.ImportantInfo, "SCINF01", new Object[] { _module.Name });
+            ScAnalysisTrace.Instance.WriteLine("Analyzing assembly {0}.", _module.Name);
 
             // Create a DatabaseAssembly for the current module and add it to the schema.
 
@@ -474,6 +477,11 @@ namespace Starcounter.Internal.Weaver {
                     if (name == "Starcounter" || name.StartsWith("PostSharp")) {
                         AddModuleDependency(name + ".dll", assembly.Location);
                     }
+                }
+
+                var configFile = databaseTypePolicy.Configuration.FilePath;
+                if (configFile != null) {
+                    AddModuleDependency(Path.GetFileName(configFile), configFile);
                 }
 
                 // Identify types and build the schema.

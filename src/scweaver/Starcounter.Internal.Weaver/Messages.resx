@@ -168,15 +168,6 @@
   <data name="SCECV04" xml:space="preserve">
     <value>The extension class {0} should be sealed.</value>
   </data>
-  <data name="SCINF01" xml:space="preserve">
-    <value>Analyzing the module {0}.</value>
-  </data>
-  <data name="SCINF02" xml:space="preserve">
-    <value>Transforming the module {0}.</value>
-  </data>
-  <data name="SCINF03" xml:space="preserve">
-    <value>The module {0} does not contain any reference to Starcounter. Skipping transformation.</value>
-  </data>
   <data name="SCINF04" xml:space="preserve">
     <value>The module {0} does not need to be transformed because it is up-to-date. Skipping transformation.</value>
   </data>

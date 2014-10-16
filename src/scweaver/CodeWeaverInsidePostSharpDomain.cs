@@ -3,7 +3,7 @@ using System;
 using PostSharp.Hosting;
 using PostSharp.Sdk.CodeModel;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     /// <summary>
     /// Thin class that extends <see cref="PostSharpLocalHost"/> to support running
     /// inside the PostSharp domain in case the host runs PS in a separate domain.
