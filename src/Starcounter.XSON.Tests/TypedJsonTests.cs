@@ -348,6 +348,26 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestExistingPropertyNames() {
+            string json;
+            Exception ex;
+
+            // Parent is a public property in Json.
+            json = @"{""Parent"": 2}";
+            ex = Assert.Catch<Exception>(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+            Assert.IsTrue(ex.Message.Contains(" already contains a definition for 'Parent'"));
+
+            // Data is a public property in Json.
+            json = @"{""Data"": 2}";
+            ex = Assert.Catch<Exception>(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+            Assert.IsTrue(ex.Message.Contains(" already contains a definition for 'Data'"));
+
+            // Should be fine even if there is a Remove method in Json, but it does not collide.
+            json = @"{""Remove"": 2}";
+            Assert.DoesNotThrow(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
+        }
+
+        [Test]
         public static void TestChangeBoundObject() {
             var template = new TObject();
             var pageTemplate = template.Add<TObject>("Number");
