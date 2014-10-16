@@ -228,61 +228,6 @@ namespace Starcounter.Internal
         public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
 
         /// <summary>
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_TABLE_INFO
-        {
-            /// <summary>
-            /// </summary>
-            public ulong name_token;
-
-            /// <summary>
-            /// </summary>
-            public uint column_count;
-
-            /// <summary>
-            /// </summary>
-            public uint inheriting_table_count;
-
-            /// <summary>
-            /// </summary>
-            public ushort* inheriting_table_ids;
-
-            /// <summary>
-            /// </summary>
-            public ushort table_id;
-
-            /// <summary>
-            /// </summary>
-            public ushort inherited_table_id;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-        };
-
-        /// <summary>
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_COLUMN_INFO {
-            /// <summary>
-            /// </summary>
-            public ulong name_token;
-
-            /// <summary>
-            /// </summary>
-            public ushort index;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-
-            /// <summary>
-            /// </summary>
-            public byte type;
-        };
-
-        /// <summary>
         /// Struct SC_COLUMN_DEFINITION
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
