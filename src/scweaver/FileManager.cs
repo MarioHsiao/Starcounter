@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     
     /// <summary>
     /// Governs the management of files to be processed by the weaver
@@ -25,6 +25,11 @@ namespace Weaver {
 
         public Dictionary<string, ModuleLoadStrategy> OutdatedAssemblies {
             get { return outdatedAssemblies; }
+        }
+
+        public DatabaseTypeConfiguration TypeConfiguration {
+            get;
+            private set;
         }
 
         private FileManager(string sourceDir, string targetDir, WeaverCache cache) {
@@ -75,8 +80,31 @@ namespace Weaver {
         }
 
         FileManager Open() {
+            TypeConfiguration = DatabaseTypeConfiguration.Open(SourceDirectory);
+
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
+            
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.pdb"));
+            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
+            var targetConfigFile = new FileInfo(Path.Combine(TargetDirectory, DatabaseTypeConfiguration.TypeConfigFileName));
+            if (targetConfigFile.Exists) {
+                presentTargetFiles.Add(targetConfigFile.FullName);
+            }
+
+            var typeConfig = TypeConfiguration.FilePath;
+            if (typeConfig != null) {
+                filesToCopy.Add(typeConfig);
+                if (!targetConfigFile.Exists) {
+                    // If the type configuration file was added, we have to
+                    // invalidate every assembly in the cache. (If it is removed,
+                    // it is already tracked by the weaver assembly dependency
+                    // tracking mechanism).
+                    Cache.Disabled = true;
+                }
+            }
 
             foreach (var file in sourceFiles) {
                 // If it's not excluded, and if it's not in the cache,
@@ -99,11 +127,6 @@ namespace Weaver {
                     );
                 Include(file);
             }
-
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.pdb"));
-            presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.schema"));
 
             return this;
         }

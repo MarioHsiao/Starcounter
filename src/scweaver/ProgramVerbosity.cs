@@ -1,5 +1,5 @@
 ﻿
-namespace Weaver {
+namespace Starcounter.Weaver {
     /// <summary>
     /// The supported verbosity levels, normally bound to the
     /// output of the program (i.e. the console).
