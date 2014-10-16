@@ -228,27 +228,6 @@ namespace Starcounter.Internal
         public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
 
         /// <summary>
-        /// Struct SC_COLUMN_DEFINITION
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct STAR_COLUMN_DEFINITION
-        {
-            /// <summary>
-            /// The type
-            /// </summary>
-            public byte type;
-            /// <summary>
-            /// The is_nullable
-            /// </summary>
-            public byte is_nullable;
-
-            /// <summary>
-            /// The name
-            /// </summary>
-            public ulong name_token;
-        }
-
-        /// <summary>
         /// </summary>
         public const UInt32 SC_UNIQUE_CONSTRAINT = 1;
 
