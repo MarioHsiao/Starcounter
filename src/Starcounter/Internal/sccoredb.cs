@@ -96,7 +96,7 @@ namespace Starcounter.Internal
         /// Struct sccoredb_config
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct sccoredb_callbacks
+        public unsafe struct STAR_SYSTEM_CALLBACKS
         {
             /// <summary>
             /// </summary>
@@ -127,7 +127,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_set_system_callbacks(sccoredb_callbacks* pcallbacks);
+        public static extern unsafe uint star_set_system_callbacks(STAR_SYSTEM_CALLBACKS* pcallbacks);
 
         /// <summary>
         /// </summary>
