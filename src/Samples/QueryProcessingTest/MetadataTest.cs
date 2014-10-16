@@ -136,6 +136,10 @@ namespace QueryProcessingTest {
                 Db.SQL<String>("select Name from Starcounter.Metadata.Table")) {
                 Trace.Assert(!String.IsNullOrWhiteSpace(name));
             }
+            rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", "Company").First;
+            Trace.Assert(rv != null);
+            Trace.Assert(rv.Inherits != null);
+            Trace.Assert(rv.Inherits.Name == "Agent");
         }
 
         public static void TestRuntimeColumnMetadata() {

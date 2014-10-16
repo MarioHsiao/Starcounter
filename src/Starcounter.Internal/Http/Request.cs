@@ -1802,7 +1802,7 @@ namespace Starcounter {
                 headersString = Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + headers_offset_), (Int32)headers_len_bytes_);
 
             // Getting needed substring.
-            Int32 hstart = headersString.IndexOf(headerName, StringComparison.InvariantCultureIgnoreCase);
+            Int32 hstart = headersString.IndexOf(headerName+":", StringComparison.InvariantCultureIgnoreCase);
             if (hstart < 0)
                 return null;
 

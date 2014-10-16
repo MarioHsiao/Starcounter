@@ -236,6 +236,21 @@ namespace Starcounter.Hosting {
                         MetadataPopulation.CreateColumnInstances(typeDef);
                     });
 
+#if DEBUG   // Assure that parents were set.
+                foreach (TypeDef typeDef in updateColumns) {
+                    RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
+                typeDef.TableDef.Name).First;
+                    Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
+                        "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+                    Debug.Assert(thisView.MaterializedTable.Equals(matTab));
+                    Debug.Assert(matTab != null);
+                    RawView parentTab = Db.SQL<RawView>(
+                        "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
+                    Debug.Assert(matTab.BaseTable == null && parentTab == null || 
+                        matTab.BaseTable != null && parentTab != null &&
+                        matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
+                }
+#endif
                 OnDatabaseSchemaCheckedAndUpdated();
 
                 Bindings.RegisterTypeDefs(typeDefs);
@@ -311,7 +326,7 @@ namespace Starcounter.Hosting {
                     updated = true;
                 });
             }
-
+            //Thread.Sleep(2000);
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();

@@ -72,11 +72,10 @@ namespace Starcounter.Query.Execution {
             while (objTypeValue != null && !objTypeValue.Equals(typeValue)) {
                 // Read type object, on which objTypeValue is based.
                 TypeBinding tb = objTypeValue.TypeBinding as TypeBinding;
-                if (tb == null) {
-                    tb = Bindings.GetTypeBinding(objTypeValue.GetType().FullName);
-                    if (tb == null)
-                        throw ErrorCode.ToException(Error.SCERRQUERYEXECINTERNALERROR, "TypeBinding is not set for database object");
-                }
+                Debug.Assert(tb != null);
+                //if (tb == null) {
+                //    throw ErrorCode.ToException(Error.SCERRQUERYEXECINTERNALERROR, "TypeBinding is not set for database object");
+                //}
                 PropertyBinding prop = tb.Inherits;
                 if (prop == null)
                     throw ErrorCode.ToException(Error.SCERRILLEGALTYPEOBJECT,

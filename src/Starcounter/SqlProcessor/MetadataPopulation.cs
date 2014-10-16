@@ -100,7 +100,9 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(Db.SQL<RawView>("select v from rawview v where materializedtable = ?",
                 matTab).First == null);
             RawView parentTab = Db.SQL<RawView>(
-                "select v from rawview v where name = ?", typeDef.TableDef.BaseName).First;
+                "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
+            Debug.Assert(matTab.BaseTable == null && parentTab == null || 
+                matTab.BaseTable != null && parentTab != null && matTab.BaseTable.Equals(parentTab.MaterializedTable));
             RawView rawView = new RawView {
                 Name = typeDef.TableDef.Name.LastDotWord(),
                 FullName = typeDef.TableDef.Name,
@@ -113,7 +115,7 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
-            Debug.Assert(Db.SQL<RawView>("select v from rawview v where v.Fullname = ?",
+            Debug.Assert(Db.SQL<ClrClass>("select v from clrclass v where v.Fullname = ?",
                 typeDef.TableDef.Name).First == null); // Always dropped and new created
             RawView thisType = Db.SQL<RawView>("select v from rawview v where UniqueIdentifier = ?",
                 GetUniqueIdentifier(typeDef.TableDef.Name)).First;
@@ -145,6 +147,7 @@ namespace Starcounter.SqlProcessor {
                     t.Delete();
             }
         }
+
         internal static void CreateColumnInstances(TypeDef typeDef) {
             RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
         typeDef.TableDef.Name).First;
