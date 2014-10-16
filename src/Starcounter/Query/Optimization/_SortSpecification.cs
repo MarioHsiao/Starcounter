@@ -146,7 +146,7 @@ internal class SortSpecification
 #if true
         unsafe
         {
-            sccoredb.SCCOREDB_SORT_SPEC_ELEM[] sort_spec = new sccoredb.SCCOREDB_SORT_SPEC_ELEM[pathComparerList.Count + 1];
+            sccoredb.STAR_SORT_SPEC_ELEM[] sort_spec = new sccoredb.STAR_SORT_SPEC_ELEM[pathComparerList.Count + 1];
             for (int i = 0; i < pathComparerList.Count; i++)
             {
                 PropertyBinding prop = typeBind.GetPropertyBinding(pathComparerList[i].Path.FullName);
@@ -159,7 +159,7 @@ internal class SortSpecification
             }
             sort_spec[pathComparerList.Count].column_index = -1;
 
-            fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
+            fixed (sccoredb.STAR_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
             {
                 sccoredb.STARI_INDEX_INFO kernel_index_info;
                 uint r = sccoredb.stari_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
@@ -181,7 +181,7 @@ internal class SortSpecification
             }
             sort_spec[pathComparerList.Count].column_index = -1;
 
-            fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
+            fixed (sccoredb.STAR_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
             {
                 sccoredb.STARI_INDEX_INFO kernel_index_info;
                 uint r = sccoredb.stari_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);

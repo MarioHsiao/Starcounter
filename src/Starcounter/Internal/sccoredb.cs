@@ -378,10 +378,9 @@ namespace Starcounter.Internal
         };
 
         /// <summary>
-        /// Struct SCCOREDB_SORT_SPEC_ELEM
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public unsafe struct SCCOREDB_SORT_SPEC_ELEM
+        public unsafe struct STAR_SORT_SPEC_ELEM
         {
             /// <summary>
             /// The column_index
@@ -402,7 +401,7 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 stari_get_index_info_by_sort(
             ushort table_id,
-            SCCOREDB_SORT_SPEC_ELEM *sort_spec,
+            STAR_SORT_SPEC_ELEM* sort_spec,
             STARI_INDEX_INFO* pii
             );
 
