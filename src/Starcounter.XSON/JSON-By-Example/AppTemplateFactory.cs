@@ -262,6 +262,8 @@ namespace Starcounter.Internal.JsonTemplate
         where OT : Json, new()
         where OTT : TObject, new() 
     {
+        private static string[] ILLEGAL_PROPERTIES = { "Parent", "Data" };
+
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
         /// and is not used by an ReplaceableTemplate an exception is thrown.
@@ -810,34 +812,10 @@ namespace Starcounter.Internal.JsonTemplate
         /// <param name="propertyName"></param>
         /// <param name="debugInfo"></param>
         private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
-            bool throwError;
-            Type jsonType = typeof(Json);
-            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
-
-            MemberInfo[] members = jsonType.GetMember(propertyName, flags);
-            if (members != null && members.Length > 0) {
-                throwError = false;
-                foreach (var member in members) {
-                    switch (member.MemberType){
-                        case MemberTypes.Field:
-                            var fi = (FieldInfo)member;
-                            if (fi.IsPublic || fi.IsFamily) throwError = true;
-                            break;
-                        case MemberTypes.Method:
-                            var mi = (MethodInfo)member;
-                            if (mi.IsPublic || mi.IsFamily) throwError = true;
-                            break;
-                        case MemberTypes.Property:
-                            var pi = (PropertyInfo)member;
-                            if (pi.CanRead) {
-                                var m = pi.GetGetMethod();
-                                if (m.IsPublic || m.IsFamily) throwError = true;
-                            }
-                            break;
-                    }
-
-                    if (throwError)
-                        ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
+            for (int i = 0; i < ILLEGAL_PROPERTIES.Length; i++) {
+                if (propertyName.Equals(ILLEGAL_PROPERTIES[i])) {
+                    ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
+                    break;
                 }
             }
         }
@@ -850,9 +828,9 @@ namespace Starcounter.Internal.JsonTemplate
     {
         internal static void RaisePropertyExistsError(string propertyName, DebugInfo debugInfo) {
             Error.CompileError.Raise<Object>(
-                debugInfo.FileName 
-                + " already contains a definition for '" 
-                + propertyName 
+                debugInfo.FileName
+                + " already contains a definition for '"
+                + propertyName
                 + "'",
                 new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
                 debugInfo.FileName

@@ -357,17 +357,13 @@ namespace Starcounter.Internal.XSON.Tests {
             ex = Assert.Catch<Exception>(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
             Assert.IsTrue(ex.Message.Contains(" already contains a definition for 'Parent'"));
 
-            // _InitializeValues is a protected method in Json
-            json = @"{""_InitializeValues"": 2}";
+            // Data is a public property in Json.
+            json = @"{""Data"": 2}";
             ex = Assert.Catch<Exception>(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
-            Assert.IsTrue(ex.Message.Contains(" already contains a definition for '_InitializeValues'"));
+            Assert.IsTrue(ex.Message.Contains(" already contains a definition for 'Data'"));
 
-            // HasThisRoot is an internal method in Json.
-            json = @"{""HasThisRoot"": 2}";
-            Assert.DoesNotThrow(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
-
-            // _transaction is a private field in Json.
-            json = @"{""_transaction"": 2}";
+            // Should be fine even if there is a Remove method in Json, but it does not collide.
+            json = @"{""Remove"": 2}";
             Assert.DoesNotThrow(() => { Helper.CreateJsonTemplateFromContent("Test", json); });
         }
 
