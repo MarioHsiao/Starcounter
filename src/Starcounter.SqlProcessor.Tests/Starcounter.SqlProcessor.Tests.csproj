@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{519CC9FA-7F9D-4908-A191-A31D1B07965F}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Starcounter.SqlProcessor.Tests</RootNamespace>
     <AssemblyName>Starcounter.SqlProcessor.Tests</AssemblyName>
@@ -36,6 +36,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.1\lib\nunit.framework.dll</HintPath>
@@ -51,6 +54,7 @@
   <ItemGroup>
     <Compile Include="MultiThreadedMemoryLeakTests.cs" />
     <Compile Include="PerformanceTest.cs" />
+    <Compile Include="SqlProcessorTestProgram.cs" />
     <Compile Include="SqlProcessorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
