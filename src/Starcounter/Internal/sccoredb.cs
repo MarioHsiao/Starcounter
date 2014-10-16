@@ -1009,7 +1009,7 @@ namespace Starcounter.Internal
         /// Struct SC_COLUMN_DEFINITION
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct STAR_COLUMN_DEFINITION2 {
+        public unsafe struct STAR_COLUMN_DEFINITION {
             /// <summary>
             /// The type
             /// </summary>
@@ -1028,10 +1028,10 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_create_table2(
+        public static extern unsafe uint star_create_table(
             char* name,
             ushort base_table_id,
-            STAR_COLUMN_DEFINITION2* column_definitions,
+            STAR_COLUMN_DEFINITION* column_definitions,
             uint flags
             );
 
@@ -1042,7 +1042,7 @@ namespace Starcounter.Internal
         /// <param name="new_name">The new_name.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_rename_table2(
+        public static extern uint star_rename_table(
             ushort table_id,
             string new_name
             );
@@ -1053,7 +1053,7 @@ namespace Starcounter.Internal
         /// <param name="name">The name.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_drop_table2(string name);
+        public static extern uint star_drop_table(string name);
 
         /// <summary>
         /// </summary>
@@ -1069,7 +1069,7 @@ namespace Starcounter.Internal
             );
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static uint star_create_index2(
+        public extern unsafe static uint star_create_index(
             ushort table_id,
             string name,
             ushort sort_mask,
@@ -1083,7 +1083,7 @@ namespace Starcounter.Internal
         /// <param name="name"></param>
         /// <returns></returns>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static UInt32 star_drop_index2(
+        public extern unsafe static UInt32 star_drop_index(
             string table_name,
             string name
             );

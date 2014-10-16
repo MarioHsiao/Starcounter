@@ -240,7 +240,7 @@ internal static class SqlProcessor
             var tableId = typeBind.TableId;
             Db.Transaction(delegate {
                 fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0])) {
-                    errorCode = systables.star_create_index2(tableId, indexName, sortMask, attributeIndexesPointer, flags);
+                    errorCode = systables.star_create_index(tableId, indexName, sortMask, attributeIndexesPointer, flags);
                 }
             });
         }
@@ -365,7 +365,7 @@ internal static class SqlProcessor
         unsafe
         {
             Db.Transaction(delegate {
-                errorCode = systables.star_drop_index2(typeBind.Name, indexName);
+                errorCode = systables.star_drop_index(typeBind.Name, indexName);
             });
         }
         if (errorCode != 0) {
@@ -401,7 +401,7 @@ internal static class SqlProcessor
         unsafe
         {
             Db.Transaction(delegate {
-                errorCode = systables.star_drop_table2(typePath);
+                errorCode = systables.star_drop_table(typePath);
             });
         }
         if (errorCode != 0) {

@@ -92,7 +92,7 @@ namespace Starcounter
                     inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                systables.STAR_COLUMN_DEFINITION2[] column_definitions = new systables.STAR_COLUMN_DEFINITION2[columns.Length - implicitColumnCount + 1];
+                systables.STAR_COLUMN_DEFINITION[] column_definitions = new systables.STAR_COLUMN_DEFINITION2[columns.Length - implicitColumnCount + 1];
                 Debug.Assert(column_definitions.Length > 0);
                 char* name = null;
                 try
@@ -104,9 +104,9 @@ namespace Starcounter
                         column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
                     name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);
-                    fixed (systables.STAR_COLUMN_DEFINITION2* fixed_column_definitions = column_definitions)
+                    fixed (systables.STAR_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
                     {
-                        uint e = systables.star_create_table2(name, inheritedTableId, fixed_column_definitions, 0);
+                        uint e = systables.star_create_table(name, inheritedTableId, fixed_column_definitions, 0);
                         if (e != 0) throw ErrorCode.ToException(e);
                     }
                 }
@@ -129,7 +129,7 @@ namespace Starcounter
         /// <param name="newName">The new name.</param>
         public static void RenameTable(ushort tableId, string newName)
         {
-            uint e = systables.star_rename_table2(tableId, newName);
+            uint e = systables.star_rename_table(tableId, newName);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }
@@ -140,7 +140,7 @@ namespace Starcounter
         /// <param name="name">The name.</param>
         public static void DropTable(string name)
         {
-            uint e = systables.star_drop_table2(name);
+            uint e = systables.star_drop_table(name);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
         }

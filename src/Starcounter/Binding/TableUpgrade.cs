@@ -416,7 +416,7 @@ namespace Starcounter.Binding
                     if (createIndex) {
                         Db.Transaction(delegate {
                             fixed (Int16* paii = &(attrIndexArr[0])) {
-                                ec = systables.star_create_index2(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
+                                ec = systables.star_create_index(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
                             }
                         });
 
