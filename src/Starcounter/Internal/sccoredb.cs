@@ -308,10 +308,9 @@ namespace Starcounter.Internal
         public const UInt32 SC_UNIQUE_CONSTRAINT = 1;
 
         /// <summary>
-        /// Struct SC_INDEX_INFO
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct SC_INDEX_INFO {
+        public unsafe struct STARI_INDEX_INFO {
             /// <summary>
             /// The handle
             /// </summary>
@@ -379,19 +378,6 @@ namespace Starcounter.Internal
         };
 
         /// <summary>
-        /// </summary>
-        /// <param name="table_id"></param>
-        /// <param name="name"></param>
-        /// <param name="pii"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public unsafe extern static uint sccode_get_index_info_by_name(
-            ushort table_id,
-            ulong name_token,
-            SC_INDEX_INFO* pii
-            );
-
-        /// <summary>
         /// Struct SCCOREDB_SORT_SPEC_ELEM
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
@@ -417,7 +403,7 @@ namespace Starcounter.Internal
         public unsafe extern static UInt32 stari_get_index_info_by_sort(
             ushort table_id,
             SCCOREDB_SORT_SPEC_ELEM *sort_spec,
-            SC_INDEX_INFO *pii
+            STARI_INDEX_INFO* pii
             );
 
         /// <summary>
@@ -430,7 +416,7 @@ namespace Starcounter.Internal
         public unsafe extern static uint stari_get_index_infos(
             ushort table_id,
             uint* pic,
-            SC_INDEX_INFO* piis
+            STARI_INDEX_INFO* piis
             );
 
         /// <summary>
@@ -1156,7 +1142,7 @@ namespace Starcounter.Internal
         public unsafe extern static uint star_get_index_info_by_name(
             ushort table_id,
             string name,
-            sccoredb.SC_INDEX_INFO* pii
+            sccoredb.STARI_INDEX_INFO* pii
             );
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]

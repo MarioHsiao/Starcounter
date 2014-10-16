@@ -178,7 +178,7 @@ namespace Starcounter.Binding
         {
             uint ec;
             uint ic;
-            sccoredb.SC_INDEX_INFO[] iis;
+            sccoredb.STARI_INDEX_INFO[] iis;
             IndexInfo[] iil;
 
             unsafe
@@ -197,8 +197,8 @@ namespace Starcounter.Binding
                     return new IndexInfo[0];
                 }
 
-                iis = new sccoredb.SC_INDEX_INFO[ic];
-                fixed (sccoredb.SC_INDEX_INFO* pii = &(iis[0]))
+                iis = new sccoredb.STARI_INDEX_INFO[ic];
+                fixed (sccoredb.STARI_INDEX_INFO* pii = &(iis[0]))
                 {
                     ec = sccoredb.stari_get_index_infos(
                         TableId,
@@ -229,7 +229,7 @@ namespace Starcounter.Binding
         {
             unsafe
             {
-                sccoredb.SC_INDEX_INFO ii;
+                sccoredb.STARI_INDEX_INFO ii;
                 uint r = systables.star_get_index_info_by_name(TableId, name, &ii);
                 if (r == 0) return CreateIndexInfo(&ii, name);
                 if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
@@ -242,7 +242,7 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="pii">The pii.</param>
         /// <returns>IndexInfo.</returns>
-        internal unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii, string name=null)
+        internal unsafe IndexInfo CreateIndexInfo(sccoredb.STARI_INDEX_INFO* pii, string name = null)
         {
             short attributeCount;
             ushort tempSortMask;

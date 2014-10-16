@@ -312,8 +312,8 @@ namespace Starcounter.Binding
             short[] attrIndexArr;
             bool createIndex;
             uint ec;
-            sccoredb.SC_INDEX_INFO index;
-            sccoredb.SC_INDEX_INFO[] indexArr;
+            sccoredb.STARI_INDEX_INFO index;
+            sccoredb.STARI_INDEX_INFO[] indexArr;
             uint indexCount;
             ColumnDef newColumn;
             ColumnDef oldColumn;
@@ -329,8 +329,8 @@ namespace Starcounter.Binding
                 if (ec != 0) throw ErrorCode.ToException(ec);
                 if (indexCount == 0) return;
 
-                indexArr = new sccoredb.SC_INDEX_INFO[indexCount];
-                fixed (sccoredb.SC_INDEX_INFO* pii = &(indexArr[0])) 
+                indexArr = new sccoredb.STARI_INDEX_INFO[indexCount];
+                fixed (sccoredb.STARI_INDEX_INFO* pii = &(indexArr[0])) 
                 {
                     ec = sccoredb.stari_get_index_infos(
                         oldTableDef_.TableId,

@@ -161,7 +161,7 @@ internal class SortSpecification
 
             fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
             {
-                sccoredb.SC_INDEX_INFO kernel_index_info;
+                sccoredb.STARI_INDEX_INFO kernel_index_info;
                 uint r = sccoredb.stari_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
                 if (r == 0)
                 {
@@ -183,7 +183,7 @@ internal class SortSpecification
 
             fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
             {
-                sccoredb.SC_INDEX_INFO kernel_index_info;
+                sccoredb.STARI_INDEX_INFO kernel_index_info;
                 uint r = sccoredb.stari_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
                 if (r == 0)
                 {
