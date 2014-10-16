@@ -1074,7 +1074,14 @@ namespace Starcounter.Internal
     public static class systables {
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_get_token(string name, ulong token);
+        public static extern uint star_get_token(string name, out ulong token);
+
+        public static ulong star_get_token(string name) {
+            ulong token;
+            var r = star_get_token(name, out token);
+            if (r != 0) throw ErrorCode.ToException(r);
+            return token;
+        }
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_get_label(ulong token, char** pvalue);
