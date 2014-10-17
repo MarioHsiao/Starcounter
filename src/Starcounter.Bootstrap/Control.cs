@@ -519,9 +519,6 @@ namespace StarcounterInternal.Bootstrap {
             e = sccoredb.star_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.star_set_system_variable("OLOGDIR", c.DatabaseDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
             e = sccoredb.star_set_system_variable("TLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
