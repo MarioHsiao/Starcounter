@@ -9,8 +9,18 @@ namespace Starcounter.Internal.Weaver {
         DatabaseTypeConfiguration config;
         IType databaseAttributeType;
 
-        public DatabaseTypePolicy(string applicationDirectory, IType databaseAttribute) {
-            config = DatabaseTypeConfiguration.Open(applicationDirectory);
+        /// <summary>
+        /// Gets the underlying <see cref="DatabaseTypeConfiguration"/> influencing
+        /// the current policy.
+        /// </summary>
+        public DatabaseTypeConfiguration Configuration {
+            get {
+                return config;
+            }
+        }
+
+        public DatabaseTypePolicy(DatabaseTypeConfiguration typeConfiguration, IType databaseAttribute) {
+            config = typeConfiguration;
             databaseAttributeType = databaseAttribute;
         }
 

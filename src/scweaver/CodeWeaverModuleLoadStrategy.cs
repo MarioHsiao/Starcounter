@@ -4,7 +4,7 @@ using PostSharp.Sdk.Extensibility;
 using Starcounter;
 using System;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     /// <summary>
     /// The strategy used by the code weaver to load assemblies.
     /// </summary>
