@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Starcounter {
     /// <summary>
@@ -6,14 +7,38 @@ namespace Starcounter {
     /// identity and the operation being hooked (e.g. Insert);
     /// </summary>
     internal sealed class HookKey {
+        class DefaultEqualityComparer : IEqualityComparer<HookKey> {
+
+            public bool Equals(HookKey x, HookKey y) {
+                if (x == null) return y == null;
+                else if (y == null) return false;
+                return x.TypeId == y.TypeId && x.Operation == y.Operation;
+            }
+
+            public int GetHashCode(HookKey obj) {
+                return string.Format("{0}-{1}", obj.TypeId, obj.Operation).GetHashCode();
+            }
+        }
+
         /// <summary>
         /// Gets the type id of this hook, normally a table id.
         /// </summary>
         public readonly uint TypeId;
+        
         /// <summary>
         /// Gets the operation
         /// </summary>
         public readonly uint Operation;
+
+        /// <summary>
+        /// Gets an <see cref="IEqualityComparer<HookKey>"/> that can be used
+        /// to compare <see cref="HookKey"/> instances for equality.
+        /// </summary>
+        public static IEqualityComparer<HookKey> EqualityComparer {
+            get {
+                return new HookKey.DefaultEqualityComparer();
+            }
+        }
 
         /// <summary>
         /// Initializes
