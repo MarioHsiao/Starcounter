@@ -32,17 +32,19 @@ namespace Starcounter
                         ulong oid;
                         ulong address;
                         ushort tableId;
-                        ulong flags;
+                        ulong hookType;
                         TypeBinding binding;
                         IObjectProxy proxy;
+                        HookKey key;
 
                         try {
 
                             binding = null;
                             proxy = null;
+                            key = null;
                             while (true) {
                                 unsafe {
-                                    r = sccoredb.star_iterator_next(hiter, viter, &oid, &address, &tableId, &flags);
+                                    r = sccoredb.star_iterator_next(hiter, viter, &oid, &address, &tableId, &hookType);
                                 }
                                 if (r != 0) throw ErrorCode.ToException(r);
                                 if (oid == 0) break;
@@ -50,19 +52,34 @@ namespace Starcounter
                                 // Get TypeBinding and an uninitialized proxy to bind to.
                                 // The invoke all corresponding hooks.
 
-                                if (binding == null || binding.TableId != tableId) {
-                                    binding = TypeRepository.GetTypeBinding(tableId);
-                                    // TODO:
-                                    // Dont do this on deletes!
-                                    proxy = binding.NewInstanceUninit();
+                                var mask = hookType & (InvokableHook.Insert | InvokableHook.Update);
+                                if (mask != 0) {
+                                    if (binding == null || binding.TableId != tableId) {
+                                        binding = TypeRepository.GetTypeBinding(tableId);
+                                        proxy = binding.NewInstanceUninit();
+                                    }
+
+                                    proxy.Bind(address, oid, binding);
                                 }
 
-                                proxy.Bind(address, oid, binding);
+                                key = HookKey.FromTable(tableId, (uint)hookType, key);
                                 try {
-                                    // TODO:
-                                    // Invoke all installed hooks for the given key (table id
-                                    // + operation). Will shortly be redesigned.
-                                    // InvokableHook.InvokeInsert(binding.Name, proxy);
+                                    switch (hookType) {
+                                        case InvokableHook.Insert:
+                                            InvokableHook.InvokeInsert(key, proxy);
+                                            break;
+                                        case InvokableHook.Update:
+                                            InvokableHook.InvokeUpdate(key, proxy);
+                                            break;
+                                        case InvokableHook.Delete:
+                                            InvokableHook.InvokeDelete(key, oid);
+                                            break;
+                                        default:
+                                            // Internal error.
+                                            // TODO:
+                                            break;
+                                    }
+
                                 } catch {
                                     r = sccoredb.star_abort_commit(tran_locked_on_thread);
                                     throw;
