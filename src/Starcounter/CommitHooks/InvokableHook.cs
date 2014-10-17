@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using System.Collections.Generic;
 
 namespace Starcounter {
@@ -10,15 +11,15 @@ namespace Starcounter {
         /// <summary>
         /// Internal token representing inserts.
         /// </summary>
-        internal const int Insert = 1;
+        internal const uint Insert = sccoredb.STAR_HOOKS_ON_COMMIT_INSERT;
         /// <summary>
         /// Internal token representing updates.
         /// </summary>
-        internal const int Update = 2;
+        internal const uint Update = sccoredb.STAR_HOOKS_ON_COMMIT_UPDATE;
         /// <summary>
         /// Internal token representing deletes.
         /// </summary>
-        internal const int Delete = 3;
+        internal const uint Delete = sccoredb.STAR_HOOKS_ON_COMMIT_DELETE;
 
         /// <summary>
         /// Code host scoped dictonary mapping every triggering type

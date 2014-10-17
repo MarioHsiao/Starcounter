@@ -78,7 +78,7 @@ namespace Starcounter {
             return new HookDelegateListEntry<T>() { Delegates = delegates, Index = index };
         }
 
-        static void InstallHook(Type t, int operation, InvokableHook entry) {
+        static void InstallHook(Type t, uint operation, InvokableHook entry) {
             List<InvokableHook> installed;
 
             var key = t.FullName + operation;
