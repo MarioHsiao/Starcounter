@@ -23,12 +23,12 @@ namespace Starcounter {
         /// <summary>
         /// Gets the type id of this hook, normally a table id.
         /// </summary>
-        public readonly uint TypeId;
+        public uint TypeId { get; private set; }
         
         /// <summary>
         /// Gets the operation
         /// </summary>
-        public readonly uint Operation;
+        public uint Operation { get; private set; }
 
         /// <summary>
         /// Gets an <see cref="IEqualityComparer<HookKey>"/> that can be used
@@ -40,14 +40,7 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// Initializes
-        /// </summary>
-        /// <param name="typeId"></param>
-        /// <param name="operation"></param>
-        private HookKey(uint typeId, uint operation) {
-            TypeId = typeId;
-            Operation = operation;
+        private HookKey() {
         }
 
         /// <summary>
@@ -56,12 +49,17 @@ namespace Starcounter {
         /// <param name="tableId">The table id that identifies the type
         /// of the key.</param>
         /// <param name="operation">The operation the key identifies.</param>
+        /// <param name="keyToReuse">Optional key to reuse. If not given,
+        /// a new key is instantiated.</param>
         /// <returns>A new <see cref="HookKey"/> based on the given values.
         /// </returns>
-        public static HookKey FromTable(ushort tableId, uint operation) {
+        public static HookKey FromTable(ushort tableId, uint operation, HookKey keyToReuse = null) {
             // TODO: Change to INVALID_TABLE_ID constant.
             if (tableId == ushort.MaxValue) throw new ArgumentOutOfRangeException();
-            return new HookKey(tableId, operation);
+            var key = keyToReuse ?? new HookKey();
+            key.TypeId = tableId;
+            key.Operation = operation;
+            return key;
         }
     }
 }
