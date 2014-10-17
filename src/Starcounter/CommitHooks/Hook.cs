@@ -3,6 +3,11 @@ using System;
 using System.Collections.Generic;
 
 namespace Starcounter {
+    
+    internal static class HookLock {
+        public static readonly object Sync = new object();
+    }
+
     /// <summary>
     /// Principal entrypoint to the Commit Hook API for developers. Provides
     /// a set of methods allowing hooks to be registered.
@@ -31,7 +36,9 @@ namespace Starcounter {
             if (!typeof(T).IsAssignableFrom(t)) {
                 throw new ArgumentException();
             }
-            InstallHook(t, InvokableHook.Insert, AddDelegate(callback));
+            lock (HookLock.Sync) {
+                InstallHook(t, InvokableHook.Insert, AddDelegate(callback));
+            }
         }
 
         /// <summary>
@@ -54,7 +61,9 @@ namespace Starcounter {
             if (!typeof(T).IsAssignableFrom(t)) {
                 throw new ArgumentException();
             }
-            InstallHook(t, InvokableHook.Update, AddDelegate(callback));
+            lock (HookLock.Sync) {
+                InstallHook(t, InvokableHook.Update, AddDelegate(callback));
+            }
         }
 
         /// <summary>
@@ -63,8 +72,10 @@ namespace Starcounter {
         /// </summary>
         /// <param name="callback">The delegate to be invoked.</param>
         public static void OnDelete(Action<ulong> callback) {
-            var delegateRef = Hook<ulong>.AddDelegate(callback);
-            InstallHook(typeof(T), InvokableHook.Delete, delegateRef);
+            lock (HookLock.Sync) {
+                var delegateRef = Hook<ulong>.AddDelegate(callback);
+                InstallHook(typeof(T), InvokableHook.Delete, delegateRef);
+            }
         }
 
         static HookDelegateListEntry<T> AddDelegate(Action<T> callback) {
