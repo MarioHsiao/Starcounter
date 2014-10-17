@@ -99,11 +99,10 @@ namespace Starcounter {
             var key = HookKey.FromTable(tableInfo.table_id, operation);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
                 Db.Transaction(() => {
-                    // We must recalculate the full set of flags, i.e. check
-                    // what other types are present too.
-                    // TODO:
+                    var hookTypes = InvokableHook.GetInstalledOperations(key);
+                    hookTypes |= operation;
 
-                    result = sccoredb.star_set_commit_hooks(tableInfo.name_token, operation);
+                    result = sccoredb.star_set_commit_hooks(tableInfo.name_token, hookTypes);
                     if (result != 0) {
                         throw ErrorCode.ToException(result);
                     }
