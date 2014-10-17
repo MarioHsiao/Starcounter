@@ -28,13 +28,57 @@ namespace Starcounter
             for (; ; ) {
                 r = sccoredb.star_begin_commit(tran_locked_on_thread, out hiter, out viter);
                 if (r == 0) {
-                    // TODO: Handle triggers. Call abort commit on failure.
-                    // r = sccoredb.star_abort_commit(tran_locked_on_thread);
+                    if (hiter != 0) {
+                        ulong oid;
+                        ulong address;
+                        ushort tableId;
+                        ulong flags;
+                        TypeBinding binding;
+                        IObjectProxy proxy;
 
-                    r = sccoredb.star_complete_commit(
-                            tran_locked_on_thread, detach_and_free
-                            );
-                    if (r == 0) break;
+                        try {
+
+                            binding = null;
+                            proxy = null;
+                            while (true) {
+                                unsafe {
+                                    r = sccoredb.star_iterator_next(hiter, viter, &oid, &address, &tableId, &flags);
+                                }
+                                if (r != 0) throw ErrorCode.ToException(r);
+                                if (oid == 0) break;
+
+                                // Get TypeBinding and an uninitialized proxy to bind to.
+                                // The invoke all corresponding hooks.
+
+                                if (binding == null || binding.TableId != tableId) {
+                                    binding = TypeRepository.GetTypeBinding(tableId);
+                                    // TODO:
+                                    // Dont do this on deletes!
+                                    proxy = binding.NewInstanceUninit();
+                                }
+
+                                proxy.Bind(address, oid, binding);
+                                try {
+                                    // TODO:
+                                    // Invoke all installed hooks for the given key (table id
+                                    // + operation). Will shortly be redesigned.
+                                    // InvokableHook.InvokeInsert(binding.Name, proxy);
+                                } catch {
+                                    r = sccoredb.star_abort_commit(tran_locked_on_thread);
+                                    throw;
+                                }
+                            }
+                        } finally {
+                            sccoredb.star_iterator_free(hiter, viter);
+                        }
+                    }
+
+                    if (r == 0) {
+                        r = sccoredb.star_complete_commit(
+                                tran_locked_on_thread, detach_and_free
+                                );
+                        if (r == 0) break;
+                    }
                 }
 
 #if true
