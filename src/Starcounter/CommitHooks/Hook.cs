@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Starcounter {
@@ -82,6 +83,14 @@ namespace Starcounter {
 
             var key = t.FullName + operation;
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
+                var token = systables.star_get_token(t.FullName);
+                Db.Transaction(() => {
+                    var result = sccoredb.star_set_commit_hooks(token, 0x08);
+                    if (result != 0) {
+                        throw ErrorCode.ToException(result);
+                    }
+                });
+
                 installed = new List<InvokableHook>();
                 InvokableHook.HooksPerTrigger[key] = installed;
             }
