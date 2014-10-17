@@ -42,8 +42,9 @@ namespace Starcounter.SqlProcessor.Tests {
 
         static Exception[] exceptions = new Exception[Queries.Length];
 
+        internal static bool IsFromCMD = false;
+
         [Test]
-        [Category("LongRunning")]
         public static void MultithreadedTest() {
             Thread[] threads = new Thread[Queries.Length];
             for (int i = 0; i < Queries.Length; i++) {
@@ -52,18 +53,17 @@ namespace Starcounter.SqlProcessor.Tests {
             }
             for (int i = 0; i < Queries.Length; i++)
                 threads[i].Join();
-            for (int i = 0; i < Queries.Length; i++) {
-                Console.WriteLine(exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY]);
-                if ((uint)exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY] != SqlProcessorTests.ParseOK)
-                    Console.WriteLine(exceptions[i].Message);
-            }
-#if false
+            if (IsFromCMD)
+                for (int i = 0; i < Queries.Length; i++) {
+                    Console.WriteLine(exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    if ((uint)exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY] != SqlProcessorTests.ParseOK)
+                        Console.WriteLine(exceptions[i].Message);
+                }
             for (int i = 0; i < Queries.Length; i++) {
                 Assert.NotNull(exceptions[i], "Query " + i + ": " + Queries[i]);
                 Assert.AreEqual(SqlProcessorTests.ParseOK, exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY],
                     "Exception for query " + i + ": " + exceptions[i].Message);
             }
-#endif
 #if DEBUG
             Assert.AreEqual(0, SqlProcessor.scsql_dump_memory_leaks());
 #endif
