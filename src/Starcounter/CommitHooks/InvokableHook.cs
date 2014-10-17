@@ -34,45 +34,33 @@ namespace Starcounter {
 
         /// <summary>
         /// Invokes all hooks installed to watch when instances of 
-        /// <paramref name="typeName"/> are inserted.
+        /// <paramref name="key"/> are inserted.
         /// </summary>
-        /// <param name="typeName">The type name to look for.</param>
+        /// <param name="key">The key to look for.</param>
         /// <param name="proxy">The carry to pass to the delegate.</param>
-        internal static void InvokeInsert(string typeName, IObjectView proxy) {
-            var key = typeName + Insert;
+        internal static void InvokeInsert(HookKey key, IObjectView proxy) {
             InvokeAllWithKey(key, proxy);
         }
 
         /// <summary>
         /// Invokes all hooks installed to watch when instances of 
-        /// <paramref name="typeName"/> are updated.
+        /// <paramref name="key"/> are updated.
         /// </summary>
-        /// <param name="typeName">The type name to look for.</param>
+        /// <param name="key">The key to look for.</param>
         /// <param name="proxy">The carry to pass to the delegate.</param>
-        internal static void InvokeUpdate(string typeName, IObjectView proxy) {
-            var key = typeName + Update;
+        internal static void InvokeUpdate(HookKey key, IObjectView proxy) {
             InvokeAllWithKey(key, proxy);
         }
 
         /// <summary>
         /// Invokes all hooks installed to watch when instances of 
-        /// <paramref name="typeName"/> are deleted.
+        /// <paramref name="key"/> are deleted.
         /// </summary>
-        /// <param name="typeName">The type name to look for.</param>
+        /// <param name="key">The key to look for.</param>
         /// <param name="proxy">The carry in the form of an object ID
         /// to pass to the delegate.</param>
-        internal static void InvokeDelete(string typeName, ulong objectID) {
-            var key = typeName + Delete;
+        internal static void InvokeDelete(HookKey key, ulong objectID) {
             InvokeAllWithKey(key, objectID);
-        }
-
-        /// <summary>
-        /// Invokes every hook installed for a given key.
-        /// </summary>
-        /// <param name="key">The key whose hooks are to be invoked.</param>
-        /// <param name="instance">Carry to each hook.</param>
-        internal static void InvokeAllWithKey(string key, object instance) {
-            throw new System.NotSupportedException();
         }
 
         /// <summary>
