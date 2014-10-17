@@ -79,13 +79,20 @@ namespace Starcounter {
         }
 
         static void InstallHook(Type t, uint operation, InvokableHook entry) {
+            systables.STAR_TABLE_INFO tableInfo;
             List<InvokableHook> installed;
 
-            var key = t.FullName + operation;
+            var result = systables.star_get_table_info_by_name(t.FullName, out tableInfo);
+            if (result != 0) throw ErrorCode.ToException(result);
+
+            var key = HookKey.FromTable(tableInfo.table_id, operation);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
-                var token = systables.star_get_token(t.FullName);
                 Db.Transaction(() => {
-                    var result = sccoredb.star_set_commit_hooks(token, 0x08);
+                    // We must recalculate the full set of flags, i.e. check
+                    // what other types are present too.
+                    // TODO:
+
+                    result = sccoredb.star_set_commit_hooks(tableInfo.name_token, operation);
                     if (result != 0) {
                         throw ErrorCode.ToException(result);
                     }

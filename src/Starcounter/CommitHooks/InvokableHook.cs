@@ -26,7 +26,11 @@ namespace Starcounter {
         /// and operation to a set of hooks that are to be invoked when
         /// the corresponding commit occurs.
         /// </summary>
-        internal static Dictionary<string, List<InvokableHook>> HooksPerTrigger = new Dictionary<string, List<InvokableHook>>();
+        internal static Dictionary<HookKey, List<InvokableHook>> HooksPerTrigger;
+        
+        static InvokableHook() {
+            HooksPerTrigger = new Dictionary<HookKey, List<InvokableHook>>(HookKey.EqualityComparer);
+        }
 
         /// <summary>
         /// Invokes all hooks installed to watch when instances of 
@@ -68,6 +72,15 @@ namespace Starcounter {
         /// <param name="key">The key whose hooks are to be invoked.</param>
         /// <param name="instance">Carry to each hook.</param>
         internal static void InvokeAllWithKey(string key, object instance) {
+            throw new System.NotSupportedException();
+        }
+
+        /// <summary>
+        /// Invokes every hook installed for a given key.
+        /// </summary>
+        /// <param name="key">The key whose hooks are to be invoked.</param>
+        /// <param name="instance">Carry to each hook.</param>
+        internal static void InvokeAllWithKey(HookKey key, object instance) {
             List<InvokableHook> all;
             if (HooksPerTrigger.TryGetValue(key, out all)) {
                 foreach (var hook in all) {
