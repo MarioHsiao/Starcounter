@@ -33,6 +33,24 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns a mask with all operations / hook types installed for
+        /// the type given a <see cref="HookKey"/>.
+        /// </summary>
+        /// <param name="key">Key whose type we should gather installed
+        /// operations for.</param>
+        /// <returns>Mask with all hook types installed for the given type.
+        /// </returns>
+        internal static uint GetInstalledOperations(HookKey key) {
+            uint result = 0;
+            foreach (var installedKey in HooksPerTrigger.Keys) {
+                if (installedKey.TypeId == key.TypeId) {
+                    result |= installedKey.Operation;
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Invokes all hooks installed to watch when instances of 
         /// <paramref name="key"/> are inserted.
         /// </summary>
