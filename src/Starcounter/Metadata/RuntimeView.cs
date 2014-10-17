@@ -41,7 +41,7 @@ namespace Starcounter.Metadata {
         }
 
         //internal Table() : this(null) {
-        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //    DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
         public string UniqueIdentifierReversed {
@@ -105,7 +105,7 @@ namespace Starcounter.Metadata {
 
         public RawView(Uninitialized u) : base(u) { }
         internal RawView() : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
     }
 
@@ -150,7 +150,7 @@ namespace Starcounter.Metadata {
         
         internal ClrClass()
             : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
         public String AssemblyName {
@@ -209,7 +209,7 @@ namespace Starcounter.Internal.Metadata {
 
         //internal HostMaterializedTable()
         //    : this(null) {
-        //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //        DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
         public MaterializedTable MaterializedTable {
