@@ -131,11 +131,6 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_set_system_variable(string key, string value);
-
-        /// <summary>
-        /// </summary>
         public const uint SCCOREDB_LOAD_DATABASE = 0x00100000;
 
         /// <summary>
@@ -893,10 +888,13 @@ namespace Starcounter.Internal
 
         public const ushort STAR_KEY_COLUMN_NAME_TOKEN = 1;
         public const ushort STAR_DEFAULT_INDEX_NAME_TOKEN = 2;
+
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint star_configure(ulong key_column_name, ulong default_index_name, uint server_index);
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint star_configure(
+            ulong key_column_name, ulong default_index_name, ulong installation_id, string database_name, string temp_dir_path
+            );
     }
 
     /// <summary>
