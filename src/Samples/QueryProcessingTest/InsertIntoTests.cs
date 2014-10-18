@@ -6,15 +6,26 @@ namespace QueryProcessingTest {
     public static class InsertIntoTests {
         public static void TestValuesInsertIntoWebVisits() {
             HelpMethods.LogEvent("Test insert into statements with values on web visit data model");
-            UInt64 vId = (UInt64)Int64.MaxValue + 1;
+//            UInt64 vId = (UInt64)Int64.MaxValue + 1;
+#if true
+            // Find a record key that isn't in use.
+            //
+            // We need to do this before deletes since otherwise the key could
+            // be used by a deleted but not yet purged record.
+
+            UInt64 vId = 1000000;
+            Db.Transaction(delegate {
+                while (DbHelper.FromID(vId) != null) vId += 1000000;
+            });
+#endif
             Db.Transaction(delegate {
                 if (Db.SQL("select c from company c").First != null) {
                     WebPage w1 = Db.SQL<WebPage>("select w from webpage w where title = ?", "MyCompany, AboutUs").First;
                     w1.Delete();
                     foreach (Company c1 in Db.SQL<Company>("select c from company c")) {
                         foreach (Visit v1 in Db.SQL<Visit>("select v from visit v where company = ?", c1)) {
-                            if (v1.GetObjectNo() == vId)
-                                vId++;
+//                            if (v1.GetObjectNo() == vId)
+//                                vId++;
                             foreach (Impression imp in Db.SQL<Impression>("select i from impression i where visit = ?", v1))
                                 imp.Delete();
                             v1.Delete();
