@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
 
     internal static class ProgramCommands {
         internal const string Weave = "Weave";

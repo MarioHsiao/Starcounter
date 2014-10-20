@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     /// <summary>
     /// Governs the weaver file exclusion policy and support an API
     /// for the weaver to use to consult if a given file is to be

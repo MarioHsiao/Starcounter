@@ -17,7 +17,7 @@ using Starcounter.Internal.Weaver;
 using System.Text.RegularExpressions;
 using Error = Starcounter.Internal.Error;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
 
     /// <summary>
     /// Exposes the facade of the code weaver engine.
@@ -26,6 +26,14 @@ namespace Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
+
+        /// <summary>
+        /// Gets a reference to the currently executing code weaver.
+        /// </summary>
+        public static CodeWeaver Current {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// The name of the default output directory, utilized by the weaver
@@ -130,9 +138,9 @@ namespace Weaver {
         private string WeaverProjectFile;
 
         /// <summary>
-        /// The file manager used by the current weaver.
+        /// Gets the file manager used by the current weaver.
         /// </summary>
-        FileManager fileManager;
+        public FileManager FileManager { get; private set; }
 
         /// <summary>
         /// Holds a reference to the weaver cache we'll use when the weaver
@@ -155,7 +163,22 @@ namespace Weaver {
             }
         }
 
-        public bool Execute() {
+        /// <summary>
+        /// Executes the given weaver after first assigning it as the
+        /// weaver currently executing.
+        /// </summary>
+        /// <param name="weaver">The weaver to make current and execute.</param>
+        /// <returns>The result of the weaver.</returns>
+        public static bool ExecuteCurrent(CodeWeaver weaver) {
+            try {
+                CodeWeaver.Current = weaver;
+                return weaver.Execute();
+            } finally {
+                weaver = null;
+            }
+        }
+
+        bool Execute() {
             PostSharpObjectSettings postSharpSettings;
 
             if (SetupEngine() == false)
@@ -167,7 +190,7 @@ namespace Weaver {
                 return false;
             }
 
-            var fm = fileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
+            var fm = FileManager = FileManager.Open(InputDirectory, OutputDirectory, Cache);
 
             if (fm.OutdatedAssemblies.Count == 0) {
                 Program.WriteInformation("No assemblies needed to be weaved.");
@@ -429,7 +452,7 @@ namespace Weaver {
             // but to keep follow it's dependencies, return a project with
             // no tasks instead (like "ScIgnore.psproj").
 
-            if (!fileManager.Contains(file)) {
+            if (!FileManager.Contains(file)) {
                 return null;
             }
 

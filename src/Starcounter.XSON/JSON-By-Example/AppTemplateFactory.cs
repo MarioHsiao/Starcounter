@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using Starcounter;
 using Starcounter.Templates;
+using System.Reflection;
 
 namespace Starcounter.Internal.JsonTemplate
 {
@@ -261,6 +262,8 @@ namespace Starcounter.Internal.JsonTemplate
         where OT : Json, new()
         where OTT : TObject, new() 
     {
+        private static string[] ILLEGAL_PROPERTIES = { "Parent", "Data" };
+
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
         /// and is not used by an ReplaceableTemplate an exception is thrown.
@@ -403,6 +406,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (parent is MetaTemplate)
             {
                 ((MetaTemplate<OT,OTT>)parent).Set(name, value);
@@ -440,6 +445,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TLong() { TemplateName = name };
@@ -471,6 +478,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (!(parent is MetaTemplate<OT,OTT>))
             {
                 newTemplate = new TDecimal() { TemplateName = name };
@@ -501,6 +510,8 @@ namespace Starcounter.Internal.JsonTemplate
         {
             OTT appTemplate;
             Template newTemplate;
+
+            VerifyPropertyName(dotNetName, debugInfo);
 
             if (!(parent is MetaTemplate<OT,OTT>))
             {
@@ -534,6 +545,8 @@ namespace Starcounter.Internal.JsonTemplate
         {
             OTT appTemplate;
             Template newTemplate;
+
+            VerifyPropertyName(dotNetName, debugInfo);
 
             if (parent is MetaTemplate<OT,OTT>)
             {
@@ -582,6 +595,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             if (parent is MetaTemplate<OT, OTT>) {
                 ((MetaTemplate<OT,OTT>)parent).Set(name, value);
                 return null;
@@ -624,6 +639,8 @@ namespace Starcounter.Internal.JsonTemplate
             OTT appTemplate;
             Template newTemplate;
 
+            VerifyPropertyName(dotNetName, debugInfo);
+
             newTemplate = new TArray<OT>() { TemplateName = name };
             appTemplate = (OTT)parent;
             newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
@@ -660,6 +677,8 @@ namespace Starcounter.Internal.JsonTemplate
         object ITemplateFactory.AddAppProperty(object parent, string name, string dotNetName, DebugInfo debugInfo)
         {
             Template newTemplate;
+
+            VerifyPropertyName(dotNetName, debugInfo);
 
             newTemplate = new OTT();
             if (parent != null)
@@ -786,6 +805,20 @@ namespace Starcounter.Internal.JsonTemplate
         {
             ((TValue)template).Bind = path;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="debugInfo"></param>
+        private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
+            for (int i = 0; i < ILLEGAL_PROPERTIES.Length; i++) {
+                if (propertyName.Equals(ILLEGAL_PROPERTIES[i])) {
+                    ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
+                    break;
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -793,6 +826,17 @@ namespace Starcounter.Internal.JsonTemplate
     /// </summary>
     internal static class ErrorHelper
     {
+        internal static void RaisePropertyExistsError(string propertyName, DebugInfo debugInfo) {
+            Error.CompileError.Raise<Object>(
+                debugInfo.FileName
+                + " already contains a definition for '"
+                + propertyName
+                + "'",
+                new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
+                debugInfo.FileName
+            );
+        }
+
         /// <summary>
         /// Raises the wrong value for property error.
         /// </summary>

@@ -8,20 +8,32 @@ namespace Starcounter.Internal.Weaver {
     /// </summary>
     internal class DatabaseTypeConfiguration {
         static DatabaseTypeConfiguration empty = new DatabaseTypeConfiguration();
-        const string databaseClassConfigFileName = "db.types";
+        
+        public const string TypeConfigFileName = "db.types";
 
         List<string> configuredNamespaces = new List<string>();
+
+        /// <summary>
+        /// Gets the path to the configuration file used to populate the
+        /// current configuration, or null if no such file was used.
+        /// </summary>
+        public string FilePath {
+            get;
+            private set;
+        }
 
         private DatabaseTypeConfiguration() {
         }
 
         public static DatabaseTypeConfiguration Open(string directory) {
-            var configFile = Path.Combine(directory, databaseClassConfigFileName);
+            var configFile = Path.Combine(directory, TypeConfigFileName);
             if (!File.Exists(configFile)) {
                 return empty;
             }
 
             var config = new DatabaseTypeConfiguration();
+            config.FilePath = configFile;
+
             var content = File.ReadAllLines(configFile);
             foreach (var line in content) {
                 var trimmed = line.Trim();
