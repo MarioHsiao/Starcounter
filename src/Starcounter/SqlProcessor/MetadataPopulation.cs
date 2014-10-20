@@ -65,7 +65,7 @@ namespace Starcounter.SqlProcessor {
                             } else {
                                 Starcounter.Internal.Metadata.MaterializedColumn matCol = 
                                     Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
-                                    "select c from materializedcolumn c where table = ? and name = ?",
+                                    "select c from materializedcolumn c where c.table = ? and name = ?",
                                     theView.MaterializedTable, propDef.ColumnName).First;
                                 Column col = new Column {
                                     Table = theView,
@@ -155,7 +155,7 @@ namespace Starcounter.SqlProcessor {
             for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
                 ColumnDef col = typeDef.TableDef.ColumnDefs[i];
                 Starcounter.Internal.Metadata.MaterializedColumn matCol = Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
-                    "select c from materializedcolumn c where name = ? and table = ?",
+                    "select c from materializedcolumn c where c.name = ? and c.table = ?",
                     col.Name, thisView.MaterializedTable).First;
                 Debug.Assert(matCol != null);
                 Column newCol = new Column {
