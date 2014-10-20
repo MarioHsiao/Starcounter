@@ -2,6 +2,7 @@
 using System;
 using System.Text;
 using System.Windows;
+using System.Windows.Input;
 
 namespace PickFileDialog {
 
@@ -17,10 +18,21 @@ namespace PickFileDialog {
         /// </summary>
         public App() {
 
+            this.ShutdownMode = System.Windows.ShutdownMode.OnExplicitShutdown;
+
+            // Make window ontop and hide it
+            Window win = new Window() { Width = 0, Height = 0 };
+            win.ShowInTaskbar = false;
+            win.Topmost = true;
+            win.Visibility = Visibility.Collapsed;
+            win.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
+            win.Show();
+            win.Hide();
+
             string[] args = Environment.GetCommandLineArgs();
 
             OpenFileDialog openFileDialog = new OpenFileDialog();
-
             openFileDialog.Filter = "Application files (*.exe)|*.exe|All files (*.*)|*.*";
             openFileDialog.FilterIndex = 1;
             openFileDialog.RestoreDirectory = true;
@@ -34,7 +46,7 @@ namespace PickFileDialog {
 
             string responsebody = "[";
             int exitCode = 1;
-            if (openFileDialog.ShowDialog() == true) {
+            if (openFileDialog.ShowDialog(win) == true) {
 
                 int cnt = 0;
                 foreach (string filename in openFileDialog.FileNames) {
