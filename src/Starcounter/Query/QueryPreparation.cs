@@ -23,15 +23,14 @@ namespace Starcounter.Query {
                 return null; // The query was executed
 #endif // !PROLOG_ONLY
 #if BISON_ONLY
-            if (nativeException != null)
+            else
                 throw nativeException;
-            Debug.Assert(false); // Should not be reached
 #endif
+            // Call to Prolog parser and type checker
+#if !BISON_ONLY
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
             Exception prologException = null;
-            // Call to Prolog parser and type checker
-#if !BISON_ONLY
             // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
@@ -65,7 +64,6 @@ namespace Starcounter.Query {
             // Transfer answer terms into pre-optimized structures
             Debug.Assert(prologException == null);
             optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
-#endif
             // Call to optimizer of Prolog result
             if (optArgsProlog != null)
                 prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
@@ -80,6 +78,7 @@ namespace Starcounter.Query {
             }
             MatchEnumeratorResultAndExpectedType<T>(newEnum);
             return newEnum;
+#endif
         }
 
         internal static void MatchEnumeratorResultAndExpectedType<T>(IExecutionEnumerator execEnum) {
