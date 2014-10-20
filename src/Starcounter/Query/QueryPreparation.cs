@@ -51,15 +51,18 @@ namespace Starcounter.Query {
             } catch (Exception e) {
                 prologException = e;
             }
-            if (prologException != null) {
+            Exception finalException = null;
+            if (prologException != null)
+                finalException = prologException;
 #if !PROLOG_ONLY
-                if (nativeException != null)
-                    if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED || 
-                        (uint?)prologException.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRQUERYSTRINGTOOLONG)
-                        throw nativeException;
+            if (nativeException != null)
+                if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED 
+                    //|| (uint?)prologException.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRQUERYSTRINGTOOLONG
+                    )
+                    finalException = nativeException;
 #endif //!PROLOG_ONLY
-                throw prologException;
-            }
+            if (finalException != null)
+                throw finalException;
 
             // Transfer answer terms into pre-optimized structures
             Debug.Assert(prologException == null);
