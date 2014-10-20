@@ -1,6 +1,7 @@
 
 #include "format.h"
 
+#ifdef WIN32
 VOID __stdcall FormatStarcounterErrorMessage(
 	DWORD errorCode,
 	LPWSTR outputBuffer, 
@@ -43,3 +44,15 @@ VOID __stdcall FormatStarcounterErrorMessage(
 	outputBuffer += dr;
 	*outputBuffer = 0;
 }
+#else
+extern "C" {
+void FormatStarcounterErrorMessage(
+	unsigned errorCode,
+	char* outputBuffer, 
+	size_t outputBufferLength
+) {
+  return;
+}
+}
+#endif
+
