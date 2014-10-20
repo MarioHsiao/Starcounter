@@ -28,12 +28,12 @@ EXIT /b 1
 
 :: start servers
 START scipcmonitor.exe PERSONAL .db.output
-START scdata.exe SQLTEST 0 SqlTest .db.output
+START scdata.exe 0 SqlTest .db.output SQLTEST .db .db
 START scdblog.exe SqlTest SqlTest .db.output
 START 32bitComponents\scsqlparser.exe 8066
 :: start the program
 
-CALL sccode.exe SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
+CALL sccode.exe SQLTEST --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
 IF %ERRORLEVEL% NEQ 0 (
 :: clean up and exit code on fail
 CMD /C kill_all.bat 2> NUL

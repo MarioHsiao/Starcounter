@@ -513,24 +513,15 @@ namespace StarcounterInternal.Bootstrap {
         private unsafe void ConfigureDatabase(Configuration c) {
             uint e;
 
-            e = sccoredb.star_set_system_variable("NAME", c.Name);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.star_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.star_set_system_variable("TLOGDIR", c.DatabaseDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.star_set_system_variable("TEMPDIR", c.TempDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
             var callbacks = new sccoredb.STAR_SYSTEM_CALLBACKS();
             orange.orange_configure_database_callbacks(ref callbacks);
             e = sccoredb.star_set_system_callbacks(&callbacks);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.star_configure(sccoredb.STAR_KEY_COLUMN_NAME_TOKEN, sccoredb.STAR_DEFAULT_INDEX_NAME_TOKEN, 0);
+            e = sccoredb.star_configure(
+                sccoredb.STAR_KEY_COLUMN_NAME_TOKEN, sccoredb.STAR_DEFAULT_INDEX_NAME_TOKEN, 0,
+                c.Name, c.TempDirectory
+                );
             if (e != 0) throw ErrorCode.ToException(e);
         }
 

@@ -206,11 +206,6 @@ namespace Starcounter.Internal
         public static class BootstrapOptionNames
         {
             /// <summary>
-            /// Specifies the database directory to use.
-            /// </summary>
-            public const string DatabaseDir = "DatabaseDir";
-
-            /// <summary>
             /// Specifies the output directory to use.
             /// </summary>
             public const string OutputDir = "OutputDir";

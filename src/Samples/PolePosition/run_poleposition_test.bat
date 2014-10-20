@@ -31,7 +31,7 @@ START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 
 :: Starting database memory management process.
-START CMD /C "scdata.exe %DB_NAME% 0 %DB_NAME% %DB_OUT_DIR%"
+START CMD /C "scdata.exe 0 %DB_NAME% %DB_OUT_DIR%" %DB_NAME% %DB_DIR% %DB_DIR%
 
 :: Starting log writer process.
 START CMD /C "scdblog.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"
@@ -43,4 +43,4 @@ START CMD /C "32bitComponents\scsqlparser.exe 8066"
 ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
-sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
+sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
