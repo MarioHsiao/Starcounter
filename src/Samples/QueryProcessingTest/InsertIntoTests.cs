@@ -16,7 +16,6 @@ namespace QueryProcessingTest {
             Db.Transaction(delegate {
                 while (DbHelper.FromID(vId) != null) vId += 1000000;
             });
-            vId += 10;
       
             Db.Transaction(delegate {
                 if (Db.SQL("select c from company c").First != null) {
