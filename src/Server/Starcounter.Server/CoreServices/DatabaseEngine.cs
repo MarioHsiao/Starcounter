@@ -560,6 +560,7 @@ namespace Starcounter.Server {
             arguments.Append('\"');
             arguments.Append(database.Server.Configuration.LogDirectory.TrimEnd('\\'));
             arguments.Append('\"');
+            arguments.Append(' ');
 
             arguments.Append(database.Name.ToUpperInvariant());
             arguments.Append(' ');
@@ -567,6 +568,7 @@ namespace Starcounter.Server {
             arguments.Append('\"');
             arguments.Append(database.Configuration.Runtime.ImageDirectory.TrimEnd('\\'));
             arguments.Append('\"');
+            arguments.Append(' ');
 
             arguments.Append('\"');
             arguments.Append(database.Configuration.Runtime.TransactionLogDirectory.TrimEnd('\\'));
