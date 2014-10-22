@@ -250,6 +250,7 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(ParseOK, "select * from \"table\" t, materializedtable m where t.name = 'Person' and t.materializedtable = m");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select * from table where name = 'Person'");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "select * from table t, materializedtable m where t.name = 'Person' and t.materializedtable = m");
+            ProcessQuery(ParseOK, "select firstname || lastname");
             // Fails on _SC_ASSERT_DEBUG in native SQL processor, since not meta-data tables are created
             //ProcessQuery(1004, "INSERT INTO Visit(Id, Company, Start, End, " +
             //    "Spent, PageViewCount, Ip, Referer, UserAgent, TrackingCookie, " +
