@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Advanced;
 using Codeplex.Data;
+using System.Net;
 
 namespace NetworkIoTestApp
 {
@@ -506,7 +507,17 @@ namespace NetworkIoTestApp
                         return new Response() { Body = String.Format("Raw port counters: bytes received={0}, disconnects={1}.", e, d) };
                     });
 
-                    GatewayHandlers.RegisterRawPortHandler(8585, StarcounterEnvironment.AppName, OnRawPortEcho, out handler_id);
+                    GatewayHandlers.RegisterTcpPortHandler(8585, StarcounterEnvironment.AppName, OnRawPortEcho, out handler_id);
+
+                    GatewayHandlers.RegisterUdpPortHandler(8787, StarcounterEnvironment.AppName, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
+
+                        String msg = UTF8Encoding.UTF8.GetString(datagram);
+
+                        //Console.WriteLine(msg);
+
+                        UdpSocket.Send(clientIp, clientPort, 8787, msg);
+
+                    }, out handler_id);
 
                     Handle.GET("/exc1", (Request req) =>
                     {

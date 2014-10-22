@@ -81,7 +81,73 @@ uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
 }
 
 // General sockets handler.
-uint32_t AppsPortProcessData(
+uint32_t UdpPortProcessData(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id,
+    bool* is_handled)
+{
+    uint32_t err_code;
+
+    // Checking if data goes to user code.
+    if (sd->get_to_database_direction_flag())
+    {
+        // Its a raw socket protocol.
+        sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP);
+
+        // Resetting user data parameters.
+        sd->ResetUserDataOffset();
+
+        // Setting matched URI index.
+        sd->SetDestDbIndex(hl->get_db_index());
+
+        // Reordering port bytes to host order.
+        sd->UdpChangePortByteOrder();
+
+        // Posting cloning receive since all data is accumulated.
+        err_code = sd->CloneToReceive(gw);
+        if (err_code)
+            return err_code;
+
+        // Push chunk to corresponding channel/scheduler.
+        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+        if (err_code)
+            return err_code;
+
+        // Setting handled flag.
+        *is_handled = true;
+
+        return 0;
+    }
+    // Checking if data goes from user code.
+    else
+    {
+        // Reordering port bytes.
+        sd->UdpChangePortByteOrder();
+
+        // Reordering IPv4 bytes.
+        sd->UdpChangeIPv4ByteOrder();
+
+        // Prepare buffer to send outside.
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+
+        // Sending data.
+        err_code = gw->Send(sd);
+        if (err_code)
+            return err_code;
+
+        // Setting handled flag.
+        *is_handled = true;
+
+        return 0;
+    }
+
+    GW_ASSERT(false);
+}
+
+// General sockets handler.
+uint32_t TcpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
@@ -117,7 +183,6 @@ uint32_t AppsPortProcessData(
         sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
 
         // Resetting user data parameters.
-        sd->get_accum_buf()->set_chunk_num_available_bytes(sd->get_accum_buf()->get_accum_len_bytes());
         sd->ResetUserDataOffset();
 
         // Setting matched URI index.

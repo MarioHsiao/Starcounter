@@ -46,7 +46,7 @@ void SocketDataChunk::GenerateUniqueSocketInfoIds(GatewayWorker* gw)
 }
 
 // Start receiving on socket.
-uint32_t SocketDataChunk::Receive(GatewayWorker *gw, uint32_t *num_bytes)
+uint32_t SocketDataChunk::ReceiveTcp(GatewayWorker *gw, uint32_t *num_bytes)
 {
     // Checking correct unique socket.
     GW_ASSERT(true == CompareUniqueSocketId());
@@ -55,12 +55,14 @@ uint32_t SocketDataChunk::Receive(GatewayWorker *gw, uint32_t *num_bytes)
 
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-    DWORD flags = 0;
-    return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, &flags, &ovl_, NULL);
+    DWORD* flags = (DWORD*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD));
+    *flags = 0;
+
+    return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, &ovl_, NULL);
 }
 
 // Start sending on socket.
-uint32_t SocketDataChunk::Send(GatewayWorker* gw, uint32_t *numBytes)
+uint32_t SocketDataChunk::SendTcp(GatewayWorker* gw, uint32_t *numBytes)
 {
     // Checking correct unique socket.
     GW_ASSERT(true == CompareUniqueSocketId());
@@ -72,6 +74,36 @@ uint32_t SocketDataChunk::Send(GatewayWorker* gw, uint32_t *numBytes)
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
     return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+}
+
+// Start receiving on socket.
+uint32_t SocketDataChunk::ReceiveUdp(GatewayWorker *gw, uint32_t *num_bytes)
+{
+    set_type_of_network_oper(RECEIVE_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    DWORD* flags = (DWORD*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD));
+    *flags = 0;
+
+    int32_t* from_length = (int32_t*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD) - sizeof(int32_t));
+    *from_length = sizeof(SOCKADDR);
+
+    return WSARecvFrom(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, (SOCKADDR*) accept_or_params_or_temp_data_, from_length, &ovl_, NULL);
+}
+
+// Start sending on UDP socket.
+uint32_t SocketDataChunk::SendUdp(GatewayWorker* gw, uint32_t *numBytes)
+{
+    GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
+
+    set_type_of_network_oper(SEND_SOCKET_OPER);
+
+    memset(&ovl_, 0, OVERLAPPED_SIZE);
+
+    SOCKADDR* sockaddr = (SOCKADDR*) accept_or_params_or_temp_data_;
+
+    return WSASendTo(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, sockaddr, sizeof(SOCKADDR), &ovl_, NULL);
 }
 
 // Start accepting on socket.
@@ -201,6 +233,29 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
     {
         SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
     }
+}
+
+// Pre-init UDP socket.
+uint32_t SocketDataChunk::PreInitUdpSocket(GatewayWorker* gw)
+{
+    // Getting port from which we should send the UDP datagram.
+    uint16_t from_port = *(uint16_t*)((uint8_t*)&accept_or_params_or_temp_data_ + sizeof(sockaddr_in));
+
+    // Trying to find server port from the port number.
+    ServerPort* sp = g_gateway.FindServerPort(from_port);
+
+    // Checking that port exists and its a UDP port.
+    if ((NULL == sp) || (!sp->is_udp()))
+        return SCERRGWWRONGUDPFROMPORT;
+
+    // Getting corresponding socket info.
+    ScSocketInfoStruct* s = sp->GetUdpSocketInfo(gw->get_worker_id());
+
+    // Setting found socket info as reference.
+    set_socket_info_index(gw, s->read_only_index_);
+    set_unique_socket_id(s->unique_socket_id_);
+
+    return 0;
 }
 
 void SocketDataChunk::set_socket_info_reference(GatewayWorker* gw)
@@ -387,6 +442,7 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
         bytes_left = ipc_sd->get_user_data_length_bytes() - data_bytes_offset;
 
     // Checking that number of left bytes in linked chunks is correct.
+    GW_ASSERT(bytes_left >= 0);
     GW_ASSERT(bytes_left <= MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS);
 
     // Copying first chunk.

@@ -85,7 +85,11 @@ uint32_t PortAggregator(
                 }
                 
                 // Getting new socket index.
-                ags->socket_info_index_ = gw->ObtainFreeSocketIndex(INVALID_SOCKET, port_index, false);
+                ags->socket_info_index_ = gw->ObtainFreeSocketIndex(
+                    INVALID_SOCKET,
+                    port_index,
+                    MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+                    false);
 
                 // Checking if we can't obtain new socket index.
                 if (INVALID_SOCKET_INDEX == (ags->socket_info_index_)) {

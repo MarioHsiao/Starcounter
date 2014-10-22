@@ -121,7 +121,7 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_NUM_CLONE_BYTES = 176;
         public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 100;
         public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = 144;
-        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 112;
+        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 140;
         public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 32;
         public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 56;
         public const int SOCKET_DATA_OFFSET_WS_OPCODE = 159;
@@ -129,6 +129,10 @@ namespace Starcounter.Internal
         public const int CHUNK_OFFSET_WS_PAYLOAD_LEN = 184;
         public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 188;
         public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 176;
+        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR = 176;
+        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR + 4;
+        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR + 2;
+        public const int SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR + 16;
 
         // Invalid WebSocket channel ID.
         public const int INVALID_WS_CHANNEL_ID = 0;
@@ -248,10 +252,12 @@ namespace Starcounter.Internal
         public enum NetworkProtocolType
         {
             PROTOCOL_RAW_PORT,
-            PROTOCOL_SUB_PORT,
             PROTOCOL_HTTP1,
             PROTOCOL_WEBSOCKETS,
             PROTOCOL_HTTP2,
+            PROTOCOL_TCP,
+            PROTOCOL_UDP,
+            PROTOCOL_UNKNOWN,
             PROTOCOL_COUNT
         };
 

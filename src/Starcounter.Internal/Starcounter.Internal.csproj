@@ -121,6 +121,7 @@
     <Compile Include="StringListExtensions.cs" />
     <Compile Include="TestLogger.cs" />
     <Compile Include="TreeHelper.cs" />
+    <Compile Include="UdpSocket.cs" />
     <Compile Include="UnsupportedMimeTypeException.cs" />
     <Compile Include="X6Decimal.cs" />
   </ItemGroup>
