@@ -55,6 +55,24 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
         [Ignore("Requires fixing FTJ serializer")]
+        public static void BenchmarkFTJSerializerWithCompiledJson() {
+            int numberOfTimes = 1000000;
+
+            Console.WriteLine("Benchmarking ftj serializer (compiled json), repeats: " + numberOfTimes);
+            Console.WriteLine(AddSpaces("File", COL1) + AddSpaces("Type", COL2) + AddSpaces("Serialize", COL3) + "Deserialize");
+            Console.WriteLine(AddChars("", '-', LINE_LENGTH));
+
+            RunFTJBenchmark("jsstyle.json", jsstyle.DefaultTemplate, numberOfTimes, false);
+            RunFTJBenchmark("person.json", person.DefaultTemplate, numberOfTimes, false);
+            RunFTJBenchmark("supersimple.json", supersimple.DefaultTemplate, numberOfTimes, false);
+            RunFTJBenchmark("simple.json", simple.DefaultTemplate, numberOfTimes, false);
+            RunFTJBenchmark("TestMessage.json", TestMessage.DefaultTemplate, numberOfTimes, false);
+            RunFTJBenchmark("PlayerAndAccounts", PlayerAndAccounts.DefaultTemplate, numberOfTimes, false);
+        }
+
+        [Test]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
+        [Ignore("Requires fixing FTJ serializer")]
         public static void BenchmarkFTJCodegenSerializer() {
             int numberOfTimes = 1000000;
 
@@ -68,6 +86,24 @@ namespace Starcounter.Internal.XSON.Tests {
             RunFTJBenchmark("simple.json", File.ReadAllText("Json\\simple.json"), numberOfTimes, true);
             RunFTJBenchmark("TestMessage.json", File.ReadAllText("Json\\TestMessage.json"), numberOfTimes, true);
             RunFTJBenchmark("PlayerAndAccounts", File.ReadAllText("Json\\PlayerAndAccounts.json"), numberOfTimes, true);
+        }
+
+        [Test]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
+        [Ignore("Requires fixing FTJ serializer")]
+        public static void BenchmarkFTJCodegenSerializerWithCompiledJson() {
+            int numberOfTimes = 1000000;
+
+            Console.WriteLine("Benchmarking ftj serializer (compiled json), repeats: " + numberOfTimes);
+            Console.WriteLine(AddSpaces("File", COL1) + AddSpaces("Type", COL2) + AddSpaces("Serialize", COL3) + "Deserialize");
+            Console.WriteLine(AddChars("", '-', LINE_LENGTH));
+
+            RunFTJBenchmark("jsstyle.json", jsstyle.DefaultTemplate, numberOfTimes, true);
+            RunFTJBenchmark("person.json", person.DefaultTemplate, numberOfTimes, true);
+            RunFTJBenchmark("supersimple.json", supersimple.DefaultTemplate, numberOfTimes, true);
+            RunFTJBenchmark("simple.json", simple.DefaultTemplate, numberOfTimes, true);
+            RunFTJBenchmark("TestMessage.json", TestMessage.DefaultTemplate, numberOfTimes, true);
+            RunFTJBenchmark("PlayerAndAccounts", PlayerAndAccounts.DefaultTemplate, numberOfTimes, true);
         }
 
         [Test]
@@ -89,6 +125,23 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
+        public static void BenchmarkStandardJsonSerializerWithCompiledJson() {
+            int numberOfTimes = 1000000;
+
+            Console.WriteLine("Benchmarking standard serializer (compiled json), repeats: " + numberOfTimes);
+            Console.WriteLine(AddSpaces("File", COL1) + AddSpaces("Type", COL2) + AddSpaces("Serialize", COL3) + "Deserialize");
+            Console.WriteLine(AddChars("", '-', LINE_LENGTH));
+
+            RunStandardJsonBenchmark("jsstyle.json", jsstyle.DefaultTemplate, numberOfTimes, false);
+            RunStandardJsonBenchmark("person.json", person.DefaultTemplate, numberOfTimes, false);
+            RunStandardJsonBenchmark("supersimple.json", supersimple.DefaultTemplate, numberOfTimes, false);
+            RunStandardJsonBenchmark("simple.json", simple.DefaultTemplate, numberOfTimes, false);
+            RunStandardJsonBenchmark("TestMessage.json", TestMessage.DefaultTemplate, numberOfTimes, false);
+            RunStandardJsonBenchmark("PlayerAndAccounts", PlayerAndAccounts.DefaultTemplate, numberOfTimes, false);
+        }
+
+        [Test]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
         public static void BenchmarkStandardCodegenJsonSerializer() {
             int numberOfTimes = 1000000;
 
@@ -106,6 +159,23 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
+        public static void BenchmarkStandardCodegenJsonSerializerWithCompiledJson() {
+            int numberOfTimes = 1000000;
+
+            Console.WriteLine("Benchmarking standard serializer, repeats: " + numberOfTimes);
+            Console.WriteLine(AddSpaces("File", COL1) + AddSpaces("Type", COL2) + AddSpaces("Serialize", COL3) + "Deserialize");
+            Console.WriteLine(AddChars("", '-', LINE_LENGTH));
+
+            RunStandardJsonBenchmark("jsstyle.json", jsstyle.DefaultTemplate, numberOfTimes, true);
+            RunStandardJsonBenchmark("person.json", person.DefaultTemplate, numberOfTimes, true);
+            RunStandardJsonBenchmark("supersimple.json", supersimple.DefaultTemplate, numberOfTimes, true);
+            RunStandardJsonBenchmark("simple.json", simple.DefaultTemplate, numberOfTimes, true);
+            RunStandardJsonBenchmark("TestMessage.json", TestMessage.DefaultTemplate, numberOfTimes, true);
+            RunStandardJsonBenchmark("PlayerAndAccounts", PlayerAndAccounts.DefaultTemplate, numberOfTimes, true);
+        }
+
+        [Test]
+        [Category("LongRunning"), Timeout(5 * 60000)] // timeout 5 minutes
         public static void BenchmarkAllSerializers() {
             int numberOfTimes = 1000000;
 
@@ -117,7 +187,7 @@ namespace Starcounter.Internal.XSON.Tests {
             RunFTJBenchmark("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), numberOfTimes, true);
             RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), numberOfTimes, false);
             RunStandardJsonBenchmark("jsstyle.json", File.ReadAllText("Json\\jsstyle.json"), numberOfTimes, true);
-
+            
             Console.WriteLine();
 
             RunFTJBenchmark("person.json", File.ReadAllText("Json\\person.json"), numberOfTimes, false);
@@ -155,6 +225,11 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         private static void RunFTJBenchmark(string name, string json, int numberOfTimes, bool useCodegen) {
+            TObject tObj = Helper.CreateJsonTemplateFromContent(name, json);
+            RunFTJBenchmark(name, tObj, numberOfTimes, useCodegen);
+        }
+
+        private static void RunFTJBenchmark(string name, TObject tObj, int numberOfTimes, bool useCodegen) {
             return;
             // TODO: Rewrite FTJ serializer.
             /*
@@ -216,26 +291,21 @@ namespace Starcounter.Internal.XSON.Tests {
             */
         }
 
-        private static void RunStandardJsonBenchmark(string name, string json, int numberOfTimes, bool useCodegen, TObject template = null) {
+        private static void RunStandardJsonBenchmark(string name, string json, int numberOfTimes, bool useCodegen) {
+            TObject tObj = Helper.CreateJsonTemplateFromContent(name, json);
+            RunStandardJsonBenchmark(name, tObj, numberOfTimes, useCodegen);
+        }
+
+        private static void RunStandardJsonBenchmark(string name, TObject tObj, int numberOfTimes, bool useCodegen) {
             byte[] jsonArr = null;
             int size = 0;
-            TObject tObj;
             Json jsonInst;
             DateTime start;
             DateTime stop;
 
             TObject.UseCodegeneratedSerializer = false;
 
-            if (template == null) {
-                tObj = Helper.CreateJsonTemplateFromContent(name, json);
-            } else {
-                tObj = template;
-            }
-
             jsonInst = (Json)tObj.CreateInstance();
-
-            // using standard json serializer to populate object with values.
-            jsonInst.PopulateFromJson(json);
             
             TObject.UseCodegeneratedSerializer = useCodegen;
             TObject.DontCreateSerializerInBackground = true;

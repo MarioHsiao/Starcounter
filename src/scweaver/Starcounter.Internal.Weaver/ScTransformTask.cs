@@ -227,12 +227,13 @@ namespace Starcounter.Internal.Weaver {
             if (_starcounterAssemblyReference == null) {
                 // No reference to Starcounter. We don't need to transform anything.
                 // Lets skip the rest of the code.
-
-                ScMessageSource.Write(SeverityType.Info, "SCINF03", new Object[] { _module.Name });
+                ScTransformTrace.Instance.WriteLine(
+                    "Assembly {0} does not contain any reference to Starcounter. Skipping transformation.", _module.Name);
                 return true;
             }
 
-            ScMessageSource.Write(SeverityType.ImportantInfo, "SCINF02", new Object[] { _module.Name });
+            ScTransformTrace.Instance.WriteLine("Transforming assembly {0}.", _module.Name);
+
             Initialize();
             
             var assemblySpecification = new AssemblySpecificationEmit(_module);
@@ -241,7 +242,7 @@ namespace Starcounter.Internal.Weaver {
             // Process database classes defined in the current assembly.
 
             foreach (DatabaseClass dbc in analysisTask.DatabaseClassesInCurrentModule) {
-                ScTransformTrace.Instance.WriteLine("Transforming {0}.", dbc);
+                ScTransformTrace.Instance.WriteLine("Transforming class {0}.", dbc);
                 typeDef = (TypeDefDeclaration)_module.FindType(dbc.Name, BindingOptions.OnlyExisting);
 
                 // Transformations specific to entity classes.
@@ -914,6 +915,7 @@ namespace Starcounter.Internal.Weaver {
                 _typeBindingType
                 );
             insertionPoint.Parameters.Add(paramDecl);
+            var typeBindingParameter = paramDecl;
 
             paramDecl = new ParameterDeclaration(
                 insertionPoint.Parameters.Count,
@@ -935,6 +937,9 @@ namespace Starcounter.Internal.Weaver {
 
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
             _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
+            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+            _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, typeBindingParameter);
+            _writer.EmitInstructionField(OpCodeNumber.Stfld, typeSpecification.ThisBinding);
             _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, tableIdParameter);
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
             _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisIdentity);
