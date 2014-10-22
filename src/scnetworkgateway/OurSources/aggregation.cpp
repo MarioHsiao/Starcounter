@@ -272,11 +272,14 @@ uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCode
     socket_index_type aggr_socket_info_index = sd->GetAggregationSocketIndex();
     random_salt_type aggr_unique_socket_id = sd->GetAggregationSocketUniqueId();
 
-    uint32_t total_num_bytes = sd->get_user_data_length_bytes() + AggregationStructSizeBytes;
+    // NOTE: Since we are sending, we need to get number of available bytes instead of user data length.
+    int32_t data_len_bytes = sd->get_accum_buf()->get_chunk_num_available_bytes();
+
+    uint32_t total_num_bytes = data_len_bytes + AggregationStructSizeBytes;
 
     AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
     aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
-    aggr_struct->size_bytes_ = sd->get_user_data_length_bytes();
+    aggr_struct->size_bytes_ = data_len_bytes;
     aggr_struct->socket_info_index_ = sd->get_socket_info_index();
     aggr_struct->unique_socket_id_ = sd->get_unique_socket_id();
     aggr_struct->unique_aggr_index_ = static_cast<int32_t>(sd->get_unique_aggr_index());
