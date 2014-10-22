@@ -113,12 +113,12 @@ namespace Starcounter.Administrator.Server.Handlers {
                 };
             });
 
-            Handle.SocketDisconnect(ServerLogWebSocketChannelName, (UInt64 cargoId, IAppsSession session) =>
+            Handle.WebSocketDisconnect(ServerLogWebSocketChannelName, (UInt64 cargoId, IAppsSession session) =>
             {
 
             });
 
-            Handle.Socket(ServerLogWebSocketChannelName, (String s, WebSocket ws) =>
+            Handle.WebSocket(ServerLogWebSocketChannelName, (String s, WebSocket ws) =>
             {
                 // We don't use client messages.
             });

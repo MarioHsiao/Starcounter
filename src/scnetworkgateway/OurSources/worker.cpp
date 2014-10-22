@@ -1435,6 +1435,7 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_accum_buf()->get_chunk_orig_buf_len_bytes());
 
+    // Getting user data pointer.
     uint8_t* dest_data = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
 
     // Copying predefined header.
@@ -1451,9 +1452,10 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
+    sd->ResetUserDataOffset();
 
     // Prepare buffer to send outside.
-    sd->PrepareForSend(dest_data, kHttpGenericHtmlHeaderLength + body_len);
+    sd->get_accum_buf()->AddAccumulatedBytes(kHttpGenericHtmlHeaderLength + body_len);
 
     // Running the handlers.
     uint32_t err_code = RunFromDbHandlers(sd);

@@ -8,7 +8,33 @@ using System.Text;
 
 namespace Starcounter {
 
-    public class RawSocket {
+    public class TcpSocket {
+
+        /// <summary>
+        /// Register TCP socket handler.
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="appName"></param>
+        /// <param name="rawCallback"></param>
+        /// <param name="handlerInfo"></param>
+        internal delegate void RegisterTcpSocketHandlerDelegate(
+            UInt16 port,
+            String appName,
+            Action<TcpSocket, Byte[]> tcpCallback,
+            out UInt64 handlerInfo);
+
+        /// <summary>
+        /// Delegate to register TCP handler.
+        /// </summary>
+        static internal RegisterTcpSocketHandlerDelegate RegisterTcpSocketHandler_;
+
+        /// <summary>
+        /// Initializes TCP sockets.
+        /// </summary>
+        /// <param name="registerTcpHandlerNative"></param>
+        internal static void InitTcpSockets(RegisterTcpSocketHandlerDelegate h) {
+            RegisterTcpSocketHandler_ = h;
+        }
 
         /// <summary>
         /// Unique socket id on gateway.
@@ -31,7 +57,7 @@ namespace Starcounter {
         /// <summary>
         /// Constructor.
         /// </summary>
-        internal RawSocket(SchedulerResources.SocketContainer outerSocketContainer) {
+        internal TcpSocket(SchedulerResources.SocketContainer outerSocketContainer) {
 
             socketContainer_ = outerSocketContainer;
         }
@@ -40,12 +66,12 @@ namespace Starcounter {
         /// Current RawSocket object.
         /// </summary>
         [ThreadStatic]
-        internal static RawSocket Current_;
+        internal static TcpSocket Current_;
 
         /// <summary>
         /// Current RawSocket object.
         /// </summary>
-        public static RawSocket Current {
+        public static TcpSocket Current {
             get { return Current_; }
             set { Current_ = value; }
         }
@@ -167,7 +193,7 @@ namespace Starcounter {
         /// Running the given action on raw sockets that meet given criteria.
         /// </summary>
         /// <param name="cargoId">Cargo ID filter (UInt64.MaxValue for all).</param>
-        public static void ForEach(UInt64 cargoId, Action<RawSocket> action) {
+        public static void ForEach(UInt64 cargoId, Action<TcpSocket> action) {
 
             // For each scheduler.
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
@@ -178,7 +204,7 @@ namespace Starcounter {
                 ScSessionClass.DbSession.RunAsync(() => {
 
                     // Saving current socket since we are going to set other.
-                    RawSocket origCurrentSocket = RawSocket.Current;
+                    TcpSocket origCurrentSocket = TcpSocket.Current;
 
                     try {
                         SchedulerResources.SchedulerSockets ss = SchedulerResources.AllHostSockets.GetSchedulerSockets(schedId);
@@ -197,7 +223,7 @@ namespace Starcounter {
                                 // Checking if its a raw socket.
                                 if ((sc != null) && (!sc.IsDead())) {
 
-                                    RawSocket rs = sc.Rs;
+                                    TcpSocket rs = sc.Rs;
 
                                     // Checking if socket is alive.
                                     if (null != rs) {
@@ -206,7 +232,7 @@ namespace Starcounter {
                                         if ((cargoId == UInt64.MaxValue) || (cargoId == sc.CargoId)) {
 
                                             // Setting current socket.
-                                            RawSocket.Current = rs;
+                                            TcpSocket.Current = rs;
 
                                             // Running user delegate with socket as parameter.
                                             action(rs);
@@ -217,7 +243,7 @@ namespace Starcounter {
                         }
                     } finally {
                         // Restoring original current socket.
-                        RawSocket.Current = origCurrentSocket;
+                        TcpSocket.Current = origCurrentSocket;
                     }
 
                 }, schedId);
@@ -228,7 +254,7 @@ namespace Starcounter {
         /// Disconnecting Raw Sockets that meet given criteria.
         /// </summary>
         public static void DisconnectEach(UInt64 cargoId = UInt64.MaxValue) {
-            ForEach(cargoId, (RawSocket s) => { s.Disconnect(); });
+            ForEach(cargoId, (TcpSocket s) => { s.Disconnect(); });
         }
     }
 }

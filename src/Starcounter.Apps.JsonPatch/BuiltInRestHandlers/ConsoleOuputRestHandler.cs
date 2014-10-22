@@ -55,12 +55,12 @@ namespace Starcounter.Internal {
             });
 
             // Socket channel disconnected event
-            Handle.SocketDisconnect(defaultSystemHttpPort, ConsoleWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect(defaultSystemHttpPort, ConsoleWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
 
             });
 
             // Socket incoming message event
-            Handle.Socket(defaultSystemHttpPort, ConsoleWebSocketChannelName, (String s, WebSocket ws) => {
+            Handle.WebSocket(defaultSystemHttpPort, ConsoleWebSocketChannelName, (String s, WebSocket ws) => {
                 // We don't use incoming client messages.
             });
 

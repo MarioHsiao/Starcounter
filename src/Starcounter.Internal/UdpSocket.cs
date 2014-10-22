@@ -11,6 +11,32 @@ namespace Starcounter {
     public class UdpSocket {
 
         /// <summary>
+        /// Register UDP socket handler.
+        /// </summary>
+        /// <param name="port"></param>
+        /// <param name="appName"></param>
+        /// <param name="rawCallback"></param>
+        /// <param name="handlerInfo"></param>
+        internal delegate void RegisterUdpSocketHandlerDelegate(
+            UInt16 port,
+            String appName,
+            Action<IPAddress, UInt16, Byte[]> udpCallback,
+            out UInt64 handlerInfo);
+
+        /// <summary>
+        /// Delegate to register UDP handler.
+        /// </summary>
+        static internal RegisterUdpSocketHandlerDelegate RegisterUdpSocketHandler_;
+
+        /// <summary>
+        /// Initializes UDP sockets.
+        /// </summary>
+        /// <param name="registerTcpHandlerNative"></param>
+        internal static void InitUdpSockets(RegisterUdpSocketHandlerDelegate h) {
+            RegisterUdpSocketHandler_ = h;
+        }
+
+        /// <summary>
         /// Maximum datagram size.
         /// </summary>
         public const Int32 MaxDatagramSize = 1500;

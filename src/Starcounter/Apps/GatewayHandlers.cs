@@ -16,27 +16,6 @@ using System.Net;
 namespace Starcounter
 {
     /// <summary>
-    /// Raw socket delegate.
-    /// </summary>
-    /// <param name="rawSocket"></param>
-    /// <param name="incomingData"></param>
-    public delegate void RawSocketCallback(
-		RawSocket rawSocket,
-        Byte[] incomingData
-	);
-
-    /// <summary>
-    /// UDP socket delegate.
-    /// </summary>
-    /// <param name="clientIp">IP address of the client.</param>
-    /// <param name="datagram">Incoming UDP datagram.</param>
-    public delegate void UdpSocketCallback(
-        IPAddress clientIp,
-        UInt16 clientPort,
-        Byte[] datagram
-    );
-
-    /// <summary>
     /// Class GatewayHandlers
     /// </summary>
 	public unsafe class GatewayHandlers
@@ -49,7 +28,7 @@ namespace Starcounter
         /// <summary>
         /// Raw socket handlers.
         /// </summary>
-        private static RawSocketCallback[] rawSocketHandlers_;
+        private static Action<TcpSocket, Byte[]>[] rawSocketHandlers_;
 
         /// <summary>
         /// Number of registered raw port handlers.
@@ -59,7 +38,7 @@ namespace Starcounter
         /// <summary>
         /// UDP socket handlers.
         /// </summary>
-        private static UdpSocketCallback[] udpSocketHandlers_;
+        private static Action<IPAddress, UInt16, Byte[]>[] udpSocketHandlers_;
 
         /// <summary>
         /// Number of registered UDP port handlers.
@@ -71,14 +50,14 @@ namespace Starcounter
         /// </summary>
         static GatewayHandlers()
 		{
-            rawSocketHandlers_ = new RawSocketCallback[MAX_HANDLERS];
-            udpSocketHandlers_ = new UdpSocketCallback[MAX_HANDLERS];
+            rawSocketHandlers_ = new Action<TcpSocket, Byte[]>[MAX_HANDLERS];
+            udpSocketHandlers_ = new Action<IPAddress, UInt16, Byte[]>[MAX_HANDLERS];
 		}
 
         /// <summary>
         /// UDP outer handler.
         /// </summary>
-        private unsafe static UInt32 HandleUdpSocket(
+        unsafe static UInt32 HandleUdpSocket(
             UInt16 managedHandlerId,
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
@@ -92,7 +71,7 @@ namespace Starcounter
                 *isHandled = false;
 
                 // Fetching the callback.
-                UdpSocketCallback userCallback = udpSocketHandlers_[managedHandlerId];
+                Action<IPAddress, UInt16, Byte[]> userCallback = udpSocketHandlers_[managedHandlerId];
                 if (userCallback == null)
                     throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
@@ -159,7 +138,7 @@ namespace Starcounter
         /// <param name="task_info">The task_info.</param>
         /// <param name="is_handled">The is_handled.</param>
         /// <returns>UInt32.</returns>
-        private unsafe static UInt32 HandleRawSocket(
+        unsafe static UInt32 HandleRawSocket(
             UInt16 managedHandlerId,
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
@@ -175,7 +154,7 @@ namespace Starcounter
                 UInt32 chunkIndex = taskInfo->chunk_index;
 
                 // Fetching the callback.
-                RawSocketCallback userCallback = rawSocketHandlers_[managedHandlerId];
+                Action<TcpSocket, Byte[]> userCallback = rawSocketHandlers_[managedHandlerId];
                 if (userCallback == null)
                     throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
@@ -218,7 +197,7 @@ namespace Starcounter
                     return 0;
                 }
 
-                RawSocket rawSocket = sc.Rs;
+                TcpSocket rawSocket = sc.Rs;
                 Debug.Assert(null != rawSocket);
 
                 Byte[] dataBytes = null;
@@ -265,7 +244,7 @@ namespace Starcounter
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
-        internal unsafe static UInt32 HandleHttpRequest(
+        unsafe static UInt32 HandleHttpRequest(
             UInt16 managedHandlerId,
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
@@ -382,7 +361,7 @@ namespace Starcounter
             return 0;
         }
 
-        internal static void RegisterUriHandlerNative(
+        internal  static void RegisterUriHandlerNative(
             UInt16 port,
             String appName,
             String originalUriInfo,
@@ -468,7 +447,7 @@ namespace Starcounter
         /// This is the main entry point of incoming WebSocket requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
-        internal unsafe static UInt32 HandleWebSocket(
+        unsafe static UInt32 HandleWebSocket(
             UInt16 managedHandlerId,
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
@@ -683,10 +662,10 @@ namespace Starcounter
         /// <summary>
         /// Registers UDP port handler.
         /// </summary>
-        public static void RegisterUdpPortHandler(
+        internal static void RegisterUdpSocketHandler(
 			UInt16 port,
             String appName,
-			UdpSocketCallback udpCallback,
+			Action<IPAddress, UInt16, Byte[]> udpCallback,
             out UInt64 handlerInfo)
 		{
             RegisterPortHandler(port, appName, null, udpCallback, out handlerInfo);
@@ -695,10 +674,10 @@ namespace Starcounter
         /// <summary>
         /// Registers TCP port handler.
         /// </summary>
-        public static void RegisterTcpPortHandler(
+        internal static void RegisterTcpSocketHandler(
 			UInt16 port,
             String appName,
-			RawSocketCallback rawCallback,
+			Action<TcpSocket, Byte[]> rawCallback,
             out UInt64 handlerInfo)
 		{
             RegisterPortHandler(port, appName, rawCallback, null, out handlerInfo);
@@ -715,8 +694,8 @@ namespace Starcounter
         static void RegisterPortHandler(
 			UInt16 port,
             String appName,
-			RawSocketCallback rawCallback,
-            UdpSocketCallback udpCallback,
+			Action<TcpSocket, Byte[]> rawCallback,
+            Action<IPAddress, UInt16, Byte[]> udpCallback,
             out UInt64 handlerInfo) {
 
             Boolean isUdp = false;
@@ -779,7 +758,7 @@ namespace Starcounter
             }
         }
 
-        public static void UnregisterPort(UInt16 port, UInt64 handlerInfo)
+        static void UnregisterPort(UInt16 port, UInt64 handlerInfo)
 		{
             // Ensuring correct multi-threading handlers creation.
             lock (rawSocketHandlers_)

@@ -264,7 +264,6 @@ namespace NetworkIoTestApp
         static void RegisterHandlers(Int32 db_number, UInt16 port_number, TestTypes test_type)
         {
             String db_postfix = "_db" + db_number;
-            UInt64 handler_id;
 
             switch(test_type)
             {
@@ -398,21 +397,21 @@ namespace NetworkIoTestApp
                         return new Response() { Body = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}", h, e, d) };
                     });
 
-                    Handle.Socket(8080, "echotestws", (String s, WebSocket ws) =>
+                    Handle.WebSocket(8080, "echotestws", (String s, WebSocket ws) =>
                     {
                         Interlocked.Increment(ref WsEchoesCounter);
 
                         ws.Send(s);
                     });
 
-                    Handle.Socket(8080, "echotestws", (Byte[] bs, WebSocket ws) =>
+                    Handle.WebSocket(8080, "echotestws", (Byte[] bs, WebSocket ws) =>
                     {
                         Interlocked.Increment(ref WsEchoesCounter);
 
                         ws.Send(bs);
                     });
 
-                    Handle.SocketDisconnect(8080, "echotestws", (UInt64 cargoId, IAppsSession session) =>
+                    Handle.WebSocketDisconnect(8080, "echotestws", (UInt64 cargoId, IAppsSession session) =>
                     {
                         Interlocked.Increment(ref WsDisconnectsCounter);
 
@@ -507,9 +506,9 @@ namespace NetworkIoTestApp
                         return new Response() { Body = String.Format("Raw port counters: bytes received={0}, disconnects={1}.", e, d) };
                     });
 
-                    GatewayHandlers.RegisterTcpPortHandler(8585, StarcounterEnvironment.AppName, OnRawPortEcho, out handler_id);
+                    Handle.Tcp(8585, OnTcpSocket);
 
-                    GatewayHandlers.RegisterUdpPortHandler(8787, StarcounterEnvironment.AppName, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
+                    Handle.Udp(8787, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
 
                         String msg = UTF8Encoding.UTF8.GetString(datagram);
 
@@ -517,7 +516,7 @@ namespace NetworkIoTestApp
 
                         UdpSocket.Send(clientIp, clientPort, 8787, msg);
 
-                    }, out handler_id);
+                    });
 
                     Handle.GET("/exc1", (Request req) =>
                     {
@@ -701,15 +700,15 @@ namespace NetworkIoTestApp
                         };
                     });
 
-                    Handle.Socket("test", (String s, WebSocket ws) => {
+                    Handle.WebSocket("test", (String s, WebSocket ws) => {
                         ws.Send(s);
                     });
 
-                    Handle.Socket("test", (Byte[] s, WebSocket ws) => {
+                    Handle.WebSocket("test", (Byte[] s, WebSocket ws) => {
                         ws.Send(s);
                     });
 
-                    Handle.SocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
+                    Handle.WebSocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
                     {
                         Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
                         if (WebSocketSessions[schedId].ContainsKey(cargoId))
@@ -729,7 +728,7 @@ namespace NetworkIoTestApp
         // NOTE: Timer should be static, otherwise its garbage collected.
         static Timer WebSocketSessionsTimer = null;
 
-        private static void OnRawPortEcho(RawSocket rawSocket, Byte[] incomingData)
+        private static void OnTcpSocket(TcpSocket tcpSocket, Byte[] incomingData)
         {
             // Checking if we have socket disconnect here.
             if (null == incomingData) {
@@ -746,7 +745,7 @@ namespace NetworkIoTestApp
             // Checking if data is big enough to be splited (JUST an example of several pushes at once).
             if (incomingData.Length < 10) {
 
-                rawSocket.Send(incomingData);
+                tcpSocket.Send(incomingData);
 
             } else {
                 // Splitting data on several pushes.
@@ -758,13 +757,13 @@ namespace NetworkIoTestApp
                 for (Int32 i = 0; i < NumPushes - 1; i++) {
 
                     // Writing back the response.
-                    rawSocket.Send(incomingData, offset, pushAtOnce);
+                    tcpSocket.Send(incomingData, offset, pushAtOnce);
 
                     offset += pushAtOnce;
                 }
 
                 // Sending back the response.
-                rawSocket.Send(incomingData, offset, incomingData.Length - offset);
+                tcpSocket.Send(incomingData, offset, incomingData.Length - offset);
             }
 
             // Counting performance.

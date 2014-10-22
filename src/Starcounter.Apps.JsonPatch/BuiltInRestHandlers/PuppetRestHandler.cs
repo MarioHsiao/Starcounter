@@ -131,7 +131,7 @@ namespace Starcounter.Internal {
             });
 
             // Handling WebSocket JsonPatch string message.
-            Handle.Socket(port, JsonPatchWebSocketChannelName, (String s, WebSocket ws) => {
+            Handle.WebSocket(port, JsonPatchWebSocketChannelName, (String s, WebSocket ws) => {
                 
                 Byte[] dataBytes = Encoding.UTF8.GetBytes(s);
 
@@ -140,10 +140,10 @@ namespace Starcounter.Internal {
             });
 
             // Handling WebSocket JsonPatch byte array.
-            Handle.Socket(port, JsonPatchWebSocketChannelName, HandleWebSocketJson);
+            Handle.WebSocket(port, JsonPatchWebSocketChannelName, HandleWebSocketJson);
 
             // Handling JsonPatch WebSocket disconnect here.
-            Handle.SocketDisconnect(port, JsonPatchWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect(port, JsonPatchWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
 
                 // Do nothing!
             });
