@@ -83,22 +83,6 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Gets the database directory.
-        /// </summary>
-        /// <value>The database directory.</value>
-        public string DatabaseDirectory
-        {
-            get {
-                string prop;
-
-                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, out prop))
-                    prop = @"C:/Test";
-
-                return prop;
-            }
-        }
-
-        /// <summary>
         /// Gets the output directory.
         /// </summary>
         /// <value>The output directory.</value>

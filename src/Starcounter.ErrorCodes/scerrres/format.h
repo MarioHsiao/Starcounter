@@ -1,10 +1,10 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <Windows.h>
+#include <windows.h>
 
 VOID __stdcall FormatStarcounterErrorMessage(
-	DWORD errorCode,
-	LPWSTR outputBuffer,
-	DWORD outputBufferLength
+    DWORD errorCode,
+    LPWSTR outputBuffer,
+    DWORD outputBufferLength
 );

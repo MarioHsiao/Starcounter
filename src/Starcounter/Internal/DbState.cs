@@ -120,7 +120,6 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(dr);
         }
 
-#if false
         internal static void SystemInsert(ushort tableId, ref ulong oid, ref ulong address) {
             uint dr;
             ulong oid_local;
@@ -137,7 +136,6 @@ namespace Starcounter.Internal
 
             throw ErrorCode.ToException(dr);
         }
-#endif
 
         /// <summary>
         /// 

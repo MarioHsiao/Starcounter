@@ -49,14 +49,14 @@ namespace SQLTest.EmployeeDb
                 objectList.Add(location4);
 
                 Location location5 = new Location();
-                location5.Name = "Enköping";
+                location5.Name = "Falköping";
                 location5.Description = "Small village in Sweden";
                 location5.Type = LocationType.City;
                 location5.NType = LocationType.City;
                 objectList.Add(location5);
 
                 Location location6 = new Location();
-                location6.Name = "Санкт-Петербург";
+                location6.Name = "Saint Petersburg";
                 location6.Description = "Big city in Russia";
                 location6.Type = LocationType.City;
                 location6.NType = LocationType.City;
@@ -130,7 +130,7 @@ namespace SQLTest.EmployeeDb
                 // Create instances of Employee.
 
                 Employee employee1 = new Employee();
-                employee1.FirstName = "Mikael";
+                employee1.FirstName = "Joachim";
                 employee1.LastName = "Wester";
                 employee1.Home = location1;
                 employee1.Father = null;
@@ -142,7 +142,7 @@ namespace SQLTest.EmployeeDb
 
                 Employee employee2 = new Employee();
                 employee2.FirstName = "Åsa";
-                employee2.LastName = "Lundström";
+                employee2.LastName = "Holmström";
                 employee2.Home = location4;
                 employee2.Father = null;
                 employee2.HireDate = new DateTime(2009, 12, 1);

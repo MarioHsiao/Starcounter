@@ -449,7 +449,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	// Checking if number of schedulers is defined.
 #ifdef WITH_DATABASE
 	str_template =
-        L"scadminserver.exe %s --ServerName=%s --DatabaseDir=\"%s\" --OutputDir=\"%s\" --TempDir=\"%s\" "
+        L"scadminserver.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" --WorkingDir=\"%s\" "
         L"--DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --SchedulerCount=%s";
 
@@ -460,7 +460,6 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 		wcslen(str_template) + 
 		wcslen(admin_dbname_upr) + 
 		wcslen(srv_name_upr) + 
-		wcslen(database_image_dir) + 
 		wcslen(server_logs_dir) + 
 		wcslen(database_temp_dir) +
 		wcslen(admin_exe_path) +

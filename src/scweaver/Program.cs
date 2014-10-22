@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Weaver {
+namespace Starcounter.Weaver {
     using Sc.Server.Weaver.Schema;
     using System.CodeDom.Compiler;
     using Error = Starcounter.Error;
@@ -196,7 +196,7 @@ namespace Weaver {
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
 
-            weaver.Execute();
+            CodeWeaver.ExecuteCurrent(weaver);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace Weaver {
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
 
-            weaver.Execute();
+            CodeWeaver.ExecuteCurrent(weaver);
         }
 
         static void ExecuteSchemaCommand(
@@ -262,7 +262,7 @@ namespace Weaver {
             // Consult global/shared parameters and apply them as specified by
             // their specification.
 
-            if (arguments.ContainsFlag("attachdebugger")) {
+            if (arguments.ContainsFlag("sc-debug")) {
                 if (Debugger.IsAttached)
                     WriteDebug("A debugger is already attached to the process.");
                 else {
@@ -293,9 +293,7 @@ namespace Weaver {
                         break;
 
                     default:
-                        // Don't change the default verbosity, initialized
-                        // statically.
-                        break;
+                        throw ErrorCode.ToException(Error.SCERRBADCOMMANDLINESYNTAX, string.Format("Unknown verbosity: {0}", propertyValue));
                 }
             }
 
@@ -342,7 +340,7 @@ namespace Weaver {
             // to the process when starting. Undocumented, internal flag.
 
             syntaxDefinition.DefineFlag(
-                "attachdebugger",
+                "sc-debug",
                 "Attaches a debugger to the process during startup."
                 );
 

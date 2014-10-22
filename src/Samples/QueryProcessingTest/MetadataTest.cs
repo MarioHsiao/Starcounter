@@ -312,7 +312,7 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as Starcounter.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Int32);
             Trace.Assert(c.Type.Name == "Int32");
             Trace.Assert((c.Table as ClrClass).AssemblyName == "QueryProcessingTest");
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
+            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass order by c desc", 
                 "WriteLoss").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
@@ -355,6 +355,7 @@ namespace QueryProcessingTest {
                 "select c from starcounter.metadata.column c where name = ? and table is ClrClass", 
                 "DecimalProperty")) {
                 nrcc++;
+                Trace.Assert(tc.GetObjectNo() > 1000);
                 Trace.Assert(tc.Name == "DecimalProperty");
                 Trace.Assert(tc.Table != null);
                 Trace.Assert(tc.Table is ClrClass);

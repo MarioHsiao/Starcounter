@@ -2174,9 +2174,11 @@
     </remarks>
   </code>
 -->
+<!--
   <code hex="0065" severity="Error" name="ScErrMemoryManagerIsDead">
     <message>The memory manager has terminated unexpectedly.</message>
   </code>
+-->
   <code hex="0067" severity="Error" name="ScErrNotTheSameDatabase">
     <message>
      When reloading the database; the memory manager has detected that the image files represents
@@ -3251,6 +3253,37 @@
         Object cannot be used as a type.
       </message>
     </code>
+    <code hex="011D" severity="Error" name="ScErrStorageManagerUnavailable">
+      <message>
+        Failed to connect to storage manager is unavailable. Occurs when storage
+        manager is not started or not yet properly initialized.
+      </message>
+    </code>
+    <code hex="011E" severity="Error" name="ScErrStorageManagerChannelInUse">
+      <message>
+        Failed to connect to storage manager because designated channel buffer
+        is in use. Occurs if a previous client is still connected or not yet
+        properly disconnected.
+      </message>
+    </code>
+    <code hex="011F" severity="Error" name="ScErrStorageManagerUnresponsive">
+      <message>
+        Communication with storage manager failed because storage manager is
+        unresponsive.
+      </message>
+    </code>
+    <code hex="0120" severity="Error" name="ScErrStorageManagerDisconnected">
+      <message>
+        Communication with storage manager failed because client was
+        disconnected by storage manager.
+      </message>
+    </code>
+    <code hex="0121" severity="Error" name="ScErrStorageManagerIncoherent">
+      <message>
+        Communication with storage manager failed because client is unable to
+        understand the storage manager.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3372,9 +3405,11 @@
     <code hex="001E" severity="Error" name="ScErrUnexpErrorCreateDumpFile">
       <message>An unexpected file I/O error occurred when attempting to create dump file (SCD or SCDX).</message>
     </code>
+<!--
     <code hex="001F" severity="Error" name="ScErrMemoryManagerIncoherent">
       <message>The server can't understand the memory manager.</message>
     </code>
+-->
     <code hex="0020" severity="Error" name="ScErrUnexpChannelReadError">
       <message>An unexpected error was detected when initiating or completing a channel read.</message>
     </code>

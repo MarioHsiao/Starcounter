@@ -126,7 +126,7 @@ namespace StarcounterInternal.Hosting
 
         /// <summary>
         /// </summary>
-        public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_callbacks callbacks)
+        public static unsafe void orange_configure_database_callbacks(ref sccoredb.STAR_SYSTEM_CALLBACKS callbacks)
         {
             void* hModule = Kernel32.LoadLibraryA("coalmine.dll");
             if (hModule == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);

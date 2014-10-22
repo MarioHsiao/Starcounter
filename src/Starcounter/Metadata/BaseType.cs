@@ -47,7 +47,7 @@ namespace Starcounter.Metadata {
 
         //internal Type()
         //    : this(null) {
-        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //    DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Starcounter.Metadata {
 
         internal DbPrimitiveType()
             : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
         public UInt64 PrimitiveType {
@@ -148,7 +148,7 @@ namespace Starcounter.Metadata {
 
         //internal MapPrimitiveType()
         //    : this(null) {
-        //    DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        //    DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         //}
 
         public DbPrimitiveType DbPrimitiveType {
@@ -219,7 +219,7 @@ namespace Starcounter.Metadata {
 
         internal ClrPrimitiveType()
             : this(null) {
-            DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
     }
 }

@@ -96,7 +96,7 @@ namespace Starcounter.Internal
         /// Struct sccoredb_config
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct sccoredb_callbacks
+        public unsafe struct STAR_SYSTEM_CALLBACKS
         {
             /// <summary>
             /// </summary>
@@ -127,12 +127,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_set_system_callbacks(sccoredb_callbacks* pcallbacks);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_set_system_variable(string key, string value);
+        public static extern unsafe uint star_set_system_callbacks(STAR_SYSTEM_CALLBACKS* pcallbacks);
 
         /// <summary>
         /// </summary>
@@ -229,144 +224,12 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_TABLE_INFO
-        {
-            /// <summary>
-            /// </summary>
-            public ulong name_token;
-
-            /// <summary>
-            /// </summary>
-            public uint column_count;
-
-            /// <summary>
-            /// </summary>
-            public uint inheriting_table_count;
-
-            /// <summary>
-            /// </summary>
-            public ushort* inheriting_table_ids;
-
-            /// <summary>
-            /// </summary>
-            public ushort table_id;
-
-            /// <summary>
-            /// </summary>
-            public ushort inherited_table_id;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-        };
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_get_table_info(
-            ushort table_id,
-            out SCCOREDB_TABLE_INFO table_info
-            );
-        
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal extern static uint sccoredb_get_table_info_by_name(
-            ulong name_token,
-            out SCCOREDB_TABLE_INFO table_info
-            );
-
-        /// <summary>
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_COLUMN_INFO {
-            /// <summary>
-            /// </summary>
-            public ulong name_token;
-
-            /// <summary>
-            /// </summary>
-            public ushort index;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-
-            /// <summary>
-            /// </summary>
-            public byte type;
-        };
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_get_column_info(
-            ushort table_id,
-            ushort index,
-            out SCCOREDB_COLUMN_INFO column_info
-            );
-
-        /// <summary>
-        /// Struct SC_COLUMN_DEFINITION
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct STAR_COLUMN_DEFINITION
-        {
-            /// <summary>
-            /// The type
-            /// </summary>
-            public byte type;
-            /// <summary>
-            /// The is_nullable
-            /// </summary>
-            public byte is_nullable;
-
-            /// <summary>
-            /// The name
-            /// </summary>
-            public ulong name_token;
-        }
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_create_table(
-            ulong name_token,
-            ushort base_table_id,
-            STAR_COLUMN_DEFINITION *column_definitions,
-            uint flags
-            );
-
-        /// <summary>
-        /// Sc_rename_tables the specified table_id.
-        /// </summary>
-        /// <param name="table_id">The table_id.</param>
-        /// <param name="new_name">The new_name.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_rename_table(
-            ushort table_id,
-            ulong new_name_token
-            );
-
-        /// <summary>
-        /// Sccoredb_drop_tables the specified name.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_drop_table(ulong name_token);
-
-        /// <summary>
-        /// </summary>
         public const UInt32 SC_UNIQUE_CONSTRAINT = 1;
 
         /// <summary>
-        /// Struct SC_INDEX_INFO
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct SC_INDEX_INFO {
+        public unsafe struct STARI_INDEX_INFO {
             /// <summary>
             /// The handle
             /// </summary>
@@ -435,22 +298,8 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        /// <param name="table_id"></param>
-        /// <param name="name"></param>
-        /// <param name="pii"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public unsafe extern static uint sccode_get_index_info_by_name(
-            ushort table_id,
-            ulong name_token,
-            SC_INDEX_INFO* pii
-            );
-
-        /// <summary>
-        /// Struct SCCOREDB_SORT_SPEC_ELEM
-        /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public unsafe struct SCCOREDB_SORT_SPEC_ELEM
+        public unsafe struct STAR_SORT_SPEC_ELEM
         {
             /// <summary>
             /// The column_index
@@ -469,10 +318,10 @@ namespace Starcounter.Internal
         /// <param name="pii">The pii.</param>
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 star_get_index_info_by_sort(
+        public unsafe extern static UInt32 stari_get_index_info_by_sort(
             ushort table_id,
-            SCCOREDB_SORT_SPEC_ELEM *sort_spec,
-            SC_INDEX_INFO *pii
+            STAR_SORT_SPEC_ELEM* sort_spec,
+            STARI_INDEX_INFO* pii
             );
 
         /// <summary>
@@ -482,37 +331,15 @@ namespace Starcounter.Internal
         /// <param name="piis">The piis.</param>
         /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_index_infos(
+        public unsafe extern static uint stari_get_index_infos(
             ushort table_id,
             uint* pic,
-            SC_INDEX_INFO* piis
+            STARI_INDEX_INFO* piis
             );
 
         /// <summary>
         /// </summary>
         public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = SC_UNIQUE_CONSTRAINT;
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static uint star_create_index(
-            ushort table_id,
-            ulong name_token,
-            ushort sort_mask,
-            short* column_indexes,
-            uint flags
-            );
-
-        /// <summary>
-        /// </summary>
-        /// <param name="table_name"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static UInt32 star_drop_index(
-            ulong table_name_token,
-            ulong name_token
-            );
 
         /// <summary>
         /// </summary>
@@ -1081,10 +908,13 @@ namespace Starcounter.Internal
 
         public const ushort STAR_KEY_COLUMN_NAME_TOKEN = 1;
         public const ushort STAR_DEFAULT_INDEX_NAME_TOKEN = 2;
+
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint star_configure(ulong key_column_name, ulong default_index_name, uint server_index);
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        public static extern uint star_configure(
+            ulong key_column_name, ulong default_index_name, ulong installation_id, string database_name, string temp_dir_path
+            );
     }
 
     /// <summary>
@@ -1204,7 +1034,7 @@ namespace Starcounter.Internal
         /// Struct SC_COLUMN_DEFINITION
         /// </summary>
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct STAR_COLUMN_DEFINITION2 {
+        public unsafe struct STAR_COLUMN_DEFINITION {
             /// <summary>
             /// The type
             /// </summary>
@@ -1223,10 +1053,10 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_create_table2(
+        public static extern unsafe uint star_create_table(
             char* name,
             ushort base_table_id,
-            STAR_COLUMN_DEFINITION2* column_definitions,
+            STAR_COLUMN_DEFINITION* column_definitions,
             uint flags
             );
 
@@ -1237,7 +1067,7 @@ namespace Starcounter.Internal
         /// <param name="new_name">The new_name.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_rename_table2(
+        public static extern uint star_rename_table(
             ushort table_id,
             string new_name
             );
@@ -1248,7 +1078,7 @@ namespace Starcounter.Internal
         /// <param name="name">The name.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_drop_table2(string name);
+        public static extern uint star_drop_table(string name);
 
         /// <summary>
         /// </summary>
@@ -1260,11 +1090,11 @@ namespace Starcounter.Internal
         public unsafe extern static uint star_get_index_info_by_name(
             ushort table_id,
             string name,
-            sccoredb.SC_INDEX_INFO* pii
+            sccoredb.STARI_INDEX_INFO* pii
             );
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static uint star_create_index2(
+        public extern unsafe static uint star_create_index(
             ushort table_id,
             string name,
             ushort sort_mask,
@@ -1278,7 +1108,7 @@ namespace Starcounter.Internal
         /// <param name="name"></param>
         /// <returns></returns>
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static UInt32 star_drop_index2(
+        public extern unsafe static UInt32 star_drop_index(
             string table_name,
             string name
             );
