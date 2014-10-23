@@ -102,7 +102,7 @@ namespace Starcounter {
                     var hookTypes = InvokableHook.GetInstalledOperations(key);
                     hookTypes |= operation;
 
-                    result = sccoredb.star_set_commit_hooks(tableInfo.name_token, hookTypes);
+                    result = sccoredb.stari_set_commit_hooks(tableInfo.name_token, hookTypes);
                     if (result != 0) {
                         throw ErrorCode.ToException(result);
                     }

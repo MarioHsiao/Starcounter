@@ -487,7 +487,7 @@ namespace Starcounter.Internal
         /// <seealso cref="STAR_HOOKS_ON_COMMIT_INSERT"/>
         /// <seealso cref="STAR_HOOKS_ON_COMMIT_UPDATE"/>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_set_commit_hooks(ulong name, uint commit_hook_mask);
+        public extern static uint stari_set_commit_hooks(ulong name, uint commit_hook_mask);
 
         /// <summary>
         /// </summary>
