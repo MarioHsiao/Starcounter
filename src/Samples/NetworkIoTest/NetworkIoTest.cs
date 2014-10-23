@@ -508,7 +508,7 @@ namespace NetworkIoTestApp
 
                     Handle.Tcp(8585, OnTcpSocket);
 
-                    Handle.Udp(55555, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
+                    Handle.Udp(8787, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
 
                         String msg = UTF8Encoding.UTF8.GetString(datagram);
 
