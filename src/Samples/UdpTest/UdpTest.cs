@@ -126,7 +126,9 @@ namespace UdpClientCs {
                 newThread.Start();
             }
 
-            // Printing status info.
+            Int32 timeoutCounter = 100;
+
+            // Looping until worker finish events are set.
             while (settings.WaitForAllWorkersEvent.CurrentCount > 0) {
 
                 lock (settings) {
@@ -136,6 +138,11 @@ namespace UdpClientCs {
                 }
 
                 Thread.Sleep(1000);
+
+                timeoutCounter--;
+                if (0 == timeoutCounter) {
+                    throw new Exception("Test timed out!");
+                }
             }
 
             settings.WaitForAllWorkersEvent.Wait();
