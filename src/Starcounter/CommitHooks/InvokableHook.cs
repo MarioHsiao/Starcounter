@@ -9,6 +9,24 @@ namespace Starcounter {
     /// </summary>
     internal abstract class InvokableHook {
         /// <summary>
+        /// Integer returned on commit when an INSERT is detected
+        /// on a kernel type that has the corresponding hook flag set.
+        /// </summary>
+        internal const uint TypeInsert = sccoredb.STAR_HOOKTYPE_COMMIT_INSERT;
+
+        /// <summary>
+        /// Integer returned on commit when an UPDATE is detected
+        /// on a kernel type that has the corresponding hook flag set.
+        /// </summary>
+        internal const uint TypeUpdate = sccoredb.STAR_HOOKTYPE_COMMIT_UPDATE;
+
+        /// <summary>
+        /// Integer returned on commit when a DELETE is detected
+        /// on a kernel type that has the corresponding hook flag set.
+        /// </summary>
+        internal const uint TypeDelete = sccoredb.STAR_HOOKTYPE_COMMIT_DELETE;
+
+        /// <summary>
         /// Internal token representing inserts.
         /// </summary>
         internal const uint Insert = sccoredb.STAR_HOOKS_ON_COMMIT_INSERT;

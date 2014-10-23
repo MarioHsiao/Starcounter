@@ -469,6 +469,10 @@ namespace Starcounter.Internal
             ushort table_id
             );
 
+        public const uint STAR_HOOKTYPE_COMMIT_DELETE = 0x00;
+        public const uint STAR_HOOKTYPE_COMMIT_INSERT = 0x01;
+        public const uint STAR_HOOKTYPE_COMMIT_UPDATE = 0x02;
+
         public const uint STAR_HOOKS_ON_COMMIT_DELETE = 0x04;
         public const uint STAR_HOOKS_ON_COMMIT_INSERT = 0x08;
         public const uint STAR_HOOKS_ON_COMMIT_UPDATE = 0x10;

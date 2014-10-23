@@ -52,8 +52,8 @@ namespace Starcounter
                                 // Get TypeBinding and an uninitialized proxy to bind to.
                                 // The invoke all corresponding hooks.
 
-                                var mask = hookType & (InvokableHook.Insert | InvokableHook.Update);
-                                if (mask != 0) {
+                                var insertOrUpdate = hookType == InvokableHook.TypeInsert || hookType == InvokableHook.TypeUpdate;
+                                if (insertOrUpdate) {
                                     if (binding == null || binding.TableId != tableId) {
                                         binding = TypeRepository.GetTypeBinding(tableId);
                                         proxy = binding.NewInstanceUninit();
@@ -65,13 +65,13 @@ namespace Starcounter
                                 key = HookKey.FromTable(tableId, (uint)hookType, key);
                                 try {
                                     switch (hookType) {
-                                        case InvokableHook.Insert:
+                                        case InvokableHook.TypeInsert:
                                             InvokableHook.InvokeInsert(key, proxy);
                                             break;
-                                        case InvokableHook.Update:
+                                        case InvokableHook.TypeUpdate:
                                             InvokableHook.InvokeUpdate(key, proxy);
                                             break;
-                                        case InvokableHook.Delete:
+                                        case InvokableHook.TypeDelete:
                                             InvokableHook.InvokeDelete(key, oid);
                                             break;
                                         default:
