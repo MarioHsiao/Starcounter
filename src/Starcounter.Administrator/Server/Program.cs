@@ -193,19 +193,19 @@ namespace Starcounter.Administrator.Server {
                 return new Response() { Body = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}", h, e, d) };
             });
 
-            Handle.Socket("echotestws", (String s, WebSocket ws) => {
+            Handle.WebSocket("echotestws", (String s, WebSocket ws) => {
                 Interlocked.Increment(ref WsEchoesCounter);
 
                 ws.Send(s);
             });
 
-            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) => {
+            Handle.WebSocket("echotestws", (Byte[] bs, WebSocket ws) => {
                 Interlocked.Increment(ref WsEchoesCounter);
 
                 ws.Send(bs);
             });
 
-            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
                 Interlocked.Increment(ref WsDisconnectsCounter);
 
                 // Do nothing!

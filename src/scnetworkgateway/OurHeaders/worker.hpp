@@ -187,11 +187,13 @@ class GatewayWorker
     // Avoiding false sharing.
     uint8_t pad[CACHE_LINE_SIZE];
 
+    // Pops rebalance socket info.
     RebalancedSocketInfo* PopRebalanceSocketInfo() {
         RebalancedSocketInfo* rsi = (RebalancedSocketInfo*) InterlockedPopEntrySList(rebalance_accept_sockets_);
         return rsi;
     }
 
+    // Pushes rebalance socket info.
     void PushRebalanceSocketInfo(RebalancedSocketInfo*& rsi) {
         InterlockedPushEntrySList(rebalance_accept_sockets_, (PSLIST_ENTRY) rsi);
         rsi = NULL;
@@ -472,8 +474,11 @@ public:
     // Used to create new connections when reaching the limit.
     uint32_t CreateAcceptingSockets(port_index_type port_index);
 
+    // Used to create new UDP sockets when reaching the limit.
+    uint32_t CreateUdpSockets(port_index_type port_index);
+
     // Allocates a bunch of new connections.
-    uint32_t CreateProxySocket(SocketDataChunkRef proxy_sd);
+    uint32_t CreateProxySocket(SocketDataChunkRef proxy_sd, MixedCodeConstants::NetworkProtocolType protocol_type);
 
     // Functions to process finished IOCP events.
     uint32_t FinishReceive(SocketDataChunkRef sd, int32_t numBytesReceived, bool& called_from_receive);
@@ -499,6 +504,9 @@ public:
 
     // Running send on socket data.
     uint32_t Send(SocketDataChunkRef sd);
+
+    // Running send on socket data.
+    uint32_t SendOnUdp(SocketDataChunkRef sd);
 
     // Running receive on socket data.
     uint32_t Receive(SocketDataChunkRef sd);
@@ -549,7 +557,11 @@ public:
     // Does general data processing using port handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
-        PortHandlers* ph = g_gateway.get_server_port(sd->GetPortIndex())->get_port_handlers();
+        port_index_type port_index = sd->GetPortIndex();
+        if (INVALID_PORT_INDEX == port_index)
+            return SCERRGWWRONGPORTINDEX;
+
+        PortHandlers* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
 
         GW_ASSERT(NULL != ph);
 
@@ -703,6 +715,7 @@ public:
     socket_index_type ObtainFreeSocketIndex(
         SOCKET s,
         port_index_type port_index,
+        MixedCodeConstants::NetworkProtocolType protocol_type,
         bool proxy_connect_socket);
 };
 

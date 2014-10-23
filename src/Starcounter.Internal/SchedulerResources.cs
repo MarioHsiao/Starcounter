@@ -60,7 +60,7 @@ namespace Starcounter.Internal
                 get; set;
             }
 
-            public RawSocket Rs {
+            public TcpSocket Rs {
                 get; set;
             }
 
@@ -300,7 +300,7 @@ namespace Starcounter.Internal
                 // Checking if socket container does not exist.
                 if (null == sws.GetSocket(socketIndex)) {
                     sc = sws.AddSocket(socketIndex, socketUniqueId, dataStream.GatewayWorkerId);
-                    sc.Rs = new RawSocket(sc);
+                    sc.Rs = new TcpSocket(sc);
                 } else {
                     sc = sws.GetSocket(socketIndex, socketUniqueId);
                 }

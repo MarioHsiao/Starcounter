@@ -87,6 +87,20 @@ class SocketDataChunk
 
 public:
 
+    // Converting UDP port byte order.
+    void UdpChangePortByteOrder() {
+
+        sockaddr_in* addr = (sockaddr_in*) accept_or_params_or_temp_data_;
+        addr->sin_port = ntohs(addr->sin_port);
+    }
+
+    // Converting UDP IPv4 byte order.
+    void UdpChangeIPv4ByteOrder() {
+
+        sockaddr_in* addr = (sockaddr_in*) accept_or_params_or_temp_data_;
+        addr->sin_family = AF_INET;
+    }
+
     // Resets session depending on protocol.
     void ResetSessionBasedOnProtocol(GatewayWorker* gw);
 
@@ -158,8 +172,8 @@ public:
         PlainCopySocketDataInfoHeaders(ipc_sd);
 
         // Setting some specific accumulative buffer fields.
-        accum_buf_.set_desired_accum_bytes(ipc_sd->get_accum_buf()->get_desired_accum_bytes());
-        accum_buf_.set_chunk_num_available_bytes(ipc_sd->get_user_data_length_bytes());
+        set_total_user_data_length_bytes(ipc_sd->get_total_user_data_length_bytes());
+        set_user_data_length_bytes(ipc_sd->get_user_data_length_bytes());
 
         memcpy(data_blob_, (uint8_t*)ipc_sd + ipc_sd->get_user_data_offset_in_socket_data(), num_bytes_to_copy);
 
@@ -225,7 +239,7 @@ public:
         std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
         std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
-        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)accum_buf_.get_chunk_num_available_bytes_addr() - sd) << std::endl;
+        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)accum_buf_.get_accumulated_len_bytes_addr() - sd) << std::endl;
         std::cout << "offset flags_ = "<< ((uint8_t*)&flags_ - sd) << std::endl;
         std::cout << "offset unique_aggr_index_ = "<< ((uint8_t*)&unique_aggr_index_ - sd) << std::endl;
         std::cout << "offset num_ipc_chunks_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
@@ -271,7 +285,7 @@ public:
         std::cout << "CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - smc) << std::endl;
         std::cout << "CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = "<< ((uint8_t*)accum_buf_.get_desired_accum_bytes_addr() - smc) << std::endl;
 
-        std::cout << "CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = "<< ((uint8_t*)accum_buf_.get_chunk_num_available_bytes_addr() - smc) << std::endl;
+        std::cout << "CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = "<< ((uint8_t*)accum_buf_.get_accumulated_len_bytes_addr() - smc) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
@@ -279,6 +293,13 @@ public:
         std::cout << "CHUNK_OFFSET_WS_PAYLOAD_LEN = "<< ((uint8_t*)&(ws_proto_.get_frame_info()->payload_len_) - smc) << std::endl;
         std::cout << "CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = "<< ((uint8_t*)&(ws_proto_.get_frame_info()->payload_offset_) - smc) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_WS_CHANNEL_ID = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
+
+        sockaddr_in* sock_addr = (sockaddr_in*)accept_or_params_or_temp_data_;
+
+        std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = "<< ((uint8_t*)&(sock_addr->sin_addr.s_addr) - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = "<< ((uint8_t*)&(sock_addr->sin_port) - sd) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = "<< ((uint8_t*)sock_addr + sizeof(sockaddr_in)) << std::endl;
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
@@ -317,7 +338,7 @@ public:
 
         GW_ASSERT(((uint8_t*)accum_buf_.get_desired_accum_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH);
 
-        GW_ASSERT(((uint8_t*)accum_buf_.get_chunk_num_available_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
+        GW_ASSERT(((uint8_t*)accum_buf_.get_accumulated_len_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
 
         GW_ASSERT(((uint8_t*)&unique_socket_id_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
@@ -332,6 +353,16 @@ public:
         GW_ASSERT(((uint8_t*)&(ws_proto_.get_frame_info()->payload_offset_) - smc) == MixedCodeConstants::CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD);
 
         GW_ASSERT(((uint8_t*)&accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_CHANNEL_ID);
+
+        GW_ASSERT(((uint8_t*)&accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR);
+
+        GW_ASSERT(((uint8_t*)&(sock_addr->sin_addr.s_addr) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_DESTINATION_IP);
+
+        GW_ASSERT(((uint8_t*)&(sock_addr->sin_port) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
+
+        GW_ASSERT(((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_SOURCE_PORT);
+
+        GW_ASSERT(sizeof(sockaddr_in) == 16);
 
         return 0;
     }
@@ -349,6 +380,11 @@ public:
     MixedCodeConstants::NetworkProtocolType get_type_of_network_protocol()
     {
         return (MixedCodeConstants::NetworkProtocolType) type_of_network_protocol_;
+    }
+
+    // Is it a UDP socket.
+    bool IsUdp() {
+        return (MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP == type_of_network_protocol_);
     }
 
     // Checking if its a WebSocket protocol.
@@ -774,7 +810,25 @@ public:
     // Size in bytes of written user data.
     uint32_t get_user_data_length_bytes()
     {
-        return accum_buf_.get_chunk_num_available_bytes();
+        return accum_buf_.get_accum_len_bytes();
+    }
+
+    // Size in bytes of written user data.
+    void set_user_data_length_bytes(uint32_t value)
+    {
+        accum_buf_.set_accum_len_bytes(value);
+    }
+
+    // Size in bytes of written user data.
+    void set_total_user_data_length_bytes(uint32_t value)
+    {
+        accum_buf_.set_desired_accum_bytes(value);
+    }
+
+    // Size in bytes of written user data.
+    uint32_t get_total_user_data_length_bytes()
+    {
+        return accum_buf_.get_desired_accum_bytes();
     }
 
     // Data buffer chunk.
@@ -794,6 +848,9 @@ public:
 
     // Initializes socket data that comes from database.
     void PreInitSocketDataFromDb(GatewayWorker* gw);
+
+    // Initializes socket data that comes from database.
+    uint32_t PreInitUdpSocket(GatewayWorker* gw);
 
     // Initialization.
     void Init(
@@ -816,10 +873,16 @@ public:
     }
 
     // Start receiving on socket.
-    uint32_t Receive(GatewayWorker *gw, uint32_t *num_bytes);
+    uint32_t ReceiveTcp(GatewayWorker *gw, uint32_t *num_bytes);
 
-    // Start sending on socket.
-    uint32_t Send(GatewayWorker* gw, uint32_t *numBytes);
+    // Start sending on TCP socket.
+    uint32_t SendTcp(GatewayWorker* gw, uint32_t *numBytes);
+
+    // Start sending on UDP socket.
+    uint32_t SendUdp(GatewayWorker* gw, uint32_t *numBytes);
+
+    // Start receiving on socket.
+    uint32_t ReceiveUdp(GatewayWorker *gw, uint32_t *num_bytes);
 
     // Start accepting on socket.
     uint32_t Accept(GatewayWorker* gw);
@@ -959,6 +1022,10 @@ public:
 
     // Disconnects and invalidates socket.
     void DisconnectSocket() {
+
+        // Checking if its a UDP socket that shouldn't be disconnected.
+        if (IsUdp())
+            return;
 
         // Disconnecting socket handle.
         g_gateway.DisconnectSocket(GetSocket());
@@ -1113,7 +1180,11 @@ public:
 
         port_index_type port_index = socket_info_->port_index_;
 
-        GW_ASSERT((port_index >= 0) && (port_index < g_gateway.get_num_server_ports_slots()));
+        // Checking if port is outside the range.
+        if (port_index >= g_gateway.get_num_server_ports_slots())
+            return INVALID_PORT_INDEX;
+
+        GW_ASSERT(port_index >= 0);
 
         return port_index;
     }

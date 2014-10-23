@@ -78,7 +78,7 @@
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
     <Compile Include="Http\HttpHeadersUtf8.cs" />
-    <Compile Include="Http\RawSocket.cs" />
+    <Compile Include="Http\TcpSocket.cs" />
     <Compile Include="Http\ResponseExtensions.cs" />
     <Compile Include="Http\WebSocket.cs" />
     <Compile Include="Http\WsManager.cs" />
@@ -121,6 +121,7 @@
     <Compile Include="StringListExtensions.cs" />
     <Compile Include="TestLogger.cs" />
     <Compile Include="TreeHelper.cs" />
+    <Compile Include="UdpSocket.cs" />
     <Compile Include="UnsupportedMimeTypeException.cs" />
     <Compile Include="X6Decimal.cs" />
   </ItemGroup>

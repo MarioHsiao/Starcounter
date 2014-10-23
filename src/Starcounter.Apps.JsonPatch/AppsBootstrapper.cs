@@ -69,6 +69,8 @@ namespace Starcounter.Internal {
             unsafe {
                 UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.RegisterUriHandlerNative,
+                    GatewayHandlers.RegisterTcpSocketHandler,
+                    GatewayHandlers.RegisterUdpSocketHandler,
                     OnHttpMessageRoot,
                     AppServer_.HandleRequest,
                     UriHandlersManager.AddExtraHandlerLevel);

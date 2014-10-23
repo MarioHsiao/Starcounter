@@ -62,7 +62,7 @@ int32_t GatewayWorker::Init(int32_t new_worker_id)
 }
 
 // Allocates a new socket based on existing.
-uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
+uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd, MixedCodeConstants::NetworkProtocolType protocol_type)
 {
     // Creating new socket.
     SOCKET new_connect_socket;
@@ -150,7 +150,7 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd)
 
     // Getting new socket index.
     port_index_type port_index = sd->GetPortIndex();
-    socket_index_type proxied_socket_info_index = ObtainFreeSocketIndex(new_connect_socket, port_index, true);
+    socket_index_type proxied_socket_info_index = ObtainFreeSocketIndex(new_connect_socket, port_index, protocol_type, true);
 
     // Checking if we can't obtain new socket index.
     if (INVALID_SOCKET_INDEX == proxied_socket_info_index) {
@@ -187,6 +187,7 @@ void GatewayWorker::ReleaseSocketIndex(socket_index_type socket_index)
 socket_index_type GatewayWorker::ObtainFreeSocketIndex(
     SOCKET s,
     port_index_type port_index,
+    MixedCodeConstants::NetworkProtocolType protocol_type,
     bool proxy_connect_socket)
 {
     // Checking if free socket indexes exist.
@@ -201,6 +202,7 @@ socket_index_type GatewayWorker::ObtainFreeSocketIndex(
 
     // Marking socket as alive.
     si->socket_ = s;
+    si->type_of_network_protocol_ = protocol_type;
 
     // Checking if this socket is used for connecting to remote machine.
     if (proxy_connect_socket)
@@ -295,6 +297,123 @@ uint32_t GatewayWorker::CollectInactiveSockets()
     return 0;
 }
 
+// Used to create new UDP sockets when reaching the limit.
+uint32_t GatewayWorker::CreateUdpSockets(port_index_type port_index) {
+
+    uint32_t err_code;
+    SOCKET new_socket;
+
+    // Creating new socket.
+    new_socket = WSASocket(AF_INET, SOCK_DGRAM, IPPROTO_UDP, NULL, 0, WSA_FLAG_OVERLAPPED);
+    if (new_socket == INVALID_SOCKET)
+    {
+#ifdef GW_ERRORS_DIAG
+        GW_PRINT_WORKER << "WSASocket() failed." << GW_ENDL;
+#endif
+        return PrintLastError();
+    }
+
+    // Setting needed socket options.
+    int32_t on_flag = TRUE;
+
+    // Reusing socket address.
+    if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&on_flag, sizeof(on_flag)))
+    {
+        GW_PRINT_WORKER << "Can't set SO_REUSEADDR on socket." << GW_ENDL;
+
+        closesocket(new_socket);
+
+        return PrintLastError();
+    }
+
+    // Disabling WSAECONNRESET.
+    uint32_t ul = 0, temp;
+    if (WSAIoctl(new_socket, SIO_UDP_CONNRESET, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
+    {
+        GW_PRINT_WORKER << "Can't set SIO_UDP_CONNRESET on socket." << GW_ENDL;
+
+        closesocket(new_socket);
+
+        return PrintLastError();
+    }
+
+    // Getting port number.
+    ServerPort* sp = g_gateway.get_server_port(port_index);
+    uint16_t port = sp->get_port_number();
+
+    // The socket address to be passed to bind.
+    sockaddr_in binding_addr;
+    memset(&binding_addr, 0, sizeof(sockaddr_in));
+    binding_addr.sin_family = AF_INET;
+    binding_addr.sin_addr.s_addr = INADDR_ANY;
+    binding_addr.sin_port = htons(port);
+
+    // Binding socket to certain interface and port.
+    if (bind(new_socket, (SOCKADDR *) &binding_addr, sizeof(binding_addr)))
+    {
+        GW_PRINT_WORKER << "Can't bind UDP socket." << GW_ENDL;
+
+        closesocket(new_socket);
+
+        return PrintLastError();
+    }
+
+    // Creating new socket data structure inside chunk.
+    SocketDataChunk* new_sd = NULL;
+
+    // Getting new socket index.
+    socket_index_type new_socket_index = ObtainFreeSocketIndex(
+        new_socket,
+        port_index,
+        MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP,
+        false);
+
+    // Checking if we can't obtain new socket index.
+    if (INVALID_SOCKET_INDEX == new_socket_index) {
+
+        closesocket(new_socket);
+
+        return SCERRGWCANTOBTAINFREESOCKETINDEX;
+    }
+
+    // Creating new socket data.
+    err_code = CreateSocketData(new_socket_index, new_sd);
+
+    if (err_code)
+    {
+        closesocket(new_socket);
+
+        return err_code;
+    }
+
+    // Setting UDP network protocol.
+    new_sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP);
+
+    // Adding to ready UDP sockets.
+    sp->PushToReadyUdpSockets(worker_id_, new_socket_index);
+
+    // Associating new socket with least busy worker IOCP.
+    HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) new_socket, worker_iocp_, 0, 0);
+    GW_ASSERT(iocp_handler == worker_iocp_);
+
+    // Setting unique socket id.
+    new_sd->GenerateUniqueSocketInfoIds(this);
+
+    // This socket data is socket representation.
+    new_sd->set_socket_representer_flag();
+
+    // Immediately receiving on this UDP socket.
+    err_code = Receive(new_sd);
+
+    if (err_code) {
+        closesocket(new_socket);
+
+        return err_code;
+    }
+
+    return 0;
+}
+
 // Allocates a bunch of new connections.
 uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
 {
@@ -333,7 +452,7 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
         int32_t on_flag = 1;
 
         // Disables the Nagle algorithm for send coalescing.
-        if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&on_flag, 4))
+        if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&on_flag, sizeof(on_flag)))
         {
             GW_PRINT_WORKER << "Can't set TCP_NODELAY on socket." << GW_ENDL;
 
@@ -343,7 +462,7 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
         }
 
         // Does not block close waiting for unsent data to be sent.
-        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
+        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, sizeof(on_flag)))
         {
             GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
 
@@ -356,7 +475,6 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
         // Skipping completion port if operation is already successful.
         SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
 #endif
-        /*
         // Putting socket into non-blocking mode.
         uint32_t ul = 1, temp;
         if (WSAIoctl(new_socket, FIONBIO, &ul, sizeof(ul), NULL, 0, (LPDWORD)&temp, NULL, NULL))
@@ -367,14 +485,17 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
             closesocket(new_socket);
 
             return PrintLastError();
-        }*/
-
+        }
 
         // Creating new socket data structure inside chunk.
         SocketDataChunk* new_sd = NULL;
         
         // Getting new socket index.
-        socket_index_type new_socket_index = ObtainFreeSocketIndex(new_socket, port_index, false);
+        socket_index_type new_socket_index = ObtainFreeSocketIndex(
+            new_socket,
+            port_index,
+            MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+            false);
 
         // Checking if we can't obtain new socket index.
         if (INVALID_SOCKET_INDEX == new_socket_index) {
@@ -431,7 +552,30 @@ START_RECEIVING_AGAIN:
 
     uint32_t numBytes, err_code;
 
-    err_code = sd->Receive(this, &numBytes);
+#ifdef GW_DEV_DEBUG
+
+    AccumBuffer* ab = sd->get_accum_buf();
+
+    // Checking that accumulative buffer is fine.
+    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() < (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
+    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
+
+#endif
+
+    // Checking if its a UDP socket.
+    if (sd->IsUdp()) {
+
+        // Resetting buffer so we can receive again.
+        sd->ResetAccumBuffer();
+
+        err_code = sd->ReceiveUdp(this, &numBytes);
+
+    } else {
+
+        err_code = sd->ReceiveTcp(this, &numBytes);
+    }
 
     // Checking if operation completed immediately.
     if (0 != err_code)
@@ -442,7 +586,7 @@ START_RECEIVING_AGAIN:
         if (WSA_IO_PENDING != wsa_err_code)
         {
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Failed WSARecv: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+            GW_PRINT_WORKER << "Failed receive: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
 
             PrintLastError();
 #endif
@@ -522,6 +666,18 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // Adding to accumulated bytes.
     accum_buf->AddAccumulatedBytes(num_bytes_received);
 
+#ifdef GW_DEV_DEBUG
+
+    AccumBuffer* ab = sd->get_accum_buf();
+
+    // Checking that accumulative buffer is fine.
+    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() <= (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
+    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
+
+#endif
+
     // Incrementing statistics.
     worker_stats_bytes_received_ += num_bytes_received;
 
@@ -596,16 +752,28 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "Send: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking that socket data is valid.
+    sd->CheckForValidity();
+
     // Checking correct unique socket.
     if (!sd->CompareUniqueSocketId())
         return SCERRGWOPERATIONONWRONGSOCKET;
 
-    // Checking that socket data is valid.
-    sd->CheckForValidity();
-
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
+
+#ifdef GW_DEV_DEBUG
+
+    AccumBuffer* ab = sd->get_accum_buf();
+
+    // Checking that accumulative buffer is fine.
+    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() < (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
+    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
+
+#endif
 
     // Checking if aggregation is involved.
     if (sd->GetSocketAggregatedFlag())
@@ -620,7 +788,15 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     // Start sending on socket.
     uint32_t num_sent_bytes, err_code;
 
-    err_code = sd->Send(this, &num_sent_bytes);
+    // Checking if its a UDP socket.
+    if (sd->IsUdp()) {
+        
+        err_code = sd->SendUdp(this, &num_sent_bytes);
+
+    } else {
+
+        err_code = sd->SendTcp(this, &num_sent_bytes);
+    }
 
     // Checking if operation completed immediately.
     if (0 != err_code)
@@ -631,7 +807,7 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
         if (WSA_IO_PENDING != wsa_err_code)
         {
 #ifdef GW_WARNINGS_DIAG
-            GW_PRINT_WORKER << "Failed WSASend: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
+            GW_PRINT_WORKER << "Failed send: socket " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << ". Disconnecting socket..." << GW_ENDL;
 
             PrintLastError();
 #endif
@@ -679,6 +855,18 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     // Checking disconnect state.
     if (sd->get_disconnect_after_send_flag())
         return SCERRGWDISCONNECTAFTERSENDFLAG;
+
+#ifdef GW_DEV_DEBUG
+
+    AccumBuffer* ab = sd->get_accum_buf();
+
+    // Checking that accumulative buffer is fine.
+    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
+    GW_ASSERT(ab->get_chunk_cur_buf_ptr() < (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
+    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
+
+#endif
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -833,6 +1021,24 @@ void GatewayWorker::DisconnectAndReleaseChunk(SocketDataChunkRef sd)
 
     // Checking that socket data is valid.
     sd->CheckForValidity();
+
+    // Checking if we have a UDP socket.
+    if (sd->IsUdp()) {
+
+        // Checking if its a socket representer.
+        if (!sd->get_socket_representer_flag()) {
+
+            goto RELEASE_CHUNK_TO_POOL;
+
+        } else {
+
+            // Continue receiving.
+            uint32_t err_code = Receive(sd);
+            GW_ASSERT(0 == err_code);
+
+            return;
+        }
+    }
 
     // Checking if its a socket representer.
     if (!sd->get_socket_representer_flag()) {
@@ -1090,6 +1296,9 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
     GW_PRINT_WORKER << "FinishAccept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
 
+    // Checking that its not a UDP protocol.
+    GW_ASSERT(!sd->IsUdp());
+
     // Checking correct unique socket.
     GW_ASSERT(true == sd->CompareUniqueSocketId());
 
@@ -1154,9 +1363,6 @@ uint32_t GatewayWorker::FinishAccept(SocketDataChunkRef sd)
             // Associating new socket with least busy worker IOCP.
             HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) sd->GetSocket(), worker_iocp_, 0, 0);
             GW_ASSERT(iocp_handler == worker_iocp_);
-            if (iocp_handler != worker_iocp_) {
-                return SCERRGWFAILEDACCEPTEX;
-            }
         }
     }
 
@@ -1229,6 +1435,7 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_accum_buf()->get_chunk_orig_buf_len_bytes());
 
+    // Getting user data pointer.
     uint8_t* dest_data = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
 
     // Copying predefined header.
@@ -1245,9 +1452,10 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
+    sd->ResetUserDataOffset();
 
     // Prepare buffer to send outside.
-    sd->PrepareForSend(dest_data, kHttpGenericHtmlHeaderLength + body_len);
+    sd->get_accum_buf()->AddAccumulatedBytes(kHttpGenericHtmlHeaderLength + body_len);
 
     // Running the handlers.
     uint32_t err_code = RunFromDbHandlers(sd);
@@ -1277,15 +1485,16 @@ void GatewayWorker::ProcessRebalancedSockets() {
         // Returning socket info back to origin.
         g_gateway.get_worker(0)->PushRebalanceSocketInfo(rsi);
 
-        // Creating new socket data structure inside chunk.
-        SocketDataChunk* new_sd = NULL;
-
         // Associating new socket with least busy worker IOCP.
         HANDLE iocp_handler = CreateIoCompletionPort((HANDLE) s, worker_iocp_, 0, 0);
         GW_ASSERT(iocp_handler == worker_iocp_);
 
         // Getting new socket index.
-        socket_index_type new_socket_index = ObtainFreeSocketIndex(s, pi, false);
+        socket_index_type new_socket_index = ObtainFreeSocketIndex(
+            s,
+            pi,
+            MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP,
+            false);
 
         // Checking if we can't obtain new socket index.
         if (INVALID_SOCKET_INDEX == new_socket_index) {
@@ -1295,6 +1504,9 @@ void GatewayWorker::ProcessRebalancedSockets() {
 
             return;
         }
+
+        // Creating new socket data structure inside chunk.
+        SocketDataChunk* new_sd = NULL;
 
         // Creating new socket data.
         err_code = CreateSocketData(new_socket_index, new_sd);
@@ -1434,8 +1646,19 @@ uint32_t GatewayWorker::WorkerRoutine()
                     // Checking correct unique socket.
                     if (sd->get_socket_representer_flag()) {
 
-                        err_code = FinishDisconnect(sd);
-                        GW_ASSERT(0 == err_code);
+                        // Checking if its a UDP socket.
+                        if (sd->IsUdp()) {
+
+                            // Simply receiving again, if its a UDP socket.
+                            err_code = Receive(sd);
+                            GW_ASSERT(0 == err_code);
+                            
+                        } else {
+
+                            // Disconnecting TCP socket.
+                            err_code = FinishDisconnect(sd);
+                            GW_ASSERT(0 == err_code);
+                        }
 
                     } else {
 
@@ -1448,6 +1671,9 @@ uint32_t GatewayWorker::WorkerRoutine()
 
                 // Checking if socket is still legal to be used.
                 if (!sd->CompareUniqueSocketId()) {
+
+                    // Checking that its not a UDP socket.
+                    GW_ASSERT(false == sd->IsUdp());
 
                     // Checking if its a socket representer.
                     if (sd->get_socket_representer_flag()) {
@@ -1589,7 +1815,7 @@ void GatewayWorker::CheckAcceptingSocketsOnAllActivePorts()
         ServerPort* server_port = g_gateway.get_server_port(p);
 
         // Checking that port is not empty.
-        if (!server_port->IsEmpty())
+        if ((!server_port->IsEmpty()) && (!server_port->is_udp()))
         {
             // Creating new set of prepared connections.
             // NOTE: Ignoring error code on purpose.
@@ -1711,7 +1937,11 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
     }
 
     // Getting database to which this chunk belongs.
-    WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
+    db_index_type db_index = sd->GetDestDbIndex();
+    if (INVALID_DB_INDEX == db_index)
+        return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+
+    WorkerDbInterface *db = GetWorkerDb(db_index);
 
     // Pushing chunk to that database.
     if (NULL != db) {
@@ -1732,7 +1962,11 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
 
         // Checking if any issue occurred.
         if (err_code) {
+
+            GW_ASSERT(NULL != sd);
+
             PushToOverflowQueue(sd);
+
             return 0;
         }
 
@@ -1759,7 +1993,11 @@ uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BM
     }
 
     // Getting database to which this chunk belongs.
-    WorkerDbInterface *db = GetWorkerDb(sd->GetDestDbIndex());
+    db_index_type db_index = sd->GetDestDbIndex();
+    if (INVALID_DB_INDEX == db_index)
+        return SCERRGWOPERATIONONWRONGSOCKETWHENPUSHING;
+
+    WorkerDbInterface *db = GetWorkerDb(db_index);
 
     // Pushing chunk to that database.
     if (NULL != db) {
@@ -1768,7 +2006,11 @@ uint32_t GatewayWorker::PushSocketDataFromOverflowToDb(SocketDataChunkRef sd, BM
 
         // Checking if we need to put the socket back to overflow.
         if (err_code) {
+
+            GW_ASSERT(NULL != sd);
+
             *again_for_overflow = true;
+
             return 0;
         }
 
@@ -1792,6 +2034,11 @@ void GatewayWorker::PushOverflowChunks(uint32_t* next_sleep_interval_ms)
     while (IsOverflowed()) {
 
         SocketDataChunk* sd = PopFromOverlowQueue();
+        
+        GW_ASSERT(sd != NULL);
+
+        // Checking that socket data is valid.
+        sd->CheckForValidity();
 
         num_tries++;
 

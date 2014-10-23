@@ -414,6 +414,12 @@ namespace Starcounter {
         {
             try
             {
+                // Checking if server closed the connection.
+                if (resp_len_bytes <= 0) {
+                    CallUserDelegateOnFailure(new Exception("Server has sent zero response!"), false);
+                    return;
+                }
+
                 // Trying to parse the response.
                 resp_ = new Response(bytes, offset, resp_len_bytes, null, false);
 

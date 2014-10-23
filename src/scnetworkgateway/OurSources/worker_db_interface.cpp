@@ -178,6 +178,21 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             ipc_smc = NULL;
             ipc_sd = NULL;
 
+            // Checking if we have a UDP socket.
+            if (sd->IsUdp()) {
+
+                // Preinitializing UDP socket data.
+                err_code = sd->PreInitUdpSocket(gw);
+
+                // If there is an error we basically proceeding to next IPC chunk.
+                if (err_code) {
+
+                    gw->DisconnectAndReleaseChunk(sd);
+
+                    continue;
+                }
+            }
+
 READY_SOCKET_DATA:
 
             // Setting socket info reference.
@@ -218,6 +233,8 @@ READY_SOCKET_DATA:
                 gw->LoopbackForAggregation(sd);
                 continue;
             }
+
+            GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
 
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);

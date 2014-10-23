@@ -388,7 +388,7 @@ uint32_t Gateway::ProcessArgumentsAndInitLog(int argc, wchar_t* argv[])
 }
 
 // Initializes server socket.
-void ServerPort::Init(port_index_type port_index, uint16_t port_number, SOCKET listening_sock)
+void ServerPort::Init(port_index_type port_index, uint16_t port_number, bool is_udp, SOCKET listening_sock)
 {
     GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
 
@@ -399,8 +399,8 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, SOCKET l
 
     listening_sock_ = listening_sock;
     port_number_ = port_number;
-    port_handlers_->set_port_number(port_number_);
     port_index_ = port_index;
+    is_udp_ = is_udp;
 
     memset(num_active_sockets_, 0, sizeof(num_active_sockets_));
 }
@@ -571,6 +571,15 @@ int32_t ServerPort::GetNumberOfActiveSocketsAllWorkers() {
     }
 
     return num_active_sockets;
+}
+
+// Getting UDP socket info.
+ScSocketInfoStruct* ServerPort::GetUdpSocketInfo(worker_id_type worker_id) {
+
+    socket_index_type socket_index = ready_udp_sockets_[worker_id].PopBack();
+    ready_udp_sockets_[worker_id].PushBack(socket_index);
+
+    return g_gateway.get_worker(worker_id)->GetSocketInfoReference(socket_index);
 }
 
 // Printing the registered URIs.
@@ -1206,6 +1215,8 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
 {
     *is_handled = true;
 
+    uint32_t err_code;
+
     char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
 
     // Looking for the \r\n\r\n\r\n\r\n.
@@ -1220,6 +1231,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;
     uint16_t port;
+    bool is_udp;
     std::string db_name;
     std::string app_name;
 
@@ -1228,25 +1240,41 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     ss >> handler_info;
     ss >> port;
     GW_ASSERT((port > 0) && (port < 65536));
+    ss >> std::boolalpha >> is_udp;
 
     std::transform(db_name.begin(), db_name.end(), db_name.begin(), ::tolower);
     db_index_type db_index = g_gateway.FindDatabaseIndex(db_name);
     if (INVALID_DB_INDEX == db_index)
         return 0;
 
-    GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+    GW_COUT << "Registering PORT handler on " << db_name << " on port " << port << "(is udp: " << is_udp << ")" << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
     gw->EnterGlobalLock();
 
-    // Registering determined URI Apps handler.
-    uint32_t err_code = g_gateway.AddPortHandler(
-        gw,
-        port,
-        app_name.c_str(),
-        handler_info,
-        db_index,
-        AppsPortProcessData);
+    if (is_udp) {
+
+        // Registering determined URI Apps handler.
+        err_code = g_gateway.AddPortHandler(
+            gw,
+            port,
+            is_udp,
+            app_name.c_str(),
+            handler_info,
+            db_index,
+            UdpPortProcessData);
+
+    } else {
+        // Registering determined URI Apps handler.
+        err_code = g_gateway.AddPortHandler(
+            gw,
+            port,
+            is_udp,
+            app_name.c_str(),
+            handler_info,
+            db_index,
+            TcpPortProcessData);
+    }
 
     // Releasing global lock.
     gw->LeaveGlobalLock();
@@ -1332,6 +1360,7 @@ uint32_t RegisterWsHandler(
         err_code = g_gateway.AddPortHandler(
             gw,
             port,
+            false,
             app_name.c_str(),
             handler_info,
             0,
@@ -1944,6 +1973,7 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         err_code = AddPortHandler(
             &gw_workers_[0],
             setting_aggregation_port_,
+            false,
             "gateway",
             bmx::BMX_INVALID_HANDLER_INFO,
             INVALID_DB_INDEX,
@@ -2428,6 +2458,7 @@ void Gateway::DisconnectSocket(SOCKET s) {
 
     GW_ASSERT(INVALID_SOCKET != s);
 
+    //shutdown(s, SD_BOTH);
     DisconnectExFunc(s, NULL, 0, 0);
     closesocket(s);
 }
@@ -3016,6 +3047,7 @@ uint32_t Gateway::AddUriHandler(
         err_code = g_gateway.AddPortHandler(
             gw,
             port_num,
+            false,
             app_name_string,
             handler_info,
             0,
@@ -3114,6 +3146,7 @@ uint32_t Gateway::AddUriHandler(
 uint32_t Gateway::AddPortHandler(
     GatewayWorker* gw,
     uint16_t port_num,
+    bool is_udp,
     const char* app_name_string,
     BMX_HANDLER_TYPE handler_info,
     db_index_type db_index,
@@ -3127,28 +3160,48 @@ uint32_t Gateway::AddPortHandler(
     // Checking if there are no handlers.
     if (NULL != server_port) {
 
-        GW_ASSERT(true == server_port->get_port_handlers()->IsEmpty());
+        if (!server_port->get_port_handlers()->IsEmpty()) {
+            return SCERRHANDLERALREADYREGISTERED;
+        }
 
     } else {
 
         SOCKET listening_sock = INVALID_SOCKET;
 
-        // Creating socket and binding to port for all workers.
-        err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
-        if (err_code)
-            return err_code;
+        // Creating listening socket only on TCP port.
+        if (!is_udp) {
+
+            // Creating socket and binding to port for all workers.
+            err_code = g_gateway.CreateListeningSocketAndBindToPort(gw, port_num, listening_sock);
+            if (err_code)
+                return err_code;
+        }
 
         // Adding new server port.
-        server_port = g_gateway.AddNewServerPort(port_num, listening_sock);
+        server_port = g_gateway.AddNewServerPort(port_num, is_udp, listening_sock);
 
         // Checking if its an aggregation port.
         if (port_num == g_gateway.setting_aggregation_port())
             server_port->set_aggregating_flag();
 
-        // Creating new connections if needed for this database.
-        err_code = g_gateway.get_worker(0)->CreateAcceptingSockets(server_port->get_port_index());
-        if (err_code)
-            return err_code;
+        // Creating either accepting or UDP sockets based on port.
+        if (is_udp) {
+            
+            // Creating new connections if needed for this database.
+            for (int32_t i = 0; i < g_gateway.setting_num_workers(); i++) {
+                err_code = g_gateway.get_worker(i)->CreateUdpSockets(server_port->get_port_index());
+                if (err_code)
+                    return err_code;
+            }
+
+        } else {
+
+            // Creating new connections if needed for this database.
+            err_code = g_gateway.get_worker(0)->CreateAcceptingSockets(server_port->get_port_index());
+            if (err_code)
+                return err_code;
+
+        }
     }
 
     // Registering URI handler.

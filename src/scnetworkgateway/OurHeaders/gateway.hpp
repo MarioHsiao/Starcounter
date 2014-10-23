@@ -123,7 +123,9 @@ enum GatewayErrorCodes
     SCERRGWWEBSOCKET,
     SCERRGWWEBSOCKETWRONGHANDSHAKEDATA,
     SCERRGWNULLCODEHOST,
-    SCERRGWCANTOBTAINFREESOCKETINDEX
+    SCERRGWCANTOBTAINFREESOCKETINDEX,
+    SCERRGWWRONGUDPFROMPORT,
+    SCERRGWWRONGPORTINDEX
 };
 
 // Maximum number of ports the gateway operates with.
@@ -241,6 +243,9 @@ const int32_t MAX_STATS_LENGTH = 1024 * 64;
 
 // Size of the listening queue.
 const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
+
+// Number of prepared UDP sockets.
+const int32_t NUM_PREPARED_UDP_SOCKETS_PER_WORKER = 256;
 
 // Gateway mode.
 enum GatewayTestingMode
@@ -395,7 +400,14 @@ typedef uint32_t (*GENERIC_HANDLER_CALLBACK) (
     BMX_HANDLER_TYPE handler_info,
     bool* is_handled);
 
-uint32_t AppsPortProcessData(
+uint32_t UdpPortProcessData(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE handler_info,
+    bool* is_handled);
+
+uint32_t TcpPortProcessData(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
@@ -673,9 +685,9 @@ public:
         return &desired_accum_bytes_;
     }
 
-    uint32_t* get_chunk_num_available_bytes_addr()
+    uint32_t* get_accumulated_len_bytes_addr()
     {
-        return &chunk_num_available_bytes_;
+        return &accumulated_len_bytes_;
     }
 
     // Makes accumulative buffer non-usable.
@@ -758,11 +770,6 @@ public:
         return chunk_num_available_bytes_;
     }
 
-    void set_chunk_num_available_bytes(uint32_t num_bytes)
-    {
-        chunk_num_available_bytes_ = num_bytes;
-    }
-
     void RevertBeforeSend()
     {
         chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_;
@@ -843,10 +850,20 @@ public:
         return chunk_orig_buf_ptr_;
     }
 
+    // Getting current chunk buffer.
+    uint8_t* get_chunk_cur_buf_ptr() {
+        return chunk_cur_buf_ptr_;
+    }
+
     // Returns the size in bytes of accumulated data.
     uint32_t get_accum_len_bytes()
     {
         return accumulated_len_bytes_;
+    }
+
+    void set_accum_len_bytes(uint32_t value)
+    {
+        accumulated_len_bytes_ = value;
     }
 
     // Checks if accumulating buffer is filled.
@@ -1260,10 +1277,29 @@ class ServerPort
     // Is this an aggregation port.
     bool aggregating_flag_;
 
+    // Is it a UDP port?
+    bool is_udp_;
+
     // Number of active sockets for this server port.
     int32_t num_active_sockets_[MAX_WORKER_THREADS];
 
+    // Indexes to prepared UDP sockets.
+    LinearQueue<socket_index_type, NUM_PREPARED_UDP_SOCKETS_PER_WORKER> ready_udp_sockets_[MAX_WORKER_THREADS];
+
 public:
+
+    // Getting UDP socket info.
+    ScSocketInfoStruct* GetUdpSocketInfo(worker_id_type worker_id);
+
+    // Pushing existing UDP socket to ready queue.
+    void PushToReadyUdpSockets(worker_id_type worker_id, socket_index_type udp_socket) {
+        ready_udp_sockets_[worker_id].PushBack(udp_socket);
+    }
+
+    // Is it a UDP port?
+    bool is_udp() {
+        return is_udp_;
+    }
 
     void RemoveOldestCacheEntry(UriMatcherCacheEntry* new_entry) {
 
@@ -1352,7 +1388,7 @@ public:
     bool IsEmpty();
 
     // Initializes server socket.
-    void Init(port_index_type port_index, uint16_t port_number, SOCKET port_socket);
+    void Init(port_index_type port_index, uint16_t port_number, bool is_udp, SOCKET port_socket);
 
     // Server port.
     ServerPort();
@@ -1827,6 +1863,7 @@ public:
     uint32_t AddPortHandler(
         GatewayWorker *gw,
         uint16_t port,
+        bool is_udp,
         const char* app_name_string,
         BMX_HANDLER_TYPE handler_info,
         db_index_type db_index,
@@ -1939,7 +1976,7 @@ public:
     }
 
     // Adds new server port.
-    ServerPort* AddNewServerPort(uint16_t port_num, SOCKET listening_sock)
+    ServerPort* AddNewServerPort(uint16_t port_num, bool is_udp, SOCKET listening_sock)
     {
         // Looking for an empty server port slot.
         int32_t empty_slot = 0;
@@ -1950,7 +1987,7 @@ public:
         }
 
         // Initializing server port on this slot.
-        server_ports_[empty_slot].Init(empty_slot, port_num, listening_sock);
+        server_ports_[empty_slot].Init(empty_slot, port_num, is_udp, listening_sock);
 
         // Checking if it was the last slot.
         if (empty_slot >= num_server_ports_slots_)
