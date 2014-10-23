@@ -344,7 +344,7 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as ClrClass).FullClassName == "QueryProcessingTest.User");
             nrcc = 0;
             foreach (Column tc in Db.SQL<Column>(
-                "select c from starcounter.metadata.column c where name = ? and table is ClrClass", 
+                "select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
                 "DecimalProperty")) {
                 nrcc++;
                 Trace.Assert(tc.Name == "DecimalProperty");
