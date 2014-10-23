@@ -11,6 +11,7 @@ namespace Starcounter.Advanced.XSON {
                 json._stepSiblings = new List<Json>();
             json._stepSiblings.Add(stepSibling);
             stepSibling._stepParent = json;
+            MergeTransaction(json, stepSibling);
         }
 
         public static bool RemoveStepSibling(this Json json, Json stepSibling) {
@@ -140,6 +141,20 @@ namespace Starcounter.Advanced.XSON {
             if (t != null)
                 return t.AddAndReturn<T1, T2, T3, TResult>(func, arg1, arg2, arg3);
             return func(arg1, arg2, arg3);
+        }
+
+
+        private static void MergeTransaction(Json main, Json toMerge) {
+            var mainTransaction = main.ThisTransaction;
+            var toMergeTransaction = toMerge.ThisTransaction;
+
+            if (mainTransaction != null && toMergeTransaction != null) {
+                mainTransaction.MergeTransaction(toMergeTransaction);
+
+                // TODO: 
+                // Reference counter to make sure commit, rollbacks and dispose works properly.
+                toMerge.ThisTransaction = mainTransaction;
+            }
         }
     }
 }
