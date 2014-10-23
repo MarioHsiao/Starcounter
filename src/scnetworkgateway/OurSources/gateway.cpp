@@ -30,6 +30,30 @@ GUID AcceptExGuid = WSAID_ACCEPTEX,
     ConnectExGuid = WSAID_CONNECTEX,
     DisconnectExGuid = WSAID_DISCONNECTEX;
 
+// Tries to set a SIO_LOOPBACK_FAST_PATH on a given TCP socket.
+void SetLoopbackFastPathOnTcpSocket(SOCKET sock) {
+
+    int32_t optionValue = 1;
+    DWORD numberOfBytesReturned = 0;
+
+    // NOTE: Tries to configure a TCP socket for lower latency and faster operations on the loopback interface.
+    int status = 
+        WSAIoctl(
+        sock, 
+        SIO_LOOPBACK_FAST_PATH,
+        &optionValue,
+        sizeof(optionValue),
+        NULL,
+        0,
+        &numberOfBytesReturned,
+        0,
+        0);
+
+    if (SOCKET_ERROR == status) {
+        // Simply ignoring the error if fast loopback is not supported.
+    }
+}
+
 std::string GetOperTypeString(SocketOperType typeOfOper)
 {
     switch (typeOfOper)
@@ -944,29 +968,13 @@ uint32_t Gateway::CreateListeningSocketAndBindToPort(GatewayWorker *gw, uint16_t
         GW_COUT << "WSASocket() failed." << GW_ENDL;
         return PrintLastError();
     }
+
+    // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+    SetLoopbackFastPathOnTcpSocket(sock);
    
     // Special settings for aggregation sockets.
     if (port_num == setting_aggregation_port_)
     {
-        int32_t OptionValue = 1;
-        DWORD numberOfBytesReturned = 0;
-
-        int status = 
-            WSAIoctl(
-            sock, 
-            SIO_LOOPBACK_FAST_PATH,
-            &OptionValue,
-            sizeof(OptionValue),
-            NULL,
-            0,
-            &numberOfBytesReturned,
-            0,
-            0);
-
-        if (SOCKET_ERROR == status) {
-            // Simply ignoring the error if fast loopback is not supported.
-        }
-    
         int32_t bufSize = 1 << 19;
         if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *)&bufSize, sizeof(int)) == -1) {
             GW_ASSERT(false);

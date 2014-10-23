@@ -1505,6 +1505,9 @@ typedef void (*ClangDestroyEngineType) (
     void* clang_engine
     );
 
+// Tries to set a SIO_LOOPBACK_FAST_PATH on a given TCP socket.
+void SetLoopbackFastPathOnTcpSocket(SOCKET sock);
+
 class CodegenUriMatcher;
 class GatewayWorker;
 class Gateway

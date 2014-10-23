@@ -76,6 +76,9 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd, MixedCodeConsta
         return PrintLastError();
     }
 
+    // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+    SetLoopbackFastPathOnTcpSocket(new_connect_socket);
+
     // Trying to bind socket until this succeeds.
     while (true)
     {
@@ -447,6 +450,9 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
 #endif
             return PrintLastError();
         }
+
+        // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+        SetLoopbackFastPathOnTcpSocket(new_socket);
         
         // Setting needed socket options.
         int32_t on_flag = 1;

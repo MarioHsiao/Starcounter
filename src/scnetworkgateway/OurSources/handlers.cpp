@@ -102,18 +102,32 @@ uint32_t UdpPortProcessData(
         // Setting matched URI index.
         sd->SetDestDbIndex(hl->get_db_index());
 
-        // Reordering port bytes to host order.
-        sd->UdpChangePortByteOrder();
+        // Checking if we need to send back UDP datagram here.
+        if (sd->GetPortNumber() == 55555) {
 
-        // Posting cloning receive since all data is accumulated.
-        err_code = sd->CloneToReceive(gw);
-        if (err_code)
-            return err_code;
+            // Prepare buffer to send outside.
+            sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
 
-        // Push chunk to corresponding channel/scheduler.
-        err_code = gw->PushSocketDataToDb(sd, user_handler_id);
-        if (err_code)
-            return err_code;
+            // Posting cloning receive since all data is accumulated.
+            err_code = gw->Send(sd);
+            if (err_code)
+                return err_code;
+
+        } else {
+
+            // Reordering port bytes to host order.
+            sd->UdpChangePortByteOrder();
+
+            // Posting cloning receive since all data is accumulated.
+            err_code = sd->CloneToReceive(gw);
+            if (err_code)
+                return err_code;
+
+            // Push chunk to corresponding channel/scheduler.
+            err_code = gw->PushSocketDataToDb(sd, user_handler_id);
+            if (err_code)
+                return err_code;
+        }
 
         // Setting handled flag.
         *is_handled = true;

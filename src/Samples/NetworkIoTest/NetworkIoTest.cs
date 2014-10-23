@@ -508,14 +508,13 @@ namespace NetworkIoTestApp
 
                     Handle.Tcp(8585, OnTcpSocket);
 
-                    Handle.Udp(8787, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
+                    Handle.Udp(55555, (IPAddress clientIp, UInt16 clientPort, Byte[] datagram) => {
 
                         String msg = UTF8Encoding.UTF8.GetString(datagram);
 
                         //Console.WriteLine(msg);
 
                         UdpSocket.Send(clientIp, clientPort, 8787, msg);
-
                     });
 
                     Handle.GET("/exc1", (Request req) =>
