@@ -69,11 +69,14 @@ namespace Starcounter.Binding
                 try {
                     typeDefsByName.Add(typeDef.Name, typeDef);
                 } catch (ArgumentException) {
-#if false // DEBUG
+#if true // DEBUG, bug #2350
                     TypeDef alreadyTypeDef;
                     typeDefsByName.TryGetValue(typeDef.Name, out alreadyTypeDef);
                     if (alreadyTypeDef != null)
-                        Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
+                        if (alreadyTypeDef.Name == typeDef.Name)
+                            LogSources.Hosting.LogWarning(".NET meta-data already exists for the type " +
+                                typeDef.Name);
+                        //Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
 #endif // DEBUG
                     typeDefsByName[typeDef.Name] = typeDef;
                 }

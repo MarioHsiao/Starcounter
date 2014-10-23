@@ -13,72 +13,83 @@ namespace Starcounter.SqlProcessor {
                 // Insert meta-data about types
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
-                    string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
-                    //string assemblyName = "";
-                    Application app = Application.CurrentAssigned;
-                    //if (app != null) {
-                    //    //string assemblyPath = app.FilePath;
-                    //    //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
-                    //    assemblyName = '.' + app.Name;
-                    //}
-                    string uniqueIdentifierRev = classReverseFullName ;
-                    string uniqueIdentifier = typeDef.Name;
-                    Starcounter.Internal.Metadata.MaterializedTable mattab = 
-                        Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
-                        typeDef.TableDef.Name).First;
-                    ClrClass parentView = null;
-                    if (typeDef.BaseName != null)
-                        parentView = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", typeDef.BaseName).First;
-                    ClrClass obj = new ClrClass {
-                        Name = typeDef.Name.LastDotWord(),
-                        FullName = typeDef.Name,
-                        FullClassName = typeDef.Name,
-                        UniqueIdentifierReversed = uniqueIdentifierRev,
-                        UniqueIdentifier = uniqueIdentifier,
-                        MaterializedTable = mattab,
-                        AssemblyName = (app != null ? app.Name : null),
-                        AppDomainName = AppDomain.CurrentDomain.FriendlyName,
-                        Inherits = parentView,
-                        Updatable = app == null ? false : true
-                    };
-                    createdViews[j] = obj;
+                    if (Db.SQL<ClrClass>("select c from clrclass c where fullclassname = ?",
+                        typeDef.Name).First != null)
+                        LogSources.Hosting.LogWarning("ClrClass instance already exists in the meta-data for the type " +
+                            typeDef.Name);
+                    else {
+                        string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
+                        //string assemblyName = "";
+                        Application app = Application.CurrentAssigned;
+                        //if (app != null) {
+                        //    //string assemblyPath = app.FilePath;
+                        //    //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
+                        //    assemblyName = '.' + app.Name;
+                        //}
+                        string uniqueIdentifierRev = classReverseFullName;
+                        string uniqueIdentifier = typeDef.Name;
+                        Starcounter.Internal.Metadata.MaterializedTable mattab =
+                            Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
+                            typeDef.TableDef.Name).First;
+                        ClrClass parentView = null;
+                        if (typeDef.BaseName != null)
+                            parentView = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", typeDef.BaseName).First;
+                        ClrClass obj = new ClrClass {
+                            Name = typeDef.Name.LastDotWord(),
+                            FullName = typeDef.Name,
+                            FullClassName = typeDef.Name,
+                            UniqueIdentifierReversed = uniqueIdentifierRev,
+                            UniqueIdentifier = uniqueIdentifier,
+                            MaterializedTable = mattab,
+                            AssemblyName = (app != null ? app.Name : null),
+                            AppDomainName = AppDomain.CurrentDomain.FriendlyName,
+                            Inherits = parentView,
+                            Updatable = app == null ? false : true
+                        };
+                        createdViews[j] = obj;
+                    }
                 }
                 // Insert meta-data about properties
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
-                    ClrClass theView = createdViews[j];
-                    Debug.Assert(theView.FullClassName == typeDef.Name);
-                    for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
-                        PropertyDef propDef = typeDef.PropertyDefs[i];
-                        Starcounter.Metadata.Type propType = null;
-                        if (propDef.Type == DbTypeCode.Object)
-                            propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
-                        else
-                            propType = Db.SQL<Starcounter.Metadata.MapPrimitiveType>("select t from MapPrimitivetype t where dbtypecode = ?", propDef.Type).First;
-                        if (propType != null) {
-                            if (propDef.ColumnName == null) {
-                                CodeProperty codeProp = new CodeProperty {
-                                    Table = theView,
-                                    Name = propDef.Name,
-                                    Type = propType
-                                };
-                            } else {
-                                Starcounter.Internal.Metadata.MaterializedColumn matCol = 
-                                    Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
-                                    "select c from materializedcolumn c where table = ? and name = ?",
-                                    theView.MaterializedTable, propDef.ColumnName).First;
-                                Column col = new Column {
-                                    Table = theView,
-                                    Name = propDef.Name,
-                                    MaterializedColumn = matCol,
-                                    Type = propType,
-                                    Unique = false
-                                };
+                    if (Db.SQL<ClrClass>("select c from clrclass c where fullclassname = ?",
+                        typeDef.Name).First == null) {
+                        ClrClass theView = createdViews[j];
+                        Debug.Assert(theView.FullClassName == typeDef.Name);
+                        for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
+                            PropertyDef propDef = typeDef.PropertyDefs[i];
+                            Starcounter.Metadata.Type propType = null;
+                            if (propDef.Type == DbTypeCode.Object)
+                                propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
+                            else
+                                propType = Db.SQL<Starcounter.Metadata.MapPrimitiveType>("select t from MapPrimitivetype t where dbtypecode = ?", propDef.Type).First;
+                            if (propType != null) {
+                                if (propDef.ColumnName == null) {
+                                    CodeProperty codeProp = new CodeProperty {
+                                        Table = theView,
+                                        Name = propDef.Name,
+                                        Type = propType
+                                    };
+                                }
+                                else {
+                                    Starcounter.Internal.Metadata.MaterializedColumn matCol =
+                                        Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
+                                        "select c from materializedcolumn c where table = ? and name = ?",
+                                        theView.MaterializedTable, propDef.ColumnName).First;
+                                    Column col = new Column {
+                                        Table = theView,
+                                        Name = propDef.Name,
+                                        MaterializedColumn = matCol,
+                                        Type = propType,
+                                        Unique = false
+                                    };
+                                }
                             }
-                        } else {
-                            LogSources.Sql.LogWarning("Non database type " +
-                                (propDef.Type == DbTypeCode.Object ? propDef.TargetTypeName : propDef.Type.ToString()) +
-                                " of property " + propDef.Name + " in class " + theView.FullClassName);
+                            else {
+                                LogSources.Sql.LogWarning("Non database type " +
+                                    (propDef.Type == DbTypeCode.Object ? propDef.TargetTypeName : propDef.Type.ToString()) +
+                                    " of property " + propDef.Name + " in class " + theView.FullClassName);
+                            }
                         }
                     }
                 }
