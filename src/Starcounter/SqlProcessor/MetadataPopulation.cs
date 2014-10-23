@@ -10,14 +10,18 @@ namespace Starcounter.SqlProcessor {
         internal static void PopulateClrMetadata(TypeDef[] typeDefs) {
             Db.SystemTransaction(delegate {
                 ClrClass[] createdViews = new ClrClass[typeDefs.Length];
+                bool[] populateColumns = new bool[typeDefs.Length];
                 // Insert meta-data about types
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
                     if (Db.SQL<ClrClass>("select c from clrclass c where fullclassname = ?",
-                        typeDef.Name).First != null)
+                        typeDef.Name).First != null) {
+                        populateColumns[j] = false;
                         LogSources.Hosting.LogWarning("ClrClass instance already exists in the meta-data for the type " +
                             typeDef.Name);
+                    }
                     else {
+                        populateColumns[j] = true;
                         string classReverseFullName = typeDef.Name.ReverseOrderDotWords();
                         //string assemblyName = "";
                         Application app = Application.CurrentAssigned;
@@ -52,8 +56,7 @@ namespace Starcounter.SqlProcessor {
                 // Insert meta-data about properties
                 for (int j = 0; j < typeDefs.Length; j++) {
                     TypeDef typeDef = typeDefs[j];
-                    if (Db.SQL<ClrClass>("select c from clrclass c where fullclassname = ?",
-                        typeDef.Name).First == null) {
+                    if (populateColumns[j]) {
                         ClrClass theView = createdViews[j];
                         Debug.Assert(theView.FullClassName == typeDef.Name);
                         for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
