@@ -81,5 +81,9 @@ namespace Starcounter.XSON.Tests {
         public void Add<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
             action(arg1, arg2, arg3);
         }
+
+        public void MergeTransaction(ITransaction toMerge) {
+            toMerge.Dispose();
+        }
     }
 }

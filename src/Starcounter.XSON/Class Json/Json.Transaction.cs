@@ -30,8 +30,9 @@ namespace Starcounter {
         /// Returns the transaction that is set on this app. Does NOT
         /// look in parents.
         /// </summary>
-        internal ITransaction TransactionOnThisNode {
+        internal ITransaction ThisTransaction {
             get { return _transaction; }
+            set { _transaction = value; }
         }
 
         /// <summary>
