@@ -46,5 +46,24 @@ namespace Starcounter {
             };
             return type;
         }
+
+        /// <summary>
+        /// Returns a mask with all configuration installed for
+        /// the type given a <see cref="HookKey"/>.
+        /// </summary>
+        /// <param name="key">Key whose type we should gather installed
+        /// configuration for.</param>
+        /// <returns>Mask with all hook configuration installed for the
+        /// given type.
+        /// </returns>
+        internal static uint GetConfiguration(HookKey key) {
+            uint result = 0;
+            foreach (var installedKey in InvokableHook.HooksPerTrigger.Keys) {
+                if (installedKey.TypeId == key.TypeId) {
+                    result |= HookType.ToHookConfiguration(installedKey.TypeOfHook);
+                }
+            }
+            return result;
+        }
     }
 }
