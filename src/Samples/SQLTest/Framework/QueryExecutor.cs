@@ -110,6 +110,7 @@ namespace SQLTest
             });
         }
 
+#if false // not used anywhere
         private static void ResultLoop(SqlEnumerator<IObjectView> sqlEnum)
         {
             IObjectView obj = null;
@@ -118,6 +119,7 @@ namespace SQLTest
                 obj = sqlEnum.Current;
             }
         }
+#endif
 
         private static List<String> CreateResultSingleton(SqlEnumerator<dynamic> sqlEnum)
         {

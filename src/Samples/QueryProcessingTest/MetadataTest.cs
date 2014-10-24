@@ -266,10 +266,12 @@ namespace QueryProcessingTest {
                 "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.\"index\".name = ? order by i.\"position\"",
                 "materializedtable", "built-in").GetEnumerator();
             Trace.Assert(!indexedColumnEnum.MoveNext());
+            indexedColumnEnum.Dispose();
             indexedColumnEnum = Db.SQL<IndexedColumn>(
                 "select i from indexedcolumn i where i.\"index\".name = ? order by \"position\"",
                 "ColumnPrimaryKey").GetEnumerator();
             Trace.Assert(!indexedColumnEnum.MoveNext());
+            indexedColumnEnum.Dispose();
 
             // Test that all MaterializedColumn instances are referenced from Column instances
             foreach (MaterializedColumn mc in Db.SQL<MaterializedColumn>(
