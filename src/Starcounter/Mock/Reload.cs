@@ -75,7 +75,7 @@ namespace Starcounter {
                     selectObjs.Append(" FROM ");
                     selectObjs.Append(QuotePath(tbl.FullName));
                     selectObjs.Append(" __o");
-                    SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
+                    using (SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator()) {
                     Debug.Assert(selectEnum.TypeBinding != null);
                     while (selectEnum.MoveNext()) {
                         IObjectView val = selectEnum.Current;
@@ -84,7 +84,8 @@ namespace Starcounter {
                             Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
                             Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
                             valTypeName = val.GetObject(0).GetType().ToString();
-                        } else
+                        }
+                        else
                             valTypeName = val.GetType().ToString();
                         Debug.Assert(valTypeName != null);
                         if (valTypeName == tbl.FullName) {
@@ -112,6 +113,7 @@ namespace Starcounter {
                                 inStmt.Append(insertHeader);
                             }
                         }
+                    }
                     }
                     if (tblNrObj > 0)
                         using (StreamWriter file = new StreamWriter(fileName, true)) {

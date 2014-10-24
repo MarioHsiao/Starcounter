@@ -87,6 +87,7 @@ namespace QueryProcessingTest {
             objectno = Db.SQL<ulong>("select objectno from account where accountid = ?", 2).First;
             e = Db.SQL("select a from account a where objectno = ? offsetkey ?", objectno, k).GetEnumerator();
             Trace.Assert(!e.MoveNext());
+            e.Dispose();
             // Test using offset key for queries with different query plans but the same extent.
             // Obtain on index scan and try on full table scan
             e = Db.SQL("select a from account a").GetEnumerator();

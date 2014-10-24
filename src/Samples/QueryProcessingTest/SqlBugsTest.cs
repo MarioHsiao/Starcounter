@@ -334,6 +334,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!v.BuildError);
                 nrs++;
             }
+            vsources.Dispose();
             Trace.Assert(nrs == 3);
             VersionSource latest = Db.SQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Channel=? AND o.BuildError=? order by versiondate desc",
                 dailyChannel, false).First;
