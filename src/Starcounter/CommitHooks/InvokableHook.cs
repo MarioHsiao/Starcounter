@@ -62,7 +62,7 @@ namespace Starcounter {
             uint result = 0;
             foreach (var installedKey in HooksPerTrigger.Keys) {
                 if (installedKey.TypeId == key.TypeId) {
-                    result |= installedKey.Operation;
+                    result |= installedKey.TypeOfHook;
                 }
             }
             return result;

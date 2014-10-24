@@ -12,11 +12,11 @@ namespace Starcounter {
             public bool Equals(HookKey x, HookKey y) {
                 if (x == null) return y == null;
                 else if (y == null) return false;
-                return x.TypeId == y.TypeId && x.Operation == y.Operation;
+                return x.TypeId == y.TypeId && x.TypeOfHook == y.TypeOfHook;
             }
 
             public int GetHashCode(HookKey obj) {
-                return string.Format("{0}-{1}", obj.TypeId, obj.Operation).GetHashCode();
+                return string.Format("{0}-{1}", obj.TypeId, obj.TypeOfHook).GetHashCode();
             }
         }
 
@@ -26,9 +26,9 @@ namespace Starcounter {
         public uint TypeId { get; private set; }
         
         /// <summary>
-        /// Gets the operation
+        /// Gets the type of hook the current key represent.
         /// </summary>
-        public uint Operation { get; private set; }
+        public uint TypeOfHook { get; private set; }
 
         /// <summary>
         /// Gets an <see cref="IEqualityComparer<HookKey>"/> that can be used
@@ -58,7 +58,7 @@ namespace Starcounter {
             if (tableId == ushort.MaxValue) throw new ArgumentOutOfRangeException();
             var key = keyToReuse ?? new HookKey();
             key.TypeId = tableId;
-            key.Operation = operation;
+            key.TypeOfHook = operation;
             return key;
         }
     }
