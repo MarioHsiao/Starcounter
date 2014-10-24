@@ -27,6 +27,7 @@ namespace Starcounter {
         
         /// <summary>
         /// Gets the type of hook the current key represent.
+        /// <see cref="HookType"/>.
         /// </summary>
         public uint TypeOfHook { get; private set; }
 
@@ -48,17 +49,19 @@ namespace Starcounter {
         /// </summary>
         /// <param name="tableId">The table id that identifies the type
         /// of the key.</param>
-        /// <param name="operation">The operation the key identifies.</param>
+        /// <param name="hookType">The type of hook the key are to
+        /// represent. Valid values are from <see cref="HookType"/>.
+        /// </param>
         /// <param name="keyToReuse">Optional key to reuse. If not given,
         /// a new key is instantiated.</param>
         /// <returns>A new <see cref="HookKey"/> based on the given values.
         /// </returns>
-        public static HookKey FromTable(ushort tableId, uint operation, HookKey keyToReuse = null) {
+        public static HookKey FromTable(ushort tableId, uint hookType, HookKey keyToReuse = null) {
             // TODO: Change to INVALID_TABLE_ID constant.
             if (tableId == ushort.MaxValue) throw new ArgumentOutOfRangeException();
             var key = keyToReuse ?? new HookKey();
             key.TypeId = tableId;
-            key.TypeOfHook = operation;
+            key.TypeOfHook = hookType;
             return key;
         }
     }
