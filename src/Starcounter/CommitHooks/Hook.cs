@@ -100,10 +100,10 @@ namespace Starcounter {
             var key = HookKey.FromTable(tableInfo.table_id, hookType);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
                 Db.Transaction(() => {
-                    var hookTypes = InvokableHook.GetInstalledOperations(key);
-                    hookTypes |= hookConfiguration;
+                    var hookConfigMask = HookConfiguration.GetConfiguration(key);
+                    hookConfigMask |= hookConfiguration;
 
-                    result = sccoredb.stari_set_commit_hooks(tableInfo.name_token, hookTypes);
+                    result = sccoredb.stari_set_commit_hooks(tableInfo.name_token, hookConfigMask);
                     if (result != 0) {
                         throw ErrorCode.ToException(result);
                     }
