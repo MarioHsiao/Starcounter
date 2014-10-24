@@ -9,19 +9,6 @@ namespace Starcounter {
     /// </summary>
     internal abstract class InvokableHook {
         /// <summary>
-        /// Internal token representing inserts.
-        /// </summary>
-        internal const uint Insert = sccoredb.STAR_HOOKS_ON_COMMIT_INSERT;
-        /// <summary>
-        /// Internal token representing updates.
-        /// </summary>
-        internal const uint Update = sccoredb.STAR_HOOKS_ON_COMMIT_UPDATE;
-        /// <summary>
-        /// Internal token representing deletes.
-        /// </summary>
-        internal const uint Delete = sccoredb.STAR_HOOKS_ON_COMMIT_DELETE;
-
-        /// <summary>
         /// Code host scoped dictonary mapping every triggering type
         /// and operation to a set of hooks that are to be invoked when
         /// the corresponding commit occurs.

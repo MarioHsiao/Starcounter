@@ -37,7 +37,7 @@ namespace Starcounter {
                 throw new ArgumentException();
             }
             lock (HookLock.Sync) {
-                InstallHook(t, InvokableHook.Insert, AddDelegate(callback));
+                InstallHook(t, HookConfiguration.Insert, AddDelegate(callback));
             }
         }
 
@@ -62,7 +62,7 @@ namespace Starcounter {
                 throw new ArgumentException();
             }
             lock (HookLock.Sync) {
-                InstallHook(t, InvokableHook.Update, AddDelegate(callback));
+                InstallHook(t, HookConfiguration.Update, AddDelegate(callback));
             }
         }
 
@@ -74,7 +74,7 @@ namespace Starcounter {
         public static void OnDelete(Action<ulong> callback) {
             lock (HookLock.Sync) {
                 var delegateRef = Hook<ulong>.AddDelegate(callback);
-                InstallHook(typeof(T), InvokableHook.Delete, delegateRef);
+                InstallHook(typeof(T), HookConfiguration.Delete, delegateRef);
             }
         }
 
@@ -89,18 +89,19 @@ namespace Starcounter {
             return new HookDelegateListEntry<T>() { Delegates = delegates, Index = index };
         }
 
-        static void InstallHook(Type t, uint operation, InvokableHook entry) {
+        static void InstallHook(Type t, uint hookConfiguration, InvokableHook entry) {
             systables.STAR_TABLE_INFO tableInfo;
             List<InvokableHook> installed;
 
             var result = systables.star_get_table_info_by_name(t.FullName, out tableInfo);
             if (result != 0) throw ErrorCode.ToException(result);
 
-            var key = HookKey.FromTable(tableInfo.table_id, operation);
+            var hookType = HookConfiguration.ToHookType(hookConfiguration);
+            var key = HookKey.FromTable(tableInfo.table_id, hookType);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
                 Db.Transaction(() => {
                     var hookTypes = InvokableHook.GetInstalledOperations(key);
-                    hookTypes |= operation;
+                    hookTypes |= hookConfiguration;
 
                     result = sccoredb.stari_set_commit_hooks(tableInfo.name_token, hookTypes);
                     if (result != 0) {
