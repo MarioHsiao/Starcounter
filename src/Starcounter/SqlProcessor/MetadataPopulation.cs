@@ -1,5 +1,6 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Internal.Metadata;
 using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
@@ -137,6 +138,28 @@ namespace Starcounter.SqlProcessor {
                 thisType.Inherits = newParent;
             }
             RemoveColumnInstances(thisType);
+            UpgradeInheritedRawTableInstance(thisType);
+        }
+
+        /// <summary>
+        /// When a table is upgraded, MaterializedTable instances are reset to 
+        /// new instances for all inherited tables.
+        /// Therefore RawTable instances representing inherited tables should be
+        /// updated to the correct MaterializedTable instance.
+        /// </summary>
+        /// <param name="typeDef"></param>
+        /// <param name="rawView"></param>
+        internal static void UpgradeInheritedRawTableInstance(RawView rawView) {
+            foreach(RawView inherited in Db.SQL<RawView>("select v from rawview v where inherits = ?", rawView)) {
+                Debug.Assert(Db.SQL("select materializedtable from rawview v where v = ?", inherited).First == null);
+                Debug.Assert(inherited.MaterializedTable == null);
+                MaterializedTable t = Db.SQL<MaterializedTable>(
+                    "select t from materializedtable t where name = ?", inherited.FullName).First;
+                Debug.Assert(t != null);
+                inherited.MaterializedTable = t;
+                // Repeat for children
+                UpgradeInheritedRawTableInstance(inherited);
+            }
         }
 
         internal static void RemoveColumnInstances(RawView thisView) {
