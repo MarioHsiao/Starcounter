@@ -1,4 +1,5 @@
 ﻿using Starcounter.Internal;
+using System;
 
 namespace Starcounter {
     /// <summary>
@@ -31,6 +32,32 @@ namespace Starcounter {
         /// <returns>True if insert or update; false otherwise.</returns>
         internal static bool IsInsertOrUpdate(uint type) {
             return type == HookType.Insert || type == HookType.Update;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="HookConfiguration"/> corresponding to
+        /// the given <see cref="HookType"/>.
+        /// </summary>
+        /// <param name="type">The configuration whose
+        /// corresponding type of hook to return.</param>
+        /// <returns>Hook configuration corresponding to the given type.</returns>
+        internal static uint ToHookConfiguration(uint type) {
+            uint configuration = 0;
+            switch (type) {
+                case HookType.Insert:
+                    configuration = HookConfiguration.Insert;
+                    break;
+                case HookType.Update:
+                    configuration = HookConfiguration.Update;
+                    break;
+                case HookType.Delete:
+                    configuration = HookConfiguration.Delete;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(
+                        string.Format("Hook type {0} can not be mapped to a configuration", type));
+            };
+            return configuration;
         }
     }
 }
