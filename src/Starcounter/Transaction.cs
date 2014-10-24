@@ -42,15 +42,13 @@ namespace Starcounter
                             binding = null;
                             proxy = null;
                             key = null;
+                            
                             while (true) {
                                 unsafe {
                                     r = sccoredb.star_iterator_next(hiter, viter, &oid, &address, &tableId, &hookType);
                                 }
                                 if (r != 0) throw ErrorCode.ToException(r);
                                 if (oid == 0) break;
-
-                                // Get TypeBinding and an uninitialized proxy to bind to.
-                                // The invoke all corresponding hooks.
 
                                 if (HookType.IsInsertOrUpdate((uint)hookType)) {
                                     if (binding == null || binding.TableId != tableId) {
@@ -73,17 +71,14 @@ namespace Starcounter
                                         case HookType.Delete:
                                             InvokableHook.InvokeDelete(key, oid);
                                             break;
-                                        default:
-                                            // Internal error.
-                                            // TODO:
-                                            break;
                                     }
 
                                 } catch {
-                                    r = sccoredb.star_abort_commit(tran_locked_on_thread);
+                                    sccoredb.star_abort_commit(tran_locked_on_thread);
                                     throw;
                                 }
                             }
+
                         } finally {
                             sccoredb.star_iterator_free(hiter, viter);
                         }
