@@ -243,9 +243,9 @@ namespace Starcounter.Hosting {
                     Debug.Assert(matTab != null);
                     RawView parentTab = Db.SQL<RawView>(
                         "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-                    //Debug.Assert(matTab.BaseTable == null && parentTab == null || 
-                    //    matTab.BaseTable != null && parentTab != null &&
-                    //    matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
+                    Debug.Assert(matTab.BaseTable == null && parentTab == null ||
+                        matTab.BaseTable != null && parentTab != null &&
+                        matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
                 }
 #endif
                 OnDatabaseSchemaCheckedAndUpdated();

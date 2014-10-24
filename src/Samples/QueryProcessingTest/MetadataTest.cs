@@ -4,6 +4,7 @@ using Starcounter;
 using Starcounter.Internal;
 using Starcounter.Metadata;
 using Starcounter.Binding;
+using Starcounter.Internal.Metadata;
 
 namespace QueryProcessingTest {
     public static class MetadataTest {
@@ -138,6 +139,15 @@ namespace QueryProcessingTest {
             Trace.Assert(rv != null);
             Trace.Assert(rv.Inherits != null);
             Trace.Assert(rv.Inherits.Name == "Agent");
+
+            // Test rawview instances exist for all materialized table instances
+            foreach (MaterializedTable tab in Db.SQL<MaterializedTable>(
+                "select t from MaterializedTable t")) {
+                    RawView v = Db.SQL<RawView>("select v from rawview v where materializedTable = ?", tab).First;
+                    Trace.Assert(v != null);
+                    Trace.Assert(v.FullName == tab.Name);
+                    Trace.Assert(v.MaterializedTable.Equals(tab));
+            }
         }
 
         public static void TestRuntimeColumnMetadata() {
@@ -256,10 +266,23 @@ namespace QueryProcessingTest {
                 "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.\"index\".name = ? order by i.\"position\"",
                 "materializedtable", "built-in").GetEnumerator();
             Trace.Assert(!indexedColumnEnum.MoveNext());
+            indexedColumnEnum.Dispose();
             indexedColumnEnum = Db.SQL<IndexedColumn>(
                 "select i from indexedcolumn i where i.\"index\".name = ? order by \"position\"",
                 "ColumnPrimaryKey").GetEnumerator();
             Trace.Assert(!indexedColumnEnum.MoveNext());
+            indexedColumnEnum.Dispose();
+
+            // Test that all MaterializedColumn instances are referenced from Column instances
+            foreach (MaterializedColumn mc in Db.SQL<MaterializedColumn>(
+                "select c from materializedColumn c where name <> ?and inherited = ?", "__id", false)) {
+                Column col = Db.SQL<Column>("select c from \"column\" c where materializedcolumn = ? and c.table is RawView",
+                    mc).First;
+                Trace.Assert(col != null);
+                Trace.Assert(col.MaterializedColumn.Equals(mc));
+                Trace.Assert(col.Name == mc.Name);
+                Trace.Assert(col.Table.FullName == mc.Table.Name);
+            }
         }
 
         public static void ClrMetadatTest() {
