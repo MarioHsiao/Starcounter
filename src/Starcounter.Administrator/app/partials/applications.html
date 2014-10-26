@@ -113,6 +113,7 @@
     <table class="table table-condensed" ng-show="filterview=='installed'">
         <thead>
             <tr>
+                <th>Icon</th>
                 <th>Name</th>
                 <th>Description</th>
                 <th>Version</th>
@@ -123,6 +124,11 @@
         <tbody>
 
             <tr ng-repeat="item in installedApplications">
+
+                <td>
+                    <img style="height: auto; width: auto; max-width: 32px; max-height: 32px;" src="{{item.ImageUri}}" />
+                </td>
+
                 <td>{{item.DisplayName}}</td>
                 <td>{{item.Description}}</td>
                 <td>{{item.Version}}</td>

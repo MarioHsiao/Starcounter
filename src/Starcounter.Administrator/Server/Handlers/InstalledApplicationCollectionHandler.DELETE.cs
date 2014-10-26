@@ -28,38 +28,38 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <summary>
         /// Register Installed Application DELETE
         /// </summary>
-        public static void InstalledApplication_DELETE(string appsRootFolder) {
+        //public static void InstalledApplication_DELETE(ushort port, string appsRootFolder) {
 
-            // Delete installed application
-            Handle.DELETE("/api/admin/installed/apps/{?}", (string id, Request req) => {
+        //    // Delete installed application
+        //    Handle.DELETE(port, "/api/admin/installed/apps/{?}", (string id, Request req) => {
 
-                try {
+        //        try {
 
-                    AppConfig appConfig = null;
+        //            AppConfig appConfig = null;
 
-                    // GET APP
-                    IList<AppConfig> apps = AppsContainer.GetInstallApps(appsRootFolder);
-                    foreach (AppConfig app in apps) {
-                        if (string.Compare(app.ID, id, true) == 0) {
-                            appConfig = app;
-                            break;
-                        }
-                    }
+        //            // GET APP
+        //            IList<AppConfig> apps = AppsContainer.GetInstallApps(appsRootFolder);
+        //            foreach (AppConfig app in apps) {
+        //                if (string.Compare(app.ID, id, true) == 0) {
+        //                    appConfig = app;
+        //                    break;
+        //                }
+        //            }
 
-                    if (appConfig == null) {
-                        ErrorResponse errorResponse = new ErrorResponse();
-                        errorResponse.Text = string.Format("Failed to uninstall application, application was not found.");
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
-                    }
+        //            if (appConfig == null) {
+        //                ErrorResponse errorResponse = new ErrorResponse();
+        //                errorResponse.Text = string.Format("Failed to uninstall application, application was not found.");
+        //                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+        //            }
 
-                    AppsContainer.UnInstall(appConfig);
+        //            AppsContainer.UnInstall(appConfig);
 
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
-                }
-            });
-        }
+        //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
+        //        }
+        //        catch (Exception e) {
+        //            return RestUtils.CreateErrorResponse(e);
+        //        }
+        //    });
+        //}
     }
 }
