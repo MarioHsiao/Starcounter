@@ -1,0 +1,10 @@
+﻿{
+	"$": { Namespace: "Representations.JSON" },
+	"Stores" : [{
+		"ID" : "",
+		"DisplayName" : "",
+		"Items": [{
+			"$" : { "Reuse" : "Representations.JSON.RemoteAppStoreItem" }
+        }]
+	}]
+}

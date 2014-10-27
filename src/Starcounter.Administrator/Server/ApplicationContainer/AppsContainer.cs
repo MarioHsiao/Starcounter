@@ -16,36 +16,41 @@ namespace Administrator.Server.ApplicationContainer {
         //                           *.app.config
         //                           package.config
         //
+        internal static readonly object locker = new object();
 
         /// <summary>
         /// Uninstall installed application
+        /// TODO: Also remove the AppImage if it exists
         /// </summary>
         /// <param name="config"></param>
         public static void UnInstall(AppConfig config) {
+            lock (AppsContainer.locker) {
 
-            if (string.IsNullOrEmpty(config.File)) {
-                throw new InvalidOperationException(string.Format("Failed to uninstall application, Missing folder settings."));
-            }
-
-            string folder = Path.GetDirectoryName(config.File);
-            if (!Directory.Exists(folder)) {
-                throw new InvalidOperationException(string.Format("Failed to uninstall application, invalid folder path {0}", folder));
-            }
-
-            VerifyAppconfig(config);
-
-            DirectoryInfo di = new DirectoryInfo(folder);
-            di.Delete(true); // Remove version folder.
-
-            // Clean up empty folders
-            DirectoryInfo channelFolder = di.Parent;
-            if (IsDirectoryEmpty(channelFolder.FullName)) {
-                channelFolder.Delete();
-
-                DirectoryInfo nameSpaceFolder = di.Parent.Parent;
-                if (IsDirectoryEmpty(nameSpaceFolder.FullName)) {
-                    nameSpaceFolder.Delete();
+                if (string.IsNullOrEmpty(config.File)) {
+                    throw new InvalidOperationException(string.Format("Failed to uninstall application, Missing folder settings."));
                 }
+
+                string folder = Path.GetDirectoryName(config.File);
+                if (!Directory.Exists(folder)) {
+                    throw new InvalidOperationException(string.Format("Failed to uninstall application, invalid folder path {0}", folder));
+                }
+
+                VerifyAppconfig(config);
+
+                DirectoryInfo di = new DirectoryInfo(folder);
+                di.Delete(true); // Remove version folder.
+
+                // Clean up empty folders
+                DirectoryInfo channelFolder = di.Parent;
+                if (IsDirectoryEmpty(channelFolder.FullName)) {
+                    channelFolder.Delete();
+
+                    DirectoryInfo nameSpaceFolder = di.Parent.Parent;
+                    if (IsDirectoryEmpty(nameSpaceFolder.FullName)) {
+                        nameSpaceFolder.Delete();
+                    }
+                }
+
             }
         }
 
@@ -83,30 +88,75 @@ namespace Administrator.Server.ApplicationContainer {
             }
         }
 
-
         /// <summary>
         /// Get a list of installed apps configurations
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
         public static IList<AppConfig> GetInstallApps(string path) {
+            lock (AppsContainer.locker) {
 
-            IList<AppConfig> appConfigs = new List<AppConfig>();
+                IList<AppConfig> appConfigs = new List<AppConfig>();
 
-            IList<string> configs = GetAppConfigs(path);
+                IList<string> configs = GetAppConfigs(path, SearchOption.AllDirectories);
 
-            foreach (string file in configs) {
-                AppConfig config;
-                try {
-                    AppsContainer.ReadConfig(file, out config);
-                    appConfigs.Add(config);
+                foreach (string file in configs) {
+                    AppConfig config;
+                    try {
+                        AppsContainer.ReadConfig(file, out config);
+                        appConfigs.Add(config);
+                    }
+                    catch (Exception e) {
+                        throw new Exception(string.Format("Invalid application configuration file {0}, {1}", file, e.Message));
+                    }
                 }
-                catch (Exception e) {
-                    throw new Exception(string.Format("Invalid application configuration file {0}, {1}", file, e.Message));
-                }
+
+                return appConfigs;
+            }
+        }
+
+        /// <summary>
+        /// Get installed App in a folder
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        internal static AppConfig GetInstalledApp(string path) {
+
+            IList<string> configs = GetAppConfigs(path, SearchOption.TopDirectoryOnly);
+            if (configs == null || configs.Count == 0) {
+                return null;
+            }
+            if (configs.Count > 1) {
+                throw new InvalidOperationException(string.Format("Multiple App configs is not allowed in one folder, {0}", path));
             }
 
-            return appConfigs;
+            AppConfig config;
+
+            try {
+                AppsContainer.ReadConfig(configs[0], out config);
+                return config;
+            }
+            catch (Exception e) {
+                throw new Exception(string.Format("Invalid application configuration file {0}, {1}", configs[0], e.Message));
+            }
+
+        }
+
+        /// <summary>
+        /// Get installed App in a folder
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static void GetInstalledApp(string id, string path, out AppConfig installedConfig) {
+
+            installedConfig = null;
+            IList<AppConfig> apps = GetInstallApps(path);
+
+            foreach (AppConfig config in apps) {
+                if (config.ID == id) {
+                    installedConfig = config;
+                }
+            }
         }
 
         /// <summary>
@@ -114,7 +164,7 @@ namespace Administrator.Server.ApplicationContainer {
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        private static IList<string> GetAppConfigs(string path) {
+        private static IList<string> GetAppConfigs(string path, System.IO.SearchOption searchOptions) {
 
             List<string> configs = new List<string>();
 
@@ -122,7 +172,7 @@ namespace Administrator.Server.ApplicationContainer {
                 return configs;
             }
 
-            foreach (string file in Directory.EnumerateFiles(path, "*.app.config", SearchOption.AllDirectories)) {
+            foreach (string file in Directory.EnumerateFiles(path, "*" + Package.appConfigurationFileExtention, searchOptions)) {
                 configs.Add(file);
             }
             return configs;

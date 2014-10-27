@@ -25,31 +25,40 @@ namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
         /// <summary>
-        /// Register Application GET
-        /// This will retrive information from Appstore
+        /// Register GET Handler for retriving Remote App Store Applications
         /// </summary>
-        public static void AppStore_GET(string appStoreHost) {
+        public static void AppStore_GET(ushort port, string appStoreHost) {
 
-            // Get a list of apps on AppStore
+            // Get Remote App Store Applications
             // Example response
-            //{
-            // "Items": [
+            // {
+            //  "Items": [
             //      {
-            //          "Namespace": "CompanyName.TestApp",
+            //          "ID": "DDD80897", 
+            //          "Url" : "http://192.168.60.104:8181/api/admin/appstore/apps/DDD80897",
+            //          "SourceID" :"DDD80897",
+            //          "SourceUrl" : "http://127.0.0.1:8585/appstore/apps/DDD80897",
+            //          "Namespace": "CompanyName.TestApp", 
             //          "Channel" : "Stable",
             //          "Version" : "1.0.0.0",
-            //          "DisplayName": "appname1",
-            //          "Company": "a company",
-            //          "Description" : "Description of the application",
-            //          "VersionDate": "2014-11-11T00:00:00.000Z",
-            //          "RelativeStartUri" : "\myapp\start",
-            //          "Size" : 1234,
-            //          "ImageUri": "http://www.polyjuice.com:8585/images/zhbf0eqx.png",
-            //          "Uri": "http://www.polyjuice.com:8585/appstore/apps/CompanyName.TestApp"
+            //          "DisplayName": "TestApp", 
+            //          "Description": "Description of the application",
+            //          "Company" : "Test Company",
+            //          "VersionDate" : "2014-11-11T00:00:00.000Z",
+            //          "Executable" : "",
+            //          "ResourceFolder" : "",
+            //          "Size" : 0,
+            //          "ImageUri" : "http://192.168.60.104:8585/images/ovxzb3ze.png",
+            //          "IsInstalled" : false,
+            //          "NewVersionAvailable" : true,
+            //          "LatestVersion": {
+            //              "ID" : "F2E43896",
+            //              "Url" : "http://127.0.0.1:8585/appstore/apps/F2E43896"
+            //          }
             //      }
             //  ]
-            //}
-            Handle.GET("/api/admin/appstore/apps", (Request req) => {
+            // }
+            Handle.GET(port, "/api/admin/appstore/apps", (Request req) => {
 
                 try {
 
@@ -72,53 +81,69 @@ namespace Starcounter.Administrator.Server.Handlers {
                         errorResponse.Helplink = appStoreHost;
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
                     }
-                    Representations.JSON.AppStoreItems appStoreItems = new Representations.JSON.AppStoreItems();
-                    appStoreItems.PopulateFromJson(response.Body);
+                    Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
+                    remoteAppStoreItems.PopulateFromJson(response.Body);
 
 
                     // Get Installed applications
-                    Representations.JSON.Applications installedApplications = new Representations.JSON.Applications();
+                    Representations.JSON.InstalledApplications installedApplications = new Representations.JSON.InstalledApplications();
                     Response installedAppsResponse;
-                    X.GET("/api/admin/installed/apps", out installedAppsResponse, null, 10000);
+                    X.GET("http://127.0.0.1:"+port+"/api/admin/installed/apps", out installedAppsResponse, null, 10000);
                     if (installedAppsResponse.StatusCode == (ushort)System.Net.HttpStatusCode.OK) {
                         installedApplications.PopulateFromJson(installedAppsResponse.Body);
                     }
 
 
                     // Create response
-                    Representations.JSON.Applications appStoreApplications = new Representations.JSON.Applications();
+                    Representations.JSON.AppStoreApplications appStoreApplications = new Representations.JSON.AppStoreApplications();
 
-                    foreach (var item in appStoreItems.Items) {
 
-                        var returnedItem = appStoreApplications.Items.Add();
-                        returnedItem.IsInstalled = false;
-                        returnedItem.IsNewVersionAvailable = false;
+                    foreach (var remoteStore in remoteAppStoreItems.Stores) {
 
-                        // Get Installed application
-                        foreach (var installedItem in installedApplications.Items) {
-                            if (installedItem.ID == item.ID) {
-                                returnedItem.IsInstalled = true;
-                                returnedItem.RelativeStartUri = installedItem.RelativeStartUri;
-                                returnedItem.IsNewVersionAvailable = (new Version(item.Version)>new Version(installedItem.Version));
-                                break;
+                        var appStore = appStoreApplications.Stores.Add();
+                        appStore.ID = remoteStore.ID; // NOTE: This is the remote appstore id
+                        appStore.DisplayName = remoteStore.DisplayName;
+
+                        foreach (var remoteItem in remoteStore.Items) {
+
+                            Representations.JSON.AppStoreApplication appStoreItem = appStore.Items.Add();
+                            Representations.JSON.InstalledApplication installedItem;
+                            GetInstalledApplication(remoteItem, installedApplications, out installedItem);
+
+                            if (installedItem != null) {
+                                appStoreItem.IsInstalled = true;
                             }
+
+                            if (remoteItem.NewVersionAvailable) {
+                                appStoreItem.LatestVersion.ID = remoteItem.LatestVersion.ID;
+                                appStoreItem.LatestVersion.Url = remoteItem.LatestVersion.Url;
+                                appStoreItem.NewVersionAvailable = remoteItem.NewVersionAvailable;
+                                if (appStoreItem.IsInstalled) {
+                                    appStoreApplications.Updates++;
+                                    appStore.Updates++;
+                                }
+                            }
+
+                            // Generate the ID based on the Namespace, Channel and version date, TODO: Make this a unique number
+                            appStoreItem.ID = string.Format("{0:X8}", (remoteItem.Namespace + remoteItem.Channel + remoteItem.VersionDate).GetHashCode());
+
+                            string ip = Utilities.RestUtils.GetMachineIp();
+                            appStoreItem.Url = string.Format("http://{0}:{1}/{2}/{3}", ip, port, "api/admin/appstore/apps", appStoreItem.ID);
+
+                            appStoreItem.SourceID = remoteItem.ID;
+                            appStoreItem.SourceUrl = remoteItem.Url;
+
+                            appStoreItem.Namespace = remoteItem.Namespace;
+                            appStoreItem.Channel = remoteItem.Channel;
+                            appStoreItem.Version = remoteItem.Version;
+                            appStoreItem.DisplayName = remoteItem.DisplayName;
+                            appStoreItem.Description = remoteItem.Description;
+                            appStoreItem.VersionDate = remoteItem.VersionDate;
+                            appStoreItem.Size = remoteItem.Size;
+                            appStoreItem.ImageUrl = remoteItem.ImageUrl;
                         }
-
-                        returnedItem.ID = item.ID;
-                        returnedItem.Namespace = item.Namespace;
-                        returnedItem.Channel = item.Channel;
-                        returnedItem.Version = item.Version;
-                        returnedItem.DisplayName = item.DisplayName;
-                        returnedItem.Description = item.Description;
-                        returnedItem.VersionDate = item.VersionDate;
-                        returnedItem.Size = item.Size;
-                        returnedItem.ImageUri = item.ImageUri;
-                        returnedItem.Url = item.Url;
                     }
-
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreApplications.ToJsonUtf8() };
-
-                    //return response;
                 }
                 catch (Exception e) {
                     return RestUtils.CreateErrorResponse(e);
@@ -128,19 +153,29 @@ namespace Starcounter.Administrator.Server.Handlers {
             // Get app info from AppStore
             // Example response
             //      {
-            //          "Namespace": "CompanyName.TestApp",
+            //          "ID": "", 
+            //          "Url" : "",
+            //          "SourceID" :"",
+            //          "SourceUrl" : "www.polyjuice.com:8585/appstore/apps/CompanyName.TestApp",
+            //          "Namespace": "CompanyName.TestApp", 
             //          "Channel" : "Stable",
             //          "Version" : "1.0.0.0",
-            //          "DisplayName": "appname1",
-            //          "Company": "a company",
-            //          "Description" : "Description of the application",
-            //          "VersionDate": "2014-11-11T00:00:00.000Z",
-            //          "RelativeStartUri" : "\myapp\start",
-            //          "Size" : 1234,
-            //          "ImageUri": "http://www.polyjuice.com:8585/images/zhbf0eqx.png",
-            //          "Uri": "http://www.polyjuice.com:8585/appstore/apps/CompanyName.TestApp"
+            //          "DisplayName": "TestApp", 
+            //          "Description": "Description of the application",
+            //          "Company" : "",
+            //          "VersionDate" : "2014-11-11T00:00:00.000Z",
+            //          "Executable" : "",
+            //          "ResourceFolder" : "",
+            //          "Size" : 0,
+            //          "ImageUri" : "www.polyjuice.com:8585/images/zhbf0eqx.png",
+            //          "IsInstalled" : false,
+            //          "NewVersionAvailable" : false,
+            //          "LatestVersion": {
+            //              "ID" : "",
+            //              "Url" : ""
+            //          }
             //      }
-            Handle.GET("/api/admin/appstore/apps/{?}", (string nameSpace, Request req) => {
+            Handle.GET(port, "/api/admin/appstore/apps/{?}", (string id, Request req) => {
 
                 try {
 
@@ -150,19 +185,80 @@ namespace Starcounter.Administrator.Server.Handlers {
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
                     }
 
-                    Representations.JSON.Applications appStoreItems = new Representations.JSON.Applications();
-
-                    string uri = appStoreHost + "/appstore/apps" + nameSpace;
-
+                    // Get items
+                    string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
                     Response response;
-                    HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
-                    X.GET(uri, out response, null, 10000, opt);
-                    return response;
+                    X.GET(uri, out response, null, 10000);
+                    if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
+                        return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
+                    }
+
+                    Representations.JSON.AppStoreApplications appStoreItems = new Representations.JSON.AppStoreApplications();
+                    appStoreItems.PopulateFromJson(response.Body);
+
+                    foreach (var appStore in appStoreItems.Stores) {
+
+                        foreach (var appStoreItem in appStore.Items) {
+
+                            if (appStoreItem.ID == id) {
+                                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreItem.ToJsonUtf8() };
+                            }
+                        }
+                    }
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
                 }
                 catch (Exception e) {
                     return RestUtils.CreateErrorResponse(e);
                 }
             });
+        }
+
+
+        /// <summary>
+        /// Get the latest version (newest version date) from a list of remote Applications
+        /// </summary>
+        /// <param name="nameSpace"></param>
+        /// <param name="remoteAppStoreItems"></param>
+        /// <param name="latest"></param>
+        //private static void GetLatestRemoteVersion(string nameSpace, Representations.JSON.RemoteAppStoreItems remoteAppStoreItems, out Representations.JSON.RemoteAppStoreItem latest) {
+
+        //    DateTime latestVersionDate = DateTime.MinValue;
+        //    latest = null;
+
+        //    foreach (Representations.JSON.RemoteAppStoreItem remoteItem in remoteAppStoreItems.Items) {
+
+        //        if (remoteItem.Namespace == nameSpace) {
+        //            DateTime remoteVersionDate;
+        //            if (DateTime.TryParse(remoteItem.VersionDate, out remoteVersionDate)) {
+        //                if (remoteVersionDate > latestVersionDate) {
+        //                    latestVersionDate = remoteVersionDate;
+        //                    latest = remoteItem;
+        //                }
+        //            }
+        //        }
+        //    }
+        //}
+
+        /// <summary>
+        /// Get the installed applications from a remote application
+        /// If remote applications is not installed, the outcome will be null
+        /// otherwice the installed applications will be returned
+        /// </summary>
+        /// <param name="remoteItem"></param>
+        /// <param name="installedApplications"></param>
+        /// <param name="item"></param>
+        private static void GetInstalledApplication(Representations.JSON.RemoteAppStoreItem remoteItem, Representations.JSON.InstalledApplications installedApplications, out Representations.JSON.InstalledApplication item) {
+
+            item = null;
+
+            foreach (Representations.JSON.InstalledApplication installedItem in installedApplications.Items) {
+
+                if (remoteItem.Namespace == installedItem.Namespace && remoteItem.VersionDate == installedItem.VersionDate) {
+                    item = installedItem;
+                    break;
+                }
+            }
         }
     }
 }

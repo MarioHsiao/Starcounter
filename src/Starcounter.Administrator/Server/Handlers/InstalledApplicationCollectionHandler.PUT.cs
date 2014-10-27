@@ -28,12 +28,12 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <summary>
         /// Register Application GET
         /// </summary>
-        public static void InstalledApplication_PUT(string appsRootFolder) {
+        public static void InstalledApplication_PUT(ushort port, string appsRootFolder, string appStoreHost, string imageResourceFolder) {
 
             //
             // Install Application zip package (from the body)
             //
-            Handle.PUT("/api/admin/installed/apps", (Request request) => {
+            Handle.PUT(port, "/api/admin/installed/apps", (Request request) => {
 
                 try {
                     using (MemoryStream packageZip = new MemoryStream(request.BodyBytes)) {
@@ -42,7 +42,8 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                         // TODO: Assure that the url is a full url. like file://mypackage.zip or something like that
                         string url = host;
-                        Package.Install(url, packageZip, appsRootFolder, false);
+                        AppConfig config;
+                        Package.Install(packageZip, url, appsRootFolder, imageResourceFolder, out config);
                     }
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created };

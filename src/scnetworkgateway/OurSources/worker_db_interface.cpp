@@ -619,7 +619,7 @@ WorkerDbInterface::WorkerDbInterface(
 #endif
 }
 
-// Declares gateway ready for database pushes.
+// Declares gateway ready for database pushes (fix_wait_for_gateway_available).
 uint32_t WorkerDbInterface::SetGatewayReadyForDbPushes()
 {
     // Signal to server that worker is available. Needed for server push.

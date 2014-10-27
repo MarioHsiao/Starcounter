@@ -4,6 +4,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using Starcounter.Internal;
+using System.Net.Sockets;
 
 namespace Starcounter.Administrator.Server.Utilities {
     /// <summary>
@@ -181,5 +182,26 @@ namespace Starcounter.Administrator.Server.Utilities {
 
             return validationErrors;
         }
+
+        /// <summary>
+        /// TODO: 
+        /// </summary>
+        /// <returns></returns>
+        public static string GetMachineIp() {
+
+//            string url = new Uri(Starcounter.Administrator.API.Handlers.RootHandler.Host.BaseUri, relative).ToString();
+
+            IPHostEntry host;
+            string localIP = "127.0.0.1";
+            host = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (IPAddress ip in host.AddressList) {
+                if (ip.AddressFamily == AddressFamily.InterNetwork) {
+                    localIP = ip.ToString();
+                }
+            }
+            return localIP;
+        }
+
     }
 }

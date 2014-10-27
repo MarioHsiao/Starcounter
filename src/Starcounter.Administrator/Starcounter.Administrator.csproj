@@ -472,16 +472,25 @@
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <TypedJSON Include="Server\Representations.JSON\AppStoreItems.json">
+    <TypedJSON Include="Server\Representations.JSON\AppStoreApplications.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Server\Representations.JSON\AppStoreItem.json">
+    <TypedJSON Include="Server\Representations.JSON\AppStoreApplication.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Server\Representations.JSON\Application.json">
+    <TypedJSON Include="Server\Representations.JSON\ApplicationTask.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
-    <TypedJSON Include="Server\Representations.JSON\Applications.json">
+    <TypedJSON Include="Server\Representations.JSON\RemoteAppStoreItems.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\RemoteAppStoreItem.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\InstalledApplication.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\InstalledApplications.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Server\Representations.JSON\WorkingFolders.json">
