@@ -1,6 +1,7 @@
 ﻿{
 	"$": { Namespace: "Representations.JSON" },
 	"ID": "", 
+	"Url" : "",
 	"Namespace": "", 
 	"Channel" : "",
 	"Version" : "",
@@ -9,6 +10,10 @@
 	"Company" : "",
 	"VersionDate" : "",
 	"Size" : 0,
-	"ImageUri" : "",
-	"Url" : ""
+	"ImageUrl" : "",
+	"NewVersionAvailable" : false,
+	"LatestVersion": {
+		"ID" : "",
+		"Url" : ""
+	}
 }

@@ -43,11 +43,14 @@ namespace Starcounter.Administrator.Server {
             UInt16 adminPort = StarcounterEnvironment.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
+
 #if ANDWAH
-            AppsBootstrapper.Bootstrap(@"c:\github\Level1\src\Starcounter.Administrator", adminPort);
+            string resourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
 #else
-            AppsBootstrapper.Bootstrap("scadmin", adminPort);
+            string resourceFolder = "scadmin";
 #endif
+
+            AppsBootstrapper.Bootstrap(resourceFolder, adminPort);
 
             // Create a Server Engine
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
@@ -63,7 +66,7 @@ namespace Starcounter.Administrator.Server {
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
 
             // Boostrap Admin API handlers
-            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface);
+            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, resourceFolder);
 
             // Registering Default handlers.
             RegisterHandlers();
