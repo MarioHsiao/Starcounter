@@ -20,6 +20,7 @@ namespace Administrator.Server.ApplicationContainer {
         /// <param name="sourceUrl"></param>
         /// <param name="packageZip">Zipped package stream</param>
         /// <param name="appRootFolder"></param>
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
         /// <param name="replace">Replace existing app if any</param>
         /// <param name="config"></param>
         public static void Install(Stream packageZip, string sourceUrl, string appRootFolder, string imageResourceFolder, out AppConfig config) {
@@ -56,25 +57,11 @@ namespace Administrator.Server.ApplicationContainer {
 
                             // Extract package
                             archive.ExtractToDirectory(destinationFolder);
+
                             string imageUri = string.Empty;
+
                             // Unpack app image to starcounter admin folder
-                            ZipArchiveEntry entry = archive.GetEntry(packageConfig.ImageUri);
-                            if (entry != null) {
-                                //string adminPath = Path.Combine(StarcounterEnvironment.InstallationDirectory, "appImages");
-
-                                if (!Directory.Exists(imageResourceFolder)) {
-                                    Directory.CreateDirectory(imageResourceFolder);
-                                }
-
-                                string imageFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(packageConfig.ImageUri));
-                                string imageFile = Path.Combine(imageResourceFolder, imageFileName);
-                                entry.ExtractToFile(imageFile, true);
-                                imageUri = string.Format("{0}/{1}", "appImages", imageFileName);
-                            }
-                            else {
-                                // TODO: Use default image?
-                                imageUri = packageConfig.ImageUri;
-                            }
+                            UnpackAppImage(archive, packageConfig, imageResourceFolder, out imageUri);
 
                             // Create app configuration file
                             config = new AppConfig();
@@ -109,8 +96,10 @@ namespace Administrator.Server.ApplicationContainer {
         /// <summary>
         /// Install zipped package
         /// </summary>
-        /// <param name="packageZip"></param>
+        /// <param name="packageZip">Zipped package</param>
         /// <param name="appRootFolder"></param>
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
+        /// <param name="config"></param>
         public static void Install(string packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
             lock (AppsContainer.locker) {
                 if (!File.Exists(packageZip)) {
@@ -128,16 +117,37 @@ namespace Administrator.Server.ApplicationContainer {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="from"></param>
-        /// <param name="sourceHost"></param>
-        /// <param name="packageZip"></param>
-        /// <param name="appRootFolder"></param>
+        /// <param name="archive"></param>
         /// <param name="config"></param>
-        public static void Upgrade(AppConfig from, string packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
+        /// <param name="imageResourceFolder"></param>
+        /// <param name="imageUri"></param>
+        private static void UnpackAppImage(ZipArchive archive, PackageConfig config, string imageResourceFolder, out string imageUri) {
 
-            lock (AppsContainer.locker) {
-                Package.Install(packageZip, appRootFolder, imageResourceFolder, out config);
-                AppsContainer.UnInstall(from);
+            string createdDestinationFolder = Package.CreateDirectory(imageResourceFolder);
+
+            try {
+                // Unpack app image to starcounter admin folder
+                ZipArchiveEntry entry = archive.GetEntry(config.ImageUri);
+                if (entry != null) {
+
+                    string imageFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(config.ImageUri));
+                    string imageFile = Path.Combine(imageResourceFolder, imageFileName);
+                    entry.ExtractToFile(imageFile, true);
+
+                    string imageFolder = Path.GetFileName(imageResourceFolder);
+                    imageUri = string.Format("{0}", imageFileName);
+                }
+                else {
+                    // TODO: Use default image?
+                    imageUri = config.ImageUri;
+                }
+            }
+            catch (Exception e) {
+
+                if (createdDestinationFolder != null) {
+                    Directory.Delete(createdDestinationFolder, true);
+                }
+                throw e;
             }
         }
 
@@ -148,12 +158,30 @@ namespace Administrator.Server.ApplicationContainer {
         /// <param name="sourceHost"></param>
         /// <param name="packageZip"></param>
         /// <param name="appRootFolder"></param>
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
+        /// <param name="config"></param>
+        public static void Upgrade(AppConfig from, string packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
+
+            lock (AppsContainer.locker) {
+                Package.Install(packageZip, appRootFolder, imageResourceFolder, out config);
+                AppsContainer.UnInstall(from, imageResourceFolder);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="sourceHost"></param>
+        /// <param name="packageZip"></param>
+        /// <param name="appRootFolder"></param>
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
         /// <param name="config"></param>
         public static void Upgrade(AppConfig from, string sourceHost, Stream packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
 
             lock (AppsContainer.locker) {
                 Package.Install(packageZip, sourceHost, appRootFolder, imageResourceFolder, out config);
-                AppsContainer.UnInstall(from);
+                AppsContainer.UnInstall(from, imageResourceFolder);
             }
         }
 

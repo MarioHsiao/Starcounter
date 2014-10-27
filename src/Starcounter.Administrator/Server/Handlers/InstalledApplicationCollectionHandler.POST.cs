@@ -46,7 +46,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     }
                     else if (string.Equals("Uninstall", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
 
-                        return StarcounterAdminAPI.UnInstall(task.ID, appsRootFolder);
+                        return StarcounterAdminAPI.UnInstall(task.ID, appsRootFolder, imageResourceFolder);
                     }
                     else if (string.Equals("Upgrade", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
                         return StarcounterAdminAPI.Upgrade(port, task.ID, appsRootFolder, imageResourceFolder);
@@ -192,7 +192,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="sourceUrl"></param>
         /// <param name="appsRootFolder"></param>
         /// <returns></returns>
-        internal static Response UnInstall(string id, string appsRootFolder) {
+        internal static Response UnInstall(string id, string appsRootFolder, string imageResourceFolder) {
 
             try {
 
@@ -203,7 +203,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     throw new InvalidOperationException("Failed to upgrade, Can not get installed application");
                 }
 
-                AppsContainer.UnInstall(installedConfig);
+                AppsContainer.UnInstall(installedConfig, imageResourceFolder);
                 return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
             }
             catch (InvalidOperationException e) {

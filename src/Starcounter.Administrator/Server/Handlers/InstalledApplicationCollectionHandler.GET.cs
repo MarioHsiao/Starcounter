@@ -28,7 +28,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <summary>
         /// Register Application GET
         /// </summary>
-        public static void InstalledApplication_GET(ushort port, string appsRootFolder) {
+        public static void InstalledApplication_GET(ushort port, string appsRootFolder, string appImagesSubFolder) {
 
             // Get a list of all running Applications
             // Example response
@@ -65,7 +65,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                     foreach (AppConfig appConfig in apps) {
                         Representations.JSON.InstalledApplication item;
-                        BuildApplicationItem(appConfig, url, appBasefolder, out item);
+                        BuildApplicationItem(appConfig, url, appBasefolder, appImagesSubFolder, out item);
                         installedApplications.Items.Add(item);
                     }
 
@@ -84,7 +84,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="url"></param>
         /// <param name="appBasefolder"></param>
         /// <param name="item"></param>
-        private static void BuildApplicationItem(AppConfig appConfig, string url, string appBasefolder, out Representations.JSON.InstalledApplication item) {
+        private static void BuildApplicationItem(AppConfig appConfig, string url, string appBasefolder, string appImagesSubFolder, out Representations.JSON.InstalledApplication item) {
 
             item = new Representations.JSON.InstalledApplication();
             item.ID = appConfig.ID;
@@ -112,7 +112,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.ResourceFolder = appResourcFolder;
 
             item.Size = 0;      // TODO: Collect the disk space size?
-            item.ImageUri = appConfig.ImageUri;
+            item.ImageUri = string.Format("{0}/{1}", appImagesSubFolder, appConfig.ImageUri); ;
             item.Url = url + "/" + appConfig.Namespace;
         }
     }
