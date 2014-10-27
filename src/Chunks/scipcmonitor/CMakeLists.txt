@@ -23,6 +23,6 @@ target_link_libraries(scipcmonitor
     scerrres
     sccorelog
     sccoredbg
-    sccorelib
+#    sccorelib
     sccorelog
 )

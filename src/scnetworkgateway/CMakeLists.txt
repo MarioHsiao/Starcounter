@@ -57,7 +57,7 @@ set_property(TARGET scnetworkgateway PROPERTY FOLDER "level1/scnetworkgateway")
 TARGET_LINK_LIBRARIES(scnetworkgateway
 	coalmine
 	sccoredbg
-	sccorelib
+#	sccorelib
 	sccorelog
 	scerrres
 	urihelp

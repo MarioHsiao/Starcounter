@@ -19,7 +19,7 @@ set_property(TARGET sccoreapp PROPERTY FOLDER "level1/Hosting")
 target_link_libraries(sccoreapp
     sccoredbg
     coalmine
-    sccorelib
+#    sccorelib
     sccorelog
     bmx
 )

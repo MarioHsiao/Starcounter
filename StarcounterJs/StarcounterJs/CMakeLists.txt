@@ -23,7 +23,7 @@ target_link_libraries(StarcounterJS
     coalmine
     formaterr
     sccoredb
-    sccorelib
+#    sccorelib
     sccorelog
     sunflower
     v8_base

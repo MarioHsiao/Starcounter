@@ -25,7 +25,7 @@ if(WIN32)
       OUTPUT
         ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
       COMMAND
-        ${CSHARP_INTERPRETER} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
+        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
       WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
       DEPENDS
@@ -33,6 +33,7 @@ if(WIN32)
       COMMENT
         "Running scerrcc.exe"
     )
+    # ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe 
     add_custom_command(
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
@@ -50,12 +51,13 @@ else()
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
       COMMAND
-        ${CSHARP_INTERPRETER} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc -ch ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
+        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc -ch ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
       WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
       DEPENDS
         scerrcc
     )
+    # ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe 
 endif()
 
 add_custom_target(Generate_SCERRRES_H

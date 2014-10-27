@@ -18,7 +18,7 @@ set_property(TARGET sccoredbh PROPERTY FOLDER "level1/Hosting")
 target_link_libraries(sccoredbh
     coalmine
     sccoredb
-    sccorelib
+#    sccorelib
     sccorelog
     sccoreapp
     sunflower

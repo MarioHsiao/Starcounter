@@ -16,7 +16,7 @@ target_link_libraries(bmx
     sccoredb
     sccoredbg
     coalmine
-    sccorelib
     sccorelog
+#    sccorelib
 )
 set_property(TARGET bmx PROPERTY FOLDER "level1/Chunks")
