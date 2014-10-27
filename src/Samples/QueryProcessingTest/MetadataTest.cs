@@ -143,6 +143,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.Inherits.Name == "Agent");
 
             // Test rawview instances exist for all materialized table instances
+#if false
             foreach (MaterializedTable tab in Db.SQL<MaterializedTable>(
                 "select t from MaterializedTable t")) {
                     RawView v = Db.SQL<RawView>("select v from rawview v where materializedTable = ?", tab).First;
@@ -150,6 +151,7 @@ namespace QueryProcessingTest {
                     Trace.Assert(v.FullName == tab.Name);
                     Trace.Assert(v.MaterializedTable.Equals(tab));
             }
+#endif
         }
 
         public static void TestRuntimeColumnMetadata() {
