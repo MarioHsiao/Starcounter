@@ -28,32 +28,34 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <summary>
         /// Register Application GET
         /// </summary>
-        public static void InstalledApplication_GET(string appsRootFolder) {
+        public static void InstalledApplication_GET(ushort port, string appsRootFolder) {
 
             // Get a list of all running Applications
             // Example response
             //{
             // "Items": [
             //      {
+            //          "ID": "", 
+            //          "Url" : "",
             //          "Namespace": "", 
             //          "Channel" : "",
             //          "Version" : "",
-            //          "Executable" : "",
-            //          "ResourceFolder" : "",
             //          "DisplayName": "", 
             //          "Description": "",
+            //          "Company" : "",
             //          "VersionDate" : "",
-            //      	"RelativeStartUri" : "",
+            //          "Executable" : "",
+            //          "ResourceFolder" : "",
             //          "Size" : 0,
-            //          "Url" : ""
+            //          "ImageUri" : ""
             //      }
             //  ]
             //}
-            Handle.GET("/api/admin/installed/apps", (Request req) => {
+            Handle.GET(port, "/api/admin/installed/apps", (Request req) => {
 
                 try {
 
-                    Representations.JSON.Applications installedApplications = new Representations.JSON.Applications();
+                    Representations.JSON.InstalledApplications installedApplications = new Representations.JSON.InstalledApplications();
 
                     IList<AppConfig> apps = AppsContainer.GetInstallApps(appsRootFolder);
                     string relative = "/api/admin/installed/apps";
@@ -62,7 +64,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     string appBasefolder = appsRootFolder;
 
                     foreach (AppConfig appConfig in apps) {
-                        Representations.JSON.Applications.ItemsElementJson item;
+                        Representations.JSON.InstalledApplication item;
                         BuildApplicationItem(appConfig, url, appBasefolder, out item);
                         installedApplications.Items.Add(item);
                     }
@@ -82,27 +84,9 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="url"></param>
         /// <param name="appBasefolder"></param>
         /// <param name="item"></param>
-        private static void BuildApplicationItem(AppConfig appConfig, string url, string appBasefolder, out Representations.JSON.Applications.ItemsElementJson item) {
+        private static void BuildApplicationItem(AppConfig appConfig, string url, string appBasefolder, out Representations.JSON.InstalledApplication item) {
 
-            //"ID": "", 
-            //"Namespace": "", 
-            //"Channel" : "",
-            //"Version" : "",
-            //"DisplayName": "", 
-            //"Description": "",
-            //"VersionDate" : "",
-            //"RelativeStartUri" : "",
-            //"Executable" : "",
-            //"ResourceFolder" : "",
-            //"Size" : 0,
-            //"ImageUri" : "",
-            //"Url" : "",
-            //"IsInstalled" : false,
-            //"IsNewVersionAvailable" : false
-
-
-
-            item = new Representations.JSON.Applications.ItemsElementJson();
+            item = new Representations.JSON.InstalledApplication();
             item.ID = appConfig.ID;
             item.Namespace = appConfig.Namespace;
             item.Channel = appConfig.Channel;
@@ -111,7 +95,6 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.Description = appConfig.Description;
             item.Company = appConfig.Company;
             item.VersionDate = appConfig.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"); ;
-            item.RelativeStartUri = appConfig.RelativeStartUri;
 
             string appExe = Path.Combine(appBasefolder, appConfig.Namespace);
             appExe = Path.Combine(appExe, appConfig.Channel);
@@ -129,11 +112,8 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.ResourceFolder = appResourcFolder;
 
             item.Size = 0;      // TODO: Collect the disk space size?
-            item.ImageUri = ""; // TODO: Where to find it?
+            item.ImageUri = appConfig.ImageUri;
             item.Url = url + "/" + appConfig.Namespace;
-
-            item.IsInstalled = true;
-            item.IsNewVersionAvailable = false;
         }
     }
 }

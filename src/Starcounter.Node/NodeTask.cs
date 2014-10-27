@@ -377,6 +377,9 @@ namespace Starcounter {
 
                     socketWrapper_.SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
+                    // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+                    Node.SetLoopbackFastPathOnTcpSocket(socketWrapper_.SocketObj);
+
                     socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
                 }
                 else
@@ -396,6 +399,9 @@ namespace Starcounter {
 
                         socketWrapper_.SocketObj = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
+                        // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+                        Node.SetLoopbackFastPathOnTcpSocket(socketWrapper_.SocketObj);
+
                         socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
                     }
 #endif
@@ -414,6 +420,12 @@ namespace Starcounter {
         {
             try
             {
+                // Checking if server closed the connection.
+                if (resp_len_bytes <= 0) {
+                    CallUserDelegateOnFailure(new Exception("Server has sent zero response!"), false);
+                    return;
+                }
+
                 // Trying to parse the response.
                 resp_ = new Response(bytes, offset, resp_len_bytes, null, false);
 
@@ -469,6 +481,9 @@ namespace Starcounter {
                         // Connection wasn't established.
                         socketWrapper_.SocketObj = new Socket(SocketType.Stream, ProtocolType.Tcp);
 
+                        // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+                        Node.SetLoopbackFastPathOnTcpSocket(socketWrapper_.SocketObj);
+
                         // Assuming that existing TCP connection is down.
                         // So we need to create a new one.
                         socketWrapper_.SocketObj.Connect(nodeInst_.HostName, nodeInst_.PortNumber);
@@ -485,6 +500,9 @@ namespace Starcounter {
 
                     // Connection wasn't established.
                     socketWrapper_.SocketObj = new Socket(SocketType.Stream, ProtocolType.Tcp);
+
+                    // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+                    Node.SetLoopbackFastPathOnTcpSocket(socketWrapper_.SocketObj);
 
                     // Assuming that existing TCP connection is down.
                     // So we need to create a new one.

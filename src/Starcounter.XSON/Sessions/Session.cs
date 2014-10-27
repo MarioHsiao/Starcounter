@@ -568,8 +568,8 @@ namespace Starcounter {
                 return;
 
             // Disposing transaction if it exists on this node.
-            if (json.TransactionOnThisNode != null) {
-                json.TransactionOnThisNode.Dispose();
+            if (json.ThisTransaction != null) {
+                json.ThisTransaction.Dispose();
             }
 
             if (json.Template == null || json.Template.IsPrimitive)

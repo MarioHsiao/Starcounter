@@ -51,6 +51,7 @@ namespace QueryProcessingTest {
                     Trace.Assert(count < 4);
                     Trace.Assert(labelsEnum.Current.GetObjectNo() == expectedResult[count++]);
                 }
+                labelsEnum.Dispose();
 
                 labelsEnum = labels.GetEnumerator();
                 count = 0;
@@ -97,6 +98,7 @@ namespace QueryProcessingTest {
                     Trace.Assert(count < 4);
                     Trace.Assert(labelsEnum.Current.GetObjectNo() == expectedResult[count++]);
                 }
+                labelsEnum.Dispose();
             }
 
             Db.Transaction(delegate {

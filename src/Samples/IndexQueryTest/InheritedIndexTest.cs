@@ -103,6 +103,7 @@ namespace IndexQueryTest.InheritedIndex {
                 if (nrObjects == 3)
                     key = en.GetOffsetKey();
             }
+            en.Dispose();
             Trace.Assert(nrObjects == 3);
             Trace.Assert(key != null);
             //PrintQueryPlan("select e from teacher e where company = ? offsetkey ?"); // use inherited index

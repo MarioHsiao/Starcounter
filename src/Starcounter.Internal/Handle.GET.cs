@@ -3,41 +3,57 @@
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
+using System.Net;
 
 namespace Starcounter {
-
     
     public partial class Handle {
 
         /// <summary>
-        /// Socket data receive event handler.
+        /// TCP socket data receive event handler.
+        /// </summary>
+        public static void Tcp(UInt16 port, Action<TcpSocket, Byte[]> handler) {
+            UInt64 handlerInfo;
+            TcpSocket.RegisterTcpSocketHandler_(port, StarcounterEnvironment.AppName, handler, out handlerInfo);
+        }
+
+        /// <summary>
+        /// UDP socket data receive event handler.
+        /// </summary>
+        public static void Udp(UInt16 port, Action<IPAddress, UInt16, Byte[]> handler) {
+            UInt64 handlerInfo;
+            UdpSocket.RegisterUdpSocketHandler_(port, StarcounterEnvironment.AppName, handler, out handlerInfo);
+        }
+
+        /// <summary>
+        /// WebSocket data receive event handler.
         /// </summary>
         /// <param name="port"></param>
         /// <param name="channel"></param>
         /// <param name="handler"></param>
-        public static void Socket(UInt16 port, String channel, Action<Byte[], WebSocket> handler)
+        public static void WebSocket(UInt16 port, String channel, Action<Byte[], WebSocket> handler)
         {
             _REST.RegisterWsHandler(port, channel, handler);
         }
 
         /// <summary>
-        /// Socket data receive event handler.
+        /// WebSocket data receive event handler.
         /// </summary>
         /// <param name="port"></param>
         /// <param name="channel"></param>
         /// <param name="handler"></param>
-        public static void Socket(UInt16 port, String channel, Action<String, WebSocket> handler)
+        public static void WebSocket(UInt16 port, String channel, Action<String, WebSocket> handler)
         {
             _REST.RegisterWsHandler(port, channel, handler);
         }
 
         /// <summary>
-        /// Handler on socket disconnect event.
+        /// Handler on WebSocket disconnect event.
         /// </summary>
         /// <param name="port"></param>
         /// <param name="channel"></param>
         /// <param name="handler"></param>
-        public static void SocketDisconnect(UInt16 port,String channel, Action<UInt64, IAppsSession> handler)
+        public static void WebSocketDisconnect(UInt16 port,String channel, Action<UInt64, IAppsSession> handler)
         {
             _REST.RegisterWsDisconnectHandler(port, channel, handler);
         }
@@ -47,7 +63,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="handler"></param>
-        public static void Socket(String channel, Action<Byte[], WebSocket> handler)
+        public static void WebSocket(String channel, Action<Byte[], WebSocket> handler)
         {
             _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
@@ -57,7 +73,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="handler"></param>
-        public static void Socket(String channel, Action<String, WebSocket> handler)
+        public static void WebSocket(String channel, Action<String, WebSocket> handler)
         {
             _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }
@@ -67,7 +83,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="channel"></param>
         /// <param name="handler"></param>
-        public static void SocketDisconnect(String channel, Action<UInt64, IAppsSession> handler)
+        public static void WebSocketDisconnect(String channel, Action<UInt64, IAppsSession> handler)
         {
             _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
         }

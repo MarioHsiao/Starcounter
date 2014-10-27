@@ -144,8 +144,18 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
      */
     $scope.btnStartInstalled = function (installedapplication) {
 
-        ApplicationService.startInstalledApplication(installedapplication, installedapplication._databaseName, function () {
+        InstalledApplicationService.startApplication(installedapplication, installedapplication._databaseName, function () {
             // Success
+
+            // Init
+            // Refresh host model
+            HostModelService.refreshHostModel(function () {
+
+            }, function (messageObject) {
+                // Error
+                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            });
+
         }, function (messageObject) {
             // Error
             installedapplication.task = null;
@@ -156,6 +166,18 @@ adminModule.controller('ApplicationsCtrl', ['$scope', '$log', 'NoticeFactory', '
                 NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
             }
         });
+        //ApplicationService.startInstalledApplication(installedapplication, installedapplication._databaseName, function () {
+        //    // Success
+        //}, function (messageObject) {
+        //    // Error
+        //    installedapplication.task = null;
+        //    if (messageObject.isError) {
+        //        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+        //    }
+        //    else {
+        //        NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+        //    }
+        //});
     }
 
     /**

@@ -195,4 +195,81 @@ adminModule.service('InstalledApplicationService', ['$http', '$log', 'UtilsFacto
      */
     this._onRemovedApplication = function (application) {
     }
+
+
+    /**
+     * Start installed application
+     * @param {object} application Installed application
+     * @param {string} databaseName Database name
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     */
+    this.startApplication = function (application, databaseName, successCallback, errorCallback) {
+
+        var uri = "/api/admin/installed/task";
+
+        application.task = { "Text": "Starting" };
+
+        var task = { "Type": "Start", "ID": application.ID, "DatabaseName" : databaseName };
+
+        $http.post(uri, task).then(function (response) {
+
+            // Success (202, 204)
+            application.task = null;
+
+            $log.info("App Store Application " + application.DisplayName + " was successfully started");
+
+            if (typeof (successCallback) == "function") {
+                successCallback();
+            }
+
+            self.refreshApplications();
+
+        }, function (response) {
+
+            application.task = null;
+
+            // Error
+            var errorHeader = "Failed to start App Store application";
+            var messageObject;
+
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 403) {
+                    // 403 forbidden
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 404) {
+                    // 404 A database with the specified name was not found.
+
+                    if (response.data.Text) {
+                        messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                    } else {
+                        messageObject = UtilsFactory.createMessage(errorHeader, response.data);
+                    }
+                }
+                else if (response.status == 409) {
+                    // 409 The database is already running or the Engine is not started.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                errorCallback(messageObject);
+
+                self.refreshApplications();
+            }
+        });
+    }
 }]);

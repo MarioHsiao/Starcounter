@@ -417,6 +417,23 @@ namespace Starcounter
         }
 		
 
+        void ITransaction.MergeTransaction(ITransaction toMerge) {
+            Transaction old = _current;
+            Transaction trans = (Transaction)toMerge;
+            uint ec;
+
+            try {
+                SetCurrent(this);
+                ec  = sccoredb.star_transaction_merge_into_current(trans._handle, trans._verify);
+                if (ec != 0) 
+                    throw ErrorCode.ToException(ec);
+
+                trans.Dispose();
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
         /// <summary>
         /// Commits changes made on transaction.
         /// </summary>

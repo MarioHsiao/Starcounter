@@ -69,7 +69,7 @@ namespace Starcounter.Internal
         public unsafe extern static UInt32 sc_bmx_send_buffer(
             Byte gw_worker_id,
             Byte* buf,
-            UInt32 buf_len_bytes,
+            Int32 buf_len_bytes,
             UInt32* the_chunk_index,
             UInt32 conn_flags
         );

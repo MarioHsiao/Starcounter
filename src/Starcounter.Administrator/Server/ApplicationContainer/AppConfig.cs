@@ -11,25 +11,38 @@ namespace Administrator.Server.ApplicationContainer {
     /// 
     /// </summary>
     public class AppConfig {
-        public string ID;               // (Hashed) Name+Channel+Version
-        public string Namespace;        // Unique appstore namespace
+//        public string ID;               // (Hashed) Name+Channel+Version
+        [XmlIgnoreAttribute]
+        public string ID {
+            get {
+                return string.Format("{0:X8}", (this.Namespace + this.Channel + this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'")).GetHashCode());
+            }
+        }
+        public string Namespace;        // Unique appstore namespace, used in the apps folder path
         public string Channel;          // Canary,Stable,Beta,etc..
         public string Version;          // Valid version number
+        public DateTime VersionDate;    // Version date
+
+        public string AppName;          // AppName (name of the app running in starcounter, can be the bindingname in polyjuice)
 
         public string Executable;       // Executable name (relative path)
         public string ResourceFolder;   // Resource folder
-        public string RelativeStartUri; // Application start uri 
 
-        public string DisplayName;      // Application name
-        public string Company;          // Company
-        public string Description;      // Application Description
-        public string ImageUri;         // Application image
-        public string SourceUrl;        // Package source
-        public DateTime VersionDate;
+        public string DisplayName;      // Displayname
+        public string Company;          // Company name
+        public string Description;      // Description
+        public string ImageUri;         // Image
+
+        public string sourceID;         // Package source ID, "EB23432"
+        public string SourceUrl;        // Package source Url, "http://appstore.polyjuice.com/apps/EB23432"
 
         [XmlIgnoreAttribute]
         public string File;
 
+        /// <summary>
+        /// Save 
+        /// </summary>
+        /// <param name="file"></param>
         public void Save(string file) {
 
             string createdBaseFolder = null;
@@ -47,8 +60,7 @@ namespace Administrator.Server.ApplicationContainer {
                     ser.Serialize(txtWriter, this);
                     //txtWriter.Close();
                 }
-
-
+                this.File = file;
             }
             catch (Exception e) {
 

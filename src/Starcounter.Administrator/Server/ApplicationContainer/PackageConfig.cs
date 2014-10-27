@@ -9,18 +9,19 @@ namespace Administrator.Server.ApplicationContainer {
     /// 
     /// </summary>
     public class PackageConfig {
-        public string Namespace;        // Unique appstore namespace
-        public string Channel;          // Canary,Stable,Beta,etc..
-        public string Version;          // Valid version number
+        public string Namespace;        // Unique appstore namespace, used in the folder path and for generating the Application ID. 
+        public string Channel;          // Channel Name, used in the folder path and for generating the Application ID.
+        public string Version;          // Valid version number, used in the folder path and for generating the Application ID.
 
-        public string Executable;       // Executable name (relative path)       
+        public string Executable;       // Executable name (relative path)
         public string ResourceFolder;   // Resource folder
-        public string RelativeStartUri; // Application start uri 
 
-        public string DisplayName;      // Application name
-        public string Company;          // Company
-        public string Description;      // Application Description
-        public string ImageUri;         // Application image
-        public DateTime VersionDate;
+        public string AppName;          // AppName (name of the app running in starcounter, can be the bindingname in polyjuice)
+
+        public string DisplayName;      // Displayname
+        public string Company;          // Company name
+        public string Description;      // Description
+        public string ImageUri;         // Image
+        public DateTime VersionDate;    // Version date
     }
 }

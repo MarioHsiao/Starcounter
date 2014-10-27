@@ -355,9 +355,6 @@ public:
 
 class PortHandlers
 {
-    // Port number.
-    uint16_t port_number_;
-
     // Unique handler lists.
     LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
 
@@ -374,7 +371,7 @@ public:
     // Printing the registered URIs.
     void PrintRegisteredHandlers(std::stringstream& global_port_statistics_stream)
     {
-        global_port_statistics_stream << "Port " << port_number_ << " has following handlers registered: ";
+        global_port_statistics_stream << "Port has following handlers registered: ";
         for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
         {
             global_port_statistics_stream << handler_lists_[i]->get_db_index() << ", ";
@@ -467,11 +464,6 @@ public:
         return removed;
     }
 
-    void set_port_number(uint16_t port_num)
-    {
-        port_number_ = port_num;
-    }
-
     // Resetting entry.
     void Reset()
     {
@@ -483,8 +475,6 @@ public:
 
         // Removing all handlers lists.
         handler_lists_.Clear();
-
-        port_number_ = 0;
     }
 
     // Running all registered handlers.

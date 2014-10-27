@@ -69,6 +69,24 @@ namespace Starcounter
             NodeLogException_ = nodeLogException;
         }
 
+        // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+        internal static void SetLoopbackFastPathOnTcpSocket(Socket sock) {
+
+            // NOTE: Tries to configure a TCP socket for lower latency and faster operations on the loopback interface.
+            try {
+                const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
+
+                Byte[] OptionInValue = BitConverter.GetBytes(1);
+
+                sock.IOControl(
+                    SIO_LOOPBACK_FAST_PATH,
+                    OptionInValue,
+                    null);
+            } catch {
+                // Simply ignoring the error if fast loopback is not supported.
+            }
+        }
+
         /// <summary>
         /// Represents this Starcounter node.
         /// </summary>
@@ -261,18 +279,8 @@ namespace Starcounter
             {
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                try {
-                    const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
-                
-                    Byte[] OptionInValue = BitConverter.GetBytes(1);
-
-                    aggrSocket_.IOControl(
-                        SIO_LOOPBACK_FAST_PATH,
-                        OptionInValue,
-                        null);
-                } catch {
-                    // Simply ignoring the error if fast loopback is not supported.
-                }
+                // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+                Node.SetLoopbackFastPathOnTcpSocket(aggrSocket_);
 
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
