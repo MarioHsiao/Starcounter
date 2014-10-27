@@ -172,10 +172,22 @@ namespace Starcounter.Binding
         /// </summary>
         private void CreateNewTable()
         {
-            newTableDef_ = newTableDef_.Clone();
+            newTableDef_ = CreateUpgradeTableDef();
             newTableDef_.Name = CreatePendingUpdateTableName(newTableDef_.Name);
             var tableCreate = new TableCreate(newTableDef_);
             newTableDef_ = tableCreate.Eval();
+        }
+
+        private TableDef CreateUpgradeTableDef() {
+            Dictionary<String, ColumnDef> newColumns = new Dictionary<string,ColumnDef>();
+            foreach (ColumnDef c in this.newTableDef_.ColumnDefs)
+                newColumns.Add(c.Name, c);
+            foreach (ColumnDef c in oldTableDef_.ColumnDefs)
+                if (!newColumns.ContainsKey(c.Name))
+                    newColumns.Add(c.Name, c);
+            ColumnDef[] columns = new ColumnDef[newColumns.Count];
+            newColumns.Values.CopyTo(columns, 0);
+            return new TableDef(newTableDef_.Name, columns);
         }
 
         /// <summary>
