@@ -39,7 +39,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             StarcounterAdminAPI.Application_GET();
             StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder, appImagesSubFolder);
-            StarcounterAdminAPI.InstalledApplication_POST(port, appsRootFolder, appStoreHost, imageResourceFolder);
+            StarcounterAdminAPI.InstalledApplicationTask_POST(port, appsRootFolder, appStoreHost, imageResourceFolder);
             StarcounterAdminAPI.InstalledApplication_PUT(port, appsRootFolder, appStoreHost, imageResourceFolder);
 
             StarcounterAdminAPI.AppStore_GET(port, appStoreHost);

@@ -61,11 +61,9 @@ namespace Starcounter.Administrator.Server.Handlers {
                     string relative = "/api/admin/installed/apps";
                     string url = new Uri(Starcounter.Administrator.API.Handlers.RootHandler.Host.BaseUri, relative).ToString();
 
-                    string appBasefolder = appsRootFolder;
-
                     foreach (AppConfig appConfig in apps) {
                         Representations.JSON.InstalledApplication item;
-                        BuildApplicationItem(appConfig, url, appBasefolder, appImagesSubFolder, out item);
+                        BuildApplicationItem(appConfig, url, appsRootFolder, appImagesSubFolder, out item);
                         installedApplications.Items.Add(item);
                     }
 
@@ -82,9 +80,9 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// </summary>
         /// <param name="appConfig"></param>
         /// <param name="url"></param>
-        /// <param name="appBasefolder"></param>
+        /// <param name="appsRootFolder"></param>
         /// <param name="item"></param>
-        private static void BuildApplicationItem(AppConfig appConfig, string url, string appBasefolder, string appImagesSubFolder, out Representations.JSON.InstalledApplication item) {
+        private static void BuildApplicationItem(AppConfig appConfig, string url, string appsRootFolder, string appImagesSubFolder, out Representations.JSON.InstalledApplication item) {
 
             item = new Representations.JSON.InstalledApplication();
             item.ID = appConfig.ID;
@@ -96,15 +94,17 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.Company = appConfig.Company;
             item.VersionDate = appConfig.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"); ;
 
-            string appExe = Path.Combine(appBasefolder, appConfig.Namespace);
-            appExe = Path.Combine(appExe, appConfig.Channel);
-            appExe = Path.Combine(appExe, appConfig.Version);
-            appExe = Path.Combine(appExe, appConfig.Executable);
+            item.Executable = BuildAppExecutablePath(appConfig, appsRootFolder);
 
-            appExe = appExe.Replace('/', '\\'); // TODO: Fix this when config is verified
-            item.Executable = appExe;
+            //string appExe = Path.Combine(appsRootFolder, appConfig.Namespace);
+            //appExe = Path.Combine(appExe, appConfig.Channel);
+            //appExe = Path.Combine(appExe, appConfig.Version);
+            //appExe = Path.Combine(appExe, appConfig.Executable);
 
-            string appResourcFolder = Path.Combine(appBasefolder, appConfig.Namespace);
+            //appExe = appExe.Replace('/', '\\'); // TODO: Fix this when config is verified
+            //item.Executable = appExe;
+
+            string appResourcFolder = Path.Combine(appsRootFolder, appConfig.Namespace);
             appResourcFolder = Path.Combine(appResourcFolder, appConfig.Channel);
             appResourcFolder = Path.Combine(appResourcFolder, appConfig.Version);
             appResourcFolder = Path.Combine(appResourcFolder, appConfig.ResourceFolder);
@@ -114,6 +114,23 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.Size = 0;      // TODO: Collect the disk space size?
             item.ImageUri = string.Format("{0}/{1}", appImagesSubFolder, appConfig.ImageUri); ;
             item.Url = url + "/" + appConfig.Namespace;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="appConfig"></param>
+        /// <param name="appsRootFolder"></param>
+        /// <returns></returns>
+        internal static string BuildAppExecutablePath(AppConfig appConfig, string appsRootFolder) {
+
+            string appExe = Path.Combine(appsRootFolder, appConfig.Namespace);
+            appExe = Path.Combine(appExe, appConfig.Channel);
+            appExe = Path.Combine(appExe, appConfig.Version);
+            appExe = Path.Combine(appExe, appConfig.Executable);
+
+            appExe = appExe.Replace('/', '\\'); // TODO: Fix this when config is verified
+            return appExe;
         }
     }
 }
