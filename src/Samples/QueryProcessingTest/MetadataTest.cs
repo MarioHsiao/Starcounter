@@ -98,7 +98,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
-            Trace.Assert(count == 41);
+            Trace.Assert(count == 46);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
@@ -108,7 +108,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!String.IsNullOrWhiteSpace(v.Name));
                 count++;
             }
-            Trace.Assert(count == 14);
+            Trace.Assert(count == 19);
 #if false
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?",
                 "MaterializedIndex").First;
@@ -143,7 +143,6 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.Inherits.Name == "Agent");
 
             // Test rawview instances exist for all materialized table instances
-#if false
             foreach (MaterializedTable tab in Db.SQL<MaterializedTable>(
                 "select t from MaterializedTable t")) {
                     RawView v = Db.SQL<RawView>("select v from rawview v where materializedTable = ?", tab).First;
@@ -151,7 +150,6 @@ namespace QueryProcessingTest {
                     Trace.Assert(v.FullName == tab.Name);
                     Trace.Assert(v.MaterializedTable.Equals(tab));
             }
-#endif
         }
 
         public static void TestRuntimeColumnMetadata() {
