@@ -20,10 +20,9 @@ namespace Administrator.Server.ApplicationContainer {
 
         /// <summary>
         /// Uninstall installed application
-        /// TODO: Also remove the AppImage if it exists
         /// </summary>
         /// <param name="config"></param>
-        public static void UnInstall(AppConfig config) {
+        public static void UnInstall(AppConfig config, string imageResourceFolder) {
             lock (AppsContainer.locker) {
 
                 if (string.IsNullOrEmpty(config.File)) {
@@ -36,6 +35,12 @@ namespace Administrator.Server.ApplicationContainer {
                 }
 
                 VerifyAppconfig(config);
+
+                // Delete app image
+                string imageFile = Path.Combine(imageResourceFolder, config.ImageUri);
+                if (File.Exists(imageFile)) {
+                    File.Delete(imageFile);
+                }
 
                 DirectoryInfo di = new DirectoryInfo(folder);
                 di.Delete(true); // Remove version folder.

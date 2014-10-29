@@ -23,9 +23,9 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             // TODO: Get the AppStore url
 #if ANDWAH
-            string appStoreHost = "http://127.0.0.1:8585";
+            string appStoreHost = "http://127.0.0.1:8787";
 #else
-            string appStoreHost = "http://appstore.polyjuice.com:8585";
+            string appStoreHost = "http://appstore.polyjuice.com:8787";
 #endif
 
 
@@ -33,13 +33,14 @@ namespace Starcounter.Administrator.Server.Handlers {
             ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
             string appsRootFolder = System.IO.Path.Combine(serverInfo.Configuration.EnginesDirectory, "apps");
 
-            string imageResourceFolder = System.IO.Path.Combine(resourceFolder, "appImages");
+            // Where AppStore Item images will be saved and shared
+            string appImagesSubFolder = "appImages";
+            string imageResourceFolder = System.IO.Path.Combine(resourceFolder, appImagesSubFolder);
 
             StarcounterAdminAPI.Application_GET();
-            StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder);
-            StarcounterAdminAPI.InstalledApplication_POST(port, appsRootFolder, appStoreHost, imageResourceFolder);
+            StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder, appImagesSubFolder);
+            StarcounterAdminAPI.InstalledApplicationTask_POST(port, appsRootFolder, appStoreHost, imageResourceFolder);
             StarcounterAdminAPI.InstalledApplication_PUT(port, appsRootFolder, appStoreHost, imageResourceFolder);
-            //StarcounterAdminAPI.InstalledApplication_DELETE(port, appsRootFolder);
 
             StarcounterAdminAPI.AppStore_GET(port, appStoreHost);
 
