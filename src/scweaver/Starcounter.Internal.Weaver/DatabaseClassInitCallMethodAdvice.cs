@@ -61,7 +61,7 @@ namespace Starcounter.Internal.Weaver.BackingCode {
             // Prepare for "typeof(xxx)" call.
             var typeGetMethod = context.Method.Module.FindMethod(
                 typeof(Type).GetMethod("GetTypeFromHandle"), BindingOptions.Default);
-            var specTypeFullName = context.Method.DeclaringType + "+" + TypeSpecification.Name;
+            var specTypeFullName = context.Method.DeclaringType.GetReflectionName() + "+" + TypeSpecification.Name;
             var specificationType = context.Method.Module.FindType(specTypeFullName, BindingOptions.Default);
 
             // Generate typeof([currentType]).TypeSpefication)
