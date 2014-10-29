@@ -285,7 +285,10 @@ namespace Starcounter {
                 } else {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
-                        oldJson.Data = value;
+                        newJson = (Json)tArr.ElementType.CreateInstance();
+                        ((IList)this)[index] = newJson;
+                        newJson.Data = value;
+                        oldJson.SetParent(null);
                         if (_dirtyCheckEnabled) {
                             if (ArrayAddsAndDeletes == null)
                                 ArrayAddsAndDeletes = new List<Change>();

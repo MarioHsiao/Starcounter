@@ -67,18 +67,18 @@ namespace Starcounter.Internal
         /// <summary>
         /// Load Starcounter library dependencies.
         /// </summary>
-        static public void LoadDependencies() {
+        static public Int32 LoadDependencies() {
 
             // Checking if already loaded the DLLs.
             if (triedToLoad_)
-                return;
+                return 1;
 
             // Locking so no calls are made simultaneously.
             lock (lockObject_) {
 
                 // Checking if already loaded the DLLs.
                 if (triedToLoad_)
-                    return;
+                    return 1;
 
                 // Indicating that we already tried to load.
                 triedToLoad_ = true;
@@ -87,14 +87,14 @@ namespace Starcounter.Internal
                 // Primarily this is used when building Level1 which uses XSON code generation.
                 String tempDllPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), NativeAssemblies[0]);
                 if (File.Exists(tempDllPath))
-                    return;
+                    return 2;
 
                 // Trying StarcounterBin.
                 String dllsDir = Environment.GetEnvironmentVariable(StarcounterBinEnvVar);
 
                 // Checking that directory exists (if does not exist simply returning).
                 if (!Directory.Exists(dllsDir))
-                    return;
+                    return 3;
 
                 // Checking if its 32-bit process.
                 if (4 == IntPtr.Size)
@@ -102,7 +102,7 @@ namespace Starcounter.Internal
 
                 // Checking that directory exists (if does not exist simply returning).
                 if (!Directory.Exists(dllsDir))
-                    return;
+                    return 4;
 
                 // Adding custom assembly resolving directory.
                 AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs args) => {
@@ -120,6 +120,8 @@ namespace Starcounter.Internal
                 foreach (String dllName in NativeAssemblies) {
                     LoadDLL(dllName, dllsDir);
                 }
+
+                return 0;
             }
         }
     }
