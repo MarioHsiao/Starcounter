@@ -180,8 +180,15 @@ namespace Starcounter.Binding
 
         private TableDef CreateUpgradeTableDef() {
             Dictionary<String, ColumnDef> newColumns = new Dictionary<string,ColumnDef>();
-            foreach (ColumnDef c in this.newTableDef_.ColumnDefs)
+            TableDef inheritedTableDef = Db.LookupTable(this.newTableDef_.BaseName);
+            // First columns are inherited columns
+            foreach (ColumnDef c in inheritedTableDef.ColumnDefs)
                 newColumns.Add(c.Name, c);
+            // New non-inherited columns
+            foreach (ColumnDef c in this.newTableDef_.ColumnDefs)
+                if (!newColumns.ContainsKey(c.Name))
+                    newColumns.Add(c.Name, c);
+            // Old missing non-inherited columns
             foreach (ColumnDef c in oldTableDef_.ColumnDefs)
                 if (!newColumns.ContainsKey(c.Name))
                     newColumns.Add(c.Name, c);
