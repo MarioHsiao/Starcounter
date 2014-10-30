@@ -13,9 +13,9 @@ class Program {
 			c.Head = e;
 		});
 		Employee q = Db.SQL<Employee>("select e from employee e").First;
-		Trace.Assert(q.Equals(e));
-		Trace.Assert(q.Company.Equals(c));
-		Trace.Assert(q.Equals(c.Head));
+		ScAssertion.Assert(q.Equals(e), "Unexpected result");
+		ScAssertion.Assert(q.Company.Equals(c), "Unexpected result");
+		ScAssertion.Assert(q.Equals(c.Head), "Unexpected result");
 	}
 }
 
