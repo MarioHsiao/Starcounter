@@ -706,7 +706,7 @@ namespace Starcounter
 
             ho.DontModifyHeaders = true;
 
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req);
+            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req.CustomBytes, req.CustomBytesLength);
         }
 
         /// <summary>
@@ -919,7 +919,7 @@ namespace Starcounter
             Int32 requestBytesLength;
             Byte[] requestBytes;
 
-            String methodAndUriPlusSpace = null;
+            String methodAndUriPlusSpace = method + " " + relativeUri + " ";
             
             // Checking if request is defined and initialized.
             if (customBytes == null) {
@@ -927,11 +927,10 @@ namespace Starcounter
                 if (relativeUri == null || relativeUri.Length < 1)
                     throw new ArgumentOutOfRangeException("URI should contain at least one character.");
 
-                methodAndUriPlusSpace = method + " " + relativeUri + " ";
-
                 requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
 
             } else {
+
                 requestBytes = customBytes;
                 requestBytesLength = customBytesLength;
             }

@@ -224,7 +224,9 @@ namespace Starcounter.Internal.Test
 
                 req["MyHeader3"] = "value3";
                 req["MyHeader4"] = "value4";
+                req.Method = "POST"; // TODO: Fix that GET is not default.
                 req.Uri = "/response2";
+                req.ConstructFromFields();
 
                 Response resp = localNode.CustomRESTRequest(req);
 
