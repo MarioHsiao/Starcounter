@@ -4198,6 +4198,11 @@
         signal it was ready in time.
       </message>
     </code>
+    <code hex="0027" severity="Error" name="ScErrApplicationNotAnExecutable">
+      <message>
+        The application is not an executable.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->

@@ -6,14 +6,11 @@
     <table class="table table-condensed" >
         <thead>
             <tr>
-                <th>Image</th>
-                <th>Namespace</th>
+                <th></th>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Size (bytes)</th>
-                <th>Version</th>
-                <th>IsInstalled</th>
-                <th>NewVersionAvailable</th>
+                <th class="text-right">Size</th>
+                <th class="text-right">Version</th>
                 <th>Updated</th>
                 <th></th>
             </tr>
@@ -21,16 +18,13 @@
         <tbody>
 
             <tr ng-repeat="item in store.Items">
-                <td>
+                <td class="text-center">
                     <img style="height: auto; width: auto; max-width: 32px; max-height: 32px;" src="{{item.ImageUrl}}" />
                 </td>
-                <td>{{item.Namespace}}</td>
                 <td>{{item.DisplayName}}</td>
                 <td>{{item.Description}}</td>
-                <td>{{item.Size}}</td>
-                <td>{{item.Version}}</td>
-                <td>{{item.IsInstalled}}</td>
-                <td>{{item.NewVersionAvailable}}</td>
+                <td class="text-right">{{item.Size | bytes}}</td>
+                <td class="text-right">{{item.Version}}</td>
                 <td>{{item.VersionDate  | date:'medium'}}</td>
                 <td>
                     <div class="pull-right">
