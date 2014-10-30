@@ -1,6 +1,6 @@
-﻿using Starcounter.Templates;
+﻿using System;
+using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
-using System;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
@@ -85,9 +85,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                             if (isUntyped) {
                                 if (titem != null && titem.GetCodegenMetadata(Gen2DomGenerator.Reuse) != null)
-                                    GenerateClassesForReusedJson(tarr, titem.GetCodegenMetadata(Gen2DomGenerator.Reuse));
-                                else 
-								    GenerateClassesForDefaultArray(tarr);
+                                    Generator.AssociateTemplateWithReusedArray(tarr, titem.GetCodegenMetadata(Gen2DomGenerator.Reuse));
+                                else {
+                                    Generator.AssociateTemplateWithDefaultArray(tarr);
+                                }
                             }
 
 							GenerateProperty(
@@ -122,30 +123,30 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
-        private void GenerateClassesForReusedJson(TObjArr template, string reuseTypeName) {
-            var acn = Generator.GetJsonArrayClass(reuseTypeName);
+        //private void GenerateClassesForReusedJson(TObjArr template, string reuseTypeName) {
+        //    var acn = Generator.GetJsonArrayClass(reuseTypeName);
 
-            Generator.ValueClasses[template] = acn;
-            Generator.TemplateClasses[template] = acn.NTemplateClass;
-            Generator.MetaClasses[template] = acn.NMetadataClass;
-        }
+        //    Generator.ValueClasses[template] = acn;
+        //    Generator.TemplateClasses[template] = acn.NTemplateClass;
+        //    Generator.MetaClasses[template] = acn.NMetadataClass;
+        //}
 
-        private void GenerateClassesForReusedJson(TObject template, string reuseTypeName) {
-            var acn = Generator.GetJsonClass(reuseTypeName, template);
+        //private void GenerateClassesForReusedJson(TObject template, string reuseTypeName) {
+        //    var acn = Generator.GetJsonClass(reuseTypeName, template);
 
-            Generator.ValueClasses[template] = acn;
-            Generator.TemplateClasses[template] = acn.NTemplateClass;
-            Generator.MetaClasses[template] = acn.NMetadataClass;
-        }
+        //    Generator.ValueClasses[template] = acn;
+        //    Generator.TemplateClasses[template] = acn.NTemplateClass;
+        //    Generator.MetaClasses[template] = acn.NMetadataClass;
+        //}
 
-		private void GenerateClassesForDefaultArray(TObjArr template) {
-			var acn = Generator.GetDefaultJsonArrayClass();
-			template.ElementType = (TObject)acn.NTemplateClass.Template;
+        //private void GenerateClassesForDefaultArray(TObjArr template) {
+        //    var acn = Generator.GetDefaultJsonArrayClass();
+        //    template.ElementType = (TObject)acn.NTemplateClass.Template;
 
-			Generator.ValueClasses[template] = acn;
-			Generator.TemplateClasses[template] = acn.NTemplateClass;
-			Generator.MetaClasses[template] = acn.NMetadataClass;
-		}
+        //    Generator.ValueClasses[template] = acn;
+        //    Generator.TemplateClasses[template] = acn.NTemplateClass;
+        //    Generator.MetaClasses[template] = acn.NMetadataClass;
+        //}
 
         /// <summary>
         /// 
@@ -205,8 +206,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             // Untyped or typed.
             // Parent template is array or object
-
-
             if (at.Properties.Count == 0) {
                 string reuse = at.GetCodegenMetadata(Gen2DomGenerator.Reuse);
 
@@ -220,7 +219,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     // This means that they can be assigned to any App object. 
                     // A typical example is to have a Page:{} property in a master
                     // app (representing, for example, child web pages)
-                    acn = (AstJsonClass)Generator.GetDefaultJson();
+                acn = (AstJsonClass)Generator.ObtainDefaultValueClass();
                     //                tcn = Generator.TemplateClasses[Generator.DefaultObjTemplate];
                     //                mcn = Generator.MetaClasses[Generator.DefaultObjTemplate];
                 //}

@@ -524,7 +524,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     var tArr = mn.Template as TObjArr;
                     if (tArr != null) {
-                        if (tArr.ElementType.Properties.Count != 0 || Generator.GetDefaultJson() != mn.Type.Generic[0]) {
+                        if ((tArr.ElementType != null) 
+                            && (tArr.ElementType.Properties.Count != 0 
+                                 || Generator.ObtainDefaultValueClass() != mn.Type.Generic[0])) {
                             sb.Clear();
                             sb.Append("        ");
                             sb.Append(mn.MemberName);
