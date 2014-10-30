@@ -57,6 +57,22 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         }
 
         [Test]
+        public static void GenerateReusedJson() {
+            var tj = ReadTemplate("Input/ReuseJson.json");
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void GenerateReusedJsonWithAdditionalProperties() {
+            var tj = ReadTemplate("Input/ReuseJson2.json");
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
         public static void GenerateMinimalClassWithCodebehind() {
             var tj = ReadTemplate("Input/minimal.json");
             var cb = File.ReadAllText("Input/minimal.json.cs");
