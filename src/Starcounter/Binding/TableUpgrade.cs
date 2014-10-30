@@ -7,7 +7,6 @@
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Starcounter.Binding
 {
@@ -181,38 +180,14 @@ namespace Starcounter.Binding
 
         private TableDef CreateUpgradeTableDef() {
             Dictionary<String, ColumnDef> newColumns = new Dictionary<string,ColumnDef>();
-            // Place inherited columns first. Assume that they are the first.
-            // Assert that the inherited new and old version of the same and the old is subset.
-            int newCol, oldCol;
-            ColumnDef newColDef = null;
-            for (newCol = 0, oldCol = 0; newCol < this.newTableDef_.ColumnDefs.Length && (newColDef = this.newTableDef_.ColumnDefs[newCol]).IsInherited; newCol++ ) {
-                newColumns.Add(newColDef.Name, newColDef);
-                if (oldCol < this.oldTableDef_.ColumnDefs.Length &&
-                    newColDef.Name == this.oldTableDef_.ColumnDefs[oldCol].Name) {
-                    oldCol++;
-                }
-            }
-            Debug.Assert(newCol == this.newTableDef_.ColumnDefs.Length ||
-                newCol < this.newTableDef_.ColumnDefs.Length && !newColDef.IsInherited);
-            Debug.Assert(oldCol == this.oldTableDef_.ColumnDefs.Length ||
-                oldCol < this.oldTableDef_.ColumnDefs.Length && 
-                !this.oldTableDef_.ColumnDefs[oldCol].IsInherited);
-            // Copy non-inherited new columns
-            // Copy non-inherited old columns if don't exist
-            for(; newCol < this.newTableDef_.ColumnDefs.Length; newCol++) {
-                newColDef = this.newTableDef_.ColumnDefs[newCol];
-                newColumns.Add(newColDef.Name, newColDef);
-                Debug.Assert(!newColDef.IsInherited);
-            }
-            for (; oldCol < oldTableDef_.ColumnDefs.Length; oldCol++) {
-                ColumnDef c = oldTableDef_.ColumnDefs[oldCol];
+            foreach (ColumnDef c in this.newTableDef_.ColumnDefs)
+                newColumns.Add(c.Name, c);
+            foreach (ColumnDef c in oldTableDef_.ColumnDefs)
                 if (!newColumns.ContainsKey(c.Name))
                     newColumns.Add(c.Name, c);
-                Debug.Assert(!c.IsInherited);
-            }
             ColumnDef[] columns = new ColumnDef[newColumns.Count];
             newColumns.Values.CopyTo(columns, 0);
-            return new TableDef(newTableDef_.Name, newTableDef_.BaseName, columns);
+            return new TableDef(newTableDef_.Name, columns);
         }
 
         /// <summary>
