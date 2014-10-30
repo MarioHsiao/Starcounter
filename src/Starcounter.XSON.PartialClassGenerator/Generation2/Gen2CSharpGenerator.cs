@@ -389,6 +389,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                             if (astJsonClass.ParentProperty != null)
                                 bfTypeName = astJsonClass.ParentProperty.GlobalClassSpecifier;
                         }
+                    } else if (prop.Template is TObject) {
+                        var parent = prop.Type.Parent;
+                        while (parent != null) {
+                            if (parent is AstJsonClass) {
+                                bfTypeName = ((AstJsonClass)parent).GlobalClassSpecifier;
+                                break;
+                            }
+                            parent = parent.Parent;
+                        }
                     }
 
                     if (bfTypeName == null)

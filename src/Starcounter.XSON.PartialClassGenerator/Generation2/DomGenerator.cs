@@ -28,10 +28,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal const string InstanceDataTypeName = "InstanceDataTypeName";
         internal const string Reuse = "Reuse";
 
-//        private AstOtherClass AstObject;
-//        private AstJsonClass defaultJsonClass;
-//        private AstInstanceClass DefaultJsonArray;
-
         internal AstRoot Root;
         internal CodeBehindMetadata CodeBehindMetadata;
 
@@ -51,55 +47,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TObject template, Type defaultNewObjTemplateType, CodeBehindMetadata metadata) {
             DefaultObjTemplate = (TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
+
+            DefaultObjTemplate.Namespace = "Starcounter";
+            DefaultObjTemplate.ClassName = "Json";
+
             DefaultArrayTemplate = new TArray<Json>();
             DefaultArrayTemplate.ElementType = (TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
             CodeBehindMetadata = metadata;
-//            CreateDefaultJsonClass();
-            //AstObject = new AstOtherClass(this) {
-            //    GlobalClassSpecifier = "object",
-            //    NamespaceAlias = null
-            //};
-            //ObtainValueClass(
         }
-
-        //private void CreateDefaultJsonClass() {
-        //    var jsonClass = new AstJsonClass(this) {
-        //        CodebehindClass = new CodeBehindClassInfo(null) {
-        //            ClassName = "Json",
-        //            Namespace = "Starcounter",
-        //            UseGlobalSpecifier = true
-        //        },
-        //        UseClassAlias = true
-        //    };
-        //    var jsonByExampleClass = new AstOtherClass(this) {
-        //        Parent = jsonClass,
-        //        ClassStemIdentifier = "JsonByExample",
-        //        IsStatic = true,
-        //        UseClassAlias = true
-        //    };
-        //    var jsonSchemaClass = new AstSchemaClass(this) {
-        //        NValueClass = jsonClass,
-        //        Parent = jsonByExampleClass,
-        //        Template = DefaultObjTemplate,
-        //        IsCodegenerated = true,
-        //        ClassStemIdentifier = "Schema",
-        //        UseClassAlias = true
-        //    };
-        //    var jsonMetadataClass = new AstJsonMetadataClass(this) {
-        //        NValueClass = jsonClass,
-        //        Generic = new AstClass[] { jsonClass, jsonSchemaClass },
-        //        ClassStemIdentifier = "Metadata",
-        //        Namespace = "Starcounter"
-        //    };
-        //    jsonClass.NTemplateClass = jsonSchemaClass;
-        //    jsonClass.NJsonByExample = jsonByExampleClass;
-        //    jsonClass.NMetadataClass = jsonMetadataClass;
-
-        //    ValueClasses.Add(DefaultObjTemplate, jsonClass);
-        //    TemplateClasses.Add(DefaultObjTemplate, jsonSchemaClass);
-        //    TemplateClassesByType.Add(typeof(Json), jsonSchemaClass);
-        //    MetaClasses.Add(DefaultObjTemplate, jsonMetadataClass);
-        //}
 
         /// <summary>
         /// This is the main calling point to generate a dom tree for a JSON template (TJson).
@@ -184,39 +139,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             return astJson;
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <returns></returns>
-        //public AstInstanceClass GetDefaultJsonArrayClass() {
-        //    if (DefaultJsonArray == null) {
-        //        DefaultJsonArray = new AstInstanceClass(this);
-        //        var json = ObtainDefaultValueClass();
-
-        //        DefaultJsonArray.Generic = new AstClass[] {
-        //            json
-        //        };
-        //        DefaultJsonArray.ClassStemIdentifier = "Arr";
-        //        DefaultJsonArray.Namespace = "Starcounter";
-
-        //        DefaultJsonArray.NTemplateClass = new AstTemplateClass(this) {
-        //            NValueClass = DefaultJsonArray,
-        //            ClassStemIdentifier = "TArray",
-        //            Namespace = "Starcounter.Templates",
-        //            Generic = new AstClass[] {
-        //                json
-        //            },
-        //            Template = DefaultObjTemplate
-        //        };
-
-        //        DefaultJsonArray.NMetadataClass = new AstMetadataClass(this) {
-        //            NValueClass = DefaultJsonArray,
-        //            ClassStemIdentifier = "Metadata"
-        //        };
-        //    }
-        //    return DefaultJsonArray;
-        //}
-
         public AstInstanceClass GetJsonArrayClass(string instanceTypeName) {
             var astArray = new AstInstanceClass(this);
             var genericTypeClass = new AstJsonClass(this) { ClassStemIdentifier = instanceTypeName, ParentProperty = astArray };
@@ -275,6 +197,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             ValueClasses[template] = defaultJsonClass;
             TemplateClasses[template] = defaultJsonClass.NTemplateClass;
             MetaClasses[template] = defaultJsonClass.NMetadataClass;
+        }
+
+        internal void AssociateTemplateWithReusedJson(TObject template, string instanceTypeName) {
+            CodeBehindClassInfo cci = new CodeBehindClassInfo(null);
+            cci.BaseClassName = instanceTypeName;
+            var jsonClass = ObtainInheritedValueClass(cci);
+
+            ValueClasses[template] = jsonClass;
+            TemplateClasses[template] = jsonClass.NTemplateClass;
+            MetaClasses[template] = jsonClass.NMetadataClass;
         }
 
         /// <summary>
@@ -398,15 +330,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = mapInfo.BaseClassName,
                         Namespace = null,
-                        UseGlobalSpecifier = false
+                        UseGlobalSpecifier = true
                     },
-                    UseClassAlias = false
+                    UseClassAlias = true
                 };
                 var jsonbyexample = new AstOtherClass(this) {
                     Parent = acn,
                     ClassStemIdentifier = "JsonByExample",
                     IsStatic = true,
-                    UseClassAlias = false
+                    UseClassAlias = true
                 };
                 var genSchemaClass = new AstSchemaClass(this) {
                     NValueClass = acn,
@@ -414,7 +346,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     Template = DefaultObjTemplate,
                     IsCodegenerated = true,
                     ClassStemIdentifier = "Schema",
-                    UseClassAlias = false
+                    UseClassAlias = true
                 };
                 acn.NJsonByExample = jsonbyexample;
                 acn.NTemplateClass = genSchemaClass;

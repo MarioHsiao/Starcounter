@@ -123,31 +123,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
         }
 
-        //private void GenerateClassesForReusedJson(TObjArr template, string reuseTypeName) {
-        //    var acn = Generator.GetJsonArrayClass(reuseTypeName);
-
-        //    Generator.ValueClasses[template] = acn;
-        //    Generator.TemplateClasses[template] = acn.NTemplateClass;
-        //    Generator.MetaClasses[template] = acn.NMetadataClass;
-        //}
-
-        //private void GenerateClassesForReusedJson(TObject template, string reuseTypeName) {
-        //    var acn = Generator.GetJsonClass(reuseTypeName, template);
-
-        //    Generator.ValueClasses[template] = acn;
-        //    Generator.TemplateClasses[template] = acn.NTemplateClass;
-        //    Generator.MetaClasses[template] = acn.NMetadataClass;
-        //}
-
-        //private void GenerateClassesForDefaultArray(TObjArr template) {
-        //    var acn = Generator.GetDefaultJsonArrayClass();
-        //    template.ElementType = (TObject)acn.NTemplateClass.Template;
-
-        //    Generator.ValueClasses[template] = acn;
-        //    Generator.TemplateClasses[template] = acn.NTemplateClass;
-        //    Generator.MetaClasses[template] = acn.NMetadataClass;
-        //}
-
         /// <summary>
         /// 
         /// </summary>
@@ -209,34 +184,26 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (at.Properties.Count == 0) {
                 string reuse = at.GetCodegenMetadata(Gen2DomGenerator.Reuse);
 
-                //if (reuse != null) {
-                //    acn = GenerateClassesForReusedJson(at, reuse);
-                //    Generator.ObtainValueClass
-                    
-                //} else {
+                if (reuse != null) {
+                    Generator.AssociateTemplateWithReusedJson(at, reuse);
+                } else {
                     // Empty App templates does not typically receive a custom template 
                     // class (unless explicitly set by the Json.nnnn syntax (TODO)
                     // This means that they can be assigned to any App object. 
                     // A typical example is to have a Page:{} property in a master
                     // app (representing, for example, child web pages)
-                acn = (AstJsonClass)Generator.ObtainDefaultValueClass();
-                    //                tcn = Generator.TemplateClasses[Generator.DefaultObjTemplate];
-                    //                mcn = Generator.MetaClasses[Generator.DefaultObjTemplate];
-                //}
+                    Generator.AssociateTemplateWithDefaultJson(at);
+                }
+                acn = (AstJsonClass)Generator.ObtainValueClass(at);
                 tcn = acn.NTemplateClass;
                 mcn = acn.NMetadataClass;
-            }
-            else {
-                AstJsonClass racn;
-                acn = racn = (AstJsonClass)Generator.ObtainValueClass(at);
+            } else {
+                acn = (AstJsonClass)Generator.ObtainValueClass(at);
                 acn.Parent = appClassParent;
                 tcn = acn.NTemplateClass;
                 mcn = acn.NMetadataClass;
                 GenerateKids( acn, tcn, mcn, at );
             }
-            Generator.ValueClasses[at] = acn;
-            Generator.TemplateClasses[at] = tcn;
-            Generator.MetaClasses[at] = mcn;
 
             if (at.Parent is TObject)
                 GenerateProperty(
