@@ -38,8 +38,12 @@ namespace Starcounter.Internal.MsBuild {
 
                 try {
                     msbuildLog.LogMessage("Creating " + OutputFiles[i].ItemSpec);
-
                     generatedCodeStr = Starcounter.Internal.XSON.PartialClassGenerator.GenerateTypedJsonCode(jsonFilename, codeBehindFilename).GenerateCode();
+
+                    string dir = Path.GetDirectoryName(OutputFiles[i].ItemSpec);
+                    if (!Directory.Exists(dir)) {
+                        Directory.CreateDirectory(dir);
+                    }
                     File.WriteAllText(OutputFiles[i].ItemSpec, generatedCodeStr);
                 } catch (Starcounter.Internal.JsonTemplate.Error.CompileError ce) {
                     msbuildLog.LogError("json", null, null, jsonFilename, ce.Position.Item1, ce.Position.Item2, 0, 0, ce.Message);

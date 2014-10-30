@@ -8,10 +8,10 @@
   
   <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTask" AssemblyFile="$(StarcounterBin)\Starcounter.MsBuild.dll" />
 
-  <Target Name="GenerateTypedJSONCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+  <Target Name="GenerateTypedJSONCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)%(Extension).g.cs')">
     <JsonToTypedJsonCsMsBuildTask
        InputFiles="@(TypedJSON)"
-       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(FileName)%(Extension).g.cs')">
+       OutputFiles="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)%(Extension).g.cs')">
        <Output TaskParameter="OutputFiles" ItemName="TypedJSONFiles" /> 
     </JsonToTypedJsonCsMsBuildTask>
     <ItemGroup>
@@ -28,7 +28,7 @@
   <!-- Cleans up JSON generated source files. -->
   <Target Name="CleanupOldJsonGeneratedFiles">
     <ItemGroup>
-      <GeneratedFilesList Include="$(IntermediateOutputPath)\*.json.g.cs" />
+      <GeneratedFilesList Include="$(IntermediateOutputPath)**\*.json.g.cs" />
     </ItemGroup>
     <Delete Files="@(GeneratedFilesList)" />
   </Target>
