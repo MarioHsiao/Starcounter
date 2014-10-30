@@ -900,12 +900,7 @@ namespace Starcounter
         /// <summary>
         /// Core function to send REST requests and get the responses.
         /// </summary>
-        /// <param name="method">HTTP method.</param>
-        /// <param name="relativeUri">Relative URI.</param>
-        /// <param name="customHeaders">Custom HTTP headers if any.</param>
-        /// <param name="body">HTTP Body string or null if no such.</param>
-        /// <param name="func">User delegate to be called.</param>
-        Response DoRESTRequestAndGetResponse(
+        public Response DoRESTRequestAndGetResponse(
             String method,
             String relativeUri,
             String customHeaders,
@@ -914,26 +909,31 @@ namespace Starcounter
             Object userObject,
             Int32 receiveTimeoutMs,
             HandlerOptions ho,
-            Request req = null)
+            Byte[] customBytes = null,
+            Int32 customBytesLength = 0)
         {
             // Checking if handler options is defined.
             if (ho == null)
                 ho = HandlerOptions.DefaultHandlerOptions;
 
-            if (relativeUri == null || relativeUri.Length < 1)
-                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
-
-            String methodAndUriPlusSpace = method + " " + relativeUri + " ";
-
             Int32 requestBytesLength;
             Byte[] requestBytes;
+
+            String methodAndUriPlusSpace = null;
             
             // Checking if request is defined and initialized.
-            if ((req == null) || (req.CustomBytes == null)) {
+            if (customBytes == null) {
+
+                if (relativeUri == null || relativeUri.Length < 1)
+                    throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+
+                methodAndUriPlusSpace = method + " " + relativeUri + " ";
+
                 requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
+
             } else {
-                requestBytes = req.CustomBytes;
-                requestBytesLength = req.CustomBytesLength;
+                requestBytes = customBytes;
+                requestBytesLength = customBytesLength;
             }
             
             // No response initially.
