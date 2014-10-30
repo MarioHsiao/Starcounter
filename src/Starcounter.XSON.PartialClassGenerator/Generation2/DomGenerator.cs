@@ -52,7 +52,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             DefaultObjTemplate.ClassName = "Json";
 
             DefaultArrayTemplate = new TArray<Json>();
-            DefaultArrayTemplate.ElementType = (TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
+            DefaultArrayTemplate.ElementType = DefaultObjTemplate; //(TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
+//            DefaultArrayTemplate.ElementType.Namespace = "Starcounter";
+//            DefaultArrayTemplate.ElementType.ClassName = "Json";
+
             CodeBehindMetadata = metadata;
         }
 
@@ -277,10 +280,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var tjson = template as TObject;
                 var acn = new AstJsonClass(this);
                 ValueClasses.Add(template, acn);
+                acn.InheritedClass = ObtainValueClass(DefaultObjTemplate);
 
                 if (template.Parent != null)
-                    acn.InheritedClass = ObtainValueClass(template.Parent);
-
+                    acn.ParentProperty = ObtainValueClass(template.Parent);
+                
                 acn.Namespace = template.Namespace;
                 var jsonbyexample = new AstOtherClass(this) {
                     Parent = acn,
@@ -421,8 +425,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var acn = (AstJsonClass)ObtainValueClass(template);
                 mcn.NValueClass = acn;
 
-                if(acn.InheritedClass != null && acn.InheritedClass.ClassStemIdentifier != "UNKNOWN")
-                    mcn.InheritedClass = ((AstJsonClass)acn.InheritedClass).NMetadataClass;
+                var inheritedClass = acn.InheritedClass as AstJsonClass;
+                if (inheritedClass != null)
+                    mcn.InheritedClass = inheritedClass.NMetadataClass;
 
                 mcn.Namespace = template.Namespace;
 
@@ -496,8 +501,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 TemplateClasses.Add(template, ret);
                 var acn = (AstJsonClass)ObtainValueClass(template);
 
-                if (acn.InheritedClass != null && acn.InheritedClass.ClassStemIdentifier != "UNKNOWN")
-                    ret.InheritedClass = ((AstJsonClass)acn.InheritedClass).NTemplateClass;
+                var inheritedClass = acn.InheritedClass as AstJsonClass;
+                if (inheritedClass != null)
+                    ret.InheritedClass = inheritedClass.NTemplateClass;
 
                 ret.Namespace = template.Namespace;
                 ret.NValueClass = acn;

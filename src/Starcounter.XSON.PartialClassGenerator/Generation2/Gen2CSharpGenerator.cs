@@ -533,9 +533,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     var tArr = mn.Template as TObjArr;
                     if (tArr != null) {
-                        if ((tArr.ElementType != null) 
-                            && (tArr.ElementType.Properties.Count != 0 
-                                 || Generator.ObtainDefaultValueClass() != mn.Type.Generic[0])) {
+                        bool isCustomClass = ((tArr.ElementType != null) && (tArr.ElementType.Properties.Count > 0));
+                        if (isCustomClass || !"Json".Equals(mn.Type.Generic[0].ClassStemIdentifier)) {
                             sb.Clear();
                             sb.Append("        ");
                             sb.Append(mn.MemberName);
@@ -558,7 +557,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         sb.Append(a.NValueClass.GlobalClassSpecifier);
                         sb.Append(")_p_).");
                         sb.Append(mn.BackingFieldName);
-                        sb.Append(" = _v_; }, false);");
+                        sb.Append(" = (");
+
+                        AstProperty valueProp = (AstProperty)a.NValueClass.Children.Find((AstBase item) => {
+                            var prop = item as AstProperty;
+                            if (prop != null && prop.MemberName.Equals(mn.MemberName))
+                                return true;
+                            return false;
+                        });
+                        sb.Append(valueProp.Type.GlobalClassSpecifier);
+                        sb.Append(")_v_; }, false);");
                         a.Prefix.Add(sb.ToString());
                     }
                 } else if (kid is AstInputBinding) {
