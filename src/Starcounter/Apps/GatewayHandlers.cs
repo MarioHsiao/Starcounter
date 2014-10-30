@@ -111,8 +111,10 @@ namespace Starcounter
                 // Obtaining client's port.
                 UInt16 clientPort = *(UInt16*) (rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
 
-                // Calling user callback.
-                userCallback(clientIp, clientPort, dataBytes);
+                Db.ImplicitScope(() => {
+                    // Calling user callback.
+                    userCallback(clientIp, clientPort, dataBytes);
+                }, 0);
 
                 *isHandled = true;
 
@@ -215,8 +217,10 @@ namespace Starcounter
                     rawSocket.Destroy();
                 }
 
-                // Calling user callback.
-                userCallback(rawSocket, dataBytes);
+                Db.ImplicitScope(() => {
+                    // Calling user callback.
+                    userCallback(rawSocket, dataBytes);
+                }, 0);
 
                 // Destroying original chunk etc.
                 rawSocket.DestroyDataStream();
@@ -341,8 +345,10 @@ namespace Starcounter
                         isAggregated);
                 }
 
-                // Calling user callback.
-                *isHandled = UriInjectMethods.OnHttpMessageRoot_(httpRequest);
+                Db.ImplicitScope(() => {
+                    // Calling user callback.
+                    *isHandled = UriInjectMethods.OnHttpMessageRoot_(httpRequest);
+                }, 0);
             
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
@@ -570,8 +576,10 @@ namespace Starcounter
 
                 Debug.Assert(null != wsInternal.SocketContainer);
 
-                // Adding session reference.
-                *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
+                Db.ImplicitScope(() => {
+                    // Adding session reference.
+                    *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
+                }, 0);
 
                 // Destroying original chunk etc.
                 ws.WsInternal.DestroyDataStream();

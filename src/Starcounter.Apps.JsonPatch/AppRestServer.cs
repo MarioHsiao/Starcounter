@@ -103,14 +103,10 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public Response HandleRequest(Request request, Int32 handlerLevel) {
-            Response resp = null;
+            Response resp;
 
             try {
-                Db.ImplicitScope(() => {
-                    resp = _HandleRequest(request, handlerLevel);
-                });
-
-                return resp;
+                return _HandleRequest(request, handlerLevel);
             }
             catch (ResponseException exc) {
                 // NOTE: if internal request then throw the exception up.
