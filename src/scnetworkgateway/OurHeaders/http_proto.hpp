@@ -202,26 +202,18 @@ class RegisteredUris
     
 public:
 
-    std::string GetSortedString() {
+    // Gets all URIs in a list (in the order as they are).
+    std::string GetUriListString() {
         
-        std::vector<std::string> uris_vec;
+        std::string s = "";
 
-        // Going through all URIs.
+        // Going through all URIs in order.
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++) {
 
             if (!reg_uris_[i].IsEmpty()) {
-
-                uris_vec.push_back(reg_uris_[i].get_processed_uri_info());
+                s.append(reg_uris_[i].get_processed_uri_info());
             }
-        }
 
-        std::sort(uris_vec.begin(), uris_vec.end());
-
-        std::string s = "";
-
-        for (std::vector<std::string>::iterator it = uris_vec.begin(); it != uris_vec.end(); it++) {
-
-            s.append(it->c_str());
             s += "\n";
         }
 
