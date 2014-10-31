@@ -25,7 +25,6 @@ struct HttpResponse
     void Reset()
     {
         memset(this, 0, sizeof(HttpResponse));
-        content_len_bytes_ = -1;
     }
 };
 
