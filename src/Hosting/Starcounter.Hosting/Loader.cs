@@ -219,6 +219,9 @@ namespace StarcounterInternal.Hosting
             OnUnregisteredTypeDefsDetermined();
 
             var assembly = assemblyResolver.ResolveApplication(inputFile.FullName);
+            if (assembly.EntryPoint == null) {
+                throw ErrorCode.ToException(Starcounter.Error.SCERRAPPLICATIONNOTANEXECUTABLE, string.Format("Failing application: {0}", inputFile.FullName));
+            }
 
             OnTargetAssemblyLoaded();
 

@@ -559,9 +559,10 @@ void UriMatcherCacheEntry::Destroy() {
     gen_uri_matcher_func_ = NULL;
 }
 
+// Trying to get cached URI matcher entry.
 UriMatcherCacheEntry* ServerPort::TryGetUriMatcherFromCache() {
 
-    std::string uris_list = registered_uris_->GetSortedString();
+    std::string uris_list = registered_uris_->GetUriListString();
 
     // Going through each cache entry (note that we are going from back to front).
     for (std::list<UriMatcherCacheEntry*>::reverse_iterator it = uri_matcher_cache_.rbegin(); it != uri_matcher_cache_.rend(); it++) {
@@ -569,8 +570,8 @@ UriMatcherCacheEntry* ServerPort::TryGetUriMatcherFromCache() {
         // Comparing first the number of URIs.
         if ((*it)->get_num_uris() == registered_uris_->get_num_uris()) {
 
-            // Comparing the sorted URIs list .
-            if (uris_list == (*it)->get_sorted_uris_string()) {
+            // Comparing the URIs list strings.
+            if (uris_list == (*it)->get_uris_list_string()) {
 
                 // List is the same, meaning that generated code is the same.
                 return (*it);
@@ -3017,7 +3018,7 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
     std::cout << "Total codegen time (" << uris_managed.size() << ", " << port_uris->get_port_number() << "): " << timeGetTime() - begin_time << " ms." << std::endl;
 
     // Setting the entry point for new URI matcher.
-    new_entry->Init(match_uri_func, gen_dll_handle, port_uris->GetSortedString(), port_uris->get_num_uris());
+    new_entry->Init(match_uri_func, gen_dll_handle, port_uris->GetUriListString(), port_uris->get_num_uris());
 
     // Setting generated URI matcher.
     port_uris->SetGeneratedUriMatcher(new_entry);

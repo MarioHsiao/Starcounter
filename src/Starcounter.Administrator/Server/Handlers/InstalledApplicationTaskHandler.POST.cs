@@ -28,7 +28,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <summary>
         /// Register Application GET
         /// </summary>
-        public static void InstalledApplication_POST(ushort port, string appsRootFolder, string appStoreHost, string imageResourceFolder) {
+        public static void InstalledApplicationTask_POST(ushort port, string appsRootFolder, string appStoreHost, string imageResourceFolder) {
 
             //
             // Application Task
@@ -46,7 +46,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     }
                     else if (string.Equals("Uninstall", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
 
-                        return StarcounterAdminAPI.UnInstall(task.ID, appsRootFolder);
+                        return StarcounterAdminAPI.UnInstall(task.ID, appsRootFolder, imageResourceFolder);
                     }
                     else if (string.Equals("Upgrade", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
                         return StarcounterAdminAPI.Upgrade(port, task.ID, appsRootFolder, imageResourceFolder);
@@ -55,7 +55,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                         return StarcounterAdminAPI.Start(task.ID, task.DatabaseName, task.Arguments, appsRootFolder);
                     }
                     else if (string.Equals("Stop", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
-                        return StarcounterAdminAPI.Stop(task.ID, appsRootFolder);
+                        return StarcounterAdminAPI.Stop(task.ID, task.DatabaseName, appsRootFolder);
                     }
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.BadRequest };
@@ -70,21 +70,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                 }
 
             });
-
-            //
-            // Install Application 
-            //
-            //Handle.POST(port, "/api/admin/installed/apps", (Request request) => {
-
-            //    try {
-            //        return StarcounterAdminAPI.InstallOLD(request, appsRootFolder, appStoreHost);
-            //    }
-            //    catch (Exception e) {
-            //        return RestUtils.CreateErrorResponse(e);
-            //    }
-
-            //});
-
 
         }
 
@@ -192,7 +177,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="sourceUrl"></param>
         /// <param name="appsRootFolder"></param>
         /// <returns></returns>
-        internal static Response UnInstall(string id, string appsRootFolder) {
+        internal static Response UnInstall(string id, string appsRootFolder, string imageResourceFolder) {
 
             try {
 
@@ -203,7 +188,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     throw new InvalidOperationException("Failed to upgrade, Can not get installed application");
                 }
 
-                AppsContainer.UnInstall(installedConfig);
+                AppsContainer.UnInstall(installedConfig, imageResourceFolder);
                 return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
             }
             catch (InvalidOperationException e) {
@@ -293,8 +278,58 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        internal static Response Stop(string id, string appsRootFolder) {
-            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
+        internal static Response Stop(string id, string databaseName, string appsRootFolder) {
+
+
+            AppConfig installedConfig;
+            AppsContainer.GetInstalledApp(id, appsRootFolder, out installedConfig);
+
+            if (installedConfig == null) {
+                throw new InvalidOperationException("Failed to stop, Can not find installed application");
+            }
+
+            // Find running executable
+            string stopAppUri = GetRunningAppUri(installedConfig, databaseName, appsRootFolder);
+            if (stopAppUri == null) {
+                throw new InvalidOperationException("Failed to stop, Can not find running application");
+            }
+
+            Response response = X.DELETE(stopAppUri, string.Empty, null);
+            if (response.StatusCode >= 200 && response.StatusCode < 300) {
+                // OK
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+            }
+
+            // Error
+            return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
+        }
+
+        /// <summary>
+        /// Get running installed App
+        /// </summary>
+        /// <param name="installedConfig"></param>
+        /// <param name="databaseName"></param>
+        /// <param name="appsRootFolder"></param>
+        /// <returns></returns>
+        private static string GetRunningAppUri(AppConfig installedConfig, string databaseName, string appsRootFolder) {
+
+            string exeFile = StarcounterAdminAPI.BuildAppExecutablePath(installedConfig, appsRootFolder);
+
+            // Find running executable
+            Response runningResponse = Node.LocalhostSystemPortNode.GET("/api/admin/applications");
+
+            Executables runningExecutables = new Executables();
+            runningExecutables.PopulateFromJson(runningResponse.Body);
+
+            string stopAppUri = string.Empty;
+            foreach (var runningExe in runningExecutables.Items) {
+                if (string.Equals(runningExe.Path, exeFile, StringComparison.InvariantCultureIgnoreCase)) {
+                    if (runningExe.Engine.Uri.EndsWith("/" + databaseName, StringComparison.InvariantCultureIgnoreCase)) {
+                        return runningExe.Uri;
+                    }
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -322,79 +357,5 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             return (HttpStatusCode)response.StatusCode;
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="request"></param>
-        /// <param name="replace"></param>
-        /// <returns></returns>
-        //internal static Response InstallOLD(Request request, string appsRootFolder, string appStoreHost) {
-
-        //    try {
-        //        string host = request["Host"];
-
-        //        if (string.IsNullOrEmpty(appStoreHost)) {
-        //            ErrorResponse errorResponse = new ErrorResponse();
-        //            errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
-        //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-        //        }
-
-        //        //Representations.JSON.Application appStoreApplication = new Representations.JSON.Application();
-        //        //appStoreApplication.PopulateFromJson(request.Body);
-        //        Representations.JSON.ApplicationTask task = new Representations.JSON.ApplicationTask();
-        //        task.PopulateFromJson(request.Body);
-
-        //        // Download Application from AppStore host
-        //        string url = appStoreHost + "/appstore/apps/" + task.InstallID;
-
-        //        Response response;
-        //        HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
-
-        //        // Get package from host
-        //        string headers = "Accept: application/octet-stream\r\n";
-        //        X.GET(url, out response, headers, 0, opt);
-        //        if (response.StatusCode >= 200 && response.StatusCode < 300) {
-
-        //            // Success
-        //            using (MemoryStream packageZip = new MemoryStream(response.BodyBytes)) {
-        //                AppConfig config;
-
-        //                if (!string.IsNullOrEmpty(task.UninstallID)) {
-        //                    // Upgrade/replace existing version
-        //                    AppConfig installedConfig;
-        //                    AppsContainer.GetInstalledApp(task.UninstallID, appsRootFolder, out installedConfig);
-
-        //                    if (installedConfig == null) {
-        //                        throw new InvalidOperationException("Failed to upgrade, Can not get installed application");
-        //                    }
-
-        //                    Package.Upgrade(installedConfig, url, packageZip, appsRootFolder, out config);
-        //                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
-        //                }
-        //                else {
-        //                    Package.Install(packageZip, url, appsRootFolder, out config);
-        //                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created };
-        //                }
-        //            }
-        //        }
-        //        else {
-        //            // Error
-
-        //            ErrorResponse errorResponse = new ErrorResponse();
-        //            errorResponse.Text = string.Format("Failed to {0} application", string.IsNullOrEmpty(task.UninstallID) ? "install" : "upgrade");
-
-        //            if (response.StatusCode == (ushort)System.Net.HttpStatusCode.ServiceUnavailable) {
-        //                errorResponse.Text += ", " + "Service Unavailable";
-        //            }
-        //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-        //        }
-        //    }
-        //    catch (InvalidOperationException e) {
-        //        ErrorResponse errorResponse = new ErrorResponse();
-        //        errorResponse.Text = e.Message;
-        //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden, BodyBytes = errorResponse.ToJsonUtf8() };
-        //    }
-        //}
     }
 }

@@ -584,11 +584,6 @@ public:
 
         return false;
     }
-
-    void Sort()
-    {
-        std::sort(elems_, elems_ + num_entries_);
-    }
 };
 
 template <class T, uint32_t MaxElems>
@@ -1191,8 +1186,8 @@ class UriMatcherCacheEntry {
     // Generated DLL handle.
     HMODULE gen_dll_handle_;
 
-    // Cached sorted URI string.
-    std::string sorted_uris_string_;
+    // Cached URI list string.
+    std::string uris_list_string_;
 
     // Number of cached URIs.
     int32_t num_uris_;
@@ -1217,8 +1212,8 @@ public:
         return num_uris_;
     }
 
-    std::string get_sorted_uris_string() {
-        return sorted_uris_string_;
+    std::string get_uris_list_string() {
+        return uris_list_string_;
     }
 
     MixedCodeConstants::MatchUriType get_uri_matcher_func() {
@@ -1229,12 +1224,12 @@ public:
     void Init(
         MixedCodeConstants::MatchUriType gen_uri_matcher_func,
         HMODULE gen_dll_handle,
-        std::string sorted_uris_string,
+        std::string uris_list_string,
         int32_t num_uris) {
 
             gen_uri_matcher_func_ = gen_uri_matcher_func;
             gen_dll_handle_ = gen_dll_handle;
-            sorted_uris_string_ = sorted_uris_string;
+            uris_list_string_ = uris_list_string;
             num_uris_ = num_uris;
     }
 

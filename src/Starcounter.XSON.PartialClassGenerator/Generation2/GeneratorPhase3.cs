@@ -1,22 +1,17 @@
 ﻿
-
-
-using Starcounter.Templates;
-using Starcounter.XSON.Metadata;
-using System;
-using System.Collections.Generic;
 namespace Starcounter.Internal.MsBuild.Codegen {
-
     /// <summary>
     /// Adds input classes (event handler classes)
     /// </summary>
     internal class GeneratorPhase3 {
+        private Gen2DomGenerator generator;
 
-
-        internal Gen2DomGenerator Generator;
+        internal GeneratorPhase3(Gen2DomGenerator generator) {
+            this.generator = generator;
+        }
 
         internal void RunPhase3(AstJsonClass acn) {
-            GenerateInputAttributes(Generator.Root);
+            GenerateInputAttributes(generator.Root);
         }
 
         private void GenerateInputAttributes(AstBase node) {
@@ -33,16 +28,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="acn">The Json class</param>
         private void GenerateInputAttributesForASingleClass(AstJsonClass acn) {
-            var input = new AstOtherClass(Generator) {
+            var input = new AstOtherClass(generator) {
                 Parent = acn,
                 ClassStemIdentifier = "Input",
                 IsStatic = true
             };
             GeneratePrimitiveValueEvents(input, acn, "Input");
         }
-
-
-
 
         /// <summary>
         /// Used to generate Handle( ... ) event classes used by the user programmer
@@ -56,10 +48,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (kid is AstProperty) {
                     var mn = kid as AstProperty;
                     if (mn.Type is AstPrimitiveType) {
-                        new AstEventClass(Generator) {
+                        new AstEventClass(generator) {
                             NMember = mn,
                             Parent = parent,
-                            //                                NApp = app,
                             EventName = eventName
                         };
                     }
