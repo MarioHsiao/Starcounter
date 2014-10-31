@@ -574,7 +574,9 @@ namespace Starcounter.Server {
             arguments.Append(database.Configuration.Runtime.TransactionLogDirectory.TrimEnd('\\'));
             arguments.Append('\"');
 
-            return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+            var processStartInfo = new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+            processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            return processStartInfo;
         }
 
         ProcessStartInfo GetLogWriterStartInfo(Database database) {
