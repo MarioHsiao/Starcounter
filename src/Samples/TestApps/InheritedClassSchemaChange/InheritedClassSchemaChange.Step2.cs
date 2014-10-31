@@ -4,8 +4,8 @@ using System.Diagnostics;
 
 class Program {
 	static void Main() {
-		Employee e;
-		Company c;
+		Employee e = null;
+		Company c = null;
 		Db.Transaction(delegate {
 			c = new Company { OrganizationId = 0 };
 			e = new Employee { FirstName = "The", LastName = "First",
@@ -16,9 +16,9 @@ class Program {
 		ScAssertion.Assert(e != null, "Created instance should not be empty");
 		Employee q = Db.SQL<Employee>("select e from employee e").First;
 		ScAssertion.Assert(q != null, "Query should return a result");
-		ScAssertion.Assert(q.Equals(e), "Unexpected result");
-		ScAssertion.Assert(q.Company.Equals(c), "Unexpected result");
-		ScAssertion.Assert(q.Equals(c.Head), "Unexpected result");
+		ScAssertion.Assert(q.UserName == e.UserName, "Unexpected result");
+		ScAssertion.Assert(q.Company.OrganizationId == c.OrganizationId, "Unexpected result");
+		ScAssertion.Assert(q.UserName == c.Head.UserName, "Unexpected result");
 	}
 }
 
