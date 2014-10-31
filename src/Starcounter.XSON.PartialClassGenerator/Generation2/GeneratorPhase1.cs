@@ -111,8 +111,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     }
                     else {
                         AstTemplateClass type = generator.ObtainTemplateClass(kid);
-                        generator.TemplateClasses[kid] = type;
-
                         GenerateProperty(
                             kid, 
                             (AstJsonClass)appClassParent, 

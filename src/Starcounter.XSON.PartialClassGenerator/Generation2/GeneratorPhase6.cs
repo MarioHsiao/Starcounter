@@ -6,18 +6,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// Replaces class paths with class aliases     
     /// </summary>
     internal class GeneratorPhase6 {
-        private Gen2DomGenerator Generator;
-        private Dictionary<string, int> Used;
+        private Gen2DomGenerator generator;
+        private Dictionary<string, int> used;
 
         internal GeneratorPhase6(Gen2DomGenerator generator) {
-            this.Generator = generator;
-            this.Used = new Dictionary<string, int>();
+            this.generator = generator;
+            this.used = new Dictionary<string, int>();
         }
 
         internal void RunPhase6(AstJsonClass acn) {
             CreateClassAliases(acn);
             MoveAliasesToTop();
-            Generator.Root.AliasesActive = true;
+            generator.Root.AliasesActive = true;
         }
 
         private void MoveAliasesToTop() {
@@ -34,7 +34,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 };
                 return 0;
             };
-            Generator.Root.Children.Sort(c);
+            generator.Root.Children.Sort(c);
         }
 
         private void CreateClassAliases(AstBase node) {
@@ -61,18 +61,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 						AstClassAlias alias;
 						int variant;
 						var id = "__" + cls.CalculateClassAliasIdentifier(8) + "__";
-						if (Used.TryGetValue(id, out variant)) {
+						if (used.TryGetValue(id, out variant)) {
 							variant++;
-							Used[id] = variant;
+							used[id] = variant;
 							id = id.Substring(0, id.Length - 2) + variant + "__";
 						}
-						Used.Add(id, 0);
+						used.Add(id, 0);
 
 						alias = new AstClassAlias(node.Generator) {
 							Alias = id,
 							Specifier = cls.GlobalClassSpecifier
 						};
-						alias.Parent = Generator.Root;
+						alias.Parent = generator.Root;
 
 						cls.ClassAlias = alias;
 					}

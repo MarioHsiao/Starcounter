@@ -31,31 +31,25 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal AstRoot Root;
         internal CodeBehindMetadata CodeBehindMetadata;
 
-        internal Dictionary<Template, AstInstanceClass> ValueClasses = new Dictionary<Template, AstInstanceClass>();
-        internal Dictionary<Template, AstTemplateClass> TemplateClasses = new Dictionary<Template, AstTemplateClass>();
-        internal Dictionary<Type, AstTemplateClass> TemplateClassesByType = new Dictionary<Type, AstTemplateClass>();
-        internal Dictionary<Template, AstMetadataClass> MetaClasses = new Dictionary<Template, AstMetadataClass>();
-
-        private TString TPString = new TString();
-        private TLong TPLong = new TLong();
-        private TDecimal TPDecimal = new TDecimal();
-        private TDouble TPDouble = new TDouble();
-        private TBool TPBool = new TBool();
-        private TTrigger TPAction = new TTrigger();
-        private TObject DefaultObjTemplate = null;
-        private TArray<Json> DefaultArrayTemplate = null;
+        private Dictionary<Template, AstInstanceClass> valueClasses = new Dictionary<Template, AstInstanceClass>();
+        private Dictionary<Template, AstTemplateClass> templateClasses = new Dictionary<Template, AstTemplateClass>();
+        private Dictionary<Type, AstTemplateClass> templateClassesByType = new Dictionary<Type, AstTemplateClass>();
+        private Dictionary<Template, AstMetadataClass> metaClasses = new Dictionary<Template, AstMetadataClass>();
+        private TString protoString = new TString();
+        private TLong protoLong = new TLong();
+        private TDecimal protoDecimal = new TDecimal();
+        private TDouble protoDouble = new TDouble();
+        private TBool protoBool = new TBool();
+        private TTrigger protoAction = new TTrigger();
+        private TObject defaultObjTemplate = null;
+        private TArray<Json> defaultArrayTemplate = null;
 
         internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TObject template, Type defaultNewObjTemplateType, CodeBehindMetadata metadata) {
-            DefaultObjTemplate = (TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
-
-            DefaultObjTemplate.Namespace = "Starcounter";
-            DefaultObjTemplate.ClassName = "Json";
-
-            DefaultArrayTemplate = new TArray<Json>();
-            DefaultArrayTemplate.ElementType = DefaultObjTemplate; //(TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
-//            DefaultArrayTemplate.ElementType.Namespace = "Starcounter";
-//            DefaultArrayTemplate.ElementType.ClassName = "Json";
-
+            defaultObjTemplate = (TObject)defaultNewObjTemplateType.GetConstructor(new Type[0]).Invoke(null);
+            defaultObjTemplate.Namespace = "Starcounter";
+            defaultObjTemplate.ClassName = "Json";
+            defaultArrayTemplate = new TArray<Json>();
+            defaultArrayTemplate.ElementType = defaultObjTemplate; 
             CodeBehindMetadata = metadata;
         }
 
@@ -172,34 +166,34 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>Template.</returns>
         public Template GetPrototype(Template template) {
             if (template is TString) {
-                return TPString;
+                return protoString;
             } else if (template is TLong) {
-                return TPLong;
+                return protoLong;
             } else if (template is TDouble) {
-                return TPDouble;
+                return protoDouble;
             } else if (template is TDecimal) {
-                return TPDecimal;
+                return protoDecimal;
             } else if (template is TBool) {
-                return TPBool;
+                return protoBool;
             } else if (template is TTrigger) {
-                return TPAction;
+                return protoAction;
             }
             return template;
         }
 
         internal AstInstanceClass ObtainDefaultValueClass() {
-            return ObtainValueClass(DefaultObjTemplate);
+            return ObtainValueClass(defaultObjTemplate);
         }
 
         internal AstInstanceClass ObtainDefaultArrayValueClass() {
-            return ObtainValueClass(DefaultArrayTemplate);
+            return ObtainValueClass(defaultArrayTemplate);
         }
 
         internal void AssociateTemplateWithDefaultJson(TObject template) {
-            var defaultJsonClass = ObtainValueClass(DefaultObjTemplate);
-            ValueClasses[template] = defaultJsonClass;
-            TemplateClasses[template] = defaultJsonClass.NTemplateClass;
-            MetaClasses[template] = defaultJsonClass.NMetadataClass;
+            var defaultJsonClass = ObtainValueClass(defaultObjTemplate);
+            valueClasses[template] = defaultJsonClass;
+            templateClasses[template] = defaultJsonClass.NTemplateClass;
+            metaClasses[template] = defaultJsonClass.NMetadataClass;
         }
 
         internal void AssociateTemplateWithReusedJson(TObject template, string instanceTypeName) {
@@ -207,9 +201,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             cci.BaseClassName = instanceTypeName;
             var jsonClass = ObtainInheritedValueClass(cci);
 
-            ValueClasses[template] = jsonClass;
-            TemplateClasses[template] = jsonClass.NTemplateClass;
-            MetaClasses[template] = jsonClass.NMetadataClass;
+            valueClasses[template] = jsonClass;
+            templateClasses[template] = jsonClass.NTemplateClass;
+            metaClasses[template] = jsonClass.NMetadataClass;
         }
 
         /// <summary>
@@ -217,10 +211,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="template"></param>
         internal void AssociateTemplateWithDefaultArray(TObjArr template) {
-            var defaultArrayClass = ObtainValueClass(DefaultArrayTemplate);
-            ValueClasses[template] = defaultArrayClass;
-            TemplateClasses[template] = defaultArrayClass.NTemplateClass;
-            MetaClasses[template] = defaultArrayClass.NMetadataClass;
+            var defaultArrayClass = ObtainValueClass(defaultArrayTemplate);
+            valueClasses[template] = defaultArrayClass;
+            templateClasses[template] = defaultArrayClass.NTemplateClass;
+            metaClasses[template] = defaultArrayClass.NMetadataClass;
         }
 
         internal void AssociateTemplateWithReusedArray(TObjArr template, string instanceTypeName) {
@@ -244,11 +238,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ClassStemIdentifier = "Metadata"
             };
 
-            ValueClasses[template] = astArray;
-            TemplateClasses[template] = astArray.NTemplateClass;
-            MetaClasses[template] = astArray.NMetadataClass;
+            valueClasses[template] = astArray;
+            templateClasses[template] = astArray.NTemplateClass;
+            metaClasses[template] = astArray.NMetadataClass;
 
-            ValueClasses[template.ElementType] = genericTypeClass;
+            valueClasses[template.ElementType] = genericTypeClass;
         }
 
         /// <summary>
@@ -263,13 +257,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 template = GetPrototype(template);
             }
 
-            if (ValueClasses.TryGetValue(template, out ret)) {
+            if (valueClasses.TryGetValue(template, out ret)) {
                 return ret;
             }
 
             if (template.IsPrimitive) {
                 ret = new AstPrimitiveType(this);
-                ValueClasses.Add(template, ret);
+                valueClasses.Add(template, ret);
                 ret.BuiltInType = template.InstanceType;
                 ret.NTemplateClass = ObtainTemplateClass(template);
                 ret.NMetadataClass = ObtainMetaClass(template);
@@ -279,8 +273,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (template is TObject) {
                 var tjson = template as TObject;
                 var acn = new AstJsonClass(this);
-                ValueClasses.Add(template, acn);
-                acn.InheritedClass = ObtainValueClass(DefaultObjTemplate);
+                valueClasses.Add(template, acn);
+                acn.InheritedClass = ObtainValueClass(defaultObjTemplate);
 
                 if (template.Parent != null)
                     acn.ParentProperty = ObtainValueClass(template.Parent);
@@ -302,7 +296,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             } else if (template is TObjArr) {
                 var tarr = template as TObjArr;
                 var acn = new AstInstanceClass(this);
-                ValueClasses.Add(template, acn);
+                valueClasses.Add(template, acn);
                 acn.NMetadataClass = ObtainMetaClass(template);
                 acn.NTemplateClass = ObtainTemplateClass(template);
 
@@ -328,7 +322,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal AstJsonClass ObtainInheritedValueClass(CodeBehindClassInfo mapInfo) {
             AstJsonClass acn;
             if (mapInfo.DerivesDirectlyFromJson) {
-                acn = (AstJsonClass)ObtainValueClass(DefaultObjTemplate);
+                acn = (AstJsonClass)ObtainValueClass(defaultObjTemplate);
             } else {
                 acn = new AstJsonClass(this) {
                     CodebehindClass = new CodeBehindClassInfo(null) {
@@ -347,7 +341,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var genSchemaClass = new AstSchemaClass(this) {
                     NValueClass = acn,
                     Parent = jsonbyexample,
-                    Template = DefaultObjTemplate,
+                    Template = defaultObjTemplate,
                     IsCodegenerated = true,
                     ClassStemIdentifier = "Schema",
                     UseClassAlias = true
@@ -394,13 +388,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
 
             AstMetadataClass ret;
-            if (MetaClasses.TryGetValue(template, out ret)) {
+            if (metaClasses.TryGetValue(template, out ret)) {
                 return ret;
             }
 
             if (template.IsPrimitive) {
                 ret = new AstMetadataClass(this);
-                MetaClasses.Add(template, ret);
+                metaClasses.Add(template, ret);
                 ret.BuiltInType = template.MetadataType;
                 ret.NValueClass = ObtainValueClass(template);
                 return ret;
@@ -410,7 +404,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (template.Parent != null)
                 parent = ObtainValueClass(template.Parent);
             else
-                parent = ObtainValueClass(DefaultObjTemplate);
+                parent = ObtainValueClass(defaultObjTemplate);
 
             if (template is TObject) {
                 AstClass[] gen;
@@ -421,7 +415,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var mcn = new AstJsonMetadataClass(this) {
                     Generic = gen
                 };
-                MetaClasses.Add(template, mcn);
+                metaClasses.Add(template, mcn);
                 var acn = (AstJsonClass)ObtainValueClass(template);
                 mcn.NValueClass = acn;
 
@@ -445,7 +439,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var mcn = new AstJsonMetadataClass(this) {
                     Generic = gen
                 };
-                MetaClasses.Add(template, mcn);
+                metaClasses.Add(template, mcn);
 
                 var tarrType = tarr.GetType();
                 mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
@@ -461,7 +455,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var mcn = new AstJsonMetadataClass(this) {
                     Generic = gen
                 };
-                MetaClasses.Add(template, mcn);
+                metaClasses.Add(template, mcn);
                 mcn.NValueClass = ObtainValueClass(template);
                 return mcn;
             }
@@ -479,7 +473,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 template = GetPrototype(template);
             }
 
-            if (TemplateClasses.TryGetValue(template, out ret)) {
+            if (templateClasses.TryGetValue(template, out ret)) {
                 return ret;
             }
 
@@ -487,7 +481,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ret = new AstTemplateClass(this) {
                     Template = template,
                 };
-                TemplateClasses.Add(template, ret);
+                templateClasses.Add(template, ret);
                 var type = template.GetType();
                 ret.BuiltInType = type;
                 ret.NValueClass = ObtainValueClass(template);
@@ -498,7 +492,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ret = new AstSchemaClass(this) {
                     Template = template
                 };
-                TemplateClasses.Add(template, ret);
+                templateClasses.Add(template, ret);
                 var acn = (AstJsonClass)ObtainValueClass(template);
 
                 var inheritedClass = acn.InheritedClass as AstJsonClass;
@@ -517,7 +511,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ret = new AstTemplateClass(this) {
                     Template = template
                 };
-                TemplateClasses.Add(template, ret);
+                templateClasses.Add(template, ret);
                 ret.NValueClass = ObtainValueClass(template);
                 var acn = ObtainValueClass(tarr.ElementType);
                 var tarrType = tarr.GetType();
