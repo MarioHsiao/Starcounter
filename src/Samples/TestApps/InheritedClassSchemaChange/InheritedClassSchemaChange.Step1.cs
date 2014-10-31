@@ -12,10 +12,10 @@ class Program {
 				UserName = "TheF", Company = c };
 			c.Head = e;
 		});
-		ScAssertion.Assert(c != null, "Created instance of Company should not be empty");
-		ScAssertion.Assert(e != null, "Created instance of Employee should not be empty");
 		Employee q = Db.SQL<Employee>("select e from employee e").First;
 		ScAssertion.Assert(q != null, "Query should return a result");
+		ScAssertion.Assert(c != null, "Created instance of Company should not be empty");
+		ScAssertion.Assert(e != null, "Created instance of Employee should not be empty");
 		ScAssertion.Assert(q.UserName == e.UserName, "Unexpected result");
 		ScAssertion.Assert(q.Company.OrganizationId == c.OrganizationId, "Unexpected result");
 		ScAssertion.Assert(q.UserName == c.Head.UserName, "Unexpected result");
