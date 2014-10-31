@@ -27,7 +27,7 @@ namespace Starcounter.Tests {
             Exception ex = Assert.Throws<Exception>(() => ScAssertion.Assert(false, message));
             if (Environment.GetEnvironmentVariable("SC_RUNNING_ON_BUILD_SERVER") == "True") {
                 Assert.AreEqual(ex.Data[ErrorCode.EC_TRANSPORT_KEY], Error.SCERRTESTASSERTIONFAILURE);
-                Assert.AreEqual(ex.Message, ErrorCode.ToException(Error.SCERRTESTASSERTIONFAILURE).Message);
+                Assert.AreEqual(ex.Message, ErrorCode.ToException(Error.SCERRTESTASSERTIONFAILURE, message).Message);
             } else
                 Assert.AreEqual(ex.Message, "Test assertion failure. "+message);
         }
