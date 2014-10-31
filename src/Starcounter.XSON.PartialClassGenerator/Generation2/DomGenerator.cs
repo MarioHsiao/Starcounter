@@ -328,15 +328,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     CodebehindClass = new CodeBehindClassInfo(null) {
                         ClassName = mapInfo.BaseClassName,
                         Namespace = null,
-                        UseGlobalSpecifier = true
+                        UseGlobalSpecifier = false
                     },
-                    UseClassAlias = true
+                    UseClassAlias = false
                 };
                 var jsonbyexample = new AstOtherClass(this) {
                     Parent = acn,
                     ClassStemIdentifier = "JsonByExample",
                     IsStatic = true,
-                    UseClassAlias = true
+                    UseClassAlias = false
                 };
                 var genSchemaClass = new AstSchemaClass(this) {
                     NValueClass = acn,
@@ -344,7 +344,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     Template = defaultObjTemplate,
                     IsCodegenerated = true,
                     ClassStemIdentifier = "Schema",
-                    UseClassAlias = true
+                    UseClassAlias = false
                 };
                 acn.NJsonByExample = jsonbyexample;
                 acn.NTemplateClass = genSchemaClass;
