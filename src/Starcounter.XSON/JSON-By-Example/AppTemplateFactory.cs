@@ -178,9 +178,6 @@ namespace Starcounter.Internal.JsonTemplate
                 if (tobj == null)
                     ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
 
-                if (!(tobj.Parent is TObjArr))
-                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-
                 tobj.CodegenMetadata.Add("Reuse", v);
             }
             else if (upperName == "NAMESPACE")

@@ -1,33 +1,25 @@
-﻿
-
-using Starcounter.Internal;
-using Starcounter.Internal.MsBuild.Codegen;
-using Starcounter.Templates;
+﻿using Starcounter.Templates;
 using Starcounter.XSON.Metadata;
-using System;
-using System.Collections.Generic;
 using TJson = Starcounter.Templates.TObject;
 
-
 namespace Starcounter.Internal.MsBuild.Codegen {
-
-
     /// <summary>
     /// Creates the mapping attributes to be used by the user code-behind source code.
     /// </summary>
     internal class GeneratorPhase5 {
+        private Gen2DomGenerator generator;
 
-        internal Gen2DomGenerator Generator;
+        internal GeneratorPhase5(Gen2DomGenerator generator) {
+            this.generator = generator;
+        }
 
         internal void RunPhase5(AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn) {
             CreateJsonAttribute(acn, tcn, mcn);
         }
 
-
         internal void CreateJsonAttribute(AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn) {
-
-            var root = Generator.Root;
-            var metadata = Generator.CodeBehindMetadata;
+            var root = generator.Root;
+            var metadata = generator.CodeBehindMetadata;
 
             if (metadata != CodeBehindMetadata.Empty) {
                 // if there is codebehind and the class is not inherited from Json we need 
@@ -38,11 +30,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
               //      mcn._Inherits = tmp + "Metadata";
               //  }
 
-                var templateAttributeBaseClass = new AstOtherClass(Generator) {
+                var templateAttributeBaseClass = new AstOtherClass(generator) {
                     GlobalClassSpecifier = "s::TemplateAttribute"
                 };
 
-                var json = new AstJsonAttributeClass(Generator) {
+                var json = new AstJsonAttributeClass(generator) {
                     Parent = acn.Parent,
                     InheritedClass = templateAttributeBaseClass,
                     ClassStemIdentifier = acn.ClassStemIdentifier + "_json"
@@ -75,15 +67,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     else {
                         stem = t.PropertyName;
                     }
-                    var x = new AstJsonAttributeClass(Generator) {
+                    var x = new AstJsonAttributeClass(generator) {
                         InheritedClass = templateAttributeBaseClass,
                         ClassStemIdentifier = stem,
                         Parent = parent
 
                     };
                     GenerateJsonAttributes( x, t, templateAttributeBaseClass );
-                }
-                else {
+                } else {
                     GenerateJsonAttributes( parent, t, templateAttributeBaseClass );
                 }
             }
