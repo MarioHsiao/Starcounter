@@ -21,11 +21,6 @@ COPY /y TestClassSchemaChangeV2.cs TestClassSchemaChange.cs
 star --database=%DB_NAME% TestClassSchemaChange.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
-ECHO Run Step 1 again to update scheme with less columns
-COPY /y TestClassSchemaChangeV1.cs TestClassSchemaChange.cs
-star --database=%DB_NAME% TestClassSchemaChange.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
-
 REM Clean update
 DEL TestClassSchemaChange.cs
 
