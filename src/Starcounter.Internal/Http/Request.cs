@@ -958,11 +958,11 @@ namespace Starcounter {
 		/// <summary>
 		/// Constructs Response from fields that are set.
 		/// </summary>
-		public void ConstructFromFields(Boolean dontModifyHeaders = false) {
+		public Int32 ConstructFromFields(Boolean dontModifyHeaders = false, Byte[] givenBuffer = null) {
 
 			// Checking if we have a custom response.
 			if (!customFields_)
-				return;
+				return 0;
 
 			if (null == uriString_)
 				throw new ArgumentException("Relative URI should be set when creating custom Request.");
@@ -975,7 +975,16 @@ namespace Starcounter {
 
             Utf8Writer writer;
 
-			byte[] buf = new byte[EstimateNeededSize()];
+            byte[] buf;
+            Int32 estimatedRequestSizeBytes = EstimateNeededSize();
+
+            // Checking if we can use given buffer.
+            if ((null != givenBuffer) && (estimatedRequestSizeBytes <= givenBuffer.Length)) {
+                buf = givenBuffer;
+            } else {
+                buf = new byte[estimatedRequestSizeBytes];
+            }
+            			
 			unsafe {
 				fixed (byte* p = buf) {
 					writer = new Utf8Writer(p);
@@ -1043,6 +1052,7 @@ namespace Starcounter {
 			}
 
 			customFields_ = false;
+            return customBytesLen_;
 		}
 
         /// <summary>
