@@ -4,18 +4,21 @@ using System.Diagnostics;
 
 class Program {
 	static void Main() {
-		Employee e;
-		Company c;
+		Employee e = null;
+		Company c = null;
 		Db.Transaction(delegate {
 			c = new Company { OrganizationId = 0 };
 			e = new Employee { FirstName = "The", LastName = "First",
 				UserName = "TheF", Company = c };
 			c.Head = e;
 		});
+		ScAssertion.Assert(c != null, "Created instance of Company should not be empty");
+		ScAssertion.Assert(e != null, "Created instance of Employee should not be empty");
 		Employee q = Db.SQL<Employee>("select e from employee e").First;
-		Trace.Assert(q.Equals(e));
-		Trace.Assert(q.Company.Equals(c));
-		Trace.Assert(q.Equals(c.Head));
+		ScAssertion.Assert(q != null, "Query should return a result");
+		ScAssertion.Assert(q.UserName == e.UserName, "Unexpected result");
+		ScAssertion.Assert(q.Company.OrganizationId == c.OrganizationId, "Unexpected result");
+		ScAssertion.Assert(q.UserName == c.Head.UserName, "Unexpected result");
 	}
 }
 
