@@ -67,11 +67,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         public AstRoot GenerateDomTree(TObject at) {
             var p1 = new GeneratorPhase1(this);
-            var p2 = new GeneratorPhase2() { Generator = this };
-            var p3 = new GeneratorPhase3() { Generator = this };
+            var p2 = new GeneratorPhase2(this);
+            var p3 = new GeneratorPhase3(this);
             var p4 = new GeneratorPhase4(this);
-            var p5 = new GeneratorPhase5() { Generator = this };
-            var p6 = new GeneratorPhase6() { Generator = this };
+            var p5 = new GeneratorPhase5(this);
+            var p6 = new GeneratorPhase6(this);
 
             AstJsonClass acn;
             AstSchemaClass tcn;

@@ -1,27 +1,21 @@
-﻿
+﻿using System.Collections.Generic;
 
-using Starcounter.Internal;
-using Starcounter.Internal.MsBuild.Codegen;
-using Starcounter.Templates;
-using Starcounter.XSON.Metadata;
-using System;
-using System.Collections.Generic;
-namespace Starcounter.Internal.MsBuild.Codegen {
-
-    
+namespace Starcounter.Internal.MsBuild.Codegen {    
     /// <summary>
     /// Moves the nested classes below the properties for easier reading of of generator code
     /// (although the generated code should not be used by the developer).
     /// Creates the mapping attributes to be used by the user code-behind source code.
     /// </summary>
     internal class GeneratorPhase2 {
+        private Gen2DomGenerator generator;
 
-        internal Gen2DomGenerator Generator;
-
-        internal void RunPhase2( AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn ) {
-            MoveNestedClassToBottom(Generator.Root);
+        internal GeneratorPhase2(Gen2DomGenerator generator) {
+            this.generator = generator;
         }
 
+        internal void RunPhase2( AstJsonClass acn, AstSchemaClass tcn, AstMetadataClass mcn ) {
+            MoveNestedClassToBottom(generator.Root);
+        }
 
         /// <summary>
         /// Provide a nicer default order of the generated classes such

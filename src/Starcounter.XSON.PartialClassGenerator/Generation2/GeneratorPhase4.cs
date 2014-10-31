@@ -9,15 +9,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// accordingly.
     /// </summary>
     internal class GeneratorPhase4 {
-        private Gen2DomGenerator Generator;
+        private Gen2DomGenerator generator;
 
         internal GeneratorPhase4(Gen2DomGenerator generator) {
-            this.Generator = generator;
+            this.generator = generator;
         }
 
         internal void RunPhase4(AstJsonClass acn) {
-            ConnectCodeBehindClasses(Generator.Root, Generator.CodeBehindMetadata);
-            GenerateInputBindings(Generator.Root);
+            ConnectCodeBehindClasses(generator.Root, generator.CodeBehindMetadata);
+            GenerateInputBindings(generator.Root);
             // CheckMissingBindingInformation(tcn);
         }
 
@@ -56,7 +56,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     appTemplate = FindTAppFor(mapInfo, rootTemplate);
 
                     if (appTemplate.GetCodegenMetadata(Gen2DomGenerator.InstanceDataTypeName) != null) {
-                        Generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
+                        generator.ThrowExceptionWithLineInfo(Error.SCERRDUPLICATEDATATYPEJSON, "", null, appTemplate.CompilerOrigin);
                     }
 
                     // TODO:
@@ -70,22 +70,21 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (!String.IsNullOrEmpty(mapInfo.Namespace))
                         appTemplate.Namespace = mapInfo.Namespace;
 
-                    nAppClass = (AstJsonClass)Generator.ObtainValueClass(appTemplate);
+                    nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate);
                     nAppClass.IsPartial = true;
 
-                    var ntAppClass = (AstSchemaClass)Generator.ObtainTemplateClass(appTemplate);
-                    var mdAppClass = Generator.ObtainMetaClass(appTemplate);
+                    var ntAppClass = (AstSchemaClass)generator.ObtainTemplateClass(appTemplate);
+                    var mdAppClass = generator.ObtainMetaClass(appTemplate);
 
                     nAppClass.CodebehindClass = mapInfo;
 
-                    var outsider = Generator.ObtainInheritedValueClass(mapInfo);
+                    var outsider = generator.ObtainInheritedValueClass(mapInfo);
                     nAppClass.InheritedClass = outsider;
                     ntAppClass.InheritedClass = outsider.NTemplateClass;
                      mdAppClass.InheritedClass = outsider.NMetadataClass;
 
                     // if there is codebehind and the class is not inherited from Json we need 
                     // to change the inheritance on the template and metadata classes as well.
-//                    if (!string.IsNullOrEmpty(mapInfo.BaseClassName) && !mapInfo.BaseClassName.Equals("Json")) {
                     if (!mapInfo.DerivesDirectlyFromJson) {
 
 						dotIndex = mapInfo.BaseClassName.LastIndexOf('.');
@@ -131,7 +130,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 var cls = classesInOrder[i];
                 if (cls != null) {
-                    theClass = Generator.ObtainValueClass(cls);
+                    theClass = generator.ObtainValueClass(cls);
                     parentClasses = mapInfos[i].ParentClasses;
                     if (parentClasses.Count > 0) {
                         parent = root;
@@ -141,7 +140,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 parent = parentClass;
                             }
                             else {
-                                notExistingClass = new AstOtherClass(Generator);
+                                notExistingClass = new AstOtherClass(generator);
                                 notExistingClass.ClassStemIdentifier = parentClasses[pi];
                                 notExistingClass.IsPartial = true;
                                 notExistingClass.Parent = parent;
@@ -260,7 +259,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 parent = parent.Parent;
                             }
                             propertyName = ((TObject)parent).ClassName + propertyName;
-                            Generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
+                            generator.ThrowExceptionWithLineInfo(Error.SCERRMISSINGDATATYPEBINDINGJSON, "Path: '" + propertyName + "'", null, property.Template.CompilerOrigin);
                         }
                         CheckMissingBindingInformation(childTApp);
                     }
@@ -319,7 +318,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 					if (template is TObjArr) {
 						template = ((TObjArr)template).ElementType;
 					}
-					tcn = (AstSchemaClass)Generator.ObtainTemplateClass(template);
+					tcn = (AstSchemaClass)generator.ObtainTemplateClass(template);
 				}
 			} else {
 				tcn = (AstSchemaClass)((AstJsonClass)astClass).NTemplateClass;
@@ -352,15 +351,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="metadata">The metadata.</param>
         /// <exception cref="System.Exception">Invalid Handle-method declared in class </exception>
         private void GenerateInputBindingsForASingleClass(AstSchemaClass templateClass) {
-           // Int32 index;
             AstSchemaClass tcn;
             AstConstructor cst;
             AstInputBinding binding;
             int index;
-            //var metadata = Generator.CodeBehindMetadata;
-            //string propertyName;
-            //string[] parts;
-
+            
             var classInfo = ((AstJsonClass)templateClass.NValueClass).CodebehindClass;
 
             if (classInfo == null) {
@@ -368,8 +363,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             }
 
             foreach (InputBindingInfo info in classInfo.InputBindingList) {
-				
-
                 // Find the property the binding is for. 
                 // Might not be the same class as the one specified in the info object
                 // since the Handle-implementation can be declared in a parent class.
@@ -387,11 +380,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                         " exists.");
                 }
 
-				binding = new AstInputBinding(Generator);
+				binding = new AstInputBinding(generator);
                 binding.BindsToProperty = (AstProperty)cst.Children[index];
-                binding.PropertyAppClass = (AstJsonClass)Generator.ObtainValueClass(tcn.Template);
+                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(tcn.Template);
                 binding.InputTypeName = info.FullInputTypeName;
-				Generator.FindHandleDeclaringClass(binding, info);
+				generator.FindHandleDeclaringClass(binding, info);
                 
                 // We check the next item in the constructor. All inputbindings for 
                 // the same property needs to be ordered with the least parent-calls first.

@@ -7,10 +7,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// Creates a code dom from a JSON template (TObject).
     /// </summary>
     internal class GeneratorPhase1 {
-        private Gen2DomGenerator Generator;
+        private Gen2DomGenerator generator;
 
         internal GeneratorPhase1(Gen2DomGenerator generator) {
-            this.Generator = generator;
+            this.generator = generator;
         }
 
         /// <summary>
@@ -20,10 +20,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
         internal AstRoot RunPhase1(TObject at, out AstJsonClass acn, out AstSchemaClass tcn, out AstMetadataClass mcn) {
-            CodeBehindMetadata metadata = Generator.CodeBehindMetadata;
+            CodeBehindMetadata metadata = generator.CodeBehindMetadata;
 
-            var root = new AstRoot(Generator);
-            acn = (AstJsonClass)Generator.ObtainValueClass(at);
+            var root = new AstRoot(generator);
+            acn = (AstJsonClass)generator.ObtainValueClass(at);
             acn.Parent = root;
             acn.IsPartial = true;
             acn.CodebehindClass = metadata.RootClassInfo;
@@ -85,9 +85,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                             if (isUntyped) {
                                 if (titem != null && titem.GetCodegenMetadata(Gen2DomGenerator.Reuse) != null)
-                                    Generator.AssociateTemplateWithReusedArray(tarr, titem.GetCodegenMetadata(Gen2DomGenerator.Reuse));
+                                    generator.AssociateTemplateWithReusedArray(tarr, titem.GetCodegenMetadata(Gen2DomGenerator.Reuse));
                                 else {
-                                    Generator.AssociateTemplateWithDefaultArray(tarr);
+                                    generator.AssociateTemplateWithDefaultArray(tarr);
                                 }
                             }
 
@@ -110,8 +110,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         }
                     }
                     else {
-                        AstTemplateClass type = Generator.ObtainTemplateClass(kid);
-                        Generator.TemplateClasses[kid] = type;
+                        AstTemplateClass type = generator.ObtainTemplateClass(kid);
+                        generator.TemplateClasses[kid] = type;
 
                         GenerateProperty(
                             kid, 
@@ -135,28 +135,28 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                       AstSchemaClass templParent,
                                       AstClass metaParent)
         {
-            var valueClass = Generator.ObtainValueClass(at);
-            var type = Generator.ObtainTemplateClass(at);
+            var valueClass = generator.ObtainValueClass(at);
+            var type = generator.ObtainTemplateClass(at);
 
-            new AstProperty(Generator) {
+            new AstProperty(generator) {
                 Parent = appClassParent,
                 Template = at,
                 Type = valueClass
             };
-            new AstProperty(Generator) {
+            new AstProperty(generator) {
                 Parent = templParent,
                 Template = at,
                 Type = type
             };
-            new AstProperty(Generator) {
+            new AstProperty(generator) {
                 Parent = templParent.Constructor,
                 Template = at,
                 Type = type
             };
-            new AstProperty(Generator) {
+            new AstProperty(generator) {
                 Parent = metaParent,
                 Template = at,
-                Type = Generator.ObtainMetaClass(at)
+                Type = generator.ObtainMetaClass(at)
             };
         }
 
@@ -185,20 +185,20 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 string reuse = at.GetCodegenMetadata(Gen2DomGenerator.Reuse);
 
                 if (reuse != null) {
-                    Generator.AssociateTemplateWithReusedJson(at, reuse);
+                    generator.AssociateTemplateWithReusedJson(at, reuse);
                 } else {
                     // Empty App templates does not typically receive a custom template 
                     // class (unless explicitly set by the Json.nnnn syntax (TODO)
                     // This means that they can be assigned to any App object. 
                     // A typical example is to have a Page:{} property in a master
                     // app (representing, for example, child web pages)
-                    Generator.AssociateTemplateWithDefaultJson(at);
+                    generator.AssociateTemplateWithDefaultJson(at);
                 }
-                acn = (AstJsonClass)Generator.ObtainValueClass(at);
+                acn = (AstJsonClass)generator.ObtainValueClass(at);
                 tcn = acn.NTemplateClass;
                 mcn = acn.NMetadataClass;
             } else {
-                acn = (AstJsonClass)Generator.ObtainValueClass(at);
+                acn = (AstJsonClass)generator.ObtainValueClass(at);
                 acn.Parent = appClassParent;
                 tcn = acn.NTemplateClass;
                 mcn = acn.NMetadataClass;

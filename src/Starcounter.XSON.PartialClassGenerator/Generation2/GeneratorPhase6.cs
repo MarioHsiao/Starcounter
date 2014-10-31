@@ -1,26 +1,18 @@
-﻿
-
-using Starcounter.Internal;
-using Starcounter.Internal.MsBuild.Codegen;
-using Starcounter.Templates;
-using Starcounter.XSON.Metadata;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using TJson = Starcounter.Templates.TObject;
-
 
 namespace Starcounter.Internal.MsBuild.Codegen {
-
-
     /// <summary>
     /// Replaces class paths with class aliases     
     /// </summary>
     internal class GeneratorPhase6 {
+        private Gen2DomGenerator Generator;
+        private Dictionary<string, int> Used;
 
-        internal Gen2DomGenerator Generator;
-
-        private Dictionary<string, int> Used = new Dictionary<string, int>();
-
+        internal GeneratorPhase6(Gen2DomGenerator generator) {
+            this.Generator = generator;
+            this.Used = new Dictionary<string, int>();
+        }
 
         internal void RunPhase6(AstJsonClass acn) {
             CreateClassAliases(acn);
@@ -29,7 +21,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private void MoveAliasesToTop() {
-
             Comparison<AstBase> c = (AstBase a, AstBase b) => {
                 if (!(a is AstClassAlias)) {
                     if (b is AstClassAlias) {
@@ -47,7 +38,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private void CreateClassAliases(AstBase node) {
-            
             if (node.IsProcessedForAlias)
                 return;
 
@@ -56,8 +46,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (node is AstProperty) {
                 var prop = (node as AstProperty);
                 CreateClassAliases(prop.Type);
-            }
-            else if (node is AstClass ) {
+            } else if (node is AstClass ) {
                 var cls = node as AstClass;
 
                 if (cls.ClassAlias == null && !cls.IsPrimitive) {
@@ -95,15 +84,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     var jsonClass = cls as AstJsonClass;
                     if (jsonClass != null && jsonClass.NTemplateClass != null) {
                         CreateClassAliases(jsonClass.NTemplateClass);
-                      //  CreateClassAliases((cls as AstJsonClass).NMetadataClass);
                     }
                 }
             }
             foreach (var kid in node.Children) {
                 CreateClassAliases(kid);
             }
-
         }
-
     }
 }
