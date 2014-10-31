@@ -17,6 +17,7 @@ namespace Starcounter.Tests {
                 Assert.AreEqual(ex.Message, ErrorCode.ToException(Error.SCERRTESTASSERTIONFAILURE).Message);
             }  else
                 Assert.AreEqual(ex.Message, "Test assertion failure. ");
+            Assert.DoesNotThrow(() => ScAssertion.Assert(true));
         }
 
         [Test]
@@ -30,6 +31,7 @@ namespace Starcounter.Tests {
                 Assert.AreEqual(ex.Message, ErrorCode.ToException(Error.SCERRTESTASSERTIONFAILURE, message).Message);
             } else
                 Assert.AreEqual(ex.Message, "Test assertion failure. "+message);
+            Assert.DoesNotThrow(() => ScAssertion.Assert(true, message));
         }
     }
 }
