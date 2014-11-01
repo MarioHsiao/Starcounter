@@ -36,6 +36,8 @@ namespace Starcounter.Advanced.XSON {
         private int _EstimateSizeBytes(Json obj) {
             int sizeBytes = 0;
             bool addAppName = false;
+            string htmlUriMerged = null;
+            string htmlPartialUrl;
 
             if (obj.IsArray) {
 
@@ -64,10 +66,10 @@ namespace Starcounter.Advanced.XSON {
             if (addAppName) {
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
 
-                if (null != obj.GetHtmlPartialUrl())
-                    sizeBytes += obj._appName.Length + 1 + obj.GetHtmlPartialUrl().Length; // 1 for "=".
-
-                sizeBytes += "/polyjuice-merger?".Length;
+                htmlPartialUrl = obj.GetHtmlPartialUrl();
+                if (null != htmlPartialUrl) {
+                    htmlUriMerged = obj._appName + "=" + htmlPartialUrl;
+                }
             }
 
             exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
@@ -133,13 +135,30 @@ namespace Starcounter.Advanced.XSON {
                 }
 
                 foreach (Json pp in obj._stepSiblings) {
+                    htmlPartialUrl = pp.GetHtmlPartialUrl();
+                    if (null != htmlPartialUrl) {
+                        if (htmlUriMerged != null)
+                            htmlUriMerged += "&";
 
-                    if (null != pp.GetHtmlPartialUrl()) {
-                        sizeBytes += 4 + pp._appName.Length + pp.GetHtmlPartialUrl().Length; // 2 for "&" and "=" and 2 for quotation marks around string.
+                        htmlUriMerged += pp._appName + "=" + htmlPartialUrl;
                     }
                     
                     sizeBytes += pp._appName.Length + 1; // 1 for ":".
                     sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
+                }
+            }
+
+            if (htmlUriMerged != null) {
+                htmlUriMerged = "/polyjuice-merger?" + htmlUriMerged;
+                sizeBytes += htmlUriMerged.Length + 9;
+
+                string setupStr = null;
+                try {
+                    setupStr = Json._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
+                } catch { }
+
+                if (setupStr != null) {
+                    sizeBytes += setupStr.Length + 13; // "TilesSetup":
                 }
             }
 
@@ -336,6 +355,8 @@ namespace Starcounter.Advanced.XSON {
                     }
 
                     if (null != htmlUriMerged) {
+                        htmlUriMerged = "/polyjuice-merger?" + htmlUriMerged;
+
                         *pfrag++ = (byte)',';
                         offset++;
 
@@ -347,9 +368,30 @@ namespace Starcounter.Advanced.XSON {
                         *pfrag++ = (byte)':';
                         offset++;
 
-                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "/polyjuice-merger?" + htmlUriMerged);
+                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlUriMerged);
                         offset += valueSize;
                         pfrag += valueSize;
+
+                        string setupStr = null;
+                        try {
+                            setupStr = Json._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
+                        } catch { }
+
+                        if (setupStr != null) {
+                            *pfrag++ = (byte)',';
+                            offset++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "TilesSetup");
+                            offset += valueSize;
+                            pfrag += valueSize;
+
+                            *pfrag++ = (byte)':';
+                            offset++;
+
+                            valueSize = JsonHelper.WriteStringNoQuotations(pfrag, buf.Length - offset, setupStr);
+                            offset += valueSize;
+                            pfrag += valueSize;
+                        }
                     }
 
                     *pfrag++ = (byte)'}';
