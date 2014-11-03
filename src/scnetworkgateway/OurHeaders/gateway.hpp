@@ -174,7 +174,7 @@ const worker_id_type INVALID_WORKER_INDEX = -1;
 const port_index_type INVALID_PORT_INDEX = -1;
 
 // Bad index.
-const int32_t INVALID_INDEX = -1;
+const int32_t INVALID_CHUNK_STORE_INDEX = -1;
 
 // Invalid socket index.
 const socket_index_type INVALID_SOCKET_INDEX = -1;
@@ -313,7 +313,7 @@ inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
             return i;
 
     GW_ASSERT(false);
-    return INVALID_INDEX;
+    return INVALID_CHUNK_STORE_INDEX;
 }
 
 const char* const kHttpOKResponse =

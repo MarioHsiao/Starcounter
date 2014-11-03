@@ -52,7 +52,7 @@ namespace Starcounter {
         /// <summary>
         /// Maximum number of pending asynchronous tasks.
         /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 1024;
+        public const Int32 MaxNumPendingAsyncTasks = 128;
 
         /// <summary>
         /// Maximum number of pending aggregated tasks.
@@ -225,8 +225,9 @@ namespace Starcounter {
                 Int32 recievedBytes = socketWrapper_.SocketObj.EndReceive(ar);
 
                 // Checking if remote host has closed the connection.
-                if (0 == recievedBytes)
+                if (0 == recievedBytes) {
                     throw new IOException("Remote host closed the connection.");
+                }
 
                 // Dumping data to memory stream.
                 memStream_.Write(accumBuffer_, receiveOffsetBytes_, recievedBytes);

@@ -865,11 +865,14 @@ namespace Starcounter
 
             // Checking if any tasks are finished.
             if (!finished_async_tasks_.Dequeue(out nt)) {
+
                 // Checking if we exceeded the maximum number of created tasks.
                 if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks) {
+
                     // Looping until task is dequeued.
-                    while (!finished_async_tasks_.Dequeue(out nt))
+                    while (!finished_async_tasks_.Dequeue(out nt)) {
                         Thread.Sleep(1);
+                    }
                 }
             }
 
