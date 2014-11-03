@@ -115,7 +115,7 @@ inline int HttpResponseOnBody(http_parser* p, const char *at, size_t length)
     HttpResponseParserStruct *http = (HttpResponseParserStruct *)p;
 
     // Setting body parameters.
-    if (http->http_response_->content_len_bytes_ < 0)
+    if (http->http_response_->content_len_bytes_ <= 0)
         http->http_response_->content_len_bytes_ = (int32_t)length;
 
     // Setting body data offset.
