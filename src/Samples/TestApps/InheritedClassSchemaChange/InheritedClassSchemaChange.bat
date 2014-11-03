@@ -5,8 +5,7 @@ IF "%SC_RUN_INHERITEDCLASSSCHEMACHANGE%"=="False" GOTO :EOF
 ECHO Running InheritedClassSchemaChange regression test.
 
 REM Some predefined constants.
-REM SET DB_NAME=InheritedClassSchemaChangeDb
-SET DB_NAME=TestApps
+SET DB_NAME=InheritedClassSchemaChangeDb
 
 REM Delete database after server is started
 REM staradmin --database=%DB_NAME% delete
