@@ -7,6 +7,11 @@ InheritedClassSchemaChange.bat
 POPD
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
+PUSHD TestClassSchemaChange
+TestClassSchemaChange.bat
+POPD
+IF %ERRORLEVEL% NEQ 0 GOTO err
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 

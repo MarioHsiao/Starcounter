@@ -5,8 +5,8 @@ IF "%SC_RUN_TESTCLASSSCHEMACHANGE%"=="False" GOTO :EOF
 ECHO Running TestClassSchemaChange regression test.
 
 REM Some predefined constants.
-REM SET DB_NAME=TestClassSchemaChangeDb
-SET DB_NAME=TestClassSchemaChange
+SET DB_NAME=TestClassSchemaChangeDb
+REM SET DB_NAME=TestClassSchemaChange
 
 REM Delete database after server is started
 REM staradmin --database=%DB_NAME% delete
