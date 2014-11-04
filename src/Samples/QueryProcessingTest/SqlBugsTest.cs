@@ -30,6 +30,7 @@ namespace QueryProcessingTest {
             TestIndexQueryOptimization();
             TestShortClassNames();
             TestDDLStmts();
+            TestNullComparison();
         }
 
         public static void TestFetchOrderBy() {
@@ -485,6 +486,16 @@ namespace QueryProcessingTest {
             Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First == null);
             Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
             HelpMethods.LogEvent("Finished testing DDL statements");
+        }
+
+        public static void TestNullComparison() {
+            HelpMethods.LogEvent("Testing SQL query with comparison to null variable.");
+            Db.Transaction(delegate {
+                Account a = new Account { AccountId = 2000000 };
+                Account q = Db.SQL<Account>("select a from account a where client = ? ", null).First;
+                Trace.Assert(q.Equals(a));
+            });
+            HelpMethods.LogEvent("Finished test of SQL query with comparison to null variable.");
         }
     }
 }

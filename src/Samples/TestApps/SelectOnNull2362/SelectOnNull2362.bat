@@ -13,6 +13,7 @@ REM staradmin --database=%DB_NAME% delete
 star --database=%DB_NAME% SelectOnNull2362.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
+staradmin --database=%DB_NAME% stop db
 
 ECHO SelectOnNull2362 regression test succeeded.
 EXIT /b 0

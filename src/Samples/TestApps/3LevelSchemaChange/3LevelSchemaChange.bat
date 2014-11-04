@@ -28,6 +28,7 @@ IF %ERRORLEVEL% NEQ 0 GOTO err
 
 REM Clean update
 DEL 3LevelSchemaChange.cs
+staradmin --database=%DB_NAME% stop db
 
 ECHO 3LevelSchemaChange regression test succeeded.
 EXIT /b 0
