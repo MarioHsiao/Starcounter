@@ -48,6 +48,7 @@
     <Compile Include="Commands\CommandFactory.cs" />
     <Compile Include="Commands\ConsoleCommand.cs" />
     <Compile Include="Commands\ContextAwareCommand.cs" />
+    <Compile Include="Commands\DeleteCommand.cs" />
     <Compile Include="Commands\IUserCommand.cs" />
     <Compile Include="Commands\ListApplicationsCommand.cs" />
     <Compile Include="Commands\ListCommand.cs" />
