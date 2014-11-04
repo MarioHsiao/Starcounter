@@ -41,7 +41,8 @@ namespace staradmin.Commands {
                     case ObjectType.ServerLog:
                         throw new NotImplementedException();
                     case ObjectType.Database:
-                        throw new NotImplementedException();
+                        command = new DeleteDatabaseCommand();
+                        break;
                     default:
                         command = CreateUnrecognizedType(type);
                         break;
@@ -83,5 +84,13 @@ namespace staradmin.Commands {
 
         protected UserCommand FactoryCommand { get; private set; }
         protected ObjectType TypeToDelete { get; private set; }
+        protected bool Force { get; private set; }
+
+        protected abstract void Delete();
+
+        public override void Execute() {
+            Force = Context.ContainsCommandFlag("force");
+            Delete();
+        }
     }
 }
