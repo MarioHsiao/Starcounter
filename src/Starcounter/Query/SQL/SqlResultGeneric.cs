@@ -98,7 +98,6 @@ namespace Starcounter
                 //}
 
                 // Setting SQL parameters if any are given.
-                if (sqlParams != null)
                     execEnum.SetVariables(sqlParams);
 
                 // Prolonging transaction handle.

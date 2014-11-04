@@ -664,9 +664,17 @@ internal abstract class ExecutionEnumerator
     {
         Int32 numVariables = variableArray.Length;
 
+        if (sqlParams == null)
+            if (numVariables == 1)
+                variableArray.GetElement(0).SetNullValue();
+            else if (numVariables > 1)
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS,
+                    "Incorrect number of SQL parameters, which should be: " + numVariables);
+
         if (numVariables != sqlParams.Length)
         {
-            throw new ArgumentException("Incorrect number of SQL parameters, which should be: " + numVariables);
+            throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, 
+                "Incorrect number of SQL parameters, which should be: " + numVariables);
         }
 
         // Running throw all variables in the array.
