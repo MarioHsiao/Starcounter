@@ -556,11 +556,20 @@ namespace Starcounter.CLI {
         /// fetched from the strongly typed error detail.</param>
         public static void ShowErrorAndSetExitCode(ErrorDetail detail, bool exit = false) {
             ConsoleColor red = ConsoleColor.Red;
+            uint errorCode = (uint)detail.ServerCode;
+
+            Console.WriteLine();
+
+            var text = detail.Text;
+            try {
+                text = ErrorCode.ToMessage(errorCode).Header + ErrorMessage.HeaderBodyDelimiter + " " + text;
+            } catch {}
+
+            ConsoleUtil.ToConsoleWithColor(text, red);
+            Console.WriteLine();
+            ShowHints(errorCode);
+            
             int exitCode = (int)detail.ServerCode;
-            Console.WriteLine();
-            ConsoleUtil.ToConsoleWithColor(detail.Text, red);
-            Console.WriteLine();
-            ShowHints((uint)detail.ServerCode);
             if (exit) Environment.Exit(exitCode);
             else Environment.ExitCode = exitCode;
         }
