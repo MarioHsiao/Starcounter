@@ -1,6 +1,6 @@
 ﻿/**
  * ----------------------------------------------------------------------------
- * Applications page Controller
+ * AppStore page Controller
  * ----------------------------------------------------------------------------
  */
 adminModule.controller('AppStoreCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'AppStoreService', 'InstalledApplicationService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, AppStoreService, InstalledApplicationService, UserMessageFactory) {
@@ -123,7 +123,6 @@ adminModule.controller('AppStoreCtrl', ['$scope', '$log', 'NoticeFactory', 'Host
             }
         });
     }
-
 
     // Init
     // Refresh host model

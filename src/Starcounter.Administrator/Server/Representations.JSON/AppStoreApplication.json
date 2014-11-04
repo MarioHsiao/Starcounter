@@ -1,7 +1,6 @@
 ﻿{
 	"$": { Namespace: "Representations.JSON" },
-	"ID": "", 
-	"Url" : "",
+	"ID": "",	// Local install ID is App is Installed otherwice a Temp ID
 	"SourceID" :"",
 	"SourceUrl" : "",
 	"Namespace": "", 
@@ -18,7 +17,7 @@
 	"IsInstalled" : false,
 	"NewVersionAvailable" : false,
 	"LatestVersion": {
-		"ID" : "",
+		"ID" : "",		// NOTE: This is a remote appstore id
 		"Url" : ""
 	}
 }

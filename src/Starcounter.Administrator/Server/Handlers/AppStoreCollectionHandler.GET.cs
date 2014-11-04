@@ -97,8 +97,9 @@ namespace Starcounter.Administrator.Server.Handlers {
                     // Create response
                     Representations.JSON.AppStoreApplications appStoreApplications = new Representations.JSON.AppStoreApplications();
 
-
                     foreach (var remoteStore in remoteAppStoreItems.Stores) {
+
+                        if (remoteStore.Items.Count == 0) continue;
 
                         var appStore = appStoreApplications.Stores.Add();
                         appStore.ID = remoteStore.ID; // NOTE: This is the remote appstore id
@@ -112,10 +113,21 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                             if (installedItem != null) {
                                 appStoreItem.IsInstalled = true;
+                                appStoreItem.ID = installedItem.ID;
+                                //appStoreItem.ID = installedItem.ID;
+                                //string ip = Utilities.RestUtils.GetMachineIp(); // TTODO: User "Host" header?
+                                //appStoreItem.Url = string.Format("http://{0}:{1}/{2}/{3}", ip, port, "api/admin/appstore/apps", appStoreItem.InstalledID);
+                            }
+                            else {
+                                // TEMP ID!
+                                appStoreItem.ID = string.Format("{0:X8}", (appStoreHost + remoteStore.ID + remoteItem.ID).GetHashCode());
                             }
 
+                            // TODO: Generate the ID, if we used multiple appstores we need to make sure the ID is unique
+                            //appStoreItem.ID = string.Format("{0:X8}", (appStoreHost + remoteStore.ID + remoteItem.ID).GetHashCode());
+
                             if (remoteItem.NewVersionAvailable) {
-                                appStoreItem.LatestVersion.ID = remoteItem.LatestVersion.ID;
+                                appStoreItem.LatestVersion.ID = remoteItem.LatestVersion.ID;    // NOTE: This is a remote appstore id
                                 appStoreItem.LatestVersion.Url = remoteItem.LatestVersion.Url;
                                 appStoreItem.NewVersionAvailable = remoteItem.NewVersionAvailable;
                                 if (appStoreItem.IsInstalled) {
@@ -123,12 +135,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                                     appStore.Updates++;
                                 }
                             }
-
-                            // Generate the ID based on the Namespace, Channel and version date, TODO: Make this a unique number
-                            appStoreItem.ID = string.Format("{0:X8}", (remoteItem.Namespace + remoteItem.Channel + remoteItem.VersionDate).GetHashCode());
-
-                            string ip = Utilities.RestUtils.GetMachineIp();
-                            appStoreItem.Url = string.Format("http://{0}:{1}/{2}/{3}", ip, port, "api/admin/appstore/apps", appStoreItem.ID);
 
                             appStoreItem.SourceID = remoteItem.ID;
                             appStoreItem.SourceUrl = remoteItem.Url;
@@ -175,70 +181,44 @@ namespace Starcounter.Administrator.Server.Handlers {
             //              "Url" : ""
             //          }
             //      }
-            Handle.GET(port, "/api/admin/appstore/apps/{?}", (string id, Request req) => {
+            //Handle.GET(port, "/api/admin/appstore/apps/{?}", (string id, Request req) => {
 
-                try {
+            //    try {
 
-                    if (string.IsNullOrEmpty(appStoreHost)) {
-                        ErrorResponse errorResponse = new ErrorResponse();
-                        errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-                    }
+            //        if (string.IsNullOrEmpty(appStoreHost)) {
+            //            ErrorResponse errorResponse = new ErrorResponse();
+            //            errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
+            //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
+            //        }
 
-                    // Get items
-                    string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
-                    Response response;
-                    X.GET(uri, out response, null, 10000);
-                    if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
-                        return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
-                    }
+            //        // Get items
+            //        string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
+            //        Response response;
+            //        X.GET(uri, out response, null, 10000);
+            //        if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
+            //            return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
+            //        }
 
-                    Representations.JSON.AppStoreApplications appStoreItems = new Representations.JSON.AppStoreApplications();
-                    appStoreItems.PopulateFromJson(response.Body);
+            //        Representations.JSON.AppStoreApplications appStoreItems = new Representations.JSON.AppStoreApplications();
+            //        appStoreItems.PopulateFromJson(response.Body);
 
-                    foreach (var appStore in appStoreItems.Stores) {
+            //        foreach (var appStore in appStoreItems.Stores) {
 
-                        foreach (var appStoreItem in appStore.Items) {
+            //            foreach (var appStoreItem in appStore.Items) {
 
-                            if (appStoreItem.ID == id) {
-                                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreItem.ToJsonUtf8() };
-                            }
-                        }
-                    }
+            //                if (appStoreItem.ID == id) {
+            //                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreItem.ToJsonUtf8() };
+            //                }
+            //            }
+            //        }
 
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
-                }
-            });
+            //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+            //    }
+            //    catch (Exception e) {
+            //        return RestUtils.CreateErrorResponse(e);
+            //    }
+            //});
         }
-
-
-        /// <summary>
-        /// Get the latest version (newest version date) from a list of remote Applications
-        /// </summary>
-        /// <param name="nameSpace"></param>
-        /// <param name="remoteAppStoreItems"></param>
-        /// <param name="latest"></param>
-        //private static void GetLatestRemoteVersion(string nameSpace, Representations.JSON.RemoteAppStoreItems remoteAppStoreItems, out Representations.JSON.RemoteAppStoreItem latest) {
-
-        //    DateTime latestVersionDate = DateTime.MinValue;
-        //    latest = null;
-
-        //    foreach (Representations.JSON.RemoteAppStoreItem remoteItem in remoteAppStoreItems.Items) {
-
-        //        if (remoteItem.Namespace == nameSpace) {
-        //            DateTime remoteVersionDate;
-        //            if (DateTime.TryParse(remoteItem.VersionDate, out remoteVersionDate)) {
-        //                if (remoteVersionDate > latestVersionDate) {
-        //                    latestVersionDate = remoteVersionDate;
-        //                    latest = remoteItem;
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
 
         /// <summary>
         /// Get the installed applications from a remote application
@@ -254,10 +234,15 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             foreach (Representations.JSON.InstalledApplication installedItem in installedApplications.Items) {
 
-                if (remoteItem.Namespace == installedItem.Namespace && remoteItem.VersionDate == installedItem.VersionDate) {
+                if (remoteItem.ID == installedItem.SourceID) {
                     item = installedItem;
                     break;
                 }
+
+                //if (remoteItem.Namespace == installedItem.Namespace && remoteItem.VersionDate == installedItem.VersionDate) {
+                //    item = installedItem;
+                //    break;
+                //}
             }
         }
     }
