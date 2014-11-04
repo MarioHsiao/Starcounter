@@ -32,10 +32,10 @@ namespace staradmin.Commands {
 
         bool GrantRightToDelete(string database) {
             Console.WriteLine("You are asking to delete database \"{0}\"", database);
-            Console.WriteLine("There is no going back - ALL data will be lost.");
+            ConsoleUtil.ToConsoleWithColor("There is no going back - ALL data will be lost!", ConsoleColor.Red);
             Console.WriteLine("Are you sure about this?");
             Console.WriteLine();
-            Console.WriteLine("If you are sure, enter the name of the database (\"{0}\"), the press ENTER", database);
+            Console.WriteLine("If sure, enter the name of the database (\"{0}\"), then press ENTER", database);
             Console.WriteLine("To abort, just press ENTER.");
 
             var granted = false;
