@@ -6,7 +6,6 @@ ECHO Running TestClassSchemaChange regression test.
 
 REM Some predefined constants.
 SET DB_NAME=TestClassSchemaChangeDb
-REM SET DB_NAME=TestClassSchemaChange
 
 REM Delete database after server is started
 REM staradmin --database=%DB_NAME% delete

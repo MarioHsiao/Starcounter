@@ -1,5 +1,6 @@
 ﻿
 using staradmin.Commands;
+using Starcounter;
 using Starcounter.CLI;
 using Starcounter.Internal;
 using Starcounter.Server;
@@ -24,7 +25,13 @@ namespace staradmin {
             } catch (Exception e) {
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.Error.WriteLine(e.Message);
-                Environment.ExitCode = 1;
+                
+                uint exitCode;
+                if (!ErrorCode.TryGetCode(e, out exitCode)) {
+                    exitCode = Error.SCERRUNSPECIFIED;
+                }
+                Environment.ExitCode = (int)exitCode;
+
             } finally {
                 Console.ResetColor();
             }

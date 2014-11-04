@@ -10,10 +10,12 @@ using Starcounter.Internal;
 using System.Net;
 using System.Diagnostics;
 using System.IO;
+using Starcounter.Server;
+using Starcounter.Server.Rest;
+using Starcounter.Server.Rest.Representations.JSON;
 
 namespace Starcounter.CLI {
     using Severity = Sc.Tools.Logging.Severity;
-using Starcounter.Server;
 
     /// <summary>
     /// Provides a set of utilities that can be used by applications
@@ -538,6 +540,36 @@ using Starcounter.Server;
             ConsoleUtil.ToConsoleWithColor(msg.ToString(), red);
             Console.WriteLine();
             ShowHints(msg.Code);
+            if (exit) Environment.Exit(exitCode);
+            else Environment.ExitCode = exitCode;
+        }
+
+        /// <summary>
+        /// Writes <paramref name="detail"/> to the console using the default
+        /// shared CLI error color and formatting, setting the exit code to
+        /// the error given in the strongly typed error detail. Possibly
+        /// also exits the process, depending on the <paramref name="exit"/>
+        /// flag.
+        /// </summary>
+        /// <param name="detail">The message to write.</param>
+        /// <param name="exit">If <c>true</c>, exits the process with the exit code
+        /// fetched from the strongly typed error detail.</param>
+        public static void ShowErrorAndSetExitCode(ErrorDetail detail, bool exit = false) {
+            ConsoleColor red = ConsoleColor.Red;
+            uint errorCode = (uint)detail.ServerCode;
+
+            Console.WriteLine();
+
+            var text = detail.Text;
+            try {
+                text = ErrorCode.ToMessage(errorCode).Header + ErrorMessage.HeaderBodyDelimiter + " " + text;
+            } catch {}
+
+            ConsoleUtil.ToConsoleWithColor(text, red);
+            Console.WriteLine();
+            ShowHints(errorCode);
+            
+            int exitCode = (int)detail.ServerCode;
             if (exit) Environment.Exit(exitCode);
             else Environment.ExitCode = exitCode;
         }
