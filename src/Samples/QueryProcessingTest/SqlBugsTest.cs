@@ -490,10 +490,24 @@ namespace QueryProcessingTest {
 
         public static void TestNullComparison() {
             HelpMethods.LogEvent("Testing SQL query with comparison to null variable.");
+#if false
             Db.Transaction(delegate {
                 Account a = new Account { AccountId = 2000000 };
+                Trace.Assert(a.Client == null);
                 Account q = Db.SQL<Account>("select a from account a where client = ? ", null).First;
-                Trace.Assert(q.Equals(a));
+                Trace.Assert(a.Equals(q));
+                a.Delete();
+            });
+#endif
+            Account a = null;
+            Db.Transaction(delegate {
+                a = new Account { AccountId = 2000000 };
+            });
+            Trace.Assert(a.Client == null);
+            Account q = Db.SQL<Account>("select a from account a where client = ? ", null).First;
+            Trace.Assert(a.Equals(q));
+            Db.Transaction(delegate {
+                a.Delete();
             });
             HelpMethods.LogEvent("Finished test of SQL query with comparison to null variable.");
         }
