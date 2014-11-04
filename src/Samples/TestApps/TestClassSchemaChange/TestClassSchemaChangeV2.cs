@@ -18,7 +18,7 @@ namespace TestClassSchemaChange {
             foreach (Person p in Db.SQL<Person>("select p from person p")) {
                 count++;
                 ScAssertion.Assert(p.BirthDate.Ticks == 0);
-				ScAssertion.Assert(p.FirstName = "Sven");
+				ScAssertion.Assert(p.FirstName == "Sven");
             }
             ScAssertion.Assert(count == 1);
             count = 0;
