@@ -3,12 +3,17 @@ REM Checking if test should be run.
 IF "%SC_RUN_TESTAPPS%"=="False" GOTO :EOF
 
 PUSHD 3LevelSchemaChange
-3LevelSchemaChange.bat
+CALL 3LevelSchemaChange.bat
 POPD
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
 PUSHD TestClassSchemaChange
-TestClassSchemaChange.bat
+CALL TestClassSchemaChange.bat
+POPD
+IF %ERRORLEVEL% NEQ 0 GOTO err
+
+PUSHD SelectOnNull2362
+CALL SelectOnNull2362.bat
 POPD
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
