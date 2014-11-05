@@ -211,7 +211,7 @@ const random_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 4096;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 256;
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE = MAX_CHUNKS_IN_PRIVATE_POOL * 2;
 
 // Size of local/remove address structure.

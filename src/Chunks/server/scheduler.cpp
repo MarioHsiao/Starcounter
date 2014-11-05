@@ -143,7 +143,7 @@ class server_port {
 
 public:
 	enum {
-		// TODO: Experiment with this treshold, which decides when to acquire
+		// TODO: Experiment with this threshold, which decides when to acquire
 		// linked chunks from the private chunk_pool or the shared_chunk_pool.
 		a_bunch_of_chunks = 64
 	};
