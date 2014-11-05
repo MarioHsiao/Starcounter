@@ -504,7 +504,12 @@ namespace QueryProcessingTest {
                 a = new Account { AccountId = 2000000 };
             });
             Trace.Assert(a.Client == null);
-            Account q = Db.SQL<Account>("select a from account a where client = ? ", null).First;
+            Trace.Assert(a.AccountType == null);
+            Account q;
+            //q = Db.SQL<Account>("select a from account a where client = ? and accounttype = ?", null, null).First;
+            //Trace.Assert(q != null);
+            q = Db.SQL<Account>("select a from account a where client = ? ", null).First;
+            Trace.Assert(q != null);
             Trace.Assert(a.Equals(q));
             Db.Transaction(delegate {
                 a.Delete();
