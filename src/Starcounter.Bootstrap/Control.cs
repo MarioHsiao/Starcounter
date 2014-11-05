@@ -522,7 +522,7 @@ namespace StarcounterInternal.Bootstrap {
             e = sccoredb.sccoredb_set_system_variable("OLOGDIR", c.DatabaseDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
-            e = sccoredb.sccoredb_set_system_variable("TLOGDIR", c.DatabaseDirectory);
+            e = sccoredb.sccoredb_set_system_variable("TLOGDIR", c.TransactionLogDirectory);
             if (e != 0) throw ErrorCode.ToException(e);
 
             e = sccoredb.sccoredb_set_system_variable("TEMPDIR", c.TempDirectory);

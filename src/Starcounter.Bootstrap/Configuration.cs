@@ -99,6 +99,24 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Gets the transaction log directory.
+        /// </summary>
+        /// <value>The transaction log directory.</value>
+        public string TransactionLogDirectory {
+            get {
+                string dir;
+
+                if (!this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.TransactionLogDirectory, out dir)) {
+                    // Fallback on the database directory if the transaction log
+                    // directory is not explicitly given.
+                    dir = DatabaseDirectory;
+                }
+
+                return dir;
+            }
+        }
+
+        /// <summary>
         /// Gets the output directory.
         /// </summary>
         /// <value>The output directory.</value>
