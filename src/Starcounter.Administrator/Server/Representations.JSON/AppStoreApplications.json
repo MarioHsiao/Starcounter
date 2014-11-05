@@ -1,7 +1,7 @@
 ﻿{
 	"$": { Namespace: "Representations.JSON" },
 	"Stores" : [{
-		"ID" : "",
+		"ID" : "",		// NOTE: This is a remote appstore id
 		"DisplayName" : "",
 		"Items": [
 			{

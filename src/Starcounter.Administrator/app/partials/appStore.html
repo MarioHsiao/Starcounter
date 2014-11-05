@@ -1,9 +1,9 @@
-﻿<div class="panel panel panel-primary" ng-show="appStoreServiceStatus.Enabled" ng-repeat="store in appStoreApplications">
+﻿<div class="panel panel panel-primary" ng-show="appStoreServiceStatus.Enabled" ng-repeat="store in appStoreApplications | orderBy: 'DisplayName'">
     <div class="panel-heading">
         {{store.DisplayName}} Store <span ng-show="store.Updates" class="badge alert-danger">{{store.Updates}}</span>
     </div>
 
-    <table class="table table-condensed" >
+    <table class="table table-condensed">
         <thead>
             <tr>
                 <th></th>
@@ -17,7 +17,7 @@
         </thead>
         <tbody>
 
-            <tr ng-repeat="item in store.Items">
+            <tr ng-repeat="item in store.Items | orderBy: 'DisplayName'">
                 <td class="text-center">
                     <img style="height: auto; width: auto; max-width: 32px; max-height: 32px;" src="{{item.ImageUrl}}" />
                 </td>
@@ -47,4 +47,6 @@
     </div>
 </div>
 
-<div ng-show="isBusy" title="Connecting to App Store" class="spinner medium"></div>
+<div style="margin-bottom:10px" ng-show="isBusy" title="Connecting to App Store" class="spinner medium"></div>
+
+

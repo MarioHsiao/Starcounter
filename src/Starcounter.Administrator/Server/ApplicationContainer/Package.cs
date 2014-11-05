@@ -65,8 +65,17 @@ namespace Administrator.Server.ApplicationContainer {
 
                             // Create app configuration file
                             config = new AppConfig();
-                            //AppConfig appConfig = new AppConfig();
+
                             CreateAppConfig(packageConfig, out config);
+
+                            Uri u = new Uri(sourceUrl);
+                            if (u.IsFile) {
+                                config.SourceID = string.Format("{0:X8}", u.LocalPath.GetHashCode());
+                            }
+                            else {
+                                config.SourceID = u.Segments[u.Segments.Length - 1];
+                            }
+
                             config.SourceUrl = sourceUrl;
                             config.ImageUri = imageUri;
 
@@ -253,6 +262,39 @@ namespace Administrator.Server.ApplicationContainer {
                     ReadConfiguration(archive, out config);
                 }
             }
+        }
+
+        public static void VerifyPacket(string packageZip) {
+
+        }
+
+        public static void VerifyPacket(Stream package) {
+
+            try {
+
+                using (ZipArchive archive = new ZipArchive(package, ZipArchiveMode.Read, true)) {
+
+                    // Get Configuration
+                    PackageConfig packageConfig;
+                    ReadConfiguration(archive, out packageConfig);
+
+                    // Validate configuration
+                    ValidateConfiguration(archive, packageConfig);
+
+                    if (package.CanSeek) {
+                        package.Seek(0, 0);
+                    }
+
+                };
+            }
+            catch (InvalidDataException e) {
+                throw new InvalidOperationException("Failed to install package, Invalid package format", e);
+            }
+            catch (Exception e) {
+
+                throw new InvalidOperationException("Failed to install package, " + e.Message, e);
+            }
+
         }
 
         /// <summary>

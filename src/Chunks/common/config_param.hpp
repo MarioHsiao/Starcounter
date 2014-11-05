@@ -62,7 +62,7 @@ const std::size_t max_number_of_clients = 256;
 const std::size_t server_name_size = 32;
 
 // The size of the array to hold the database name, including terminating null.
-const std::size_t database_name_size = 32;
+const std::size_t database_name_size = 64;
 
 // The size of the array to hold the segment name, including terminating null.
 const std::size_t segment_name_size = 64;
@@ -73,7 +73,7 @@ const std::size_t segment_name_size = 64;
 // "Local\<segment_name>_notify_client_<N>".
 // where N is number in the range 0..30 for schedulers and 0..255 for clients.
 // For example: "Local\starcounter_PERSONAL_LOADANDLATENCY_64_notify_scheduler_0"
-const std::size_t segment_and_notify_name_size = 96;
+const std::size_t segment_and_notify_name_size = 128;
 
 // The size of the array to hold the server name and ipc monitor cleanup event name,
 // including terminating null. The format is:
