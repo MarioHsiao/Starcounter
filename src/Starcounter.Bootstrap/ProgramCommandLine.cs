@@ -166,6 +166,7 @@ namespace StarcounterInternal.Bootstrap {
             // --AutoStartExePath "c:\github\Orange\bin\Debug\NetworkIoTest\NetworkIoTest.exe" --ServerName PERSONAL --ChunksNumber 1024
 
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DatabaseDir, "Specifies the database directory to use.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.TransactionLogDirectory, "Specifies the transaction log directory to use.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.OutputDir, "Specifies the output directory to use.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.TempDir, "Specifies the temporary directory to use.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
