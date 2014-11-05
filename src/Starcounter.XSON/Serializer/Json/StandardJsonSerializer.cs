@@ -148,6 +148,7 @@ namespace Starcounter.Advanced.XSON {
                 }
             }
 
+
             if (htmlUriMerged != null) {
                 htmlUriMerged = "/polyjuice-merger?" + htmlUriMerged;
                 sizeBytes += htmlUriMerged.Length + 9;
@@ -158,7 +159,7 @@ namespace Starcounter.Advanced.XSON {
                 } catch { }
 
                 if (setupStr != null) {
-                    sizeBytes += setupStr.Length + 13; // "TilesSetup":
+                    sizeBytes += setupStr.Length + 9; // "_setup":
                 }
             }
 
@@ -381,7 +382,7 @@ namespace Starcounter.Advanced.XSON {
                             *pfrag++ = (byte)',';
                             offset++;
 
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "TilesSetup");
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "_setup");
                             offset += valueSize;
                             pfrag += valueSize;
 
