@@ -39,6 +39,9 @@ class Program {
 		}
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cPerson != null);
+		ScAssertion.Assert(cPerson.Name == cPerson.FullName);
+		Console.WriteLine(cPerson.UniqueIdentifier);
+		ScAssertion.Assert(cPerson.UniqueIdentifier == "sccode.exe.Person");
 		count = 0;
 		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "User")) {
 			cUser = c;
@@ -60,6 +63,13 @@ class Program {
 		}
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cOrganization != null);
+		count = 0;
+		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Company")) {
+			cCompany = c;
+			count++;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(cCompany != null);
 	}
 }
 
