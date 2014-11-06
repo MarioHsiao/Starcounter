@@ -22,7 +22,6 @@ namespace Starcounter.Templates {
     /// use alternate schemas.
     /// </remarks>
     public abstract class TContainer : TValue {
-		private static bool shouldUseCodegeneratedSerializer = false;
 		private bool codeGenStarted = false;
 		private bool _Sealed;
 		private TypedJsonSerializer codegenStandardSerializer;
@@ -57,22 +56,7 @@ namespace Starcounter.Templates {
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		public static bool UseCodegeneratedSerializer {
-			get { return shouldUseCodegeneratedSerializer; }
-			set { shouldUseCodegeneratedSerializer = value; }
-		}
-
 		internal abstract Json GetValue(Json parent);
-
-		/// <summary>
-		/// If set to true the codegeneration for the serializer will not be done in a background
-		/// and execution will wait until the generated serializer is ready to be used. This is 
-		/// used by for example unittests, where you want to test the genererated code specifically.
-		/// </summary>
-		internal static bool DontCreateSerializerInBackground { get; set; }
 
         /// <summary>
         /// Represents the contained properties (TObj) or the single contained type for typed arrays (TArr).
@@ -97,13 +81,13 @@ namespace Starcounter.Templates {
 		/// </summary>
 		internal TypedJsonSerializer FTJSerializer {
 			get {
-				if (UseCodegeneratedSerializer) {
+				if (Module.UseCodegeneratedSerializer) {
 					if (codegenFTJSerializer != null)
 						return codegenFTJSerializer;
 
 					if (!codeGenStarted) {
 						codeGenStarted = true;
-						if (!DontCreateSerializerInBackground)
+						if (!Module.DontCreateSerializerInBackground)
 							ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
 						else {
 							GenerateSerializer(false);
@@ -121,7 +105,7 @@ namespace Starcounter.Templates {
 		/// <returns></returns>
 		internal TypedJsonSerializer JsonSerializer {
 			get {
-				if (UseCodegeneratedSerializer) {
+				if (Module.UseCodegeneratedSerializer) {
 					if (codegenStandardSerializer != null)
 						return codegenStandardSerializer;
 
@@ -131,7 +115,7 @@ namespace Starcounter.Templates {
 					// the fallback serializer will be used instead so it's better than locking.
 					if (!codeGenStarted) {
 						codeGenStarted = true;
-						if (!DontCreateSerializerInBackground)
+						if (!Module.DontCreateSerializerInBackground)
 							ThreadPool.QueueUserWorkItem(GenerateSerializer, true);
 						else {
 							GenerateSerializer(true);

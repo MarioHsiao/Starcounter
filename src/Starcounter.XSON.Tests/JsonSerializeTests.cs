@@ -6,6 +6,7 @@ using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
 using Starcounter.XSON.Serializer;
 using Starcounter.XSON.Serializer.Parsetree;
+using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
     /// <summary>
@@ -142,12 +143,12 @@ namespace Starcounter.Internal.XSON.Tests {
 			Json original;
 			Json newJson;
 
-			TObject.UseCodegeneratedSerializer = false;
+			XSONModule.UseCodegeneratedSerializer = false;
 
 			original = (Json)tObj.CreateInstance();
 
-			TObject.UseCodegeneratedSerializer = useCodegen;
-			TObject.DontCreateSerializerInBackground = true;
+            XSONModule.UseCodegeneratedSerializer = useCodegen;
+			XSONModule.DontCreateSerializerInBackground = true;
 
             byte[] ftj = new byte[tObj.JsonSerializer.EstimateSizeBytes(original)];
 			serializedSize = tObj.ToFasterThanJson(original, ftj, 0);
@@ -174,11 +175,11 @@ namespace Starcounter.Internal.XSON.Tests {
 			Json original;
 			Json newJson;
 
-            TObject.UseCodegeneratedSerializer = false;
+            XSONModule.UseCodegeneratedSerializer = false;
 			original = (Json)tObj.CreateInstance();
 
-            TObject.UseCodegeneratedSerializer = useCodegen;
-            TObject.DontCreateSerializerInBackground = true;
+            XSONModule.UseCodegeneratedSerializer = useCodegen;
+            XSONModule.DontCreateSerializerInBackground = true;
 
             byte[] jsonArr = new byte[tObj.JsonSerializer.EstimateSizeBytes(original)];
 			serializedSize = tObj.ToJsonUtf8(original, jsonArr, 0);
@@ -198,7 +199,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestIncorrectInputJsonForDefaultSerializer() {
             TObject tObj = Helper.CreateJsonTemplateFromFile("supersimple.json");
 
-            TObject.UseCodegeneratedSerializer = false;
+            XSONModule.UseCodegeneratedSerializer = false;
             var obj = (Json)tObj.CreateInstance();
 
             string invalidJson = "message";
@@ -221,8 +222,8 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestIncorrectInputJsonForCodegenSerializer() {
             TObject tObj = Helper.CreateJsonTemplateFromFile("supersimple.json");
 
-            TObject.UseCodegeneratedSerializer = true;
-            TObject.DontCreateSerializerInBackground = true;
+            XSONModule.UseCodegeneratedSerializer = true;
+            XSONModule.DontCreateSerializerInBackground = true;
             var obj = (Json)tObj.CreateInstance();
 
             string invalidJson = "message";
