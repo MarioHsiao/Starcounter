@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON.DeserializerCompiler;
-using Module = Modules.Starcounter_XSON_JsonByExample;
+using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Templates {
     /// <summary>

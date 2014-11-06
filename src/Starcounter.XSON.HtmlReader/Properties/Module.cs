@@ -3,19 +3,12 @@ using System.IO;
 using System.Text;
 using HtmlAgilityPack;
 using Starcounter.Templates;
-using Modules;
 
-using Starcounter.Advanced.XSON;
-using Starcounter;
-using TJson = Starcounter.Templates.TObject;
-
-namespace Modules {
-
+namespace Starcounter.Internal.XSON.Modules {
     /// <summary>
     /// Represents this module
     /// </summary>
-    internal static class Starcounter_XSON_HtmlReader {
-
+    internal static class HtmlReader {
         /// <summary>
         /// Contains all dependency injections into this module
         /// </summary>
@@ -43,15 +36,15 @@ namespace Modules {
         /// <param name="fileSpec">The file spec.</param>
         /// <returns>TJson</returns>
         /// <exception cref="System.Exception"></exception>
-        public static TJson CreatePuppetTemplateFromHtmlFile(string fileSpec) {
+        public static TObject CreatePuppetTemplateFromHtmlFile(string fileSpec) {
             string str = ReadUtf8File(fileSpec);
-            TJson template = null;
+            TObject template = null;
             var html = new HtmlDocument();
             bool shouldFindTemplate = (str.ToUpper().IndexOf("$$DESIGNTIME$$") >= 0);
             html.Load(new StringReader(str));
             foreach (HtmlNode link in html.DocumentNode.SelectNodes("//script")) {
                 string js = link.InnerText;
-                template = (TJson)Starcounter_XSON_JsonByExample.CreateFromJs<Json, TJson>(js, true);
+                template = (TObject)Starcounter_XSON.JsonByExample.CreateFromJs<Json, TObject>(js, true);
                 if (template != null)
                     return template;
             }
@@ -59,8 +52,5 @@ namespace Modules {
                 throw new Exception(String.Format("SCERR????. The $$DESIGNTIME$$ declaration is misplaced in file {0}. The $$DESIGNTIME$$ template should be put in a separate <script> tag.", fileSpec));
             return null;
         }
-
-
-
     }
 }

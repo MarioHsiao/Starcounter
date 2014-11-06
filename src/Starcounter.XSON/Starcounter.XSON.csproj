@@ -107,7 +107,6 @@
     <Compile Include="JSON-By-Example\AppTemplateFactory.cs" />
     <Compile Include="JSON-By-Example\JsonByExampleTemplateReader.cs" />
     <Compile Include="Properties\Module.cs" />
-    <Compile Include="JSON-By-Example\Module2.cs" />
     <Compile Include="Binding\DataBindingHelper.cs" />
     <Compile Include="DynamicJson.cs" />
     <Compile Include="Interfaces\IDebugInfo.cs" />
