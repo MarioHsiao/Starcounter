@@ -38,7 +38,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                     command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
                     command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
                     command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
-                    command.SetupProperties.Configuration.Runtime.SqlAggregationSupport = settings.SqlAggregationSupport;
                     command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
 
                     command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
