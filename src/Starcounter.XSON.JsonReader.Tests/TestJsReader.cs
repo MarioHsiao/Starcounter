@@ -8,9 +8,7 @@ using System;
 using NUnit.Framework;
 using Starcounter.Templates;
 using Starcounter.Internal.JsonTemplate;
-using Modules;
 using TJson = Starcounter.Templates.TObject;
-
 
 namespace Starcounter.Internal.JsonTemplate.Tests {
     /// <summary>

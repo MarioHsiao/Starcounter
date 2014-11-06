@@ -90,7 +90,6 @@
     <Compile Include="Generation2\GeneratorPhase4.cs" />
     <Compile Include="Generation2\GeneratorPhase6.cs" />
     <Compile Include="PartialClassGenerator.cs" />
-    <Compile Include="Properties\Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

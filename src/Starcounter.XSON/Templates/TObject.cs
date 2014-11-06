@@ -5,13 +5,11 @@
 // ***********************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using Starcounter.Internal;
 using Starcounter.Advanced.XSON;
-using Modules;
-using System.Collections;
-using TJson = Starcounter.Templates.TObject;
+using Starcounter.Internal;
 using Starcounter.XSON;
 
 namespace Starcounter.Templates {
@@ -42,7 +40,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		static TObject() {
 			HelperFunctions.PreLoadCustomDependencies();
-			Starcounter_XSON_JsonByExample.Initialize();
+			Starcounter.Internal.XSON.Modules.Starcounter_XSON.Initialize();
 		}
 
 		/// <summary>
@@ -237,7 +235,7 @@ namespace Starcounter.Templates {
                     where TypeTObj : TObject, new() {
             IXsonTemplateMarkupReader reader;
             try {
-                reader = Modules.Starcounter_XSON_JsonByExample.MarkupReaders[format];
+                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
             }
             catch {
                 throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
@@ -348,10 +346,10 @@ namespace Starcounter.Templates {
                     { typeof(UInt64), (TObject t, string name) => { return t.Add<TLong>(name); }},
                     { typeof(Int64), (TObject t, string name) => { return t.Add<TLong>(name); }},
                     { typeof(float), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(double), (TJson t, string name) => { return t.Add<TDouble>(name); }},
-                    { typeof(decimal), (TJson t, string name) => { return t.Add<TDecimal>(name); }},
-                    { typeof(bool), (TJson t, string name) => { return t.Add<TBool>(name); }},
-                    { typeof(string), (TJson t, string name) => { return t.Add<TString>(name); }}
+                    { typeof(double), (TObject t, string name) => { return t.Add<TDouble>(name); }},
+                    { typeof(decimal), (TObject t, string name) => { return t.Add<TDecimal>(name); }},
+                    { typeof(bool), (TObject t, string name) => { return t.Add<TBool>(name); }},
+                    { typeof(string), (TObject t, string name) => { return t.Add<TString>(name); }}
             };
 
         /// <summary>
@@ -363,7 +361,7 @@ namespace Starcounter.Templates {
         public TValue Add(Type type, string name) {
 
 
-            Func<TJson, string, TValue> t;
+            Func<TObject, string, TValue> t;
             if (@switch.TryGetValue(type,out t)) {
                 return t.Invoke(this,name);
             }
@@ -374,7 +372,7 @@ namespace Starcounter.Templates {
 //                return this.Add<TArr<Obj, TDynamicObj>>(name);
 //            }
             if (typeof(Json).IsAssignableFrom(type)) {
-                return this.Add<TJson>(name);
+                return this.Add<TObject>(name);
             }
             if ((typeof(IEnumerable).IsAssignableFrom(type))) {
                 return this.Add<TObjArr>(name);
@@ -425,7 +423,7 @@ namespace Starcounter.Templates {
         /// <param name="type"></param>
         /// <param name="bind">The name of the property in the dataobject to bind to.</param>
         /// <returns>A new instance of the specified template</returns>
-        public T Add<T>(string name, TJson type, string bind) where T : TObjArr, new() {
+        public T Add<T>(string name, TObject type, string bind) where T : TObjArr, new() {
             T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
                 t = new T() { TemplateName = name, ElementType = type, Bind = bind};

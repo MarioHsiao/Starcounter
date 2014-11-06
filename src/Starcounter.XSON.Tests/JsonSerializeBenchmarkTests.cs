@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using NUnit.Framework;
 using Starcounter.Templates;
+using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 #if !DEBUG // Serializer benchmark tests - only in release.
 
@@ -303,12 +304,12 @@ namespace Starcounter.Internal.XSON.Tests {
             DateTime start;
             DateTime stop;
 
-            TObject.UseCodegeneratedSerializer = false;
+            XSONModule.UseCodegeneratedSerializer = false;
 
             jsonInst = (Json)tObj.CreateInstance();
-            
-            TObject.UseCodegeneratedSerializer = useCodegen;
-            TObject.DontCreateSerializerInBackground = true;
+
+            XSONModule.UseCodegeneratedSerializer = useCodegen;
+            XSONModule.DontCreateSerializerInBackground = true;
 
             if (useCodegen) {
                 Console.Write(AddSpaces(name, COL1) + AddSpaces("STD(gen)", COL2));

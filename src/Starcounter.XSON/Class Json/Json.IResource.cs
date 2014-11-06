@@ -1,5 +1,4 @@
-using System;
-using XSONInjection = Modules.Starcounter_XSON.Injections;
+using XSONInjection = Starcounter.Internal.XSON.Modules.Starcounter_XSON.Injections;
 
 namespace Starcounter {
     public partial class Json : IResource {
@@ -40,7 +39,7 @@ namespace Starcounter {
         /// <param name="request"></param>
         /// <returns></returns>
         public virtual byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType, Request request = null ) {
-            return XSONInjection._JsonMimeConverter.Convert(request, this, mimeType, out resultingMimeType);
+            return XSONInjection.JsonMimeConverter.Convert(request, this, mimeType, out resultingMimeType);
         }
 
         /// <summary>
@@ -51,7 +50,7 @@ namespace Starcounter {
         /// <param name="request"></param>
         /// <returns></returns>
         public virtual byte[] AsMimeType(string mimeType, out MimeType resultingMimeType, Request request = null ) {
-            return XSONInjection._JsonMimeConverter.Convert(request, this, MimeTypeHelper.StringToMimeType(mimeType), out resultingMimeType);
+            return XSONInjection.JsonMimeConverter.Convert(request, this, MimeTypeHelper.StringToMimeType(mimeType), out resultingMimeType);
         }
 
         public static implicit operator Response(Json x) {
