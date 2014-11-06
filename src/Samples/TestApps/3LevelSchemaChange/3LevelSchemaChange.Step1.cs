@@ -1,6 +1,7 @@
 using System;
 using Starcounter;
 using System.Diagnostics;
+using Starcounter.Metadata;
 
 class Program {
 	static void Main() {
@@ -19,6 +20,46 @@ class Program {
 		ScAssertion.Assert(q.UserName == e.UserName, "Unexpected result");
 		ScAssertion.Assert(q.Company.OrganizationId == c.OrganizationId, "Unexpected result");
 		ScAssertion.Assert(q.UserName == c.Head.UserName, "Unexpected result");
+		
+		AssertMetadata();
+	}
+	
+	static void AssertMetadata() {
+		// 5 types: Person with 1 column, User - +1, Employee +1, Company +1, Organization 2
+		// ClrClass and RawView, Columns
+		ClrClass cPerson = null;
+		ClrClass cUser = null;
+		ClrClass cEmployee = null;
+		ClrClass cOrganization = null;
+		ClrClass cCompany = null;
+		int count = 0;
+		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Person")) {
+			cPerson = c;
+			count++;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(cPerson != null);
+		count = 0;
+		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "User")) {
+			cUser = c;
+			count++;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(cUser != null);
+		count = 0;
+		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Employee")) {
+			cEmployee = c;
+			count++;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(cEmployee != null);
+		count = 0;
+		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Organization")) {
+			cOrganization = c;
+			count++;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(cOrganization != null);
 	}
 }
 
