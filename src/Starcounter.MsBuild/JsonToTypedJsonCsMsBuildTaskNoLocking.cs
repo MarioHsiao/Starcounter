@@ -1,21 +1,15 @@
-﻿
-using Microsoft.Build.Framework;
+﻿using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Modules;
-using System;
 
 namespace Starcounter.Internal.MsBuild {
-
     /// <summary>
     /// Class JsonToCsMsBuildTask without loading into domain (slower).
     /// </summary>
     public class JsonToTypedJsonCsMsBuildTaskNoLocking : AppDomainIsolatedTask {
-
         static JsonToTypedJsonCsMsBuildTaskNoLocking() {
             Bootstrapper.Bootstrap();
         }
 
-        
         /// <summary>
         /// Gets or sets the input files.
         /// </summary>

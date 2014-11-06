@@ -1,8 +1,6 @@
 ﻿
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Modules;
-using System;
 
 namespace Starcounter.Internal.MsBuild {
     /// <summary>
