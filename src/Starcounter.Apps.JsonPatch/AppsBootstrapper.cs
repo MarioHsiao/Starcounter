@@ -1,15 +1,11 @@
-﻿
-using Modules;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
 using Starcounter.Rest;
-using Starcounter.Templates;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
 
 namespace Starcounter.Internal {
 
@@ -63,7 +59,7 @@ namespace Starcounter.Internal {
             ScSessionClass.SetDbSessionImplementation(dbs);
 
             // Dependency injection for converting puppets to html
-            Modules.Starcounter_XSON.Injections._JsonMimeConverter = new JsonMimeConverter();
+            Starcounter.Internal.XSON.Modules.Starcounter_XSON.Injections.JsonMimeConverter = new JsonMimeConverter();
 
             // Giving REST needed delegates.
             unsafe {
