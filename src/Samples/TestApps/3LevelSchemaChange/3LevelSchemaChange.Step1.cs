@@ -40,8 +40,7 @@ class Program {
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cPerson != null);
 		ScAssertion.Assert(cPerson.Name == cPerson.FullName);
-		Console.WriteLine(cPerson.UniqueIdentifier);
-		ScAssertion.Assert(cPerson.UniqueIdentifier == "sccode.exe.Person");
+		ScAssertion.Assert(cPerson.UniqueIdentifier == "Person");
 		count = 0;
 		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "User")) {
 			cUser = c;
@@ -49,6 +48,8 @@ class Program {
 		}
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cUser != null);
+		ScAssertion.Assert(cUser.UniqueIdentifier == "User");
+		ScAssertion.Assert(cPerson.Equals(cUser.Inherits));
 		count = 0;
 		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Employee")) {
 			cEmployee = c;
@@ -56,6 +57,8 @@ class Program {
 		}
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cEmployee != null);
+		ScAssertion.Assert(cEmployee.UniqueIdentifier == "Employee");
+		ScAssertion.Assert(cUser.Equals(cEmployee.Inherits));
 		count = 0;
 		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Organization")) {
 			cOrganization = c;
@@ -63,6 +66,7 @@ class Program {
 		}
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cOrganization != null);
+		ScAssertion.Assert(cOrganization.UniqueIdentifier == "Organization");
 		count = 0;
 		foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", "Company")) {
 			cCompany = c;
@@ -70,6 +74,65 @@ class Program {
 		}
 		ScAssertion.Assert(count == 1);
 		ScAssertion.Assert(cCompany != null);
+		ScAssertion.Assert(cCompany.UniqueIdentifier == "Company");
+		ScAssertion.Assert(cOrganization.Equals(cCompany.Inherits));
+		RawView vPerson = null;
+		RawView vUser = null;
+		RawView vEmployee = null;
+		RawView vOrganization = null;
+		RawView vCompany = null;
+		count = 0;
+		foreach(RawView v in Db.SQL<RawView>("select v from rawview v where materializedtable.name = ? and fullname = ?", cPerson.FullName, cPerson.FullName)) {
+			count++;
+			vPerson = v;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(vPerson != null);
+		ScAssertion.Assert(vPerson.UniqueIdentifier == "Starcounter.Raw.Person");
+		ScAssertion.Assert(vPerson.MaterializedTable.Equals(cPerson.MaterializedTable));
+		count = 0;
+		foreach(RawView v in Db.SQL<RawView>("select v from rawview v where materializedtable.name = ? and fullname = ?", cUser.FullName, cUser.FullName)) {
+			count++;
+			vUser = v;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(vUser != null);
+		ScAssertion.Assert(vUser.UniqueIdentifier == "Starcounter.Raw.User");
+		ScAssertion.Assert(vUser.MaterializedTable.Equals(cUser.MaterializedTable));
+		ScAssertion.Assert(vPerson.Equals(vUser.Inherits));
+		count = 0;
+		foreach(RawView v in Db.SQL<RawView>("select v from rawview v where materializedtable.name = ? and fullname = ?", cEmployee.FullName, cEmployee.FullName)) {
+			count++;
+			vEmployee = v;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(vEmployee != null);
+		ScAssertion.Assert(vEmployee.UniqueIdentifier == "Starcounter.Raw.Employee");
+		ScAssertion.Assert(vEmployee.MaterializedTable.Equals(cEmployee.MaterializedTable));
+		ScAssertion.Assert(vUser.Equals(vEmployee.Inherits));
+		count = 0;
+		foreach(RawView v in Db.SQL<RawView>("select v from rawview v where materializedtable.name = ? and fullname = ?", cOrganization.FullName, cOrganization.FullName)) {
+			count++;
+			vOrganization = v;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(vOrganization != null);
+		ScAssertion.Assert(vOrganization.UniqueIdentifier == "Starcounter.Raw.Organization");
+		ScAssertion.Assert(vOrganization.MaterializedTable.Equals(cOrganization.MaterializedTable));
+		count = 0;
+		foreach(RawView v in Db.SQL<RawView>("select v from rawview v where materializedtable.name = ? and fullname = ?", cCompany.FullName, cCompany.FullName)) {
+			count++;
+			vCompany = v;
+		}
+		ScAssertion.Assert(count == 1);
+		ScAssertion.Assert(vCompany != null);
+		ScAssertion.Assert(vCompany.UniqueIdentifier == "Starcounter.Raw.Company");
+		ScAssertion.Assert(vCompany.MaterializedTable.Equals(cCompany.MaterializedTable));
+		ScAssertion.Assert(vOrganization.Equals(vCompany.Inherits));
+		count = 0;
+		foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ?", cPerson))
+			count++;
+		ScAssertion.Assert(count == 2);
 	}
 }
 
