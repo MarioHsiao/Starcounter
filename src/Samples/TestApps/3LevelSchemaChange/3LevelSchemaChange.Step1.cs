@@ -133,6 +133,46 @@ class Program {
 		foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ?", cPerson))
 			count++;
 		ScAssertion.Assert(count == 2);
+		string[] names = { "Person", "User", "Employee", "Organization", "Company" };
+		int[] nrCols = { 2, 1, 1, 1, 1 };
+		ScAssertion.Assert(names.Length == nrCols.Length);
+		ClrClass[] clrClassses = new ClrClass[names.Length];
+		RawView[] views = new RawView[names.Length];
+		for(int i = 0; i < names.Length; i++) {
+			count = 0;
+			foreach(ClrClass c in Db.SQL<ClrClass>("select c from clrclass c where fullname = ?", names[i])) {
+				clrClassses[i] = c;
+				count++;
+			}
+			ScAssertion.Assert(count == 1);
+			ScAssertion.Assert(clrClassses[i] != null);
+			ScAssertion.Assert(clrClassses[i].Name == clrClassses[i].FullName);
+			ScAssertion.Assert(clrClassses[i].UniqueIdentifier == names[i]);
+		}
+		ScAssertion.Assert(clrClassses[0].Equals(clrClassses[1].Inherits));
+		ScAssertion.Assert(clrClassses[1].Equals(clrClassses[2].Inherits));
+		ScAssertion.Assert(clrClassses[3].Equals(clrClassses[4].Inherits));
+		for(int i = 0; i < names.Length; i++) {
+			count = 0;
+			foreach(RawView v in Db.SQL<RawView>("select v from rawview v where materializedtable.name = ? and fullname = ?", 
+					clrClassses[i].FullName, clrClassses[i].FullName)) {
+				count++;
+				views[i] = v;
+			}
+			ScAssertion.Assert(count == 1);
+			ScAssertion.Assert(views[i] != null);
+			ScAssertion.Assert(views[i].UniqueIdentifier == "Starcounter.Raw." + names[i]);
+			ScAssertion.Assert(views[i].MaterializedTable.Equals(clrClassses[i].MaterializedTable));
+		}
+		ScAssertion.Assert(views[0].Equals(views[1].Inherits));
+		ScAssertion.Assert(views[1].Equals(views[2].Inherits));
+		ScAssertion.Assert(views[3].Equals(views[4].Inherits));
+		for(int i = 0; i < names.Length; i++) {
+			count = 0;
+			foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ?", clrClassses[i]))
+				count++;
+			ScAssertion.Assert(count == nrCols[i]);
+		}
 	}
 }
 
