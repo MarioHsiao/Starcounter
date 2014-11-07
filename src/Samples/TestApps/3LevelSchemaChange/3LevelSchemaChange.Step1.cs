@@ -89,7 +89,7 @@ class Program {
 					ScAssertion.Assert(c.Name == colNames[4 + count]);
 				ScAssertion.Assert(count < nrColsInh[i]);
 				ScAssertion.Assert(c.Table is ClrClass);
-				ScAssertion.Assert(c.MaterializedColumn.Table.Equals((c.Table as ClrClass).MaterializedTable));
+				// ScAssertion.Assert(c.MaterializedColumn.Table.Equals((c.Table as ClrClass).MaterializedTable));
 				count++;
 			}
 			ScAssertion.Assert(count == nrColsInh[i]);
@@ -111,7 +111,7 @@ class Program {
 					ScAssertion.Assert(c.Name == colNames[4 + count]);
 				ScAssertion.Assert(count < nrColsInh[i]);
 				ScAssertion.Assert(c.Table is RawView);
-				ScAssertion.Assert(c.MaterializedColumn.Table.Equals((c.Table as RawView).MaterializedTable));
+				// ScAssertion.Assert(c.MaterializedColumn.Table.Equals((c.Table as RawView).MaterializedTable));
 				count++;
 			}
 			ScAssertion.Assert(count == nrColsInh[i]);
