@@ -5,11 +5,15 @@ class Program {
 		Person p = null;
 		Account a = null;
 		DailyAccount d = null;
+		Account c = null;
 		Db.Transaction(delegate {
 			p = new Person { FirstName = "Fname" };
 			a = new Account { AccountId = 1 };
 			d = new DailyAccount { AccountId = 2, Amount = 100.0m };
+			c = new Account { AccountId =3, Client = p };
 		});
+		Account accWclient = Db.SQL<Account>("select a from account a where client = ?", p).First;
+		ScAssertion.Assert(accWclient != null, "Account with given client should be found.");
 		Person q = Db.SQL<Person>("select p from Person p where LastName IS NULL").First;
 		ScAssertion.Assert(q != null, "At least one person with LastName IS NULL should be found.");
 		q = Db.SQL<Person>("select p from Person p where LastName = ?", null).First;
