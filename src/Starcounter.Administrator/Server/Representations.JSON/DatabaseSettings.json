@@ -4,7 +4,6 @@
     "DefaultUserHttpPort": 0, // 8080,
     "SchedulerCount": 0, // 8
     "ChunksNumber": 0, // 8
-    "SqlAggregationSupport": false,
     "CollationFile": "", // "TurboText_en-GB_2",
     "DumpDirectory": "", // "c:\database\dump",
     "TempDirectory": "", // "c:\database\temp",

@@ -8,14 +8,12 @@ using System;
 using System.IO;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
-using Modules;
 
 namespace Starcounter.Internal.MsBuild {
     /// <summary>
     /// Class that holds code to MsBuild tasks.
     /// </summary>
     internal static class JsonToCsMsBuildTask {
-
         static JsonToCsMsBuildTask() {
             Bootstrapper.Bootstrap();
         }
@@ -25,8 +23,6 @@ namespace Starcounter.Internal.MsBuild {
         /// </summary>
         /// <returns>true if the task successfully executed; otherwise, false.</returns>
         internal static bool ExecuteTask(ITaskItem[] InputFiles, ITaskItem[] OutputFiles, TaskLoggingHelper msbuildLog) {
-
-
             bool success = true;
             string jsonFilename;
             string codeBehindFilename;
@@ -56,5 +52,4 @@ namespace Starcounter.Internal.MsBuild {
             return success;
         }
     }
-
 }

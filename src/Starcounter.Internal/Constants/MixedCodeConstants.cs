@@ -185,7 +185,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Maximum extra linked IPC chunks.
         /// </summary>
-        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 64;
+        public const int MAX_EXTRA_LINKED_IPC_CHUNKS = 32;
 
         /// <summary>
         /// Maximum linked chunks bytes.

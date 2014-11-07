@@ -8,26 +8,23 @@ using System;
 using NUnit.Framework;
 using Starcounter.Templates;
 using TJson = Starcounter.Templates.TObject;
-
+using HtmlModule = Starcounter.Internal.XSON.Modules.HtmlReader;
 
 namespace Starcounter.Internal.JsonTemplate.Tests {
     /// <summary>
     /// Class JsToTemplateTests
     /// </summary>
     public class JsToTemplateTests {
-
-
         /// <summary>
         /// Creates from HTML file.
         /// </summary>
         [Test]
         public static void CreateFromHtmlFile() {
-            TJson template = Modules.Starcounter_XSON_HtmlReader.CreatePuppetTemplateFromHtmlFile("testtemplate.html");
+            TJson template = HtmlModule.CreatePuppetTemplateFromHtmlFile("testtemplate.html");
             Assert.NotNull(template);
             Assert.IsInstanceOf<TString>(template.Properties[0]);
             Assert.IsInstanceOf<TObjArr>(template.Properties[1]);
         }
-
 
         /// <summary>
         /// Creates from HTML file_ misplaced.
@@ -35,7 +32,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
         [Test]
         public static void CreateFromHtmlFile_Misplaced() {
             try {
-                TJson template = Modules.Starcounter_XSON_HtmlReader.CreatePuppetTemplateFromHtmlFile("template\\misplaced.html");
+                TJson template = HtmlModule.CreatePuppetTemplateFromHtmlFile("template\\misplaced.html");
             }
             catch (Exception e) {
                 Console.WriteLine(e.Message);
