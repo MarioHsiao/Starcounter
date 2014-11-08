@@ -302,7 +302,7 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
     }
 
     // Checking if more than maximum chunks we can take at once.
-    //GW_ASSERT(num_extra_chunks <= MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS);
+    GW_ASSERT(num_extra_chunks <= MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS);
 
     // Acquiring linked chunks.
     starcounter::core::chunk_index new_chunk_index;
