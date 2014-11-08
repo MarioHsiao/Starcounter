@@ -148,7 +148,7 @@ namespace Starcounter.Advanced.XSON {
             var mainTransaction = main.ThisTransaction;
             var toMergeTransaction = toMerge.ThisTransaction;
 
-            if (mainTransaction != null && toMergeTransaction != null) {
+            if (mainTransaction != null && toMergeTransaction != null && mainTransaction != toMergeTransaction) {
                 mainTransaction.MergeTransaction(toMergeTransaction);
 
                 // TODO: 
