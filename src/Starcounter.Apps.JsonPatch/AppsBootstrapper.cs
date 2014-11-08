@@ -180,6 +180,14 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Default size for static serialization buffer.
+        /// </summary>
+        const Int32 DefaultResponseSerializationBufferSize = 4096;
+
+        [ThreadStatic]
+        static Byte[] responseSerializationBuffer_;
+
+        /// <summary>
         /// Entry-point for all incoming http requests from the Network Gateway.
         /// </summary>
         /// <param name="request">The http request</param>
@@ -199,13 +207,19 @@ namespace Starcounter.Internal {
             {
                 case HandlerStatusInternal.Done:
                 {
+                    // Creating response serialization buffer.
+                    if (responseSerializationBuffer_ == null) {
+                        responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
+                    }
+
                     // Standard response send.
-                    req.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+                    req.SendResponse(resp, responseSerializationBuffer_);
 
-                    // Destroying request and response objects.
-                    resp.Destroy();
-                    req.Destroy();
-
+                    break;
+                }
+                
+                default: {
+                    req.CreateFinalizer();
                     break;
                 }
             }

@@ -574,7 +574,7 @@ namespace NetworkIoTestApp
                             StatusDescription = "I am gonna shutdown now.."
                         };
 
-                        req.SendResponse(resp);
+                        req.SendResponse(resp, null);
 
                         return HandlerStatus.Handled;
                     });

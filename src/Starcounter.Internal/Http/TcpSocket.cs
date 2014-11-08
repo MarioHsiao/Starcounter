@@ -149,33 +149,35 @@ namespace Starcounter {
             if (IsDead())
                 return;
 
-            NetworkDataStream data_stream;
-            UInt32 chunk_index;
-            Byte* chunk_mem;
+            NetworkDataStream dataStream;
+            UInt32 chunkIndex;
+            Byte* chunkMem;
 
-            NetworkDataStream dataStream = socketContainer_.DataStream;
+            NetworkDataStream existingDataStream = socketContainer_.DataStream;
 
             // Checking if we still have the data stream with original chunk available.
-            if (dataStream == null || dataStream.IsDestroyed()) {
+            if (existingDataStream == null || existingDataStream.IsDestroyed()) {
 
-                UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunk_index, &chunk_mem);
-                if (0 != err_code)
+                UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
+                if (0 != err_code) {
                     throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
+                }
 
-                data_stream = new NetworkDataStream(chunk_mem, chunk_index, socketContainer_.GatewayWorkerId);
+                dataStream = new NetworkDataStream();
+                dataStream.Init(chunkMem, chunkIndex, socketContainer_.GatewayWorkerId, false);
 
             } else {
 
-                data_stream = dataStream;
-                chunk_index = data_stream.ChunkIndex;
-                chunk_mem = data_stream.RawChunk;
+                dataStream = existingDataStream;
+                chunkIndex = dataStream.ChunkIndex;
+                chunkMem = dataStream.RawChunk;
             }
 
-            Byte* socket_data_begin = chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
+            Byte* socket_data_begin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
-            (*(ScSessionStruct*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = new ScSessionStruct(true);
+            (*(ScSessionStruct*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_SESSION)) = new ScSessionStruct(true);
 
-            (*(UInt32*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
+            (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) MixedCodeConstants.NetworkProtocolType.PROTOCOL_RAW_PORT;
 
@@ -183,10 +185,10 @@ namespace Starcounter {
             (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketContainer_.SocketUniqueId;
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketContainer_.GatewayWorkerId;
 
-            (*(UInt16*)(chunk_mem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+            (*(UInt16*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
-            data_stream.SendResponse(data, offset, dataLen, connFlags);
+            dataStream.SendResponse(data, offset, dataLen, connFlags);
         }
 
         /// <summary>
