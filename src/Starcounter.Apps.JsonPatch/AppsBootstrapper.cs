@@ -195,33 +195,38 @@ namespace Starcounter.Internal {
         private static Boolean OnHttpMessageRoot(Request req) {
             Response resp = null;
 
-            // Handling request on initial level.
-            resp = AppServer_.HandleRequest(req, 0);
-            
-            // Checking if response was handled.
-            if (resp == null)
-                return false;
+            try {
+                // Handling request on initial level.
+                resp = AppServer_.HandleRequest(req, 0);
 
-            // Determining what we should do with response.
-            switch (resp.HandlingStatus)
-            {
-                case HandlerStatusInternal.Done:
-                {
-                    // Creating response serialization buffer.
-                    if (responseSerializationBuffer_ == null) {
-                        responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
-                    }
+                // Checking if response was handled.
+                if (resp == null)
+                    return false;
 
-                    // Standard response send.
-                    req.SendResponse(resp, responseSerializationBuffer_);
+                // Determining what we should do with response.
+                switch (resp.HandlingStatus) {
+                    case HandlerStatusInternal.Done: {
+                            // Creating response serialization buffer.
+                            if (responseSerializationBuffer_ == null) {
+                                responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
+                            }
 
-                    break;
+                            // Standard response send.
+                            req.SendResponse(resp, responseSerializationBuffer_);
+
+                            break;
+                        }
+
+                    default: {
+                            req.CreateFinalizer();
+                            break;
+                        }
                 }
-                
-                default: {
-                    req.CreateFinalizer();
-                    break;
-                }
+            } finally {
+                // Checking if a new session was created during handler call.
+                if ((null != Session.Current) && (!req.IsInternal))
+                    Session.End();
+                Session.InitialRequest = null;
             }
 
             return true;
