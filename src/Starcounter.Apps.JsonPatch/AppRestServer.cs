@@ -129,12 +129,6 @@ namespace Starcounter.Internal.Web {
                 resp.ContentType = "text/plain";
                 return resp;
             }
-            finally {
-                // Checking if a new session was created during handler call.
-                if ((null != Session.Current) && (!request.IsInternal))
-                    Session.End();
-                Session.InitialRequest = null;
-            }
         }
 
         // TODO:
