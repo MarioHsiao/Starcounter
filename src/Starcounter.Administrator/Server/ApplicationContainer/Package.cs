@@ -266,6 +266,10 @@ namespace Administrator.Server.ApplicationContainer {
 
         public static void VerifyPacket(string packageZip) {
 
+            using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
+                VerifyPacket(fs);
+            }
+
         }
 
         public static void VerifyPacket(Stream package) {
@@ -284,17 +288,14 @@ namespace Administrator.Server.ApplicationContainer {
                     if (package.CanSeek) {
                         package.Seek(0, 0);
                     }
-
                 };
             }
             catch (InvalidDataException e) {
-                throw new InvalidOperationException("Failed to install package, Invalid package format", e);
+                throw new InvalidOperationException("Verification of package failed", e);
             }
             catch (Exception e) {
-
-                throw new InvalidOperationException("Failed to install package, " + e.Message, e);
+                throw new InvalidOperationException("Verification of package failed, " + e.Message, e);
             }
-
         }
 
         /// <summary>
@@ -324,12 +325,12 @@ namespace Administrator.Server.ApplicationContainer {
                 throw new InvalidOperationException("Invalid Version <tag> in package configuration");
             }
 
-            try {
-                new Version(config.Version);
-            }
-            catch (Exception) {
-                throw new InvalidOperationException("Invalid Version <tag> in package configuration");
-            }
+            //try {
+            //    new Version(config.Version);
+            //}
+            //catch (Exception) {
+            //    throw new InvalidOperationException("Invalid Version <tag> in package configuration");
+            //}
 
             if (string.IsNullOrEmpty(config.Executable)) {
                 throw new InvalidOperationException("Invalid Executable <tag> in package configuration");
