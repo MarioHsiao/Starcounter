@@ -108,7 +108,7 @@ internal class ReferenceLookup : ExecutionEnumerator, IExecutionEnumerator
     }
 
     public Boolean MoveNext() {
-        if (useOffsetkey && !stayAtOffsetkey) {
+        if (useOffsetkey && (fetchOffsetKeyExpr != null) && !stayAtOffsetkey) {
             ValidOffsetkeyOrNull(null);
             currentObject = null;
             return false;
