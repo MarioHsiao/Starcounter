@@ -30,6 +30,8 @@ namespace QueryProcessingTest {
             TestIndexQueryOptimization();
             TestShortClassNames();
             TestDDLStmts();
+            TestSearchByObject();
+            TestNullComparison();
         }
 
         public static void TestFetchOrderBy() {
@@ -485,6 +487,18 @@ namespace QueryProcessingTest {
             Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First == null);
             Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
             HelpMethods.LogEvent("Finished testing DDL statements");
+        }
+
+        public static void TestNullComparison() {
+        }
+
+        public static void TestSearchByObject() {
+            HelpMethods.LogEvent("Test searching object by direct reference lookup.");
+            Account a = Db.SQL<Account>("select a from account a").First;
+            Trace.Assert(a != null);
+            Account again = Db.SQL<Account>("select a from account a where a = ?", a).First;
+            Trace.Assert(again != null);
+            HelpMethods.LogEvent("Finished testing searching object by direct reference lookup.");
         }
     }
 }
