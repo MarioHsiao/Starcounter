@@ -499,7 +499,7 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="size"></param>
         /// <param name="valueAsStr"></param>
         /// <returns></returns>
-        private unsafe static int WriteStringNoQuotations(byte* pfrag, int size, string valueAsStr) {
+        internal unsafe static int WriteStringNoQuotations(byte* pfrag, int size, string valueAsStr) {
             byte[] valueArr = Encoding.UTF8.GetBytes(valueAsStr);
             if (size < valueArr.Length)
                 return -1;

@@ -51,7 +51,7 @@ namespace Starcounter.Internal
         /// Delimiter used to end the header (marking the beginning of
         /// the body>.
         /// </summary>
-        internal const string HeaderBodyDelimiter = ":";
+        public const string HeaderBodyDelimiter = ":";
 
         /// <summary>
         /// Gets the error code.

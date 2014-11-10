@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Starcounter.XSON;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
+using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -36,8 +37,6 @@ namespace Starcounter.Internal.XSON.Tests {
 			Session.End();
             StarcounterEnvironment.AppName = oldAppName;
 		}
-
-
 
         [Test]
         public static void TestPatchSizes() {
@@ -210,7 +209,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestDirtyFlagsWithoutBinding() {
-            TObject.UseCodegeneratedSerializer = false;
+            XSONModule.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
             dynamic nicke = new Json();
@@ -259,7 +258,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
       //  [Test]
         public static void TestDirtyFlagsWithBinding() {
-            TObject.UseCodegeneratedSerializer = false;
+            XSONModule.UseCodegeneratedSerializer = false;
 
             Person nickeDb = new Person();
             Person jockeDb = new Person();
@@ -319,7 +318,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
      //   [Test]
         public static void TestJsonPatchSimpleMix() {
-            TObject.UseCodegeneratedSerializer = false;
+            XSONModule.UseCodegeneratedSerializer = false;
 
             dynamic j = new Json();
             dynamic nicke = new Json();

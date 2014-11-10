@@ -613,7 +613,7 @@ namespace Starcounter {
             };
 
             // Parsing the response.
-            resp_.ConstructFromFields();
+            resp_.ConstructFromFields(null);
             resp_.ParseResponseFromPlainBuffer();
 
             // Invoking user delegate.

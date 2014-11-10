@@ -152,6 +152,7 @@
     <Compile Include="Mock\LogSources.cs" />
     <Compile Include="Mock\Reload.cs" />
     <Compile Include="Mock\Schema\DatabaseAttributeFlags.cs" />
+    <Compile Include="Page.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
     <Compile Include="TransientAttribute.cs" />

@@ -8,13 +8,76 @@ using Starcounter.Advanced;
 
 namespace Starcounter.Internal
 {
-    class SchedulerResources {
+    /// <summary>
+    /// Generic object finalizer.
+    /// </summary>
+    class Finalizer {
 
-        public const Int32 ResponseTempBufSize = 4096;
+        /// <summary>
+        /// Object that should be finalized.
+        /// </summary>
+        Finalizing obj_;
 
-        Byte[] response_temp_buf_ = new Byte[ResponseTempBufSize];
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="obj"></param>
+        internal Finalizer(Finalizing obj) {
+            obj_ = obj;
+        }
 
-        public Byte[] ResponseTempBuf { get { return response_temp_buf_; } }
+        internal void UnLink() {
+            obj_ = null;
+        }
+
+        ~Finalizer() {
+
+            if (null != obj_) {
+                obj_.DestroyByFinalizer();
+                obj_ = null;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Finalizing class.
+    /// </summary>
+    public abstract class Finalizing {
+
+        /// <summary>
+        /// Reference to finalizer object.
+        /// </summary>
+        Finalizer finalizer_;
+
+        /// <summary>
+        /// Destroy by finalizer.
+        /// </summary>
+        abstract internal void DestroyByFinalizer();
+
+        /// <summary>
+        /// Creates finalizer.
+        /// </summary>
+        internal void CreateFinalizer() {
+
+            if (null == finalizer_) {
+                finalizer_ = new Finalizer(this);
+            }
+        }
+
+        /// <summary>
+        /// Unlinking finalizer.
+        /// </summary>
+        internal void UnLinkFinalizer() {
+
+            // NOTE: Removing reference for finalizer not to finalize twice.
+            if (null != finalizer_) {
+                finalizer_.UnLink();
+                finalizer_ = null;
+            }
+        }
+    }
+
+    public class SchedulerResources {
 
         public Response AggregationStubResponse = new Response() { Body = "Xaxa!" };
 
@@ -25,7 +88,7 @@ namespace Starcounter.Internal
 
             for (Int32 i = 0; i < numSchedulers; i++) {
                 all_schedulers_resources_[i] = new SchedulerResources();
-                all_schedulers_resources_[i].AggregationStubResponse.ConstructFromFields();
+                all_schedulers_resources_[i].AggregationStubResponse.ConstructFromFields(null);
             }
         }
 

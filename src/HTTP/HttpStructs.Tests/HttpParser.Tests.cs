@@ -182,12 +182,6 @@ namespace HttpParser.Tests
                     for (Int32 k = 0; k < correctCookies.Length; k++)
                         Assert.That(http_request.Cookies[k] == correctCookies[k], Is.True);
                 }
-
-                // Immediately destroying the structure.
-                http_request.Destroy();
-
-                // Checking if destroyed successfully.
-                Assert.That(http_request.IsDestroyed(), Is.True);
             }
         }
 

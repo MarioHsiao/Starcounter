@@ -15,7 +15,8 @@ namespace Administrator.Server.ApplicationContainer {
         [XmlIgnoreAttribute]
         public string ID {
             get {
-                return string.Format("{0:X8}", (this.Namespace + this.Channel + this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'")).GetHashCode());
+                //return string.Format("{0:X8}", (this.Namespace + this.Channel + this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'")).GetHashCode());
+                return string.Format("{0:X8}", this.File.GetHashCode());
             }
         }
         public string Namespace;        // Unique appstore namespace, used in the apps folder path
@@ -33,7 +34,7 @@ namespace Administrator.Server.ApplicationContainer {
         public string Description;      // Description
         public string ImageUri;         // Image
 
-        public string sourceID;         // Package source ID, "EB23432"
+        public string SourceID;         // Package source ID, "EB23432"
         public string SourceUrl;        // Package source Url, "http://appstore.polyjuice.com/apps/EB23432"
 
         [XmlIgnoreAttribute]

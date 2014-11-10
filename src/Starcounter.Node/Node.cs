@@ -748,7 +748,7 @@ namespace Starcounter
                 // Checking if response should be sent.
                 if (resp.Request != null)
                 {
-                    resp.Request.SendResponse(resp);
+                    resp.Request.SendResponse(resp, null);
                     resp.Request = null;
                 }
             }
@@ -965,7 +965,7 @@ namespace Starcounter
 
                                 // Checking if response should be sent.
                                 if (resp.Request != null) {
-                                    resp.Request.SendResponse(resp);
+                                    resp.Request.SendResponse(resp, null);
                                     resp.Request = null;
                                 }
 

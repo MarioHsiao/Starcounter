@@ -302,7 +302,6 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
         // Getting next chunk in chain.
         the_chunk_index = ((shared_memory_chunk*)cur_smc)->get_link();
         _SC_ASSERT(the_chunk_index != shared_memory_chunk::link_terminator);
-        _SC_ASSERT(the_chunk_index < starcounter::MixedCodeConstants::SHM_CHUNKS_DEFAULT_NUMBER);
 
         // Getting chunk memory address.
         err_code = cm_get_shared_memory_chunk(the_chunk_index, &cur_smc);

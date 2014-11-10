@@ -605,7 +605,9 @@ namespace Starcounter.Server {
             if (Debugger.IsAttached) {
                 args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
+            
             args.Add(database.Name.ToUpper());
+
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
