@@ -10,25 +10,6 @@ using Starcounter.Advanced;
 
 namespace Starcounter
 {
-    internal class ResponseSchedulerStore
-    {
-        LinkedList<Response> cachedResponses_ = new LinkedList<Response>();
-
-        public Response GetNewInstance()
-        {
-            if (cachedResponses_.Count > 0)
-            {
-                LinkedListNode<Response> respNode = cachedResponses_.Last;
-                cachedResponses_.RemoveLast();
-                return respNode.Value;
-            }
-
-            Response resp = new Response();
-            resp.AttachToCache(cachedResponses_);
-            return resp;
-        }
-    }
-
     /// <summary>
     /// Handler response status.
     /// </summary>
@@ -135,14 +116,8 @@ namespace Starcounter
     /// (compressed or uncompressed content) even if the consumer wants to embed the content
     /// in a new http response.
     /// </remarks>
-    public sealed partial class Response
+    public sealed partial class Response : Finalizing
     {
-        // From which cache list this response came from.
-        LinkedList<Response> responseCacheListFrom_ = null;
-
-        // Node with this response.
-        LinkedListNode<Response> responseListNode_ = null;
-
         /// <summary>
         /// Application name this response came from.
         /// </summary>
@@ -151,22 +126,22 @@ namespace Starcounter
         /// <summary>
         /// The plain response bytes.
         /// </summary>
-        byte[] responseBytes_ = null;
+        byte[] responseBytes_;
 
         /// <summary>
         /// The plain response size bytes.
         /// </summary>
-        int responseSizeBytes_ = 0;
+        int responseSizeBytes_;
 
         /// <summary>
         /// Response body offset.
         /// </summary>
-        int responseBodyOffset_ = 0;
+        int responseBodyOffset_;
 
         /// <summary>
         /// Response body size.
         /// </summary>
-        int responseBodySizeBytes_ = 0;
+        int responseBodySizeBytes_;
 
         /// <summary>
         /// URIs related to this static resource.
@@ -216,7 +191,7 @@ namespace Starcounter
         /// <summary>
         /// Connection flags.
         /// </summary>
-        ConnectionFlags connectionFlags_ = ConnectionFlags.NoSpecialFlags;
+        ConnectionFlags connectionFlags_;
 
         /// <summary>
         /// Body string.
@@ -251,17 +226,17 @@ namespace Starcounter
         /// <summary>
         /// Socket data buffer pointer.
         /// </summary>
-        IntPtr socketDataIntPtr_ = IntPtr.Zero;
+        IntPtr socketDataIntPtr_;
 
         /// <summary>
         /// Response buffer pointer.
         /// </summary>
-        IntPtr responseStructIntPtr_ = IntPtr.Zero;
+        IntPtr responseStructIntPtr_;
 
         /// <summary>
         /// Internal structure with HTTP response information.
         /// </summary>
-        unsafe HttpResponseInternal* http_response_struct_ = null;
+        unsafe HttpResponseInternal* httpResponseStruct_;
 
         /// <summary>
         /// Direct pointer to session data.
@@ -271,17 +246,17 @@ namespace Starcounter
         /// <summary>
         /// Indicates if this Response is internally constructed from Apps.
         /// </summary>
-        Boolean isInternalResponse_ = false;
+        Boolean isInternalResponse_;
 
         /// <summary>
         /// Reference to corresponding request.
         /// </summary>
-        Request corrRequest_ = null;
+        Request corrRequest_;
 
         /// <summary>
         /// Underlying memory stream.
         /// </summary>
-        MemoryStream memStream_ = null;
+        MemoryStream memStream_;
 
         /// <summary>
         /// Dictionary of simple user custom headers.
@@ -292,28 +267,6 @@ namespace Starcounter
         /// String containing all headers.
         /// </summary>
         String headersString_;
-
-        /// <summary>
-        /// Returns the enumerator back to the cache.
-        /// </summary>
-        internal void ReturnToCache()
-        {
-            // Returning this enumerator back to the cache.
-            responseCacheListFrom_.AddLast(responseListNode_);
-        }
-
-        /// <summary>
-        /// Should be called when attached to a cache.
-        /// </summary>
-        /// <param name="fromCache">Cache where this enumerator should be returned.</param>
-        internal void AttachToCache(LinkedList<Response> fromCache)
-        {
-            // Attaching to the specified cache.
-            responseCacheListFrom_ = fromCache;
-
-            // Creating cache node from this response.
-            responseListNode_ = new LinkedListNode<Response>(this);
-        }
 
         /// <summary>
         /// Clones existing static resource response object.
@@ -456,10 +409,10 @@ namespace Starcounter
                 {
                     unsafe
                     {
-                        if (null == http_response_struct_)
+                        if (null == httpResponseStruct_)
                             throw new ArgumentException("HTTP response not initialized.");
 
-                        return http_response_struct_->status_code_;
+                        return httpResponseStruct_->status_code_;
                     }
                 }
 
@@ -484,10 +437,10 @@ namespace Starcounter
                 {
                     unsafe
                     {
-                        if (null == http_response_struct_)
+                        if (null == httpResponseStruct_)
                             return null;
 
-                        return http_response_struct_->GetStatusDescription();
+                        return httpResponseStruct_->GetStatusDescription();
                     }
                 }
 
@@ -776,9 +729,9 @@ namespace Starcounter
                 // Adding new cookies list from response.
                 unsafe
                 {
-                    if (http_response_struct_ != null)
+                    if (httpResponseStruct_ != null)
                     {
-                        cookies_ = http_response_struct_->GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
+                        cookies_ = httpResponseStruct_->GetHeadersValues(HttpHeadersUtf8.SetCookieHeader, ref headersString_);
                     }
                 }
 
@@ -809,9 +762,9 @@ namespace Starcounter
         }
 
 		/// <summary>
-		/// Constructs Response from fields that are set.
+		/// Constructs response buffer from fields that are set.
 		/// </summary>
-		internal void ConstructFromFields() {
+		internal void ConstructFromFields(Byte[] givenBuffer) {
 
 			// Checking if we have a custom response.
 			if (!customFields_)
@@ -856,14 +809,20 @@ namespace Starcounter
 			}
 
             Int32 numBytes = EstimateNeededSize(bytes);
-            buf = new Byte[numBytes];
-            /*
-            if (numBytes > SchedulerResources.ResponseTempBufSize)
+
+            // Checking if we have a given buffer.
+            if (givenBuffer != null) {
+
+                if (numBytes > givenBuffer.Length) {
+                    buf = new Byte[numBytes];
+                } else {
+                    buf = givenBuffer;
+                }
+            } else {
+
                 buf = new Byte[numBytes];
-            else			
-                buf = SchedulerResources.Current.ResponseTempBuf;
-            */
-			
+            }
+
 			unsafe {
 				fixed (byte* p = buf) {
                     writer = new Utf8Writer(p);
@@ -922,6 +881,7 @@ namespace Starcounter
 
                     // Checking if session is defined.
                     if (addSetCookie && (null != AppsSession) && (corrRequest_ == null || !corrRequest_.CameWithCorrectSession)) {
+
                         if (AppsSession.use_session_cookie_) {
                             writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
                             writer.Write(AppsSession.ToAsciiString());
@@ -1045,10 +1005,10 @@ namespace Starcounter
 
                 unsafe
                 {
-                    if (null == http_response_struct_)
+                    if (null == httpResponseStruct_)
                         return 0;
 
-                    return http_response_struct_->content_len_bytes_;
+                    return httpResponseStruct_->content_len_bytes_;
                 }
             }
             set
@@ -1069,10 +1029,10 @@ namespace Starcounter
 
                 unsafe
                 {
-                    if (null == http_response_struct_)
+                    if (null == httpResponseStruct_)
                         throw new ArgumentException("HTTP response not initialized.");
 
-                    return http_response_struct_->GetResponseByte_Slow();
+                    return httpResponseStruct_->GetResponseByte_Slow();
                 }
             }
 
@@ -1098,10 +1058,10 @@ namespace Starcounter
 
                 unsafe
                 {
-                    if (null == http_response_struct_)
+                    if (null == httpResponseStruct_)
                         return 0;
 
-                    return (Int32)http_response_struct_->response_len_bytes_;
+                    return (Int32)httpResponseStruct_->response_len_bytes_;
                 }
             }
         }
@@ -1142,6 +1102,9 @@ namespace Starcounter
         /// <param name="response_len_bytes"></param>
         internal void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
         {
+            // Creating finalizer if needed.
+            CreateFinalizer();
+
             responseBytes_ = response_buf;
 			responseSizeBytes_ = response_len_bytes;
 
@@ -1159,12 +1122,12 @@ namespace Starcounter
 
                 // Setting the response data pointer.
                 socketDataIntPtr_ = BitsAndBytes.Alloc(responseSizeBytes_);
-                System.Diagnostics.Debug.Assert(null != http_response_struct_);
-                http_response_struct_->socket_data_ = (Byte*) socketDataIntPtr_.ToPointer();
+                System.Diagnostics.Debug.Assert(null != httpResponseStruct_);
+                httpResponseStruct_->socket_data_ = (Byte*) socketDataIntPtr_.ToPointer();
 
                 // Copying HTTP response data.
                 fixed (Byte* fixed_response_buf = response_buf) {
-                    BitsAndBytes.MemCpy(http_response_struct_->socket_data_, fixed_response_buf, (UInt32)responseSizeBytes_);
+                    BitsAndBytes.MemCpy(httpResponseStruct_->socket_data_, fixed_response_buf, (UInt32)responseSizeBytes_);
                 }
             }
         }
@@ -1192,6 +1155,9 @@ namespace Starcounter
                 // First destroying.
                 Destroy();
 
+                // Creating finalizer if needed.
+                CreateFinalizer();
+
                 // Indicating that we internally constructing Response.
                 isInternalResponse_ = true;
 
@@ -1202,8 +1168,8 @@ namespace Starcounter
 
                 // Allocating space just for response structure.
                 responseStructIntPtr_ = BitsAndBytes.Alloc(sizeof(HttpResponseInternal));
-                http_response_struct_ = (HttpResponseInternal*) responseStructIntPtr_.ToPointer();
-                http_response_struct_->socket_data_ = null;
+                httpResponseStruct_ = (HttpResponseInternal*) responseStructIntPtr_.ToPointer();
+                httpResponseStruct_->socket_data_ = null;
 
                 // Checking if we have a complete response.
                 if (complete)
@@ -1212,14 +1178,14 @@ namespace Starcounter
                     SetResponseBuffer(buf, null, bufLenBytes);
 
                     // Executing HTTP response parser and getting Response structure as result.
-                    err_code = sc_parse_http_response(http_response_struct_->socket_data_, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
+                    err_code = sc_parse_http_response(httpResponseStruct_->socket_data_, (UInt32)bufLenBytes, (Byte*)httpResponseStruct_);
                 }
                 else
                 {
                     fixed (Byte* pbuf = buf)
                     {
                         // Executing HTTP response parser and getting Response structure as result.
-                        err_code = sc_parse_http_response(pbuf + offsetBytes, (UInt32)bufLenBytes, (Byte*)http_response_struct_);
+                        err_code = sc_parse_http_response(pbuf + offsetBytes, (UInt32)bufLenBytes, (Byte*)httpResponseStruct_);
                     }
                 }
 
@@ -1233,8 +1199,8 @@ namespace Starcounter
                     throw ErrorCode.ToException(err_code);
                 }
 
-                responseBodySizeBytes_ = http_response_struct_->content_len_bytes_;
-                responseBodyOffset_ = (int)http_response_struct_->content_offset_;
+                responseBodySizeBytes_ = httpResponseStruct_->content_len_bytes_;
+                responseBodyOffset_ = (int)httpResponseStruct_->content_offset_;
 
                 // NOTE: No internal sessions support.
                 session_ = null;
@@ -1259,18 +1225,25 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Destroys the instance of Request.
+        /// </summary>
+        override internal void DestroyByFinalizer() {
+            Destroy();
+        }
+
+        /// <summary>
         /// Destroys the instance of Response.
         /// </summary>
         internal void Destroy()
         {
             unsafe
             {
-                // Checking if already destroyed.
-                if (http_response_struct_ == null)
-                    return;
+                // NOTE: Removing reference for finalizer in order not to finalize twice.
+                UnLinkFinalizer();
 
-                // Removing object from GC.
-                GC.SuppressFinalize(this);
+                // Checking if already destroyed.
+                if (httpResponseStruct_ == null)
+                    return;
 
                 // Closing the memory stream if any.
                 if (null != memStream_)
@@ -1300,17 +1273,9 @@ namespace Starcounter
                     }
                 }
 
-                http_response_struct_ = null;
+                httpResponseStruct_ = null;
                 session_ = null;
             }
-        }
-
-        /// <summary>
-        /// Releases resources.
-        /// </summary>
-        ~Response()
-        {
-            Destroy();
         }
 
         /// <summary>
@@ -1385,10 +1350,10 @@ namespace Starcounter
                         return headersString_;
                     }
 
-                    if (null == http_response_struct_)
+                    if (null == httpResponseStruct_)
                         return null;
                     
-                    headersString_ = http_response_struct_->GetHeadersStringUtf8_Slow();
+                    headersString_ = httpResponseStruct_->GetHeadersStringUtf8_Slow();
                     return headersString_;
                 }
             }
@@ -1403,10 +1368,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
-                return http_response_struct_->GetHeadersLength();
+                return httpResponseStruct_->GetHeadersLength();
             }
         }
 
@@ -1419,10 +1384,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
-                http_response_struct_->GetBodyRaw(out ptr, out sizeBytes);
+                httpResponseStruct_->GetBodyRaw(out ptr, out sizeBytes);
             }
         }
 
@@ -1436,10 +1401,10 @@ namespace Starcounter
 
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     return null;
 
-                return http_response_struct_->GetBodyByteArray_Slow();
+                return httpResponseStruct_->GetBodyByteArray_Slow();
             }
         }
 
@@ -1461,10 +1426,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     return null;
 
-                return http_response_struct_->GetBodyStringUtf8_Slow();
+                return httpResponseStruct_->GetBodyStringUtf8_Slow();
             }
         }
 
@@ -1475,10 +1440,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     return null;
 
-                return http_response_struct_->GetBodyByteArray_Slow();
+                return httpResponseStruct_->GetBodyByteArray_Slow();
             }
         }
 
@@ -1490,10 +1455,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     return null;
 
-                return http_response_struct_->GetHeadersStringUtf8_Slow();
+                return httpResponseStruct_->GetHeadersStringUtf8_Slow();
             }
         }
 
@@ -1506,10 +1471,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
-                http_response_struct_->GetResponseRaw(out ptr, out sizeBytes);
+                httpResponseStruct_->GetResponseRaw(out ptr, out sizeBytes);
             }
         }
 
@@ -1521,10 +1486,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
-                return http_response_struct_->GetResponseStringUtf8_Slow();
+                return httpResponseStruct_->GetResponseStringUtf8_Slow();
             }
         }
 
@@ -1537,10 +1502,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
-                http_response_struct_->GetRawHeaders(out ptr, out sizeBytes);
+                httpResponseStruct_->GetRawHeaders(out ptr, out sizeBytes);
             }
         }
 
@@ -1553,10 +1518,10 @@ namespace Starcounter
         {
             unsafe
             {
-                if (null == http_response_struct_)
+                if (null == httpResponseStruct_)
                     throw new ArgumentException("HTTP response not initialized.");
 
-                http_response_struct_->GetRawSessionString(out ptr, out sizeBytes);
+                httpResponseStruct_->GetRawSessionString(out ptr, out sizeBytes);
             }
         }
 
@@ -1585,8 +1550,8 @@ namespace Starcounter
                     {
                         unsafe
                         {
-                            if (null != http_response_struct_)
-                                headersString = http_response_struct_->GetHeadersStringUtf8_Slow();
+                            if (null != httpResponseStruct_)
+                                headersString = httpResponseStruct_->GetHeadersStringUtf8_Slow();
                         }
                     }
 
@@ -1621,10 +1586,10 @@ namespace Starcounter
 
                 unsafe
                 {
-                    if (null == http_response_struct_)
+                    if (null == httpResponseStruct_)
                         return null;
 
-                    return http_response_struct_->GetHeaderValue(name, ref headersString_);
+                    return httpResponseStruct_->GetHeaderValue(name, ref headersString_);
                 }
             }
 
@@ -1639,8 +1604,8 @@ namespace Starcounter
                     {
                         unsafe
                         {
-                            if (null != http_response_struct_)
-                                headers = http_response_struct_->GetHeadersStringUtf8_Slow();
+                            if (null != httpResponseStruct_)
+                                headers = httpResponseStruct_->GetHeadersStringUtf8_Slow();
                         }
                     }
 

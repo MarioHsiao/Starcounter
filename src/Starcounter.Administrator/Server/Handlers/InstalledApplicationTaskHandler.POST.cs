@@ -112,37 +112,50 @@ namespace Starcounter.Administrator.Server.Handlers {
             }
         }
 
+
         /// <summary>
         /// Upgrade installed application
         /// </summary>
-        /// <param name="sourceUrl"></param>
+        /// <param name="port"></param>
+        /// <param name="id">Installed app ID</param>
         /// <param name="appsRootFolder"></param>
+        /// <param name="imageResourceFolder"></param>
         /// <returns></returns>
         internal static Response Upgrade(ushort port, string id, string appsRootFolder, string imageResourceFolder) {
 
             try {
 
-                // Get latest version of app
-                string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps/" + id;
-                Response response;
-                X.GET(uri, out response, null, 10000);
-                if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
-                    return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
+                // Get installed app
+                AppConfig installedConfig;
+                AppsContainer.GetInstalledApp(id, appsRootFolder, out installedConfig);
+
+                if (installedConfig == null) {
+                    throw new InvalidOperationException("Failed to upgrade, Can not get previously installed application");
                 }
 
-                Representations.JSON.AppStoreApplication appStoreItem = new Representations.JSON.AppStoreApplication();
-                appStoreItem.PopulateFromJson(response.Body);
+                // Get appstore  app
+                Representations.JSON.AppStoreApplication appStoreItem = GetAppStoreItem(port, id);
+                if (appStoreItem == null) {
+                    // App Store Service down, App item removed from appstore, ..
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                }
+
+
+                //// Get latest version of app
+                //string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps/" + id;
+                //Response response;
+                //X.GET(uri, out response, null, 10000);
+                //if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
+                //    return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
+                //}
+
+                //Representations.JSON.AppStoreApplication appStoreItem = new Representations.JSON.AppStoreApplication();
+                //appStoreItem.PopulateFromJson(response.Body);
 
                 if (appStoreItem.NewVersionAvailable == false) {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotModified };
                 }
 
-                AppConfig installedConfig;
-                AppsContainer.GetInstalledApp(id, appsRootFolder, out installedConfig);
-
-                if (installedConfig == null) {
-                    throw new InvalidOperationException("Failed to upgrade, Can not get installed application");
-                }
 
                 // Download latest version
                 byte[] packageData;
@@ -171,11 +184,38 @@ namespace Starcounter.Administrator.Server.Handlers {
             }
         }
 
+
+        private static Representations.JSON.AppStoreApplication GetAppStoreItem(ushort port, string id ) {
+
+            // Get items
+            string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
+            Response response;
+            X.GET(uri, out response, null, 10000);
+            if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
+                return null;
+            }
+
+            Representations.JSON.AppStoreApplications appStoreItems = new Representations.JSON.AppStoreApplications();
+            appStoreItems.PopulateFromJson(response.Body);
+
+            foreach (var appStore in appStoreItems.Stores) {
+
+                foreach (var appStoreItem in appStore.Items) {
+
+                    if (appStoreItem.ID == id) {
+                        return appStoreItem;
+                    }
+                }
+            }
+            return null;
+        }
+
         /// <summary>
         /// UnInstall installed application
         /// </summary>
-        /// <param name="sourceUrl"></param>
+        /// <param name="id">Installed app ID</param>
         /// <param name="appsRootFolder"></param>
+        /// <param name="imageResourceFolder"></param>
         /// <returns></returns>
         internal static Response UnInstall(string id, string appsRootFolder, string imageResourceFolder) {
 
@@ -185,7 +225,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                 AppsContainer.GetInstalledApp(id, appsRootFolder, out installedConfig);
 
                 if (installedConfig == null) {
-                    throw new InvalidOperationException("Failed to upgrade, Can not get installed application");
+                    throw new InvalidOperationException("Failed to uninstall, Can not get installed application");
                 }
 
                 AppsContainer.UnInstall(installedConfig, imageResourceFolder);

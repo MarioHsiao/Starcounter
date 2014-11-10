@@ -130,5 +130,47 @@ namespace Starcounter.CLI {
 
             return result.ToArray();
         }
+
+        /// <summary>
+        /// Deletes the database specified in <paramref name="database"/>.
+        /// </summary>
+        /// <param name="database">The database to delete.</param>
+        /// <param name="writeErrorToConsole">Instructs the CLI library to
+        /// write out eventual error information to the console.</param>
+        /// <returns>Zero on success; an error code otherwise. If an error
+        /// is returned, a formatted error has already been written to the
+        /// console, depending on the value of </returns>
+        public int DeleteDatabase(string database, bool writeErrorToConsole = false) {
+            if (string.IsNullOrWhiteSpace(database)) {
+                throw new ArgumentNullException("database");
+            }
+
+            var response = node.DELETE(
+                adminAPI.FormatUri(adminAPI.Uris.Database, database), (string)null, null);
+            
+            if (!response.IsSuccessStatusCode) {
+                ErrorMessage msg = null;
+                try {
+                    var detail = new ErrorDetail();
+                    detail.PopulateFromJson(response.Body);
+                    if (writeErrorToConsole) {
+                        SharedCLI.ShowErrorAndSetExitCode(detail);
+                    }
+                    return (int) detail.ServerCode;
+                }
+                catch {
+                    if (response.StatusCode == 503) {
+                        throw ErrorCode.ToException(Error.SCERRSERVERNOTRUNNING);
+                    }
+                    else {
+                        // Trigger final fallback
+                        response.FailIfNotSuccess();
+                    }
+                }
+                throw msg.ToException();
+            }
+
+            return 0;
+        }
     }
 }

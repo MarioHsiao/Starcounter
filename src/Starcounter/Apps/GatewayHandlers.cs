@@ -135,11 +135,6 @@ namespace Starcounter
         /// <summary>
         /// Ports the outer handler.
         /// </summary>
-        /// <param name="session_id">The session_id.</param>
-        /// <param name="raw_chunk">The raw_chunk.</param>
-        /// <param name="task_info">The task_info.</param>
-        /// <param name="is_handled">The is_handled.</param>
-        /// <returns>UInt32.</returns>
         unsafe static UInt32 HandleRawSocket(
             UInt16 managedHandlerId,
             Byte* rawChunk,
@@ -163,7 +158,8 @@ namespace Starcounter
                 // Determining if chunk is single.
                 isSingleChunk = ((taskInfo->flags & 0x01) == 0);
 
-                NetworkDataStream dataStream = new NetworkDataStream(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
+                NetworkDataStream dataStream = new NetworkDataStream();
+                dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id, true);
 
                 // Checking if we need to process linked chunks.
                 if (!isSingleChunk) {
@@ -281,13 +277,15 @@ namespace Starcounter
                 // Checking if flag to upgrade to WebSockets is set.
                 Boolean wsUpgradeRequest = (((*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_REQUEST) != 0);
 
-                Request httpRequest = null;
+                SchedulerResources sr = SchedulerResources.Current;
+                Request req = new Request();
+                NetworkDataStream dataStream = new NetworkDataStream();
 
                 // Checking if we need to process linked chunks.
                 if (!isSingleChunk)
                 {
                     // Creating network data stream object.
-                    NetworkDataStream dataStream = new NetworkDataStream(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
+                    dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id, false);
 
                     UInt16 numChunks = *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
@@ -308,7 +306,7 @@ namespace Starcounter
                         throw ErrorCode.ToException(errorCode);
 
                     // Obtaining Request structure.
-                    httpRequest = new Request(
+                    req.Init(
                         rawChunk,
                         isSingleChunk,
                         chunkIndex,
@@ -323,7 +321,7 @@ namespace Starcounter
                 else
                 {
                     // Creating network data stream object.
-                    NetworkDataStream dataStream = new NetworkDataStream(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
+                    dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id, false);
 
                     /*if (isAggregated) {
                         data_stream.SendResponse(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
@@ -332,7 +330,7 @@ namespace Starcounter
                     }*/
 
                     // Obtaining Request structure.
-                    httpRequest = new Request(
+                    req.Init(
                         rawChunk,
                         isSingleChunk,
                         taskInfo->chunk_index,
@@ -347,7 +345,7 @@ namespace Starcounter
 
                 Db.ImplicitScope(() => {
                     // Calling user callback.
-                    *isHandled = UriInjectMethods.OnHttpMessageRoot_(httpRequest);
+                    *isHandled = UriInjectMethods.OnHttpMessageRoot_(req);
                 }, 0);
             
                 // Reset managed task state before exiting managed task entry point.
@@ -478,7 +476,8 @@ namespace Starcounter
                 WebSocket ws = null;
 
                 // Creating network data stream object.
-                NetworkDataStream dataStream = new NetworkDataStream(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
+                NetworkDataStream dataStream = new NetworkDataStream();
+                dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id, true);
 
                 SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForWebSocket(dataStream);
 

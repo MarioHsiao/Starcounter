@@ -10,6 +10,7 @@ using System.Diagnostics;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.Advanced;
 
 namespace Starcounter {
     //[Flags]
@@ -31,6 +32,9 @@ namespace Starcounter {
         private static Session _current;
         [ThreadStatic]
         private static Request _request;
+
+        // Temporary hack to allow shared transactions for newly created objects.
+        private volatile ITransaction _transaction;
 
         private Action<Session> _sessionDestroyUserDelegate;
         private bool _brandNew;
@@ -69,6 +73,14 @@ namespace Starcounter {
         //internal bool CheckOption(SessionOptions option) {
         //    return (_sessionOptions & option) == option;
         //}
+
+        public void ShareTransaction(ITransaction transaction) {
+            _transaction = transaction;
+        }
+
+        public ITransaction SharedTransaction {
+            get { return _transaction; }
+        }
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
@@ -435,6 +447,7 @@ namespace Starcounter {
         /// </summary>
         internal static void End() {
             if (_current != null) {
+                _current._transaction = null;
                 _current.Clear();
                 Session._current = null;
             }

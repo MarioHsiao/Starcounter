@@ -65,8 +65,17 @@ namespace Administrator.Server.ApplicationContainer {
 
                             // Create app configuration file
                             config = new AppConfig();
-                            //AppConfig appConfig = new AppConfig();
+
                             CreateAppConfig(packageConfig, out config);
+
+                            Uri u = new Uri(sourceUrl);
+                            if (u.IsFile) {
+                                config.SourceID = string.Format("{0:X8}", u.LocalPath.GetHashCode());
+                            }
+                            else {
+                                config.SourceID = u.Segments[u.Segments.Length - 1];
+                            }
+
                             config.SourceUrl = sourceUrl;
                             config.ImageUri = imageUri;
 
@@ -255,6 +264,40 @@ namespace Administrator.Server.ApplicationContainer {
             }
         }
 
+        public static void VerifyPacket(string packageZip) {
+
+            using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
+                VerifyPacket(fs);
+            }
+
+        }
+
+        public static void VerifyPacket(Stream package) {
+
+            try {
+
+                using (ZipArchive archive = new ZipArchive(package, ZipArchiveMode.Read, true)) {
+
+                    // Get Configuration
+                    PackageConfig packageConfig;
+                    ReadConfiguration(archive, out packageConfig);
+
+                    // Validate configuration
+                    ValidateConfiguration(archive, packageConfig);
+
+                    if (package.CanSeek) {
+                        package.Seek(0, 0);
+                    }
+                };
+            }
+            catch (InvalidDataException e) {
+                throw new InvalidOperationException("Verification of package failed", e);
+            }
+            catch (Exception e) {
+                throw new InvalidOperationException("Verification of package failed, " + e.Message, e);
+            }
+        }
+
         /// <summary>
         /// Validate app configuration
         /// </summary>
@@ -282,12 +325,12 @@ namespace Administrator.Server.ApplicationContainer {
                 throw new InvalidOperationException("Invalid Version <tag> in package configuration");
             }
 
-            try {
-                new Version(config.Version);
-            }
-            catch (Exception) {
-                throw new InvalidOperationException("Invalid Version <tag> in package configuration");
-            }
+            //try {
+            //    new Version(config.Version);
+            //}
+            //catch (Exception) {
+            //    throw new InvalidOperationException("Invalid Version <tag> in package configuration");
+            //}
 
             if (string.IsNullOrEmpty(config.Executable)) {
                 throw new InvalidOperationException("Invalid Executable <tag> in package configuration");

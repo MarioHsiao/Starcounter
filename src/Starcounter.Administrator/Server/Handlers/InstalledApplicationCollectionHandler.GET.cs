@@ -86,6 +86,11 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             item = new Representations.JSON.InstalledApplication();
             item.ID = appConfig.ID;
+            item.Url = url + "/" + appConfig.Namespace;
+
+            item.SourceID = appConfig.SourceID;
+            item.SourceUrl = appConfig.SourceUrl;
+
             item.Namespace = appConfig.Namespace;
             item.Channel = appConfig.Channel;
             item.Version = appConfig.Version;
@@ -113,7 +118,6 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             item.Size = 0;      // TODO: Collect the disk space size?
             item.ImageUri = string.Format("{0}/{1}", appImagesSubFolder, appConfig.ImageUri); ;
-            item.Url = url + "/" + appConfig.Namespace;
         }
 
         /// <summary>

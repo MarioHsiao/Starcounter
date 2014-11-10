@@ -43,7 +43,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                         database.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
                         database.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
                         database.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
-                        database.Configuration.Runtime.SqlAggregationSupport = settings.SqlAggregationSupport;
 
                         database.Configuration.Save();
 

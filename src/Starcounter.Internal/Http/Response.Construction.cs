@@ -2,9 +2,12 @@
 using System.Text;
 using Starcounter.Internal.REST;
 using System;
+using Starcounter.Internal;
 
 namespace Starcounter {
-    public sealed partial class Response {
+
+    public sealed partial class Response : Finalizing {
+
         /// <summary>
         /// Creates a response from an HTTP status code
         /// as defined in section
@@ -14,7 +17,7 @@ namespace Starcounter {
         /// <param name="statusCode">The status code (for instance 404)</param>
         /// <returns>The complete response</returns>
         public static Response FromStatusCode( int statusCode ) {
-            Response response;
+            
             string responseReasonPhrase;
             if (!HttpStatusCodeAndReason.TryGetRecommendedHttp11ReasonPhrase(
                 statusCode, out responseReasonPhrase)) {
@@ -24,18 +27,20 @@ namespace Starcounter {
                 // give back our default, "reason phrase not available" message.
                 responseReasonPhrase = HttpStatusCodeAndReason.ReasonNotAvailable;
             }
-            response = new Response() {
-				StatusCode = (ushort)statusCode,
-				StatusDescription = responseReasonPhrase
-            };
+
+            Response response = new Response();
+
+            response.StatusCode = (ushort)statusCode;
+			response.StatusDescription = responseReasonPhrase;
+
             return response;
         }
 
         public static implicit operator Response(byte[] bytes) {
-            return new Response() {
-                BodyBytes = bytes
-                // The response will get its content type from the request Accept header
-            };
+
+            Response resp = new Response();
+            resp.BodyBytes = bytes;
+            return resp;
         }
 
         public static implicit operator Response(string text) {
