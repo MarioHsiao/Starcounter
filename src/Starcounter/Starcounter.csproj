@@ -96,6 +96,7 @@
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Entity2.cs" />
+	<Compile Include="Entity2.Implementation.cs" />
     <Compile Include="Hosting\ApplicationBase.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
