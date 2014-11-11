@@ -101,7 +101,7 @@
     <Compile Include="Internal\Entity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
-    <Compile Include="Hosting\DatabaseAttribute.cs" />
+    <Compile Include="DatabaseAttribute.cs" />
     <Compile Include="Hosting\DbStateRedirect.cs" />
     <Compile Include="Hosting\HostManager.cs" />
     <Compile Include="Hosting\IBackingHost.cs" />
