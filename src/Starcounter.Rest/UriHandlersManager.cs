@@ -217,6 +217,10 @@ namespace Starcounter.Rest
 
             responses = new List<Response>();
 
+            // Saving the name of the app the request originated from. Used to 
+            // decide which response should be used to merge the others to.
+            string orgRequestAppName = StarcounterEnvironment.AppName;
+
             // Running every delegate from the list.
             for (int i = 0; i < userDelegates_.Count; i++) {
                 var func = userDelegates_[i];
@@ -239,7 +243,7 @@ namespace Starcounter.Rest
                 resp.AppName = appNames_[i];
 
                 // The first response is the one we should merge on.
-                if (appNames_[i] == StarcounterEnvironment.OrigMapperCallerAppName)
+                if (appNames_[i] == orgRequestAppName)
                     responses.Insert(0, resp);
                 else
                     responses.Add(resp);
