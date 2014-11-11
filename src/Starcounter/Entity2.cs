@@ -29,6 +29,6 @@ namespace Starcounter {
             return this.__sc__this_id__.GetHashCode();
         }
 
-        public abstract void OnDelete();
+        public virtual void OnDelete() { }
     }
 }
