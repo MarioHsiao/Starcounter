@@ -54,6 +54,8 @@ namespace Starcounter.Query {
             Exception finalException = null;
             if (prologException != null)
                 finalException = prologException;
+            else
+                finalException = Starcounter.Query.Sql.SqlProcessor.CheckSingleDelimitedIdentifiers(query);
 #if !PROLOG_ONLY
             if (nativeException != null)
                 if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED 

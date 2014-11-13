@@ -134,6 +134,10 @@ internal static class Tokenizer
         return chr >= '0' && chr <= '9';
     }
 
+    internal static Boolean IdentifierSeparation(Char chr) {
+        return chr == '.';
+    }
+
     internal static Boolean Letter(Char chr)
     {
         return (chr >= 'A' && chr <= 'Z') || (chr >= 'a' && chr <= 'z');
