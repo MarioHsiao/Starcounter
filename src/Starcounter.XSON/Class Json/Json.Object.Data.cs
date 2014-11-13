@@ -52,7 +52,7 @@ namespace Starcounter {
         }
 
         private void AttachTransaction(){
-            if (_DB.Current != null) {
+            if (_DB != null && _DB.Current != null) {
                 if (Transaction == null || Transaction != _DB.Current) {
                     _transaction = _DB.Current;
                 }
