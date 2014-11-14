@@ -257,7 +257,7 @@ namespace QueryProcessingTest {
                 "ColumnPrimaryKey").First;
             Trace.Assert(i != null);
             Index idx = Db.SQL<Index>("select i from starcounter.metadata.\"index\" i where i.\"table\".name = ?", "VersionSource").First;
-            Trace.Assert(idx == null);
+            Trace.Assert(idx != null);
             IndexedColumn idxc = Db.SQL<IndexedColumn>(
                 "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.column.name = ?",
                 "account", "accountid").First;
