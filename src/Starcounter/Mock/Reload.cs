@@ -64,10 +64,12 @@ namespace Starcounter {
                     inStmt.Append("(__id");
                     selectObjs.Append("SELECT __o as __id");
                     foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
-                        inStmt.Append(",");
-                        inStmt.Append(QuoteName(col.Name));
-                        selectObjs.Append(",");
-                        selectObjs.Append(QuoteName(GetPropertyName(col)));
+                        if (col.Name != "__id") {
+                            inStmt.Append(",");
+                            inStmt.Append(QuoteName(col.Name));
+                            selectObjs.Append(",");
+                            selectObjs.Append(QuoteName(GetPropertyName(col)));
+                        }
                     }
                     inStmt.Append(")");
                     inStmt.Append("VALUES");

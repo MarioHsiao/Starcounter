@@ -175,7 +175,7 @@ namespace Starcounter.SqlProcessor {
             RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
         typeDef.TableDef.Name).First;
             Debug.Assert(thisView != null);
-            for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
+            for (int i = 0; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
                 ColumnDef col = typeDef.TableDef.ColumnDefs[i];
                 Starcounter.Internal.Metadata.MaterializedColumn matCol = Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
                     "select c from materializedcolumn c where c.name = ? and c.table = ?",
@@ -228,7 +228,7 @@ namespace Starcounter.SqlProcessor {
                     };
                     Debug.Assert(rawColIndx.Column != null);
                 }
-                Debug.Assert(Db.SQL("select c from indexedColumn c where index = ?", rawIndx).First != null);
+                Debug.Assert(Db.SQL("select c from indexedColumn c where \"index\" = ?", rawIndx).First != null);
             }
         }
 }
