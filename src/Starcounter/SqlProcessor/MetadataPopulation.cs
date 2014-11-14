@@ -201,34 +201,41 @@ namespace Starcounter.SqlProcessor {
             }
         }
 
+        internal static void CreateAnIndexInstance(MaterializedIndex matIndx) {
+            Debug.Assert(matIndx != null);
+            Index rawIndx = new Index {
+                MaterializedIndex = matIndx,
+                Name = matIndx.Name,
+                Table =
+                    Db.SQL<RawView>("select v from rawview v where materializedtable = ?", matIndx.Table).First,
+                Unique = matIndx.Unique
+            };
+            Debug.Assert(rawIndx.Table != null);
+            Debug.Assert(rawIndx.Table is Starcounter.Metadata.RawView);
+            Debug.Assert((rawIndx.Table as Starcounter.Metadata.RawView).MaterializedTable.Equals(rawIndx.MaterializedIndex.Table));
+            foreach (MaterializedIndexColumn matCol in Db.SQL<MaterializedIndexColumn>(
+                "select c from MaterializedIndexColumn c where \"index\" = ?", matIndx)) {
+                Debug.Assert(matCol.Index.Equals(rawIndx.MaterializedIndex));
+                IndexedColumn rawColIndx = new IndexedColumn {
+                    Ascending =
+                        matCol.Order == 0,
+                    Column =
+                        Db.SQL<Column>("select c from column c where c.table = ? and materializedcolumn = ?",
+                        rawIndx.Table, matCol.Column).First,
+                    Index =
+                        rawIndx,
+                    MaterializedIndexColumn = matCol,
+                    Position = matCol.Place
+                };
+                Debug.Assert(rawColIndx.Column != null);
+            }
+            Debug.Assert(Db.SQL("select c from indexedColumn c where \"index\" = ?", rawIndx).First != null);
+        }
+
         internal static void CreateIndexInstances(TypeDef typeDef) {
             foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>
                 ("select i from materializedIndex i where tableid = ?", typeDef.TableDef.TableId)) {
-                Index rawIndx = new Index {
-                    MaterializedIndex = matIndx,
-                    Name = matIndx.Name,
-                    Table =
-                        Db.SQL<RawView>("select v from rawview v where materializedtable = ?", matIndx.Table).First,
-                    Unique = matIndx.Unique
-                };
-                Debug.Assert(rawIndx.Table != null);
-                foreach (MaterializedIndexColumn matCol in Db.SQL<MaterializedIndexColumn>(
-                    "select c from MaterializedIndexColumn c where \"index\" = ?", matIndx)) {
-                    Debug.Assert(matCol.Index.Equals(rawIndx.MaterializedIndex));
-                    IndexedColumn rawColIndx = new IndexedColumn {
-                        Ascending =
-                            matCol.Order == 0,
-                        Column =
-                            Db.SQL<Column>("select c from column c where c.table = ? and materializedcolumn = ?",
-                            rawIndx.Table, matCol.Column).First,
-                        Index =
-                            rawIndx,
-                        MaterializedIndexColumn = matCol,
-                        Position = matCol.Place
-                    };
-                    Debug.Assert(rawColIndx.Column != null);
-                }
-                Debug.Assert(Db.SQL("select c from indexedColumn c where \"index\" = ?", rawIndx).First != null);
+                    CreateAnIndexInstance(matIndx);
             }
         }
 }

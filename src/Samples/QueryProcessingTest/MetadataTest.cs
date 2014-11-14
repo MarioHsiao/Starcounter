@@ -261,7 +261,7 @@ namespace QueryProcessingTest {
             IndexedColumn idxc = Db.SQL<IndexedColumn>(
                 "select i from indexedcolumn i where i.\"index\".table.name = ? and i.column.name = ?",
                 "account", "accountid").First;
-            Trace.Assert(idxc == null);
+            Trace.Assert(idxc != null);
             var indexedColumnEnum = Db.SQL<IndexedColumn>(
                 "select i from indexedcolumn i where i.\"index\".table.name = ? and i.\"index\".name = ? order by i.\"position\"",
                 "materializedtable", "built-in").GetEnumerator();

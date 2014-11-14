@@ -10,6 +10,8 @@ using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Internal.Metadata;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Sql
 {
@@ -235,9 +237,9 @@ internal static class SqlProcessor
         attributeIndexArr[attributeIndexArr.Length - 1] = -1;
 
         // Call kenrel
+        ushort tableId = typeBind.TableId;
         unsafe
         {
-            var tableId = typeBind.TableId;
             fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
             {
                 errorCode = sccoredb.star_create_index(0, tableId, indexName, sortMask, attributeIndexesPointer, flags);
@@ -250,6 +252,7 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
+        AddMetadataIndex(tableId, indexName);
     }
 
     internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)
@@ -405,6 +408,15 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
+    }
+    internal static void AddMetadataIndex(ushort tableId, string indexName) {
+        Db.SystemTransaction(delegate {
+            MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
+                "select i from materializedindex i where tableid = ? and name = ?",
+                tableId, indexName).First;
+            Debug.Assert(matIndx != null);
+            Starcounter.SqlProcessor.MetadataPopulation.CreateAnIndexInstance(matIndx);
+        });
     }
 
     internal static Exception CheckSingleDelimitedIdentifiers(string query) {
