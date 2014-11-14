@@ -256,14 +256,14 @@ namespace QueryProcessingTest {
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "ColumnPrimaryKey").First;
             Trace.Assert(i != null);
-            Index idx = Db.SQL<Index>("select i from starcounter.metadata.\"index\" i where i.\"table\".name = ?", "VersionSource").First;
+            Index idx = Db.SQL<Index>("select i from starcounter.metadata.\"index\" i where i.table.name = ?", "VersionSource").First;
             Trace.Assert(idx != null);
             IndexedColumn idxc = Db.SQL<IndexedColumn>(
-                "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.column.name = ?",
+                "select i from indexedcolumn i where i.\"index\".table.name = ? and i.column.name = ?",
                 "account", "accountid").First;
             Trace.Assert(idxc == null);
             var indexedColumnEnum = Db.SQL<IndexedColumn>(
-                "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.\"index\".name = ? order by i.\"position\"",
+                "select i from indexedcolumn i where i.\"index\".table.name = ? and i.\"index\".name = ? order by i.\"position\"",
                 "materializedtable", "built-in").GetEnumerator();
             Trace.Assert(!indexedColumnEnum.MoveNext());
             indexedColumnEnum.Dispose();
@@ -276,7 +276,7 @@ namespace QueryProcessingTest {
             // Test that all MaterializedColumn instances are referenced from Column instances
             foreach (MaterializedColumn mc in Db.SQL<MaterializedColumn>(
                 "select c from materializedColumn c where name <> ?and inherited = ?", "__id", false)) {
-                Column col = Db.SQL<Column>("select c from \"column\" c where materializedcolumn = ? and c.table is RawView",
+                Column col = Db.SQL<Column>("select c from column c where materializedcolumn = ? and c.table is RawView",
                     mc).First;
                 Trace.Assert(col != null);
                 Trace.Assert(col.MaterializedColumn.Equals(mc));
