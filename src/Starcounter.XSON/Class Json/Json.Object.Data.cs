@@ -33,6 +33,8 @@ namespace Starcounter {
                 return _data;
             }
             set {
+                AttachTransaction();
+
                 this.AddInScope<Json, object>((j, v) => {
                     if (j.IsArray) {
                         j._PendingEnumeration = true;
@@ -46,6 +48,14 @@ namespace Starcounter {
                     }
                 },
                 this, value);
+            }
+        }
+
+        private void AttachTransaction(){
+            if (_DB != null && _DB.Current != null) {
+                if (Transaction == null || Transaction != _DB.Current) {
+                    _transaction = _DB.Current;
+                }
             }
         }
 
