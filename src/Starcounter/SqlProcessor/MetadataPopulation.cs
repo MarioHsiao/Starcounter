@@ -204,7 +204,7 @@ namespace Starcounter.SqlProcessor {
         internal static void CreateAnIndexInstance(MaterializedIndex matIndx) {
             Debug.Assert(matIndx != null);
             Index rawIndx = new Index {
-                MaterializedIndex = matIndx,
+                //MaterializedIndex = matIndx,
                 Name = matIndx.Name,
                 Table =
                     Db.SQL<RawView>("select v from rawview v where materializedtable = ?", matIndx.Table).First,
@@ -212,10 +212,10 @@ namespace Starcounter.SqlProcessor {
             };
             Debug.Assert(rawIndx.Table != null);
             Debug.Assert(rawIndx.Table is Starcounter.Metadata.RawView);
-            Debug.Assert((rawIndx.Table as Starcounter.Metadata.RawView).MaterializedTable.Equals(rawIndx.MaterializedIndex.Table));
+            //Debug.Assert((rawIndx.Table as Starcounter.Metadata.RawView).MaterializedTable.Equals(rawIndx.MaterializedIndex.Table));
             foreach (MaterializedIndexColumn matCol in Db.SQL<MaterializedIndexColumn>(
                 "select c from MaterializedIndexColumn c where \"index\" = ?", matIndx)) {
-                Debug.Assert(matCol.Index.Equals(rawIndx.MaterializedIndex));
+                //Debug.Assert(matCol.Index.Equals(rawIndx.MaterializedIndex));
                 IndexedColumn rawColIndx = new IndexedColumn {
                     Ascending =
                         matCol.Order == 0,
@@ -224,7 +224,7 @@ namespace Starcounter.SqlProcessor {
                         rawIndx.Table, matCol.Column).First,
                     Index =
                         rawIndx,
-                    MaterializedIndexColumn = matCol,
+                    //MaterializedIndexColumn = matCol,
                     Position = matCol.Place
                 };
                 Debug.Assert(rawColIndx.Column != null);
