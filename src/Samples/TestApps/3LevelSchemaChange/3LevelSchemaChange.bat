@@ -29,8 +29,6 @@ star --database=%DB_NAME% 3LevelSchemaChange.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
 REM Clean update
-staradmin --database=%DB_NAME% stop db
-staradmin --database=%DB_NAME% delete --force db
 DEL 3LevelSchemaChange.cs
 
 ECHO 3LevelSchemaChange regression test succeeded.
@@ -38,8 +36,6 @@ EXIT /b 0
 
 
 :err
-staradmin --database=%DB_NAME% stop db
-staradmin --database=%DB_NAME% delete --force db
 DEL 3LevelSchemaChange.cs
 ECHO Error: 3LevelSchemaChange failed!
 EXIT /b 1
