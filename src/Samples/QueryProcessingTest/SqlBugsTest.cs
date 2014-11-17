@@ -30,6 +30,9 @@ namespace QueryProcessingTest {
             TestIndexQueryOptimization();
             TestShortClassNames();
             TestDDLStmts();
+            TestSearchByObject();
+            TestNullComparison();
+            TestDelimitedIdentifier();
         }
 
         public static void TestFetchOrderBy() {
@@ -485,6 +488,39 @@ namespace QueryProcessingTest {
             Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First == null);
             Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
             HelpMethods.LogEvent("Finished testing DDL statements");
+        }
+
+        public static void TestNullComparison() {
+        }
+
+        public static void TestSearchByObject() {
+            HelpMethods.LogEvent("Test searching object by direct reference lookup.");
+            Account a = Db.SQL<Account>("select a from account a").First;
+            Trace.Assert(a != null);
+            Account again = Db.SQL<Account>("select a from account a where a = ?", a).First;
+            Trace.Assert(again != null);
+            HelpMethods.LogEvent("Finished testing searching object by direct reference lookup.");
+        }
+
+        public static void TestDelimitedIdentifier() {
+            HelpMethods.LogEvent("Test delimited identifiers.");
+            // Test single identifier
+            Trace.Assert(Db.SQL<Account>("select a from account a").First != null);
+            // Test delimited keyword identifier
+            Trace.Assert(Db.SQL<Table>("select t from \"table\" t").First != null);
+            // Test qualified identifier
+            Trace.Assert(Db.SQL<QueryProcessingTest.Account>(
+                "select a from QueryProcessingTest.Account a").First != null);
+            // Test failure on muliple identifiers in a single delimited identifier, bug #2402
+            bool wasException = false;
+            try {
+                Trace.Assert(Db.SQL<QueryProcessingTest.Account>(
+                    "select a from \"QueryProcessingTest.Account\" a").First != null);
+            } catch (SqlException) {
+                wasException = true;
+            }
+            Trace.Assert(wasException);
+            HelpMethods.LogEvent("Finidhed testing delimited identifiers.");
         }
     }
 }
