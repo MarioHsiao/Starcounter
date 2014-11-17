@@ -374,6 +374,7 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
+        DeleteMetadataIndex(typeBind.Name, indexName);
     }
 
     /// <summary>
@@ -416,6 +417,19 @@ internal static class SqlProcessor
                 tableId, indexName).First;
             Debug.Assert(matIndx != null);
             Starcounter.SqlProcessor.MetadataPopulation.CreateAnIndexInstance(matIndx);
+        });
+    }
+
+    internal static void DeleteMetadataIndex(string tableName, string indexName) {
+        Db.SystemTransaction(delegate {
+            Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
+                "select i from index i where table.fullname = ? and name = ?",
+                tableName, indexName).First;
+            Debug.Assert(indx != null);
+            foreach (Starcounter.Metadata.IndexedColumn colIndx in Db.SQL<Starcounter.Metadata.IndexedColumn>(
+                "select c form indexedcolumn c where index = ?", indx))
+                colIndx.Delete();
+            indx.Delete();
         });
     }
 
