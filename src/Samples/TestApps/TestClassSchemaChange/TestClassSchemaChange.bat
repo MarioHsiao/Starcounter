@@ -8,7 +8,9 @@ REM Some predefined constants.
 SET DB_NAME=TestClassSchemaChangeDb
 
 REM Delete database after server is started
-REM staradmin --database=%DB_NAME% delete
+ECHO Delete database after server is started
+staradmin --database=%DB_NAME% stop db
+staradmin --database=%DB_NAME% delete --force db
 
 ECHO Run Step 1 to create initial schema
 COPY /y TestClassSchemaChangeV1.cs TestClassSchemaChange.cs
@@ -21,6 +23,8 @@ star --database=%DB_NAME% TestClassSchemaChange.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
 REM Clean update
+staradmin --database=%DB_NAME% stop db
+staradmin --database=%DB_NAME% delete --force db
 DEL TestClassSchemaChange.cs
 
 ECHO TestClassSchemaChange regression test succeeded.
@@ -28,6 +32,8 @@ EXIT /b 0
 
 
 :err
+staradmin --database=%DB_NAME% stop db
+staradmin --database=%DB_NAME% delete --force db
 DEL TestClassSchemaChange.cs
 ECHO Error: TestClassSchemaChange failed!
 EXIT /b 1

@@ -8,7 +8,9 @@ REM Some predefined constants.
 SET DB_NAME=SelectOnNull2362Db
 
 REM Delete database after server is started
-REM staradmin --database=%DB_NAME% delete
+ECHO Delete database after server is started
+staradmin --database=%DB_NAME% stop db
+staradmin --database=%DB_NAME% delete --force db
 
 star --database=%DB_NAME% SelectOnNull2362.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err
