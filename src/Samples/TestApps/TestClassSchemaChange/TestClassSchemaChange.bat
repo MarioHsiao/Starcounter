@@ -7,10 +7,12 @@ ECHO Running TestClassSchemaChange regression test.
 REM Some predefined constants.
 SET DB_NAME=TestClassSchemaChangeDb
 
-REM Delete database after server is started
+if "%SC_RUNNING_ON_BUILD_SERVER%"=="True" GOTO skipdbdrop
 ECHO Delete database after server is started
 staradmin --database=%DB_NAME% stop db
 staradmin --database=%DB_NAME% delete --force db
+
+:skipdbdrop
 
 ECHO Run Step 1 to create initial schema
 COPY /y TestClassSchemaChangeV1.cs TestClassSchemaChange.cs

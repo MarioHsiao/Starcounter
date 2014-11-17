@@ -7,9 +7,12 @@ ECHO Running IndexedColumnDrop regression test.
 REM Some predefined constants.
 SET DB_NAME=IndexedColumnDropDb
 
+if "%SC_RUNNING_ON_BUILD_SERVER%"=="True" GOTO skipdbdrop
 ECHO Delete database after server is started
 staradmin --database=%DB_NAME% stop db
 staradmin --database=%DB_NAME% delete --force db
+
+:skipdbdrop
 
 ECHO Run Step 1 to create initial schema and index
 COPY /y IndexedColumnDropV1.cs IndexedColumnDrop.cs
