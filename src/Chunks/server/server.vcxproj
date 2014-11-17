@@ -109,12 +109,11 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86_64\include\boost-1_46_1\;..\..\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>server.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -160,7 +159,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>server.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
