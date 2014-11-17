@@ -412,147 +412,14 @@ internal static class SqlProcessor
         }
     }
 
-    // CREATE {PROC|PROCEDURE} procedureName @parameterName1 typeName1 [OUT|OUTPUT], ... 
-    // AS methodSpecifier
-    //internal static void ProcessCreateProcedure(List<String> tokenList)
-    //{
-    //    if (tokenList == null || tokenList.Count < 2)
-    //    {
-    //        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect tokenList.");
-    //    }
-    //    Int32 pos = 0;
-    //    if (!Token("$CREATE", tokenList, pos))
-    //    {
-    //        throw new SqlException("Expected word CREATE.", tokenList, pos);
-    //    }
-    //    pos++;
-    //    if (!Token("$PROC", tokenList, pos) && !Token("$PROCEDURE", tokenList, pos))
-    //    {
-    //        throw new SqlException("Expected word PROCEDURE.", tokenList, pos);
-    //    }
-    //    pos++;
-    //    // Stored procedure name.
-    //    if (!IdentifierToken(tokenList, pos))
-    //    {
-    //        throw new SqlException("Expected identifier.", tokenList, pos);
-    //    }
-    //    String procedureName = tokenList[pos];
-    //    Int32 procedureNamePos = pos;
-    //    pos++;
-    //    // Handle parameters.
-    //    List<String> parameterNameList = new List<String>();
-    //    List<Type> parameterTypeList = new List<Type>();
-    //    List<Boolean> parameterOutputList = new List<Boolean>();
-    //    List<Int32> parameterBeginPosList = new List<Int32>();
-    //    List<Int32> parameterEndPosList = new List<Int32>();
-
-    //    while (Token("@", tokenList, pos))
-    //    {
-    //        parameterBeginPosList.Add(pos);
-    //        pos++;
-    //        ProcessProcedureParameter(tokenList, ref pos, parameterNameList, parameterTypeList,
-    //            parameterOutputList);
-    //        parameterEndPosList.Add(pos - 1);
-    //    }
-    //    if (!Token("$AS", tokenList, pos))
-    //    {
-    //        throw new SqlException("Expected word AS.", tokenList, pos);
-    //    }
-    //    pos++;
-    //    Int32 beginPos = pos;
-    //    String identifierPath = ProcessIdentifierPath(tokenList, ref pos);
-    //    Int32 endPos = pos - 1;
-    //    String className = identifierPath.Substring(0, identifierPath.LastIndexOf('.'));
-    //    String methodName = identifierPath.Substring(identifierPath.LastIndexOf('.') + 1);
-    //    TypeSearcher typeSearcher = Application.Current.TypeSearcher;
-    //    Type classType = typeSearcher.FindByFullName(className);
-    //    if (classType == null)
-    //    {
-    //        throw new SqlException("Unknown type " + className + ".", tokenList, beginPos, endPos);
-    //    }
-
-    //    String argumentSpec = "(";
-    //    for (Int32 i = 0; i < parameterTypeList.Count; i++)
-    //    {
-    //        if (i != 0)
-    //        {
-    //            argumentSpec += ", ";
-    //        }
-    //        argumentSpec += parameterTypeList[i].FullName;
-    //    }
-    //    argumentSpec += ")";
-
-    //    MethodInfo methodInfo = null;
-    //    try
-    //    {
-    //        methodInfo = classType.GetMethod(methodName, parameterTypeList.ToArray());
-    //    }
-    //    catch (AmbiguousMatchException)
-    //    {
-    //        throw new SqlException("Ambiguous method " + methodName + argumentSpec + ".", 
-    //            tokenList, beginPos, endPos);
-    //    }
-    //    if (methodInfo == null)
-    //    {
-    //        throw new SqlException("Unknown method " + methodName + argumentSpec + ".", 
-    //            tokenList, beginPos, endPos);
-    //    }
-    //    ParameterInfo[] parameterInfoArr = methodInfo.GetParameters();
-    //    for (Int32 i = 0; i < parameterInfoArr.Length; i++)
-    //    {
-    //        if (parameterInfoArr[i].IsOut && !parameterOutputList[i])
-    //        {
-    //            throw new SqlException("Expected parameter to be declared OUTPUT.",
-    //                tokenList, parameterBeginPosList[i], parameterEndPosList[i]);
-    //        }
-    //        if (!parameterInfoArr[i].IsOut && parameterOutputList[i])
-    //        {
-    //            throw new SqlException("Expected parameter not to be declared OUTPUT.",
-    //                tokenList, parameterBeginPosList[i], parameterEndPosList[i]);
-    //        }
-    //    }
-
-    //    if (StoredProcedureRepository.Exist(procedureName))
-    //        throw new SqlException("A stored procedure with name " + procedureName + " already exists.", 
-    //            tokenList, procedureNamePos);
-
-    //    StoredProcedureRepository.AddMethod(procedureName, methodInfo);
-    //}
-
-    //internal static void ProcessProcedureParameter(List<String> tokenList, ref Int32 pos, 
-    //    List<String> parameterNameList, List<Type> parameterTypeList, List<Boolean> parameterOutputList)
-    //{
-    //    // Parameter name.
-    //    if (!IdentifierToken(tokenList, pos))
-    //    {
-    //        throw new SqlException("Expected identifier.", tokenList, pos);
-    //    }
-    //    parameterNameList.Add(tokenList[pos]);
-    //    pos++;
-    //    // Parameter type.
-    //    Int32 beginPos = pos;
-    //    String parameterTypeName = ProcessIdentifierPath(tokenList, ref pos);
-    //    Int32 endPos = pos - 1;
-    //    Type parameterType = null;
-    //    if (!supportedTypesDict.TryGetValue(parameterTypeName, out parameterType))
-    //    {
-    //        throw new SqlException("Unknown or unsupported type " + parameterTypeName + ".", tokenList, beginPos, endPos); 
-    //    }
-        
-    //    // Output parameter?
-    //    if (Token("$OUT", tokenList, pos) || Token("$OUTPUT", tokenList, pos))
-    //    {
-    //        parameterType = parameterType.MakeByRefType();
-    //        parameterOutputList.Add(true);
-    //        pos++;
-    //    }
-    //    else
-    //    {
-    //        parameterOutputList.Add(false);
-    //    }
-    //    parameterTypeList.Add(parameterType);
-    //    if (Token(",", tokenList, pos)) pos++;
-    //}
+    internal static Exception CheckSingleDelimitedIdentifiers(string query) {
+        List<String> tokenList = Tokenizer.Tokenize(query);
+        bool dueToDot;
+        for(int pos = 0; pos < tokenList.Count; pos++)
+            if (!IdentifierToken(tokenList, pos, out dueToDot) && dueToDot)
+                    return new SqlException("Unknown delimited identifier with dot", tokenList[pos]);
+        return null;
+    }
         
     internal static Boolean Token(String word, List<String> tokenList, Int32 pos)
     {
@@ -570,8 +437,14 @@ internal static class SqlProcessor
         return (tokenList.Count > pos && tokenList[pos].Length > 0 && Tokenizer.Digit(tokenList[pos][0]));
     }
 
-    internal static Boolean IdentifierToken(List<String> tokenList, Int32 pos)
+    internal static Boolean IdentifierToken(List<String> tokenList, Int32 pos) {
+        bool dueToDot;
+        return IdentifierToken(tokenList, pos, out dueToDot);
+    }
+
+    internal static Boolean IdentifierToken(List<String> tokenList, Int32 pos, out bool dueToDot)
     {
+        dueToDot = false;
         if (tokenList.Count <= pos || tokenList[pos].Length == 0 || !Tokenizer.Letter(tokenList[pos][0]) || Tokenizer.InternalReservedWord(tokenList[pos]))
         {
             return false;
@@ -579,8 +452,9 @@ internal static class SqlProcessor
         else
             for (Int32 i = 1; i < tokenList[pos].Length; i++)
             {
-                if (!Tokenizer.Letter(tokenList[pos][i]) && !Tokenizer.Digit(tokenList[pos][i]) && !Tokenizer.Underscore(tokenList[pos][i]))
-                {
+                if (!Tokenizer.Letter(tokenList[pos][i]) && !Tokenizer.Digit(tokenList[pos][i]) && !Tokenizer.Underscore(tokenList[pos][i])) {
+                    if (Tokenizer.IdentifierSeparation(tokenList[pos][i]))
+                        dueToDot = true;
                     return false;
                 }
             }
@@ -696,90 +570,6 @@ internal static class SqlProcessor
         }
         return identifierPath;
     }
-
-#if false
-    internal static TypeBinding GetTypeBinding(String name, List<String> tokenList, Int32 beginPos, Int32 endPos)
-    {
-        TypeBinding typeBind = null;
-        // Short type name.
-        if (name.IndexOf('.') == -1)
-        {
-            Int32 result = TypeRepository.TryGetTypeBindingByShortName(name, out typeBind);
-            switch (result)
-            {
-                case 0:
-                    throw new SqlException("Unknown type.", tokenList, beginPos, endPos);
-                case 1:
-                    return typeBind;
-                case 2:
-                    throw new SqlException("Ambiguous type.", tokenList, beginPos, endPos);
-                default:
-                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect result.");
-            }
-        }
-        // Full type name.
-        typeBind = TypeRepository.GetTypeBinding(name);
-        if (typeBind == null)
-        {
-            throw new SqlException("Unknown type.", tokenList, beginPos, endPos);
-        }
-        return typeBind;
-    }
-#endif
-
-    // TODO: Implement support of methods in path.
-    //internal static IPath ProcessPath(List<String> tokenList, ref Int32 pos, Int32 extentNum, ITypeBinding typeBind)
-    //{
-    //    List<IObjectPathItem> path = new List<IObjectPathItem>();
-    //    // First path item.
-    //    PropertyBinding prop = ProcessProperty(tokenList, ref pos, extentNum, typeBind);
-    //    // Eventually more path items.
-    //    while (Token(".", tokenList, pos))
-    //    {
-    //        if (prop.TypeCode != DbTypeCode.Object)
-    //        {
-    //            throw new SqlException("Unexpected token.", tokenList, pos);
-    //        }
-    //        pos++;
-    //        typeBind = (prop as ObjectProperty).TypeBinding;
-    //        path.Add(prop as IObjectPathItem);
-    //        prop = ProcessProperty(tokenList, ref pos, -1, typeBind);
-    //    }
-    //    if (path.Count == 0)
-    //    {
-    //        return (prop as IPath);
-    //    }
-    //    switch (prop.DbTypeCode)
-    //    {
-    //        case DbTypeCode.Binary:
-    //            return new BinaryPath(extentNum, path, prop as BinaryProperty);
-    //        case DbTypeCode.Boolean:
-    //            return new BooleanPath(extentNum, path, prop as BooleanProperty);
-    //        case DbTypeCode.DateTime:
-    //            return new DateTimePath(extentNum, path, prop as DateTimeProperty);
-    //        case DbTypeCode.Decimal:
-    //            return new DecimalPath(extentNum, path, prop as DecimalProperty);
-    //        case DbTypeCode.Double:
-    //        case DbTypeCode.Single:
-    //            return new DoublePath(extentNum, path, prop as DoubleProperty);
-    //        case DbTypeCode.Int64:
-    //        case DbTypeCode.Int32:
-    //        case DbTypeCode.Int16:
-    //        case DbTypeCode.SByte:
-    //            return new IntegerPath(extentNum, path, prop as IntegerProperty);
-    //        case DbTypeCode.Object:
-    //            return new ObjectPath(extentNum, path, prop as ObjectProperty);
-    //        case DbTypeCode.String:
-    //            return new StringPath(extentNum, path, prop as StringProperty);
-    //        case DbTypeCode.UInt64:
-    //        case DbTypeCode.UInt32:
-    //        case DbTypeCode.UInt16:
-    //        case DbTypeCode.Byte:
-    //            return new UIntegerPath(extentNum, path, prop as UIntegerProperty);
-    //        default:
-    //            throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect TypeCode: " + prop.DbTypeCode);
-    //    }
-    //}
 
     private static String ProcessProperty(List<String> tokenList, ref Int32 pos, Int32 extentNum, ITypeBinding typeBind)
     {

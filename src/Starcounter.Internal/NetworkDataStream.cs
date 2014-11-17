@@ -9,62 +9,76 @@ using System.Runtime.InteropServices;
 using Starcounter.Internal;
 using System.Diagnostics;
 using Starcounter.Advanced;
+using System.Collections.Generic;
 
 namespace Starcounter
 {
     /// <summary>
     /// Struct NetworkDataStream
     /// </summary>
-    public unsafe class NetworkDataStream
+    public unsafe class NetworkDataStream : Finalizing
     {
         /// <summary>
         /// The unmanaged_chunk_
         /// </summary>
-        Byte* raw_chunk_ = null;
-
-        internal Byte* RawChunk { get { return raw_chunk_; } }
+        Byte* rawChunkPtr_ = null;
+        
+        /// <summary>
+        /// Raw chunk data.
+        /// </summary>
+        internal Byte* RawChunk { get { return rawChunkPtr_; } }
 
         /// <summary>
         /// The chunk_index_
         /// </summary>
-        UInt32 chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
+        UInt32 chunkIndex_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
 
-        internal UInt32 ChunkIndex { get { return chunk_index_; } }
+        /// <summary>
+        /// Chunk index.
+        /// </summary>
+        internal UInt32 ChunkIndex { get { return chunkIndex_; } }
 
         /// <summary>
         /// Gateway worker id from which the chunk came.
         /// </summary>
-        Byte gw_worker_id_ = 0;
+        Byte gwWorkerId_ = 0;
 
-        internal Byte GatewayWorkerId { get { return gw_worker_id_; } }
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        internal Byte GatewayWorkerId { get { return gwWorkerId_; } }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NetworkDataStream" /> struct.
         /// </summary>
-        /// <param name="unmanagedChunk">The unmanaged chunk.</param>
-        /// <param name="isSingleChunk">The is single chunk.</param>
-        /// <param name="chunkIndex">Index of the chunk.</param>
-        internal NetworkDataStream(
-            Byte* raw_chunk,
-            UInt32 chunk_index,
-            Byte gw_worker_id)
+        internal void Init(
+            Byte* rawChunk,
+            UInt32 chunkIndex,
+            Byte gwWorkerId,
+            Boolean attachFinalizer)
         {
-            raw_chunk_ = raw_chunk;
-            chunk_index_ = chunk_index;
-            gw_worker_id_ = gw_worker_id;
+            rawChunkPtr_ = rawChunk;
+            chunkIndex_ = chunkIndex;
+            gwWorkerId_ = gwWorkerId;
+
+            // Adding finalizer on demand (WebSockets, RawSockets).
+            if (attachFinalizer) {
+                CreateFinalizer();
+            }
+        }
+
+        /// <summary>
+        /// Destroys the instance of Request.
+        /// </summary>
+        override internal void DestroyByFinalizer() {
+            Destroy(false);
         }
 
         /// <summary>
         /// Prohibiting default constructor.
         /// </summary>
-        private NetworkDataStream() {}
-
-        /// <summary>
-        /// Releases resources.
-        /// </summary>
-        ~NetworkDataStream()
-        {
-            Destroy(false);
+        internal NetworkDataStream() {
+            
         }
 
         /// <summary>
@@ -75,7 +89,7 @@ namespace Starcounter
         {
             get
             {
-                return *((Int32*)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES));
+                return *((Int32*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES));
             }
         }
 
@@ -101,11 +115,11 @@ namespace Starcounter
                     throw new ArgumentException("Not enough space to write user data.");
 
                 // Reading user data offset.
-                UInt16* user_data_offset_in_socket_data = (UInt16*)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+                UInt16* user_data_offset_in_socket_data = (UInt16*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
                 // Copying the data to user buffer.
                 Marshal.Copy(
-                    new IntPtr(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
+                    new IntPtr(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
                     buffer,
                     offset,
                     PayloadSize);
@@ -121,10 +135,10 @@ namespace Starcounter
             unsafe
             {
                 // Reading user data offset.
-                UInt16* user_data_offset_in_socket_data = (UInt16*)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+                UInt16* user_data_offset_in_socket_data = (UInt16*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
                 // Returning scalar value.
-                return *(UInt64*)(raw_chunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data + offset);
+                return *(UInt64*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data + offset);
             }
         }
 
@@ -137,12 +151,12 @@ namespace Starcounter
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
             // Checking if already destroyed.
-            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX) {
                 throw new ArgumentNullException("Response was already sent on this Request!");
+            }
 
             // Running on current Starcounter thread.
-            fixed (Byte* p = buffer)
-            {
+            fixed (Byte* p = buffer) {
                 SendResponseBufferInternal(p, offset, length_bytes, conn_flags);
             }
         }
@@ -156,17 +170,22 @@ namespace Starcounter
         unsafe void SendResponseBufferInternal(Byte* p, Int32 offset, Int32 length_bytes, Response.ConnectionFlags conn_flags)
         {
             // Checking if we are actually sending something.
-            if (length_bytes <= 0)
+            if (length_bytes <= 0) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "You are trying to send an empty data.");
+            }
 
             // Processing user data and sending it to gateway.
-            UInt32 cur_chunk_index = chunk_index_;
-            UInt32 ec = bmx.sc_bmx_send_buffer(gw_worker_id_, p + offset, (UInt32)length_bytes, &cur_chunk_index, (UInt32)conn_flags);
-            chunk_index_ = cur_chunk_index;
+            UInt32 cur_chunk_index = chunkIndex_;
+            UInt32 ec = bmx.sc_bmx_send_buffer(gwWorkerId_, p + offset, length_bytes, &cur_chunk_index, (UInt32)conn_flags);
+            chunkIndex_ = cur_chunk_index;
 
             // Checking if any error occurred.
-            if (ec != 0)
+            if (ec != 0) {
                 throw ErrorCode.ToException(ec);
+            }
+
+            // Destroying data stream immediately.
+            Destroy(true);
         }
 
         /// <summary>
@@ -175,12 +194,12 @@ namespace Starcounter
         void ReleaseChunk()
         {
             // Returning linked chunks to pool.
-            UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunk_index_);
+            UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunkIndex_);
             Debug.Assert(ec == 0);
 
             // This data stream becomes unusable.
-            raw_chunk_ = null;
-            chunk_index_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
+            rawChunkPtr_ = null;
+            chunkIndex_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
         }
 
         /// <summary>
@@ -190,7 +209,7 @@ namespace Starcounter
         public Boolean IsDestroyed()
         {
             // Checking if already destroyed.
-            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
                 return true;
 
             return false;
@@ -201,12 +220,12 @@ namespace Starcounter
         /// </summary>
         public void Destroy(Boolean isStarcounterThread)
         {
-            // Checking if already destroyed.
-            if (chunk_index_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
-                return;
+            // NOTE: Removing reference for finalizer in order not to finalize twice.
+            UnLinkFinalizer();
 
-            // Removing object from GC.
-            GC.SuppressFinalize(this);
+            // Checking if already destroyed.
+            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+                return;
 
             // Checking if this request is garbage collected.
             if (!isStarcounterThread)

@@ -473,7 +473,7 @@ namespace Starcounter {
         /// object or array. For arrays, this means the index of the element and
         /// for objects it means the index of the property.
         /// </summary>
-        internal int IndexInParent {
+        public int IndexInParent {
             get {
                 if (_cacheIndexInArr != -1) {
                     return _cacheIndexInArr;

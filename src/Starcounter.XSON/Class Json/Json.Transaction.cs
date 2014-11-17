@@ -19,9 +19,9 @@ namespace Starcounter {
                 return null;
             }
             set {
-                if (_transaction != null) {
-                    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
-                }
+                //if (_transaction != null) {
+                //    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
+                //}
                 _transaction = value;
             }
         }
@@ -30,8 +30,9 @@ namespace Starcounter {
         /// Returns the transaction that is set on this app. Does NOT
         /// look in parents.
         /// </summary>
-        internal ITransaction TransactionOnThisNode {
+        internal ITransaction ThisTransaction {
             get { return _transaction; }
+            set { _transaction = value; }
         }
 
         /// <summary>

@@ -6,23 +6,26 @@ namespace QueryProcessingTest {
     public static class InsertIntoTests {
         public static void TestValuesInsertIntoWebVisits() {
             HelpMethods.LogEvent("Test insert into statements with values on web visit data model");
-
+//            UInt64 vId = (UInt64)Int64.MaxValue + 1;
+#if true
             // Find a record key that isn't in use.
             //
             // We need to do this before deletes since otherwise the key could
             // be used by a deleted but not yet purged record.
-
+ 
             UInt64 vId = 1000000;
             Db.Transaction(delegate {
                 while (DbHelper.FromID(vId) != null) vId += 1000000;
             });
-      
+#endif
             Db.Transaction(delegate {
                 if (Db.SQL("select c from company c").First != null) {
                     WebPage w1 = Db.SQL<WebPage>("select w from webpage w where title = ?", "MyCompany, AboutUs").First;
                     w1.Delete();
                     foreach (Company c1 in Db.SQL<Company>("select c from company c")) {
                         foreach (Visit v1 in Db.SQL<Visit>("select v from visit v where company = ?", c1)) {
+//                            if (v1.GetObjectNo() == vId)
+//                                vId++;
                             foreach (Impression imp in Db.SQL<Impression>("select i from impression i where visit = ?", v1))
                                 imp.Delete();
                             v1.Delete();
@@ -60,6 +63,7 @@ namespace QueryProcessingTest {
             c = counEnum.Current;
             Trace.Assert(c.Name == "France");
             Trace.Assert(!counEnum.MoveNext());
+            counEnum.Dispose();
             Db.Transaction(delegate { Db.SQL("insert into company (name,country) values ('Canal+',object " + c.GetObjectNo()+")"); });
             var compEnum = Db.SQL<Company>("select c from company c").GetEnumerator();
             Trace.Assert(compEnum.MoveNext());
@@ -67,6 +71,7 @@ namespace QueryProcessingTest {
             Trace.Assert(co.Name == "Canal+");
             Trace.Assert(co.Country.Equals(c));
             Trace.Assert(!compEnum.MoveNext());
+            compEnum.Dispose();
             DateTime startV = Convert.ToDateTime("2006-11-01 00:08:40");
             DateTime endV = Convert.ToDateTime("2006-11-01 00:08:59");
             Db.Transaction(delegate {
@@ -94,6 +99,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(Db.BinaryToHex(v.IpBytes) == "0D91FA24E19FB065AD");
             Trace.Assert(!visits.MoveNext());
+            visits.Dispose();
             visits = Db.SQL<Visit>("select v from visit v where Ipbytes = ? and id = ?",
                 new Binary(new byte[] { 1, 1, 1, 1 }), UInt64.MaxValue).GetEnumerator();
             Trace.Assert(visits.MoveNext());
@@ -106,6 +112,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             Trace.Assert(Db.BinaryToHex(v.IpBytes) == "01010101");
             Trace.Assert(!visits.MoveNext());
+            visits.Dispose();
             // Test insert __id value
             Db.Transaction(delegate { v.Delete(); });
             Db.SystemTransaction(delegate {
@@ -122,6 +129,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.UserAgent == "Opera");
             Trace.Assert(v.GetObjectNo() == vId);
             Trace.Assert(!visits.MoveNext());
+            visits.Dispose();
             Db.Transaction(delegate { Db.SQL("insert into impression(visit) values (object " + vId + ")"); });
             var impressions = Db.SQL<Impression>("select i from impression i where visit = ?", v).GetEnumerator();
             Trace.Assert(impressions.MoveNext());
@@ -129,6 +137,7 @@ namespace QueryProcessingTest {
             Trace.Assert(impr != null);
             Trace.Assert(impr.Visit.Equals(v));
             Trace.Assert(!impressions.MoveNext());
+            impressions.Dispose();
             Db.Transaction(delegate {
                 Db.SQL("insert into QueryProcessingTest.user(userid,useridnr,birthday,firstname,lastname,nickname)" +
                     "values('SpecUser',1000000," + startV.Ticks + ",'Carl','Olofsson','')");
@@ -144,6 +153,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(u.AnotherNickName == "");
                 Trace.Assert(u.PatronymicName == null);
                 Trace.Assert(!users.MoveNext());
+                users.Dispose();
                 Db.SQL("insert into account(accountid,client,amount,accounttype,notactive,amountdouble)"+
                     "values(1000000,object "+u.GetObjectNo()+",-10.2,'savings',false,10.2)");
                 var accounts = Db.SQL<Account>("select a from account a where client = ?", u).GetEnumerator();
@@ -157,6 +167,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(a.NotActive == false);
                 Trace.Assert(a.AmountDouble == 10.2);
                 Trace.Assert(!accounts.MoveNext());
+                accounts.Dispose();
                 a.Delete();
                 Db.SQL("insert into account(accountid,client,amount,accounttype,notactive,amountdouble)" +
                     "values(1000000,object " + u.GetObjectNo() + ",10.243000,'savings',false,10)");
@@ -171,6 +182,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(a.NotActive == false);
                 Trace.Assert(a.AmountDouble == 10);
                 Trace.Assert(!accounts.MoveNext());
+                accounts.Dispose();
                 a.Delete();
                 u.Delete();
             });

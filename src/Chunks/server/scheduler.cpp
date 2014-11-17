@@ -87,7 +87,7 @@ EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsign
 EXTERN_C void sc_add_ref_to_channel(void *port, unsigned long channel_index);
 EXTERN_C void sc_release_channel(void *port, unsigned long channel_index);
 #endif
-EXTERN_C uint32_t server_get_clients_available(void *port);
+EXTERN_C uint32_t server_get_clients_available(void *port, int num_gateway_workers);
 
 namespace starcounter {
 namespace core {
@@ -143,7 +143,7 @@ class server_port {
 
 public:
 	enum {
-		// TODO: Experiment with this treshold, which decides when to acquire
+		// TODO: Experiment with this threshold, which decides when to acquire
 		// linked chunks from the private chunk_pool or the shared_chunk_pool.
 		a_bunch_of_chunks = 64
 	};
@@ -369,12 +369,16 @@ public:
 		return *common_client_interface_;
 	}
 
-	uint32_t get_clients_available() {
+	uint32_t get_clients_available(int num_gateway_workers) {
 		client_interface_type *client_interface = this_scheduler_interface_->
 		client_interface();
 		uint32_t clients_available = 0;
-		for (int i = 0; i < 8; i++) {
-			if (client_interface[i].available()) clients_available++;
+
+        // Checking client interface on each gateway worker.
+		for (int i = 0; i < num_gateway_workers; i++) {
+
+			if (client_interface[i].available())
+                clients_available++;
 		}
 		return clients_available;
 	}
@@ -1617,10 +1621,11 @@ unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long s
     return the_port->release_linked_chunks(start_chunk_index);
 }
 
-uint32_t server_get_clients_available(void *port)
+uint32_t server_get_clients_available(void *port, int num_gateway_workers)
 {
     using namespace starcounter::core;
 
     server_port* the_port = (server_port*)port;
-    return the_port->get_clients_available();
+
+    return the_port->get_clients_available(num_gateway_workers);
 }

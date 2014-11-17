@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Internal;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -11,24 +12,29 @@ namespace Administrator.Server.ApplicationContainer {
     public class Package {
 
         const string packageConfigurationFileName = "package.config";
-        const string appConfigurationFileExtention = ".app.config";
+        internal const string appConfigurationFileExtention = ".app.config";
 
         /// <summary>
         /// Install zipped package stream
         /// </summary>
+        /// <param name="sourceUrl"></param>
         /// <param name="packageZip">Zipped package stream</param>
         /// <param name="appRootFolder"></param>
-        public static void Install(string sourceUrl, Stream packageZip, string appRootFolder, bool update) {
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
+        /// <param name="replace">Replace existing app if any</param>
+        /// <param name="config"></param>
+        public static void Install(Stream packageZip, string sourceUrl, string appRootFolder, string imageResourceFolder, out AppConfig config) {
+            lock (AppsContainer.locker) {
 
-            if (packageZip == null) throw new ArgumentNullException("packageZip");
-            if (appRootFolder == null) throw new ArgumentNullException("appRootFolder");
+                if (packageZip == null) throw new ArgumentNullException("packageZip");
+                if (sourceUrl == null) throw new ArgumentNullException("sourceUrl");
+                if (appRootFolder == null) throw new ArgumentNullException("appRootFolder");
 
-            string createdDestinationFolder = null;
-            try {
+                string createdDestinationFolder = null;
+                try {
 
-                using (ZipArchive archive = new ZipArchive(packageZip, ZipArchiveMode.Read)) {
+                    using (ZipArchive archive = new ZipArchive(packageZip, ZipArchiveMode.Read)) {
 
-                    try {
                         // Get Configuration
                         PackageConfig packageConfig;
                         ReadConfiguration(archive, out packageConfig);
@@ -41,73 +47,150 @@ namespace Administrator.Server.ApplicationContainer {
                         destinationFolder = Path.Combine(destinationFolder, packageConfig.Channel);
                         destinationFolder = Path.Combine(destinationFolder, packageConfig.Version);
 
-                        if (Directory.Exists(destinationFolder)) {
+                        try {
 
-                            if (update) {
-                                // TODO: Check version etc..
-                                throw new NotImplementedException("Updating packages is not yet available, Use uninstall and reinstall to update an application");
+                            if (Directory.Exists(destinationFolder)) {
+                                throw new InvalidOperationException("Application already installed.", new InvalidOperationException(string.Format("Destination folder exists, {0}", destinationFolder)));
+                            }
+
+                            createdDestinationFolder = Package.CreateDirectory(destinationFolder);
+
+                            // Extract package
+                            archive.ExtractToDirectory(destinationFolder);
+
+                            string imageUri = string.Empty;
+
+                            // Unpack app image to starcounter admin folder
+                            UnpackAppImage(archive, packageConfig, imageResourceFolder, out imageUri);
+
+                            // Create app configuration file
+                            config = new AppConfig();
+
+                            CreateAppConfig(packageConfig, out config);
+
+                            Uri u = new Uri(sourceUrl);
+                            if (u.IsFile) {
+                                config.SourceID = string.Format("{0:X8}", u.LocalPath.GetHashCode());
                             }
                             else {
-                                throw new InvalidOperationException("Application already exists");
+                                config.SourceID = u.Segments[u.Segments.Length - 1];
                             }
 
+                            config.SourceUrl = sourceUrl;
+                            config.ImageUri = imageUri;
+
+                            // Save Application configuration
+                            string configFile = Path.Combine(destinationFolder, config.Namespace + Package.appConfigurationFileExtention);
+                            config.Save(configFile);
                         }
-                        else {
-                            try {
-                                createdDestinationFolder = Package.CreateDirectory(destinationFolder);
+                        catch (Exception e) {
+
+                            if (createdDestinationFolder != null) {
+                                Directory.Delete(createdDestinationFolder, true);
                             }
-                            catch (ArgumentException) {
-                                throw new ArgumentException("Invalid applications folder path");
-                            }
+                            throw e;
                         }
-
-                        // Extract pagage
-                        archive.ExtractToDirectory(destinationFolder);
-
-                        // Create app configuration file
-                        AppConfig appConfig = new AppConfig();
-                        CreateAppConfig(packageConfig, out appConfig);
-                        appConfig.SourceUrl = sourceUrl;
-
-                        // Save Application configuration
-                        string configFile = Path.Combine(destinationFolder, appConfig.Namespace + Package.appConfigurationFileExtention);
-                        appConfig.Save(configFile);
-                    }
-                    catch (Exception e) {
-
-                        if (createdDestinationFolder != null) {
-                            Directory.Delete(createdDestinationFolder, true);
-                        }
-                        throw e;
                     }
                 }
-            }
-            catch (InvalidDataException) {
-                throw new Exception("Failed to install package, Invalid package format");
-            }
-            catch (InvalidOperationException e) {
-                // Zip file error
-                throw new InvalidOperationException("Failed to install package, " + e.Message);
-            }
-            catch (Exception e) {
-                // Zip file error
-                throw new Exception("Failed to install package, " + e.Message);
+                catch (InvalidDataException e) {
+                    throw new InvalidOperationException("Failed to install package, Invalid package format", e);
+                }
+                catch (Exception e) {
+
+                    throw new InvalidOperationException("Failed to install package, " + e.Message, e);
+                }
             }
         }
 
         /// <summary>
         /// Install zipped package
         /// </summary>
+        /// <param name="packageZip">Zipped package</param>
+        /// <param name="appRootFolder"></param>
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
+        /// <param name="config"></param>
+        public static void Install(string packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
+            lock (AppsContainer.locker) {
+                if (!File.Exists(packageZip)) {
+                    throw new FileNotFoundException("Package not found", packageZip);
+                }
+
+                string sourceHost = new Uri(System.IO.Path.GetFullPath(packageZip)).AbsoluteUri;
+
+                using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
+                    Install(fs, sourceHost, appRootFolder, imageResourceFolder, out config);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="archive"></param>
+        /// <param name="config"></param>
+        /// <param name="imageResourceFolder"></param>
+        /// <param name="imageUri"></param>
+        private static void UnpackAppImage(ZipArchive archive, PackageConfig config, string imageResourceFolder, out string imageUri) {
+
+            string createdDestinationFolder = Package.CreateDirectory(imageResourceFolder);
+
+            try {
+                // Unpack app image to starcounter admin folder
+                ZipArchiveEntry entry = archive.GetEntry(config.ImageUri);
+                if (entry != null) {
+
+                    string imageFileName = Path.ChangeExtension(Path.GetRandomFileName(), Path.GetExtension(config.ImageUri));
+                    string imageFile = Path.Combine(imageResourceFolder, imageFileName);
+                    entry.ExtractToFile(imageFile, true);
+
+                    string imageFolder = Path.GetFileName(imageResourceFolder);
+                    imageUri = string.Format("{0}", imageFileName);
+                }
+                else {
+                    // TODO: Use default image?
+                    imageUri = config.ImageUri;
+                }
+            }
+            catch (Exception e) {
+
+                if (createdDestinationFolder != null) {
+                    Directory.Delete(createdDestinationFolder, true);
+                }
+                throw e;
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="sourceHost"></param>
         /// <param name="packageZip"></param>
         /// <param name="appRootFolder"></param>
-        public static void Install(string sourceHost, string packageZip, string appRootFolder, bool update) {
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
+        /// <param name="config"></param>
+        public static void Upgrade(AppConfig from, string packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
 
-            if (!File.Exists(packageZip)) {
-                throw new FileNotFoundException("Package not found", packageZip);
+            lock (AppsContainer.locker) {
+                Package.Install(packageZip, appRootFolder, imageResourceFolder, out config);
+                AppsContainer.UnInstall(from, imageResourceFolder);
             }
+        }
 
-            using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
-                Install(sourceHost, fs, appRootFolder, update);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="sourceHost"></param>
+        /// <param name="packageZip"></param>
+        /// <param name="appRootFolder"></param>
+        /// <param name="imageResourceFolder">Folder where app image will be created</param>
+        /// <param name="config"></param>
+        public static void Upgrade(AppConfig from, string sourceHost, Stream packageZip, string appRootFolder, string imageResourceFolder, out AppConfig config) {
+
+            lock (AppsContainer.locker) {
+                Package.Install(packageZip, sourceHost, appRootFolder, imageResourceFolder, out config);
+                AppsContainer.UnInstall(from, imageResourceFolder);
             }
         }
 
@@ -120,10 +203,11 @@ namespace Administrator.Server.ApplicationContainer {
 
             // Create app configuration file
             appConfig = new AppConfig();
-            appConfig.ID = string.Format("{0:X8}", (packageConfig.Namespace + packageConfig.Channel + packageConfig.Version).GetHashCode());
             appConfig.Namespace = packageConfig.Namespace;
             appConfig.Channel = packageConfig.Channel;
             appConfig.Version = packageConfig.Version;
+
+            appConfig.AppName = packageConfig.AppName;
 
             appConfig.Executable = packageConfig.Executable;
             appConfig.ResourceFolder = packageConfig.ResourceFolder;
@@ -131,9 +215,8 @@ namespace Administrator.Server.ApplicationContainer {
             appConfig.DisplayName = packageConfig.DisplayName;
             appConfig.Company = packageConfig.Company;
             appConfig.Description = packageConfig.Description;
-            appConfig.ImageUri = packageConfig.ImageUri;
+            //appConfig.ImageUri = packageConfig.ImageUri;
             appConfig.VersionDate = packageConfig.VersionDate;
-            appConfig.RelativeStartUri = packageConfig.RelativeStartUri;
         }
 
         /// <summary>
@@ -142,27 +225,29 @@ namespace Administrator.Server.ApplicationContainer {
         /// <param name="packageZip"></param>
         /// <param name="config"></param>
         public static void ReadConfiguration(ZipArchive archive, out PackageConfig config) {
+            lock (AppsContainer.locker) {
 
-            try {
+                try {
 
-                foreach (ZipArchiveEntry entry in archive.Entries) {
-                    if (entry.FullName.Equals(Package.packageConfigurationFileName, StringComparison.OrdinalIgnoreCase)) {
+                    foreach (ZipArchiveEntry entry in archive.Entries) {
+                        if (entry.FullName.Equals(Package.packageConfigurationFileName, StringComparison.OrdinalIgnoreCase)) {
 
-                        Stream s = entry.Open();
-                        XmlSerializer ser = new XmlSerializer(typeof(PackageConfig));
-                        config = ser.Deserialize(s) as PackageConfig;
-                        return;
+                            Stream s = entry.Open();
+                            XmlSerializer ser = new XmlSerializer(typeof(PackageConfig));
+                            config = ser.Deserialize(s) as PackageConfig;
+                            return;
+                        }
                     }
                 }
-            }
-            catch (InvalidOperationException) {
-                throw new Exception("Invalid package format");
-            }
-            catch (Exception e) {
-                throw e;
-            }
+                catch (InvalidOperationException e) {
+                    throw new InvalidDataException("Invalid package format", e);
+                }
+                catch (Exception e) {
+                    throw e;
+                }
 
-            throw new FileNotFoundException(string.Format("Missing package configuration file ({0})", Package.packageConfigurationFileName));
+                throw new FileNotFoundException(string.Format("Missing package configuration file ({0})", Package.packageConfigurationFileName));
+            }
         }
 
         /// <summary>
@@ -171,9 +256,45 @@ namespace Administrator.Server.ApplicationContainer {
         /// <param name="packageZip"></param>
         /// <param name="config"></param>
         public static void ReadConfiguration(string packageZip, out PackageConfig config) {
+            lock (AppsContainer.locker) {
 
-            using (ZipArchive archive = ZipFile.OpenRead(packageZip)) {
-                ReadConfiguration(archive, out config);
+                using (ZipArchive archive = ZipFile.OpenRead(packageZip)) {
+                    ReadConfiguration(archive, out config);
+                }
+            }
+        }
+
+        public static void VerifyPacket(string packageZip) {
+
+            using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
+                VerifyPacket(fs);
+            }
+
+        }
+
+        public static void VerifyPacket(Stream package) {
+
+            try {
+
+                using (ZipArchive archive = new ZipArchive(package, ZipArchiveMode.Read, true)) {
+
+                    // Get Configuration
+                    PackageConfig packageConfig;
+                    ReadConfiguration(archive, out packageConfig);
+
+                    // Validate configuration
+                    ValidateConfiguration(archive, packageConfig);
+
+                    if (package.CanSeek) {
+                        package.Seek(0, 0);
+                    }
+                };
+            }
+            catch (InvalidDataException e) {
+                throw new InvalidOperationException("Verification of package failed", e);
+            }
+            catch (Exception e) {
+                throw new InvalidOperationException("Verification of package failed, " + e.Message, e);
             }
         }
 
@@ -204,12 +325,12 @@ namespace Administrator.Server.ApplicationContainer {
                 throw new InvalidOperationException("Invalid Version <tag> in package configuration");
             }
 
-            try {
-                new Version(config.Version);
-            }
-            catch (Exception) {
-                throw new InvalidOperationException("Invalid Version <tag> in package configuration");
-            }
+            //try {
+            //    new Version(config.Version);
+            //}
+            //catch (Exception) {
+            //    throw new InvalidOperationException("Invalid Version <tag> in package configuration");
+            //}
 
             if (string.IsNullOrEmpty(config.Executable)) {
                 throw new InvalidOperationException("Invalid Executable <tag> in package configuration");
@@ -223,7 +344,7 @@ namespace Administrator.Server.ApplicationContainer {
             }
 
             // Resource folder
-            // Note: Resource folder can be empty
+            // Note: Resource tag can be empty
             if (!string.IsNullOrEmpty(config.ResourceFolder)) {
 
                 // Assure that the path is a folder path (ending with an "/" )
@@ -239,7 +360,6 @@ namespace Administrator.Server.ApplicationContainer {
                 }
 
             }
-
 
             if (!string.IsNullOrEmpty(config.ImageUri)) {
                 try {
@@ -270,20 +390,20 @@ namespace Administrator.Server.ApplicationContainer {
                     }
                 }
             }
-            catch (InvalidOperationException) {
-                throw new Exception("Invalid package the configuration format");
+            catch (InvalidOperationException e) {
+                throw new InvalidDataException("Invalid package format", e);
             }
             catch (Exception e) {
                 throw e;
             }
 
             if (bExist == false) {
-                throw new FileNotFoundException(string.Format("Invalid or missing package entry"));
+                throw new FileNotFoundException(string.Format("Missing package entry, {0}", entryName));
             }
         }
 
         /// <summary>
-        /// 
+        /// Unpack file from an archive
         /// </summary>
         /// <param name="archive"></param>
         /// <param name="file"></param>
@@ -299,16 +419,15 @@ namespace Administrator.Server.ApplicationContainer {
                     }
                 }
             }
-            catch (InvalidOperationException) {
-                throw new Exception("Invalid package format");
+            catch (InvalidOperationException e) {
+                throw new InvalidDataException("Invalid package format", e);
             }
             catch (Exception e) {
                 throw e;
             }
 
-            throw new FileNotFoundException("Could not find the file");
+            throw new FileNotFoundException("Failed to find file in package, {0}", file);
         }
-
 
         /// <summary>
         /// Create Directory structure 
@@ -316,7 +435,7 @@ namespace Administrator.Server.ApplicationContainer {
         /// </summary>
         /// <param name="path"></param>
         /// <returns>Created root base folder</returns>
-        static public string CreateDirectory(string path) {
+        public static string CreateDirectory(string path) {
             string createdBaseFolder = null;
 
             DirectoryInfo di = new DirectoryInfo(path);

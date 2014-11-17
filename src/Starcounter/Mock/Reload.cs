@@ -75,41 +75,43 @@ namespace Starcounter {
                     selectObjs.Append(" FROM ");
                     selectObjs.Append(QuotePath(tbl.FullName));
                     selectObjs.Append(" __o");
-                    SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator();
-                    Debug.Assert(selectEnum.TypeBinding != null);
-                    while (selectEnum.MoveNext()) {
-                        IObjectView val = selectEnum.Current;
-                        string valTypeName = null;
-                        if (selectEnum.PropertyBinding == null) {
-                            Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                            Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
-                            valTypeName = val.GetObject(0).GetType().ToString();
-                        } else
-                            valTypeName = val.GetType().ToString();
-                        Debug.Assert(valTypeName != null);
-                        if (valTypeName == tbl.FullName) {
-                            if (tblNrObj == 0)
-                                inStmt.Append("(");
-                            else
-                                inStmt.Append(",(");
-                            if (selectEnum.PropertyBinding == null)
-                                inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
-                            else
-                                inStmt.Append("object " + (val.GetObjectNo() + shiftId).ToString()); // Value __id
-                            for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
-                                inStmt.Append(",");
-                                inStmt.Append(GetString(val, i, shiftId));
+                    using (SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator()) {
+                        Debug.Assert(selectEnum.TypeBinding != null);
+                        while (selectEnum.MoveNext()) {
+                            IObjectView val = selectEnum.Current;
+                            string valTypeName = null;
+                            if (selectEnum.PropertyBinding == null) {
+                                Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
+                                Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
+                                valTypeName = val.GetObject(0).GetType().ToString();
                             }
-                            inStmt.Append(")");
-                            tblNrObj++;
-                            if (tblNrObj == 1000) {
-                                using (StreamWriter file = new StreamWriter(fileName, true)) {
-                                    file.WriteLine(inStmt.ToString());
+                            else
+                                valTypeName = val.GetType().ToString();
+                            Debug.Assert(valTypeName != null);
+                            if (valTypeName == tbl.FullName) {
+                                if (tblNrObj == 0)
+                                    inStmt.Append("(");
+                                else
+                                    inStmt.Append(",(");
+                                if (selectEnum.PropertyBinding == null)
+                                    inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
+                                else
+                                    inStmt.Append("object " + (val.GetObjectNo() + shiftId).ToString()); // Value __id
+                                for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
+                                    inStmt.Append(",");
+                                    inStmt.Append(GetString(val, i, shiftId));
                                 }
-                                totalNrObj += tblNrObj;
-                                tblNrObj = 0;
-                                inStmt = new StringBuilder();
-                                inStmt.Append(insertHeader);
+                                inStmt.Append(")");
+                                tblNrObj++;
+                                if (tblNrObj == 1000) {
+                                    using (StreamWriter file = new StreamWriter(fileName, true)) {
+                                        file.WriteLine(inStmt.ToString());
+                                    }
+                                    totalNrObj += tblNrObj;
+                                    tblNrObj = 0;
+                                    inStmt = new StringBuilder();
+                                    inStmt.Append(insertHeader);
+                                }
                             }
                         }
                     }
@@ -148,7 +150,7 @@ namespace Starcounter {
         internal static void DeleteAll() {
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
                 Db.Transaction(delegate {
-                    Db.SlowSQL("DELETE FROM " + QuoteName(tbl.FullName));
+                    Db.SlowSQL("DELETE FROM " + QuotePath(tbl.FullName));
                 });
             }
         }

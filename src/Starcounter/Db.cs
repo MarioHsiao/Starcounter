@@ -175,6 +175,20 @@ namespace Starcounter
             Transaction(action, sccoredb.MDB_TRANSCREATE_SUPPRESS_HOOKS, forceSnapshot, maxRetries);
         }
 
+        public static void Scope(Action action, bool forceNew = false) {
+            ITransaction t = Starcounter.Transaction.GetCurrent();
+            if (forceNew || t == null)
+                t = new Starcounter.Transaction();
+            t.Add(action);
+        }
+
+        public static T Scope<T>(Func<T> func, bool forceNew = false) {
+            ITransaction t = Starcounter.Transaction.GetCurrent();
+            if (forceNew || t == null)
+                t = new Starcounter.Transaction();
+            return t.AddAndReturn<T>(func);
+        }
+
         internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100)
         {
             int retries;

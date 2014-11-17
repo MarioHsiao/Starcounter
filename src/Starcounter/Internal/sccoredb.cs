@@ -400,6 +400,18 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// Merges transaction into the current transaction.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="verify"></param>
+        /// <returns></returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_transaction_merge_into_current(
+            ulong handle,
+            ulong verify
+            );
+
+        /// <summary>
         /// </summary>
         /// <param name="tran_locked_on_thread">The tran_locked_on_thread.</param>
         /// <param name="hiter">The hiter.</param>
@@ -468,6 +480,30 @@ namespace Starcounter.Internal
             ulong record_addr,
             ushort table_id
             );
+
+        public const uint STAR_HOOKTYPE_COMMIT_DELETE = 0x00;
+        public const uint STAR_HOOKTYPE_COMMIT_INSERT = 0x01;
+        public const uint STAR_HOOKTYPE_COMMIT_UPDATE = 0x02;
+
+        public const uint STAR_HOOKS_ON_COMMIT_DELETE = 0x04;
+        public const uint STAR_HOOKS_ON_COMMIT_INSERT = 0x08;
+        public const uint STAR_HOOKS_ON_COMMIT_UPDATE = 0x10;
+
+        /// <summary>
+        /// Allows the host to configure the kernel runtime to assure any
+        /// operation represented in the <paramref name="commit_hook_mask"/>
+        /// signals to the host to invoke the corresponding hooks on table
+        /// <paramref name="name"/> when a transaction commit. 
+        /// </summary>
+        /// <param name="name">The name of the table to which the mask should
+        /// be applied.</param>
+        /// <param name="commit_hook_mask">The mask to apply</param>
+        /// <returns>Zero on success; an error code otherwise.</returns>
+        /// <seealso cref="STAR_HOOKS_ON_COMMIT_DELETE"/>
+        /// <seealso cref="STAR_HOOKS_ON_COMMIT_INSERT"/>
+        /// <seealso cref="STAR_HOOKS_ON_COMMIT_UPDATE"/>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint stari_set_commit_hooks(ulong name, uint commit_hook_mask);
 
         /// <summary>
         /// </summary>
@@ -904,7 +940,14 @@ namespace Starcounter.Internal
     public static class systables {
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_get_token(string name, ulong token);
+        public static extern uint star_get_token(string name, out ulong token);
+
+        public static ulong star_get_token(string name) {
+            ulong token;
+            var r = star_get_token(name, out token);
+            if (r != 0) throw ErrorCode.ToException(r);
+            return token;
+        }
 
         [DllImport("systables.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_get_label(ulong token, char** pvalue);

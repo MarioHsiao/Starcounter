@@ -28,42 +28,42 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <summary>
         /// Register Application GET
         /// </summary>
-        public static void InstalledApplication_GET(string appsRootFolder) {
+        public static void InstalledApplication_GET(ushort port, string appsRootFolder, string appImagesSubFolder) {
 
             // Get a list of all running Applications
             // Example response
             //{
             // "Items": [
             //      {
+            //          "ID": "", 
+            //          "Url" : "",
             //          "Namespace": "", 
             //          "Channel" : "",
             //          "Version" : "",
-            //          "Executable" : "",
-            //          "ResourceFolder" : "",
             //          "DisplayName": "", 
             //          "Description": "",
+            //          "Company" : "",
             //          "VersionDate" : "",
-            //      	"RelativeStartUri" : "",
+            //          "Executable" : "",
+            //          "ResourceFolder" : "",
             //          "Size" : 0,
-            //          "Url" : ""
+            //          "ImageUri" : ""
             //      }
             //  ]
             //}
-            Handle.GET("/api/admin/installed/apps", (Request req) => {
+            Handle.GET(port, "/api/admin/installed/apps", (Request req) => {
 
                 try {
 
-                    Representations.JSON.Applications installedApplications = new Representations.JSON.Applications();
+                    Representations.JSON.InstalledApplications installedApplications = new Representations.JSON.InstalledApplications();
 
                     IList<AppConfig> apps = AppsContainer.GetInstallApps(appsRootFolder);
                     string relative = "/api/admin/installed/apps";
                     string url = new Uri(Starcounter.Administrator.API.Handlers.RootHandler.Host.BaseUri, relative).ToString();
 
-                    string appBasefolder = appsRootFolder;
-
                     foreach (AppConfig appConfig in apps) {
-                        Representations.JSON.Applications.ItemsElementJson item;
-                        BuildApplicationItem(appConfig, url, appBasefolder, out item);
+                        Representations.JSON.InstalledApplication item;
+                        BuildApplicationItem(appConfig, url, appsRootFolder, appImagesSubFolder, out item);
                         installedApplications.Items.Add(item);
                     }
 
@@ -80,30 +80,17 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// </summary>
         /// <param name="appConfig"></param>
         /// <param name="url"></param>
-        /// <param name="appBasefolder"></param>
+        /// <param name="appsRootFolder"></param>
         /// <param name="item"></param>
-        private static void BuildApplicationItem(AppConfig appConfig, string url, string appBasefolder, out Representations.JSON.Applications.ItemsElementJson item) {
+        private static void BuildApplicationItem(AppConfig appConfig, string url, string appsRootFolder, string appImagesSubFolder, out Representations.JSON.InstalledApplication item) {
 
-            //"ID": "", 
-            //"Namespace": "", 
-            //"Channel" : "",
-            //"Version" : "",
-            //"DisplayName": "", 
-            //"Description": "",
-            //"VersionDate" : "",
-            //"RelativeStartUri" : "",
-            //"Executable" : "",
-            //"ResourceFolder" : "",
-            //"Size" : 0,
-            //"ImageUri" : "",
-            //"Url" : "",
-            //"IsInstalled" : false,
-            //"IsNewVersionAvailable" : false
-
-
-
-            item = new Representations.JSON.Applications.ItemsElementJson();
+            item = new Representations.JSON.InstalledApplication();
             item.ID = appConfig.ID;
+            item.Url = url + "/" + appConfig.Namespace;
+
+            item.SourceID = appConfig.SourceID;
+            item.SourceUrl = appConfig.SourceUrl;
+
             item.Namespace = appConfig.Namespace;
             item.Channel = appConfig.Channel;
             item.Version = appConfig.Version;
@@ -111,17 +98,18 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.Description = appConfig.Description;
             item.Company = appConfig.Company;
             item.VersionDate = appConfig.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'"); ;
-            item.RelativeStartUri = appConfig.RelativeStartUri;
 
-            string appExe = Path.Combine(appBasefolder, appConfig.Namespace);
-            appExe = Path.Combine(appExe, appConfig.Channel);
-            appExe = Path.Combine(appExe, appConfig.Version);
-            appExe = Path.Combine(appExe, appConfig.Executable);
+            item.Executable = BuildAppExecutablePath(appConfig, appsRootFolder);
 
-            appExe = appExe.Replace('/', '\\'); // TODO: Fix this when config is verified
-            item.Executable = appExe;
+            //string appExe = Path.Combine(appsRootFolder, appConfig.Namespace);
+            //appExe = Path.Combine(appExe, appConfig.Channel);
+            //appExe = Path.Combine(appExe, appConfig.Version);
+            //appExe = Path.Combine(appExe, appConfig.Executable);
 
-            string appResourcFolder = Path.Combine(appBasefolder, appConfig.Namespace);
+            //appExe = appExe.Replace('/', '\\'); // TODO: Fix this when config is verified
+            //item.Executable = appExe;
+
+            string appResourcFolder = Path.Combine(appsRootFolder, appConfig.Namespace);
             appResourcFolder = Path.Combine(appResourcFolder, appConfig.Channel);
             appResourcFolder = Path.Combine(appResourcFolder, appConfig.Version);
             appResourcFolder = Path.Combine(appResourcFolder, appConfig.ResourceFolder);
@@ -129,11 +117,24 @@ namespace Starcounter.Administrator.Server.Handlers {
             item.ResourceFolder = appResourcFolder;
 
             item.Size = 0;      // TODO: Collect the disk space size?
-            item.ImageUri = ""; // TODO: Where to find it?
-            item.Url = url + "/" + appConfig.Namespace;
+            item.ImageUri = string.Format("{0}/{1}", appImagesSubFolder, appConfig.ImageUri); ;
+        }
 
-            item.IsInstalled = true;
-            item.IsNewVersionAvailable = false;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="appConfig"></param>
+        /// <param name="appsRootFolder"></param>
+        /// <returns></returns>
+        internal static string BuildAppExecutablePath(AppConfig appConfig, string appsRootFolder) {
+
+            string appExe = Path.Combine(appsRootFolder, appConfig.Namespace);
+            appExe = Path.Combine(appExe, appConfig.Channel);
+            appExe = Path.Combine(appExe, appConfig.Version);
+            appExe = Path.Combine(appExe, appConfig.Executable);
+
+            appExe = appExe.Replace('/', '\\'); // TODO: Fix this when config is verified
+            return appExe;
         }
     }
 }

@@ -14,6 +14,7 @@ using Codeplex.Data;
 using System.IO;
 using System.Globalization;
 using Starcounter.Logging;
+using System.Net;
 
 namespace Starcounter.Rest
 {
@@ -857,10 +858,15 @@ namespace Starcounter.Rest
 
         public static void Setup(
             UriInjectMethods.RegisterUriHandlerNativeDelegate registerUriHandlerNative,
+            TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
+            UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
             Func<Request, Boolean> onHttpMessageRoot,
             Func<Request, Int32, Response> handleInternalRequest,
             Action<Boolean> internalAddExtraHandlerLevel)
         {
+            TcpSocket.InitTcpSockets(tcpSocketHandler);
+            UdpSocket.InitUdpSockets(udpSocketHandler);
+
             UriInjectMethods.SetDelegates(
                 registerUriHandlerNative,
                 onHttpMessageRoot,

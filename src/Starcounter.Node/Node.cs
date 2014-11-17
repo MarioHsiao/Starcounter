@@ -69,6 +69,24 @@ namespace Starcounter
             NodeLogException_ = nodeLogException;
         }
 
+        // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+        internal static void SetLoopbackFastPathOnTcpSocket(Socket sock) {
+
+            // NOTE: Tries to configure a TCP socket for lower latency and faster operations on the loopback interface.
+            try {
+                const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
+
+                Byte[] OptionInValue = BitConverter.GetBytes(1);
+
+                sock.IOControl(
+                    SIO_LOOPBACK_FAST_PATH,
+                    OptionInValue,
+                    null);
+            } catch {
+                // Simply ignoring the error if fast loopback is not supported.
+            }
+        }
+
         /// <summary>
         /// Represents this Starcounter node.
         /// </summary>
@@ -261,18 +279,8 @@ namespace Starcounter
             {
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                try {
-                    const int SIO_LOOPBACK_FAST_PATH = (-1744830448);
-                
-                    Byte[] OptionInValue = BitConverter.GetBytes(1);
-
-                    aggrSocket_.IOControl(
-                        SIO_LOOPBACK_FAST_PATH,
-                        OptionInValue,
-                        null);
-                } catch {
-                    // Simply ignoring the error if fast loopback is not supported.
-                }
+                // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
+                Node.SetLoopbackFastPathOnTcpSocket(aggrSocket_);
 
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendBuffer, 1 << 19);
                 aggrSocket_.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveBuffer, 1 << 19);
@@ -698,7 +706,7 @@ namespace Starcounter
 
             ho.DontModifyHeaders = true;
 
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req);
+            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req.CustomBytes, req.CustomBytesLength);
         }
 
         /// <summary>
@@ -740,7 +748,7 @@ namespace Starcounter
                 // Checking if response should be sent.
                 if (resp.Request != null)
                 {
-                    resp.Request.SendResponse(resp);
+                    resp.Request.SendResponse(resp, null);
                     resp.Request = null;
                 }
             }
@@ -857,11 +865,14 @@ namespace Starcounter
 
             // Checking if any tasks are finished.
             if (!finished_async_tasks_.Dequeue(out nt)) {
+
                 // Checking if we exceeded the maximum number of created tasks.
                 if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks) {
+
                     // Looping until task is dequeued.
-                    while (!finished_async_tasks_.Dequeue(out nt))
+                    while (!finished_async_tasks_.Dequeue(out nt)) {
                         Thread.Sleep(1);
+                    }
                 }
             }
 
@@ -892,12 +903,7 @@ namespace Starcounter
         /// <summary>
         /// Core function to send REST requests and get the responses.
         /// </summary>
-        /// <param name="method">HTTP method.</param>
-        /// <param name="relativeUri">Relative URI.</param>
-        /// <param name="customHeaders">Custom HTTP headers if any.</param>
-        /// <param name="body">HTTP Body string or null if no such.</param>
-        /// <param name="func">User delegate to be called.</param>
-        Response DoRESTRequestAndGetResponse(
+        public Response DoRESTRequestAndGetResponse(
             String method,
             String relativeUri,
             String customHeaders,
@@ -906,26 +912,30 @@ namespace Starcounter
             Object userObject,
             Int32 receiveTimeoutMs,
             HandlerOptions ho,
-            Request req = null)
+            Byte[] customBytes = null,
+            Int32 customBytesLength = 0)
         {
             // Checking if handler options is defined.
             if (ho == null)
                 ho = HandlerOptions.DefaultHandlerOptions;
 
-            if (relativeUri == null || relativeUri.Length < 1)
-                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
-
-            String methodAndUriPlusSpace = method + " " + relativeUri + " ";
-
             Int32 requestBytesLength;
             Byte[] requestBytes;
+
+            String methodAndUriPlusSpace = method + " " + relativeUri + " ";
             
             // Checking if request is defined and initialized.
-            if ((req == null) || (req.CustomBytes == null)) {
+            if (customBytes == null) {
+
+                if (relativeUri == null || relativeUri.Length < 1)
+                    throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+
                 requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
+
             } else {
-                requestBytes = req.CustomBytes;
-                requestBytesLength = req.CustomBytesLength;
+
+                requestBytes = customBytes;
+                requestBytesLength = customBytesLength;
             }
             
             // No response initially.
@@ -955,7 +965,7 @@ namespace Starcounter
 
                                 // Checking if response should be sent.
                                 if (resp.Request != null) {
-                                    resp.Request.SendResponse(resp);
+                                    resp.Request.SendResponse(resp, null);
                                     resp.Request = null;
                                 }
 

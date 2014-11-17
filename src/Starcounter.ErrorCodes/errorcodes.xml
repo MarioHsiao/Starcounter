@@ -429,6 +429,9 @@
     <code hex="0046" severity="Error" name="ScErrUnexpectedInternalError">
       <message>An unexpected internal error was detected.</message>
     </code>
+    <code hex="0047" severity="Error" name="ScErrTestAssertionFailure">
+      <message>Assertion used in a test application failed.</message>
+    </code>
   </facility>
 
   <!--
@@ -4237,6 +4240,11 @@
       <message>
         The admin server is taken longer than normal to start; it didn't
         signal it was ready in time.
+      </message>
+    </code>
+    <code hex="0027" severity="Error" name="ScErrApplicationNotAnExecutable">
+      <message>
+        The application is not an executable.
       </message>
     </code>
   </facility>

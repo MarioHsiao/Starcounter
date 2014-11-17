@@ -89,6 +89,9 @@ namespace Starcounter.VisualStudio.Projects {
             if (!debugConfiguration.IsStartProject) {
                 throw new NotSupportedException("Only 'Project' start action is currently supported.");
             }
+            if (!debugConfiguration.IsConsoleApplication) {
+                throw ErrorCode.ToException(Error.SCERRAPPLICATIONNOTANEXECUTABLE, string.Format("Failing application: {0}", debugConfiguration.AssemblyPath));
+            }
 
             var parser = new Parser(debugConfiguration.Arguments);
             cmdLine = parser.Parse(commandLineSyntax);

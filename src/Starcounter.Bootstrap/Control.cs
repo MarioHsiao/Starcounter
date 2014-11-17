@@ -522,7 +522,7 @@ namespace StarcounterInternal.Bootstrap {
                 sccoredb.STAR_KEY_COLUMN_NAME_TOKEN, sccoredb.STAR_DEFAULT_INDEX_NAME_TOKEN, 0,
                 c.Name, c.TempDirectory
                 );
-            if (e != 0) throw ErrorCode.ToException(e);
+            if (e != 0) throw ErrorCode.ToException(e);		
         }
 
         /// <summary>

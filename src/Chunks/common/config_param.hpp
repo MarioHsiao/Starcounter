@@ -46,7 +46,7 @@ const std::size_t client_interfaces = 1 << client_interface_bits;
 // The capacity of each channels in and out queues.
 // This parameter is currently hard coded in the channel class itself
 // to use 8 = 256 elements.
-const std::size_t channel_capacity_bits = 12;
+const std::size_t channel_capacity_bits = 11;
 const std::size_t channel_capacity = 1 << channel_capacity_bits;
 
 // The max number of databases that can exist (per IPC monitor).
@@ -62,7 +62,7 @@ const std::size_t max_number_of_clients = 256;
 const std::size_t server_name_size = 32;
 
 // The size of the array to hold the database name, including terminating null.
-const std::size_t database_name_size = 32;
+const std::size_t database_name_size = 64;
 
 // The size of the array to hold the segment name, including terminating null.
 const std::size_t segment_name_size = 64;
@@ -73,7 +73,7 @@ const std::size_t segment_name_size = 64;
 // "Local\<segment_name>_notify_client_<N>".
 // where N is number in the range 0..30 for schedulers and 0..255 for clients.
 // For example: "Local\starcounter_PERSONAL_LOADANDLATENCY_64_notify_scheduler_0"
-const std::size_t segment_and_notify_name_size = 96;
+const std::size_t segment_and_notify_name_size = 128;
 
 // The size of the array to hold the server name and ipc monitor cleanup event name,
 // including terminating null. The format is:

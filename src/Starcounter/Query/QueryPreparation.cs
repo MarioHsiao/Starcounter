@@ -23,15 +23,14 @@ namespace Starcounter.Query {
                 return null; // The query was executed
 #endif // !PROLOG_ONLY
 #if BISON_ONLY
-            if (nativeException != null)
+            else
                 throw nativeException;
-            Debug.Assert(false); // Should not be reached
 #endif
+            // Call to Prolog parser and type checker
+#if !BISON_ONLY
             OptimizerInput optArgsProlog = null;
             IExecutionEnumerator prologParsedQueryPlan = null;
             Exception prologException = null;
-            // Call to Prolog parser and type checker
-#if !BISON_ONLY
             // Call Prolog and get answer
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
@@ -52,20 +51,24 @@ namespace Starcounter.Query {
             } catch (Exception e) {
                 prologException = e;
             }
-            if (prologException != null) {
+            Exception finalException = null;
+            if (prologException != null)
+                finalException = prologException;
+            else
+                finalException = Starcounter.Query.Sql.SqlProcessor.CheckSingleDelimitedIdentifiers(query);
 #if !PROLOG_ONLY
-                if (nativeException != null)
-                    if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED || 
-                        (uint?)prologException.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRQUERYSTRINGTOOLONG)
-                        throw nativeException;
+            if (nativeException != null)
+                if ((uint)nativeException.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSQLNOTIMPLEMENTED 
+                    //|| (uint?)prologException.Data[ErrorCode.EC_TRANSPORT_KEY] == Error.SCERRQUERYSTRINGTOOLONG
+                    )
+                    finalException = nativeException;
 #endif //!PROLOG_ONLY
-                throw prologException;
-            }
+            if (finalException != null)
+                throw finalException;
 
             // Transfer answer terms into pre-optimized structures
             Debug.Assert(prologException == null);
             optArgsProlog = PrologManager.ProcessPrologAnswer(answer, query);
-#endif
             // Call to optimizer of Prolog result
             if (optArgsProlog != null)
                 prologParsedQueryPlan = Optimizer.Optimize(optArgsProlog);
@@ -80,6 +83,7 @@ namespace Starcounter.Query {
             }
             MatchEnumeratorResultAndExpectedType<T>(newEnum);
             return newEnum;
+#endif
         }
 
         internal static void MatchEnumeratorResultAndExpectedType<T>(IExecutionEnumerator execEnum) {

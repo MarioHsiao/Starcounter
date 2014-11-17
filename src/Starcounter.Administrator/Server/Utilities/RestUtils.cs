@@ -4,6 +4,7 @@ using Starcounter.Advanced;
 using Starcounter.Server.PublicModel;
 using System.Net;
 using Starcounter.Internal;
+using System.Net.Sockets;
 
 namespace Starcounter.Administrator.Server.Utilities {
     /// <summary>
@@ -52,7 +53,6 @@ namespace Starcounter.Administrator.Server.Utilities {
             settings.TempDirectory = database.Configuration.Runtime.TempDirectory;
             settings.ImageDirectory = database.Configuration.Runtime.ImageDirectory;
             settings.TransactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory;
-            settings.SqlAggregationSupport = database.Configuration.Runtime.SqlAggregationSupport;
             settings.CollationFile = database.CollationFile;
 
             return settings;
@@ -145,12 +145,6 @@ namespace Starcounter.Administrator.Server.Utilities {
                 validationError.Text = "invalid transaction log directory";
             }
 
-            // SQL Aggregation support
-            //bool sqlAggregationSupport;
-            //if (!bool.TryParse(settings.SqlAggregationSupport.ToString(), out sqlAggregationSupport)) {
-            //    resultJson.validationErrors[validationErrors++] = new { property = "sqlAggregationSupport", message = "invalid SQL Aggregation support" };
-            //}
-
             // TODO: Validate the collation file
             // Collation File
             //if (string.IsNullOrEmpty(settings.CollationFile)) {
@@ -181,5 +175,26 @@ namespace Starcounter.Administrator.Server.Utilities {
 
             return validationErrors;
         }
+
+        /// <summary>
+        /// TODO: 
+        /// </summary>
+        /// <returns></returns>
+        public static string GetMachineIp() {
+
+//            string url = new Uri(Starcounter.Administrator.API.Handlers.RootHandler.Host.BaseUri, relative).ToString();
+
+            IPHostEntry host;
+            string localIP = "127.0.0.1";
+            host = Dns.GetHostEntry(Dns.GetHostName());
+
+            foreach (IPAddress ip in host.AddressList) {
+                if (ip.AddressFamily == AddressFamily.InterNetwork) {
+                    localIP = ip.ToString();
+                }
+            }
+            return localIP;
+        }
+
     }
 }

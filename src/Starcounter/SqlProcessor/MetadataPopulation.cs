@@ -1,5 +1,6 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Internal.Metadata;
 using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
@@ -65,7 +66,7 @@ namespace Starcounter.SqlProcessor {
                             } else {
                                 Starcounter.Internal.Metadata.MaterializedColumn matCol = 
                                     Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
-                                    "select c from materializedcolumn c where table = ? and name = ?",
+                                    "select c from materializedcolumn c where c.table = ? and name = ?",
                                     theView.MaterializedTable, propDef.ColumnName).First;
                                 Column col = new Column {
                                     Table = theView,
@@ -137,6 +138,28 @@ namespace Starcounter.SqlProcessor {
                 thisType.Inherits = newParent;
             }
             RemoveColumnInstances(thisType);
+            UpgradeInheritedRawTableInstance(thisType);
+        }
+
+        /// <summary>
+        /// When a table is upgraded, MaterializedTable instances are reset to 
+        /// new instances for all inherited tables.
+        /// Therefore RawTable instances representing inherited tables should be
+        /// updated to the correct MaterializedTable instance.
+        /// </summary>
+        /// <param name="typeDef"></param>
+        /// <param name="rawView"></param>
+        internal static void UpgradeInheritedRawTableInstance(RawView rawView) {
+            foreach(RawView inherited in Db.SQL<RawView>("select v from rawview v where inherits = ?", rawView)) {
+                Debug.Assert(Db.SQL("select materializedtable from rawview v where v = ?", inherited).First == null);
+                Debug.Assert(inherited.MaterializedTable == null);
+                MaterializedTable t = Db.SQL<MaterializedTable>(
+                    "select t from materializedtable t where name = ?", inherited.FullName).First;
+                Debug.Assert(t != null);
+                inherited.MaterializedTable = t;
+                // Repeat for children
+                UpgradeInheritedRawTableInstance(inherited);
+            }
         }
 
         internal static void RemoveColumnInstances(RawView thisView) {
@@ -155,7 +178,7 @@ namespace Starcounter.SqlProcessor {
             for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
                 ColumnDef col = typeDef.TableDef.ColumnDefs[i];
                 Starcounter.Internal.Metadata.MaterializedColumn matCol = Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
-                    "select c from materializedcolumn c where name = ? and table = ?",
+                    "select c from materializedcolumn c where c.name = ? and c.table = ?",
                     col.Name, thisView.MaterializedTable).First;
                 Debug.Assert(matCol != null);
                 Column newCol = new Column {

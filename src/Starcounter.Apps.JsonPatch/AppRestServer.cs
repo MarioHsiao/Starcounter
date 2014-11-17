@@ -82,7 +82,6 @@ namespace Starcounter.Internal.Web {
                 }
 
                 resp.Request = req;
-                resp.ConstructFromFields();
 
                 return resp;
             }
@@ -92,7 +91,6 @@ namespace Starcounter.Internal.Web {
                 var errResp = Response.FromStatusCode(500);
                 errResp.Body = GetExceptionString(ex);
                 errResp.ContentType = "text/plain";
-                errResp.ConstructFromFields();
                 return errResp;
             }
         }
@@ -103,14 +101,11 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The request.</param>
         /// <returns>The bytes according to the appropriate protocol</returns>
         public Response HandleRequest(Request request, Int32 handlerLevel) {
-            Response resp = null;
+
+            Response resp;
 
             try {
-                Db.ImplicitScope(() => {
-                    resp = _HandleRequest(request, handlerLevel);
-                });
-
-                return resp;
+                return _HandleRequest(request, handlerLevel);
             }
             catch (ResponseException exc) {
                 // NOTE: if internal request then throw the exception up.
@@ -119,13 +114,11 @@ namespace Starcounter.Internal.Web {
 
                 resp = exc.ResponseObject;
                 resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                resp.ConstructFromFields();
                 return resp;
             }
             catch (UriInjectMethods.IncorrectSessionException) {
                 resp = Response.FromStatusCode(400);
                 resp["Connection"] = "close";
-                resp.ConstructFromFields();
                 return resp;
             }
             catch (Exception exc) {
@@ -134,14 +127,7 @@ namespace Starcounter.Internal.Web {
                 resp = Response.FromStatusCode(500);
                 resp.Body = GetExceptionString(exc);
                 resp.ContentType = "text/plain";
-                resp.ConstructFromFields();
                 return resp;
-            }
-            finally {
-                // Checking if a new session was created during handler call.
-                if ((null != Session.Current) && (!request.IsInternal))
-                    Session.End();
-                Session.InitialRequest = null;
             }
         }
 

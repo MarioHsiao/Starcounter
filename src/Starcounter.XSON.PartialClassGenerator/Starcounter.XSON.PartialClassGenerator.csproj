@@ -64,7 +64,6 @@
     <Compile Include="Generation2\AST\AstClassAlias.cs" />
     <Compile Include="Generation2\AST\AstJsonMetadataClass.cs" />
     <Compile Include="Generation2\AST\AstTemplateClass.cs" />
-    <Compile Include="Generation2\DomGenerator.ObtainNewNodes.cs" />
     <Compile Include="Generation2\GeneratorPhase5.cs" />
     <Compile Include="Generation2\Gen2CodeGenerationModule.cs" />
     <Compile Include="Generation2\Gen2CSharpGenerator.cs" />
@@ -91,7 +90,6 @@
     <Compile Include="Generation2\GeneratorPhase4.cs" />
     <Compile Include="Generation2\GeneratorPhase6.cs" />
     <Compile Include="PartialClassGenerator.cs" />
-    <Compile Include="Properties\Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -111,9 +109,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Generation2\Generator\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

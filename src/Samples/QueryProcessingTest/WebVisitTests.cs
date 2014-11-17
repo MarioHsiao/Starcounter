@@ -51,6 +51,7 @@ namespace QueryProcessingTest {
             Trace.Assert(vi.IpBytes.Equals(new Binary(new byte[] { 1, 1, 1, 1 })));
             Trace.Assert(Db.BinaryToHex(vi.IpBytes) == "01010101");
             Trace.Assert(!visits.MoveNext());
+            visits.Dispose();
             Db.SQL("create index ipBytesIndx on visit(ipbytes)");
             vi = Db.SQL<Visit>("select v from visit v where IpBytes = ?", new Binary(new byte[] { 1, 1, 1, 1 })).First;
             Trace.Assert(vi != null);

@@ -17,6 +17,7 @@ namespace QueryProcessingTest {
             var e = r.GetEnumerator();
             Trace.Assert(e.MoveNext());
             string s = e.Current;
+            e.Dispose();
             Trace.Assert(s != null && s != "");
             ulong n = Db.SQL<ulong>("select objectno from account").First;
             Trace.Assert(n > 0);
@@ -94,6 +95,7 @@ namespace QueryProcessingTest {
             //Console.WriteLine(accounts.ToString());
             Trace.Assert(accounts.MoveNext());
             a = accounts.Current;
+            accounts.Dispose();
             Trace.Assert(a.AccountId == 1);
             Trace.Assert(a.GetObjectID() == accountID);
             a = Db.SQL<Account>("select a from account a where objectno = ?", 1230932).First;

@@ -45,6 +45,7 @@
     <Compile Include="LogSource.cs" />
     <Compile Include="LogTraceListener.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ScAssertion.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Starcounter.Internal\Starcounter.Internal.csproj">

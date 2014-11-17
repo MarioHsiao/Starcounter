@@ -126,6 +126,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
 
     // Number of bytes left to copy.
     int32_t bytes_left = total_copy_bytes - cur_chunk_data_size;
+    _SC_ASSERT(bytes_left >= 0);
 
     // Next chunk copy size.
     cur_chunk_data_size = bytes_left;
@@ -301,7 +302,6 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
         // Getting next chunk in chain.
         the_chunk_index = ((shared_memory_chunk*)cur_smc)->get_link();
         _SC_ASSERT(the_chunk_index != shared_memory_chunk::link_terminator);
-        _SC_ASSERT(the_chunk_index < starcounter::MixedCodeConstants::SHM_CHUNKS_DEFAULT_NUMBER);
 
         // Getting chunk memory address.
         err_code = cm_get_shared_memory_chunk(the_chunk_index, &cur_smc);
@@ -352,7 +352,6 @@ uint32_t __stdcall sc_bmx_send_small_buffer(
     // Copying buffer into chunk.
     memcpy(cur_chunk_buf + chunk_user_data_offset, buf, buf_len_bytes);
 
-    _SC_ASSERT(*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + starcounter::MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER) < 100100);
     shared_memory_chunk* smc = (shared_memory_chunk*)cur_chunk_buf;
     _SC_ASSERT(smc->is_terminated());
 
@@ -408,8 +407,6 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
         shared_memory_chunk* smc = (shared_memory_chunk*)cur_chunk_buf;
         if (last_written_bytes <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset)
             _SC_ASSERT(smc->is_terminated());
-
-        _SC_ASSERT(*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + starcounter::MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER) < 100100);
 
         // Checking if we have processed everything.
         if (total_processed_bytes < buf_len_bytes)
@@ -492,7 +489,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     (*(uint32_t*)(cur_chunk_buf + starcounter::core::chunk_type::request_size_begin)) = 0;
 
     // Checking if user data fits inside the request chunk.
-    if (buf_len_bytes < remaining_bytes_in_orig_chunk)
+    if (buf_len_bytes <= remaining_bytes_in_orig_chunk)
     {
         // Sending using the same request chunk.
         err_code = sc_bmx_send_small_buffer(gw_worker_id, buf, buf_len_bytes, *the_chunk_index, chunk_user_data_offset);

@@ -43,11 +43,14 @@ namespace Starcounter.Administrator.Server {
             UInt16 adminPort = StarcounterEnvironment.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
+
 #if ANDWAH
-            AppsBootstrapper.Bootstrap(@"c:\github\Level1\src\Starcounter.Administrator", adminPort);
+            string resourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
 #else
-            AppsBootstrapper.Bootstrap("scadmin", adminPort);
+            string resourceFolder = "scadmin";
 #endif
+
+            AppsBootstrapper.Bootstrap(resourceFolder, adminPort);
 
             // Create a Server Engine
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
@@ -63,7 +66,7 @@ namespace Starcounter.Administrator.Server {
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
 
             // Boostrap Admin API handlers
-            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface);
+            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, resourceFolder);
 
             // Registering Default handlers.
             RegisterHandlers();
@@ -193,19 +196,19 @@ namespace Starcounter.Administrator.Server {
                 return new Response() { Body = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}", h, e, d) };
             });
 
-            Handle.Socket("echotestws", (String s, WebSocket ws) => {
+            Handle.WebSocket("echotestws", (String s, WebSocket ws) => {
                 Interlocked.Increment(ref WsEchoesCounter);
 
                 ws.Send(s);
             });
 
-            Handle.Socket("echotestws", (Byte[] bs, WebSocket ws) => {
+            Handle.WebSocket("echotestws", (Byte[] bs, WebSocket ws) => {
                 Interlocked.Increment(ref WsEchoesCounter);
 
                 ws.Send(bs);
             });
 
-            Handle.SocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
                 Interlocked.Increment(ref WsDisconnectsCounter);
 
                 // Do nothing!

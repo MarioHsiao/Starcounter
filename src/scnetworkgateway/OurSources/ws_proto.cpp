@@ -354,7 +354,11 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     {
         sd->reset_socket_just_send_flag();
 
-        goto JUST_SEND_SOCKET_DATA;
+        // Prepare buffer to send outside.
+        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+
+        // Sending data.
+        return gw->Send(sd);
     }
 
     // Getting user data.
@@ -362,7 +366,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     uint8_t* orig_payload = payload;
 
     // Length of user data in bytes.
-    uint32_t total_payload_len = sd->get_accum_buf()->get_desired_accum_bytes();
+    uint32_t total_payload_len = sd->get_total_user_data_length_bytes();
     uint32_t cur_payload_len = sd->get_user_data_length_bytes();
 
     // Checking if we are sending last frame.
@@ -388,10 +392,8 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Adjusting user data parameters.
     sd->set_user_data_offset_in_socket_data(sd->get_user_data_offset_in_socket_data() - diff);
 
-JUST_SEND_SOCKET_DATA:
-
     // Sending data.
-    return gw->Send(sd);
+    return gw->Send(sd);    
 }
 
 const int32_t MaxHandshakeResponseLenBytes = 256;

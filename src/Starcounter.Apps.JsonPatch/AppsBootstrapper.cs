@@ -1,15 +1,11 @@
-﻿
-using Modules;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
 using Starcounter.Rest;
-using Starcounter.Templates;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading;
 
 namespace Starcounter.Internal {
 
@@ -63,12 +59,14 @@ namespace Starcounter.Internal {
             ScSessionClass.SetDbSessionImplementation(dbs);
 
             // Dependency injection for converting puppets to html
-            Modules.Starcounter_XSON.Injections._JsonMimeConverter = new JsonMimeConverter();
+            Starcounter.Internal.XSON.Modules.Starcounter_XSON.Injections.JsonMimeConverter = new JsonMimeConverter();
 
             // Giving REST needed delegates.
             unsafe {
                 UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.RegisterUriHandlerNative,
+                    GatewayHandlers.RegisterTcpSocketHandler,
+                    GatewayHandlers.RegisterUdpSocketHandler,
                     OnHttpMessageRoot,
                     AppServer_.HandleRequest,
                     UriHandlersManager.AddExtraHandlerLevel);
@@ -182,6 +180,14 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Default size for static serialization buffer.
+        /// </summary>
+        const Int32 DefaultResponseSerializationBufferSize = 4096;
+
+        [ThreadStatic]
+        static Byte[] responseSerializationBuffer_;
+
+        /// <summary>
         /// Entry-point for all incoming http requests from the Network Gateway.
         /// </summary>
         /// <param name="request">The http request</param>
@@ -189,27 +195,38 @@ namespace Starcounter.Internal {
         private static Boolean OnHttpMessageRoot(Request req) {
             Response resp = null;
 
-            // Handling request on initial level.
-            resp = AppServer_.HandleRequest(req, 0);
-            
-            // Checking if response was handled.
-            if (resp == null)
-                return false;
+            try {
+                // Handling request on initial level.
+                resp = AppServer_.HandleRequest(req, 0);
 
-            // Determining what we should do with response.
-            switch (resp.HandlingStatus)
-            {
-                case HandlerStatusInternal.Done:
-                {
-                    // Standard response send.
-                    req.SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+                // Checking if response was handled.
+                if (resp == null)
+                    return false;
 
-                    // Destroying request and response objects.
-                    resp.Destroy();
-                    req.Destroy();
+                // Determining what we should do with response.
+                switch (resp.HandlingStatus) {
+                    case HandlerStatusInternal.Done: {
+                            // Creating response serialization buffer.
+                            if (responseSerializationBuffer_ == null) {
+                                responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
+                            }
 
-                    break;
+                            // Standard response send.
+                            req.SendResponse(resp, responseSerializationBuffer_);
+
+                            break;
+                        }
+
+                    default: {
+                            req.CreateFinalizer();
+                            break;
+                        }
                 }
+            } finally {
+                // Checking if a new session was created during handler call.
+                if ((null != Session.Current) && (!req.IsInternal))
+                    Session.End();
+                Session.InitialRequest = null;
             }
 
             return true;

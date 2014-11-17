@@ -19,27 +19,30 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// all it's handlers and setting up the context.
         /// </summary>
         /// <param name="admin">The AdminAPI providing the context.</param>
-        public static void Bootstrap(ushort port, ServerEngine engine, IServerRuntime server) {
+        public static void Bootstrap(ushort port, ServerEngine engine, IServerRuntime server, string resourceFolder) {
 
             // TODO: Get the AppStore url
 #if ANDWAH
-            string appStoreHost = "http://127.0.0.1:8585";
+            string appStoreHost = "http://127.0.0.1:8787";
 #else
-            string appStoreHost = "http://appstore.polyjuice.com:8585";
+            string appStoreHost = "http://appstore.polyjuice.com:8787";
 #endif
+
 
             // TODO: Add an "apps" folder to the Server Configuration
             ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
             string appsRootFolder = System.IO.Path.Combine(serverInfo.Configuration.EnginesDirectory, "apps");
 
+            // Where AppStore Item images will be saved and shared
+            string appImagesSubFolder = "appImages";
+            string imageResourceFolder = System.IO.Path.Combine(resourceFolder, appImagesSubFolder);
 
             StarcounterAdminAPI.Application_GET();
-            StarcounterAdminAPI.InstalledApplication_GET(appsRootFolder);
-            StarcounterAdminAPI.InstalledApplication_POST(appsRootFolder, appStoreHost);
-            StarcounterAdminAPI.InstalledApplication_PUT(appsRootFolder);
-            StarcounterAdminAPI.InstalledApplication_DELETE(appsRootFolder);
+            StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder, appImagesSubFolder);
+            StarcounterAdminAPI.InstalledApplicationTask_POST(port, appsRootFolder, appStoreHost, imageResourceFolder);
+            StarcounterAdminAPI.InstalledApplication_PUT(port, appsRootFolder, appStoreHost, imageResourceFolder);
 
-            StarcounterAdminAPI.AppStore_GET(appStoreHost);
+            StarcounterAdminAPI.AppStore_GET(port, appStoreHost);
 
             StarcounterAdminAPI.Database_GET(port, server);
 

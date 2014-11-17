@@ -216,6 +216,12 @@ namespace Starcounter.Internal
             public const string TempDir = "TempDir";
 
             /// <summary>
+            /// Defines the name of the argument allowing a transaction log
+            /// directory to be given.
+            /// </summary>
+            public const string TransactionLogDirectory = "TransactionLogDir";
+
+            /// <summary>
             /// Specifies the name of Starcounter server which started the database.
             /// </summary>
             public const string ServerName = "ServerName";

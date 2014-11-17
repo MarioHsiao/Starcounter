@@ -328,6 +328,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (stem.Length > chars) {
                     stem = stem.Substring(0, chars);
                 }
+                stem = stem.Replace('.', '_');
                 return str + stem;
             }
             return base.CalculateClassAliasIdentifier(chars);

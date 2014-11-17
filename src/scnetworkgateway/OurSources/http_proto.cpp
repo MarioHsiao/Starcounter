@@ -1060,7 +1060,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     else // We have not started a proxy mode yet.
     {
         // Creating new socket to proxied server.
-        err_code = gw->CreateProxySocket(sd);
+        err_code = gw->CreateProxySocket(sd, MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
         if (err_code)
             return err_code;
 

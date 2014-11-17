@@ -166,7 +166,7 @@ inline int HttpRequestOnBody(http_parser* p, const char *at, size_t length)
     HttpRequestParserStruct *http = (HttpRequestParserStruct *)p;
 
     // Setting body parameters.
-    if (http->http_request_->content_len_bytes_ < 0)
+    if (http->http_request_->content_len_bytes_ <= 0)
         http->http_request_->content_len_bytes_ = (uint16_t)length;
 
     // Setting body data offset.

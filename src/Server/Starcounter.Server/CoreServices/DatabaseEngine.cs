@@ -574,7 +574,9 @@ namespace Starcounter.Server {
             arguments.Append(database.Configuration.Runtime.TransactionLogDirectory.TrimEnd('\\'));
             arguments.Append('\"');
 
-            return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+            var processStartInfo = new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+            processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            return processStartInfo;
         }
 
         ProcessStartInfo GetLogWriterStartInfo(Database database) {
@@ -603,7 +605,9 @@ namespace Starcounter.Server {
             if (Debugger.IsAttached) {
                 args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
+            
             args.Add(database.Name.ToUpper());
+
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);

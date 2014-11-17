@@ -1,21 +1,14 @@
-﻿
-
-using Modules;
+﻿using System;
+using System.Collections.Generic;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.JsonTemplate;
 using Starcounter.Templates;
-using System.Collections.Generic;
-using Starcounter;
-using Starcounter.Internal.XSON.JsonByExample;
-using System;
 
 namespace Starcounter.Internal.XSON.JsonByExample {
-
     /// <summary>
     /// 
     /// </summary>
     public class JsonByExampleTemplateReader : IXsonTemplateMarkupReader {
-
         /// <summary>
         /// Compile markup.
         /// </summary>
@@ -62,7 +55,6 @@ namespace Starcounter.Internal.XSON.JsonByExample {
             return appTemplate;
         }
 
-
         /// <summary>
         /// Verifies the templates.
         /// </summary>
@@ -85,6 +77,5 @@ namespace Starcounter.Internal.XSON.JsonByExample {
                     VerifyTemplates((TContainer)t);
             }
         }
-
     }
 }

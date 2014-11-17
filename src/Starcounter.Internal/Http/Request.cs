@@ -8,46 +8,17 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Starcounter {
+
     /// <summary>
     /// Class Request
     /// </summary>
-    public sealed class Request
+    public sealed class Request : Finalizing
     {
-        /// <summary>
-        /// Creates a minimalistic Http 1.0 GET request with the given uri without any headers or even protocol version specifier.
-        /// </summary>
-        /// <remarks>
-        /// Calling RawGET("/test") will return the Http request "GET /test" in Ascii/UTF8 encoding.
-        /// </remarks>
-        /// <param name="uri">The URI.</param>
-        /// <returns>System.Object.</returns>
-        internal static byte[] RawGET(string uri) {
-            var length = uri.Length + 3 + 1 + 4;// GET + space + URI + CRLFCRLF
-            byte[] vu = new byte[length];
-            vu[0] = (byte)'G';
-            vu[1] = (byte)'E';
-            vu[2] = (byte)'T';
-            vu[3] = (byte)' ';
-            vu[length - 4] = (byte)'\r';
-            vu[length - 3] = (byte)'\n';
-            vu[length - 2] = (byte)'\r';
-            vu[length - 1] = (byte)'\n';
-            Encoding.ASCII.GetBytes(uri, 0, uri.Length, vu, 4);
-            return vu;
-        }
-
-        public static Request GET(string uri) {
-            Byte[] reqBytes = RawGET(uri);
-
-            return new Request(reqBytes, reqBytes.Length);
-        }
-
         /// <summary>
         /// Request constructor.
         /// </summary>
         /// <param name="protocol_type">Type of network protocol. Default HTTP v1.</param>
-        public Request()
-        {
+        public Request() {
             
         }
 
@@ -84,7 +55,102 @@ namespace Starcounter {
         /// <summary>
         /// Network port number.
         /// </summary>
-        UInt16 portNumber_ = 0;
+        UInt16 portNumber_;
+
+        /// <summary>
+        /// Indicates if this Request is internally constructed from Apps.
+        /// </summary>
+        Boolean isInternalRequest_;
+
+        /// <summary>
+        /// Indicates if WebSocket upgrade is requested.
+        /// </summary>
+        Boolean webSocketUpgrade_;
+
+        /// <summary>
+        /// Indicates if request is aggregated.
+        /// </summary>
+        Boolean isAggregated_;
+
+        /// <summary>
+        /// Just using Request as holder for user Message instance type.
+        /// </summary>
+        Type messageObjectType_;
+
+        /// <summary>
+        /// Reference to response.
+        /// </summary>
+        Response response_;
+
+        /// <summary>
+        /// Managed handler id.
+        /// </summary>
+        UInt16 managedHandlerId_;
+
+        /// <summary>
+        /// The gzip advisable_
+        /// </summary>
+        bool gzipAdvisable_;
+
+        /// <summary>
+        /// Indicates if user wants to send custom request.
+        /// </summary>
+        Boolean customFields_;
+
+        /// <summary>
+        /// Bytes that represent custom request.
+        /// </summary>
+        Byte[] customBytes_;
+
+        /// <summary>
+        /// Length in bytes for custom bytes array.
+        /// </summary>
+        Int32 customBytesLen_;
+
+        /// <summary>
+        /// Body string.
+        /// </summary>
+        String bodyString_;
+
+        /// <summary>
+        /// Body bytes.
+        /// </summary>
+        Byte[] bodyBytes_;
+
+        /// <summary>
+        /// List of cookies.
+        /// </summary>
+        List<String> cookies_;
+
+        /// <summary>
+        /// HTTP method.
+        /// </summary>
+        String methodString_;
+
+        /// <summary>
+        /// HTTP uri.
+        /// </summary>
+        String uriString_;
+
+        /// <summary>
+        /// Host name.
+        /// </summary>
+        String hostNameString_;
+
+        /// <summary>
+        /// String containing all headers.
+        /// </summary>
+        String headersString_;
+
+        /// <summary>
+        /// Dictionary of simple user custom headers.
+        /// </summary>
+        Dictionary<String, String> customHeaderFields_;
+
+        /// <summary>
+        /// Indicates if came with session originally.
+        /// </summary>
+        Boolean came_with_correct_session_ = false;
 
         /// <summary>
         /// Network port number.
@@ -160,11 +226,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Indicates if this Request is internally constructed from Apps.
-        /// </summary>
-        Boolean isInternalRequest_ = false;
-
-        /// <summary>
         /// Returns True if request is internal.
         /// </summary>
         public Boolean IsInternal
@@ -173,26 +234,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Indicates if WebSocket upgrade is requested.
-        /// </summary>
-        Boolean webSocketUpgrade_;
-
-        /// <summary>
-        /// Indicates if request is aggregated.
-        /// </summary>
-        Boolean isAggregated_;
-
-        /// <summary>
         /// Returns True if request was aggregated.
         /// </summary>
         internal Boolean IsAggregated {
             get { return isAggregated_; }
         }
-
-        /// <summary>
-        /// Just using Request as holder for user Message instance type.
-        /// </summary>
-        Type messageObjectType_ = null;
 
         /// <summary>
         /// Returns protocol type.
@@ -223,8 +269,6 @@ namespace Starcounter {
         /// Accessors to HTTP method.
         /// </summary>
         public HTTP_METHODS MethodEnum { get; set; }
-
-        Response response_;
 
         /// <summary>
         /// Set or get the Response object attached to this request.
@@ -293,8 +337,7 @@ namespace Starcounter {
         /// <exception cref="System.NotImplementedException"></exception>
         public Request(Byte[] buf, Int32 buf_len)
         {
-            unsafe
-            {
+            unsafe {
                 InternalInit(buf, buf_len, null);
             }
         }
@@ -320,7 +363,7 @@ namespace Starcounter {
         /// <param name="socket_data">The socket_data.</param>
         /// <param name="data_stream">The data_stream.</param>
         /// <param name="protocol_type">Type of network protocol.</param>
-        internal unsafe Request(
+        internal unsafe void Init(
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
@@ -332,7 +375,7 @@ namespace Starcounter {
             Boolean webSocketUpgrade,
             Boolean isAggregated)
         {
-            http_request_struct_ = (HttpRequestInternal*)http_request_begin;
+            http_request_struct_ = (HttpRequestInternal*) http_request_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_request_struct_->socket_data_ = socket_data;
             dataStream_ = data_stream;
@@ -382,12 +425,10 @@ namespace Starcounter {
             ws.Session = session;
 
             resp.WsHandshakeResp = wsHandshakeResp;
-            resp.ConstructFromFields();
 
             InitWebSocket(ws, w.ChannelId, cargoId);
 
-            SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
-            Destroy();
+            SendResponse(resp, null);
 
             return ws;
         }
@@ -448,7 +489,7 @@ namespace Starcounter {
                 if (err_code != 0)
                 {
                     // Freeing memory etc.
-                    Destroy();
+                    Destroy(true);
 
                     throw ErrorCode.ToException(err_code);
                 }
@@ -458,16 +499,23 @@ namespace Starcounter {
         /// <summary>
         /// Destroys the instance of Request.
         /// </summary>
-        internal void Destroy(Boolean isStarcounterThread = true)
+        override internal void DestroyByFinalizer() {
+            Destroy(false);
+        }
+
+        /// <summary>
+        /// Destroys the instance of Request.
+        /// </summary>
+        void Destroy(Boolean isStarcounterThread)
         {
             unsafe
             {
+                // NOTE: Removing reference for finalizer in order not to finalize twice.
+                UnLinkFinalizer();
+
                 // Checking if already destroyed.
                 if (http_request_struct_ == null)
                     return;
-
-                // Removing object from GC.
-                GC.SuppressFinalize(this);
 
                 // Checking if we have constructed this Request
                 // internally in Apps or externally in Gateway.
@@ -493,6 +541,7 @@ namespace Starcounter {
 
                     // Releasing data stream resources like chunks, etc.
                     dataStream_.Destroy(isStarcounterThread);
+                    dataStream_ = null;
                 }
 
                 http_request_struct_ = null;
@@ -543,16 +592,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Releases resources.
-        /// </summary>
-        ~Request()
-        {
-            // Not on Starcounter thread.
-            Destroy(false);
-        }
-
-        // TODO
-        /// <summary>
         /// Debugs the specified message.
         /// </summary>
         /// <param name="message">The message.</param>
@@ -565,7 +604,6 @@ namespace Starcounter {
         /// <summary>
         /// Linear index for this handler.
         /// </summary>
-        UInt16 managedHandlerId_;
         internal UInt16 ManagedHandlerId
         {
             get { return managedHandlerId_; }
@@ -608,11 +646,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// The gzip advisable_
-        /// </summary>
-        bool gzipAdvisable_ = false;
-
-        /// <summary>
         /// Gets or sets the gzip advisable.
         /// </summary>
         /// <value>The gzip advisable.</value>
@@ -623,32 +656,14 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Indicates if user wants to send custom request.
-        /// </summary>
-        Boolean customFields_;
-
-        /// <summary>
-        /// Bytes that represent custom request.
-        /// </summary>
-        Byte[] customBytes_;
-
-        /// <summary>
-        /// Length in bytes for custom bytes array.
-        /// </summary>
-        Int32 customBytesLen_;
-
-        /// <summary>
         /// Content type.
         /// </summary>
-        public String ContentType
-        {
-            get
-            {
+        public String ContentType {
+            get {
                 return this[HttpHeadersUtf8.ContentTypeHeader];
             }
 
-            set
-            {
+            set {
                 customFields_ = true;
                 this[HttpHeadersUtf8.ContentTypeHeader] = value;
             }
@@ -657,21 +672,16 @@ namespace Starcounter {
         /// <summary>
         /// Content encoding.
         /// </summary>
-        public String ContentEncoding
-        {
-            get
-            {
+        public String ContentEncoding {
+            get {
                 return this[HttpHeadersUtf8.ContentEncodingHeader];
             }
 
-            set
-            {
+            set {
                 customFields_ = true;
                 this[HttpHeadersUtf8.ContentEncodingHeader] = value;
             }
         }
-
-        String bodyString_;
 
         /// <summary>
         /// Body string.
@@ -709,8 +719,6 @@ namespace Starcounter {
             }
         }
 
-        Byte[] bodyBytes_;
-
         /// <summary>
         /// Body bytes.
         /// </summary>
@@ -746,7 +754,7 @@ namespace Starcounter {
                 unsafe
                 {
                     // Concatenating headers from dictionary.
-                    if ((null != customHeaderFields_) || (null != _Cookies))
+                    if ((null != customHeaderFields_) || (null != cookies_))
                     {
                         headersString_ = "";
 
@@ -755,9 +763,9 @@ namespace Starcounter {
                             headersString_ += h.Key + ": " + h.Value + StarcounterConstants.NetworkConstants.CRLF;
                         }
 
-                        if (null != _Cookies)
+                        if (null != cookies_)
                         {
-                            foreach (String c in _Cookies)
+                            foreach (String c in cookies_)
                             {
                                 headersString_ += HttpHeadersUtf8.GetCookieStartString + c + StarcounterConstants.NetworkConstants.CRLF;
                             }
@@ -777,11 +785,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// List of cookies.
-        /// </summary>
-        List<String> _Cookies;
-
-        /// <summary>
         /// List of Cookie headers.
         /// Each string is in the form of "key=value".
         /// </summary>
@@ -789,10 +792,10 @@ namespace Starcounter {
         {
             get
             {
-                if (_Cookies != null)
-                    return _Cookies;
+                if (cookies_ != null)
+                    return cookies_;
 
-                _Cookies = new List<String>();
+                cookies_ = new List<String>();
 
                 // Adding new cookies list from request.
                 unsafe
@@ -806,22 +809,20 @@ namespace Starcounter {
 
                             // Adding all trimmed cookies to list.
                             foreach (String c in splittedCookies)
-                                _Cookies.Add(c.Trim());
+                                cookies_.Add(c.Trim());
                         }
                     }
                 }
 
-                return _Cookies;
+                return cookies_;
             }
 
             set
             {
                 customFields_ = true;
-                _Cookies = value;
+                cookies_ = value;
             }
         }
-
-        String methodString_;
 
         /// <summary>
         /// Method string.
@@ -842,8 +843,6 @@ namespace Starcounter {
                 methodString_ = value;
             }
         }
-
-        String uriString_;
 
         /// <summary>
         /// Uri string.
@@ -872,8 +871,6 @@ namespace Starcounter {
                 uriString_ = value;
             }
         }
-
-        String hostNameString_;
 
         /// <summary>
         /// HostName string.
@@ -958,11 +955,11 @@ namespace Starcounter {
 		/// <summary>
 		/// Constructs Response from fields that are set.
 		/// </summary>
-		public void ConstructFromFields(Boolean dontModifyHeaders = false) {
+		public Int32 ConstructFromFields(Boolean dontModifyHeaders = false, Byte[] givenBuffer = null) {
 
 			// Checking if we have a custom response.
 			if (!customFields_)
-				return;
+				return 0;
 
 			if (null == uriString_)
 				throw new ArgumentException("Relative URI should be set when creating custom Request.");
@@ -975,7 +972,16 @@ namespace Starcounter {
 
             Utf8Writer writer;
 
-			byte[] buf = new byte[EstimateNeededSize()];
+            byte[] buf;
+            Int32 estimatedRequestSizeBytes = EstimateNeededSize();
+
+            // Checking if we can use given buffer.
+            if ((null != givenBuffer) && (estimatedRequestSizeBytes <= givenBuffer.Length)) {
+                buf = givenBuffer;
+            } else {
+                buf = new byte[estimatedRequestSizeBytes];
+            }
+            			
 			unsafe {
 				fixed (byte* p = buf) {
 					writer = new Utf8Writer(p);
@@ -1007,13 +1013,13 @@ namespace Starcounter {
                         }
 
                         // Checking the cookies list.
-                        if ((null != _Cookies) && (_Cookies.Count > 0)) {
+                        if ((null != cookies_) && (cookies_.Count > 0)) {
                             writer.Write(HttpHeadersUtf8.GetCookieStart);
-                            writer.Write(_Cookies[0]);
+                            writer.Write(cookies_[0]);
 
-                            for (Int32 i = 1; i < _Cookies.Count; i++) {
+                            for (Int32 i = 1; i < cookies_.Count; i++) {
                                 writer.Write(HttpHeadersUtf8.SemicolonSpace);
-                                writer.Write(_Cookies[i]);
+                                writer.Write(cookies_[i]);
                             }
 
                             writer.Write(HttpHeadersUtf8.CRLF);
@@ -1043,6 +1049,7 @@ namespace Starcounter {
 			}
 
 			customFields_ = false;
+            return customBytesLen_;
 		}
 
         /// <summary>
@@ -1184,17 +1191,30 @@ namespace Starcounter {
             if (IsLoopingHostChunk()) 
                 return;
 
-            unsafe { dataStream_.SendResponse(buffer, offset, length, connFlags); }
+            try {
+                unsafe {
+                    dataStream_.SendResponse(buffer, offset, length, connFlags);
+                }
+
+            } finally {
+                Destroy(true);
+            }
         }
 
         /// <summary>
         /// Sends response on this request.
         /// </summary>
         /// <param name="resp">Response object to send.</param>
-        public void SendResponse(Response resp)
+        public void SendResponse(Response resp, Byte[] serializationBuf)
         {
-            resp.ConstructFromFields();
-            SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+            try {
+                resp.ConstructFromFields(serializationBuf);
+
+                SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+
+            } finally {
+                resp.Destroy();
+            }
         }
 
         /// <summary>
@@ -1312,16 +1332,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// String containing all headers.
-        /// </summary>
-        String headersString_;
-
-        /// <summary>
-        /// Dictionary of simple user custom headers.
-        /// </summary>
-        Dictionary<String, String> customHeaderFields_;
-
-        /// <summary>
         /// Headers dictionary accessors.
         /// </summary>
         public Dictionary<String, String> HeadersDictionary
@@ -1425,11 +1435,6 @@ namespace Starcounter {
         /// Invalid View model index.
         /// </summary>
         public const UInt32 INVALID_VIEW_MODEL_INDEX = UInt32.MaxValue;
-
-        /// <summary>
-        /// Indicates if came with session originally.
-        /// </summary>
-        Boolean came_with_correct_session_ = false;
 
         /// <summary>
         /// Checks if HTTP request already came with session.

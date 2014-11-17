@@ -28,13 +28,68 @@ namespace Starcounter
             for (; ; ) {
                 r = sccoredb.star_begin_commit(tran_locked_on_thread, out hiter, out viter);
                 if (r == 0) {
-                    // TODO: Handle triggers. Call abort commit on failure.
-                    // r = sccoredb.star_abort_commit(tran_locked_on_thread);
+                    if (hiter != 0) {
+                        ulong oid;
+                        ulong address;
+                        ushort tableId;
+                        ulong hookType;
+                        TypeBinding binding;
+                        IObjectProxy proxy;
+                        HookKey key;
 
-                    r = sccoredb.star_complete_commit(
-                            tran_locked_on_thread, detach_and_free
-                            );
-                    if (r == 0) break;
+                        try {
+
+                            binding = null;
+                            proxy = null;
+                            key = null;
+                            
+                            while (true) {
+                                unsafe {
+                                    r = sccoredb.star_iterator_next(hiter, viter, &oid, &address, &tableId, &hookType);
+                                }
+                                if (r != 0) throw ErrorCode.ToException(r);
+                                if (oid == 0) break;
+
+                                if (HookType.IsInsertOrUpdate((uint)hookType)) {
+                                    if (binding == null || binding.TableId != tableId) {
+                                        binding = TypeRepository.GetTypeBinding(tableId);
+                                        proxy = binding.NewInstanceUninit();
+                                    }
+
+                                    proxy.Bind(address, oid, binding);
+                                }
+
+                                key = HookKey.FromTable(tableId, (uint)hookType, key);
+                                try {
+                                    switch (hookType) {
+                                        case HookType.Insert:
+                                            InvokableHook.InvokeInsert(key, proxy);
+                                            break;
+                                        case HookType.Update:
+                                            InvokableHook.InvokeUpdate(key, proxy);
+                                            break;
+                                        case HookType.Delete:
+                                            InvokableHook.InvokeDelete(key, oid);
+                                            break;
+                                    }
+
+                                } catch {
+                                    sccoredb.star_abort_commit(tran_locked_on_thread);
+                                    throw;
+                                }
+                            }
+
+                        } finally {
+                            sccoredb.star_iterator_free(hiter, viter);
+                        }
+                    }
+
+                    if (r == 0) {
+                        r = sccoredb.star_complete_commit(
+                                tran_locked_on_thread, detach_and_free
+                                );
+                        if (r == 0) break;
+                    }
                 }
 
 #if true
@@ -361,6 +416,23 @@ namespace Starcounter
             }
         }
 		
+
+        void ITransaction.MergeTransaction(ITransaction toMerge) {
+            Transaction old = _current;
+            Transaction trans = (Transaction)toMerge;
+            uint ec;
+
+            try {
+                SetCurrent(this);
+                ec  = sccoredb.star_transaction_merge_into_current(trans._handle, trans._verify);
+                if (ec != 0) 
+                    throw ErrorCode.ToException(ec);
+
+                trans.Dispose();
+            } finally {
+                SetCurrent(old);
+            }
+        }
 
         /// <summary>
         /// Commits changes made on transaction.

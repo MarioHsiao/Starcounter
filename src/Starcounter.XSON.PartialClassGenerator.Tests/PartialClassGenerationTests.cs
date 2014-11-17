@@ -4,6 +4,7 @@ using System.IO;
 using TJson = Starcounter.Templates.TObject;
 using Starcounter.Templates;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
@@ -50,6 +51,22 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void GenerateMinimalClassWithoutCodebehind() {
             var tj = ReadTemplate("Input/minimal.json");
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void GenerateReusedJson() {
+            var tj = ReadTemplate("Input/ReuseJson.json");
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
+
+            Console.WriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void GenerateReusedJsonWithAdditionalProperties() {
+            var tj = ReadTemplate("Input/ReuseJson2.json");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
             Console.WriteLine(codegen.GenerateCode());
@@ -126,6 +143,27 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var generator = PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
             Console.WriteLine(generator.GenerateCode());
         }
+
+        [Test]
+        public static void TestAliasesInGeneratedCode() {
+            string json = @"{ myarr:[ { $: {Reuse:""Test.myarr""} } ] }";
+
+            var className = "Test";
+            var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
+            tobj.ClassName = className;
+
+            var generator = PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
+            string code = generator.GenerateCode();
+            string pattern = @"using .*\..* = .*;";
+
+            var matches = Regex.Matches(code, pattern);
+            foreach (Match match in matches) {
+                Console.WriteLine(match.Value);
+            }
+
+            Assert.IsTrue(matches.Count == 0);
+        }
+
 
         [Test]
         public static void TestJsonTreeWithReuse() {
