@@ -423,11 +423,11 @@ internal static class SqlProcessor
     internal static void DeleteMetadataIndex(string tableName, string indexName) {
         Db.SystemTransaction(delegate {
             Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
-                "select i from index i where table.fullname = ? and name = ?",
+                "select i from \"index\" i where i.table.fullname = ? and name = ?",
                 tableName, indexName).First;
             Debug.Assert(indx != null);
             foreach (Starcounter.Metadata.IndexedColumn colIndx in Db.SQL<Starcounter.Metadata.IndexedColumn>(
-                "select c form indexedcolumn c where index = ?", indx))
+                "select c from indexedcolumn c where \"index\" = ?", indx))
                 colIndx.Delete();
             indx.Delete();
         });
