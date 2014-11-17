@@ -78,5 +78,9 @@ namespace Starcounter.InstallerWPF.Components
             this._CanBeUnInstalled = value;
         }
 
+        public override bool ValidateSettings() {
+            throw new NotImplementedException();
+        }
+
     }
 }

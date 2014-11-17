@@ -25,7 +25,7 @@ namespace Starcounter.InstallerWPF.Pages
     /// <summary>
     /// Interaction logic for RemoveComponentsProgressPage.xaml
     /// </summary>
-    public partial class RemoveComponentsProgressPage : BasePage
+    public partial class RemoveComponentsProgressPage : BasePage, IFinishedPage
     {
 
         #region Win32 import
@@ -130,6 +130,16 @@ namespace Starcounter.InstallerWPF.Pages
             }
         }
 
+        private bool _GoToWiki = true;
+        public bool GoToWiki {
+            get {
+                return _GoToWiki;
+            }
+            set {
+                this._GoToWiki = value;
+                this.OnPropertyChanged("GoToWiki");
+            }
+        }
         #endregion
 
         //#region Properties

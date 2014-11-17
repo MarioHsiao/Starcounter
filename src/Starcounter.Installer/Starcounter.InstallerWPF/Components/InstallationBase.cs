@@ -5,6 +5,9 @@ using System.Text;
 using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System.Collections;
+using Starcounter.InstallerWPF.Rules;
+using System.Globalization;
+using System.Windows.Controls;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -142,5 +145,15 @@ namespace Starcounter.InstallerWPF.Components
             return properties;
         }
 
+
+        public override bool ValidateSettings() {
+
+            DirectoryContainsFilesRule r = new DirectoryContainsFilesRule();
+            r.UseWarning = true;
+            r.CheckEmptyString = true;
+            ValidationResult result = r.Validate(this.Path, CultureInfo.CurrentCulture);
+
+            return result.IsValid;
+        }
     }
 }
