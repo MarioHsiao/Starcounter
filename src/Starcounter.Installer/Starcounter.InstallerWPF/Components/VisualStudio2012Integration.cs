@@ -1,6 +1,7 @@
 ﻿
 using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
+using System;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -59,6 +60,10 @@ namespace Starcounter.InstallerWPF.Components
         public VisualStudio2012Integration(ObservableCollection<BaseComponent> components)
             : base(components)
         {
+        }
+
+        public override bool ValidateSettings() {
+            return true;
         }
 
     }
