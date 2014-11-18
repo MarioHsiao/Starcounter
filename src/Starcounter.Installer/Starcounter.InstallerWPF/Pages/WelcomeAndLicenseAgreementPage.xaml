@@ -79,8 +79,7 @@
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
                         <CheckBox  Margin="2.5,0,2.5,0" IsChecked="{Binding Path=MainWindow.ChangeAdditionalSettings,Source={x:Static Application.Current}}"  Content="Change additional settings"/>
-                        <Button Margin="2.5,0,0,0" Grid.Column="1" Command="NavigationCommands.NextPage" IsDefault="True" Content="_Next" Visibility="{Binding Converter={StaticResource booleanToVisibilityConverter}, ConverterParameter=false, Path=MainWindow.ChangeAdditionalSettings,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
-                        <Button Margin="2.5,0,0,0" Grid.Column="1" Command="NavigationCommands.NextPage" IsDefault="True" Content="_Install"  Visibility="{Binding Converter={StaticResource booleanToVisibilityConverter}, ConverterParameter=true, Path=MainWindow.ChangeAdditionalSettings,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button Margin="2.5,0,0,0" Grid.Column="1" Command="NavigationCommands.NextPage" IsDefault="True" Content="{Binding Path=MainWindow.NextButtonTitle,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
                     </Grid>
                 </GroupBox>
             </Grid>

@@ -12,6 +12,11 @@ CALL TestClassSchemaChange.bat
 POPD
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
+PUSHD IndexedColumnDrop
+CALL IndexedColumnDrop.bat
+POPD
+IF %ERRORLEVEL% NEQ 0 GOTO err
+
 REM PUSHD SelectOnNull2362
 REM CALL SelectOnNull2362.bat
 REM POPD

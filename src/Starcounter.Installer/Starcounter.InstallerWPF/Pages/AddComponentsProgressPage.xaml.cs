@@ -26,7 +26,7 @@ namespace Starcounter.InstallerWPF.Pages {
     /// <summary>
     /// Interaction logic for AddComponentsProgressPage.xaml
     /// </summary>
-    public partial class AddComponentsProgressPage : BasePage {
+    public partial class AddComponentsProgressPage : BasePage, IFinishedPage {
 
         #region Win32 import
 
@@ -112,6 +112,17 @@ namespace Starcounter.InstallerWPF.Pages {
 
 
                 this.OnPropertyChanged("CloseSystemMenuButtonIsEnabled");
+            }
+        }
+
+        private bool _GoToWiki = true;
+        public bool GoToWiki {
+            get {
+                return _GoToWiki;
+            }
+            set {
+                this._GoToWiki = value;
+                this.OnPropertyChanged("GoToWiki");
             }
         }
 
