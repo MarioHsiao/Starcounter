@@ -393,7 +393,7 @@ namespace Starcounter.Server.Commands {
         /// </summary>
         protected virtual LogSource Log {
             get {
-                return ServerLogSources.Default;
+                return ServerLogSources.Commands;
             }
         }
 
