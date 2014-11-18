@@ -232,14 +232,38 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(Db.SQL("select c from indexedColumn c where \"index\" = ?", rawIndx).First != null);
         }
 
-        internal static void CreateIndexInstances(TypeDef typeDef) {
+        /// <summary>
+        /// Synchronizes instances of Index with instances of MaterializedIndex.
+        /// It is necessary to insert if new indexes appeared or remove if they were dropped due schema changes.
+        /// It goes through children types.
+        /// </summary>
+        /// <param name="tableId">TableId of the type to udpate indexes.</param>
+        internal static void UpdateIndexInstances(ushort tableId) {
             foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>
-                ("select i from materializedIndex i where tableid = ?", typeDef.TableDef.TableId)) {
+                ("select i from starcounter.internal.metadata.materializedIndex i where tableid = ?", tableId)) {
                 if (Db.SQL<Index>(
                     "select i from \"index\" i, rawview v where i.table  = v and v.MaterializedTable = ?  and i.name = ?",
                     matIndx.Table, matIndx.Name).First == null)
                     CreateAnIndexInstance(matIndx);
             }
+            foreach (Index indx in Db.SQL<Index>(
+                "select i from starcounter.metadata.\"index\" i where i.table.materializedtable.tableid = ?",
+                tableId)) {
+                    if (Db.SQL<MaterializedIndex>(
+                        "select i from materializedindex i where tableid = ?", tableId) == null) {
+                        foreach(IndexedColumn colIndx in Db.SQL<IndexedColumn>(
+                            "select c from starcounter.metadata.indexedcolumn c where \"index\" = ?",
+                            indx))
+                            colIndx.Delete();
+                        indx.Delete();
+                    }
+            }
+            Debug.Assert(Db.SQL("select count(i) from \"index\" i where i.table.materializedtable.tableid = ?", tableId).First ==
+                Db.SQL("select count(i) from materializedindex i where tabelid = ?", tableId).First);
+            // Check indexes for all types, which extend this type, since they can be affected.
+            foreach (ushort inheritedTableId in Db.SQL<ushort>(
+                "select tableid from materializedtable where BaseTable.TableId = ?", tableId))
+                UpdateIndexInstances(inheritedTableId);
         }
     }
 }

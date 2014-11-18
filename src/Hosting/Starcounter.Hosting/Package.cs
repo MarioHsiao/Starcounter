@@ -231,7 +231,7 @@ namespace Starcounter.Hosting {
                 foreach (TypeDef typeDef in updateColumns)
                     Db.SystemTransaction(delegate {
                         MetadataPopulation.CreateColumnInstances(typeDef);
-                        MetadataPopulation.CreateIndexInstances(typeDef);
+                        MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
                     });
 
 #if DEBUG   // Assure that parents were set.
