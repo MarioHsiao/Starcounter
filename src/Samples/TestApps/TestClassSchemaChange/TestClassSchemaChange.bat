@@ -25,8 +25,6 @@ star --database=%DB_NAME% TestClassSchemaChange.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err
 
 REM Clean update
-staradmin --database=%DB_NAME% stop db
-staradmin --database=%DB_NAME% delete --force db
 DEL TestClassSchemaChange.cs
 
 ECHO TestClassSchemaChange regression test succeeded.
@@ -34,8 +32,6 @@ EXIT /b 0
 
 
 :err
-staradmin --database=%DB_NAME% stop db
-staradmin --database=%DB_NAME% delete --force db
 DEL TestClassSchemaChange.cs
 ECHO Error: TestClassSchemaChange failed!
 EXIT /b 1
