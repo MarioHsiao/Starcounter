@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Windows;
 using Starcounter.InstallerWPF.Rules;
 using System.Windows.Data;
+using System.Windows.Media;
 
 namespace Starcounter.InstallerWPF.Pages {
     abstract public class BasePage : ContentControl, INotifyPropertyChanged {
@@ -35,25 +36,6 @@ namespace Starcounter.InstallerWPF.Pages {
                 this.OnPropertyChanged("HasProgress");
             }
         }
-
-
-        //private FrameworkElement _DisplayItem;
-        //virtual public FrameworkElement DisplayItem
-        //{
-        //    get
-        //    {
-        //        //if (this._DisplayItem == null) return this.DisplayName;
-
-        //        return _DisplayItem;
-        //    }
-        //    set
-        //    {
-        //        if( this._DisplayItem == value) return;
-        //        _DisplayItem = value;
-        //        this.OnPropertyChanged("DisplayItem");
-        //    }
-        //}
-
 
         virtual public bool CanGoNext {
             get {
@@ -92,7 +74,6 @@ namespace Starcounter.InstallerWPF.Pages {
                 this.OnPropertyChanged("CanGoBack");
             }
         }
-
 
         #region ProgressBar Properties
 
@@ -166,9 +147,21 @@ namespace Starcounter.InstallerWPF.Pages {
         public BasePage()
             : base() {
             Focusable = false;
+            this.Loaded += BasePage_Loaded;
         }
 
+
+        void BasePage_Loaded(object sender, RoutedEventArgs e) {
+
+            // Buggworkaround!. this is done dute to that the visual of Validation Errors is not updated
+            this.Visibility = System.Windows.Visibility.Hidden;
+            this.Visibility = System.Windows.Visibility.Visible;
+        }
+
+ 
         #region Error Handling
+
+
 
         int _errorCount = 0;
         protected void Validation_OnError(object sender, ValidationErrorEventArgs e) {
@@ -210,7 +203,7 @@ namespace Starcounter.InstallerWPF.Pages {
                     bindingExpression = element.GetBindingExpression(TextBox.TextProperty);
                 }
                 else if (element is ComboBox) {
-                    bindingExpression = element.GetBindingExpression( ComboBox.TextProperty);
+                    bindingExpression = element.GetBindingExpression(ComboBox.TextProperty);
                 }
 
                 if (bindingExpression != null && bindingExpression.Status == BindingStatus.Active) {

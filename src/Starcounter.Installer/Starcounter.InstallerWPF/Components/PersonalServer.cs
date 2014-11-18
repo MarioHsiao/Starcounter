@@ -6,6 +6,9 @@ using System.Collections.ObjectModel;
 using Starcounter.InstallerEngine;
 using System.Collections;
 using Starcounter.Internal;
+using System.Globalization;
+using System.Windows.Controls;
+using Starcounter.InstallerWPF.Rules;
 
 namespace Starcounter.InstallerWPF.Components {
     public class PersonalServer : BaseComponent {
@@ -155,5 +158,28 @@ namespace Starcounter.InstallerWPF.Components {
 
         }
 
+        public override bool ValidateSettings() {
+
+            IsLocalPathRule pathRule = new Rules.IsLocalPathRule();
+            if (pathRule.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
+
+            DirectoryContainsFilesRule r = new DirectoryContainsFilesRule();
+            r.UseWarning = true;
+            r.CheckEmptyString = true;
+            if (r.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
+
+            DuplicatPathCheckRule r2 = new DuplicatPathCheckRule();
+            r2.Type = DuplicatPathCheckRule.SelfType.SystemServerPath;
+            if (r2.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
+
+            PortRule pr = new PortRule();
+            if (pr.Validate(this.DefaultUserHttpPort, CultureInfo.CurrentCulture).IsValid == false) return false;
+
+            PortRule pr2 = new PortRule();
+            pr2.CheckIfAvailable = true;
+            if (pr2.Validate(this.DefaultSystemHttpPort, CultureInfo.CurrentCulture).IsValid == false) return false;
+
+            return true;
+        }
     }
 }
