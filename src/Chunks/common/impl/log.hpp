@@ -209,8 +209,10 @@ wchar_t* buffer, std::size_t* size) {
 	std::size_t buffer_size = *size;
 	*size = buffer_size_needed;
 
+#define _CRT_NON_CONFORMING_SWPRINTFS 1 /* JLI: fix warning */
+
 	if (buffer_size_needed <= buffer_size) {
-		swprintf(buffer, L"sc://%S/%S/%S", computer_name, server_name, process_name);
+		swprintf(buffer, buffer_size, L"sc://%S/%S/%S", computer_name, server_name, process_name); // JLI add buffer_size
 		_wcslwr(buffer);
 		return 0;
 	}

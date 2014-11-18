@@ -173,7 +173,7 @@ smp::spinlock::milliseconds timeout) {
 					mask_[i] = mask & ~(1 << bit);
                     ++size_;
 					client_interface_base[n].set_owner_id(id);
-					*item = n;
+					*item = static_cast<starcounter::core::client_number_pool<T, N>::value_type>(n); // JLI warning fix
 
 					// Successfully acquired.
 					return true;

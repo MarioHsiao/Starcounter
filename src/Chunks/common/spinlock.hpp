@@ -96,6 +96,19 @@ public:
 			return *this;
 		}
 
+		// JLI: warning fix: add operator-() to silence warnings when using scoped_lock constructors
+		milliseconds operator-(const value_type& v) {
+			milliseconds retv(abs_time_);
+			retv.abs_time_ -= v;
+			return retv;
+		}
+
+		milliseconds operator-(const milliseconds& other) {
+			milliseconds retv(abs_time_);
+			retv.abs_time_ -= other.abs_time_;
+			return retv;
+		}
+
 		operator value_type() const {
 			return abs_time_;
 		}

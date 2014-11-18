@@ -668,7 +668,7 @@ monitor_interface::active_databases::update(const std::set<std::string>& databas
 	}
 			
 	::SetEvent(active_databases_set_update_);
-	return size_ = i;
+	return size_ = static_cast<monitor_interface::active_databases::size_type>(i); // JLI warning fix
 }
 
 inline void monitor_interface::active_databases::copy

@@ -162,6 +162,7 @@ smp::spinlock::milliseconds timeout) {
 	smp::spinlock::scoped_lock lock(spinlock(), id.get(),
 	timeout -timeout.tick_count());
 
+	typedef starcounter::core::client_number_pool< T, N >::value_type n_value_type;
 	if (lock.owns()) {
 		for (std::size_t i = 0; i < masks; ++i) {
 			for (mask_type mask = mask_[i]; mask; mask &= mask -1) {
@@ -175,7 +176,7 @@ smp::spinlock::milliseconds timeout) {
 					elem_[n] = id.get();
 					mask_[i] = mask & ~(1 << bit);
 					--size_;
-					*item = n;
+					*item = static_cast<n_value_type>(n); // JLI warning fix
 
 					// Successfully acquired.
 					return true;

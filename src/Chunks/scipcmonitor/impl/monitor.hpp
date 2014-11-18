@@ -435,7 +435,7 @@ namespace starcounter {
             if (!monitor->database_process_group(group).event_.empty()) {
                // Wait for database process events, or for an APC.
                event_code = ::WaitForMultipleObjectsEx(
-                  monitor->database_process_group(group).event_.size(),
+                  static_cast<DWORD>(monitor->database_process_group(group).event_.size()), // JLI warning fix
                   event::const_iterator(&monitor->database_process_group(group).event_[0]),
                   false, INFINITE, true);
             }
