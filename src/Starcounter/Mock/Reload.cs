@@ -150,7 +150,7 @@ namespace Starcounter {
         internal static void DeleteAll() {
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
                 Db.Transaction(delegate {
-                    Db.SlowSQL("DELETE FROM " + QuoteName(tbl.FullName));
+                    Db.SlowSQL("DELETE FROM " + QuotePath(tbl.FullName));
                 });
             }
         }

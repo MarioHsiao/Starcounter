@@ -382,8 +382,8 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
-        private IList<object> _Pages = new ObservableCollection<object>();
-        public IList<object> Pages {
+        private ObservableCollection<object> _Pages = new ObservableCollection<object>();
+        public ObservableCollection<object> Pages {
             get { return this._Pages; }
 
         }
@@ -416,6 +416,30 @@ namespace Starcounter.InstallerWPF {
             }
         }
 
+
+
+        public string NextButtonTitle {
+            get {
+
+                if (this.pages_lb == null || this.pages_lb.Items.CurrentItem == null || this.pages_lb.Items.CurrentPosition == this.pages_lb.Items.Count - 1) {
+                    return "_Unknown";
+                }
+
+                BasePage nextPage = this.pages_lb.Items[this.pages_lb.Items.CurrentPosition + 1] as BasePage;
+                if (nextPage is IFinishedPage) {
+
+                    if (this.SetupOptions == InstallerWPF.Pages.SetupOptions.RemoveComponents ||
+                        this.SetupOptions == InstallerWPF.Pages.SetupOptions.Uninstall) {
+                            return "_Uninstall";
+                    }
+
+                    return "_Install";
+                }
+
+                return "_Next";
+
+            }
+        }
 
         //private Boolean[] _InstalledComponents;
         //public Boolean[] InstalledComponents
@@ -603,6 +627,9 @@ namespace Starcounter.InstallerWPF {
         void MainWindow_Loaded(object sender, RoutedEventArgs e) {
             this._InternalComponents.CollectionChanged += new System.Collections.Specialized.NotifyCollectionChangedEventHandler(_InternalComponents_CollectionChanged);
 
+            this.Pages.CollectionChanged += Pages_CollectionChanged;
+            this.pages_lb.SelectionChanged+=pages_lb_SelectionChanged;
+
             // Retrieve Version of setup package
             this.Version = this.GetVersionString();
 
@@ -637,6 +664,13 @@ namespace Starcounter.InstallerWPF {
             }
 #endif
             this.Activate();
+
+        }
+
+        void Pages_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+
+            this.OnPropertyChanged("NextButtonTitle");
+
 
         }
 
@@ -953,17 +987,35 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         private void RegisterFirstInstallationPages() {
 
-            //            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
 
-            if (this.ChangeAdditionalSettings) {
-                //this.RegisterPage(new WelcomePage());
-                //this.RegisterPage(new LicenseAgreementPage());
+            // Build Pages
+            BaseComponent starcounterInstallation = this.Configuration.Components[InstallationBase.Identifier] as BaseComponent;
+            if (this.ChangeAdditionalSettings || (starcounterInstallation != null && starcounterInstallation.ValidateSettings() == false)) {
                 this.RegisterPage(new InstallationPathPage());
+            }
+
+            BaseComponent personalServer = this.Configuration.Components[PersonalServer.Identifier] as BaseComponent;
+            if (this.ChangeAdditionalSettings || (personalServer != null && personalServer.ValidateSettings() == false)) {
                 this.RegisterPage(new DatabaseEnginesPage());
-                //this.RegisterPage(new AdministrationToolsPage());
-                //this.RegisterPage(new ConnectivityPage());
+            }
+
+            BaseComponent vs2012 = this.Configuration.Components[VisualStudio2012Integration.Identifier] as BaseComponent;
+            BaseComponent vs2013 = this.Configuration.Components[VisualStudio2013Integration.Identifier] as BaseComponent;
+            if (this.ChangeAdditionalSettings || (vs2012 != null && vs2012.ValidateSettings() == false || vs2013 != null && vs2013.ValidateSettings() == false)) {
                 this.RegisterPage(new DeveloperToolsPage());
             }
+
+            ////            this.RegisterPage(new WelcomeAndLicenseAgreementPage());
+
+            //if (this.ChangeAdditionalSettings) {
+            //    //this.RegisterPage(new WelcomePage());
+            //    //this.RegisterPage(new LicenseAgreementPage());
+            //    this.RegisterPage(new InstallationPathPage());
+            //    this.RegisterPage(new DatabaseEnginesPage());
+            //    //this.RegisterPage(new AdministrationToolsPage());
+            //    //this.RegisterPage(new ConnectivityPage());
+            //    this.RegisterPage(new DeveloperToolsPage());
+            //}
 
             this.RegisterPage(new ProgressPage());
             //this.RegisterPage(new FinishedPage());
@@ -1035,12 +1087,9 @@ namespace Starcounter.InstallerWPF {
 
             Dispatcher _dispatcher = Dispatcher.FromThread(Thread.CurrentThread);
 
-            _dispatcher.BeginInvoke(DispatcherPriority.Render,
-                      new Action(delegate {
-                this.DoMarker();
-            }
-                  ));
+            _dispatcher.BeginInvoke(DispatcherPriority.Render,  new Action(delegate {  this.DoMarker();    }   ));
 
+            this.OnPropertyChanged("NextButtonTitle");
         }
 
 

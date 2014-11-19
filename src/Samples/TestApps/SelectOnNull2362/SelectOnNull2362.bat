@@ -7,8 +7,12 @@ ECHO Running SelectOnNull2362 regression test.
 REM Some predefined constants.
 SET DB_NAME=SelectOnNull2362Db
 
-REM Delete database after server is started
-REM staradmin --database=%DB_NAME% delete
+if "%SC_RUNNING_ON_BUILD_SERVER%"=="True" GOTO skipdbdrop
+ECHO Delete database after server is started
+staradmin --database=%DB_NAME% stop db
+staradmin --database=%DB_NAME% delete --force db
+
+:skipdbdrop
 
 star --database=%DB_NAME% SelectOnNull2362.cs
 IF %ERRORLEVEL% NEQ 0 GOTO err

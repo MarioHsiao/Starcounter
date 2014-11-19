@@ -19,9 +19,9 @@ namespace Starcounter {
                 return null;
             }
             set {
-                if (_transaction != null) {
-                    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
-                }
+                //if (_transaction != null) {
+                //    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
+                //}
                 _transaction = value;
             }
         }

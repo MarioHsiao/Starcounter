@@ -393,21 +393,20 @@ namespace Starcounter.Server.Commands {
         /// </summary>
         protected virtual LogSource Log {
             get {
-                return ServerLogSources.Default;
+                return ServerLogSources.Commands;
             }
         }
 
-        private void OnBeginExecute()
-        {
-            Trace("Executing '{0}'", true, this.command.Description);
+        private void OnBeginExecute() {
+            Trace("Executing '{0}' ({1})", true, this.command.Description, this.Id.Value);
         }
 
         private void OnEndExecute() {
-            Trace("Executing completed");
+            Trace("Executing completed ({0})", false, this.Id.Value);
         }
 
         private void OnEndExecuteFailed() {
-            Trace("Executing completed (failed)");
+            Trace("Executing failed ({0})", false, this.Id.Value);
         }
 
         [Conditional("TRACE")]
