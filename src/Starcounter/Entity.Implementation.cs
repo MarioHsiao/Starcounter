@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace Starcounter {
 
-    public abstract partial class Entity2 : IBindable, IObjectView, IObjectProxy {
+    public abstract partial class Entity : IBindable, IObjectView, IObjectProxy {
 #pragma warning disable 0649, 0169
 
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -25,14 +25,14 @@ namespace Starcounter {
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Entity2(Uninitialized u) {
+        public Entity(Uninitialized u) {
         }
 
         [DebuggerHidden]
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        private Entity2(ushort tableId, TypeBinding typeBinding, Initialized dummy) {
+        private Entity(ushort tableId, TypeBinding typeBinding, Initialized dummy) {
             this.__sc__this_binding__ = typeBinding;
             DbState.Insert(tableId, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
@@ -41,7 +41,7 @@ namespace Starcounter {
         [DebuggerNonUserCode]
         [DebuggerStepThrough]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public Entity2(ushort tableId, TypeBinding typeBinding, Uninitialized dummy)
+        public Entity(ushort tableId, TypeBinding typeBinding, Uninitialized dummy)
             : this(tableId, typeBinding, (Initialized)null) {
         }
 

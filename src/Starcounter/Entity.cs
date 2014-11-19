@@ -10,11 +10,11 @@ namespace Starcounter {
     /// classes, as an alternative to the [Database] attribute.
     /// </summary>
     [Database]
-    public abstract partial class Entity2 : IEntity {
+    public abstract partial class Entity : IEntity {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
-        public Entity2 Type {
+        public Entity Type {
             get { throw new NotImplementedException(); }
             set { throw new NotImplementedException(); }
         }
@@ -35,7 +35,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>A new entity whose dynamic type is the
         /// current entity.</returns>
-        public Entity2 Create() {
+        public Entity Create() {
             throw new NotImplementedException();
         }
 
@@ -47,7 +47,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>A new entity whose base dynamic type is
         /// the current entity.</returns>
-        public Entity2 Derive() {
+        public Entity Derive() {
             throw new NotImplementedException();
         }
 
@@ -109,7 +109,7 @@ namespace Starcounter {
         /// current entity.
         /// </summary>
         /// <seealso cref="Derive"/>
-        public Entity2 TypeInherits {
+        public Entity TypeInherits {
             get { throw new NotImplementedException(); }
             set { throw new NotImplementedException(); }
         }
@@ -137,7 +137,7 @@ namespace Starcounter {
         /// a context where the current entity is to be
         /// considered a relation (edge).
         /// </summary>
-        public Entity2 EdgeSubject {
+        public Entity EdgeSubject {
             get { throw new NotImplementedException(); }
             set { throw new NotImplementedException(); } 
         }
@@ -147,15 +147,15 @@ namespace Starcounter {
         /// a context where the current entity is to be
         /// considered a relation (edge).
         /// </summary>
-        public Entity2 EdgeObject {
+        public Entity EdgeObject {
             get { throw new NotImplementedException(); }
             set { throw new NotImplementedException(); }
         }
 
         /// <summary>
-        /// Initialize a new <see cref="Entity2"/>.
+        /// Initialize a new <see cref="Entity"/>.
         /// </summary>
-        public Entity2()
+        public Entity()
             : this(__starcounterTypeSpecification.tableHandle, __starcounterTypeSpecification.typeBinding, (Uninitialized)null) {
         }
 
