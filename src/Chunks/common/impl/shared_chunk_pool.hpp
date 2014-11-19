@@ -54,7 +54,7 @@ client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	/ chunk_type::static_data_size;
 	
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -113,7 +113,7 @@ inline bool shared_chunk_pool<T, Alloc>::acquire_linked_chunks_counted(chunk_typ
 chunk_base, chunk_index& head, std::size_t num_chunks_to_acquire, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -171,7 +171,7 @@ inline bool shared_chunk_pool<T, Alloc>::release_linked_chunks(chunk_type*
 chunk_, chunk_index& head, client_interface_type* client_interface_ptr,
 smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to release
@@ -217,7 +217,7 @@ inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -275,7 +275,7 @@ inline std::size_t shared_chunk_pool<T, Alloc>::acquire(U& private_chunk_pool,
 std::size_t chunks_to_acquire, client_interface_type* client_interface_ptr,
 smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -327,7 +327,7 @@ std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release, client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -368,7 +368,7 @@ std::size_t shared_chunk_pool<T, Alloc>::release(U& private_chunk_pool,
 std::size_t chunks_to_release, client_interface_type* client_interface_ptr,
 smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -414,7 +414,7 @@ inline std::size_t shared_chunk_pool<T, Alloc>::acquire_to_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire,
 smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -467,7 +467,7 @@ std::size_t shared_chunk_pool<T, Alloc>::release_from_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_release,
 smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -508,7 +508,7 @@ template<class T, class Alloc>
 bool shared_chunk_pool<T, Alloc>::release_clients_chunks(client_interface_type*
 client_interface_ptr, smp::spinlock::milliseconds timeout) {
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 	
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -552,7 +552,7 @@ chunk_index head) {
 	smp::spinlock::milliseconds timeout(1000);
 
 	// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-	smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+	smp::spinlock::scoped_lock lock(spinlock(), timeout);
 
 	if (!lock.owns()) {
 		// The timeout_milliseconds time period has elapsed. Failed to acquire
@@ -588,7 +588,7 @@ spin_count, smp::spinlock::milliseconds timeout) {
 		// elapsed.
 
 		// No recovery is done here in IPC version 1.0 so not locking with owner_id.
-		smp::spinlock::scoped_lock lock(spinlock(), timeout -timeout.tick_count());
+		smp::spinlock::scoped_lock lock(spinlock(), timeout);
 		
 		if (!lock.owns()) {
 			// The timeout time period has elapsed. Failed to push the item.
