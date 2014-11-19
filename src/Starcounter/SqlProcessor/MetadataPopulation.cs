@@ -238,7 +238,7 @@ namespace Starcounter.SqlProcessor {
         /// It goes through children types.
         /// </summary>
         /// <param name="tableId">TableId of the type to udpate indexes.</param>
-        internal static void UpdateIndexInstances(ushort tableId) {
+        internal static void UpdateIndexInstances(ulong tableId) {
             foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>
                 ("select i from starcounter.internal.metadata.materializedIndex i where tableid = ?", tableId)) {
                 if (Db.SQL<Index>(
@@ -247,7 +247,7 @@ namespace Starcounter.SqlProcessor {
                     CreateAnIndexInstance(matIndx);
             }
             foreach (Index indx in Db.SQL<Index>(
-                "select i from starcounter.metadata.\"index\" i where i.table.materializedtable.tableid = ?",
+                "select i from starcounter.metadata.\"index\" i, starcounter.metadata.rawview v where i.table = v and v.materializedtable.tableid = ?",
                 tableId)) {
                     if (Db.SQL<MaterializedIndex>(
                         "select i from materializedindex i where tableid = ?", tableId) == null) {
@@ -258,10 +258,10 @@ namespace Starcounter.SqlProcessor {
                         indx.Delete();
                     }
             }
-            Debug.Assert(Db.SQL("select count(i) from \"index\" i where i.table.materializedtable.tableid = ?", tableId).First ==
-                Db.SQL("select count(i) from materializedindex i where tabelid = ?", tableId).First);
+            Debug.Assert(Db.SQL("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First ==
+                Db.SQL("select count(i) from materializedindex i where tableid = ?", tableId).First);
             // Check indexes for all types, which extend this type, since they can be affected.
-            foreach (ushort inheritedTableId in Db.SQL<ushort>(
+            foreach (ulong inheritedTableId in Db.SQL<ulong>(
                 "select tableid from materializedtable where BaseTable.TableId = ?", tableId))
                 UpdateIndexInstances(inheritedTableId);
         }
