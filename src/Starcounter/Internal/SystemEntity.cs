@@ -21,7 +21,7 @@ namespace Starcounter.Internal {
     /// be used by end-user developers too.
     /// </remarks>
     [Database]
-    public abstract class Entity : IObjectProxy {
+    public abstract class SystemEntity : IObjectProxy {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         protected TypeBinding __sc__this_binding__;
@@ -33,12 +33,12 @@ namespace Starcounter.Internal {
         protected string this_id_web_string = null;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Entity" /> class.
+        /// Initializes a new instance of the <see cref="SystemEntity" /> class.
         /// </summary>
         /// <param name="u">An instance of <see cref="Uninitialized"/>,
         /// serving the purpose to assure we have a unique signature for
         /// this constructor.</param>
-        public Entity(Uninitialized u) : base() {
+        public SystemEntity(Uninitialized u) : base() {
         }
 
         /// <inheritdoc />

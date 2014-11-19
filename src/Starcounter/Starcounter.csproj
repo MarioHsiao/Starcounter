@@ -96,11 +96,11 @@
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Entity2.cs" />
-	<Compile Include="Entity2.Implementation.cs" />
+    <Compile Include="Entity2.Implementation.cs" />
     <Compile Include="Hosting\ApplicationBase.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
-    <Compile Include="Internal\Entity.cs" />
+    <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
     <Compile Include="DatabaseAttribute.cs" />
