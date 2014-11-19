@@ -12,7 +12,7 @@ namespace Starcounter.Internal.Metadata {
     /// <summary>
     /// Class MaterializedIndex
     /// </summary>
-    public sealed class MaterializedIndex : Entity {
+    public sealed class MaterializedIndex : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {
@@ -80,7 +80,7 @@ namespace Starcounter.Internal.Metadata {
     /// <summary>
     /// Class MaterializedIndexColumn
     /// </summary>
-    public sealed class MaterializedIndexColumn : Entity {
+    public sealed class MaterializedIndexColumn : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {

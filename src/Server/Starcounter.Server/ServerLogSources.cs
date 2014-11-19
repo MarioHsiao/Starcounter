@@ -22,5 +22,12 @@ namespace Starcounter.Server {
         /// relating to external process management.
         /// </summary>
         internal readonly static LogSource Processes = new LogSource("Starcounter.Server.Processes");
+
+        /// <summary>
+        /// The log source used by the server to log/trace
+        /// messages that contains information about commands
+        /// being executed (including their child tasks).
+        /// </summary>
+        internal readonly static LogSource Commands = new LogSource("Starcounter.Server.Commands");
     }
 }
