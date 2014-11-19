@@ -198,6 +198,7 @@ namespace Starcounter.SqlProcessor {
                     newCol.Type = Db.SQL<Starcounter.Metadata.DbPrimitiveType>(
                         "select t from DbPrimitiveType t where primitivetype = ?",
                         col.Type).First;
+                Debug.Assert(newCol.Type != null);
             }
         }
 
@@ -216,6 +217,12 @@ namespace Starcounter.SqlProcessor {
             foreach (MaterializedIndexColumn matCol in Db.SQL<MaterializedIndexColumn>(
                 "select c from MaterializedIndexColumn c where \"index\" = ?", matIndx)) {
                 //Debug.Assert(matCol.Index.Equals(rawIndx.MaterializedIndex));
+#if true
+                    Debug.Assert(Db.SQL<Column>("select c from column c where c.table = ?",
+                            rawIndx.Table).First != null);
+                    Debug.Assert(Db.SQL<Column>("select c from column c where materializedcolumn = ?",
+                            matCol.Column).First != null);
+#endif
                 IndexedColumn rawColIndx = new IndexedColumn {
                     Ascending =
                         matCol.Order == 0,
@@ -258,8 +265,12 @@ namespace Starcounter.SqlProcessor {
                         indx.Delete();
                     }
             }
-            Debug.Assert(Db.SQL("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First ==
-                Db.SQL("select count(i) from materializedindex i where tableid = ?", tableId).First);
+#if false
+            long nrMatIndx = Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First;
+            long nrIndx = Db.SQL<long>("select count(i) from materializedindex i where tableid = ?", tableId).First;
+#endif
+            Debug.Assert(Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First ==
+                Db.SQL<long>("select count(i) from materializedindex i where tableid = ?", tableId).First);
             // Check indexes for all types, which extend this type, since they can be affected.
             foreach (ulong inheritedTableId in Db.SQL<ulong>(
                 "select tableid from materializedtable where BaseTable.TableId = ?", tableId))
