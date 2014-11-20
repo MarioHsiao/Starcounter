@@ -3,7 +3,7 @@ using Starcounter.Internal;
 using System;
 
 namespace Starcounter.Metadata {
-    public class Index : Entity {
+    public class Index : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {
@@ -75,7 +75,7 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public class IndexedColumn : Entity {
+    public class IndexedColumn : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {

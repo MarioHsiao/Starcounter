@@ -13,6 +13,8 @@ namespace QueryProcessingTest {
             TestTypeMetadata();
             TestRuntimeColumnMetadata();
             ClrMetadatTest();
+            TestRuntimeIndexBasedOnMat();
+            TestRuntimeIndex();
             HelpMethods.LogEvent("Finished testing populated meta-data");
         }
 
@@ -251,19 +253,19 @@ namespace QueryProcessingTest {
                 Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.UniqueIdentifier);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 123);
+            Trace.Assert(nrColumns == 150);
             Starcounter.Internal.Metadata.MaterializedIndex i = 
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "ColumnPrimaryKey").First;
             Trace.Assert(i != null);
-            Index idx = Db.SQL<Index>("select i from starcounter.metadata.\"index\" i where i.\"table\".name = ?", "VersionSource").First;
-            Trace.Assert(idx == null);
+            Index idx = Db.SQL<Index>("select i from starcounter.metadata.\"index\" i where i.table.name = ?", "VersionSource").First;
+            Trace.Assert(idx != null);
             IndexedColumn idxc = Db.SQL<IndexedColumn>(
-                "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.column.name = ?",
+                "select i from indexedcolumn i where i.\"index\".table.name = ? and i.column.name = ?",
                 "account", "accountid").First;
-            Trace.Assert(idxc == null);
+            Trace.Assert(idxc != null);
             var indexedColumnEnum = Db.SQL<IndexedColumn>(
-                "select i from indexedcolumn i where i.\"index\".\"table\".name = ? and i.\"index\".name = ? order by i.\"position\"",
+                "select i from indexedcolumn i where i.\"index\".table.name = ? and i.\"index\".name = ? order by i.\"position\"",
                 "materializedtable", "built-in").GetEnumerator();
             Trace.Assert(!indexedColumnEnum.MoveNext());
             indexedColumnEnum.Dispose();
@@ -276,7 +278,7 @@ namespace QueryProcessingTest {
             // Test that all MaterializedColumn instances are referenced from Column instances
             foreach (MaterializedColumn mc in Db.SQL<MaterializedColumn>(
                 "select c from materializedColumn c where name <> ?and inherited = ?", "__id", false)) {
-                Column col = Db.SQL<Column>("select c from \"column\" c where materializedcolumn = ? and c.table is RawView",
+                Column col = Db.SQL<Column>("select c from column c where materializedcolumn = ? and c.table is RawView",
                     mc).First;
                 Trace.Assert(col != null);
                 Trace.Assert(col.MaterializedColumn.Equals(mc));
@@ -408,6 +410,55 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn.Table.Equals((tc.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
             }
             Trace.Assert(nrcc == 7*2);
+        }
+
+        public static void TestRuntimeIndexBasedOnMat() {
+            int nrIndexes = 0;
+            Int64 nrIndColumns = 0;
+            foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>(
+                "select i from materializedindex i")) {
+                    if (Db.SQL("select t from rawview t where updatable = ? and materializedtable = ?", 
+                        true, matIndx.Table).First != null) {
+                        nrIndexes++;
+                        int count = 0;
+                        Index indx = null;
+                        foreach (Index i in Db.SQL<Index>(
+                            "select i from \"index\" i where i.table.fullname = ? and i.name = ?",
+                            matIndx.Table.Name, matIndx.Name)) {
+                            count++;
+                            indx = i;
+                        }
+                        Trace.Assert(count == 1);
+                        Trace.Assert(indx != null);
+                        Int64 numMatColIndx = Db.SQL<Int64>("select count(c) from MaterializedIndexColumn c where c.\"index\" = ?",
+                            matIndx).First;
+                        Trace.Assert(numMatColIndx > 0);
+                        Int64 numColIndx = Db.SQL<Int64>("select count(c) from indexedcolumn c where c.\"index\" = ?",
+                            indx).First;
+                        Trace.Assert(numColIndx == numMatColIndx);
+                        Int64 numMatchedColIndx = Db.SQL<Int64>(
+                            "select count(c) from indexedcolumn c, materializedindexcolumn m where c.\"index\" = ? and m.\"index\" = ?" +
+                            " and c.column.name = m.column.name",
+                            indx, matIndx).First;
+                        Trace.Assert(numMatchedColIndx == numColIndx);
+                        nrIndColumns += numColIndx;
+                    }
+            }
+            Trace.Assert(nrIndexes == 36);
+            Trace.Assert(nrIndColumns == 39);
+        }
+
+        public static void TestRuntimeIndex() {
+            Int64 nrIndexes = 0;
+            Int64 nrIndColumns = 0;
+            foreach (Index i in Db.SQL<Index>("select i from \"index\" i")) {
+                nrIndexes++;
+                nrIndColumns += Db.SQL<Int64>("select count(c) from indexedcolumn c where \"index\" = ?", i).First;
+            }
+            Trace.Assert(nrIndexes == 36);
+            Trace.Assert(nrIndColumns == 39);
+            Trace.Assert(nrIndColumns == Db.SlowSQL<Int64>(
+                "select count(*) from indexedcolumn").First);
         }
     }
 }

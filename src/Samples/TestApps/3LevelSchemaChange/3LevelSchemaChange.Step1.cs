@@ -82,7 +82,8 @@ class Program {
 		ScAssertion.Assert(views[3].Equals(views[4].Inherits));
 		for(int i = 0; i < tblNames.Length; i++) {
 			count = 0;
-			foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ? order by c desc", clrClassses[i])) {
+			foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ? order by c desc", 
+					clrClassses[i])) {
 				if (i < 3)
 					ScAssertion.Assert(c.Name == colNames[0 + count]);
 				else
@@ -104,7 +105,8 @@ class Program {
 		}
 		for(int i = 0; i < tblNames.Length; i++) {
 			count = 0;
-			foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ? order by c desc", views[i])) {
+			foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ? and name <> ? order by c desc", 
+					views[i], "__id")) {
 				if (i < 3)
 					ScAssertion.Assert(c.Name == colNames[0 + count]);
 				else
@@ -118,7 +120,8 @@ class Program {
 		}
 		for(int i = 0; i < totalNrCols; i++) {
 			count = 0;
-			foreach(Column c in Db.SQL<Column>("select c from column c where name = ? and c.\"table\" is ? order by \"table\" desc", colNames[i], typeof(RawView))) {
+			foreach(Column c in Db.SQL<Column>("select c from column c where name = ? and c.\"table\" is ? and name <> ? order by \"table\" desc", 
+					colNames[i], typeof(RawView), "__id")) {
 				ScAssertion.Assert(c.Table.Equals(views[colTab[i] + count]));
 				count++;
 			}

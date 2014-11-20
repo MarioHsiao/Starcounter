@@ -65,5 +65,11 @@ namespace Starcounter.InstallerWPF.Components
             : base(components)
         {
         }
+
+        public override bool ValidateSettings() {
+            throw new NotImplementedException();
+        }
+
+
     }
 }

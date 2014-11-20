@@ -15,7 +15,9 @@ namespace Starcounter.InstallerWPF.Rules {
                 return new ValidationResult(false, "Invalid TCP port number");
             }
 
-            int.TryParse((string)value, out portNumber);
+            if (int.TryParse(value.ToString(), out portNumber) == false) {
+                return new ValidationResult(false, "Invalid TCP port number");
+            }
 
             if (portNumber > IPEndPoint.MaxPort || portNumber < IPEndPoint.MinPort) {
                 return new ValidationResult(false, "Invalid TCP port number");

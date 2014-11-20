@@ -754,6 +754,7 @@ namespace Starcounter.InstallerWPF.Components
             return null;
         }
 
+        public abstract bool ValidateSettings();
 
         #region INotifyPropertyChanged Members
 
@@ -768,12 +769,6 @@ namespace Starcounter.InstallerWPF.Components
 
         #endregion
 
-
     }
-
-    //interface IComponent
-    //{
-    //    bool HasProperties { get;  }
-    //}
 
 }
