@@ -22,9 +22,9 @@ namespace Starcounter.SqlProcessor {
                     //    //assemblyName = '.' + assemblyPath.Substring(assemblyPath.LastIndexOf('\\'));
                     //    assemblyName = '.' + app.Name;
                     //}
-                    string uniqueIdentifierRev = classReverseFullName ;
+                    string uniqueIdentifierRev = classReverseFullName;
                     string uniqueIdentifier = typeDef.Name;
-                    Starcounter.Internal.Metadata.MaterializedTable mattab = 
+                    Starcounter.Internal.Metadata.MaterializedTable mattab =
                         Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
                         typeDef.TableDef.Name).First;
                     ClrClass parentView = null;
@@ -64,7 +64,7 @@ namespace Starcounter.SqlProcessor {
                                     Type = propType
                                 };
                             } else {
-                                Starcounter.Internal.Metadata.MaterializedColumn matCol = 
+                                Starcounter.Internal.Metadata.MaterializedColumn matCol =
                                     Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
                                     "select c from materializedcolumn c where c.table = ? and name = ?",
                                     theView.MaterializedTable, propDef.ColumnName).First;
@@ -102,7 +102,7 @@ namespace Starcounter.SqlProcessor {
                 matTab).First == null);
             RawView parentTab = Db.SQL<RawView>(
                 "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-            Debug.Assert(matTab.BaseTable == null && parentTab == null || 
+            Debug.Assert(matTab.BaseTable == null && parentTab == null ||
                 matTab.BaseTable != null && parentTab != null && matTab.BaseTable.Equals(parentTab.MaterializedTable));
             RawView rawView = new RawView {
                 Name = typeDef.TableDef.Name.LastDotWord(),
@@ -137,7 +137,6 @@ namespace Starcounter.SqlProcessor {
                 }
                 thisType.Inherits = newParent;
             }
-            RemoveColumnInstances(thisType);
             UpgradeInheritedRawTableInstance(thisType);
         }
 
@@ -150,7 +149,8 @@ namespace Starcounter.SqlProcessor {
         /// <param name="typeDef"></param>
         /// <param name="rawView"></param>
         internal static void UpgradeInheritedRawTableInstance(RawView rawView) {
-            foreach(RawView inherited in Db.SQL<RawView>("select v from rawview v where inherits = ?", rawView)) {
+            RemoveColumnInstances(rawView);
+            foreach (RawView inherited in Db.SQL<RawView>("select v from rawview v where inherits = ?", rawView)) {
                 Debug.Assert(Db.SQL("select materializedtable from rawview v where v = ?", inherited).First == null);
                 Debug.Assert(inherited.MaterializedTable == null);
                 MaterializedTable t = Db.SQL<MaterializedTable>(
@@ -164,10 +164,10 @@ namespace Starcounter.SqlProcessor {
 
         internal static void RemoveColumnInstances(RawView thisView) {
             Debug.Assert(thisView != null);
-            foreach(Column t in Db.SQL<Column>(
+            foreach (Column t in Db.SQL<Column>(
                 "select t from starcounter.metadata.column t where t.table = ?", thisView)) {
-                    Debug.Assert(t.Table.Equals(thisView));
-                    t.Delete();
+                Debug.Assert(t.Table.Equals(thisView));
+                t.Delete();
             }
         }
 
@@ -175,7 +175,9 @@ namespace Starcounter.SqlProcessor {
             RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
         typeDef.TableDef.Name).First;
             Debug.Assert(thisView != null);
-            for (int i = 1; i < typeDef.TableDef.ColumnDefs.Length;i++ ) {
+            if (Db.SQL("select c from column c where c.table = ?", thisView).First != null)
+                return; // We don't need to create columns for this table and inheriting, since the were created during inheritence
+            for (int i = 0; i < typeDef.TableDef.ColumnDefs.Length; i++) {
                 ColumnDef col = typeDef.TableDef.ColumnDefs[i];
                 Starcounter.Internal.Metadata.MaterializedColumn matCol = Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
                     "select c from materializedcolumn c where c.name = ? and c.table = ?",
@@ -198,8 +200,82 @@ namespace Starcounter.SqlProcessor {
                     newCol.Type = Db.SQL<Starcounter.Metadata.DbPrimitiveType>(
                         "select t from DbPrimitiveType t where primitivetype = ?",
                         col.Type).First;
-                //Debug.Assert(newCol.Type != null);
+                Debug.Assert(newCol.Type != null);
             }
+            UpdateIndexInstances(thisView.MaterializedTable.TableId);
+            // Create columns for inherited tables, since they were removed
+            foreach (RawView inheritingView in Db.SQL<RawView>("select v from rawview v where v.inherits = ?", thisView)) {
+                TypeDef inheritingTypeDef = Bindings.GetTypeDef(inheritingView.FullName);
+                if (inheritingTypeDef != null)
+                    CreateColumnInstances(inheritingTypeDef);
+            }
+        }
+
+        internal static void CreateAnIndexInstance(MaterializedIndex matIndx) {
+            Debug.Assert(matIndx != null);
+            Index rawIndx = new Index {
+                //MaterializedIndex = matIndx,
+                Name = matIndx.Name,
+                Table =
+                    Db.SQL<RawView>("select v from rawview v where materializedtable = ?", matIndx.Table).First,
+                Unique = matIndx.Unique
+            };
+            Debug.Assert(rawIndx.Table != null);
+            Debug.Assert(rawIndx.Table is Starcounter.Metadata.RawView);
+            //Debug.Assert((rawIndx.Table as Starcounter.Metadata.RawView).MaterializedTable.Equals(rawIndx.MaterializedIndex.Table));
+            foreach (MaterializedIndexColumn matCol in Db.SQL<MaterializedIndexColumn>(
+                "select c from MaterializedIndexColumn c where \"index\" = ?", matIndx)) {
+                //Debug.Assert(matCol.Index.Equals(rawIndx.MaterializedIndex));
+                IndexedColumn rawColIndx = new IndexedColumn {
+                    Ascending =
+                        matCol.Order == 0,
+                    Column =
+                        Db.SQL<Column>("select c from column c where c.table = ? and materializedcolumn = ?",
+                        rawIndx.Table, matCol.Column).First,
+                    Index =
+                        rawIndx,
+                    //MaterializedIndexColumn = matCol,
+                    Position = matCol.Place
+                };
+                Debug.Assert(rawColIndx.Column != null);
+            }
+            Debug.Assert(Db.SQL("select c from indexedColumn c where \"index\" = ?", rawIndx).First != null);
+        }
+
+        /// <summary>
+        /// Synchronizes instances of Index with instances of MaterializedIndex.
+        /// It is necessary to insert if new indexes appeared or remove if they were dropped due schema changes.
+        /// It goes through children types.
+        /// </summary>
+        /// <param name="tableId">TableId of the type to udpate indexes.</param>
+        internal static void UpdateIndexInstances(ulong tableId) {
+            foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>
+                ("select i from starcounter.internal.metadata.materializedIndex i where tableid = ?", tableId)) {
+                Index existingIndex = Db.SQL<Index>(
+                    "select i from \"index\" i, rawview v where i.table  = v and v.MaterializedTable = ?  and i.name = ?",
+                    matIndx.Table, matIndx.Name).First;
+                if (existingIndex == null)
+                    CreateAnIndexInstance(matIndx);
+            }
+            foreach (Index indx in Db.SQL<Index>(
+                "select i from starcounter.metadata.\"index\" i, starcounter.metadata.rawview v where i.table = v and v.materializedtable.tableid = ?",
+                tableId)) {
+                MaterializedIndex existingIndex = Db.SQL<MaterializedIndex>(
+                        "select i from materializedindex i where tableid = ? and name = ?", tableId, indx.Name).First;
+                    if (existingIndex == null) {
+                        foreach(IndexedColumn colIndx in Db.SQL<IndexedColumn>(
+                            "select c from starcounter.metadata.indexedcolumn c where \"index\" = ?",
+                            indx))
+                            colIndx.Delete();
+                        indx.Delete();
+                    }
+            }
+#if false
+            long nrIndx = Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First;
+            long nrMatIndx = Db.SQL<long>("select count(i) from materializedindex i where tableid = ?", tableId).First;
+#endif
+            Debug.Assert(Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First ==
+                Db.SQL<long>("select count(i) from materializedindex i where tableid = ?", tableId).First);
         }
     }
 }

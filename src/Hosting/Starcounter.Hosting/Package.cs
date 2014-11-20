@@ -285,9 +285,17 @@ namespace Starcounter.Hosting {
                         tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
                         );
                 }
+
+                OnTypesCheckedAndUpdated();
+
+                Bindings.RegisterTypeDefs(unregisteredTypeDefs);
+
+                OnTypeDefsRegistered();
+
                 foreach (TypeDef typeDef in updateColumns)
                     Db.Transaction(delegate {
                         MetadataPopulation.CreateColumnInstances(typeDef);
+                        //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
                     });
 
 #if DEBUG   // Assure that parents were set.
@@ -305,11 +313,7 @@ namespace Starcounter.Hosting {
                         matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
                 }
 #endif
-                OnDatabaseSchemaCheckedAndUpdated();
-
-                Bindings.RegisterTypeDefs(unregisteredTypeDefs);
-
-                OnTypeDefsRegistered();
+                OnColumnsCheckedAndUpdated();
 
                 QueryModule.UpdateSchemaInfo(unregisteredTypeDefs);
 
@@ -440,7 +444,8 @@ namespace Starcounter.Hosting {
 
         private void OnProcessingStarted() { Trace("Package started."); }
         private void OnInternalHandlersRegistered() { Trace("Internal handlers were registered."); }
-        private void OnDatabaseSchemaCheckedAndUpdated() { Trace("Database schema checked and updated."); }
+        private void OnTypesCheckedAndUpdated() { Trace("Types of database schema checked and updated."); }
+        private void OnColumnsCheckedAndUpdated() { Trace("Columns of database schema checked and updated."); }
         private void OnTypeDefsRegistered() { Trace("Type definitions registered."); }
         private void OnQueryModuleSchemaInfoUpdated() { Trace("Query module schema information updated."); }
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }

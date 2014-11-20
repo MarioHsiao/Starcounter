@@ -10,6 +10,8 @@ using Starcounter.Query.Execution;
 //using Sc.Server.Weaver.Schema;
 using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Internal.Metadata;
+using System.Diagnostics;
 
 namespace Starcounter.Query.Sql
 {
@@ -235,9 +237,9 @@ internal static class SqlProcessor
         attributeIndexArr[attributeIndexArr.Length - 1] = -1;
 
         // Call kenrel
+        ushort tableId = typeBind.TableId;
         unsafe
         {
-            var tableId = typeBind.TableId;
             Db.Transaction(delegate {
                 fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0])) {
                     errorCode = systables.star_create_index(tableId, indexName, sortMask, attributeIndexesPointer, flags);
@@ -251,6 +253,7 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
+        AddMetadataIndex(tableId, indexName);
     }
 
     internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)
@@ -374,6 +377,7 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
+        DeleteMetadataIndex(typeBind.Name, indexName);
     }
 
     /// <summary>
@@ -410,6 +414,28 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
+    }
+    internal static void AddMetadataIndex(ushort tableId, string indexName) {
+        Db.SystemTransaction(delegate {
+            MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
+                "select i from materializedindex i where tableid = ? and name = ?",
+                tableId, indexName).First;
+            Debug.Assert(matIndx != null);
+            Starcounter.SqlProcessor.MetadataPopulation.CreateAnIndexInstance(matIndx);
+        });
+    }
+
+    internal static void DeleteMetadataIndex(string tableName, string indexName) {
+        Db.SystemTransaction(delegate {
+            Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
+                "select i from \"index\" i where i.table.fullname = ? and name = ?",
+                tableName, indexName).First;
+            Debug.Assert(indx != null);
+            foreach (Starcounter.Metadata.IndexedColumn colIndx in Db.SQL<Starcounter.Metadata.IndexedColumn>(
+                "select c from indexedcolumn c where \"index\" = ?", indx))
+                colIndx.Delete();
+            indx.Delete();
+        });
     }
 
     internal static Exception CheckSingleDelimitedIdentifiers(string query) {
