@@ -42,6 +42,42 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Maximum number of parallel sockets.
+        /// </summary>
+        Int32 maxNumAsyncConnections_ = 128;
+
+        /// <summary>
+        /// Maximum number of parallel connections in async node.
+        /// </summary>
+        public Int32 MaxNumAsyncConnections {
+            get {
+                return maxNumAsyncConnections_;
+            }
+
+            set {
+                maxNumAsyncConnections_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Connect synchronously.
+        /// </summary>
+        Boolean connectSynchronuously_ = false;
+
+        /// <summary>
+        /// Indicates if synchronous connect should be performed.
+        /// </summary>
+        public Boolean ConnectSynchronuously {
+            get {
+                return connectSynchronuously_;
+            }
+
+            set {
+                connectSynchronuously_ = value;
+            }
+        }
+
+        /// <summary>
         /// Performs local Node REST call.
         /// </summary>
         static DoLocalNodeRest DoLocalNodeRest_;
@@ -867,7 +903,7 @@ namespace Starcounter
             if (!finished_async_tasks_.Dequeue(out nt)) {
 
                 // Checking if we exceeded the maximum number of created tasks.
-                if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks) {
+                if (num_tasks_created_ >= maxNumAsyncConnections_) {
 
                     // Looping until task is dequeued.
                     while (!finished_async_tasks_.Dequeue(out nt)) {

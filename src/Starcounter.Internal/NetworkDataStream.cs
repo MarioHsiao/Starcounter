@@ -220,7 +220,7 @@ namespace Starcounter
         /// </summary>
         public void Destroy(Boolean isStarcounterThread)
         {
-            // NOTE: Removing reference for finalizer in order not to finalize twice.
+            // NOTE: Removing reference for finalizer so it does not call destroy again.
             UnLinkFinalizer();
 
             // Checking if already destroyed.
