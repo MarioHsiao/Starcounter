@@ -95,13 +95,15 @@
     <Compile Include="Binding\UIntPropertyBinding.cs" />
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
+    <Compile Include="Entity.cs" />
+    <Compile Include="Entity.Implementation.cs" />
     <Compile Include="Hosting\ApplicationBase.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
-    <Compile Include="Internal\Entity.cs" />
+    <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
-    <Compile Include="Hosting\DatabaseAttribute.cs" />
+    <Compile Include="DatabaseAttribute.cs" />
     <Compile Include="Hosting\DbStateRedirect.cs" />
     <Compile Include="Hosting\HostManager.cs" />
     <Compile Include="Hosting\IBackingHost.cs" />
