@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
@@ -1331,6 +1332,25 @@ namespace Starcounter.Internal
             }
 
             throw ErrorCode.ToException(r);
+        }
+
+        /// <summary>
+        /// Invoked in the code host every time an attribute is updated
+        /// using a database attribute accessor (i.e. a field or a property)
+        /// on a database class implementing <see cref="ISetValueCallback"/>.
+        /// </summary>
+        /// <param name="target">The <see cref="ISetValueCallback"/>
+        /// implementation to invoke the callback on.</param>
+        /// <param name="proxy">The proxy whose database attribute was just
+        /// set.</param>
+        /// <param name="index">The (property) index of the database attribute.
+        /// </param>
+        /// <param name="value">The value assigned to the database attribute.
+        /// </param>
+        public static void InvokeSetValueCallback(ISetValueCallback target, IObjectProxy proxy, Int32 index, object value) {
+            var tb = proxy.TypeBinding as TypeBinding;
+            var name = tb.TypeDef.TableDef.ColumnDefs[index].Name;
+            target.OnValueSet(name, value);
         }
 
         /// <summary>
