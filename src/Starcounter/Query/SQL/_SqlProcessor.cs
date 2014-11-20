@@ -253,7 +253,7 @@ internal static class SqlProcessor
                 ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
             throw ex;
         }
-        AddMetadataIndex(tableId, indexName);
+        AddMetadataIndex(typeBind.Name, indexName);
     }
 
     internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)
@@ -415,11 +415,11 @@ internal static class SqlProcessor
             throw ex;
         }
     }
-    internal static void AddMetadataIndex(ushort tableId, string indexName) {
+    internal static void AddMetadataIndex(string tableName, string indexName) {
         Db.SystemTransaction(delegate {
             MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
-                "select i from materializedindex i where tableid = ? and name = ?",
-                tableId, indexName).First;
+                "select i from materializedindex i where i.table.name = ? and name = ?",
+                tableName, indexName).First;
             Debug.Assert(matIndx != null);
             Starcounter.SqlProcessor.MetadataPopulation.CreateAnIndexInstance(matIndx);
         });
