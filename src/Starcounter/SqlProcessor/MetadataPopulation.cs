@@ -202,7 +202,7 @@ namespace Starcounter.SqlProcessor {
                         col.Type).First;
                 Debug.Assert(newCol.Type != null);
             }
-            UpdateIndexInstances(thisView.MaterializedTable.TableId);
+            UpdateIndexInstances(thisView.MaterializedTable);
             // Create columns for inherited tables, since they were removed
             foreach (RawView inheritingView in Db.SQL<RawView>("select v from rawview v where v.inherits = ?", thisView)) {
                 TypeDef inheritingTypeDef = Bindings.GetTypeDef(inheritingView.FullName);
@@ -248,9 +248,9 @@ namespace Starcounter.SqlProcessor {
         /// It goes through children types.
         /// </summary>
         /// <param name="tableId">TableId of the type to udpate indexes.</param>
-        internal static void UpdateIndexInstances(ulong tableId) {
+        internal static void UpdateIndexInstances(MaterializedTable matTbl) {
             foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>
-                ("select i from starcounter.internal.metadata.materializedIndex i where tableid = ?", tableId)) {
+                ("select i from starcounter.internal.metadata.materializedIndex i where i.table = ?", matTbl)) {
                 Index existingIndex = Db.SQL<Index>(
                     "select i from \"index\" i, rawview v where i.table  = v and v.MaterializedTable = ?  and i.name = ?",
                     matIndx.Table, matIndx.Name).First;
@@ -258,10 +258,10 @@ namespace Starcounter.SqlProcessor {
                     CreateAnIndexInstance(matIndx);
             }
             foreach (Index indx in Db.SQL<Index>(
-                "select i from starcounter.metadata.\"index\" i, starcounter.metadata.rawview v where i.table = v and v.materializedtable.tableid = ?",
-                tableId)) {
+                "select i from starcounter.metadata.\"index\" i, starcounter.metadata.rawview v where i.table = v and v.materializedtable = ?",
+                matTbl)) {
                 MaterializedIndex existingIndex = Db.SQL<MaterializedIndex>(
-                        "select i from materializedindex i where tableid = ? and name = ?", tableId, indx.Name).First;
+                        "select i from materializedindex i where i.table = ? and name = ?", matTbl, indx.Name).First;
                     if (existingIndex == null) {
                         foreach(IndexedColumn colIndx in Db.SQL<IndexedColumn>(
                             "select c from starcounter.metadata.indexedcolumn c where \"index\" = ?",
@@ -270,12 +270,12 @@ namespace Starcounter.SqlProcessor {
                         indx.Delete();
                     }
             }
-#if false
-            long nrIndx = Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First;
-            long nrMatIndx = Db.SQL<long>("select count(i) from materializedindex i where tableid = ?", tableId).First;
+#if DEBUG
+            long nrIndx = Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable = ?", matTbl).First;
+            long nrMatIndx = Db.SQL<long>("select count(i) from materializedindex i where i.table = ?", matTbl).First;
 #endif
-            Debug.Assert(Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable.tableid = ?", tableId).First ==
-                Db.SQL<long>("select count(i) from materializedindex i where tableid = ?", tableId).First);
+            Debug.Assert(Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable = ?", matTbl).First ==
+                Db.SQL<long>("select count(i) from materializedindex i where i.table = ?", matTbl).First);
         }
     }
 }
