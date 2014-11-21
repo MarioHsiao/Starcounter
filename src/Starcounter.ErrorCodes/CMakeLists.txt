@@ -10,6 +10,7 @@ add_subdirectory(ErrorCodeCompiler)
 add_subdirectory(scerrres)
 
 add_custom_target(CompileXMLErrorsToCSharp
+  ALL
   COMMAND
     ${CSHARP_INTERPRETER} scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
   DEPENDS
@@ -17,6 +18,8 @@ add_custom_target(CompileXMLErrorsToCSharp
     errorcodes.xml
   WORKING_DIRECTORY
     ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+  COMMENT
+    "Trigger target CompileXMLErrorsToCSharp"
 )
 set_property(TARGET CompileXMLErrorsToCSharp PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 
