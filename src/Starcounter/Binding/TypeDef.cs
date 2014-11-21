@@ -132,7 +132,7 @@ namespace Starcounter.Binding
             string typeName = sysType.FullName;
             System.Type baseSysType = sysType.BaseType;
             string baseTypeName = null;
-            if (!baseSysType.Equals(typeof(Starcounter.Internal.Entity)))
+            if (!baseSysType.Equals(typeof(Starcounter.Internal.SystemEntity)))
                 baseTypeName = baseSysType.FullName;
             string tableName = typeName;
             string baseTableName = baseTypeName;

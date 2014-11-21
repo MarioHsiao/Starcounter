@@ -11,7 +11,7 @@ using System;
 using System.Diagnostics;
 
 namespace Starcounter.Metadata {
-    public abstract class Type : Entity {
+    public abstract class Type : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {

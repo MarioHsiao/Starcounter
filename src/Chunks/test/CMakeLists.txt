@@ -2,11 +2,11 @@
 
 cmake_minimum_required(VERSION 2.8.10)
 
-project(scipctest)
+project(sc_ipc_test)
 
 include_directories(../../../../level0/src/include)
 
-set(scipctest_SOURCE_FILES
+set(sc_ipc_test_SOURCE_FILES
     ../common/mapped_region.cpp
     ../common/shared_memory_object.cpp
     test.cpp
@@ -14,7 +14,7 @@ set(scipctest_SOURCE_FILES
     tiny_tuple/record_data.cpp
 )
 
-set(scipctest_HEADER_FILES
+set(sc_ipc_test_HEADER_FILES
     decimal/decimal.hpp
     decimal/impl/decimal.hpp
     decimal/impl/uint128_t.hpp
@@ -42,9 +42,9 @@ set(scipctest_HEADER_FILES
     worker.hpp
 )
 
-add_executable(scipctest ${scipctest_SOURCE_FILES} ${scipctest_HEADER_FILES})
-set_property(TARGET scipctest PROPERTY FOLDER "level1/Chunks")
-target_link_libraries(scipctest
+add_executable(sc_ipc_test ${sc_ipc_test_SOURCE_FILES} ${sc_ipc_test_HEADER_FILES})
+set_property(TARGET sc_ipc_test PROPERTY FOLDER "level1/Chunks")
+target_link_libraries(sc_ipc_test
     bmx
 )
-add_test(NAME scipctest COMMAND $<TARGET_FILE:scipctest>)
+add_test(NAME sc_ipc_test COMMAND $<TARGET_FILE:sc_ipc_test>)
