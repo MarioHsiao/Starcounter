@@ -61,7 +61,10 @@ else()
 endif()
 
 add_custom_target(Generate_SCERRRES_H
+  ALL
   DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
+  COMMENT
+    "Trigger target Generate_SCERRRES_H"
 )
 set_property(TARGET Generate_SCERRRES_H PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
