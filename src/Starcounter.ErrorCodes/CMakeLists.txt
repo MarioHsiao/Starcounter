@@ -10,9 +10,8 @@ add_subdirectory(ErrorCodeCompiler)
 add_subdirectory(scerrres)
 
 add_custom_target(CompileXMLErrorsToCSharp
-  ALL
   COMMAND
-    ${CSHARP_INTERPRETER} scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
+    ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
   DEPENDS
     scerrcc
     errorcodes.xml
@@ -36,7 +35,6 @@ if(WIN32)
       COMMENT
         "Running scerrcc.exe"
     )
-    # ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe 
     add_custom_command(
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
@@ -64,7 +62,6 @@ else()
 endif()
 
 add_custom_target(Generate_SCERRRES_H
-  ALL
   DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
   COMMENT

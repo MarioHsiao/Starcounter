@@ -15,6 +15,9 @@ add_library(scerrres SHARED
   Format.cpp
   Format.def
   format.h
+  scerrres.h
   ../errorcodes.xml
 )
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
+# add_dependencies(scerrres Generate_SCERRRES_H)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
