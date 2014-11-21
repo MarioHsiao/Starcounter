@@ -10,7 +10,7 @@ using System.Reflection;
 
 namespace Starcounter.Internal.Metadata {
     [Database]
-    public sealed class Token : Entity {
+    public sealed class Token : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal sealed class __starcounterTypeSpecification {
