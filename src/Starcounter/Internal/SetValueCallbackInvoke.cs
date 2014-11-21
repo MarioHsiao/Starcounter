@@ -9,6 +9,11 @@ namespace Starcounter.Internal {
     /// Provide the facade to the weaver to generate calls to implementations
     /// of <see cref="ISetValueCallback"/>.
     /// </summary>
+    /// <remarks>
+    /// Use caution when refactoring this class since it's methods are soft
+    /// referenced by name from the weaver, and need to match the names of
+    /// corresponding write methods in <see cref="DbState"/>.
+    /// </remarks>
     public static class SetValueCallbackInvoke {
 
         public static void WriteBinary(ISetValueCallback target, Int32 index, Binary value) {
@@ -111,6 +116,12 @@ namespace Starcounter.Internal {
         }
 
         public static void WriteNullableUInt64(ISetValueCallback target, Int32 index, Nullable<UInt64> value) {
+        }
+
+        string AttributeIndexToColumName(ISetValueCallback target, Int32 index) {
+            var proxy = (IObjectProxy)target;
+            var tb = (TypeBinding)proxy.TypeBinding;
+            return tb.TypeDef.TableDef.ColumnDefs[index].Name;
         }
     }
 }
