@@ -6,8 +6,13 @@ class Program {
 	}
 }
 
+
 [Database]
-public class User {
+public class User : Person {
+	public string UserName;
+}
+[Database]
+public class Person {
 	public string FirstName;
 	public string LastName;
 }

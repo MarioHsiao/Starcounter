@@ -2,7 +2,8 @@ using Starcounter;
 
 class Program {
 	static void Main() {
-		Db.SQL("create index NikcNameIndx on \"User\" (NickName)");
+		Db.SQL("create index PersonNikcNameIndx on \"Person\" (NickName)");
+		Db.SQL("create index UserNikcNameIndx on \"User\" (NickName)");
 		Db.SQL("drop index auto on \"User\"");
 		Db.Transaction(delegate {
 			new User { FirstName = "Alex", LastName = "Ivanov", NickName = "Lion" };
@@ -12,7 +13,11 @@ class Program {
 }
 
 [Database]
-public class User {
+public class User : Person {
+	public string UserName;
+}
+[Database]
+public class Person {
 	public string FirstName;
 	public string LastName;
 	public string NickName;
