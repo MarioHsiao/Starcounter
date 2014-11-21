@@ -540,11 +540,13 @@ namespace Starcounter.Internal.Weaver {
             _writer.DetachInstructionSequence();
 
             // Generate the Set accessor.
+            IMethod setValueCallback;
             haveSetMethod = _dbStateMethodProvider.GetSetMethod(
                 field.FieldType,
                 realDatabaseAttribute,
                 out dbStateMethod,
-                out dbStateCast);
+                out dbStateCast,
+                out setValueCallback);
             
             if (haveSetMethod) {
                 var emitSetValueCall = analysisTask.SetValueCallbacksInCurrentModule.Contains(databaseAttribute.DeclaringClass);
@@ -589,15 +591,15 @@ namespace Starcounter.Internal.Weaver {
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
 
                 if (emitSetValueCall) {
-                    var setCallbackMethod = _module.FindMethod(
-                        _dbStateMethodProvider.DbStateType.GetMethod("InvokeSetValueCallback"), BindingOptions.Default);
-                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                     _writer.EmitInstructionField(OpCodeNumber.Ldsfld, columnHandle);
                     _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
+                    if (dbStateCast != null) {
+                        _castHelper.EmitCast(field.FieldType, dbStateCast, _writer, ref sequence);
+                    }
 
                     _writer.EmitPrefix(InstructionPrefixes.Tail);
-                    _writer.EmitInstructionMethod(OpCodeNumber.Call, setCallbackMethod);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call, setValueCallback);
                 }
 
                 _writer.EmitInstruction(OpCodeNumber.Ret);
