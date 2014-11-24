@@ -15,9 +15,7 @@ endif()
 if(WIN32)
     add_custom_command(
       OUTPUT
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
-      OUTPUT
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
+        scerrres.h
 #      COMMAND
 #        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
       COMMAND
@@ -38,8 +36,10 @@ endif()
 
 add_custom_target(Generate_SCERRRES_H
     DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+        scerrres.h
         scerrcc
+    COMMENT
+        "Triggered target Generate_SCERRRES_H"
 )
 set_property(TARGET Generate_SCERRRES_H PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 
