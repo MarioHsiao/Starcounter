@@ -11,27 +11,27 @@ if(MSVC)
     endforeach()
 endif()
 
+set(SC_OUTPUT_DIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
+
 if(WIN32)
     add_definitions(
         -D_UNICODE
         -DUNICODE
     )
+    #${CSHARP_INTERPRETER} 
     add_custom_command(
       OUTPUT
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.rc
+        ${SC_OUTPUT_DIR}/scerrres.mc
+        ${SC_OUTPUT_DIR}/scerrres.rc
 #      COMMAND
-#        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
+#        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
       COMMAND
-        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ..\\scerrres\\scerrres.mc
+        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
       WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/../ErrorCodeCompiler
-      MAIN_DEPENDENCY
-        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
+        ${CMAKE_CURRENT_SOURCE_DIR}
       DEPENDS
         scerrcc
         ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
-        # $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME>
       COMMENT
         "Generating scerrres.mc"
     )
@@ -39,11 +39,11 @@ if(WIN32)
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
       COMMAND
-        mc.exe -r .\\ -v scerrres.mc
+        mc.exe -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
       WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
       DEPENDS
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
+        ${SC_OUTPUT_DIR}/scerrres.mc
       COMMENT
         "Generating scerrres.h"
     )
@@ -55,11 +55,11 @@ add_library(scerrres SHARED
   Format.cpp
   Format.def
   format.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.rc
-  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
   ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+  ${SC_OUTPUT_DIR}/scerrres.rc
+  ${SC_OUTPUT_DIR}/scerrres.mc
 )
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc PROPERTIES GENERATED 1)
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.rc PROPERTIES GENERATED 1)
+set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
+set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
