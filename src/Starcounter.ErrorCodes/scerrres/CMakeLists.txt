@@ -18,7 +18,6 @@ if(WIN32)
         -D_UNICODE
         -DUNICODE
     )
-    #${CSHARP_INTERPRETER} 
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.mc
