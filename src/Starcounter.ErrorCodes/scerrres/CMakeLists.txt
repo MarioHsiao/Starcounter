@@ -51,7 +51,6 @@ else()
 endif()
 
 add_custom_target(Generate_SCERRRES_H
-    ALL
     DEPENDS
         scerrcc
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
