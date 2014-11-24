@@ -11,6 +11,20 @@ if(MSVC)
     endforeach()
 endif()
 
+# The scerrres library is unconditionally built to ../../../bin/$(Configuration) by Blue.sln
+set(SC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
+if(CMAKE_CONFIGURATION_TYPES)
+foreach(uod_cfg ${CMAKE_CONFIGURATION_TYPES})
+  string(TOUPPER ${uod_cfg} uod_cfg_uc)
+  set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${uod_cfg_uc} ${SC_OUTPUT_DIR}/${uod_cfg})
+  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${uod_cfg_uc} ${SC_OUTPUT_DIR}/${uod_cfg})
+  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${uod_cfg_uc} ${SC_OUTPUT_DIR}/${uod_cfg})
+endforeach()
+endif()
+link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 if(WIN32)
     add_custom_command(
@@ -19,9 +33,9 @@ if(WIN32)
 #      COMMAND
 #        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
       COMMAND
-        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc .\\scerrres.mc
+        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ..\\scerrres\\scerrres.mc
       WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../ErrorCodeCompiler
       MAIN_DEPENDENCY
         ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
       DEPENDS
