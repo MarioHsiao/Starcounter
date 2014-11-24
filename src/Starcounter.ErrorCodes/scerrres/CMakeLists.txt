@@ -43,18 +43,8 @@ if(WIN32)
       COMMENT
         "Generating scerrres.h"
     )
-endif()
-
-if(0)
-add_custom_target(Generate_SCERRRES_H
-    DEPENDS
-        scerrcc
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
-    COMMENT
-        "Triggered target Generate_SCERRRES_H"
-)
-set_property(TARGET Generate_SCERRRES_H PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
+else()
+    message(SEND_ERROR "implement scerrres.h generation for Linux")
 endif()
 
 add_library(scerrres SHARED
@@ -62,8 +52,6 @@ add_library(scerrres SHARED
   Format.def
   format.h
   ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
-#  ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
 )
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
-# add_dependencies(scerrres scerrcc Generate_SCERRRES_H)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")

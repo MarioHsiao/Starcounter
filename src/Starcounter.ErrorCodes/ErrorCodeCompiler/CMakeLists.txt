@@ -14,6 +14,5 @@ csharp_add_executable(scerrcc
     scerrcc/CommandLine.cs
     scerrcc/Properties/AssemblyInfo.cs
 )
-# ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Starcounter.Errors.dll
 add_dependencies(scerrcc Starcounter.Errors)
 set_property(TARGET scerrcc PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
