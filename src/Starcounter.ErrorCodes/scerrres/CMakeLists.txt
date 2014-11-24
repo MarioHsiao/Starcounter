@@ -12,9 +12,14 @@ if(MSVC)
 endif()
 
 if(WIN32)
+    add_definitions(
+        -D_UNICODE
+        -DUNICODE
+    )
     add_custom_command(
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.rc
 #      COMMAND
 #        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
       COMMAND
@@ -50,10 +55,11 @@ add_library(scerrres SHARED
   Format.cpp
   Format.def
   format.h
-  scerrres.rc
+  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.rc
   ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
   ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
 )
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc PROPERTIES GENERATED 1)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.rc PROPERTIES GENERATED 1)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
