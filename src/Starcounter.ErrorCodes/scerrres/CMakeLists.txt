@@ -28,7 +28,7 @@ if(WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
       DEPENDS
         ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
-        scerrcc
+        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME>
       COMMENT
         "Generating scerrres.h"
     )
@@ -51,5 +51,5 @@ add_library(scerrres SHARED
   ../errorcodes.xml
 )
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
-add_dependencies(scerrres Generate_SCERRRES_H)
+add_dependencies(scerrres scerrcc Generate_SCERRRES_H)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
