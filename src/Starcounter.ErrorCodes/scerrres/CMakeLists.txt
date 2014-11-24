@@ -11,6 +11,38 @@ if(MSVC)
     endforeach()
 endif()
 
+
+if(WIN32)
+    add_custom_command(
+      OUTPUT
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+      OUTPUT
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.mc
+#      COMMAND
+#        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
+      COMMAND
+        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc scerrres.mc
+      COMMAND
+        mc.exe -r .\\ -v scerrres.mc
+      WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+      MAIN_DEPENDENCY
+        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
+      DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
+        scerrcc
+      COMMENT
+        "Generating scerrres.h"
+    )
+endif()
+
+add_custom_target(Generate_SCERRRES_H
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+        scerrcc
+)
+set_property(TARGET Generate_SCERRRES_H PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
+
 add_library(scerrres SHARED
   Format.cpp
   Format.def
@@ -19,5 +51,5 @@ add_library(scerrres SHARED
   ../errorcodes.xml
 )
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
-# add_dependencies(scerrres Generate_SCERRRES_H)
+add_dependencies(scerrres Generate_SCERRRES_H)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
