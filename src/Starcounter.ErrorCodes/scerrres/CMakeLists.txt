@@ -24,12 +24,7 @@ add_definitions(
 #    <CL Sources="Format.cpp" AdditionalOptions="/c /D FORMATMESSAGE_EXPORTS /Fo$(OutDir)\$(AssemblyName).obj /DEBUG /Zi /Fd$(OutDir)\$(AssemblyName).pdb" />
 #    <LINK Sources="$(OutDir)\$(AssemblyName).res;$(OutDir)\$(AssemblyName).obj" AdditionalOptions="/MACHINE:X64 /DLL /DEBUG /PDB:$(OutDir)\$(AssemblyName).pdb /DEF:format.def /OUT:$(OutDir)\$(AssemblyName).dll" />
 
-
 if(WIN32)
-    add_definitions(
-        -D_UNICODE
-        -DUNICODE
-    )
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.mc
