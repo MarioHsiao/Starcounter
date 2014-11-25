@@ -222,13 +222,13 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
 
     bool IsEntityClass {
         get {
-            return Name.Equals(Schema.EntityClass.Name);
+            return Name.Equals(typeof(Starcounter.Entity).FullName);
         }
     }
 
     bool IsImplicitEntityClass {
         get {
-            return Name.Equals(Schema.ImplicitEntityClass.Name);
+            return Name.Equals(WeavedNames.ImplicitEntityClass);
         }
     }
 
