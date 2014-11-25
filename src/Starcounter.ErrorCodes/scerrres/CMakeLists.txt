@@ -66,6 +66,6 @@ add_library(scerrres SHARED
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
 set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
 set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
-add_dependencies(scerrres scerrcc Generate_SCERRRES_H)
+add_dependencies(scerrres scerrcc)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 
