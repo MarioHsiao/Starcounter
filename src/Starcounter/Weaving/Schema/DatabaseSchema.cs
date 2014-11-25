@@ -72,8 +72,9 @@ public class DatabaseSchema
         Assemblies.Add(databaseAssembly);
 
         this.EntityClass = EntityWeaving.DefineEntityClass(databaseAssembly);
-        this.ImplicitEntityClass = EntityWeaving.DefineImplicitEntityClass(databaseAssembly);
         databaseAssembly.DatabaseClasses.Add(this.EntityClass);
+
+        this.ImplicitEntityClass = EntityWeaving.DefineImplicitEntityClass(databaseAssembly);
         databaseAssembly.DatabaseClasses.Add(this.ImplicitEntityClass);
     }
 
