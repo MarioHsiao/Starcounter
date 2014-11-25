@@ -1,6 +1,13 @@
 # level1/src/Starcounter.ErrorCodes/CMakeLists.txt
 
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../level0/cmake")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+project(Starcounter_ErrorCodes)
+enable_testing()
+
+include_directories(scerrres)
 
 # Match the default output directory set by Blue.sln
 set(SC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)

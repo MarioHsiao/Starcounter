@@ -45,5 +45,4 @@ set(server_HEADER_FILES
 )
 
 add_library(server SHARED ${server_SOURCE_FILES} ${server_HEADER_FILES})
-add_dependencies(server scerrres)
 set_property(TARGET server PROPERTY FOLDER "level1/Chunks")

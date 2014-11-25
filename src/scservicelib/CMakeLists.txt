@@ -24,9 +24,7 @@ set(scservice_HEADER_FILES
 add_library(scservice SHARED ${scservice_SOURCE_FILES} ${scservice_HEADER_FILES})
 target_link_libraries(scservice
     sccoredbg
-#    sccorelib
     sccorelog
-	scerrres
 	urihelp
 )
 set_property(TARGET scservice PROPERTY FOLDER "level1")
