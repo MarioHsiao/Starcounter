@@ -21,7 +21,6 @@ if(WIN32)
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.mc
-        ${SC_OUTPUT_DIR}/scerrres.rc
 #      COMMAND
 #        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
       COMMAND
