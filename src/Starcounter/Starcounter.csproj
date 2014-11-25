@@ -402,6 +402,7 @@
     <Compile Include="TypeNameAttribute.cs" />
     <Compile Include="UnhandledTransactionConflictException.cs" />
     <Compile Include="Weaving\EntityWeaving.cs" />
+    <Compile Include="Weaving\WeavedNames.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
