@@ -20,10 +20,10 @@ namespace Sc.Server.Weaver {
             DefineImplicitFields(entity, entity);
 
             AddDefinedProperty(entity, "Type", entity, entity.Attributes[WeavedNames.TypeColumn]);
-            AddDefinedProperty(entity, "Inherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
+            AddDefinedProperty(entity, "TypeInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
             AddDefinedProperty(
                 entity,
-                "TypeName", 
+                "Name", 
                 DatabasePrimitiveType.GetInstance(DatabasePrimitive.String),
                 entity.Attributes[WeavedNames.TypeNameColumn]
                 );
