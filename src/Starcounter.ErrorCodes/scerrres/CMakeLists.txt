@@ -53,19 +53,21 @@ add_custom_target(Generate_SCERRRES_H
     DEPENDS
         scerrcc
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+        ${SC_OUTPUT_DIR}/scerrres.rc
+        ${SC_OUTPUT_DIR}/scerrres.mc
 )
 
 add_library(scerrres SHARED
   Format.cpp
   Format.def
   format.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
-  ${SC_OUTPUT_DIR}/scerrres.rc
-  ${SC_OUTPUT_DIR}/scerrres.mc
+#  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+#  ${SC_OUTPUT_DIR}/scerrres.rc
+#  ${SC_OUTPUT_DIR}/scerrres.mc
 )
-set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
-set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
-set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
-add_dependencies(scerrres scerrcc)
+#set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
+#set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
+#set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
+add_dependencies(scerrres scerrcc Generate_SCERRRES_H)
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 

@@ -2,9 +2,8 @@
 
 cmake_minimum_required(VERSION 2.8.8)
 
-
 # The ErrorCodeCompiler (scerrcc) is unconditionally built to the same source dir by Blue.sln
-set(SC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../ErrorCodeCompiler)
+set(SC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR})
