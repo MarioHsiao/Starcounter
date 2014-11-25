@@ -17,11 +17,24 @@ namespace Sc.Server.Weaver {
         /// <returns>A weaver schema database class.</returns>
         public static DatabaseEntityClass DefineEntityClass(DatabaseAssembly assembly) {
             var entity = new DatabaseEntityClass(assembly, typeof(Starcounter.Entity).FullName);
-            var typeRef = new DatabaseAttribute(entity, "Type");
-            typeRef.BackingField = new DatabaseAttribute(entity, "__sc__type__");
-            typeRef.AttributeKind = DatabaseAttributeKind.Property;
-            typeRef.AttributeType = entity;
-            entity.Attributes.Add(typeRef);
+            DefineImplicitFields(entity, entity);
+
+            AddDefinedProperty(entity, "Type", entity, entity.Attributes[WeavedNames.TypeColumn]);
+            AddDefinedProperty(entity, "Inherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
+            AddDefinedProperty(
+                entity,
+                "TypeName", 
+                DatabasePrimitiveType.GetInstance(DatabasePrimitive.String),
+                entity.Attributes[WeavedNames.TypeNameColumn]
+                );
+
+            AddDefinedProperty(
+                entity, 
+                "IsType",
+                DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean),
+                entity.Attributes[WeavedNames.IsTypeColumn]
+                );
+
             return entity;
         }
 
@@ -34,8 +47,53 @@ namespace Sc.Server.Weaver {
         /// <param name="assembly">The assembly to define the class in.
         /// </param>
         /// <returns>A weaver schema database class.</returns>
-        public static DatabaseEntityClass DefineImpliciEntityClass(DatabaseAssembly assembly) {
-            throw new NotImplementedException();
+        public static DatabaseEntityClass DefineImplicitEntityClass(DatabaseAssembly assembly) {
+            var entity = assembly.Schema.FindDatabaseClass(typeof(Starcounter.Entity).FullName);
+
+            var implicitEntity = new DatabaseEntityClass(assembly, WeavedNames.ImplicitEntityClass);
+            DefineImplicitFields(implicitEntity, entity as DatabaseEntityClass);
+            return implicitEntity;
+        }
+
+        static void DefineImplicitFields(DatabaseEntityClass classBuilder, DatabaseEntityClass entityClass) {
+            var field = AddDefinedField(classBuilder, WeavedNames.TypeColumn, entityClass);
+            field.IsTypeReference = true;
+            field.IsNullable = true;
+
+            field = AddDefinedField(classBuilder, WeavedNames.InheritsColumn, entityClass);
+            field.IsInheritsReference = true;
+            field.IsNullable = true;
+
+            field = AddDefinedField(classBuilder, WeavedNames.TypeNameColumn, DatabasePrimitiveType.GetInstance(DatabasePrimitive.String));
+            field.IsTypeName = true;
+            field.IsNullable = true;
+
+            field = AddDefinedField(classBuilder, WeavedNames.IsTypeColumn, DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean));
+            field.IsNullable = false;
+
+        }
+
+        static DatabaseAttribute AddDefinedField(DatabaseEntityClass classBuilder, string name, IDatabaseAttributeType type) {
+            var databaseAttribute = new DatabaseAttribute(classBuilder, name);
+            classBuilder.Attributes.Add(databaseAttribute);
+            databaseAttribute.IsInitOnly = false;
+            databaseAttribute.AttributeKind = DatabaseAttributeKind.Field;
+            databaseAttribute.AttributeType = type;
+            return databaseAttribute;
+        }
+
+        static DatabaseAttribute AddDefinedProperty(
+            DatabaseEntityClass classBuilder, 
+            string name,
+            IDatabaseAttributeType type,
+            DatabaseAttribute backingField) {
+            var databaseAttribute = new DatabaseAttribute(classBuilder, name);
+            classBuilder.Attributes.Add(databaseAttribute);
+            databaseAttribute.IsInitOnly = false;
+            databaseAttribute.AttributeKind = DatabaseAttributeKind.Property;
+            databaseAttribute.BackingField = backingField;
+            databaseAttribute.AttributeType = type;
+            return databaseAttribute;
         }
     }
 }
