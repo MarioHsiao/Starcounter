@@ -365,7 +365,7 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        public static Func<Request, Int32, Response> HandleInternalRequest_;
+        public static Func<Request, HandlerOptions.HandlerLevels, Response> HandleInternalRequest_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public delegate void RegisterUriHandlerNativeDelegate(
@@ -393,7 +393,7 @@ namespace Starcounter.Rest
         public static void SetDelegates(
             RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, Int32, Response> handleInternalRequest) {
+            Func<Request, HandlerOptions.HandlerLevels, Response> handleInternalRequest) {
 
             RegisterUriHandlerNative_ = registerUriHandlerNative;
             OnHttpMessageRoot_ = onHttpMessageRoot;
@@ -416,15 +416,6 @@ namespace Starcounter.Rest
         List<PortUris> portUris_ = new List<PortUris>();
 
         Int32 maxNumHandlersEntries_ = 0;
-
-        Boolean registerWithGateway_ = false;
-
-        /// <summary>
-        /// Indicates if this Uri handlers manager should register with gateway.
-        /// </summary>
-        public Boolean RegisterWithGateway {
-            set { registerWithGateway_ = value; }
-        }
 
         public List<PortUris> PortUrisList
         {
@@ -457,23 +448,33 @@ namespace Starcounter.Rest
             }
         }
 
-        static List<UriHandlersManager> uriHandlersManagers_ = new List<UriHandlersManager>();
+        /// <summary>
+        /// Creating all needed handler levels.
+        /// </summary>
+        static UriHandlersManager[] uriHandlersManagers_ = new UriHandlersManager[Enum.GetNames(typeof(HandlerOptions.HandlerLevels)).Length];
 
-        public static UriHandlersManager GetUriHandlersManager(Int32 handlersIndex) {
-            return uriHandlersManagers_[handlersIndex];
+        /// <summary>
+        /// Initializes URI handler manager.
+        /// </summary>
+        internal static void Init() {
+
+            for (Int32 i = 0; i < uriHandlersManagers_.Length; i++) {
+                uriHandlersManagers_[i] = new UriHandlersManager();
+            }
         }
 
-        internal static void AddExtraHandlerLevel(Boolean registerWithGateway) {
-            uriHandlersManagers_.Add(new UriHandlersManager(registerWithGateway));
+        public static UriHandlersManager GetUriHandlersManager(HandlerOptions.HandlerLevels handlerLevel) {
+
+            return uriHandlersManagers_[(Int32) handlerLevel];
         }
 
         internal static void ResetUriHandlersManagers() {
-            foreach (UriHandlersManager uhm in uriHandlersManagers_)
-                uhm.Reset();
 
-            uriHandlersManagers_ = new List<UriHandlersManager>();
+            Init();
 
-            AddExtraHandlerLevel(false);
+            for (Int32 i = 0; i < uriHandlersManagers_.Length; i++) {
+                uriHandlersManagers_[i].Reset();
+            }
         }
 
         public UserHandlerInfo[] AllUserHandlerInfos
@@ -499,7 +500,7 @@ namespace Starcounter.Rest
                 allUriHandlers_[i] = new UserHandlerInfo();
         }
 
-        public UriHandlersManager(Boolean registerWithGateway)
+        public UriHandlersManager()
         {
             // Initializing port uris.
             PortUris.GlobalInit();
@@ -507,8 +508,6 @@ namespace Starcounter.Rest
             allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
             for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
                 allUriHandlers_[i] = new UserHandlerInfo();
-
-            registerWithGateway_ = registerWithGateway;
         }
 
         public void RunDelegate(Request r, out Response resp)
@@ -593,7 +592,9 @@ namespace Starcounter.Rest
 
                 // Registering the outer native handler (if any).
                 if (UriInjectMethods.RegisterUriHandlerNative_ != null) {
-                    if (registerWithGateway_) {
+
+                    // Checking if we are on default handler level so we register with gateway.
+                    if (ho.HandlerLevel == HandlerOptions.HandlerLevels.DefaultLevel) {
 
                         String appNames = allUriHandlers_[handlerId].AppNames;
                         if (String.IsNullOrEmpty(appNames)) {

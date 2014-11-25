@@ -459,7 +459,7 @@ namespace Starcounter {
                 {
                     // Logging the exception to server log.
                     if (nodeInst_.ShouldLogErrors)
-                        Node.NodeLogException_(exc);
+                        Node.nodeLogException_(exc);
 
                     // Freeing connection resources.
                     nodeInst_.FreeConnection(this, false);
@@ -574,7 +574,7 @@ namespace Starcounter {
                             {
                                 // Logging the exception to server log.
                                 if (nodeInst_.ShouldLogErrors)
-                                    Node.NodeLogException_(exc);
+                                    Node.nodeLogException_(exc);
 
                                 // Freeing connection resources.
                                 nodeInst_.FreeConnection(this, true);
@@ -617,7 +617,7 @@ namespace Starcounter {
 
             // Logging the exception to server log.
             if (nodeInst_.ShouldLogErrors)
-                Node.NodeLogException_(exc);
+                Node.nodeLogException_(exc);
 
             resp_ = new Response()
             {

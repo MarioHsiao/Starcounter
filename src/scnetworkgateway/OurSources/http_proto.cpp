@@ -151,7 +151,7 @@ uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bo
 inline uint32_t GetMethodAndUri(
     char* http_data,
     uint32_t http_data_len,
-    uint32_t* out_method_and_uri_len,
+    uint32_t* out_method_space_uri_len,
     uint32_t* out_uri_offset,
     uint32_t uri_max_len)
 {
@@ -204,75 +204,7 @@ inline uint32_t GetMethodAndUri(
     }
 
     // Setting output length.
-    *out_method_and_uri_len = pos;
-
-    return 0;
-}
-
-// Fetches method and URI from HTTP request data.
-inline uint32_t GetMethodAndUriLowerCase(
-    char* http_data,
-    uint32_t http_data_len,
-    char* out_methoduri_lower_case,
-    uint32_t* out_method_and_uri_len,
-    uint32_t* out_uri_offset,
-    uint32_t uri_max_len)
-{
-    uint32_t pos = 0;
-
-    // Reading method.
-    while (pos < http_data_len)
-    {
-        if (http_data[pos] == ' ')
-            break;
-
-        pos++;
-    }
-
-    // Copying offset to URI.
-    *out_uri_offset = pos + 1;
-
-    // Reading URI.
-    pos++;
-    while (pos < http_data_len)
-    {
-        if (http_data[pos] == ' ')
-        {
-            pos++;
-            break;
-        }
-
-        pos++;
-    }
-
-    // Checking if method and URI has correct length.
-    if (pos > uri_max_len)
-        return SCERRGWWRONGHTTPDATA;
-
-    // Checking that we have HTTP protocol.
-    if (pos < (http_data_len - 4))
-    {
-        // Checking for HTTP keyword.
-        if (*(uint32_t*)(http_data + pos) != *(uint32_t*)"HTTP")
-        {
-            // Wrong protocol.
-            return SCERRGWWRONGHTTPDATA;
-        }
-    }
-    else
-    {
-        // Either wrong protocol or not enough accumulated data.
-        return SCERRGWRECEIVEMORE;
-    }
-
-    // Copying string.
-    strncpy_s(out_methoduri_lower_case, pos + 1, http_data, pos);
-
-    // Converting to lower case.
-    _strlwr_s(out_methoduri_lower_case + (*out_uri_offset), pos + 1 - (*out_uri_offset));
-
-    // Setting output length.
-    *out_method_and_uri_len = pos;
+    *out_method_space_uri_len = pos;
 
     return 0;
 }
@@ -574,30 +506,16 @@ uint32_t HttpProto::HttpUriDispatcher(
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
-        char* method_and_uri = (char*) sd->get_accum_buf()->get_chunk_orig_buf_ptr();
-        uint32_t method_and_uri_len, uri_offset;
+        char* method_space_uri_space = (char*) sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+        uint32_t method_space_uri_space_len, uri_offset;
 
         // Getting method and URI information.
         uint32_t err_code = GetMethodAndUri(
-            method_and_uri,
+            method_space_uri_space,
             sd->get_accum_buf()->get_accum_len_bytes(),
-            &method_and_uri_len,
+            &method_space_uri_space_len,
             &uri_offset,
             MixedCodeConstants::MAX_URI_STRING_LEN);
-
-        /*
-        // TODO: Support alternative lower-case strategy when URI didn't match.
-        method_and_uri_lower_case = gw->get_uri_lower_case();
-
-        // Converting URI to lower case.
-        err_code = GetMethodAndUriLowerCase(
-            (char*)sd->get_accum_buf()->get_orig_buf_ptr(),
-            sd->get_accum_buf()->get_accum_len_bytes(),
-            method_and_uri_lower_case,
-            &method_and_uri_len,
-            &uri_offset,
-            bmx::MAX_URI_STRING_LEN);
-        */
 
         // Checking for any errors.
         if (err_code) {
@@ -650,11 +568,11 @@ uint32_t HttpProto::HttpUriDispatcher(
             if (server_port->get_port_number() == g_gateway.get_setting_internal_system_port()) {
 
                 // Checking if its a gateway handler.
-                matched_index = g_gateway.CheckIfGatewayHandler(method_and_uri, method_and_uri_len);
+                matched_index = g_gateway.CheckIfGatewayHandler(method_space_uri_space, method_space_uri_space_len);
 
                 // Checking that its correct index for URI.
                 if (INVALID_URI_INDEX != matched_index) {
-                    GW_ASSERT(0 == strncmp(method_and_uri, port_uris->GetEntryByIndex(matched_index)->get_processed_uri_info(), method_and_uri_len));
+                    GW_ASSERT(0 == strncmp(method_space_uri_space, port_uris->GetEntryByIndex(matched_index)->get_processed_uri_info(), method_space_uri_space_len));
                 }
             }
 
@@ -693,8 +611,21 @@ uint32_t HttpProto::HttpUriDispatcher(
             }
         }
 
+        // Prepared method and URI.
+        char* prepared_method_space_uri_space = method_space_uri_space;
+
+#ifdef CASE_INSENSITIVE_URI_MATCHER
+
+        // Pointing to lower case temporary buffer in this worker.
+        prepared_method_space_uri_space = gw->get_method_space_uri_space_worker_buf();
+
+        // Making URI lower case.
+        StringToLower(prepared_method_space_uri_space, method_space_uri_space, uri_offset, method_space_uri_space_len);
+
+#endif
+
         // Getting the matched uri index.
-        matched_index = port_uris->RunCodegenUriMatcher(method_and_uri, method_and_uri_len, sd->get_accept_or_params_data());
+        matched_index = port_uris->RunCodegenUriMatcher(prepared_method_space_uri_space, method_space_uri_space_len, sd->get_accept_or_params_data());
 
         // Checking if we failed to find again.
         if (matched_index < 0)
@@ -707,7 +638,7 @@ uint32_t HttpProto::HttpUriDispatcher(
 
             // Creating 404 message.
             char stack_temp_mem[512];
-            int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_and_uri, method_and_uri_len);
+            int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_space_uri_space, method_space_uri_space_len);
 
             return gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
         }
@@ -724,12 +655,12 @@ HANDLER_MATCHED:
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
             MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
-            ProcessSessionString(sd, method_and_uri + p->offset_);
+            ProcessSessionString(sd, method_space_uri_space + p->offset_);
         }
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).
         sd->get_http_proto()->http_request_.uri_offset_ = sd->GetAccumOrigBufferSocketDataOffset() + uri_offset;
-        sd->get_http_proto()->http_request_.uri_len_bytes_ = method_and_uri_len - uri_offset;
+        sd->get_http_proto()->http_request_.uri_len_bytes_ = method_space_uri_space_len - uri_offset;
 
         // Running determined handler now.
         return matched_uri->RunHandlers(gw, sd, is_handled);

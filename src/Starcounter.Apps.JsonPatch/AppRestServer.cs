@@ -98,9 +98,7 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Handles request.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns>The bytes according to the appropriate protocol</returns>
-        public Response HandleRequest(Request request, Int32 handlerLevel) {
+        public Response HandleRequest(Request request, HandlerOptions.HandlerLevels handlerLevel) {
 
             Response resp;
 
@@ -137,7 +135,7 @@ namespace Starcounter.Internal.Web {
         // Added a separate method that does not catch any exception to allow wrapping whole block
         // in an implicit transaction. The current solution for the implicit is to catch exception
         // and upgrade if necessary which does not work when we are catching all exceptions above.
-        private Response _HandleRequest(Request request, Int32 handlerLevel) {
+        private Response _HandleRequest(Request request, HandlerOptions.HandlerLevels handlerLevel) {
             Response resp = null;
 
             if (!request.IsInternal)
