@@ -28,13 +28,21 @@ namespace Starcounter.Internal.Weaver {
         /// </summary>
         private class MethodCastPair {
             /// <summary>
-            /// The method
+            /// The primary access method (e.g. DbState.ReadString, DbState.WriteObject)
             /// </summary>
             public IMethod Method;
+
             /// <summary>
-            /// The cast type
+            /// The cast type, if a cast is needed before invoking the actual method.
             /// </summary>
             public ITypeSignature CastType;
+
+            /// <summary>
+            /// The method to invoke if the <see cref="ISetValueCallback"/> interface
+            /// is defined on the database class we provide methods for, and this
+            /// pair defines a write operation. Null if nothing of that applies.
+            /// </summary>
+            public IMethod SetValueCallbackMethod;
         }
 
         internal sealed class ViewAccessors {
@@ -111,6 +119,8 @@ namespace Starcounter.Internal.Weaver {
 
         public Type DbStateType { get { return dbStateType; } }
 
+        public Type SetValueCallbackFacadeType { get; private set; }
+
         /// <summary>
         /// Initializes a new <see cref="DbStateMethodProvider" />.
         /// </summary>
@@ -124,6 +134,7 @@ namespace Starcounter.Internal.Weaver {
             this.codeGeneratedDbStateType = null;
             this.ViewAccessMethods = new ViewAccessors(module);
             this.dbStateType = useStateRedirect ? typeof(Starcounter.Hosting.DbStateRedirect) : typeof(DbState);
+            SetValueCallbackFacadeType = typeof(SetValueCallbackInvoke);
         }
 
         #region Helper methods
@@ -199,36 +210,38 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="databaseAttribute"><see cref="DatabaseAttribute" /> for which the method
         /// is requested.</param>
         /// <param name="operation">Operation (<see cref="readOperation" /> or <see cref="writeOperation" />)</param>
-        /// <param name="method">Filled with the <see cref="DbState" /> method.</param>
-        /// <param name="castType">Filled with the type from / to which the value returned by / passed to
-        /// <paramref name="method" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
-        /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
-        /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
-        private bool GetMethod(
+        /// <param name="methodPair">Filled with the <see cref="DbState" /> method, and the</param> type from / to
+        /// which the value returned by / passed to <paramref name="method" /> has to be casted (or <b>null</b> if no
+        /// cast is necessary).
+        /// </param>
+        private void GetMethod(
             ITypeSignature fieldType,
             DatabaseAttribute databaseAttribute,
             string operation,
-            out IMethod method, 
-            out ITypeSignature castType) {
+            out MethodCastPair methodPair) {
+
             MethodCastPair methodCastPair;
+            IMethod method;
+            ITypeSignature castType;
+            string methodName;
 
             string key = operation + " : " + GetAttributeTypeCacheKey(databaseAttribute);
-            castType = null;
-
             if (this.cache.TryGetValue(key, out methodCastPair)) {
-                method = methodCastPair.Method;
-                castType = methodCastPair.CastType;
-                return true;
+                methodPair = methodCastPair;
+                return;
             }
 
-            Func<Type, string, MethodInfo> DoFindMethodByName = (stateType, methodName) => {
+            castType = null;
+            methodName = null;
+
+            Func<Type, string, MethodInfo> DoFindMethodByName = (stateType, name) => {
                 MethodInfo info;
-                info = stateType.GetMethod(methodName);
-                Trace.Assert(info != null, "Missing method " + stateType.Name + "." + methodName);
+                info = stateType.GetMethod(name);
+                Trace.Assert(info != null, "Missing method " + stateType.Name + "." + name);
                 Trace.Assert(
-                    methodName.StartsWith("Read") && info.GetParameters().Length == 3 ||
-                    methodName.StartsWith("Write") && info.GetParameters().Length == 4,
-                    "Errornous, legacy signature of " + stateType.Name + "." + methodName
+                    name.StartsWith("Read") && info.GetParameters().Length == 3 ||
+                    name.StartsWith("Write") && info.GetParameters().Length == 4,
+                    "Errornous, legacy signature of " + stateType.Name + "." + name
                     );
                 return info;
             };
@@ -240,7 +253,6 @@ namespace Starcounter.Internal.Weaver {
                 DatabasePrimitive primitive = 
                     primitiveType != null ? primitiveType.Primitive : enumType.UnderlyingType;
 
-                string methodName;
                 if (databaseAttribute.IsNullable) {
                     methodName = operation + "Nullable" + primitive.ToString();
                     if (enumType != null) {
@@ -269,7 +281,7 @@ namespace Starcounter.Internal.Weaver {
                 method = this.module.FindMethod(methodInfo, BindingOptions.Default);
 
             } else if (databaseAttribute.AttributeType is DatabaseArrayType) {
-                string methodName = operation + "Array";
+                methodName = operation + "Array";
                 if (operation == readOperation) {
                     method =
                     this.GetGenericMethodInstance(methodName,
@@ -282,7 +294,7 @@ namespace Starcounter.Internal.Weaver {
                     method = this.module.FindMethod(methodInfo, BindingOptions.Default);
                 }
             } else if (databaseAttribute.AttributeType is DatabaseClass) {
-                string methodName = operation + "Object";
+                methodName = operation + "Object";
                 if (databaseAttribute.IsTypeReference) {
                     methodName = operation + "TypeReference";
                 }
@@ -305,11 +317,16 @@ namespace Starcounter.Internal.Weaver {
                 method = null;
             }
 
+            var setValueCallback = SetValueCallbackFacadeType.GetMethod(methodName);
+            
             methodCastPair = new MethodCastPair();
             methodCastPair.Method = method;
             methodCastPair.CastType = castType;
+            methodCastPair.SetValueCallbackMethod = setValueCallback == null ? 
+                null : this.module.FindMethod(setValueCallback, BindingOptions.Default);
+            
             this.cache.Add(key, methodCastPair);
-            return true;
+            methodPair = methodCastPair;
         }
 
         MethodInfo DoGetAccessMethodByName(Type stateType, string methodName) {
@@ -330,7 +347,11 @@ namespace Starcounter.Internal.Weaver {
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b>.</returns>
         public bool GetGetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute,
         out IMethod getMethod, out ITypeSignature castType) {
-            return GetMethod(fieldType, databaseAttribute, readOperation, out getMethod, out castType);
+            MethodCastPair pair;
+            GetMethod(fieldType, databaseAttribute, readOperation, out pair);
+            getMethod = pair.Method;
+            castType = pair.CastType;
+            return true;
         }
 
         /// <summary>
@@ -343,11 +364,19 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="setMethod">Filled with the <see cref="DbState" /> method.</param>
         /// <param name="castType">Filled with the type to which the value passed to
         /// <paramref name="setMethod" /> has to be casted, or <b>null</b> if no cast is necessary.</param>
+        /// <param name="setValueCallback">The corrsponding infrastructure set value callback
+        /// invocation method that are to be called if the <see cref="ISetValueCallback"/> interface
+        /// is implemented on the database class about to be transformed.</param>
         /// <returns><b>true</b> if the method exist, otherwise <b>false</b> (happens for instance
         /// when the <b>write</b> operation is requested on an intrinsically read-only type).</returns>
         public bool GetSetMethod(ITypeSignature fieldType, DatabaseAttribute databaseAttribute,
-        out IMethod setMethod, out ITypeSignature castType) {
-            return GetMethod(fieldType, databaseAttribute, writeOperation, out setMethod, out castType);
+        out IMethod setMethod, out ITypeSignature castType, out IMethod setValueCallback) {
+            MethodCastPair pair;
+            GetMethod(fieldType, databaseAttribute, writeOperation, out pair);
+            setMethod = pair.Method;
+            castType = pair.CastType;
+            setValueCallback = pair.SetValueCallbackMethod;
+            return true;
         }
 
         /// <summary>
