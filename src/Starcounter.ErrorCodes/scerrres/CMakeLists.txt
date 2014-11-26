@@ -28,6 +28,7 @@ add_definitions(
 #    <LINK Sources="$(OutDir)\$(AssemblyName).res;$(OutDir)\$(AssemblyName).obj" AdditionalOptions="/MACHINE:X64 /DLL /DEBUG /PDB:$(OutDir)\$(AssemblyName).pdb /DEF:format.def /OUT:$(OutDir)\$(AssemblyName).dll" />
 
 if(WIN32)
+    if(0)
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.mc
@@ -68,6 +69,39 @@ if(WIN32)
       COMMENT
         "Generating scerrres.res"
     )
+    endif()
+    
+    add_custom_target(Generate_SCERRRES_MC
+      COMMAND
+        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
+      WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+      DEPENDS
+        scerrcc
+        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
+      COMMENT
+        "Generating scerrres.mc"
+    )
+    add_custom_target(Generate_SCERRRES_RC
+      COMMAND
+        mc.exe -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
+      WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+      DEPENDS
+        Generate_SCERRRES_MC
+      COMMENT
+        "Generating scerrres.h"
+    )
+    add_custom_target(Generate_SCERRRES_RES
+        COMMAND
+            rc.exe scerrres.rc
+          WORKING_DIRECTORY
+            ${SC_OUTPUT_DIR}
+          DEPENDS
+            Generate_SCERRRES_RC
+          COMMENT
+            "Generating scerrres.res"
+    )
 else()
     message(SEND_ERROR "implement scerrres.h generation for Linux")
 endif()
@@ -78,10 +112,6 @@ add_custom_target(Generate_SCERRRES_H
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
         ${SC_OUTPUT_DIR}/scerrres.rc
         ${SC_OUTPUT_DIR}/scerrres.mc
-)
-add_custom_target(Generate_SCERRRES_RES
-    DEPENDS
-        ${SC_OUTPUT_DIR}/scerrres.res
 )
 
 add_library(scerrres SHARED
@@ -97,7 +127,7 @@ add_library(scerrres SHARED
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
 # set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
-add_dependencies(scerrres scerrcc Generate_SCERRRES_RES Generate_SCERRRES_H)
+add_dependencies(scerrres scerrcc Generate_SCERRRES_RES)
 # get_target_property(scerrres_LINKFLAGS scerrres LINK_FLAGS)
 set(scerrres_LINKFLAGS "/DEBUG ${SC_OUTPUT_DIR}/scerrres.res")
 set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
