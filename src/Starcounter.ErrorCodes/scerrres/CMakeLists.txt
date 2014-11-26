@@ -72,17 +72,20 @@ if(WIN32)
     endif()
     
     add_custom_target(Generate_SCERRRES_MC
+      ALL
+      COMMAND
+        ${CMAKE_COMMAND} -E make_directory ${SC_OUTPUT_DIR}
       COMMAND
         $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
       WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
       DEPENDS
         scerrcc
-        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
       COMMENT
         "Generating scerrres.mc"
     )
     add_custom_target(Generate_SCERRRES_RC
+      ALL
       COMMAND
         mc.exe -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
       WORKING_DIRECTORY
@@ -93,6 +96,7 @@ if(WIN32)
         "Generating scerrres.h"
     )
     add_custom_target(Generate_SCERRRES_RES
+      ALL
         COMMAND
             rc.exe scerrres.rc
           WORKING_DIRECTORY
