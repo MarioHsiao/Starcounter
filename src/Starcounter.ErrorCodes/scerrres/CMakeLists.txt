@@ -28,49 +28,59 @@ add_definitions(
 #    <LINK Sources="$(OutDir)\$(AssemblyName).res;$(OutDir)\$(AssemblyName).obj" AdditionalOptions="/MACHINE:X64 /DLL /DEBUG /PDB:$(OutDir)\$(AssemblyName).pdb /DEF:format.def /OUT:$(OutDir)\$(AssemblyName).dll" />
 
 if(WIN32)
-    if(0)
+    if(1)
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.mc
 #      COMMAND
 #        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -cs
       COMMAND
-        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME>
+      ARGS
+        ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
       DEPENDS
         scerrcc
         ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
+      WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT
         "Generating scerrres.mc"
+      VERBATIM
     )
     add_custom_command(
       OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
         ${SC_OUTPUT_DIR}/scerrres.rc
       COMMAND
-        mc.exe -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        mc.exe
+      ARGS
+        -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
       DEPENDS
         ${SC_OUTPUT_DIR}/scerrres.mc
+      WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT
         "Generating scerrres.h"
+      VERBATIM
     )
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.res
       COMMAND
-        rc.exe scerrres.rc
-      WORKING_DIRECTORY
-        ${SC_OUTPUT_DIR}
+        rc.exe
+      ARGS
+        scerrres.rc
       DEPENDS
         ${SC_OUTPUT_DIR}/scerrres.rc
+      WORKING_DIRECTORY
+        ${SC_OUTPUT_DIR}
       COMMENT
         "Generating scerrres.res"
+      VERBATIM
     )
     endif()
     
+    if(0)
     add_custom_target(Generate_SCERRRES_MC
             ${CMAKE_COMMAND} -E make_directory ${SC_OUTPUT_DIR}
         COMMAND
@@ -105,6 +115,7 @@ if(WIN32)
             "Generating scerrres.res"
         VERBATIM
     )
+    endif()
 else()
     message(SEND_ERROR "implement scerrres.h generation for Linux")
 endif()
@@ -123,7 +134,7 @@ add_library(scerrres SHARED
   Format.cpp
   Format.def
   format.h
-#  ${SC_OUTPUT_DIR}/scerrres.res
+  ${SC_OUTPUT_DIR}/scerrres.res
 #  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
 #  ${SC_OUTPUT_DIR}/scerrres.rc
 #  ${SC_OUTPUT_DIR}/scerrres.mc
@@ -131,14 +142,16 @@ add_library(scerrres SHARED
 #set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
-#set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
+set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
 
+if(0)
 add_dependencies(scerrres
     scerrcc
     Generate_SCERRRES_MC
     Generate_SCERRRES_RC
     Generate_SCERRRES_RES
 )
+endif()
 # get_target_property(scerrres_LINKFLAGS scerrres LINK_FLAGS)
 
 if(WIN32)
