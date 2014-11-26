@@ -162,13 +162,27 @@ namespace Starcounter.Internal {
                     String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) =>
-                    {
-                        String respString = resp.Body;
+                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
 
-                        if ("Success!" != respString)
+                        if ("Success!" != resp.Body)
                             throw new Exception("Could not register static resources directory with administrator!");
                     });
+
+                    // Checking if its a Polyjuice edition and then adding Polyjuice specific static files directory.
+                    String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
+
+                    // The following directory exists only in Polyjuice edition.
+                    if (Directory.Exists(polyjuiceStatic)) {
+
+                        body = port + "\r\n" + polyjuiceStatic;
+
+                        Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
+
+                            if ("Success!" != resp.Body) {
+                                throw new Exception(string.Format("Failed to register the static resources directory ({0}).", body));
+                            }
+                        });
+                    }
                 }
                 else
                 {
