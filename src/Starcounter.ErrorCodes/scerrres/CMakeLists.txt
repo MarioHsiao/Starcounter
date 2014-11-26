@@ -78,6 +78,9 @@ add_custom_target(Generate_SCERRRES_H
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
         ${SC_OUTPUT_DIR}/scerrres.rc
         ${SC_OUTPUT_DIR}/scerrres.mc
+)
+add_custom_target(Generate_SCERRRES_RES
+    DEPENDS
         ${SC_OUTPUT_DIR}/scerrres.res
 )
 
@@ -85,7 +88,7 @@ add_library(scerrres SHARED
   Format.cpp
   Format.def
   format.h
-  ${SC_OUTPUT_DIR}/scerrres.res
+#  ${SC_OUTPUT_DIR}/scerrres.res
 #  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
 #  ${SC_OUTPUT_DIR}/scerrres.rc
 #  ${SC_OUTPUT_DIR}/scerrres.mc
@@ -93,8 +96,8 @@ add_library(scerrres SHARED
 #set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
-set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
-add_dependencies(scerrres scerrcc Generate_SCERRRES_H)
+# set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
+add_dependencies(scerrres scerrcc Generate_SCERRRES_RES Generate_SCERRRES_H)
 # get_target_property(scerrres_LINKFLAGS scerrres LINK_FLAGS)
 set(scerrres_LINKFLAGS "/DEBUG ${SC_OUTPUT_DIR}/scerrres.res")
 set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
