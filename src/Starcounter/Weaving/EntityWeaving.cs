@@ -93,6 +93,7 @@ namespace Sc.Server.Weaver {
             databaseAttribute.AttributeKind = DatabaseAttributeKind.Property;
             databaseAttribute.BackingField = backingField;
             databaseAttribute.AttributeType = type;
+            databaseAttribute.IsPublicRead = true; 
             return databaseAttribute;
         }
     }
