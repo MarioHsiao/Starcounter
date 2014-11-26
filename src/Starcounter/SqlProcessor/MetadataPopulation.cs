@@ -189,13 +189,23 @@ namespace Starcounter.SqlProcessor {
                     MaterializedColumn = matCol
                 };
                 if (col.Type == sccoredb.STAR_TYPE_REFERENCE) {
-                    PropertyDef prop = typeDef.PropertyDefs[0];
-                    for (int j = 1; prop.ColumnName != col.Name && j < typeDef.PropertyDefs.Length; j++) {
-                        prop = typeDef.PropertyDefs[j];
+                    // Workaround for #2428 and #2061
+                    if (typeDef.PropertyDefs.Length > 0) {
+                        PropertyDef prop = typeDef.PropertyDefs[0];
+                        for (int j = 1; prop.ColumnName != col.Name && j < typeDef.PropertyDefs.Length; j++) {
+                            prop = typeDef.PropertyDefs[j];
+                        }
+                        if (prop.ColumnName == col.Name)
+                            newCol.Type = Db.SQL<RawView>("select v from rawview v where fullname = ?",
+                                prop.TargetTypeName).First;
                     }
-                    if (prop.ColumnName == col.Name)
+
+                    // Workaround for #2428
+                    if (newCol.Type == null) {
                         newCol.Type = Db.SQL<RawView>("select v from rawview v where fullname = ?",
-                            prop.TargetTypeName).First;
+                            typeof(Entity).FullName).First;
+                    }
+
                 } else
                     newCol.Type = Db.SQL<Starcounter.Metadata.DbPrimitiveType>(
                         "select t from DbPrimitiveType t where primitivetype = ?",
