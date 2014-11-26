@@ -47,8 +47,9 @@ public class DatabaseSchema
     /// Entity type as it is described in the weaver schema.
     /// </summary>
     public DatabaseEntityClass EntityClass {
-        get;
-        private set;
+        get {
+            return FindDatabaseClass(typeof(Starcounter.Entity).FullName) as DatabaseEntityClass;
+        }
     }
 
     /// <summary>
@@ -57,8 +58,9 @@ public class DatabaseSchema
     /// schema.
     /// </summary>
     public DatabaseEntityClass ImplicitEntityClass {
-        get;
-        private set;
+        get {
+            return FindDatabaseClass(WeavedNames.ImplicitEntityClass) as DatabaseEntityClass;
+        }
     }
 
     /// <summary>
@@ -71,11 +73,11 @@ public class DatabaseSchema
         databaseAssembly.SetSchema(this);
         Assemblies.Add(databaseAssembly);
 
-        this.EntityClass = EntityWeaving.DefineEntityClass(databaseAssembly);
-        databaseAssembly.DatabaseClasses.Add(this.EntityClass);
+        var entityClass = EntityWeaving.DefineEntityClass(databaseAssembly);
+        databaseAssembly.DatabaseClasses.Add(entityClass);
 
-        this.ImplicitEntityClass = EntityWeaving.DefineImplicitEntityClass(databaseAssembly);
-        databaseAssembly.DatabaseClasses.Add(this.ImplicitEntityClass);
+        var implicitEntityClass = EntityWeaving.DefineImplicitEntityClass(databaseAssembly);
+        databaseAssembly.DatabaseClasses.Add(implicitEntityClass);
     }
 
     /// <summary>
