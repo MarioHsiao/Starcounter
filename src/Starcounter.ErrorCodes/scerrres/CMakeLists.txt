@@ -40,7 +40,6 @@ if(WIN32)
         ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
       DEPENDS
         scerrcc
-        ${CMAKE_CURRENT_SOURCE_DIR}/../errorcodes.xml
       WORKING_DIRECTORY
         ${CMAKE_CURRENT_SOURCE_DIR}
       COMMENT
@@ -144,13 +143,13 @@ add_library(scerrres SHARED
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
 set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
 
-if(0)
 add_dependencies(scerrres
     scerrcc
-    Generate_SCERRRES_MC
-    Generate_SCERRRES_RC
-    Generate_SCERRRES_RES
 )
+if(0)
+#    Generate_SCERRRES_MC
+#    Generate_SCERRRES_RC
+#    Generate_SCERRRES_RES
 endif()
 # get_target_property(scerrres_LINKFLAGS scerrres LINK_FLAGS)
 
