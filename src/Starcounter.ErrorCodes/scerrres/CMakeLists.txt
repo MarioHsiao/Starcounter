@@ -72,44 +72,42 @@ if(WIN32)
     endif()
     
     add_custom_target(Generate_SCERRRES_MC
-      ALL
-      COMMAND
-        ${CMAKE_COMMAND} -E make_directory ${SC_OUTPUT_DIR}
-      COMMAND
-        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
-      DEPENDS
-        scerrcc
-      COMMENT
-        "Generating scerrres.mc"
+        COMMAND
+            ${CMAKE_COMMAND} -E make_directory ${SC_OUTPUT_DIR}
+        COMMAND
+            $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        DEPENDS
+            scerrcc
+        COMMENT
+            "Generating scerrres.mc"
     )
     add_custom_target(Generate_SCERRRES_RC
-      ALL
-      COMMAND
-        mc.exe -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}
-      DEPENDS
-        Generate_SCERRRES_MC
-      COMMENT
-        "Generating scerrres.h"
+        COMMAND
+            mc.exe -r ${SC_OUTPUT_DIR} -v ${SC_OUTPUT_DIR}/scerrres.mc
+        WORKING_DIRECTORY
+            ${CMAKE_CURRENT_SOURCE_DIR}
+        DEPENDS
+            Generate_SCERRRES_MC
+        COMMENT
+            "Generating scerrres.h"
     )
     add_custom_target(Generate_SCERRRES_RES
-      ALL
         COMMAND
             rc.exe scerrres.rc
-          WORKING_DIRECTORY
+        WORKING_DIRECTORY
             ${SC_OUTPUT_DIR}
-          DEPENDS
+        DEPENDS
             Generate_SCERRRES_RC
-          COMMENT
+        COMMENT
             "Generating scerrres.res"
     )
 else()
     message(SEND_ERROR "implement scerrres.h generation for Linux")
 endif()
 
+if(0)
 add_custom_target(Generate_SCERRRES_H
     DEPENDS
         scerrcc
@@ -117,6 +115,7 @@ add_custom_target(Generate_SCERRRES_H
         ${SC_OUTPUT_DIR}/scerrres.rc
         ${SC_OUTPUT_DIR}/scerrres.mc
 )
+endif()
 
 add_library(scerrres SHARED
   Format.cpp
@@ -130,7 +129,8 @@ add_library(scerrres SHARED
 #set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
 #set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
-# set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
+#set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
+
 add_dependencies(scerrres
     scerrcc
     Generate_SCERRRES_MC
@@ -138,7 +138,10 @@ add_dependencies(scerrres
     Generate_SCERRRES_RES
 )
 # get_target_property(scerrres_LINKFLAGS scerrres LINK_FLAGS)
-set(scerrres_LINKFLAGS "/DEBUG ${SC_OUTPUT_DIR}/scerrres.res")
-set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
+
+if(WIN32)
+    set(scerrres_LINKFLAGS "/DEBUG ${SC_OUTPUT_DIR}/scerrres.res")
+    set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
+endif()
 set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 
