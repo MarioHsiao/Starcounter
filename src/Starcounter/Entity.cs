@@ -15,8 +15,14 @@ namespace Starcounter {
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
         public Entity Type {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get {
+                return (Entity)DbState.ReadTypeReference(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type__);
+            }
+            set {
+                DbState.WriteTypeReference(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type__, value);
+            }
         }
 
         /// <summary>
@@ -57,9 +63,15 @@ namespace Starcounter {
         /// types, but can be used on entities that are not
         /// types too, giving them a logical name.
         /// </summary>
-        public string Name { 
-            get { throw new NotImplementedException(); } 
-            set { throw new NotImplementedException(); } 
+        public string Name {
+            get {
+                return DbState.ReadTypeName(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type_name__);
+            }
+            set {
+                DbState.WriteTypeName(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type_name__, value);
+            }
         }
 
         /// <summary>
@@ -110,8 +122,14 @@ namespace Starcounter {
         /// </summary>
         /// <seealso cref="Derive"/>
         public Entity TypeInherits {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get {
+                return (Entity)DbState.ReadInherits(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__inherits__);
+            }
+            set {
+                DbState.WriteInherits(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__inherits__, value);
+            }
         }
         
         /// <summary>
@@ -119,8 +137,18 @@ namespace Starcounter {
         /// entity should be considered a dynamic type.
         /// </summary>
         public bool IsType {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get {
+                return DbState.ReadBoolean(
+                    __sc__this_id__, 
+                    __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__is_type__);
+            }
+            set {
+                DbState.WriteBoolean(
+                    __sc__this_id__, 
+                    __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__is_type__, value);
+            }
         }
         
         /// <summary>

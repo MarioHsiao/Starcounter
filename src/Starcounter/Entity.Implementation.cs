@@ -53,6 +53,21 @@ namespace Starcounter {
             public static ushort tableHandle;
             [EditorBrowsable(EditorBrowsableState.Never)]
             public static TypeBinding typeBinding;
+
+            // These fields are used by the code host once
+            // the current type are loaded into the code host
+            // process; they are mapped against corresponding
+            // columns in the database. Make sure they are up
+            // to par with constants in WeavedNames class!
+
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            internal static int columnHandle___sc__type_name__;
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            internal static int columnHandle___sc__type__;
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            internal static int columnHandle___sc__inherits__;
+            [EditorBrowsable(EditorBrowsableState.Never)]
+            internal static int columnHandle___sc__is_type__;
         }
 
         /// <inheritdoc />
