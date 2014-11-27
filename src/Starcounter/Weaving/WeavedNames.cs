@@ -1,4 +1,7 @@
 ﻿
+using Starcounter;
+using Starcounter.Internal;
+
 namespace Sc.Server.Weaver {
     /// <summary>
     /// Defines a set of names used by the weaver for internal
@@ -8,9 +11,18 @@ namespace Sc.Server.Weaver {
     /// </summary>
     public static class WeavedNames {
         /// <summary>
+        /// Gets the full name of the Entity class.
+        /// </summary>
+        public static string EntityClass {
+            get { return typeof(Entity).FullName; }
+        }
+
+        /// <summary>
         /// Gets the full name of the implicit entity class.
         /// </summary>
-        public const string ImplicitEntityClass = "Starcounter.ImplicitEntity";
+        public static string ImplicitEntityClass {
+            get { return typeof(ImplicitEntity).FullName; }
+        }
 
         /// <summary>
         /// Gets the name of the implicit type column.
