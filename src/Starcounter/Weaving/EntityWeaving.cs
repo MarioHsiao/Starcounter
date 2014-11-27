@@ -16,7 +16,7 @@ namespace Sc.Server.Weaver {
         /// </param>
         /// <returns>A weaver schema database class.</returns>
         public static DatabaseEntityClass DefineEntityClass(DatabaseAssembly assembly) {
-            var entity = new DatabaseEntityClass(assembly, typeof(Starcounter.Entity).FullName);
+            var entity = new DatabaseEntityClass(assembly, WeavedNames.EntityClass);
             DefineImplicitFields(entity, entity);
 
             AddDefinedProperty(entity, "Type", entity, entity.Attributes[WeavedNames.TypeColumn]);
@@ -52,6 +52,12 @@ namespace Sc.Server.Weaver {
 
             var implicitEntity = new DatabaseEntityClass(assembly, WeavedNames.ImplicitEntityClass);
             DefineImplicitFields(implicitEntity, entity as DatabaseEntityClass);
+
+            // These two properties are needed for the metadata population
+            // to function correctly; workaround for #2061 and #2428
+            AddDefinedProperty(implicitEntity, "__ScImplicitType", entity, entity.Attributes[WeavedNames.TypeColumn]);
+            AddDefinedProperty(implicitEntity, "__ScImplicitInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
+            
             return implicitEntity;
         }
 
