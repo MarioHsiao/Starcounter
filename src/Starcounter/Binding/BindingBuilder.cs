@@ -956,7 +956,7 @@ namespace Starcounter.Binding
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             ilGenerator = methodBuilder.GetILGenerator();
             ilGenerator.BeginScope();
-            if (propertyInfo.DeclaringType != thisType) {
+            if (!propertyInfo.DeclaringType.IsAssignableFrom(thisType)) {
                 // Nasty, temporary hack to get around #2061 and #2428.
                 // A better approach is to bind this to some kind of static
                 // utility method that accept the THIS parameter we are loading
