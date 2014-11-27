@@ -3,13 +3,13 @@
 
 cmake_minimum_required(VERSION 2.8)
 
-# set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../level0/cmake")
-# set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-# project(Starcounter_ErrorCodes)
-# enable_testing()
-# include_directories(scerrres)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../level0/cmake")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+project(Starcounter_ErrorCodes)
+enable_testing()
+include_directories(scerrres)
+
 # Match the default output directory set by Blue.sln
-if(0)
 set(SC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
@@ -23,7 +23,6 @@ if(CMAKE_CONFIGURATION_TYPES)
     endforeach()
 endif()
 link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
-endif()
 
 find_package(CSharp)
 include(UseCSharp)
