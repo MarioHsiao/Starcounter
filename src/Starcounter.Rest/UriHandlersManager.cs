@@ -316,10 +316,7 @@ namespace Starcounter.Rest
         {
             userDelegates_.Add(user_delegate);
 
-            if (ho.AppName != null)
-                appNames_.Add(ho.AppName);
-            else
-                appNames_.Add(StarcounterEnvironment.AppName);
+            appNames_.Add(StarcounterEnvironment.AppName);
         }
 
         public void Init(
@@ -354,10 +351,7 @@ namespace Starcounter.Rest
 
             appNames_ = new List<String>();
 
-            if (ho.AppName != null)
-                appNames_.Add(ho.AppName);
-            else
-                appNames_.Add(StarcounterEnvironment.AppName);
+            appNames_.Add(StarcounterEnvironment.AppName);
 
             uri_info_.InitUriPointers();
         }

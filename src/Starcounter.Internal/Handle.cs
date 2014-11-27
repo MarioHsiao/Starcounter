@@ -38,13 +38,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Specific application name.
-        /// </summary>
-        public String AppName {
-            get; set;
-        }
-
-        /// <summary>
         /// Flag that allows only external calls.
         /// </summary>
         public Boolean CallExternalOnly {
@@ -59,27 +52,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// True if only specific handler level should be called.
-        /// </summary>
-        Boolean callOnlySpecificHandlerLevel_ = true;
-
-        /// <summary>
-        /// Call only specific handler level.
-        /// </summary>
-        internal Boolean CallOnlySpecificHandlerLevel {
-            get {
-                return callOnlySpecificHandlerLevel_;
-            }
-            set {
-                callOnlySpecificHandlerLevel_ = value;
-            }
-        }
-
-        /// <summary>
         /// Default handler options.
         /// </summary>
         public static HandlerOptions DefaultHandlerOptions = new HandlerOptions() {
-            CallOnlySpecificHandlerLevel = false
         };
 
         /// <summary>
@@ -94,6 +69,13 @@ namespace Starcounter {
         /// </summary>
         public readonly static HandlerOptions ApplicationLevel = new HandlerOptions() {
             HandlerLevel = HandlerOptions.HandlerLevels.ApplicationLevel
+        };
+
+        /// <summary>
+        /// Extra application level.
+        /// </summary>
+        public readonly static HandlerOptions ApplicationExtraLevel = new HandlerOptions() {
+            HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
         };
     }
     
