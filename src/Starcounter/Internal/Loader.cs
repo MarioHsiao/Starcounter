@@ -116,10 +116,7 @@ namespace Starcounter.Internal
             for (int i = 0; i < databaseClassCount; i++)
             {
                 var databaseClass = databaseClasses[i];
-                //if (databaseClass.IsImplicitEntityClass) {
-                //    continue;
 
-                //}
                 databaseAssembly = databaseClass.Assembly;
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
@@ -143,9 +140,6 @@ namespace Starcounter.Internal
             Boolean isObjectNo = false;
 
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
-            //if (baseName != null && databaseClass.BaseClass.IsImplicitEntityClass) {
-            //    baseName = null;
-            //}
 
             // Add column definition for implicit key column.
             columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
