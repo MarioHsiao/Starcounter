@@ -1,5 +1,6 @@
 ﻿using Starcounter.Advanced;
 using Starcounter.Binding;
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using System;
 using System.ComponentModel;
@@ -8,6 +9,16 @@ using System.Diagnostics;
 namespace Starcounter {
 
     public abstract partial class Entity : IBindable, IObjectView, IObjectProxy {
+        static Entity() {
+            HostManager.InitTypeSpecification(typeof(__starcounterTypeSpecification));
+        }
+
+        internal static void InitTypeSpecification() {
+            // Assures type specification is initialized, by implicitly invoking
+            // the static constructor, which in turn will guarantee its only
+            // done once.
+        }
+
 #pragma warning disable 0649, 0169
 
         [EditorBrowsable(EditorBrowsableState.Never)]
