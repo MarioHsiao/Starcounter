@@ -49,11 +49,7 @@ namespace Starcounter.Weaver {
                 "Starcounter.XSON.JsTemplateParser.dll",
                 "Mono.CSharp.dll",
                 "NetworkIoTest.exe",
-                "Starcounter.XSON.JsonByExample",
-                "SocietyObjects.Concepts.Ring1.dll",
-                "SocietyObjects.Concepts.Ring2.dll",
-                "SocietyObjects.Concepts.Ring3.dll",
-                "SocietyObjects.Concepts.Ring4.dll"
+                "Starcounter.XSON.JsonByExample"
             }) {
                 AddExcludeExpression(exclude, excludes);
             }
