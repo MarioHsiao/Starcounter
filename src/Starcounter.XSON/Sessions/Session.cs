@@ -11,13 +11,16 @@ using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using Starcounter.XSON;
 
 namespace Starcounter {
-    //[Flags]
-    //public enum SessionOptions : int {
-    //    Default = 0,
-    //    IncludeSchema,
-    //}
+    [Flags]
+    public enum SessionOptions : int {
+        Default = 0,
+        IncludeSchema,
+        DisableProtocolVersioning,
+//        DisableProtocolOT
+    }
 
     /// <summary>
     /// 
@@ -42,17 +45,27 @@ namespace Starcounter {
         private Dictionary<string, int> _indexPerApplication;
         private List<Change> _changes; // The log of Json tree changes pertaining to the session data
         private List<DataAndCache> _stateList;
-//        private SessionOptions _sessionOptions;
+        private SessionOptions sessionOptions;
+
+        private List<Byte[]> patchQueue;
+
+        /// <summary>
+        /// Versioning for local and remote version of the viewmodel
+        /// </summary>
+        private long clientVersion;
+        private long serverVersion;
         
-        public Session() {
+        public Session() : this(SessionOptions.Default) {
+        }
+
+        public Session(SessionOptions options) {
             _brandNew = true;
             _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<DataAndCache>();
-//            _sessionOptions = SessionOptions.Default;
+            sessionOptions = options;
 
             UInt32 errCode = 0;
-
             if (_request != null) {
                 errCode = _request.GenerateNewSession(this);
             } else {
@@ -65,14 +78,48 @@ namespace Starcounter {
                 throw ErrorCode.ToException(errCode);
         }
 
-        //public SessionOptions Options {
-        //    get { return _sessionOptions; }
-        //    set { _sessionOptions = value; }
-        //}
+        public SessionOptions Options {
+            get { return sessionOptions; }
+        }
 
-        //internal bool CheckOption(SessionOptions option) {
-        //    return (_sessionOptions & option) == option;
-        //}
+        public bool CheckOption(SessionOptions option) {
+            return (sessionOptions & option) == option;
+        }
+
+        internal void EnqueuePatch(byte[] patchArray, int index) {
+            if (patchQueue == null)
+                patchQueue = new List<byte[]>();
+
+            for (int i = patchQueue.Count; i < index; i++)
+                patchQueue.Add(null);
+            
+            patchQueue[index] = patchArray;
+        }
+
+        internal byte[] GetNextEnqueuedPatch() {
+            byte[] ret = null;
+            if (patchQueue != null && patchQueue.Count > 0) {
+                ret = patchQueue[0];
+                patchQueue.RemoveAt(0);
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Gets the versionnumber for the remote version of the viewmodel.
+        /// </summary>
+        public long ClientVersion {
+            get { return clientVersion; }
+            set { clientVersion = value; }
+        }
+
+        /// <summary>
+        /// Gets the versionnumber for the local version of the viewmodel.
+        /// </summary>
+        public long ServerVersion {
+            get { return serverVersion; }
+            set { serverVersion = value; }
+        }
 
         public void ShareTransaction(ITransaction transaction) {
             _transaction = transaction;
