@@ -147,13 +147,8 @@ namespace Starcounter.Internal {
 
             if (resourceResolvePath != null)
             {
-                // Registering static content directory with Administrator.
-
-                // Getting bytes from string.
-                //byte[] staticContentDirBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(resourceResolvePath);
-
-                // Converting path string to base64 string.
-                //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
+                // Administrator registers itself.
+                AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
 
                 // Checking if this is not administrator.
                 if (!StarcounterEnvironment.IsAdministratorApp)
@@ -183,11 +178,6 @@ namespace Starcounter.Internal {
                             }
                         });
                     }
-                }
-                else
-                {
-                    // Administrator registers itself.
-                    AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
                 }
             }
         }

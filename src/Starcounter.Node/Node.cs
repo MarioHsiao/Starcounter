@@ -1048,6 +1048,11 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
                                 hl = HandlerOptions.HandlerLevels.ApplicationExtraLevel;
                                 goto DO_CODEHOST_ON_GIVEN_LEVEL;
                             }
+
+                            case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
+                                hl = HandlerOptions.HandlerLevels.CodeHostStaticFileServer;
+                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                            }
                         };
                     }
                 }

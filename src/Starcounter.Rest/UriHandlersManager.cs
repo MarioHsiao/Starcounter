@@ -359,7 +359,7 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        public static Func<Request, HandlerOptions.HandlerLevels, Response> HandleInternalRequest_;
+        internal static Func<Request, HandlerOptions.HandlerLevels, Response> HandleInternalRequest_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public delegate void RegisterUriHandlerNativeDelegate(

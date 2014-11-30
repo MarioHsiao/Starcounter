@@ -17,7 +17,8 @@ namespace Starcounter {
         public enum HandlerLevels {
             DefaultLevel,
             ApplicationLevel,
-            ApplicationExtraLevel
+            ApplicationExtraLevel,
+            CodeHostStaticFileServer
         }
 
         /// <summary>
@@ -76,6 +77,13 @@ namespace Starcounter {
         /// </summary>
         public readonly static HandlerOptions ApplicationExtraLevel = new HandlerOptions() {
             HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+        };
+
+        /// <summary>
+        /// Code host static file server level.
+        /// </summary>
+        public readonly static HandlerOptions CodeHostStaticFileServer = new HandlerOptions() {
+            HandlerLevel = HandlerOptions.HandlerLevels.CodeHostStaticFileServer
         };
     }
     
