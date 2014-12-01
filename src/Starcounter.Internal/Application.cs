@@ -14,6 +14,7 @@ namespace Starcounter {
     /// to run in, a Starcounter code host.
     /// </summary>
     public sealed class Application {
+
         readonly ApplicationBase state;
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -36,24 +37,6 @@ namespace Starcounter {
         public string Name {
             get {
                 return state.Name;
-            }
-        }
-
-        /// <summary>
-        /// Gets the display name of the current application.
-        /// </summary>
-        public string DisplayName {
-            get {
-                return ApplicationBase.CreateDisplayName(Db.Environment.DatabaseNameLower, Name);
-            }
-        }
-
-        /// <summary>
-        /// Gets the full name of the current application.
-        /// </summary>
-        public string FullName {
-            get {
-                return ApplicationBase.CreateFullName(Db.Environment.DatabaseNameLower, Name);
             }
         }
 
@@ -176,11 +159,6 @@ namespace Starcounter {
             return application;
         }
 
-        /// <inheritdoc />
-        public override string ToString() {
-            return DisplayName;
-        }
-
         /// <summary>
         /// Returns a copy of all applications currently indexed.
         /// </summary>
@@ -218,6 +196,9 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// Constructor.
+        /// </summary>
         internal Application(
             string name, 
             string applicationFile, 
@@ -229,6 +210,9 @@ namespace Starcounter {
             state.HostedFilePath = applicationHostFile;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         static Exception CreateArgumentExceptionWithCode(string postfix = null, Exception innerException = null) {
             return ErrorCode.ToException(Error.SCERRAPPLICATIONCANTBERESOLVED, innerException, postfix, (msg, ex) => {
                 return new ArgumentException(msg, ex);
