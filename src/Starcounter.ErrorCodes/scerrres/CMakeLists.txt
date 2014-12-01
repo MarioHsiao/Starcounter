@@ -3,25 +3,26 @@
 cmake_minimum_required(VERSION 2.8)
 
 if(MSVC)
-    # remove "/EHsc" and add "/EHa /MP"
+    set(msvc_compile_flags "/Zp8 /MP /Gm- /GS /GL /fp:precise")
     foreach(flag_var_prefix CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
-        if(NOT ${flag_var_prefix} MATCHES "/EHa")
-            string(REPLACE "/EHsc" "" ${flag_var_prefix} "${${flag_var_prefix}}")
-            set(${flag_var_prefix} "${${flag_var_prefix}} /EHa /MP")
+        string(REPLACE "/MD" "/MT" ${flag_var_prefix} "${${flag_var_prefix}}")
+        if(NOT ${flag_var_prefix} MATCHES "/GL")
+            set(${flag_var_prefix} "${${flag_var_prefix}} ${msvc_compile_flags}")
         endif()
         foreach(flag_var_suffix _DEBUG _RELEASE _MINSIZEREL _RELWITHDEBINFO)
-            if(NOT ${flag_var_prefix}${flag_var_suffix} MATCHES "/EHa")
-                string(REPLACE "/EHsc" "" ${flag_var_prefix}${flag_var_suffix} "${${flag_var_prefix}${flag_var_suffix}}")
-                set(${flag_var_prefix}${flag_var_suffix} "${${flag_var_prefix}${flag_var_suffix}} /EHa /MP")
+            string(REPLACE "/MD" "/MT" ${flag_var_prefix}${flag_var_suffix} "${${flag_var_prefix}${flag_var_suffix}}")
+            if(NOT ${flag_var_prefix}${flag_var_suffix} MATCHES "/GL")
+                set(${flag_var_prefix}${flag_var_suffix} "${${flag_var_prefix}${flag_var_suffix}} ${msvc_compile_flags}")
             endif()
         endforeach()
     endforeach()
-    foreach(flag_var_prefix CMAKE_C_FLAGS CMAKE_CXX_FLAGS)
-        string(REPLACE "/MD" "/MT" ${flag_var_prefix} "${${flag_var_prefix}}")
-        foreach(flag_var_suffix _DEBUG _RELEASE _MINSIZEREL _RELWITHDEBINFO)
-            string(REPLACE "/MD" "/MT" ${flag_var_prefix}${flag_var_suffix} "${${flag_var_prefix}${flag_var_suffix}}")
-        endforeach()
-    endforeach()
+    set(CMAKE_SHARED_LINKER_FLAGS "/SUBSYSTEM:WINDOWS /LTCG")
+    add_definitions(
+        -D_VARIADIC_MAX=10
+        -DWIN32
+        -D_WIN32
+        -D_CRT_SECURE_NO_DEPRECATE
+    )
 endif()
 
 # set(SC_OUTPUT_DIR ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_CFG_INTDIR})
