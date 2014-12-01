@@ -105,6 +105,8 @@ PostSharp.Sdk.dll
 PostSharp.Sdk.XmlSerializers.dll
 PostSharp.Settings.dll
 PostSharp-Platform.config
+recovery.dll
+recovery.pdb
 sc.ico
 Sc.Tools.Logging.dll
 Sc.Tools.Logging.pdb
