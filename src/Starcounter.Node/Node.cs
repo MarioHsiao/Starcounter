@@ -953,9 +953,12 @@ namespace Starcounter
             Byte[] customBytes = null,
             Int32 customBytesLength = 0)
         {
+            Boolean callOnlySpecificHandlerLevel = true;
+
             // Checking if handler options is defined.
             if (ho == null) {
                 ho = HandlerOptions.DefaultHandlerOptions;
+                callOnlySpecificHandlerLevel = false;
             }
 
             Int32 requestBytesLength;
@@ -993,7 +996,7 @@ namespace Starcounter
                 HandlerOptions.HandlerLevels hl = ho.HandlerLevel;
 
                 // Checking if we should call all handler levels from bottom.
-                if (false == ho.CallOnlySpecificHandlerLevel) {
+                if (false == callOnlySpecificHandlerLevel) {
                     hl = HandlerOptions.HandlerLevels.DefaultLevel;
                 }
 
@@ -1032,7 +1035,7 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
                 } else {
 
                     // Going level by level up.
-                    if (false == ho.CallOnlySpecificHandlerLevel) {
+                    if (false == callOnlySpecificHandlerLevel) {
 
                         switch (hl) {
 
@@ -1043,6 +1046,11 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
 
                             case HandlerOptions.HandlerLevels.ApplicationLevel: {
                                 hl = HandlerOptions.HandlerLevels.ApplicationExtraLevel;
+                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                            }
+
+                            case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
+                                hl = HandlerOptions.HandlerLevels.CodeHostStaticFileServer;
                                 goto DO_CODEHOST_ON_GIVEN_LEVEL;
                             }
                         };

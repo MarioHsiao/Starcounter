@@ -42,11 +42,21 @@ namespace Starcounter {
     /// </summary>
     /// <typeparam name="TValue">The type of the value that is being updated</typeparam>
     public class Input<TValue> : Input {
+        private TValue v;
+  
         /// <summary>
         /// Gets or sets the value.
         /// </summary>
         /// <value>The value.</value>
-        public TValue Value { get; set; }
+        public TValue Value {
+            get {
+                return v;
+            }
+            set {
+                v = value;
+                ValueChanged = true;
+            }
+        }
 
         /// <summary>
         /// Gets the old value (the current value, i.e. before the input is accepted).
@@ -54,6 +64,14 @@ namespace Starcounter {
         /// <value>The old value.</value>
         /// <exception cref="System.NotImplementedException"></exception>
         public TValue OldValue { get; internal set; }
+
+        /// <summary>
+        /// Returns true if the value have been changed in the inputhandler.
+        /// </summary>
+        /// <remarks>
+        /// This property will be true even if the value set is the same as before.
+        /// </remarks>
+        public bool ValueChanged { get; internal set; }
     }
 
     /// <summary>

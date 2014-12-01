@@ -34,14 +34,14 @@ namespace Starcounter.Internal.Web {
         /// If the URI does not point to a App view model or a user implemented
         /// handler, this is where the request will go.
         /// </summary>
-        private Dictionary<UInt16, StaticWebServer> staticFileServers_;
+        private Dictionary<UInt16, StaticWebServer> fileServerPerPort_;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppRestServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
         public AppRestServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
-            staticFileServers_ = staticFileServer;
+            fileServerPerPort_ = staticFileServer;
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace Starcounter.Internal.Web {
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
-            if (staticFileServers_.TryGetValue(request.PortNumber, out staticWebServer)) {
+            if (fileServerPerPort_.TryGetValue(request.PortNumber, out staticWebServer)) {
                 return staticWebServer.GetStaticResponseClone(relativeUri, request);
             }
 
@@ -199,22 +199,32 @@ namespace Starcounter.Internal.Web {
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
         public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path) {
-            lock (staticFileServers_) {
+
+            lock (fileServerPerPort_) {
+
                 StaticWebServer staticWebServer;
 
                 // Try to fetch static web server.
-                if (staticFileServers_.TryGetValue(port, out staticWebServer)) {
+                if (fileServerPerPort_.TryGetValue(port, out staticWebServer)) {
+
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
-                }
-                else {
+
+                } else {
+
                     staticWebServer = new StaticWebServer();
-                    staticFileServers_.Add(port, staticWebServer);
+                    fileServerPerPort_.Add(port, staticWebServer);
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+
+                    // Determining if its an Administrator application.
+                    HandlerOptions ho = HandlerOptions.DefaultLevel;
+                    if (!StarcounterEnvironment.IsAdministratorApp) {
+                        ho = HandlerOptions.CodeHostStaticFileServer;
+                    }
 
                     // Registering static handler on given port.
                     Handle.GET(port, "/{?}", (string res) => {
                         return HandlerStatus.ResolveStaticContent;
-                    });
+                    }, ho);
                 }
             }
         }
@@ -227,10 +237,12 @@ namespace Starcounter.Internal.Web {
 
             Dictionary<UInt16, IList<string>> list = new Dictionary<ushort, IList<string>>();
 
-            foreach (KeyValuePair<UInt16, StaticWebServer> entry in staticFileServers_) {
+            foreach (KeyValuePair<UInt16, StaticWebServer> entry in fileServerPerPort_) {
 
                 List<string> portList = GetWorkingDirectories(entry.Key);
+
                 if (portList != null) {
+
                     foreach (string folder in portList) {
 
                         if (list.ContainsKey(entry.Key)) {
@@ -256,23 +268,25 @@ namespace Starcounter.Internal.Web {
             StaticWebServer staticWebServer;
 
             // Try to fetch static web server.
-            if (staticFileServers_.TryGetValue(port, out staticWebServer)) {
+            if (fileServerPerPort_.TryGetValue(port, out staticWebServer)) {
                 return staticWebServer.GetWorkingDirectories(port);
             }
 
             return null;
         }
 
-
         /// <summary>
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
         public int Housekeep() {
-            lock (staticFileServers_) {
+
+            lock (fileServerPerPort_) {
+
                 // Doing house keeping for each port.
-                foreach (KeyValuePair<UInt16, StaticWebServer> s in staticFileServers_)
+                foreach (KeyValuePair<UInt16, StaticWebServer> s in fileServerPerPort_) {
                     s.Value.Housekeep();
+                }
 
                 return 0;
             }
