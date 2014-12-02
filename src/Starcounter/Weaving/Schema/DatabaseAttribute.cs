@@ -152,6 +152,17 @@ namespace Sc.Server.Weaver.Schema {
             }
         }
 
+        /// <summary>
+        /// Gets a value that indicates if the current attribute defines an
+        /// accessor to any of the implicit entity columns.
+        /// </summary>
+        public bool IsAccessorOfImplicitEntityField {
+            get {
+                var flags = (specialFlags & DatabaseAttributeFlags.EntityAttributeMask);
+                return flags == 0 ? false : !WeavedNames.DefineImplicitEntityColumn(this);
+            }
+        }
+
         //    public bool IsPublicWrite { get; set; }
 
         /// <summary>
@@ -197,6 +208,21 @@ namespace Sc.Server.Weaver.Schema {
             }
             set {
                 synonymTo = DatabaseAttributeRef.MakeRef(value);
+            }
+        }
+
+        /// <summary>
+        /// Gets the target entity-level attribute corresponding to the current
+        /// attribute, if the current attribute represent an accessor to one of
+        /// the implicit entity columns; otherwise, <c>null</c>.
+        /// </summary>
+        public DatabaseAttribute EntityFieldTarget {
+            get {
+                DatabaseAttribute result = null;
+                if (IsAccessorOfImplicitEntityField) {
+                    result = DeclaringClass.FindAttributeInAncestors(WeavedNames.GetImplicitEntityColumnName(this));
+                }
+                return result;
             }
         }
 
