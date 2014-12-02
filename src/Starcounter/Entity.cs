@@ -159,7 +159,7 @@ namespace Starcounter {
         /// <returns>An instance of a class that allows basic Entity
         /// properties to be accessed.</returns>
         public static IEntity2 From(object obj) {
-            var entity = obj as Entity;
+            var entity = obj as IEntity2;
             if (entity != null) {
                 return entity;
             }
