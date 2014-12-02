@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Advanced;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 
@@ -10,7 +11,7 @@ namespace Starcounter {
     /// classes, as an alternative to the [Database] attribute.
     /// </summary>
     [Database]
-    public abstract partial class Entity : IEntity {
+    public abstract partial class Entity : IEntity, IEntity2  {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
@@ -20,8 +21,7 @@ namespace Starcounter {
                     __starcounterTypeSpecification.columnHandle___sc__type__);
             }
             set {
-                DbState.WriteTypeReference(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__type__, value);
+                WriteType(value);
             }
         }
 
@@ -32,29 +32,6 @@ namespace Starcounter {
         public decimal Quantity { 
             get { throw new NotImplementedException(); } 
             set { throw new NotImplementedException(); } 
-        }
-
-        /// <summary>
-        /// Creates a new entity whose dynamic type will be the
-        /// current entity, i.e. instantiating the current entity
-        /// (where the current entity is to be considered a type).
-        /// </summary>
-        /// <returns>A new entity whose dynamic type is the
-        /// current entity.</returns>
-        public Entity Create() {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Creates a new entity whose parent dynamic type
-        /// will be the current entity, i.e. deriving the
-        /// current entity (where the current entity is to
-        /// be considered a type).
-        /// </summary>
-        /// <returns>A new entity whose base dynamic type is
-        /// the current entity.</returns>
-        public Entity Derive() {
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -99,13 +76,6 @@ namespace Starcounter {
         }
         
         /// <summary>
-        /// Deletes the current entity.
-        /// </summary>
-        public void Delete() {
-            Db.Delete(this);
-        }
-        
-        /// <summary>
         /// Gets or sets a property of the current entity.
         /// </summary>
         /// <param name="propertName">The name of the
@@ -127,8 +97,7 @@ namespace Starcounter {
                     __starcounterTypeSpecification.columnHandle___sc__inherits__);
             }
             set {
-                DbState.WriteInherits(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__inherits__, value);
+                WriteInherits(value);
             }
         }
         
@@ -181,11 +150,66 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Retreives a type that can be used to access properties
+        /// defined by Starcounter entity, such as the dynamic type
+        /// fields.
+        /// </summary>
+        /// <param name="obj">An object whose entity properties the
+        /// client want to access.</param>
+        /// <returns>An instance of a class that allows basic Entity
+        /// properties to be accessed.</returns>
+        public static IEntity2 From(object obj) {
+            var entity = obj as Entity;
+            if (entity != null) {
+                return entity;
+            }
+            var proxy = obj as IObjectProxy;
+            if (proxy != null) {
+                return new ProxyBasedRuntimeEntity(proxy);
+            }
+
+            // Decide how to report this, and what to allow
+            // TODO:
+            throw new InvalidOperationException();
+        }
+
+        /// <summary>
         /// Initialize a new <see cref="Entity"/>.
         /// </summary>
         public Entity()
             : this(__starcounterTypeSpecification.tableHandle, __starcounterTypeSpecification.typeBinding, (Uninitialized)null) {
         }
+
+        /// <summary>
+        /// Creates a new entity whose dynamic type will be the
+        /// current entity, i.e. instantiating the current entity
+        /// (where the current entity is to be considered a type).
+        /// </summary>
+        /// <returns>A new entity whose dynamic type is the
+        /// current entity.</returns>
+        public Entity Create() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates a new entity whose parent dynamic type
+        /// will be the current entity, i.e. deriving the
+        /// current entity (where the current entity is to
+        /// be considered a type).
+        /// </summary>
+        /// <returns>A new entity whose base dynamic type is
+        /// the current entity.</returns>
+        public Entity Derive() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Deletes the current entity.
+        /// </summary>
+        public void Delete() {
+            Db.Delete(this);
+        }
+
 
         /// <inheritdoc />
         public override bool Equals(object obj) {
@@ -212,5 +236,63 @@ namespace Starcounter {
         /// deleted.
         /// </summary>
         public virtual void OnDelete() { }
+
+        void WriteType(IObjectProxy type) {
+            DbState.WriteTypeReference(
+                __sc__this_id__,
+                __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle___sc__type__,
+                type);
+        }
+
+        void WriteInherits(IObjectProxy type) {
+            DbState.WriteInherits(
+                __sc__this_id__,
+                __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle___sc__inherits__,
+                type);
+        }
+
+        IObjectProxy IEntity2.Proxy {
+            get {
+                return this;
+            }
+        }
+
+        IEntity2 IEntity2.Type {
+            get {
+                return Type;
+            }
+            set {
+                WriteType(value.Proxy);
+            }
+        }
+
+        IEntity2 IEntity2.Inherits {
+            get {
+                return TypeInherits;
+            }
+            set {
+                WriteInherits(value.Proxy);
+            }
+        }
+
+        bool IEntity2.IsType {
+            get {
+                return IsType;
+            }
+            set {
+                IsType = value;
+            }
+        }
+
+        string IEntity2.TypeName {
+            get {
+                return Name;
+            }
+            set {
+                Name = value;
+            }
+        }
     }
 }
