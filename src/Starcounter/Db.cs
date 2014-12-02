@@ -172,14 +172,14 @@ namespace Starcounter
         public static void Scope(Action action, bool forceNew = false) {
             ITransaction t = Starcounter.Transaction.GetCurrent();
             if (forceNew || t == null)
-                t = new Starcounter.Transaction();
+                t = new Starcounter.Transaction(false, false);
             t.Add(action);
         }
 
         public static T Scope<T>(Func<T> func, bool forceNew = false) {
             ITransaction t = Starcounter.Transaction.GetCurrent();
             if (forceNew || t == null)
-                t = new Starcounter.Transaction();
+                t = new Starcounter.Transaction(false, false);
             return t.AddAndReturn<T>(func);
         }
 
