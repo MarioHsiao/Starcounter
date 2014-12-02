@@ -1,6 +1,28 @@
 # level1/src/Starcounter.ErrorCodes/CMakeLists.txt
 
+
 cmake_minimum_required(VERSION 2.8)
+
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../../level0/cmake")
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+project(Starcounter_ErrorCodes)
+enable_testing()
+include_directories(scerrres)
+
+# Match the default output directory set by Blue.sln
+set(SC_OUTPUT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${SC_OUTPUT_DIR}/${CMAKE_BUILD_TYPE})
+if(CMAKE_CONFIGURATION_TYPES)
+    foreach(uod_cfg ${CMAKE_CONFIGURATION_TYPES})
+        string(TOUPPER ${uod_cfg} uod_cfg_uc)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${uod_cfg_uc} ${SC_OUTPUT_DIR}/${uod_cfg})
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${uod_cfg_uc} ${SC_OUTPUT_DIR}/${uod_cfg})
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${uod_cfg_uc} ${SC_OUTPUT_DIR}/${uod_cfg})
+    endforeach()
+endif()
+link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
 find_package(CSharp)
 include(UseCSharp)
@@ -8,60 +30,3 @@ include(UseCSharp)
 add_subdirectory(Starcounter.Errors)
 add_subdirectory(ErrorCodeCompiler)
 add_subdirectory(scerrres)
-
-add_custom_target(CompileXMLErrorsToCSharp
-  COMMAND
-    ${CSHARP_INTERPRETER} scerrcc.exe ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -cs
-  DEPENDS
-    scerrcc
-    errorcodes.xml
-  WORKING_DIRECTORY
-    ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-)
-set_property(TARGET CompileXMLErrorsToCSharp PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
-
-if(WIN32)
-    add_custom_command(
-      OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
-      COMMAND
-        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
-      DEPENDS
-        scerrcc
-      COMMENT
-        "Running scerrcc.exe"
-    )
-    # ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe 
-    add_custom_command(
-      OUTPUT
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
-      COMMAND
-        mc.exe -r ${CMAKE_CURRENT_SOURCE_DIR}/scerrres -v ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
-      DEPENDS
-        ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc
-      COMMENT
-        "Running mc.exe"
-    )
-else()
-    add_custom_command(
-      OUTPUT
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
-      COMMAND
-        ${CSHARP_INTERPRETER} $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME> ${CMAKE_CURRENT_SOURCE_DIR}/errorcodes.xml -mc ${CMAKE_CURRENT_BINARY_DIR}/scerrres/scerrres.mc -ch ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
-      WORKING_DIRECTORY
-        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres
-      DEPENDS
-        scerrcc
-    )
-    # ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/scerrcc.exe 
-endif()
-
-add_custom_target(Generate_SCERRRES_H
-  DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/scerrres/scerrres.h
-)
-set_property(TARGET Generate_SCERRRES_H PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
