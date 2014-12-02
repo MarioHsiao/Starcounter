@@ -3,6 +3,8 @@ using Starcounter;
 using Starcounter.Internal;
 
 namespace Sc.Server.Weaver {
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// Defines a set of names used by the weaver for internal
     /// and/or implicit constructs. These names are normally
@@ -44,5 +46,27 @@ namespace Sc.Server.Weaver {
         /// an entity is a type.
         /// </summary>
         public const string IsTypeColumn = "__sc__is_type__";
+
+        /// <summary>
+        /// Gets the name of the implicit entity column the given
+        /// <see cref="DatabaseAttribute"/> reference, if any; or
+        /// <c>null</c> otherwise.
+        /// </summary>
+        /// <param name="attribute">The attribute to consult.</param>
+        /// <returns>Name of the implicit entity column
+        /// <paramref name="attribute"/> is an accessor for, or <c>null</c>
+        /// if it doesn't specify such reference.
+        /// </returns>
+        public static string GetImplicitEntityColumnName(DatabaseAttribute attribute) {
+            string result = null;
+            if (attribute.IsTypeReference) {
+                result = TypeColumn;
+            } else if (attribute.IsInheritsReference) {
+                result = InheritsColumn;
+            } else if (attribute.IsTypeName) {
+                result = TypeNameColumn;
+            }
+            return result;
+        }
     }
 }
