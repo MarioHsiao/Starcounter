@@ -47,6 +47,9 @@ namespace Starcounter {
         private List<DataAndCache> _stateList;
         private SessionOptions sessionOptions;
 
+        /// <summary>
+        /// Array of queued patches in order from the current clientversion.
+        /// </summary>
         private List<Byte[]> patchQueue;
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace Starcounter {
         private long clientVersion;
         private long serverVersion;
         
-        public Session() : this(SessionOptions.Default) {
+        public Session() : this(SessionOptions.Default | SessionOptions.DisableProtocolVersioning) {
         }
 
         public Session(SessionOptions options) {
@@ -110,7 +113,7 @@ namespace Starcounter {
         /// </summary>
         public long ClientVersion {
             get { return clientVersion; }
-            set { clientVersion = value; }
+            internal set { clientVersion = value; }
         }
 
         /// <summary>
@@ -118,7 +121,6 @@ namespace Starcounter {
         /// </summary>
         public long ServerVersion {
             get { return serverVersion; }
-            set { serverVersion = value; }
         }
 
         public void ShareTransaction(ITransaction transaction) {
@@ -585,6 +587,10 @@ namespace Starcounter {
                         }
                     }
                 }
+            }
+
+            if (_changes.Count != 0) { // New version of the viewmodel. 
+                serverVersion++;
             }
         }
 

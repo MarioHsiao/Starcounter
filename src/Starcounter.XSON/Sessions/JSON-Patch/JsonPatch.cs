@@ -26,6 +26,8 @@ namespace Starcounter.XSON {
         private static string clientVersionPropertyName = "_ver#c$";
         private static byte[] serverVersionPath = Encoding.UTF8.GetBytes("/" + serverVersionPropertyName);
         private static byte[] clientVersionPath = Encoding.UTF8.GetBytes("/" + clientVersionPropertyName);
+        private static byte[] testClientVersionPatch = Encoding.UTF8.GetBytes(@"{""op"":""test"",""path"":""/" + clientVersionPropertyName + @""",""value"":");
+        private static byte[] replaceServerVersionPatch = Encoding.UTF8.GetBytes(@"{""op"":""replace"",""path"":""/" + serverVersionPropertyName + @""",""value"":");
 
         private static byte[][] _patchOpUtf8Arr;
         private static byte[] _emptyPatchArr = { (byte)'[', (byte)']' };
@@ -93,7 +95,7 @@ namespace Starcounter.XSON {
                 return _emptyPatchArr.Length;
             }
 
-            patchSize = CreatePatches(changes, out patches);
+            patchSize = CreatePatches(session, changes, out patches);
             if (flushLog)
                 session.Clear();
         
@@ -106,26 +108,47 @@ namespace Starcounter.XSON {
         /// <param name="changeLog"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        internal int CreatePatches(List<Change> changes, out byte[] patches) {
+        internal int CreatePatches(Session session, List<Change> changes, out byte[] patches) {
             byte[] buffer;
             int size;
             int[] pathSizes;
             Utf8Writer writer;
+            bool versioning = !session.CheckOption(SessionOptions.DisableProtocolVersioning);
 
             // TODO:
             // We dont want to create a new array here...
             pathSizes = new int[changes.Count];
 
             size = 2;
-            size += changes.Count;
+            size += pathSizes.Length;
+
             for (int i = 0; i < changes.Count; i++) 
                 size += CalculateSize(changes[i], out pathSizes[i]);
-            buffer = new byte[size];
 
+            if (versioning) {
+                // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
+                size += testClientVersionPatch.Length + GetSizeOfIntAsUtf8(session.ClientVersion) + 2;
+                size += replaceServerVersionPatch.Length + GetSizeOfIntAsUtf8(session.ServerVersion) + 2;
+                
+            }    
+            buffer = new byte[size];
+            
             unsafe {
                 fixed (byte* pbuf = buffer) {
                     writer = new Utf8Writer(pbuf);
                     writer.Write('[');
+
+                    if (versioning) {
+                        writer.Write(testClientVersionPatch);
+                        writer.Write(session.ClientVersion);
+                        writer.Write('}');
+                        writer.Write(',');
+
+                        writer.Write(replaceServerVersionPatch);
+                        writer.Write(session.ServerVersion);
+                        writer.Write('}');
+                        writer.Write(',');
+                    }
 
                     for (int i = 0; i < changes.Count; i++) {
                         var change = changes[i];
@@ -397,23 +420,14 @@ namespace Starcounter.XSON {
                 WritePath_2(ref writer, parent, size, fromStepParent);
         }
 
-        // TODO:
-        // must be a much better way of doing this
-        private static int GetSizeOfIntAsUtf8(int value) {
-            if (value < 10)
-                return 1;
-            if (value < 100)
-                return 2;
-            if (value < 1000)
-                return 3;
-            if (value < 10000)
-                return 4;
-            if (value < 100000)
-                return 5;
-            if (value < 1000000)
-                return 6;
+        private static int GetSizeOfIntAsUtf8(long value) {
+            int size = 0;
+            do {
+                value = value / 10;
+                size++;
+            } while (value > 0);
 
-            return -1;
+            return size;
         }
 
         ///// <summary>
