@@ -54,20 +54,24 @@ namespace Starcounter.Internal.Weaver {
                     ));
             }
 
-            var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
-                return candidate != attribute && candidate.IsTypeReference;
-            });
+            // Remove this constraint?
+            // TODO:
+            if (attribute.IsTypeReference == false) {
+                var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
+                    return candidate != attribute && candidate.IsTypeReference;
+                });
 
-            if (other != null) {
-                ScMessageSource.WriteError(
-                    MessageLocation.Unknown,
-                    Error.SCERRINVALIDTYPEREFERENCE,
-                    string.Format("Attribute {0}.{1} is marked a type; {2}.{3} is too.",
-                    attribute.DeclaringClass.Name,
-                    attribute.Name,
-                    other.DeclaringClass.Name,
-                    other.Name
-                    ));
+                if (other != null) {
+                    ScMessageSource.WriteError(
+                        MessageLocation.Unknown,
+                        Error.SCERRINVALIDTYPEREFERENCE,
+                        string.Format("Attribute {0}.{1} is marked a type; {2}.{3} is too.",
+                        attribute.DeclaringClass.Name,
+                        attribute.Name,
+                        other.DeclaringClass.Name,
+                        other.Name
+                        ));
+                }
             }
 
             if (attribute.IsInheritsReference) {
@@ -80,6 +84,8 @@ namespace Starcounter.Internal.Weaver {
                     ));
             }
 
+            // Remove this constraint?
+            // TODO:
             if (!attribute.IsPublicRead) {
                 ScMessageSource.WriteError(
                     MessageLocation.Unknown,
