@@ -1,9 +1,4 @@
 ﻿
-using Sc.Server.Weaver;
-using Starcounter.Binding;
-using Starcounter.Internal;
-using System;
-
 namespace Starcounter {
 
     /// <summary>
@@ -11,49 +6,54 @@ namespace Starcounter {
     /// for database classes defined only with the [Database] attribute,
     /// and not inheriting <see cref="Entity"/>.
     /// </summary>
-    public abstract class EntityHelper {
-
-        static IEntity2 EntityFromObject(object obj) {
-            return Entity.From(obj);
-        }
+    public static class EntityHelper {
 
         public static IEntity2 GetType(object obj) {
             return Entity.From(obj).Type;
         }
 
         public static void SetType(object obj, object type) {
-            var wrapper = EntityFromObject(obj);
-            wrapper.Type = (IEntity2)type;
+            IEntity2 e = null;
+            if (type != null) {
+                e = type as IEntity2;
+                if (e == null) {
+                    e = Entity.From(type);
+                }
+            }
+
+            Entity.From(obj).Type = e;
         }
 
         public static string GetName(object obj) {
-            var wrapper = EntityFromObject(obj);
-            return wrapper.Name;
+            return Entity.From(obj).Name;
         }
 
         public static void SetName(object obj, string name) {
-            var wrapper = EntityFromObject(obj);
-            wrapper.Name = name;
+            Entity.From(obj).Name = name;
         }
 
         public static IEntity2 GetInherits(object obj) {
-            var wrapper = EntityFromObject(obj);
-            return wrapper.Inherits;
+            return Entity.From(obj).Inherits;
         }
 
         public static void SetInherits(object obj, object type) {
-            var wrapper = EntityFromObject(obj);
-            wrapper.Inherits = (IEntity2)type;
+            IEntity2 e = null;
+            if (type != null) {
+                e = type as IEntity2;
+                if (e == null) {
+                    e = Entity.From(type);
+                }
+            }
+
+            Entity.From(obj).Inherits = e;
         }
 
         public static bool IsType(object obj) {
-            var wrapper = EntityFromObject(obj);
-            return wrapper.IsType;
+            return Entity.From(obj).IsType;
         }
 
         public static void SetIsType(object obj, bool value) {
-            var wrapper = EntityFromObject(obj);
-            wrapper.IsType = value;
+            Entity.From(obj).IsType = value;
         }
     }
 }
