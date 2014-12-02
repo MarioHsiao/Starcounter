@@ -30,4 +30,4 @@ csharp_add_executable(scerrcc
     scerrcc/Properties/AssemblyInfo.cs
 )
 add_dependencies(scerrcc Starcounter.Errors)
-set_property(TARGET scerrcc PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
+OrganizeVisualStudio(scerrcc) # "level1/Starcounter.ErrorCodes"

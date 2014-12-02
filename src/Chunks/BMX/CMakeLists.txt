@@ -18,4 +18,4 @@ target_link_libraries(bmx
     coalmine
     sccorelog
 )
-set_property(TARGET bmx PROPERTY FOLDER "level1/Chunks")
+OrganizeVisualStudio(bmx) # "level1/Chunks"

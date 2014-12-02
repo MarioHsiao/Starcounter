@@ -7,4 +7,4 @@ add_definitions(-D_UNICODE -DUNICODE)
 add_library(CreateShortcut SHARED
     CreateShortcut.cpp
 )
-set_property(TARGET CreateShortcut PROPERTY FOLDER "level1/Utilities")
+OrganizeVisualStudio(CreateShortcut) # "level1/Utilities"

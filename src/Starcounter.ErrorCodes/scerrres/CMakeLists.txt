@@ -86,27 +86,35 @@ else()
     message(SEND_ERROR "implement scerrres.h generation for Linux")
 endif()
 
-add_library(scerrres SHARED
-  Format.cpp
-  Format.def
-  format.h
-  ${SC_OUTPUT_DIR}/scerrres.res
-#  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
-#  ${SC_OUTPUT_DIR}/scerrres.rc
-#  ${SC_OUTPUT_DIR}/scerrres.mc
+add_custom_target(Generate_SCERRRES_H
+    DEPENDS
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
 )
-#set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
-#set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.mc PROPERTIES GENERATED 1)
-#set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.rc PROPERTIES GENERATED 1)
-set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
+OrganizeVisualStudio(Generate_SCERRRES_H)
+# set_target_properties(Generate_SCERRRES_H PROPERTIES FOLDER "")
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
 
-add_dependencies(scerrres
-    scerrcc
+set(scerrres_SOURCES
+  Format.cpp
+  format.h
 )
 
 if(WIN32)
+    set(scerrres_SOURCES
+        ${scerrres_SOURCES}
+        Format.def
+        ${SC_OUTPUT_DIR}/scerrres.res
+    )
+    set_source_files_properties(${SC_OUTPUT_DIR}/scerrres.res PROPERTIES GENERATED 1)
     set(scerrres_LINKFLAGS "/DEBUG ${SC_OUTPUT_DIR}/scerrres.res")
-    set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
+else()
+    set(scerrres_LINKFLAGS)
 endif()
-set_property(TARGET scerrres PROPERTY FOLDER "level1/Starcounter.ErrorCodes")
 
+add_library(scerrres SHARED
+    ${scerrres_SOURCES}
+)
+
+OrganizeVisualStudio(scerrres) # "level1/Starcounter.ErrorCodes"
+set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
+add_dependencies(scerrres scerrcc)
