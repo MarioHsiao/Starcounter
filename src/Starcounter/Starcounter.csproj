@@ -109,6 +109,7 @@
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
     <Compile Include="Internal\ImplicitEntity.cs" />
+    <Compile Include="Internal\ProxyBasedRuntimeEntity.cs" />
     <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
