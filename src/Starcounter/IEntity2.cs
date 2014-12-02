@@ -6,7 +6,7 @@ namespace Starcounter {
     /// Defines the interface of any entity. All database classes that
     /// are defined not using <see cref="Entity"/> class as their base
     /// class can be represented by the <see cref="IEntity2"/> interface
-    /// using runtime factory/cast method <see cref="Entity.From(obj)"/>.
+    /// using runtime factory/cast method <see cref="Entity.From(object)"/>.
     /// </summary>
     /// <remarks>
     /// This interface will be renamed to IEntity as soon as we have
