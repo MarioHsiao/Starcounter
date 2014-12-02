@@ -7,6 +7,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/../../..
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 project(Starcounter_ErrorCodes)
 enable_testing()
+include(OrganizeVisualStudio)
+
 include_directories(scerrres)
 
 # Match the default output directory set by Blue.sln

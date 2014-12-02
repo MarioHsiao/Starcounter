@@ -24,7 +24,7 @@ set(HttpParser_HEADER_FILES
 )
 
 add_library(HttpParser SHARED ${HttpParser_SOURCE_FILES} ${HttpParser_HEADER_FILES})
-set_property(TARGET HttpParser PROPERTY FOLDER "level1/HTTP")
+OrganizeVisualStudio(HttpParser) # "level1/HTTP"
 
 # HTTP\HttpParser\HttpParser.vcxproj
 # HTTP\HttpParser\HttpParser32.vcxproj
