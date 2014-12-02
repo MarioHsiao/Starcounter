@@ -286,7 +286,7 @@ namespace Starcounter {
             }
         }
 
-        string IEntity2.TypeName {
+        string IEntity2.Name {
             get {
                 return Name;
             }

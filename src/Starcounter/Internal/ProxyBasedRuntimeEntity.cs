@@ -63,7 +63,7 @@ namespace Starcounter.Internal {
             set { DbState.WriteTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex, value.Proxy); }
         }
 
-        string IEntity2.TypeName {
+        string IEntity2.Name {
             get { return DbState.ReadTypeName(proxy.Identity, proxy.ThisHandle, typeNameIndex); }
             set { DbState.WriteTypeName(proxy.Identity, proxy.ThisHandle, typeNameIndex, value); }
         }

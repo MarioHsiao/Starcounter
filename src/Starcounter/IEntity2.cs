@@ -48,7 +48,7 @@ namespace Starcounter {
         /// Gets or sets the name of the current entity, normally
         /// used when naming a type.
         /// </summary>
-        string TypeName {
+        string Name {
             get;
             set;
         }

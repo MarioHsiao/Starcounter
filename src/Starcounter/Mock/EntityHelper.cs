@@ -26,14 +26,14 @@ namespace Starcounter {
             wrapper.Type = (IEntity2)type;
         }
 
-        public static string GetTypeName(object obj) {
+        public static string GetName(object obj) {
             var wrapper = EntityFromObject(obj);
-            return wrapper.TypeName;
+            return wrapper.Name;
         }
 
-        public static void SetTypeName(object obj, string name) {
+        public static void SetName(object obj, string name) {
             var wrapper = EntityFromObject(obj);
-            wrapper.TypeName = name;
+            wrapper.Name = name;
         }
 
         public static IEntity2 GetInherits(object obj) {
