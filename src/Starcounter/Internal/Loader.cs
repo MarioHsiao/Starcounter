@@ -242,7 +242,7 @@ namespace Starcounter.Internal
 
                 switch (databaseAttribute.AttributeKind) {
                     case DatabaseAttributeKind.Field:
-                        if (!isSynonym) {
+                        if (!isSynonym && !databaseAttribute.IsAccessorOfImplicitEntityField) {
                             columnDefs.Add(new ColumnDef(
                                 DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(databaseAttribute.Name),
                                 BindingHelper.ConvertDbTypeCodeToScTypeCode(type),
@@ -251,7 +251,10 @@ namespace Starcounter.Internal
                                 ));
                         }
 
-                        var targetAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
+                        var targetAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute.EntityFieldTarget;
+                        if (targetAttribute == null) {
+                            targetAttribute = databaseAttribute;
+                        }
 
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
@@ -265,6 +268,7 @@ namespace Starcounter.Internal
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;
+
                     case DatabaseAttributeKind.Property:
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
