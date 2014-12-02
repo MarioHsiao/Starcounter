@@ -1,8 +1,10 @@
 ﻿
 using Starcounter;
 using Starcounter.Internal;
+using System;
+using System.Linq;
 
-namespace Sc.Server.Weaver {
+namespace Sc.Server.Weaver {    
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
     /// <summary>
@@ -12,6 +14,16 @@ namespace Sc.Server.Weaver {
     /// during weaving.
     /// </summary>
     public static class WeavedNames {
+        /// <summary>
+        /// Contains all the names of implicit entity columns.
+        /// </summary>
+        public static string[] ImplicitEntityColumnNames = new string[] {
+            TypeColumn,
+            TypeNameColumn,
+            IsTypeColumn,
+            InheritsColumn
+        };
+
         /// <summary>
         /// Gets the full name of the Entity class.
         /// </summary>
@@ -67,6 +79,17 @@ namespace Sc.Server.Weaver {
                 result = TypeNameColumn;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Gets a value indicating if the given <see cref="DatabaseAttribute"/>
+        /// is one of the attributes that define an implicit entity column.
+        /// </summary>
+        /// <param name="attribute">The attribute to consult.</param>
+        /// <returns><c>true</c> if <paramref name="attribute"/> defines one
+        /// of the implicit entity columns; <c>false</c> otherwise.</returns>
+        public static bool DefineImplicitEntityColumn(DatabaseAttribute attribute) {
+            return ImplicitEntityColumnNames.Contains(attribute.Name);
         }
     }
 }
