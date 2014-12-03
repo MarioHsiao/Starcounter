@@ -1,4 +1,5 @@
-﻿using Starcounter.Binding;
+﻿using Sc.Server.Weaver;
+using Starcounter.Binding;
 using Starcounter.Logging;
 using System;
 using System.Collections.Generic;
@@ -71,6 +72,8 @@ namespace Starcounter.Hosting {
 
                 if (!column.IsInherited) {
                     typeSpecification.SetColumnIndex(column.Name, ci);   
+                } else if (WeavedNames.ImplicitEntityColumnNames.Contains(column.Name)) {
+                    typeSpecification.SetColumnIndex(column.Name, ci, false);
                 }
             }
         }
