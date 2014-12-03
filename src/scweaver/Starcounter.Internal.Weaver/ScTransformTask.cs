@@ -264,7 +264,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        var columnHandleField = typeSpecification.IncludeField(field);
+                        var columnHandleField = typeSpecification.GenerateColumnHandle(field);
                         GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
                     }
                 }
@@ -275,7 +275,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        var columnHandleField = typeSpecification.GetColumnHandle(dba.SynonymousTo.DeclaringClass.Name, dba.SynonymousTo.Name);
+                        var columnHandleField = typeSpecification.LookupColumnHandle(dba.SynonymousTo.DeclaringClass.Name, dba.SynonymousTo.Name);
                         GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
                     }
                 }
