@@ -1,7 +1,8 @@
 ﻿using Sc.Server.Weaver;
 using Starcounter.Binding;
+using Starcounter.Internal;
 
-namespace Starcounter.Internal {
+namespace Starcounter.Advanced {
     /// <summary>
     /// Runtime type exposing a given <see cref="IObjectProxy"/>
     /// as an entity (via <see cref="IRuntimeEntity"/>.

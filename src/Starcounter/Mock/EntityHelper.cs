@@ -1,4 +1,6 @@
 ﻿
+using Starcounter.Advanced;
+
 namespace Starcounter {
 
     /// <summary>

@@ -1,6 +1,6 @@
 ﻿using Starcounter.Binding;
 
-namespace Starcounter {
+namespace Starcounter.Advanced {
     
     /// <summary>
     /// Defines the interface of any entity. All database classes that
