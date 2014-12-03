@@ -150,34 +150,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Retreives a type that can be used to access properties
-        /// defined by Starcounter entity, such as the dynamic type
-        /// fields.
-        /// </summary>
-        /// <param name="obj">An object whose entity properties the
-        /// client want to access.</param>
-        /// <returns>An instance of a class that allows basic Entity
-        /// properties to be accessed.</returns>
-        public static IRuntimeEntity From(object obj) {
-            var entity = obj as IRuntimeEntity;
-            if (entity != null) {
-                return entity;
-            }
-            var e = obj as Entity;
-            if (e != null) {
-                return new EntityBasedRuntimeEntity(e);
-            }
-            var proxy = obj as IObjectProxy;
-            if (proxy != null) {
-                return new ProxyBasedRuntimeEntity(proxy);
-            }
-
-            // Decide how to report this, and what to allow
-            // TODO:
-            throw new InvalidOperationException();
-        }
-
-        /// <summary>
         /// Initialize a new <see cref="Entity"/>.
         /// </summary>
         public Entity()

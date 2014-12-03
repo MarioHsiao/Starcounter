@@ -50,7 +50,7 @@ namespace Starcounter.Advanced {
 
         IRuntimeEntity IRuntimeEntity.Type {
             get {
-                return Entity.From(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex));
+                return EntityHelper.ToEntity(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex));
             }
             set {
                 DbState.WriteTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex, value.Proxy);
@@ -59,7 +59,7 @@ namespace Starcounter.Advanced {
 
         IRuntimeEntity IRuntimeEntity.Inherits {
             get {
-                return Entity.From(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex));
+                return EntityHelper.ToEntity(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex));
             }
             set { DbState.WriteTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex, value.Proxy); }
         }

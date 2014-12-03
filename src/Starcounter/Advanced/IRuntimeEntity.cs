@@ -6,7 +6,7 @@ namespace Starcounter.Advanced {
     /// Defines the interface of any entity. All database classes that
     /// are defined not using <see cref="Entity"/> class as their base
     /// class can be represented by the <see cref="IRuntimeEntity"/> interface
-    /// using runtime factory/cast method <see cref="Entity.From(object)"/>.
+    /// using runtime factory/cast method <see cref="EntityHelper.ToEntity(object)"/>.
     /// </summary>
     public interface IRuntimeEntity {
         /// <summary>
