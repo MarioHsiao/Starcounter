@@ -1,4 +1,6 @@
-﻿// ***********************************************************************
+﻿#define CASE_INSENSITIVE_URI_MATCHER
+
+// ***********************************************************************
 // <copyright file="Node.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -42,9 +44,45 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Maximum number of parallel sockets.
+        /// </summary>
+        Int32 maxNumAsyncConnections_ = 128;
+
+        /// <summary>
+        /// Maximum number of parallel connections in async node.
+        /// </summary>
+        public Int32 MaxNumAsyncConnections {
+            get {
+                return maxNumAsyncConnections_;
+            }
+
+            set {
+                maxNumAsyncConnections_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Connect synchronously.
+        /// </summary>
+        Boolean connectSynchronuously_ = false;
+
+        /// <summary>
+        /// Indicates if synchronous connect should be performed.
+        /// </summary>
+        public Boolean ConnectSynchronuously {
+            get {
+                return connectSynchronuously_;
+            }
+
+            set {
+                connectSynchronuously_ = value;
+            }
+        }
+
+        /// <summary>
         /// Performs local Node REST call.
         /// </summary>
-        static DoLocalNodeRest DoLocalNodeRest_;
+        static DoLocalNodeRest doLocalNodeRest_;
 
         /// <summary>
         /// Pending async tasks.
@@ -54,7 +92,7 @@ namespace Starcounter
         /// <summary>
         /// The Node log source for logging exceptions.
         /// </summary>
-        internal static Action<Exception> NodeLogException_;
+        internal static Action<Exception> nodeLogException_;
 
         /// <summary>
         /// Initializes Node implementation.
@@ -65,8 +103,8 @@ namespace Starcounter
             DoLocalNodeRest doLocalNodeRest,
             Action<Exception> nodeLogException)
         {
-            DoLocalNodeRest_ = doLocalNodeRest;
-            NodeLogException_ = nodeLogException;
+            doLocalNodeRest_ = doLocalNodeRest;
+            nodeLogException_ = nodeLogException;
         }
 
         // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
@@ -213,7 +251,7 @@ namespace Starcounter
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
-            Int32 handlerLevel,
+            HandlerOptions.HandlerLevels handlerLevel,
             out Response resp);
 
         /// <summary>
@@ -756,7 +794,7 @@ namespace Starcounter
             {
                 // Checking if exception should be logged.
                 if (ShouldLogErrors_)
-                    Node.NodeLogException_(exc);
+                    Node.nodeLogException_(exc);
                 else
                     throw exc;
             }
@@ -867,7 +905,7 @@ namespace Starcounter
             if (!finished_async_tasks_.Dequeue(out nt)) {
 
                 // Checking if we exceeded the maximum number of created tasks.
-                if (num_tasks_created_ >= NodeTask.MaxNumPendingAsyncTasks) {
+                if (num_tasks_created_ >= maxNumAsyncConnections_) {
 
                     // Looping until task is dequeued.
                     while (!finished_async_tasks_.Dequeue(out nt)) {
@@ -915,20 +953,32 @@ namespace Starcounter
             Byte[] customBytes = null,
             Int32 customBytesLength = 0)
         {
+            Boolean callOnlySpecificHandlerLevel = true;
+
             // Checking if handler options is defined.
-            if (ho == null)
+            if (ho == null) {
                 ho = HandlerOptions.DefaultHandlerOptions;
+                callOnlySpecificHandlerLevel = false;
+            }
 
             Int32 requestBytesLength;
             Byte[] requestBytes;
+            String processedRelativeUri = relativeUri;
 
-            String methodAndUriPlusSpace = method + " " + relativeUri + " ";
+#if CASE_INSENSITIVE_URI_MATCHER
+
+            // Making incoming URI lower case.
+            processedRelativeUri = relativeUri.ToLowerInvariant();
+#endif
+
+            String methodSpaceUriSpace = method + " " + processedRelativeUri + " ";
             
             // Checking if request is defined and initialized.
             if (customBytes == null) {
 
-                if (relativeUri == null || relativeUri.Length < 1)
+                if (relativeUri == null || relativeUri.Length < 1) {
                     throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+                }
 
                 requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
 
@@ -938,55 +988,80 @@ namespace Starcounter
                 requestBytesLength = customBytesLength;
             }
             
-            // No response initially.
-            Response resp = null;
-
             // Checking if we are on local node.
             if ((localNode_) && (!ho.CallExternalOnly)) {
 
-                Int32 handlerLevel = 0;
-                if (ho.IsSpecificHandlerLevel)
-                    handlerLevel = ho.HandlerLevel;
+                // No response initially.
+                Response resp = null;
+                HandlerOptions.HandlerLevels hl = ho.HandlerLevel;
 
-                // Going through all handlers in the list.
-                for (Int32 i = 0; i < HandlerOptions.NumHandlerLevels; i++) {
+                // Checking if we should call all handler levels from bottom.
+                if (false == callOnlySpecificHandlerLevel) {
+                    hl = HandlerOptions.HandlerLevels.DefaultLevel;
+                }
 
-                    // Trying to do local node REST.
-                    if (DoLocalNodeRest_(methodAndUriPlusSpace, requestBytes, requestBytesLength, portNumber_, handlerLevel, out resp)) {
+DO_CODEHOST_ON_GIVEN_LEVEL:
 
-                        // Checking if handled.
-                        if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {
+                // Trying to do local node REST.
+                if (doLocalNodeRest_(methodSpaceUriSpace, requestBytes, requestBytesLength, portNumber_, hl, out resp)) {
 
-                            // Checking if user has supplied a delegate to be called.
-                            if (null != userDelegate) {
+                    // Checking if handled.
+                    if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {
 
-                                // Invoking user delegate.
-                                userDelegate.Invoke(resp, userObject);
+                        // Checking if user has supplied a delegate to be called.
+                        if (null != userDelegate) {
 
-                                // Checking if response should be sent.
-                                if (resp.Request != null) {
-                                    resp.Request.SendResponse(resp, null);
-                                    resp.Request = null;
-                                }
+                            // Invoking user delegate.
+                            userDelegate.Invoke(resp, userObject);
 
-                                return null;
+                            // Checking if response should be sent.
+                            if (resp.Request != null) {
+                                resp.Request.SendResponse(resp, null);
+                                resp.Request = null;
                             }
 
-                            return resp;
+                            return null;
                         }
-                    }
-            
-                    // Checking if we have a special handler.
-                    if (ho.IsSpecificHandlerLevel)
+
                         return resp;
-                    else
-                        handlerLevel++;
+                    }
+                }
+            
+                // Checking if we have a response or if its not a gateway level handler.
+                if (resp != null) {
+
+                    return resp;
+
+                } else {
+
+                    // Going level by level up.
+                    if (false == callOnlySpecificHandlerLevel) {
+
+                        switch (hl) {
+
+                            case HandlerOptions.HandlerLevels.DefaultLevel: {
+                                hl = HandlerOptions.HandlerLevels.ApplicationLevel;
+                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                            }
+
+                            case HandlerOptions.HandlerLevels.ApplicationLevel: {
+                                hl = HandlerOptions.HandlerLevels.ApplicationExtraLevel;
+                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                            }
+
+                            case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
+                                hl = HandlerOptions.HandlerLevels.CodeHostStaticFileServer;
+                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                            }
+                        };
+                    }
                 }
             }
 
             // Setting the receive timeout.
-            if (0 == receiveTimeoutMs)
+            if (0 == receiveTimeoutMs) {
                 receiveTimeoutMs = DefaultReceiveTimeoutMs;
+            }
 
             // Checking if user has supplied a delegate to be called.
             if (null != userDelegate) {

@@ -50,11 +50,6 @@ namespace Starcounter {
         const Int32 PrivateBufferSize = 8192;
 
         /// <summary>
-        /// Maximum number of pending asynchronous tasks.
-        /// </summary>
-        public const Int32 MaxNumPendingAsyncTasks = 128;
-
-        /// <summary>
         /// Maximum number of pending aggregated tasks.
         /// </summary>
         public const Int32 MaxNumPendingAggregatedTasks = 8192 * 2;
@@ -381,7 +376,17 @@ namespace Starcounter {
                     // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
                     Node.SetLoopbackFastPathOnTcpSocket(socketWrapper_.SocketObj);
 
-                    socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
+                    // Checking if we need to perform synchronous connect.
+                    if (nodeInst_.ConnectSynchronuously) {
+
+                        socketWrapper_.SocketObj.Connect(nodeInst_.HostName, nodeInst_.PortNumber);
+
+                        socketWrapper_.SocketObj.BeginSend(requestBytes_, 0, requestBytesLength_, SocketFlags.None, NetworkOnSendCallback, null);
+
+                    } else {
+
+                        socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
+                    }
                 }
                 else
                 {
@@ -403,7 +408,17 @@ namespace Starcounter {
                         // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
                         Node.SetLoopbackFastPathOnTcpSocket(socketWrapper_.SocketObj);
 
-                        socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
+                        // Checking if we need to perform synchronous connect.
+                        if (nodeInst_.ConnectSynchronuously) {
+
+                            socketWrapper_.SocketObj.Connect(nodeInst_.HostName, nodeInst_.PortNumber);
+
+                            socketWrapper_.SocketObj.BeginSend(requestBytes_, 0, requestBytesLength_, SocketFlags.None, NetworkOnSendCallback, null);
+
+                        } else {
+
+                            socketWrapper_.SocketObj.BeginConnect(nodeInst_.HostName, nodeInst_.PortNumber, NetworkOnConnectCallback, null);
+                        }
                     }
 #endif
                 }
@@ -444,7 +459,7 @@ namespace Starcounter {
                 {
                     // Logging the exception to server log.
                     if (nodeInst_.ShouldLogErrors)
-                        Node.NodeLogException_(exc);
+                        Node.nodeLogException_(exc);
 
                     // Freeing connection resources.
                     nodeInst_.FreeConnection(this, false);
@@ -559,7 +574,7 @@ namespace Starcounter {
                             {
                                 // Logging the exception to server log.
                                 if (nodeInst_.ShouldLogErrors)
-                                    Node.NodeLogException_(exc);
+                                    Node.nodeLogException_(exc);
 
                                 // Freeing connection resources.
                                 nodeInst_.FreeConnection(this, true);
@@ -602,7 +617,7 @@ namespace Starcounter {
 
             // Logging the exception to server log.
             if (nodeInst_.ShouldLogErrors)
-                Node.NodeLogException_(exc);
+                Node.nodeLogException_(exc);
 
             resp_ = new Response()
             {

@@ -265,7 +265,7 @@ namespace Starcounter.Internal.Weaver {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
                         var columnHandleField = typeSpecification.IncludeField(field);
-                        GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
+                        GenerateFieldAccessors(analysisTask, dba, field, typeSpecification, columnHandleField);
                     }
                 }
 
@@ -276,7 +276,7 @@ namespace Starcounter.Internal.Weaver {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
                         field = typeDef.Fields.GetByName(dba.Name);
                         var columnHandleField = typeSpecification.GetColumnHandle(dba.SynonymousTo.DeclaringClass.Name, dba.SynonymousTo.Name);
-                        GenerateFieldAccessors(dba, field, typeSpecification, columnHandleField);
+                        GenerateFieldAccessors(analysisTask, dba, field, typeSpecification, columnHandleField);
                     }
                 }
             }
@@ -419,6 +419,8 @@ namespace Starcounter.Internal.Weaver {
         /// Generates the <b>get</b> and <b>set</b> accessors for a field, generate a property,
         /// and add an advice to replace field accesses.
         /// </summary>
+        /// <param name="analysisTask">The corresponding analysis results of the current
+        /// project.</param>
         /// <param name="databaseAttribute">
         /// The <see cref="DatabaseAttribute" /> for which accessors have to be generated.</param>
         /// <param name="field">The <see cref="FieldDefDeclaration" /> corresponding
@@ -429,7 +431,12 @@ namespace Starcounter.Internal.Weaver {
         /// <param name="columnHandle">The column handle field to bind to the accessors.</param>
         /// <exception cref="System.Exception"></exception>
         /// <exception cref="System.NotSupportedException"></exception>
-        void GenerateFieldAccessors(DatabaseAttribute databaseAttribute, FieldDefDeclaration field, TypeSpecificationEmit typeSpecification, IField columnHandle) {
+        void GenerateFieldAccessors(
+            ScAnalysisTask analysisTask,
+            DatabaseAttribute databaseAttribute, 
+            FieldDefDeclaration field, 
+            TypeSpecificationEmit typeSpecification, 
+            IField columnHandle) {
             
             // TODO: This method really needs to be refactored and broken down into 
             // smaller pieces. As it is now it's really hard to get an overview of all the code.
@@ -533,13 +540,16 @@ namespace Starcounter.Internal.Weaver {
             _writer.DetachInstructionSequence();
 
             // Generate the Set accessor.
+            IMethod setValueCallback;
             haveSetMethod = _dbStateMethodProvider.GetSetMethod(
                 field.FieldType,
                 realDatabaseAttribute,
                 out dbStateMethod,
-                out dbStateCast);
+                out dbStateCast,
+                out setValueCallback);
             
             if (haveSetMethod) {
+                var emitSetValueCall = analysisTask.SetValueCallbacksInCurrentModule.Contains(databaseAttribute.DeclaringClass);
                 setMethod = new MethodDefDeclaration() {
                     Name = ("set_" + field.Name),
                     Attributes = methodAttributes,
@@ -574,9 +584,24 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
-                // We can make a tail call since it is the last instruction in the method.
-                _writer.EmitPrefix(InstructionPrefixes.Tail);
+                if (!emitSetValueCall) {
+                    // We can make a tail call since it is the last instruction in the method.
+                    _writer.EmitPrefix(InstructionPrefixes.Tail);
+                }
                 _writer.EmitInstructionMethod(OpCodeNumber.Call, dbStateMethod);
+
+                if (emitSetValueCall) {
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldsfld, columnHandle);
+                    _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, valueParameter);
+                    if (dbStateCast != null) {
+                        _castHelper.EmitCast(field.FieldType, dbStateCast, _writer, ref sequence);
+                    }
+
+                    _writer.EmitPrefix(InstructionPrefixes.Tail);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call, setValueCallback);
+                }
+
                 _writer.EmitInstruction(OpCodeNumber.Ret);
                 _writer.DetachInstructionSequence();
 

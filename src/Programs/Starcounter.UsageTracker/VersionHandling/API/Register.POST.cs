@@ -73,7 +73,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             });
 
-            Handle.CUSTOM(port, "OPTIONS", "/register", (Request request) => {
+            Handle.CUSTOM(port, "OPTIONS /register", (Request request) => {
 
                 try {
 
@@ -93,13 +93,11 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             });
         }
 
-
         /// <summary>
         /// Send email to starcounter.com about the user registration
         /// </summary>
         /// <param name="user">Registration user</param>
         public static void sendEmailEvent(RegisteredUser user) {
-
 
             try {
 
@@ -136,7 +134,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             }
         }
 
-
         /// <summary>
         /// Read email settings from a json file
         /// </summary>
@@ -154,7 +151,5 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                 throw new Exception(string.Format("Failed to read email settings {0}. {1}", file, e.Message));
             }
         }
-
-
     }
 }

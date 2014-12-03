@@ -45,6 +45,7 @@ namespace Starcounter.Internal.Weaver {
         /// The _DB classes in current module
         /// </summary>
         private readonly Dictionary<TypeDefDeclaration, DatabaseClass> _dbClassesInCurrentModule = new Dictionary<TypeDefDeclaration, DatabaseClass>();
+
         /// <summary>
         /// The _writer
         /// </summary>
@@ -166,6 +167,15 @@ namespace Starcounter.Internal.Weaver {
             get {
                 return _dbClassesInCurrentModule.Values;
             }
+        }
+
+        /// <summary>
+        /// Classes implementing <see cref="ISetValueCallback"/> in the
+        /// current module.
+        /// </summary>
+        public List<DatabaseClass> SetValueCallbacksInCurrentModule {
+            get;
+            private set;
         }
 
         /// <summary>
@@ -389,6 +399,7 @@ namespace Starcounter.Internal.Weaver {
                 CodeWeaver.Current.FileManager.TypeConfiguration, 
                 FindStarcounterType(typeof(Starcounter.DatabaseAttribute))
                 );
+            SetValueCallbacksInCurrentModule = new List<DatabaseClass>();
         }
 
         /// <summary>
@@ -493,6 +504,9 @@ namespace Starcounter.Internal.Weaver {
                         databaseClass = DiscoverDatabaseClass((TypeDefDeclaration)typeDefEnumerator.Current);
                         if (databaseClass != null) {
                             _dbClassesInCurrentModule.Add(typeDef, databaseClass);
+                            if (databaseTypePolicy.ImplementSetValueCallback(typeDef)) {
+                                SetValueCallbacksInCurrentModule.Add(databaseClass);
+                            }
                         }
                     }
                 }

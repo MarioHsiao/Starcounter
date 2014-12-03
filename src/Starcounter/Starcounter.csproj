@@ -58,6 +58,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Advanced\DbEnvironment.cs" />
+    <Compile Include="Advanced\ISetValueCallback.cs" />
     <Compile Include="Application.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="Hosting\ApplicationBase.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
+    <Compile Include="Internal\SetValueCallbackInvoke.cs" />
     <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />

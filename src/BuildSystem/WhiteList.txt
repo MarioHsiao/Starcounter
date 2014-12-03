@@ -3,6 +3,9 @@
 # 32-bit components
 32BitComponents\
 
+# Polyjuice client files
+sys\
+
 # Some folders
 cli-apps\
 cli-templates\

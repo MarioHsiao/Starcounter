@@ -505,14 +505,14 @@ namespace QueryProcessingTest {
             try {
                 Db.SQL("create index anwhereindx on account (where)");
             } catch (SqlException) { }
-            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whenindx").First != null);
-            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First != null);
-            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Index>("select s from \"Index\" s where name = ?", "whenindx").First != null);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Index>("select s from \"Index\" s where name = ?", "whereindx").First != null);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Index>("select s from \"Index\" s where name = ?", "anwhereindx").First == null);
             Db.SQL("drop index whenindx on account ");
             Db.SQL("drop index whereindx on account");
-            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whenindx").First == null);
-            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "whereindx").First == null);
-            Trace.Assert(Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select s from MaterializedIndex s where name = ?", "anwhereindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Index>("select s from \"Index\" s where name = ?", "whenindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Index>("select s from \"Index\" s where name = ?", "whereindx").First == null);
+            Trace.Assert(Db.SQL<Starcounter.Metadata.Index>("select s from \"Index\" s where name = ?", "anwhereindx").First == null);
             HelpMethods.LogEvent("Finished testing DDL statements");
         }
 

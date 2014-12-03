@@ -27,7 +27,7 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Contains the directories that may contain web resources such as .html files and other assets. 
         /// </summary>
-        internal List<string> workingDirectories_ = new List<string>();
+        internal List<string> fileDirectories_ = new List<string>();
 
         /// <summary>
         /// Reads the file system to find the resource addressed by an uri without using any cached version.
@@ -63,7 +63,8 @@ namespace Starcounter.Internal.Web {
             statusCode = HttpStatusCode.OK;
             shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
 
-            if (workingDirectories_.Count == 0) {
+            if (fileDirectories_.Count == 0) {
+
                 statusCode = HttpStatusCode.NotFound;
                 mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                 payload = Encoding.UTF8.GetBytes(
@@ -81,16 +82,22 @@ namespace Starcounter.Internal.Web {
 
             response = Response.FromStatusCode((int)statusCode);
             contentLength = (payload != null) ? payload.Length : -1;
-            if (mimeType.StartsWith("text/"))
+            if (mimeType.StartsWith("text/")) {
                 mimeType += ";charset=utf-8";
+            }
+
             response.ContentType = mimeType;
 
             shouldCompress = req.IsGzipAccepted;
+
             didCompress = false;
+
             if (shouldCompress && statusCode == HttpStatusCode.OK && contentLength != -1) {
+
                 compressed = Compress(payload);
                 didCompress = compressed.Length + 100 < payload.Length; // Don't use compress version if the difference is too small
 //                Debug(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+
                 if (didCompress) {
                     Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                     contentLength = compressed.Length;
@@ -101,17 +108,19 @@ namespace Starcounter.Internal.Web {
                 }
             }
 
-            if (statusCode != HttpStatusCode.OK)
+            if (statusCode != HttpStatusCode.OK) {
                 response.CacheControl = "no-cache";
-            else if (Configuration.Current.FileServer.DisableAllCaching)
+            } else if (Configuration.Current.FileServer.DisableAllCaching) {
                 response.CacheControl = "private,max-age=0";
-            else 
+            } else {
                 response.CacheControl = "public,max-age=31536000";
+            }
 
             response.ContentLength = contentLength;
             response.Content = payload;
 
             if (statusCode == HttpStatusCode.OK && shouldBeCached && cached == null) {
+
                 if (response.Uris == null)
                     response.Uris = new List<string>();
 
@@ -137,10 +146,14 @@ namespace Starcounter.Internal.Web {
                 // the same physical file?
                 Response existing;
                 if (cacheOnFilePath_.TryGetValue(fileSignature, out existing)) {
+
                     if (existing.Uris == null)
                         existing.Uris = new List<string>();
+
                     existing.Uris.Add(relativeUri);
+
                 } else {
+
                     cacheOnFilePath_[fileSignature] = response;
                     WatchChange(dir, fileName + fileExtension);
                 }
@@ -160,8 +173,8 @@ namespace Starcounter.Internal.Web {
         private bool ReadFile(string relativeUri, out string dir, out string fileName, out string fileExtension, out byte[] payload) {
             int len;
             
-            for (int t = 0; t < workingDirectories_.Count; t++) {
-                ParseFileSpecifier(workingDirectories_[t], relativeUri, out dir, out fileName, out fileExtension);
+            for (int t = 0; t < fileDirectories_.Count; t++) {
+                ParseFileSpecifier(fileDirectories_[t], relativeUri, out dir, out fileName, out fileExtension);
 
                 FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
                 if (f != null) {
@@ -200,10 +213,16 @@ namespace Starcounter.Internal.Web {
         /// <param name="dir">The directory the file resides in.</param>
         /// <param name="fileName">Name of the file.</param>
         private void WatchChange(string dir, string fileName) {
+
             FileSystemWatcher fsw;
             string fileSpecifier = dir + "\\" + fileName;
+
+            // Checking if path is already watched.
             if (!watchedPaths_.TryGetValue(fileSpecifier, out fsw)) {
+
+                // Checking if watched directory exists.
                 if (Directory.Exists(dir)) {
+
                     fsw = new FileSystemWatcher(dir);
                     fsw.InternalBufferSize = 64 * 1024;
                     fsw.Filter = fileName;
@@ -212,15 +231,18 @@ namespace Starcounter.Internal.Web {
                     fsw.Deleted += new FileSystemEventHandler(FileHasChanged);
                     fsw.Renamed += new RenamedEventHandler(FileIsRenamed);
                     fsw.EnableRaisingEvents = true;
+
                 } else {
+
                     fsw = null;
                 }
+
                 watchedPaths_[fileSpecifier] = fsw;
             }
         }
 
         /// <summary>
-        /// Removes all eventlisteners and disposes the watcher.
+        /// Removes all event listeners and disposes the watcher.
         /// </summary>
         /// <param name="fsw"></param>
         private void ClearWatchedChange(FileSystemWatcher fsw) {
@@ -235,11 +257,13 @@ namespace Starcounter.Internal.Web {
         /// Clears the watched parts.
         /// </summary>
         private void ClearWatchedParts() {
+
             if (watchedPaths_ != null) {
                 foreach (var watcher in watchedPaths_.Values) {
                     ClearWatchedChange(watcher);
                 }
             }
+
             watchedPaths_ = new Dictionary<string, FileSystemWatcher>();
         }
 
@@ -268,18 +292,24 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="fileSignature">The file to remove</param>
         private void DecacheByFilePath(string fileSignature) {
+
             Response cachedResponse;
 
             // Locking because execution is done in separate thread.
-            lock (workingDirectories_) {
+            lock (fileDirectories_) {
+
                 if (cacheOnFilePath_.TryGetValue(fileSignature, out cachedResponse)) {
+
                     if (cachedResponse.Uris != null) {
+
+                        Response resp;
                         foreach (var uri in cachedResponse.Uris) {
                             Debug("(decache uri) " + uri);
-                            cacheOnUri_.Remove(uri);
+                            cacheOnUri_.TryRemove(uri, out resp);
                         }
+
                         Debug("(decache file) " + fileSignature);
-                        cacheOnFilePath_.Remove(fileSignature);
+                        cacheOnFilePath_.TryRemove(fileSignature, out resp);
                     }
                 }
             }
@@ -287,7 +317,7 @@ namespace Starcounter.Internal.Web {
 
         /// <summary>
         /// Tries to open the file with the specified name in the specified directory.
-        /// If not succesful and the fileExtension parameter is not specified a default 
+        /// If not successful and the fileExtension parameter is not specified a default 
         /// extension is used.
         /// </summary>
         /// <param name="dir">The directory to look for the file</param>
@@ -325,12 +355,13 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileName">Name of the file.</param>
         /// <param name="fileExtension">The file extension.</param>
         internal void ParseFileSpecifier(string serverPath, string relativeUri, out string directory, out string fileName, out string fileExtension) {
+
             if (!relativeUri.StartsWith("/")) {
                 Debug(String.Format("Illegal URI for static resource: {0}", relativeUri));
                 directory = null;
                 fileExtension = null;
                 fileName = null;
-                return; // Only local uris are supported
+                return; // Only local URIs are supported
             }
 
             var decodedUri = HttpUtility.UrlDecode(relativeUri);
@@ -362,19 +393,6 @@ namespace Starcounter.Internal.Web {
         private void Debug(string message) {
             Console.WriteLine(message);
         }
-
-        ///// <summary>
-        ///// Encodes to base64.
-        ///// </summary>
-        ///// <param name="toEncode">To encode.</param>
-        ///// <returns>System.String.</returns>
-        //private static string EncodeToBase64(string toEncode) {
-        //    byte[] toEncodeAsBytes
-        //          = System.Text.ASCIIEncoding.ASCII.GetBytes(toEncode);
-        //    string returnValue
-        //          = System.Convert.ToBase64String(toEncodeAsBytes);
-        //    return returnValue;
-        //}
     }
 }
 
