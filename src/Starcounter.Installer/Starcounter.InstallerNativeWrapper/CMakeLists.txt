@@ -9,7 +9,7 @@ add_library(InstallerNativeWrapper SHARED
     Resource.rc
     resources/sc.ico
 )
-set_property(TARGET InstallerNativeWrapper PROPERTY FOLDER "level1/Starcounter.Installer")
+OrganizeVisualStudio(InstallerNativeWrapper) # "level1/Starcounter.Installer"
 
 #  <ItemGroup>
 #    <None Include="resources\dotnetfx45_full_x86_x64.exe" />

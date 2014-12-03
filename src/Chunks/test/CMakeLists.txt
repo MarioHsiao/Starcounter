@@ -43,7 +43,8 @@ set(sc_ipc_test_HEADER_FILES
 )
 
 add_executable(sc_ipc_test ${sc_ipc_test_SOURCE_FILES} ${sc_ipc_test_HEADER_FILES})
-set_property(TARGET sc_ipc_test PROPERTY FOLDER "level1/Chunks")
+add_dependencies(sc_ipc_test Generate_SCERRRES_H)
+OrganizeVisualStudio(sc_ipc_test) # "level1/Chunks"
 target_link_libraries(sc_ipc_test
     bmx
 )

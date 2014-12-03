@@ -7,4 +7,4 @@ add_library(InstallerNativeHelper SHARED
     cpuid.hpp
     InstallerNativeHelper.def
 )
-set_property(TARGET InstallerNativeHelper PROPERTY FOLDER "level1/Starcounter.Installer")
+OrganizeVisualStudio(InstallerNativeHelper) # "level1/Starcounter.Installer"

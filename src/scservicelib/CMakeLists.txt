@@ -27,5 +27,5 @@ target_link_libraries(scservice
     sccorelog
 	urihelp
 )
-set_property(TARGET scservice PROPERTY FOLDER "level1")
+OrganizeVisualStudio(scservice) # "level1"
 
