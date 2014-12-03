@@ -3,7 +3,7 @@ using Starcounter.Advanced;
 using Starcounter.Binding;
 using System;
 
-namespace Starcounter {
+namespace Starcounter.Advanced {
 
     /// <summary>
     /// Helper class to access dynamic types properties and fields

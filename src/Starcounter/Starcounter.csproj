@@ -147,7 +147,7 @@
     <Compile Include="Metadata\SysToken.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
-    <Compile Include="Mock\EntityHelper.cs" />
+    <Compile Include="Advanced\EntityHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
     <Compile Include="Mock\FilterCallback.cs" />
     <Compile Include="Mock\GlobalQueryCache.cs" />
