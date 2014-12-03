@@ -4,9 +4,9 @@ using Starcounter.Binding;
 namespace Starcounter.Internal {
     /// <summary>
     /// Runtime type exposing a given <see cref="IObjectProxy"/>
-    /// as an entity (via <see cref="IEntity2"/>.
+    /// as an entity (via <see cref="IRuntimeEntity"/>.
     /// </summary>
-    internal class ProxyBasedRuntimeEntity : IEntity2 {
+    internal class ProxyBasedRuntimeEntity : IRuntimeEntity {
         readonly IObjectProxy proxy;
         int typeIndex;
         int isTypeIndex;
@@ -41,13 +41,13 @@ namespace Starcounter.Internal {
             }
         }
 
-        IObjectProxy IEntity2.Proxy {
+        IObjectProxy IRuntimeEntity.Proxy {
             get {
                 return proxy;
             }
         }
 
-        IEntity2 IEntity2.Type {
+        IRuntimeEntity IRuntimeEntity.Type {
             get {
                 return Entity.From(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex));
             }
@@ -56,19 +56,19 @@ namespace Starcounter.Internal {
             }
         }
 
-        IEntity2 IEntity2.Inherits {
+        IRuntimeEntity IRuntimeEntity.Inherits {
             get {
                 return Entity.From(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex));
             }
             set { DbState.WriteTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex, value.Proxy); }
         }
 
-        string IEntity2.Name {
+        string IRuntimeEntity.Name {
             get { return DbState.ReadTypeName(proxy.Identity, proxy.ThisHandle, typeNameIndex); }
             set { DbState.WriteTypeName(proxy.Identity, proxy.ThisHandle, typeNameIndex, value); }
         }
 
-        bool IEntity2.IsType {
+        bool IRuntimeEntity.IsType {
             get { return DbState.ReadBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex); }
             set { DbState.WriteBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex, value); }
         }

@@ -8,14 +8,14 @@ namespace Starcounter {
     /// </summary>
     public static class EntityHelper {
 
-        public static IEntity2 GetType(object obj) {
+        public static IRuntimeEntity GetType(object obj) {
             return Entity.From(obj).Type;
         }
 
         public static void SetType(object obj, object type) {
-            IEntity2 e = null;
+            IRuntimeEntity e = null;
             if (type != null) {
-                e = type as IEntity2;
+                e = type as IRuntimeEntity;
                 if (e == null) {
                     e = Entity.From(type);
                 }
@@ -32,14 +32,14 @@ namespace Starcounter {
             Entity.From(obj).Name = name;
         }
 
-        public static IEntity2 GetInherits(object obj) {
+        public static IRuntimeEntity GetInherits(object obj) {
             return Entity.From(obj).Inherits;
         }
 
         public static void SetInherits(object obj, object type) {
-            IEntity2 e = null;
+            IRuntimeEntity e = null;
             if (type != null) {
-                e = type as IEntity2;
+                e = type as IRuntimeEntity;
                 if (e == null) {
                     e = Entity.From(type);
                 }

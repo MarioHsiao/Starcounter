@@ -11,7 +11,7 @@ namespace Starcounter {
     /// classes, as an alternative to the [Database] attribute.
     /// </summary>
     [Database]
-    public abstract partial class Entity : IEntity, IEntity2  {
+    public abstract partial class Entity : IEntity, IRuntimeEntity  {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
@@ -158,8 +158,8 @@ namespace Starcounter {
         /// client want to access.</param>
         /// <returns>An instance of a class that allows basic Entity
         /// properties to be accessed.</returns>
-        public static IEntity2 From(object obj) {
-            var entity = obj as IEntity2;
+        public static IRuntimeEntity From(object obj) {
+            var entity = obj as IRuntimeEntity;
             if (entity != null) {
                 return entity;
             }
@@ -253,13 +253,13 @@ namespace Starcounter {
                 type);
         }
 
-        IObjectProxy IEntity2.Proxy {
+        IObjectProxy IRuntimeEntity.Proxy {
             get {
                 return this;
             }
         }
 
-        IEntity2 IEntity2.Type {
+        IRuntimeEntity IRuntimeEntity.Type {
             get {
                 return Type;
             }
@@ -268,7 +268,7 @@ namespace Starcounter {
             }
         }
 
-        IEntity2 IEntity2.Inherits {
+        IRuntimeEntity IRuntimeEntity.Inherits {
             get {
                 return TypeInherits;
             }
@@ -277,7 +277,7 @@ namespace Starcounter {
             }
         }
 
-        bool IEntity2.IsType {
+        bool IRuntimeEntity.IsType {
             get {
                 return IsType;
             }
@@ -286,7 +286,7 @@ namespace Starcounter {
             }
         }
 
-        string IEntity2.Name {
+        string IRuntimeEntity.Name {
             get {
                 return Name;
             }
