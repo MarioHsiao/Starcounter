@@ -11,7 +11,7 @@ namespace Starcounter {
     /// classes, as an alternative to the [Database] attribute.
     /// </summary>
     [Database]
-    public abstract partial class Entity : IEntity, IRuntimeEntity  {
+    public abstract partial class Entity : IEntity  {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
@@ -163,6 +163,10 @@ namespace Starcounter {
             if (entity != null) {
                 return entity;
             }
+            var e = obj as Entity;
+            if (e != null) {
+                return new EntityBasedRuntimeEntity(e);
+            }
             var proxy = obj as IObjectProxy;
             if (proxy != null) {
                 return new ProxyBasedRuntimeEntity(proxy);
@@ -237,7 +241,7 @@ namespace Starcounter {
         /// </summary>
         public virtual void OnDelete() { }
 
-        void WriteType(IObjectProxy type) {
+        internal void WriteType(IObjectProxy type) {
             DbState.WriteTypeReference(
                 __sc__this_id__,
                 __sc__this_handle__,
@@ -245,54 +249,12 @@ namespace Starcounter {
                 type);
         }
 
-        void WriteInherits(IObjectProxy type) {
+        internal void WriteInherits(IObjectProxy type) {
             DbState.WriteInherits(
                 __sc__this_id__,
                 __sc__this_handle__,
                 __starcounterTypeSpecification.columnHandle___sc__inherits__,
                 type);
-        }
-
-        IObjectProxy IRuntimeEntity.Proxy {
-            get {
-                return this;
-            }
-        }
-
-        IRuntimeEntity IRuntimeEntity.Type {
-            get {
-                return Type;
-            }
-            set {
-                WriteType(value.Proxy);
-            }
-        }
-
-        IRuntimeEntity IRuntimeEntity.Inherits {
-            get {
-                return TypeInherits;
-            }
-            set {
-                WriteInherits(value.Proxy);
-            }
-        }
-
-        bool IRuntimeEntity.IsType {
-            get {
-                return IsType;
-            }
-            set {
-                IsType = value;
-            }
-        }
-
-        string IRuntimeEntity.Name {
-            get {
-                return Name;
-            }
-            set {
-                Name = value;
-            }
         }
     }
 }
