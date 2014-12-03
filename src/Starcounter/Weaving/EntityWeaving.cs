@@ -55,8 +55,8 @@ namespace Sc.Server.Weaver {
 
             // These two properties are needed for the metadata population
             // to function correctly; workaround for #2061 and #2428
-            AddDefinedProperty(implicitEntity, "__ScImplicitType", entity, entity.Attributes[WeavedNames.TypeColumn]);
-            AddDefinedProperty(implicitEntity, "__ScImplicitInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
+            // AddDefinedProperty(implicitEntity, "__ScImplicitType", entity, entity.Attributes[WeavedNames.TypeColumn]);
+            // AddDefinedProperty(implicitEntity, "__ScImplicitInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
             
             return implicitEntity;
         }

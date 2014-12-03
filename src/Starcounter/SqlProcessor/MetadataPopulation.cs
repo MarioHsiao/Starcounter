@@ -1,9 +1,11 @@
-﻿using Starcounter.Binding;
+﻿using Sc.Server.Weaver;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using Starcounter.Internal.Metadata;
 using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
@@ -201,7 +203,9 @@ namespace Starcounter.SqlProcessor {
                     }
 
                     // Workaround for #2428
-                    if (newCol.Type == null) {
+                    // We "know" that all references specified as implicit columns are
+                    // of type Entity.
+                    if (newCol.Type == null && WeavedNames.ImplicitEntityColumnNames.Contains(newCol.Name)) {
                         newCol.Type = Db.SQL<RawView>("select v from rawview v where fullname = ?",
                             typeof(Entity).FullName).First;
                     }

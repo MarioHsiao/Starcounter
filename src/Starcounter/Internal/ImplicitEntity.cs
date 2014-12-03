@@ -21,15 +21,15 @@ namespace Starcounter.Internal {
     public abstract class ImplicitEntity {
 
         #region Workaround for #2061 and #2428
-        public Entity __ScImplicitType {
-            get { return null; }
-            set { throw new InvalidOperationException(); }
-        }
+        //public Entity __ScImplicitType {
+        //    get { return null; }
+        //    set { throw new InvalidOperationException(); }
+        //}
 
-        public Entity __ScImplicitInherits {
-            get { return null; }
-            set { throw new InvalidOperationException(); }
-        }
+        //public Entity __ScImplicitInherits {
+        //    get { return null; }
+        //    set { throw new InvalidOperationException(); }
+        //}
         #endregion
     }
 }
