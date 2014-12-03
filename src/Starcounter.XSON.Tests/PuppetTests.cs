@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -174,57 +173,6 @@ namespace Starcounter.Internal.XSON.Tests {
 
             expected = string.Format(Helper.ONE_ADD_PATCH_ARR, "/Recursives/0/Recursives/1", @"{""Name"":""SubItem""}");
             Assert.AreEqual(expected, patch);
-        }
-
-        [Test]
-        public static void TestSuppressingInputChange() {
-            TObject schema;
-
-            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
-            dynamic json = schema.CreateInstance();
-            var session = new Session();
-            session.Data = json;
-
-            // Handler with no change of input value. i.e. change should not be sent back to client.
-            TString tvalue1 = ((TString)schema.Properties[0]);
-            tvalue1.AddHandler(
-                Helper.CreateInput<string>,
-                (Json pup, Starcounter.Input<string> input) => {
-                    Console.WriteLine("Handler for VirtualValue called.");
-                }
-            );
-
-            // Handler with change of input value. i.e. change should be sent back to client.
-            TString tvalue2 = ((TString)schema.Properties[1]);
-            tvalue2.AddHandler(
-                Helper.CreateInput<string>,
-                (Json pup, Starcounter.Input<string> input) => {
-                    Console.WriteLine("Handler for AbstractValue called.");
-                    input.Value = "Changed";
-                }
-            );
-
-            // Flush all current changes.
-            session.GenerateChangeLog();
-            jsonPatch.CreateJsonPatch(session, true);
-
-            // Call handler with no change of input value.
-            tvalue1.ProcessInput(json, "Incoming");
-
-            session.GenerateChangeLog();
-            string patch = jsonPatch.CreateJsonPatch(session, true);
-
-            Assert.AreEqual("Incoming", tvalue1.Getter(json));
-            Assert.AreEqual("[]", patch);
-
-            // Call handler that changes input value.
-            tvalue2.ProcessInput(json, "Incoming");
-
-            session.GenerateChangeLog();
-            patch = jsonPatch.CreateJsonPatch(session, true);
-
-            Assert.AreEqual("Changed", tvalue2.Getter(json));
-            Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Changed""}]", patch);
         }
     }
 }

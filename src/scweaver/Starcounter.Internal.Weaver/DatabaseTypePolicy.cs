@@ -1,6 +1,4 @@
 ﻿using PostSharp.Sdk.CodeModel;
-using Starcounter.Advanced;
-using System.Linq;
 
 namespace Starcounter.Internal.Weaver {
     /// <summary>
@@ -34,26 +32,6 @@ namespace Starcounter.Internal.Weaver {
             }
 
             return IsTaggedWithDatabaseAttribute(typeDef);
-        }
-
-        public bool ImplementSetValueCallback(TypeDefDeclaration typeDef) {
-            var name = typeof(ISetValueCallback).FullName;
-            var cursor = typeDef;
-
-            while (!IsImplementingInterface(cursor, name)) {
-                if (cursor.BaseType != null) {
-                    cursor = cursor.BaseType.GetTypeDefinition();
-                } else {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        bool IsImplementingInterface(TypeDefDeclaration typeDef, string interfaceName) {
-            return typeDef.InterfaceImplementations.Any((candidate) => {
-                return candidate.ImplementedInterface.GetReflectionName() == interfaceName;
-            });
         }
 
         bool IsTaggedWithDatabaseAttribute(TypeDefDeclaration typeDef) {

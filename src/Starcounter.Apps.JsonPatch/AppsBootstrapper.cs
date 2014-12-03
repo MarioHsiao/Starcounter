@@ -68,7 +68,8 @@ namespace Starcounter.Internal {
                     GatewayHandlers.RegisterTcpSocketHandler,
                     GatewayHandlers.RegisterUdpSocketHandler,
                     OnHttpMessageRoot,
-                    AppServer_.HandleRequest);
+                    AppServer_.HandleRequest,
+                    UriHandlersManager.AddExtraHandlerLevel);
 
                 AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
             }
@@ -147,8 +148,13 @@ namespace Starcounter.Internal {
 
             if (resourceResolvePath != null)
             {
-                // Administrator registers itself.
-                AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
+                // Registering static content directory with Administrator.
+
+                // Getting bytes from string.
+                //byte[] staticContentDirBytes = System.Text.ASCIIEncoding.ASCII.GetBytes(resourceResolvePath);
+
+                // Converting path string to base64 string.
+                //string staticContentDirBase64 = System.Convert.ToBase64String(staticContentDirBytes);
 
                 // Checking if this is not administrator.
                 if (!StarcounterEnvironment.IsAdministratorApp)
@@ -157,27 +163,18 @@ namespace Starcounter.Internal {
                     String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
+                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) =>
+                    {
+                        String respString = resp.Body;
 
-                        if ("Success!" != resp.Body)
+                        if ("Success!" != respString)
                             throw new Exception("Could not register static resources directory with administrator!");
                     });
-
-                    // Checking if its a Polyjuice edition and then adding Polyjuice specific static files directory.
-                    String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
-
-                    // The following directory exists only in Polyjuice edition.
-                    if (Directory.Exists(polyjuiceStatic)) {
-
-                        body = port + "\r\n" + polyjuiceStatic;
-
-                        Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
-
-                            if ("Success!" != resp.Body) {
-                                throw new Exception(string.Format("Failed to register the static resources directory ({0}).", body));
-                            }
-                        });
-                    }
+                }
+                else
+                {
+                    // Administrator registers itself.
+                    AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
                 }
             }
         }

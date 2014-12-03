@@ -37,7 +37,7 @@ namespace Starcounter.Internal.Test
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.HandleRequest);
+            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.HandleRequest, UriHandlersManager.AddExtraHandlerLevel);
             Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
 
             // Initializing system profilers.
@@ -281,35 +281,6 @@ namespace Starcounter.Internal.Test
         }
 
         /// <summary>
-        /// Tests different case sensitivity.
-        /// </summary>
-        [Test]
-        public void TestCaseInsensitivity() {
-
-            UriHandlersManager.ResetUriHandlersManagers();
-
-            // Node that is used for tests.
-            Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
-
-            Handle.GET("/CaseInsensitive", () => {
-                return 200;
-            });
-
-            Response resp = localNode.GET("/CaseInsensitive");
-            Assert.IsTrue(200 == resp.StatusCode);
-
-            resp = localNode.GET("/CaSeInSensItive");
-            Assert.IsTrue(200 == resp.StatusCode);
-
-            resp = localNode.GET("/CASEINSENSITIVE");
-            Assert.IsTrue(200 == resp.StatusCode);
-
-            resp = localNode.GET("/caseinsensitive");
-            Assert.IsTrue(200 == resp.StatusCode);
-        }
-
-        /// <summary>
         /// Tests simple correct HTTP request.
         /// </summary>
         [Test]
@@ -446,22 +417,22 @@ namespace Starcounter.Internal.Test
                 return "CUSTOM REPORT!";
             });
 
-            Handle.CUSTOM("SEARCH /", () =>
+            Handle.CUSTOM("SEARCH", "/", () =>
             {
                 return "CUSTOM SEARCH!";
             });
 
-            Handle.CUSTOM("OPTIONS /", () =>
+            Handle.CUSTOM("OPTIONS", "/", () =>
             {
                 return "CUSTOM OPTIONS!";
             });
 
-            Handle.CUSTOM("OPTIONS /hello/{?}", (String p1) =>
+            Handle.CUSTOM("OPTIONS", "/hello/{?}", (String p1) =>
             {
                 return "CUSTOM OPTIONS HELLO!";
             });
 
-            Handle.CUSTOM("DELETE /hello/{?}", (String p1) =>
+            Handle.CUSTOM("DELETE", "/hello/{?}", (String p1) =>
             {
                 return "CUSTOM DELETE HELLO!";
             });
@@ -578,11 +549,11 @@ namespace Starcounter.Internal.Test
             TestInfo testInfos14 = new TestInfo("GET /players?@w", "/players?KalleKula", "/players?{?}");
             TestInfo testInfos15 = new TestInfo("GET /whatever/@s/more/@i/@w", "/whatever/apapapa/more/5547/KalleKula", "/whatever/{?}/more/{?}/{?}");
             TestInfo testInfos16 = new TestInfo("GET /ordinary", "/ordinary", "/ordinary");
-            TestInfo testInfos17 = new TestInfo("GET /ordanary", "/ordanary", "/ordanary");
+            TestInfo testInfos17 = new TestInfo("GET /ordAnary", "/ordAnary", "/ordAnary");
             TestInfo testInfos18 = new TestInfo("GET /aaaaa/@i/bbbb", "/aaaaa/90510/bbbb", "/aaaaa/{?}/bbbb");
-            TestInfo testInfos19 = new TestInfo("GET /whatever/@s/xxyx/@i", "/whatever/abrakadabra/xxyx/911", "/whatever/{?}/xxyx/{?}");
-            TestInfo testInfos20 = new TestInfo("GET /whatever/@s/xxzx/@i", "/whatever/abrakadabra/xxzx/911", "/whatever/{?}/xxzx/{?}");
-            TestInfo testInfos21 = new TestInfo("GET /whatmore/@s/xxzx/@i", "/whatmore/abrakadabra/xxzx/911", "/whatmore/{?}/xxzx/{?}");
+            TestInfo testInfos19 = new TestInfo("GET /whatever/@s/xxYx/@i", "/whatever/abrakadabra/xxYx/911", "/whatever/{?}/xxYx/{?}");
+            TestInfo testInfos20 = new TestInfo("GET /whatever/@s/xxZx/@i", "/whatever/abrakadabra/xxZx/911", "/whatever/{?}/xxZx/{?}");
+            TestInfo testInfos21 = new TestInfo("GET /whatmore/@s/xxZx/@i", "/whatmore/abrakadabra/xxZx/911", "/whatmore/{?}/xxZx/{?}");
             TestInfo testInfos22 = new TestInfo("GET /test-decimal/@m", "/test-decimal/99.123", "/test-decimal/{?}");
             TestInfo testInfos23 = new TestInfo("GET /test-double/@d", "/test-double/99.123", "/test-double/{?}");
             TestInfo testInfos24 = new TestInfo("GET /test-bool/@b", "/test-bool/true", "/test-bool/{?}");

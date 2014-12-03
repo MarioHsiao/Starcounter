@@ -292,30 +292,6 @@ inline std::string StringToUpperCopy(const std::string &src)
     return result;
 }
 
-// Converts a part of string to lower case.
-inline void StringToLower(
-    char* dst,
-    const char* src,
-    const int32_t offset,
-    const int32_t str_total_len) {
-
-    // Copying first fragment before offset.
-    memcpy(dst, src, offset);
-
-    // Making URI lower case.
-    for (int32_t i = offset; i < str_total_len; i++) {
-
-        char c = src[i];
-
-        // Lower casing only alphabetic letter.
-        if ((c >= 'A') && (c <= 'Z')) {
-            dst[i] = c | 32;
-        } else {
-            dst[i] = c;
-        }
-    }
-}
-
 } // namespace network
 } // namespace starcounter
 

@@ -69,7 +69,7 @@ namespace Starcounter.Internal
         /// </summary>
         internal void UnLinkFinalizer() {
 
-            // NOTE: Removing reference for finalizer so it does not call destroy again.
+            // NOTE: Removing reference for finalizer not to finalize twice.
             if (null != finalizer_) {
                 finalizer_.UnLink();
                 finalizer_ = null;

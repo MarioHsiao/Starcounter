@@ -3046,58 +3046,6 @@ uint32_t Gateway::AddUriHandler(
 {
     uint32_t err_code;
 
-    // Checking that URIs are lower case.
-    int32_t uri_offset = 0;
-    int32_t original_uri_info_len = static_cast<int32_t>(strlen(original_uri_info));
-    int32_t processed_uri_info_len = static_cast<int32_t>(strlen(processed_uri_info));
-
-    int32_t num_spaces = 0;
-    for (int32_t i = 0; i < original_uri_info_len; i++) {
-        if (isspace(original_uri_info[i])) {
-            num_spaces++;
-        }
-    }
-
-    // Only one space is allowed in original URI info.
-    if (num_spaces > 1) {
-        return SCERRGWREGISTERERINGINCORRECTURI;
-    }
-
-    num_spaces = 0;
-    for (int32_t i = 0; i < processed_uri_info_len; i++) {
-        if (isspace(processed_uri_info[i])) {
-            num_spaces++;
-        }
-    }
-
-    // Only one space is allowed in processed URI info.
-    if (num_spaces > 2) {
-        return SCERRGWREGISTERERINGINCORRECTURI;
-    }
-
-    // Finding URI beginning.
-    for (int32_t i = 0; i < original_uri_info_len; i++) {
-
-        if (' ' == original_uri_info[i]) {
-            uri_offset = i + 1;
-            break;
-        }
-
-        // Checking that HTTP method is upper case.
-        if (isalpha(original_uri_info[i])) {
-            if (!isupper(original_uri_info[i])) {
-                return SCERRGWREGISTERERINGINCORRECTURI;
-            }
-        }
-    }
-
-    // Checking that all URI characters are lower case.
-    for (int32_t i = uri_offset; i < original_uri_info_len; i++) {
-        if (isupper(original_uri_info[i])) {
-            return SCERRGWREGISTERERINGINCORRECTURI;
-        }
-    }
-
     // Getting the port structure.
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
 

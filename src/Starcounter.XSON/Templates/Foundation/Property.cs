@@ -227,10 +227,8 @@ namespace Starcounter.Templates {
         public void ProcessInput(Json parent, T value) {
             Input<T> input = null;
 
-            if (_inputEventCreator != null) {
+            if (_inputEventCreator != null)
                 input = _inputEventCreator.Invoke(parent, this, value);
-                input.ValueChanged = false;
-            }
 
             if (input != null && _inputHandler != null) {
                 input.OldValue = Getter(parent);
@@ -239,9 +237,6 @@ namespace Starcounter.Templates {
                 if (!input.Cancelled) {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
                     Setter(parent, input.Value);
-
-                    if (!input.ValueChanged) // Incoming value have not been changed. Remove the dirtyflag.
-                        this.Checkpoint(parent);
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
                 }
@@ -249,7 +244,6 @@ namespace Starcounter.Templates {
                 if (BasedOn == null) {
                     Debug.WriteLine("Setting value after no handler: " + value);
                     Setter(parent, value);
-                    this.Checkpoint(parent); // Incoming value have not been changed. Remove the dirtyflag.
                 } else {
                     // This is an inherited template with no inputhandler, lets 
                     // see if the base-template has a registered handler.
@@ -270,7 +264,6 @@ namespace Starcounter.Templates {
 
                 if (!input.Cancelled) {
                     existingInput.Value = input.Value;
-                    existingInput.ValueChanged = input.ValueChanged;
                 } else {
                     existingInput.Cancel();
                 }

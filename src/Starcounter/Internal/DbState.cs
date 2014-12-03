@@ -5,7 +5,6 @@
 // ***********************************************************************
 
 using Starcounter;
-using Starcounter.Advanced;
 using Starcounter.Binding;
 using Starcounter.Internal;
 using System;

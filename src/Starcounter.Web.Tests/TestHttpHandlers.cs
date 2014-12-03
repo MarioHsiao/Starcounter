@@ -161,8 +161,8 @@ namespace Starcounter.Internal.Test {
                 return "Handle.GET /ordinary";
             });
 
-            Handle.GET("/ordanary", () => {
-                return "Handle.GET /ordanary";
+            Handle.GET("/ordAnary", () => {
+                return "Handle.GET /ordAnary";
             });
 
             Handle.GET("/aaaaa/{?}/bbbb", (int v) => {
@@ -170,19 +170,19 @@ namespace Starcounter.Internal.Test {
                 return "Handle.GET /aaaaa/@i/bbbb";
             });
 
-            Handle.GET("/whatever/{?}/xxyx/{?}", (string v1, int v2) => {
+            Handle.GET("/whatever/{?}/xxYx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
                 return "Handle.GET /whatever/@s/xxYx/@i";
             });
 
-            Handle.GET("/whatever/{?}/xxzx/{?}", (string v1, int v2) => {
+            Handle.GET("/whatever/{?}/xxZx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
                 return "Handle.GET /whatever/@s/xxZx/@i";
             });
 
-            Handle.GET("/whatmore/{?}/xxzx/{?}", (string v1, int v2) => {
+            Handle.GET("/whatmore/{?}/xxZx/{?}", (string v1, int v2) => {
                 Assert.AreEqual("abrakadabra", v1);
                 Assert.AreEqual(911, v2);
                 return "Handle.GET /whatmore/@s/xxZx/@i";

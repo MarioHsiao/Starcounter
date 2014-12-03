@@ -40,7 +40,7 @@ namespace Starcounter.Internal.Tests
          fileNameExpected = "test4";
          fileExtensionExpected = ".txt";
          target = new StaticWebServer();
-         target.fileDirectories_.Add(serverPath);
+         target.workingDirectories_.Add(serverPath);
          target.ParseFileSpecifier(serverPath,relativeUri, out directory, out fileName, out fileExtension);
          Assert.AreEqual(directoryExpected, directory);
          Assert.AreEqual(fileNameExpected, fileName);
