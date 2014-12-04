@@ -4,6 +4,7 @@
 32BitComponents\
 
 # Polyjuice client files
+Polyjuice\
 sys\
 
 # Some folders
