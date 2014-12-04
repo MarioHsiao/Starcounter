@@ -1,10 +1,20 @@
 /*!
-* json-patch-duplex.js 0.4.0
+* https://github.com/Starcounter-Jack/Fast-JSON-Patch
+* json-patch-duplex.js 0.5.0
 * (c) 2013 Joachim Wester
 * MIT license
 */
 var jsonpatch;
 (function (jsonpatch) {
+    /* Do nothing if module is already defined.
+    Doesn't look nice, as we cannot simply put
+    `!jsonpatch &&` before this immediate function call
+    in TypeScript.
+    */
+    if (jsonpatch.apply) {
+        return;
+    }
+
     var _objectKeys = (function () {
         if (Object.keys)
             return Object.keys;
