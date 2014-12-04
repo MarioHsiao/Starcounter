@@ -38,7 +38,7 @@ namespace Starcounter {
 
         public override string AsMimeType(MimeType mimeType) {
             if (mimeType == MimeType.Text_Html) {
-                return (string)X.GET(Html);
+                return X.GET<string>(Html);
             }
             return base.AsMimeType(mimeType);
         }
