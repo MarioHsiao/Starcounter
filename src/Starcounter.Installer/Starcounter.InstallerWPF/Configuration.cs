@@ -28,7 +28,7 @@ namespace Starcounter.InstallerWPF {
         /// <summary>
         /// Identifies common path for installation: product name + version.
         /// </summary>
-        public static string StarcounterCommonPath;
+        //public static string StarcounterCommonPath;
 
         private Hashtable _Components = new Hashtable();
         public Hashtable Components {
@@ -77,11 +77,6 @@ namespace Starcounter.InstallerWPF {
             private set {
                 this._SetupOptions = value;
             }
-        }
-
-
-        public Configuration() {
-            StarcounterCommonPath = System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version);
         }
 
         /// <summary>
