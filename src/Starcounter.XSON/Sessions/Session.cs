@@ -18,7 +18,7 @@ namespace Starcounter {
     public enum SessionOptions : int {
         Default = 0,
         IncludeSchema,
-        DisableProtocolVersioning,
+        EnableProtocolVersioning,
 //        DisableProtocolOT
     }
 
@@ -63,7 +63,7 @@ namespace Starcounter {
         /// </summary>
         private long clientServerVersion;
         
-        public Session() : this(SessionOptions.Default | SessionOptions.DisableProtocolVersioning) {
+        public Session() : this(SessionOptions.Default) {
         }
 
         public Session(SessionOptions options) {

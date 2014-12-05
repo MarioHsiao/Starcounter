@@ -113,7 +113,7 @@ namespace Starcounter.XSON {
             int size;
             int[] pathSizes;
             Utf8Writer writer;
-            bool versioning = !session.CheckOption(SessionOptions.DisableProtocolVersioning);
+            bool versioning = session.CheckOption(SessionOptions.EnableProtocolVersioning);
 
             // TODO:
             // We dont want to create a new array here...
@@ -139,15 +139,18 @@ namespace Starcounter.XSON {
                     writer.Write('[');
 
                     if (versioning) {
+                        // TODO:
+                        // Change order when clientside js is fixed.
+                        writer.Write(testClientVersionPatch);
+                        writer.Write(session.ClientVersion);
+                        writer.Write('}');
+                        writer.Write(',');
+
                         writer.Write(replaceServerVersionPatch);
                         writer.Write(session.ServerVersion);
                         writer.Write('}');
                         writer.Write(',');
 
-                        writer.Write(testClientVersionPatch);
-                        writer.Write(session.ClientVersion);
-                        writer.Write('}');
-                        writer.Write(',');
                     }
 
                     for (int i = 0; i < changes.Count; i++) {
@@ -467,7 +470,7 @@ namespace Starcounter.XSON {
             int usedTmpBufSize;
             long clientVersion = -1;
 
-            bool versionCheckEnabled = !session.CheckOption(SessionOptions.DisableProtocolVersioning);
+            bool versionCheckEnabled = session.CheckOption(SessionOptions.EnableProtocolVersioning);
 
             try {
                 unsafe {

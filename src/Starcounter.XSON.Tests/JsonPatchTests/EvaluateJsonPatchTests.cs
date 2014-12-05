@@ -424,7 +424,7 @@ namespace Starcounter.Internal.XSON.Tests {
             tJson = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             tValue = (TString)tJson.Properties[1];
             json = (Json)tJson.CreateInstance();
-            session = new Session(SessionOptions.Default);
+            session = new Session(SessionOptions.EnableProtocolVersioning);
             session.Data = json;
 
             session.CheckpointChangeLog();

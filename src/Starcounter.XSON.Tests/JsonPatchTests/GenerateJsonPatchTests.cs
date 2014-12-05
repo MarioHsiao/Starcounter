@@ -49,7 +49,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TValue property;
             string patch;
             string path;
-            Session session = new Session(SessionOptions.DisableProtocolVersioning);
+            Session session = new Session();
 
             List<Change> changeList = new List<Change>(1);
             changeList.Add(new Change());

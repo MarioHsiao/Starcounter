@@ -61,7 +61,7 @@ namespace Starcounter.Advanced.XSON {
             Json childObj;
             Template tProperty;
 
-            if (obj._Session != null && !obj._Session.CheckOption(SessionOptions.DisableProtocolVersioning)) {
+            if (obj._Session != null && obj._Session.CheckOption(SessionOptions.EnableProtocolVersioning)) {
                 // add serverversion and clientversion to the serialized json if we have a root.
                 sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
                 sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
@@ -245,7 +245,7 @@ namespace Starcounter.Advanced.XSON {
                     tObj = (TObject)obj.Template;
                     exposedProperties = tObj.Properties.ExposedProperties;
 
-                    if (obj._Session != null && !obj._Session.CheckOption(SessionOptions.DisableProtocolVersioning)) {
+                    if (obj._Session != null && obj._Session.CheckOption(SessionOptions.EnableProtocolVersioning)) {
                         // add serverversion and clientversion to the serialized json if we have a root.
                         valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
                         offset += valueSize;

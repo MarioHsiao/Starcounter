@@ -126,7 +126,7 @@ namespace Starcounter {
                     }
                 }
 
-                if (!session.CheckOption(SessionOptions.DisableProtocolVersioning)) {
+                if (session.CheckOption(SessionOptions.EnableProtocolVersioning)) {
                     if (versionLog == null)
                         versionLog = new List<List<Change>>();
                     versionLog.Add(ArrayAddsAndDeletes);
