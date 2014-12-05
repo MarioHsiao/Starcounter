@@ -4,26 +4,17 @@
 // </copyright>
 // ***********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Text;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Starcounter.XSON {
-    public enum JsonPatchOperation : int {
-        Undefined = 0,
-        Remove    = 1,
-        Replace   = 2,
-        Add       = 3,
-        Test      = 4
-    }
-
     /// <summary>
     /// Class for evaluating, handling and creating json-patch to and from typed json objects 
     /// and logged changes done in a typed json object during a request.
@@ -31,11 +22,18 @@ namespace Starcounter.XSON {
     /// The json-patch is implemented according to http://tools.ietf.org/html/rfc6902
     /// </summary>
     public class JsonPatch {
+        private static string serverVersionPropertyName = "_ver#s";
+        private static string clientVersionPropertyName = "_ver#c$";
+        private static byte[] serverVersionPath = Encoding.UTF8.GetBytes("/" + serverVersionPropertyName);
+        private static byte[] clientVersionPath = Encoding.UTF8.GetBytes("/" + clientVersionPropertyName);
+        private static byte[] testClientVersionPatch = Encoding.UTF8.GetBytes(@"{""op"":""test"",""path"":""/" + clientVersionPropertyName + @""",""value"":");
+        private static byte[] replaceServerVersionPatch = Encoding.UTF8.GetBytes(@"{""op"":""replace"",""path"":""/" + serverVersionPropertyName + @""",""value"":");
+
         private static byte[][] _patchOpUtf8Arr;
         private static byte[] _emptyPatchArr = { (byte)'[', (byte)']' };
 
-        private Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = HandleParsedPatch;
-
+        private Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = DefaultPatchHandler.Handle;
+        
         private enum JsonPatchMember {
             Invalid,
             Op,
@@ -52,8 +50,21 @@ namespace Starcounter.XSON {
             _patchOpUtf8Arr[(int)JsonPatchOperation.Test] = Encoding.UTF8.GetBytes("test");    
         }
 
+        public JsonPatch() {
+        }
+
         public void SetPatchHandler(Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
             patchHandler = handler;
+        }
+
+        public static string ServerVersionPropertyName {
+            get { return serverVersionPropertyName; }
+            set { serverVersionPropertyName = value; }
+        }
+
+        public static string ClientVersionPropertyName {
+            get { return clientVersionPropertyName; }
+            set { clientVersionPropertyName = value; }
         }
 
         /// <summary>
@@ -79,12 +90,12 @@ namespace Starcounter.XSON {
             session.GenerateChangeLog();
             changes = session.GetChanges();
 
-            if (changes.Count == 0) {
-                patches = _emptyPatchArr;
-                return _emptyPatchArr.Length;
-            }
+            //if (changes.Count == 0) {
+            //    patches = _emptyPatchArr;
+            //    return _emptyPatchArr.Length;
+            //}
 
-            patchSize = CreatePatches(changes, out patches);
+            patchSize = CreatePatches(session, changes, out patches);
             if (flushLog)
                 session.Clear();
         
@@ -97,26 +108,52 @@ namespace Starcounter.XSON {
         /// <param name="changeLog"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        internal int CreatePatches(List<Change> changes, out byte[] patches) {
+        internal int CreatePatches(Session session, List<Change> changes, out byte[] patches) {
             byte[] buffer;
             int size;
             int[] pathSizes;
             Utf8Writer writer;
+            bool versioning = session.CheckOption(SessionOptions.EnableProtocolVersioning);
 
             // TODO:
             // We dont want to create a new array here...
             pathSizes = new int[changes.Count];
 
             size = 2;
-            size += changes.Count;
+            size += pathSizes.Length;
+
             for (int i = 0; i < changes.Count; i++) 
                 size += CalculateSize(changes[i], out pathSizes[i]);
-            buffer = new byte[size];
 
+            if (versioning) {
+                // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
+                size += testClientVersionPatch.Length + GetSizeOfIntAsUtf8(session.ClientVersion) + 2;
+                size += replaceServerVersionPatch.Length + GetSizeOfIntAsUtf8(session.ServerVersion) + 2;
+                
+            }    
+            buffer = new byte[size];
+            
             unsafe {
                 fixed (byte* pbuf = buffer) {
                     writer = new Utf8Writer(pbuf);
                     writer.Write('[');
+
+                    if (versioning) {
+                        // TODO:
+                        // Change order when clientside js is fixed.
+                        writer.Write(testClientVersionPatch);
+                        writer.Write(session.ClientVersion);
+                        writer.Write('}');
+                        writer.Write(',');
+
+                        writer.Write(replaceServerVersionPatch);
+                        writer.Write(session.ServerVersion);
+                        writer.Write('}');
+
+                        if (changes.Count > 0) {
+                            writer.Write(',');
+                        }
+                    }
 
                     for (int i = 0; i < changes.Count; i++) {
                         var change = changes[i];
@@ -165,8 +202,8 @@ namespace Starcounter.XSON {
                 childJson = change.Obj;
             }
             writer.Write('"');
-
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
+
                 writer.Write(",\"value\":");
                 if (childJson == null && change.Property is TContainer) {
                     childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
@@ -388,23 +425,14 @@ namespace Starcounter.XSON {
                 WritePath_2(ref writer, parent, size, fromStepParent);
         }
 
-        // TODO:
-        // must be a much better way of doing this
-        private static int GetSizeOfIntAsUtf8(int value) {
-            if (value < 10)
-                return 1;
-            if (value < 100)
-                return 2;
-            if (value < 1000)
-                return 3;
-            if (value < 10000)
-                return 4;
-            if (value < 100000)
-                return 5;
-            if (value < 1000000)
-                return 6;
+        private static int GetSizeOfIntAsUtf8(long value) {
+            int size = 0;
+            do {
+                value = value / 10;
+                size++;
+            } while (value > 0);
 
-            return -1;
+            return size;
         }
 
         ///// <summary>
@@ -429,7 +457,7 @@ namespace Starcounter.XSON {
         /// </summary>
         /// <param name="rootApp">the root app for this request.</param>
         /// <param name="body">The body of the request.</param>
-        /// <returns>The number of patches evaluated.</returns>
+        /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued.</returns>
         public int EvaluatePatches(Session session, IntPtr patchArrayPtr, int patchArraySize) {
             int used = 0;
             int patchCount = 0;
@@ -442,6 +470,9 @@ namespace Starcounter.XSON {
             JsonReader reader;
             byte[] tmpBuf = new byte[512];
             int usedTmpBufSize;
+            long clientVersion = -1;
+
+            bool versionCheckEnabled = session.CheckOption(SessionOptions.EnableProtocolVersioning);
 
             try {
                 unsafe {
@@ -492,8 +523,46 @@ namespace Starcounter.XSON {
                         used += reader.Used;
                         patchCount++;
 
-                        if (patchHandler != null)
-                            patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                        if (versionCheckEnabled && patchCount <= 2) {
+                            if (patchCount == 1) {
+                                if ((patchOp != JsonPatchOperation.Replace) || !VerifyPatchPath(pointer, clientVersionPath)) {
+                                    // First patch need to be replace for client version.
+                                    ThrowPatchException(patchStart, valuePtr, valueSize, "Second patch when versioncheck is enabled have to be replace for client version.");
+                                }
+                                clientVersion = GetLongValue(valuePtr, valueSize, JsonPatch.ClientVersionPropertyName);
+                                if (clientVersion != (session.ClientVersion + 1)) {
+                                    if (clientVersion <= session.ClientVersion) {
+                                        ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Local version of client and clientversion in patch mismatched.");
+                                    } else {
+                                        byte[] tmp = new byte[patchArraySize];
+                                        Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
+                                        session.EnqueuePatch(tmp, (int)(clientVersion - session.ClientVersion - 2));
+
+                                        patchCount = -1;
+                                        break;
+                                    }
+                                }
+                                session.ClientVersion = clientVersion;
+                            } else {
+                                // Server: Second patch -> determine if transformations are needed and what version.
+                                if ((patchOp != JsonPatchOperation.Test) || !VerifyPatchPath(pointer, serverVersionPath)) {
+                                    ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
+                                }
+
+                                long patchServerVer = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
+                                session.ClientServerVersion = patchServerVer;
+                            }
+                        } else {
+                            if (patchHandler != null)
+                                patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                        }
+                    }
+                }
+
+                if (patchCount != -1) {
+                    byte[] enqueuedPatch = session.GetNextEnqueuedPatch();
+                    if (enqueuedPatch != null) {
+                        patchCount += EvaluatePatches(session, enqueuedPatch);
                     }
                 }
             } catch (JsonPatchException jpex) {
@@ -503,6 +572,43 @@ namespace Starcounter.XSON {
             }
 
             return patchCount;
+        }
+
+        private bool VerifyPatchPath(JsonPointer pointer, byte[] path) {
+            byte[] ptrArr = pointer.GetRawBuffer();
+
+            if (ptrArr.Length != path.Length)
+                return false;
+
+            for (int i = 0; i < ptrArr.Length; i++) {
+                if (ptrArr[i] != path[i])
+                    return false;
+            }
+
+            return true;
+        }
+
+        private long GetLongValue(IntPtr ptr, int size, string propertyName) {
+            long value;
+            int valueSize;
+
+            if (!JsonHelper.ParseInt(ptr, size, out value, out valueSize))
+                JsonHelper.ThrowWrongValueTypeException(null, propertyName, "Int64", ValueAsString(ptr, size));
+            return value;
+        }
+
+        private static string ValueAsString(IntPtr valuePtr, int valueSize) {
+            string value;
+            int size;
+            JsonHelper.ParseString(valuePtr, valueSize, out value, out size);
+
+            unsafe {
+                byte* pval = (byte*)valuePtr;
+                if (*pval == (byte)'"')
+                    value = '"' + value + '"';
+            }
+
+            return value;
         }
 
         /// <summary>
@@ -710,108 +816,6 @@ namespace Starcounter.XSON {
             }
 
             return true;
-        }
-
-        private static void HandleParsedPatch(Session session, JsonPatchOperation patchOp, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
-            if (patchOp != JsonPatchOperation.Replace)
-                throw new JsonPatchException("Unsupported patch operation in patch.");
-
-            Debug.WriteLine("Handling patch for: " + pointer.ToString());
-
-            if (session == null) return;
-
-            JsonProperty aat = JsonProperty.Evaluate(pointer, session.GetFirstData());
-
-            if (!aat.Property.Editable) {
-                throw new JsonPatchException(
-                    "Property '" + aat.Property.PropertyName + "' is readonly.",
-                    null
-                );
-            }
-
-            aat.Json.AddInScope(() => {
-                if (aat.Property is TBool) {
-                    ParseAndProcess((TBool)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TDecimal) {
-                    ParseAndProcess((TDecimal)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TDouble) {
-                    ParseAndProcess((TDouble)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TLong) {
-                    ParseAndProcess((TLong)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TString) {
-                    ParseAndProcess((TString)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TTrigger) {
-                    ParseAndProcess((TTrigger)aat.Property, aat.Json);
-                } else {
-                    throw new JsonPatchException(
-                        "Property " + aat.Property.TemplateName + " is invalid for userinput",
-                        null
-                    );
-                }
-            });
-        }
-
-        private static string ValueAsString(IntPtr valuePtr, int valueSize) {
-            string value;
-            int size;
-            JsonHelper.ParseString(valuePtr, valueSize, out value, out size);
-
-            unsafe {
-                byte* pval = (byte*)valuePtr;
-                if (*pval == (byte)'"')
-                    value = '"' + value + '"';
-            }
-
-            return value;
-        }
-
-        private static void ParseAndProcess(TBool property, Json parent, IntPtr valuePtr, int valueSize) {
-            bool value;
-            int size;
-
-            if (!JsonHelper.ParseBoolean(valuePtr, valueSize, out value, out size)) 
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
-            property.ProcessInput(parent, value);
-        }
-
-        private static void ParseAndProcess(TDecimal property, Json parent, IntPtr valuePtr, int valueSize) {
-            decimal value;
-            int size;
-
-            if (!JsonHelper.ParseDecimal(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
-            property.ProcessInput(parent, value);
-        }
-
-        private static void ParseAndProcess(TDouble property, Json parent, IntPtr valuePtr, int valueSize) {
-            double value;
-            int size;
-
-            if (!JsonHelper.ParseDouble(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
-            property.ProcessInput(parent, value);
-        }
-
-        private static void ParseAndProcess(TLong property, Json parent, IntPtr valuePtr, int valueSize) {
-            long value;
-            int realValueSize;
-
-            if (!JsonHelper.ParseInt(valuePtr, valueSize, out value, out realValueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, ValueAsString(valuePtr, valueSize));
-            property.ProcessInput(parent, value);
-        }
-
-        private static void ParseAndProcess(TString property, Json parent, IntPtr valuePtr, int valueSize) {
-            string value;
-            int size;
-
-            if (!JsonHelper.ParseString(valuePtr, valueSize, out value, out size))
-                JsonHelper.ThrowWrongValueTypeException(null, property.PropertyName, property.JsonType, null);
-            property.ProcessInput(parent, value);
-        }
-
-        private static void ParseAndProcess(TTrigger property, Json parent) {
-            property.ProcessInput(parent);
         }
     }
 }

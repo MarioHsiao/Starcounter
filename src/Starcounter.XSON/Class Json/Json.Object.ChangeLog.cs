@@ -125,7 +125,13 @@ namespace Starcounter {
                         ((Json)_list[i]).LogValueChangesWithDatabase(session);
                     }
                 }
-                ArrayAddsAndDeletes.Clear();
+
+                if (session.CheckOption(SessionOptions.EnableProtocolVersioning)) {
+                    if (versionLog == null)
+                        versionLog = new List<List<Change>>();
+                    versionLog.Add(ArrayAddsAndDeletes);
+                }
+                ArrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < _list.Count; t++) {
                     ((Json)_list[t]).LogValueChangesWithDatabase(session);

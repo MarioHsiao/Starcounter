@@ -216,10 +216,13 @@ namespace Starcounter.Internal.XSON.Tests {
                        + ","
                        + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
+
+            jsonPatch.SetPatchHandler(null);
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = jsonPatch.EvaluatePatches(null, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(2, patchCount);
 
+            jsonPatch.SetPatchHandler(DefaultPatchHandler.Handle);
         }
 
         [Test]
@@ -406,6 +409,78 @@ namespace Starcounter.Internal.XSON.Tests {
                 Console.Write("' ");
             }
             Console.WriteLine();
+        }
+
+        [Test]
+        public static void TestPatchVersioning() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            Json json;
+            TObject tJson;
+            TString tValue;
+
+            tJson = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            tValue = (TString)tJson.Properties[1];
+            json = (Json)tJson.CreateInstance();
+            session = new Session(SessionOptions.EnableProtocolVersioning);
+            session.Data = json;
+
+            session.CheckpointChangeLog();
+            Assert.AreEqual(0, session.ClientVersion);
+            Assert.AreEqual(0, session.ServerVersion);
+
+            incomingPatch = GetVersioningPatch(1, 0);
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(0, session.ServerVersion);
+            Assert.AreEqual("Changed1", tValue.Getter(json));
+
+            tValue.Setter(json, "qwerty");
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true);
+            Assert.AreEqual(1, session.ServerVersion);
+
+            incomingPatch = GetVersioningPatch(4, 1);
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(-1, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(1, session.ServerVersion);
+            Assert.AreEqual("qwerty", tValue.Getter(json));
+
+            incomingPatch = GetVersioningPatch(3, 1);
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(-1, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(1, session.ServerVersion);
+            Assert.AreEqual("qwerty", tValue.Getter(json));
+
+            incomingPatch = GetVersioningPatch(5, 1);
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(-1, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(1, session.ServerVersion);
+            Assert.AreEqual("qwerty", tValue.Getter(json));
+
+            incomingPatch = GetVersioningPatch(2, 1);
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(12, evaluatedCount);
+            Assert.AreEqual(5, session.ClientVersion);
+            Assert.AreEqual(1, session.ServerVersion);
+            Assert.AreEqual("Changed1", tValue.Getter(json));
+
+        }
+
+        private static string GetVersioningPatch(long clientVersion, long serverVersion) {
+            return 
+                "["
+                + string.Format(Helper.PATCH, "/" + JsonPatch.ClientVersionPropertyName, clientVersion)
+                + ","
+                + string.Format(Helper.PATCH_TEST, "/" + JsonPatch.ServerVersionPropertyName, serverVersion)
+                + ","
+                + string.Format(Helper.PATCH, "/AbstractValue$", @"""Changed1""")
+                + "]";
         }
     }
 }
