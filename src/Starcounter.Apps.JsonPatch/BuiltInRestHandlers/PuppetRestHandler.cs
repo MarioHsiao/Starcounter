@@ -51,23 +51,22 @@ namespace Starcounter.Internal {
                 }
 
                 // Running patches evaluation.
-                jsonPatch.EvaluatePatches(session, bs);
+                int patchCount = jsonPatch.EvaluatePatches(session, bs);
 
-                // Getting changes from the root.
-                Byte[] patchResponse;
-                Int32 sizeBytes = jsonPatch.CreateJsonPatchBytes(session, false, out patchResponse);
+                // -1 means that the patch was queued due to clientversion mismatch. We send no response.
+                if (patchCount != -1) { 
+                    // Getting changes from the root.
+                    Byte[] patchResponse;
+                    Int32 sizeBytes = jsonPatch.CreateJsonPatchBytes(session, false, out patchResponse);
 
-                // Sending the patch bytes to the client.
-                ws.Send(patchResponse, sizeBytes, ws.IsText);
-
+                    // Sending the patch bytes to the client.
+                    ws.Send(patchResponse, sizeBytes, ws.IsText);
+                }
                 return;
-
             } catch (JsonPatchException nex) {
-
                 ws.Disconnect(nex.Message + " Patch: " + nex.Patch);
                 return;
-            }
-
+            } 
         }
 
         private static void HandlerRegistered(string uri, ushort port) {
@@ -92,7 +91,14 @@ namespace Starcounter.Internal {
                     IntPtr bodyPtr;
                     uint bodySize;
                     request.GetBodyRaw(out bodyPtr, out bodySize);
-                    jsonPatch.EvaluatePatches(session, bodyPtr, (int)bodySize);
+                    int patchCount = jsonPatch.EvaluatePatches(session, bodyPtr, (int)bodySize);
+
+                    if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
+                        return new Response() {
+                            StatusCode = 202,
+                            StatusDescription = "Patch enqueued until earlier versions have arrived"
+                        };
+                    }
 
                     return root;
                 } catch (JsonPatchException nex) {

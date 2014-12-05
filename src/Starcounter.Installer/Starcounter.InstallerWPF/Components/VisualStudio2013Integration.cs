@@ -57,8 +57,9 @@ namespace Starcounter.InstallerWPF.Components
         {
             base.SetDefaultValues();
 
+#if !SIMULATE_CLEAN_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2013Integration];
-
+#endif
             switch (this.Command)
             {
                 case ComponentCommand.Install:

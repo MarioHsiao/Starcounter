@@ -1,5 +1,6 @@
 /*!
- * json-patch-duplex.js 0.4.0
+ * https://github.com/Starcounter-Jack/Fast-JSON-Patch
+ * json-patch-duplex.js 0.5.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -11,6 +12,14 @@ interface Object {
 }
 
 module jsonpatch {
+  /* Do nothing if module is already defined.
+     Doesn't look nice, as we cannot simply put 
+     `!jsonpatch &&` before this immediate function call
+     in TypeScript.
+     */
+  if (jsonpatch.observe) {
+      return;
+  }
 
 
   var _objectKeys = (function () {
@@ -292,6 +301,15 @@ module jsonpatch {
 
   }
 
+  function deepClone(obj:any) {
+    if (typeof obj === "object") {
+      return JSON.parse(JSON.stringify(obj)); //Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+    }
+    else {
+      return obj; //no need to clone primitives
+    }
+  }
+
   export function observe(obj:any, callback):any {
     var patches = [];
     var root = obj;
@@ -358,7 +376,7 @@ module jsonpatch {
     } else {
       observer = {};
 
-      mirror.value = JSON.parse(JSON.stringify(obj)); // Faster than ES5 clone - http://jsperf.com/deep-cloning-of-objects/5
+      mirror.value = deepClone(obj);
 
       if (callback) {
         //callbacks.push(callback); this has no purpose
@@ -454,6 +472,9 @@ module jsonpatch {
         }
       }
       _generate(mirror.value, observer.object, observer.patches, "");
+      if(observer.patches.length) {
+        apply(mirror.value, observer.patches);
+      }
     }
     var temp = observer.patches;
     if(temp.length > 0) {
@@ -485,14 +506,12 @@ module jsonpatch {
         else {
           if (oldVal != newVal) {
             changed = true;
-            patches.push({op: "replace", path: path + "/" + escapePathComponent(key), value: newVal});
-            mirror[key] = newVal;
+            patches.push({op: "replace", path: path + "/" + escapePathComponent(key), value: deepClone(newVal)});
           }
         }
       }
       else {
         patches.push({op: "remove", path: path + "/" + escapePathComponent(key)});
-        delete mirror[key];
         deleted = true; // property has been deleted
       }
     }
@@ -504,8 +523,7 @@ module jsonpatch {
     for (var t = 0; t < newKeys.length; t++) {
       var key = newKeys[t];
       if (!mirror.hasOwnProperty(key)) {
-        patches.push({op: "add", path: path + "/" + escapePathComponent(key), value: obj[key]});
-        mirror[key] = JSON.parse(JSON.stringify(obj[key]));
+        patches.push({op: "add", path: path + "/" + escapePathComponent(key), value: deepClone(obj[key])});
       }
     }
   }

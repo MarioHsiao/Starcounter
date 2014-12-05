@@ -1,7 +1,8 @@
 {
   "name": "imported-template",
+  "version": "0.0.4",
   "dependencies": {
-    "polymer": "Polymer/polymer#~0.3"
+    "polymer": "Polymer/polymer#~0.4"
   },
   "devDependencies": {
     "github-button": "zenorocha/github-button",
@@ -32,13 +33,13 @@
     "examples",
     "preview.png"
   ],
-  "_release": "f2a4c16c65",
+  "_release": "0.0.4",
   "_resolution": {
-    "type": "branch",
-    "branch": "gh-pages",
-    "commit": "f2a4c16c65a8d02c7078f562a87080d32ceda76a"
+    "type": "version",
+    "tag": "0.0.4",
+    "commit": "37dc29cbd0e2d54357f7c3f6047ae43fadfadde7"
   },
   "_source": "git://github.com/Juicy/imported-template.git",
-  "_target": "gh-pages",
+  "_target": "~0.0.4",
   "_originalSource": "imported-template"
 }

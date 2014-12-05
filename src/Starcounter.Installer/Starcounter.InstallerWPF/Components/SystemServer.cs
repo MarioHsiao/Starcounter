@@ -139,7 +139,7 @@ namespace Starcounter.InstallerWPF.Components
 
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.SystemServer];
 
-            this.Path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("SystemDrive"), Configuration.StarcounterCommonPath);
+            this.Path = System.IO.Path.Combine(Environment.GetEnvironmentVariable("SystemDrive"), ConstantsBank.SCProductName);
 
             this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort;
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort;

@@ -49,6 +49,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TValue property;
             string patch;
             string path;
+            Session session = new Session();
 
             List<Change> changeList = new List<Change>(1);
             changeList.Add(new Change());
@@ -65,7 +66,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(path.Length, pathSize);
             Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
             changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(changeList, out patchArr);
+            patchSize = jsonPatch.CreatePatches(session, changeList, out patchArr);
             Assert.AreEqual(patchSize, patchSize);
 
             // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
@@ -80,7 +81,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(path.Length, pathSize);
             Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
             changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(changeList, out patchArr);
+            patchSize = jsonPatch.CreatePatches(session, changeList, out patchArr);
             Assert.AreEqual(patchSize, patchSize);
 
             // ["op":"replace","path":"/Focused/Age","value":19]
@@ -96,7 +97,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(path.Length, pathSize);
             Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
             changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(changeList, out patchArr);
+            patchSize = jsonPatch.CreatePatches(session, changeList, out patchArr);
             Assert.AreEqual(patchSize, patchSize);
 
             // ["op":"replace","path":"/Items/0/Stats","value":23.5]
@@ -114,7 +115,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(path.Length, pathSize);
             Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
             changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(changeList, out patchArr);
+            patchSize = jsonPatch.CreatePatches(session, changeList, out patchArr);
             Assert.AreEqual(patchSize, patchSize);
 
 
@@ -136,7 +137,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(path.Length, pathSize);
             Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
             changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(changeList, out patchArr);
+            patchSize = jsonPatch.CreatePatches(session, changeList, out patchArr);
             Assert.AreEqual(patchSize, patchSize);
 
             // ["op":"replace","path":"/Focused/OtherApp/FirstName","value":"ApaPapa"]
@@ -158,7 +159,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(path.Length, pathSize);
             Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
             changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(changeList, out patchArr);
+            patchSize = jsonPatch.CreatePatches(session, changeList, out patchArr);
             Assert.AreEqual(patchSize, patchSize);
 
         }

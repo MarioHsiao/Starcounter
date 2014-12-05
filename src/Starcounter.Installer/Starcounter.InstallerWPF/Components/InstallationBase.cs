@@ -8,6 +8,7 @@ using System.Collections;
 using Starcounter.InstallerWPF.Rules;
 using System.Globalization;
 using System.Windows.Controls;
+using Starcounter.Internal;
 
 namespace Starcounter.InstallerWPF.Components
 {
@@ -100,12 +101,14 @@ namespace Starcounter.InstallerWPF.Components
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.InstallationBase];
 
             // Setting installation path (new path is created if not installed).
+#if !SIMULATE_CLEAN_INSTALLATION
             this.Path = CInstallationBase.GetInstalledDirFromEnv();
+#endif
             if (string.IsNullOrEmpty(this.Path))
             {
                 String programFilesPath = ConstantsBank.ProgramFilesPath;
 
-                this.Path = System.IO.Path.Combine(programFilesPath, Configuration.StarcounterCommonPath);
+                this.Path = System.IO.Path.Combine(programFilesPath, System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version) );
             }
 
             switch (this.Command)

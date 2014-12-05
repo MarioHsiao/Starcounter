@@ -17,7 +17,7 @@
     "tag": "0.0.1",
     "commit": "9dc49feb92cd27be1ee6ada6defc53d30dd1e482"
   },
-  "_source": "git://github.com/polyjuice/model-operations.git",
+  "_source": "git://github.com/Polyjuice/model-operations.git",
   "_target": "~0.0.1",
-  "_originalSource": "polyjuice/model-operations"
+  "_originalSource": "Polyjuice/model-operations"
 }
