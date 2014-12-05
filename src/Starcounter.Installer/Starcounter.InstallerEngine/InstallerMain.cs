@@ -69,7 +69,7 @@ namespace Starcounter.InstallerEngine
         }
         
         // Creates server config XML.
-        public static void CreateServerConfig(
+        public static void PointToServerConfig(
             String serverName,
             String pathToServerDir,
             String whereToSaveConfig)
@@ -90,13 +90,17 @@ namespace Starcounter.InstallerEngine
         // Copy gateway config XML.
         public static void CopyGatewayConfig(
             String serverDir,
-            String internalSystemPort)
+            String internalSystemPort,
+            Boolean useExistingServerInstallation)
         {
             // Copying gateway configuration.
-            File.Copy(
-                Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScGatewayConfigName),
-                Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
-                true);
+            if (!useExistingServerInstallation) {
+
+                File.Copy(
+                    Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScGatewayConfigName),
+                    Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                    true);
+            }
 
             // Overwriting server config values.
             if (!Utilities.ReplaceXMLParameterInFile(
