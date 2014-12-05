@@ -29,7 +29,7 @@ namespace Starcounter.InstallerWPF.Pages
 
         void InstallationPathPage_Loaded(object sender, RoutedEventArgs e)
         {
-            FocusManager.SetFocusedElement(FocusManager.GetFocusScope(Application.Current.MainWindow), this.tb_MainInstallationPath);
+            FocusManager.SetFocusedElement(FocusManager.GetFocusScope(System.Windows.Application.Current.MainWindow), this.tb_MainInstallationPath);
         }
     }
 }

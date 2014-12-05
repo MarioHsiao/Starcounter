@@ -1,4 +1,4 @@
-/*! puppet.js 0.2.4
+/*! puppet.js 0.2.5
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -314,7 +314,7 @@
     jsonpatch.apply(this.obj, patches);
     var that = this;
     patches.forEach(function (patch) {
-      if (patch.path === "/") {
+      if (patch.path === "") {
         var desc = JSON.stringify(patches);
         if (desc.length > 103) {
           desc = desc.substring(0, 100) + "...";
