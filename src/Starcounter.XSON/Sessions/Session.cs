@@ -57,6 +57,11 @@ namespace Starcounter {
         /// </summary>
         private long clientVersion;
         private long serverVersion;
+
+        /// <summary>
+        /// The clients current serverversion. Used to check if OT is needed.
+        /// </summary>
+        private long clientServerVersion;
         
         public Session() : this(SessionOptions.Default | SessionOptions.DisableProtocolVersioning) {
         }
@@ -91,9 +96,9 @@ namespace Starcounter {
 
         internal void EnqueuePatch(byte[] patchArray, int index) {
             if (patchQueue == null)
-                patchQueue = new List<byte[]>();
+                patchQueue = new List<byte[]>(8);
 
-            for (int i = patchQueue.Count; i < index; i++)
+            for (int i = patchQueue.Count; i < index + 1; i++)
                 patchQueue.Add(null);
             
             patchQueue[index] = patchArray;
@@ -121,6 +126,11 @@ namespace Starcounter {
         /// </summary>
         public long ServerVersion {
             get { return serverVersion; }
+        }
+
+        public long ClientServerVersion {
+            get { return clientServerVersion; }
+            internal set { clientServerVersion = value; }
         }
 
         public void ShareTransaction(ITransaction transaction) {
@@ -496,6 +506,7 @@ namespace Starcounter {
         /// </summary>
         internal static void End() {
             if (_current != null) {
+                _current.clientServerVersion = -1;
                 _current._transaction = null;
                 _current.Clear();
                 Session._current = null;

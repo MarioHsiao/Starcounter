@@ -61,6 +61,12 @@ namespace Starcounter.Advanced.XSON {
             Json childObj;
             Template tProperty;
 
+            if (obj._Session != null && !obj._Session.CheckOption(SessionOptions.DisableProtocolVersioning)) {
+                // add serverversion and clientversion to the serialized json if we have a root.
+                sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
+                sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
+            }
+
             addAppName = (obj._stepParent == null && !string.IsNullOrEmpty(obj._appName));
 
             if (addAppName) {
@@ -235,9 +241,38 @@ namespace Starcounter.Advanced.XSON {
                         offset++;
                     }
 
-                    tObj = (TObject)obj.Template;
 
+                    tObj = (TObject)obj.Template;
                     exposedProperties = tObj.Properties.ExposedProperties;
+
+                    if (obj._Session != null && !obj._Session.CheckOption(SessionOptions.DisableProtocolVersioning)) {
+                        // add serverversion and clientversion to the serialized json if we have a root.
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
+                        offset += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)':';
+                        offset++;
+                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, obj._Session.ClientVersion);
+                        offset += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)',';
+                        offset++;
+
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ServerVersionPropertyName);
+                        offset += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)':';
+                        offset++;
+                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, obj._Session.ServerVersion);
+                        offset += valueSize;
+                        pfrag += valueSize;
+
+                        if (exposedProperties.Count > 0) {
+                            *pfrag++ = (byte)',';
+                            offset++;
+                        }
+                    }
+
                     for (int i = 0; i < exposedProperties.Count; i++) {
                         Template tProperty = exposedProperties[i];
 

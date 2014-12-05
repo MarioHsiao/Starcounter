@@ -32,7 +32,7 @@ namespace Starcounter.XSON {
         private static byte[][] _patchOpUtf8Arr;
         private static byte[] _emptyPatchArr = { (byte)'[', (byte)']' };
 
-        private Action<Session, long, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler;
+        private Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = DefaultPatchHandler.Handle;
         
         private enum JsonPatchMember {
             Invalid,
@@ -53,7 +53,7 @@ namespace Starcounter.XSON {
         public JsonPatch() {
         }
 
-        public void SetPatchHandler(Action<Session, long, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
+        public void SetPatchHandler(Action<Session, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
             patchHandler = handler;
         }
 
@@ -139,13 +139,13 @@ namespace Starcounter.XSON {
                     writer.Write('[');
 
                     if (versioning) {
-                        writer.Write(testClientVersionPatch);
-                        writer.Write(session.ClientVersion);
+                        writer.Write(replaceServerVersionPatch);
+                        writer.Write(session.ServerVersion);
                         writer.Write('}');
                         writer.Write(',');
 
-                        writer.Write(replaceServerVersionPatch);
-                        writer.Write(session.ServerVersion);
+                        writer.Write(testClientVersionPatch);
+                        writer.Write(session.ClientVersion);
                         writer.Write('}');
                         writer.Write(',');
                     }
@@ -197,8 +197,8 @@ namespace Starcounter.XSON {
                 childJson = change.Obj;
             }
             writer.Write('"');
-
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
+
                 writer.Write(",\"value\":");
                 if (childJson == null && change.Property is TContainer) {
                     childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
@@ -520,45 +520,41 @@ namespace Starcounter.XSON {
 
                         if (versionCheckEnabled && patchCount <= 2) {
                             if (patchCount == 1) {
-                                // Server: First patch -> determine if transformations are needed and what version.
-                                if ((patchOp != JsonPatchOperation.Test) || !VerifyPatchPath(pointer, serverVersionPath)) {
-                                    ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
-                                }
-
-                                long patchServerVer = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
-                                if (patchServerVer < session.ServerVersion) {
-                                    // TODO:
-                                    // OT is needed.
-                                    // How do we handle this?
-                                }
-                            } else {
                                 if ((patchOp != JsonPatchOperation.Replace) || !VerifyPatchPath(pointer, clientVersionPath)) {
-                                    // Second patch need to be replace for client version.
+                                    // First patch need to be replace for client version.
                                     ThrowPatchException(patchStart, valuePtr, valueSize, "Second patch when versioncheck is enabled have to be replace for client version.");
                                 }
                                 clientVersion = GetLongValue(valuePtr, valueSize, JsonPatch.ClientVersionPropertyName);
-                                if (clientVersion != (session.ClientVersion + 1)) { 
+                                if (clientVersion != (session.ClientVersion + 1)) {
                                     if (clientVersion <= session.ClientVersion) {
                                         ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Local version of client and clientversion in patch mismatched.");
                                     } else {
                                         byte[] tmp = new byte[patchArraySize];
                                         Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
-                                        session.EnqueuePatch(tmp, (int)(clientVersion - session.ClientVersion - 1));
+                                        session.EnqueuePatch(tmp, (int)(clientVersion - session.ClientVersion - 2));
 
                                         patchCount = -1;
                                         break;
                                     }
                                 }
+                                session.ClientVersion = clientVersion;
+                            } else {
+                                // Server: Second patch -> determine if transformations are needed and what version.
+                                if ((patchOp != JsonPatchOperation.Test) || !VerifyPatchPath(pointer, serverVersionPath)) {
+                                    ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
+                                }
+
+                                long patchServerVer = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
+                                session.ClientServerVersion = patchServerVer;
                             }
                         } else {
                             if (patchHandler != null)
-                                patchHandler(session, -1, patchOp, pointer, valuePtr, valueSize);
+                                patchHandler(session, patchOp, pointer, valuePtr, valueSize);
                         }
                     }
                 }
 
-                if (patchCount != -1) { // All patches are applied succesfully. Increase clientversion and check queue.
-                    session.ClientVersion++;
+                if (patchCount != -1) {
                     byte[] enqueuedPatch = session.GetNextEnqueuedPatch();
                     if (enqueuedPatch != null) {
                         patchCount += EvaluatePatches(session, enqueuedPatch);
