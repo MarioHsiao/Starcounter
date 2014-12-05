@@ -61,6 +61,11 @@ namespace Starcounter {
         internal List<Change> ArrayAddsAndDeletes = null;
 
         /// <summary>
+        /// 
+        /// </summary>
+        internal List<List<Change>> versionLog = null;
+
+        /// <summary>
         /// Implementation field used to cache the Metadata property.
         /// </summary>
         private ObjMetadata<TObject, Json> _Metadata = null;

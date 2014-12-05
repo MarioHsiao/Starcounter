@@ -9,6 +9,7 @@ using Starcounter.XSON;
 namespace Starcounter.Internal.XSON.Tests {
     internal static class Helper {
         internal const string PATCH = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
+        internal const string PATCH_TEST = "{{\"op\":\"test\",\"path\":\"{0}\",\"value\":{1}}}";
         internal const string ONE_PATCH_ARR = "[{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}]";
         internal const string ONE_ADD_PATCH_ARR = "[{{\"op\":\"add\",\"path\":\"{0}\",\"value\":{1}}}]";
         internal static JsonProperty CreateSampleApp() {
