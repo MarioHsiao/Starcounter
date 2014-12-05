@@ -216,10 +216,13 @@ namespace Starcounter.Internal.XSON.Tests {
                        + ","
                        + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
+
+            jsonPatch.SetPatchHandler(null);
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
-            patchCount = jsonPatch.EvaluatePatches(null, patchBytes);
+            patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(2, patchCount);
 
+            jsonPatch.SetPatchHandler(DefaultPatchHandler.Handle);
         }
 
         [Test]

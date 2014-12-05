@@ -467,7 +467,7 @@ namespace Starcounter.XSON {
             int usedTmpBufSize;
             long clientVersion = -1;
 
-            bool versionCheckEnabled = ((session != null) && (!session.CheckOption(SessionOptions.DisableProtocolVersioning)));
+            bool versionCheckEnabled = !session.CheckOption(SessionOptions.DisableProtocolVersioning);
 
             try {
                 unsafe {
