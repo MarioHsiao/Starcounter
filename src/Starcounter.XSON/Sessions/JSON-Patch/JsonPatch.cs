@@ -90,10 +90,10 @@ namespace Starcounter.XSON {
             session.GenerateChangeLog();
             changes = session.GetChanges();
 
-            if (changes.Count == 0) {
-                patches = _emptyPatchArr;
-                return _emptyPatchArr.Length;
-            }
+            //if (changes.Count == 0) {
+            //    patches = _emptyPatchArr;
+            //    return _emptyPatchArr.Length;
+            //}
 
             patchSize = CreatePatches(session, changes, out patches);
             if (flushLog)
@@ -149,8 +149,10 @@ namespace Starcounter.XSON {
                         writer.Write(replaceServerVersionPatch);
                         writer.Write(session.ServerVersion);
                         writer.Write('}');
-                        writer.Write(',');
 
+                        if (changes.Count > 0) {
+                            writer.Write(',');
+                        }
                     }
 
                     for (int i = 0; i < changes.Count; i++) {

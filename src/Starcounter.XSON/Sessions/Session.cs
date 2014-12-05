@@ -600,9 +600,9 @@ namespace Starcounter {
                 }
             }
 
-            if (_changes.Count != 0) { // New version of the viewmodel. 
+//            if (_changes.Count != 0) { // New version of the viewmodel. 
                 serverVersion++;
-            }
+//            }
         }
 
         /// <summary>
