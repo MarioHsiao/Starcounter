@@ -698,6 +698,9 @@ namespace Starcounter.InstallerEngine
                 }
                 catch (InstallerAbortedException userCanceled)
                 {
+                    // Rolling back the installation.
+                    UninstallEngine.RollbackInstallation();
+
                     // Simply re-throwing user all cancellations.
                     throw userCanceled;
                 }
@@ -784,6 +787,9 @@ namespace Starcounter.InstallerEngine
                 }
                 catch (InstallerAbortedException userCanceled)
                 {
+                    // Rolling back the installation.
+                    UninstallEngine.RollbackInstallation();
+
                     // Simply re-throwing all user cancellations.
                     throw userCanceled;
                 }

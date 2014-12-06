@@ -502,7 +502,6 @@ public class CPersonalServer : CComponentBase
             null,
             EnvironmentVariableTarget.User);
 
-
         // Logging event.
         Utilities.ReportSetupEvent("Deleting personal database server registry entries...");
 
@@ -515,19 +514,6 @@ public class CPersonalServer : CComponentBase
 
         // Deleting personal server configuration folder if demanded.
         Utilities.ReportSetupEvent("Deleting personal database server configuration...");
-
-        // Getting the server installation path.
-        try
-        {
-            String personalServerPath = ComponentPath;
-
-            if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(personalServerPath)))
-            {
-                InstallerMain.FinalSetupMessage += "You can find and manually delete the Personal Server databases directory in: '" +
-                    personalServerPath + "'" + Environment.NewLine;
-            }
-        }
-        catch { }
 
         // Deleting the config file.
         if (File.Exists(PersonalServerConfigPath))
