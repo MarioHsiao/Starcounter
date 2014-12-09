@@ -100,12 +100,7 @@ namespace Starcounter.Weaver {
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
 
-            // Also verify files from the edition library; if those are outdated
-            // in the cache, and if so, invalidate them. Or is it enough if the
-            // references will detect this?
-            // TODO:
-
-            // Assure we always add these libraries LAST - this is what we depend
+            // Assure we always add edition libraries LAST - this is what we depend
             // on to avoid having to weave them when they are not referenced
             var editionLibraries = CodeWeaver.Current.EditionLibrariesDirectory;
             if (Directory.Exists(editionLibraries)) {
