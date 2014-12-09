@@ -201,14 +201,6 @@ namespace Starcounter.Rest
         /// <summary>
         /// Generates main LINQ parameters parsing code.
         /// </summary>
-        /// <param name="delegateArgTypes"></param>
-        /// <param name="req"></param>
-        /// <param name="dataBeginPtr"></param>
-        /// <param name="paramsInfoPtr"></param>
-        /// <param name="argMessageType"></param>
-        /// <param name="argSessionType"></param>
-        /// <param name="bodyExpressions"></param>
-        /// <param name="parsedParams"></param>
         public void GenerateMainParamsParsingCode(
             List<RestDelegateArgumentTypes> delegateArgTypes,
             ParameterExpression req,
@@ -411,12 +403,21 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
+        /// Tries to find handler by processed URI string.
+        /// </summary>
+        public static UserHandlerInfo FindHandlerByProcessedUri(String processedUriInfo, HandlerOptions ho = null) {
+
+            // Checking if handler options is defined.
+            if (ho == null) {
+                ho = HandlerOptions.DefaultHandlerOptions;
+            }
+
+            return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByProcessedUri(processedUriInfo);
+        }
+
+        /// <summary>
         /// Does internal registration of delegate involving notification of gateway.
         /// </summary>
-        /// <param name="port">HTTP port</param>
-        /// <param name="methodAndUri">Method and unmodified URI basically.</param>
-        /// <param name="userDelegateInfo">Information about user delegate.</param>
-        /// <returns>Handler callback.</returns>
         Func<Request, IntPtr, IntPtr, Response> RegisterDelegate(
             UInt16 port,
             String methodAndUriInfo,
@@ -427,6 +428,7 @@ namespace Starcounter.Rest
         {
             String[] s = methodAndUriInfo.Split(null);
             String originalUriInfo = null;
+            String polyjuiceMsg = "Error registering handler: " + methodAndUriInfo + ". Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
 
             // Checking if consists of method and URI.
             if (s.Length > 1) {
@@ -439,11 +441,42 @@ namespace Starcounter.Rest
 #if CASE_INSENSITIVE_URI_MATCHER
                 s[1] = s[1].ToLowerInvariant();
 #endif
+                // Checking if its a Polyjuice application.
+                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+
+                    // Checking that its a Polyjuice handler.
+                    if (!ho.AllowNonPolyjuiceHandler) {
+
+                        // Handler name should start with application name or launcher name.
+                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase) &&
+                            !s[1].StartsWith("/" + StarcounterConstants.LauncherAppName, StringComparison.InvariantCultureIgnoreCase) &&
+                            !s[1].StartsWith("/" + StarcounterConstants.SocietyObjectsPrefix, StringComparison.InvariantCultureIgnoreCase)) {
+                            throw new ArgumentOutOfRangeException(polyjuiceMsg);
+                        }
+
+                        // Checking if its not a launcher application.
+                        if (StarcounterEnvironment.AppName != StarcounterConstants.LauncherAppName) {
+
+                            // Creating a new proxy handler or adding to existing handler list.
+
+                        }
+                    }
+                }
 
                 // Constructing original URI info.
                 originalUriInfo = s[0] + " " + s[1];
 
             } else {
+
+                // Checking if its a Polyjuice application.
+                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+
+                    // Checking that its a Polyjuice handler.
+                    if ((ho != null) && (false == ho.AllowNonPolyjuiceHandler)) {
+
+                        throw new ArgumentOutOfRangeException(polyjuiceMsg);
+                    }
+                }
 
 #if CASE_INSENSITIVE_URI_MATCHER
                 s[0] = s[0].ToLowerInvariant();
@@ -490,14 +523,6 @@ namespace Starcounter.Rest
         /// <summary>
         /// Generates code using LINQ expressions for calling user delegate.
         /// </summary>
-        /// <param name="originalUriInfo"></param>
-        /// <param name="userDelegateInfo"></param>
-        /// <param name="delegExpr"></param>
-        /// <param name="nativeParamTypes"></param>
-        /// <param name="processedUriInfo"></param>
-        /// <param name="argMessageType"></param>
-        /// <param name="argSessionType"></param>
-        /// <returns></returns>
         Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegateAndGetParameters(
             String originalUriInfo,
             MethodInfo userDelegateInfo,
@@ -891,7 +916,7 @@ namespace Starcounter.Rest
             TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
             UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, HandlerOptions.HandlerLevels, Response> handleInternalRequest)
+            Func<Request, HandlerOptions, Response> handleInternalRequest)
         {
             TcpSocket.InitTcpSockets(tcpSocketHandler);
             UdpSocket.InitUdpSockets(udpSocketHandler);
@@ -913,7 +938,7 @@ namespace Starcounter.Rest
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
-            HandlerOptions.HandlerLevels handlerLevel,
+            HandlerOptions handlerOptions,
             out Response resp)
         {
             resp = null;
@@ -923,7 +948,7 @@ namespace Starcounter.Rest
                 return false;
 
             // Getting appropriate handler level manager.
-            UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerLevel);
+            UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
 
             // Checking if port is initialized.
             PortUris portUris = uhm.SearchPort(portNumber);
@@ -943,13 +968,18 @@ namespace Starcounter.Rest
             }
 
             // Calling the generated URI matcher.
-            Int32 handlerId = -1;
+            Int32 handlerId = handlerOptions.HandlerId;
             unsafe
             {
                 // Allocating space for parameter information.
-                Byte* native_params_bytes = stackalloc Byte[MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES];
-                MixedCodeConstants.UserDelegateParamInfo* native_params = (MixedCodeConstants.UserDelegateParamInfo*)native_params_bytes;
-                MixedCodeConstants.UserDelegateParamInfo** native_params_addr = &native_params;
+                Byte* paramsStackBuf = stackalloc Byte[MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES];
+                MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams = 
+                    (MixedCodeConstants.UserDelegateParamInfo*) paramsStackBuf;
+
+                // Setting parameters info from handler options.
+                *handlerNativeParams = handlerOptions.ParametersInfo;
+
+                MixedCodeConstants.UserDelegateParamInfo** handlerNativeParamsAddr = &handlerNativeParams;
 
                 // Copying string to stack buffer instead of pinning the request bytes.
                 Int32 len = methodSpaceUriSpace.Length;
@@ -958,19 +988,24 @@ namespace Starcounter.Rest
                     uri_info[i] = (Byte) methodSpaceUriSpace[i];
                 }
 
-                // TODO: Resolve this hack with only positive handler ids in generated code.
-                handlerId = portUris.MatchUriAndGetHandlerId(uri_info, (UInt32) len, native_params_addr) - 1;
+                // Checking if handler is predefined.
+                if (handlerId == HandlerOptions.InvalidUriHandlerId) {
+
+                    // TODO: Resolve this hack with only positive handler ids in generated code.
+                    handlerId = portUris.MatchUriAndGetHandlerId(uri_info, (UInt32)len, handlerNativeParamsAddr) - 1;
+                }
 
                 // Checking if we have found the handler.
                 if (handlerId >= 0)
                 {
                     // Creating HTTP request.
-                    Request req = new Request(requestBytes, requestBytesLength, native_params_bytes);
-                    req.ManagedHandlerId = (UInt16)handlerId;
+                    Request req = new Request(requestBytes, requestBytesLength, paramsStackBuf);
+
+                    req.ManagedHandlerId = (UInt16) handlerId;
                     req.MethodEnum = uhm.AllUserHandlerInfos[handlerId].UriInfo.http_method_;
 
                     // Invoking original user delegate with parameters here.
-                    resp = UriInjectMethods.HandleInternalRequest_(req, handlerLevel);
+                    resp = UriInjectMethods.HandleInternalRequest_(req, handlerOptions);
 
                     // Checking if handled the response.
                     if (resp == null)

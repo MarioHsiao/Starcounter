@@ -242,16 +242,12 @@ namespace Starcounter
         /// <summary>
         /// Delegate to process Node local requests.
         /// </summary>
-        /// <param name="methodAndUriPlusSpace"></param>
-        /// <param name="requestBytes"></param>
-        /// <param name="resp"></param>
-        /// <returns></returns>
         internal delegate Boolean DoLocalNodeRest(
             String methodAndUriPlusSpace,
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
-            HandlerOptions.HandlerLevels handlerLevel,
+            HandlerOptions handlerOptions,
             out Response resp);
 
         /// <summary>
@@ -1003,7 +999,7 @@ namespace Starcounter
 DO_CODEHOST_ON_GIVEN_LEVEL:
 
                 // Trying to do local node REST.
-                if (doLocalNodeRest_(methodSpaceUriSpace, requestBytes, requestBytesLength, portNumber_, hl, out resp)) {
+                if (doLocalNodeRest_(methodSpaceUriSpace, requestBytes, requestBytesLength, portNumber_, ho, out resp)) {
 
                     // Checking if handled.
                     if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {

@@ -609,7 +609,7 @@ namespace Starcounter
         /// <summary>
         /// Body string.
         /// </summary>
-        internal Object Content
+        Object Content
         {
             get
             {

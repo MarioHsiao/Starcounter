@@ -98,12 +98,12 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Handles request.
         /// </summary>
-        public Response HandleRequest(Request request, HandlerOptions.HandlerLevels handlerLevel) {
+        public Response HandleRequest(Request request, HandlerOptions handlerOptions) {
 
             Response resp;
 
             try {
-                return _HandleRequest(request, handlerLevel);
+                return _HandleRequest(request, handlerOptions);
             }
             catch (ResponseException exc) {
                 // NOTE: if internal request then throw the exception up.
@@ -135,7 +135,7 @@ namespace Starcounter.Internal.Web {
         // Added a separate method that does not catch any exception to allow wrapping whole block
         // in an implicit transaction. The current solution for the implicit is to catch exception
         // and upgrade if necessary which does not work when we are catching all exceptions above.
-        private Response _HandleRequest(Request request, HandlerOptions.HandlerLevels handlerLevel) {
+        private Response _HandleRequest(Request request, HandlerOptions handlerOptions) {
             Response resp = null;
 
             if (!request.IsInternal)
@@ -146,7 +146,7 @@ namespace Starcounter.Internal.Web {
 
             // Running all available HTTP handlers.
             Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
-            UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+            UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel).RunDelegate(request, handlerOptions, out resp);
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
             // Checking if we still have no response.

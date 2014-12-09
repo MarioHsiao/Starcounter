@@ -37,6 +37,14 @@ namespace Starcounter.Internal
         public static string DatabaseNameLower { get; internal set; }
 
         /// <summary>
+        /// Set if Polyjuice applications are expected in the codehost.
+        /// </summary>
+        public static Boolean PolyjuiceAppsFlag {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Name of the application.
         /// </summary>
         [ThreadStatic]
