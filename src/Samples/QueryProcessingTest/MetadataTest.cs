@@ -358,22 +358,34 @@ namespace QueryProcessingTest {
             
             test_sql = "select c from starcounter.metadata.column c where name = ? and c.table is ClrClass order by c desc";
             HelpMethods.LogEvent("    \"" + test_sql + "\"");
-            c = Db.SQL<Column>(test_sql, "WriteLoss").First;
+            try
+            {
+                c = Db.SQL<Column>(test_sql, "WriteLoss").First;
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+                throw exc;
+            }
+            HelpMethods.LogEvent("      1.");
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
             Trace.Assert(c.Table != null);
             Trace.Assert(c.Table.Name == "MapPrimitiveType");
             Trace.Assert(c.Table.FullName == "Starcounter.Metadata.MapPrimitiveType");
             Trace.Assert(c.Table is ClrClass);
+            HelpMethods.LogEvent("      2.");
             Trace.Assert((c.Table as ClrClass).FullClassName == "Starcounter.Metadata.MapPrimitiveType");
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
             Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullName);
+            HelpMethods.LogEvent("      3.");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Metadata.MapPrimitiveType);
             Trace.Assert((c.Type as Starcounter.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Boolean);
             Trace.Assert(c.Type.Name == "Boolean");
+            HelpMethods.LogEvent("      4.");
             Trace.Assert(String.IsNullOrEmpty((c.Table as ClrClass).AssemblyName));
             Trace.Assert((c.Table as ClrClass).AppDomainName == "sccode.exe");
 
