@@ -306,29 +306,36 @@ namespace QueryProcessingTest {
         }
 
         public static void ClrMetadatTest() {
+            string test_sql = "";
             HelpMethods.LogEvent("  ClrMetadatTest()");
+            
             int nrCc = 0;
             int nrcc = 0;
-            foreach (ClrClass v in Db.SQL<ClrClass>("select c from ClrClass c where fullname LIKE ?", 
-                "%commonclass")) {
+            test_sql = "select c from ClrClass c where fullname LIKE ?";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
+            foreach (ClrClass v in Db.SQL<ClrClass>(test_sql, "%commonclass")) {
                 nrCc++;
                 if (v.FullName == "commonclass")
                     nrcc++;
             }
             Trace.Assert(nrCc == 7);
             Trace.Assert(nrcc == 1);
+
             nrCc = 0;
             nrcc = 0;
-            foreach (ClrClass v in Db.SQL<ClrClass>("select c from ClrClass c where name = ?",
-                "commonclass")) {
+            test_sql = "select c from ClrClass c where name = ?";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
+            foreach (ClrClass v in Db.SQL<ClrClass>(test_sql, "commonclass")) {
                 nrCc++;
                 if (v.Name == "commonclass")
                     nrcc++;
             }
             Trace.Assert(nrCc == 4);
             Trace.Assert(nrcc == 2);
-            Column c = Db.SQL<Column>("select c from column c where name = ? and c.table is ClrClass", 
-                "UserIdNr").First;
+
+            test_sql = "select c from column c where name = ? and c.table is ClrClass";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
+            Column c = Db.SQL<Column>(test_sql, "UserIdNr").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "UserIdNr");
             Trace.Assert(c.Table != null);
@@ -348,8 +355,10 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as Starcounter.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Int32);
             Trace.Assert(c.Type.Name == "Int32");
             Trace.Assert((c.Table as ClrClass).AssemblyName == "QueryProcessingTest");
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass order by c desc", 
-                "WriteLoss").First;
+            
+            test_sql = "select c from starcounter.metadata.column c where name = ? and c.table is ClrClass order by c desc";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
+            c = Db.SQL<Column>(test_sql, "WriteLoss").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
             Trace.Assert(c.Table != null);
@@ -367,8 +376,10 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Type.Name == "Boolean");
             Trace.Assert(String.IsNullOrEmpty((c.Table as ClrClass).AssemblyName));
             Trace.Assert((c.Table as ClrClass).AppDomainName == "sccode.exe");
-            c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
-                "Client").First;
+
+            test_sql = "select c from starcounter.metadata.column c where name = ? and c.table is ClrClass";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
+            c = Db.SQL<Column>(test_sql, "Client").First;
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "Client");
             Trace.Assert(c.Table != null);
@@ -386,10 +397,11 @@ namespace QueryProcessingTest {
             Trace.Assert((c.Type as ClrClass).Name == "User");
             Trace.Assert((c.Type as ClrClass).FullName == "QueryProcessingTest.User");
             Trace.Assert((c.Type as ClrClass).FullClassName == "QueryProcessingTest.User");
+
+            test_sql = "select c from starcounter.metadata.column c where name = ? and c.table is ClrClass";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
             nrcc = 0;
-            foreach (Column tc in Db.SQL<Column>(
-                "select c from starcounter.metadata.column c where name = ? and c.table is ClrClass", 
-                "DecimalProperty")) {
+            foreach (Column tc in Db.SQL<Column>(test_sql, "DecimalProperty")) {
                 nrcc++;
                 Trace.Assert(tc.GetObjectNo() > 1000);
                 Trace.Assert(tc.Name == "DecimalProperty");
@@ -406,9 +418,11 @@ namespace QueryProcessingTest {
                 Trace.Assert(tc.MaterializedColumn.Table.Name == (tc.Table as ClrClass).FullClassName);
             }
             Trace.Assert(nrcc == 7);
+
+            test_sql = "select c from starcounter.metadata.column c where name = ?";
+            HelpMethods.LogEvent("    \"" + test_sql + "\"");
             nrcc = 0;
-            foreach (Column tc in Db.SQL<Column>("select c from starcounter.metadata.column c where name = ?", 
-                "DecimalProperty")) {
+            foreach (Column tc in Db.SQL<Column>(test_sql, "DecimalProperty")) {
                 nrcc++;
                 Trace.Assert(tc.Name == "DecimalProperty");
                 Trace.Assert(tc.Table != null);
