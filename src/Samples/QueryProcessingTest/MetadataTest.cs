@@ -10,11 +10,19 @@ namespace QueryProcessingTest {
     public static class MetadataTest {
         public static void TestPopulatedMetadata() {
             HelpMethods.LogEvent("Test populated meta-data");
-            TestTypeMetadata();
-            TestRuntimeColumnMetadata();
-            ClrMetadatTest();
-            TestRuntimeIndexBasedOnMat();
-            TestRuntimeIndex();
+            try
+            {
+                TestTypeMetadata();
+                TestRuntimeColumnMetadata();
+                ClrMetadatTest();
+                TestRuntimeIndexBasedOnMat();
+                TestRuntimeIndex();
+            }
+            catch (Exception exc)
+            {
+                Console.WriteLine(exc.ToString());
+                throw exc;
+            }
             HelpMethods.LogEvent("Finished testing populated meta-data");
         }
 
