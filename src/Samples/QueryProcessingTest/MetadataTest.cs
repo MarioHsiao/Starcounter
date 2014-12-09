@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using Starcounter;
 using Starcounter.Internal;
@@ -19,6 +19,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestTypeMetadata() {
+            HelpMethods.LogEvent("  TestTypeMetadata()");
             Starcounter.Metadata.DbPrimitiveType t =
                 Db.SQL<Starcounter.Metadata.DbPrimitiveType>("select t from dbPrimitiveType t order by primitivetype").First;
             Trace.Assert(t != null);
@@ -155,6 +156,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestRuntimeColumnMetadata() {
+            HelpMethods.LogEvent("  TestRuntimeColumnMetadata()");
             Column c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is rawview", 
                 "materializedcolumn").First;
 #if false
@@ -296,6 +298,7 @@ namespace QueryProcessingTest {
         }
 
         public static void ClrMetadatTest() {
+            HelpMethods.LogEvent("  ClrMetadatTest()");
             int nrCc = 0;
             int nrcc = 0;
             foreach (ClrClass v in Db.SQL<ClrClass>("select c from ClrClass c where fullname LIKE ?", 
@@ -422,6 +425,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestRuntimeIndexBasedOnMat() {
+            HelpMethods.LogEvent("  TestRuntimeIndexBasedOnMat()");
             int nrIndexes = 0;
             Int64 nrIndColumns = 0;
             foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>(
@@ -458,6 +462,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestRuntimeIndex() {
+            HelpMethods.LogEvent("  TestRuntimeIndex()");
             Int64 nrIndexes = 0;
             Int64 nrIndColumns = 0;
             foreach (Index i in Db.SQL<Index>("select i from \"index\" i")) {
