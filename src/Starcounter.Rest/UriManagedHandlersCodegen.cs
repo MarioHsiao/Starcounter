@@ -445,12 +445,13 @@ namespace Starcounter.Rest
                 if (StarcounterEnvironment.PolyjuiceAppsFlag) {
 
                     // Checking that its a Polyjuice handler.
-                    if (!ho.AllowNonPolyjuiceHandler) {
+                    if ((ho != null) && (false == ho.AllowNonPolyjuiceHandler)) {
 
                         // Handler name should start with application name or launcher name.
                         if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase) &&
                             !s[1].StartsWith("/" + StarcounterConstants.LauncherAppName, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/" + StarcounterConstants.SocietyObjectsPrefix, StringComparison.InvariantCultureIgnoreCase)) {
+                            !s[1].StartsWith("/" + StarcounterConstants.SocietyObjectsPrefix, StringComparison.InvariantCultureIgnoreCase) &&
+                            !s[1].StartsWith("/__db/", StringComparison.InvariantCultureIgnoreCase)) {
                             throw new ArgumentOutOfRangeException(polyjuiceMsg);
                         }
                     }

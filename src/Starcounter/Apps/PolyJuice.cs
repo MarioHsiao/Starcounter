@@ -19,6 +19,11 @@ namespace PolyjuiceNamespace {
         internal static SoType GlobalTypesLeaf;
 
         /// <summary>
+        /// The list with all nodes.
+        /// </summary>
+        internal static List<SoType> GlobalTypesList;
+
+        /// <summary>
         /// Handler information for mapped SO type.
         /// </summary>
         public class HandlerForSoType {
@@ -99,8 +104,8 @@ namespace PolyjuiceNamespace {
                 throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type long.");
             }
 
-            numParams1 = appProcessedUri.Split(new String[] { "@l" }, StringSplitOptions.None).Length - 1;
-            numParams2 = soProcessedUri.Split(new String[] { "@l" }, StringSplitOptions.None).Length - 1;
+            numParams1 = appProcessedUri.Split(new String[] { "@w" }, StringSplitOptions.None).Length - 1;
+            numParams2 = soProcessedUri.Split(new String[] { "@w" }, StringSplitOptions.None).Length - 1;
 
             if ((numParams1 != 1) || (numParams2 != 1)) {
                 throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type long.");
@@ -124,24 +129,25 @@ namespace PolyjuiceNamespace {
             }
 
             // Getting string representation for the SO type.
-            String typeString = GetTypeNameFromSoUri(soProcessedUri.Substring("/so/".Length));
+            String typeName = GetTypeNameFromSoUri(soProcessedUri.Substring("/so/".Length));
 
-            SoType soType;
+            SoType soType = null;
 
             // Checking if we emulate the database with SO.
             if (EmulateSoDatabase) {
 
-                soType = GlobalTypesLeaf;
-                while (soType != null) {
-
-                    if (soType.Name == typeString)
+                foreach (SoType t in GlobalTypesList) {
+                    if (t.Name == typeName) {
+                        soType = t;
                         break;
-
-                    soType = soType.Inherits;
+                    }
                 }
+            } else {
+                soType = (SoType) Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
             }
-            else {
-                soType = (SoType) Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeString).First;
+
+            if (null == soType) {
+                throw new ArgumentException("Can not find Society Objects type in hierarchy: " + typeName);
             }
 
             // Checking that App has not registered any mappers on the same path.
@@ -150,9 +156,9 @@ namespace PolyjuiceNamespace {
             }
 
             // Registering the SO handler as a map to corresponding application URI.
-            Handle.GET(appProcessedUri.Replace("@l", "{?}"), (Request req, Int64 p) => {
+            Handle.GET(appProcessedUri.Replace("@w", "{?}"), (Request req, String p) => {
                 Response resp;
-                X.GET("/so/" + typeString + "/" + p.ToString(), out resp);
+                X.GET("/so/" + typeName + "/" + p, out resp);
                 return resp;
             }, new HandlerOptions() {
                 ProxyDelegateTrigger = true
@@ -275,7 +281,7 @@ namespace PolyjuiceNamespace {
                 ho.ParametersInfo = paramInfo;
 
                 // Setting calling string.
-                String uri = x.HandlerProcessedUri.Replace("@l", paramStr);
+                String uri = x.HandlerProcessedUri.Replace("@w", paramStr);
 
                 // Calling handler.
                 Response resp;
@@ -301,29 +307,68 @@ namespace PolyjuiceNamespace {
         /// </summary>
         public static void Init() {
 
+            Polyjuice.GlobalTypesList = new List<SoType>();
+
+            Polyjuice.SoType entity = new Polyjuice.SoType() {
+                Inherits = null,
+                Name = "entity",
+                Handlers = new List<Polyjuice.HandlerForSoType>()
+            };
+            GlobalTypesList.Add(entity);
+
+            Polyjuice.SoType physicalobject = new Polyjuice.SoType() {
+                Inherits = entity,
+                Name = "physicalobject",
+                Handlers = new List<Polyjuice.HandlerForSoType>()
+            };
+            GlobalTypesList.Add(physicalobject);
+
+            Polyjuice.SoType product = new Polyjuice.SoType() {
+                Inherits = physicalobject,
+                Name = "product",
+                Handlers = new List<Polyjuice.HandlerForSoType>()
+            };
+            GlobalTypesList.Add(product);
+
+            Polyjuice.SoType vertebrate = new Polyjuice.SoType() {
+                Inherits = physicalobject,
+                Name = "vertebrate",
+                Handlers = new List<Polyjuice.HandlerForSoType>()
+            };
+            GlobalTypesList.Add(vertebrate);
+
+            Polyjuice.GlobalTypesLeaf = new Polyjuice.SoType() {
+                Inherits = vertebrate,
+                Name = "human",
+                Handlers = new List<Polyjuice.HandlerForSoType>()
+            };
+            GlobalTypesList.Add(Polyjuice.GlobalTypesLeaf);
+
             HandlerOptions ho = new HandlerOptions();
             ho.DontMerge = true;
 
             // Registering ubiquitous SocietyObjects handler.
             Handle.GET("/so/{?}/{?}", (Request req, String typeName, String paramStr) => {
 
-                SoType soType;
+                SoType soType = null;
 
                 // Checking if we emulate the database with SO.
                 if (EmulateSoDatabase) {
 
-                    soType = GlobalTypesLeaf;
-                    while (soType != null) {
-
-                        if (soType.Name == typeName)
+                    foreach (SoType t in GlobalTypesList) {
+                        if (t.Name == typeName) {
+                            soType = t;
                             break;
-
-                        soType = soType.Inherits;
+                        }
                     }
 
                 } else {
 
                     soType = (SoType) Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
+                }
+
+                if (null == soType) {
+                    throw new ArgumentException("Can not find Society Objects type in hierarchy: " + typeName);
                 }
 
                 // Collecting all responses in the tree.

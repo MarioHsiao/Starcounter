@@ -78,30 +78,6 @@ namespace Starcounter.Internal.Tests
         [Test]
         public static void SimplePolyjuiceTests() {
 
-            Polyjuice.SoType entity = new Polyjuice.SoType() {
-                Inherits = null,
-                Name = "entity",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-
-            Polyjuice.SoType physicalobject = new Polyjuice.SoType() {
-                Inherits = entity,
-                Name = "physicalobject",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-
-            Polyjuice.SoType vertebrate = new Polyjuice.SoType() {
-                Inherits = physicalobject,
-                Name = "vertebrate",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-
-            Polyjuice.GlobalTypesLeaf = new Polyjuice.SoType() {
-                Inherits = vertebrate,
-                Name = "human",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-
             var googleMapsTemplate = new TObject();
             googleMapsTemplate.Add<TString>("Longitude");
             googleMapsTemplate.Add<TString>("Latitude");
@@ -156,7 +132,7 @@ namespace Starcounter.Internal.Tests
 
             StarcounterEnvironment.AppName = "googlemap";
 
-            Handle.GET("/googlemap/object/{?}", (Int64 id) => {
+            Handle.GET("/googlemap/object/{?}", (String id) => {
 
                 // TODO!
                 ((Json)googleMapsObj)._stepSiblings = null;
@@ -167,7 +143,7 @@ namespace Starcounter.Internal.Tests
 
             StarcounterEnvironment.AppName = "skyper";
 
-            Handle.GET("/skyper/skypeuser/{?}", (Int64 id) => {
+            Handle.GET("/skyper/skypeuser/{?}", (String id) => {
 
                 // TODO!
                 ((Json)skypeUserObj)._stepSiblings = null;
@@ -178,7 +154,7 @@ namespace Starcounter.Internal.Tests
 
             StarcounterEnvironment.AppName = "salaryapp";
 
-            Handle.GET("/salaryapp/employee/{?}", (Int64 id) => {
+            Handle.GET("/salaryapp/employee/{?}", (String id) => {
 
                 // TODO!
                 ((Json)salaryAppObj)._stepSiblings = null;
@@ -189,7 +165,7 @@ namespace Starcounter.Internal.Tests
 
             StarcounterEnvironment.AppName = "facebook";
 
-            Handle.GET("/facebook/person/{?}", (Int64 id) => {
+            Handle.GET("/facebook/person/{?}", (String id) => {
 
                 // TODO!
                 ((Json)facebookProfileObj)._stepSiblings = null;
@@ -198,10 +174,10 @@ namespace Starcounter.Internal.Tests
                 return facebookProfileObj;
             });
             
-            Polyjuice.Map("/googlemap/object/@l", "/so/physicalobject/@l");
-            Polyjuice.Map("/salaryapp/employee/@l", "/so/human/@l");
-            Polyjuice.Map("/skyper/skypeuser/@l", "/so/human/@l");
-            Polyjuice.Map("/facebook/person/@l", "/so/human/@l");
+            Polyjuice.Map("/googlemap/object/@w", "/so/physicalobject/@w");
+            Polyjuice.Map("/salaryapp/employee/@w", "/so/human/@w");
+            Polyjuice.Map("/skyper/skypeuser/@w", "/so/human/@w");
+            Polyjuice.Map("/facebook/person/@w", "/so/human/@w");
 
             Response resp = null, resp1 = null, resp2 = null, resp3 = null, resp4 = null;
 
