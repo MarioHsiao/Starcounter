@@ -453,13 +453,6 @@ namespace Starcounter.Rest
                             !s[1].StartsWith("/" + StarcounterConstants.SocietyObjectsPrefix, StringComparison.InvariantCultureIgnoreCase)) {
                             throw new ArgumentOutOfRangeException(polyjuiceMsg);
                         }
-
-                        // Checking if its not a launcher application.
-                        if (StarcounterEnvironment.AppName != StarcounterConstants.LauncherAppName) {
-
-                            // Creating a new proxy handler or adding to existing handler list.
-
-                        }
                     }
                 }
 
