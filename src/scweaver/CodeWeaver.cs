@@ -478,10 +478,10 @@ namespace Starcounter.Weaver {
             // Check if the file is one of the edition libraries. If
             // it is, we just analyze it if it has not been actively
             // referenced.
-
+            
             var runWeaver = RunWeaver;
             if (FileManager.IsEditionLibrary(file)) {
-                runWeaver = HasBeenReferenced(file);
+                runWeaver = HasBeenReferenced(module);
             }
 
             if (runWeaver) {
@@ -516,9 +516,9 @@ namespace Starcounter.Weaver {
             return parameters;
         }
 
-        bool HasBeenReferenced(string assembly) {
+        bool HasBeenReferenced(ModuleDeclaration module) {
             var reference = activelyReferencedAssemblies.Find((candidate) => {
-                return candidate.CodeBase == assembly;
+                return string.Equals(candidate.Name, module.Assembly.Name, StringComparison.InvariantCultureIgnoreCase);
             });
             return reference != null;
         }
