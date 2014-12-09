@@ -496,11 +496,12 @@ namespace Starcounter.Weaver {
 
                 parameters = new ProjectInvocationParameters(this.AnalyzerProjectFile);
                 parameters.PreventOverwriteAssemblyNames = true;
+                parameters.Properties["NoTransformation"] = bool.TrueString;
             }
 
             // Apply all general, shared parameters
 
-            parameters.Properties["ScInputDirectory"] = this.InputDirectory; // Change to Path.GetDirectory(file);
+            parameters.Properties["ScInputDirectory"] = Path.GetDirectoryName(file);
             parameters.Properties["ScCacheDirectory"] = this.CacheDirectory;
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
