@@ -210,7 +210,7 @@ namespace NodeTest
                     // NOTE: Need to sleep to receive correct statistics.
                     Thread.Sleep(1000);
 
-                    String retrieved = (String) X.GET(WebSocketCountersUri);
+                    String retrieved = X.GET<String>(WebSocketCountersUri);
 
                     String expected = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}",
                         NumEchoesAllWorkers / NumEchoesPerConnection,
@@ -225,7 +225,7 @@ namespace NodeTest
                 
                 case ProtocolTypes.ProtocolHttpV1: {
 
-                    String retrieved = (String) X.GET(HttpCountersUri);
+                    String retrieved = X.GET<String>(HttpCountersUri);
 
                     String expected = String.Format("Http counters: echoes received={0}.", NumEchoesAllWorkers);
 
@@ -237,7 +237,7 @@ namespace NodeTest
 
                 case ProtocolTypes.ProtocolRawPort: {
 
-                    String retrieved = (String) X.GET(RawPortCountersUri);
+                    String retrieved = X.GET<String>(RawPortCountersUri);
 
                     String expected = String.Format("Raw port counters: bytes received={0}, disconnects={1}.", totalBytesSent_, NumEchoesAllWorkers / NumEchoesPerConnection);
 

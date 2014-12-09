@@ -12,6 +12,11 @@ namespace Starcounter {
     public class HandlerOptions {
 
         /// <summary>
+        /// Invalid URI handler id.
+        /// </summary>
+        internal const UInt16 InvalidUriHandlerId = UInt16.MaxValue;
+
+        /// <summary>
         /// Specific handler levels.
         /// </summary>
         public enum HandlerLevels {
@@ -22,20 +27,35 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Specific handler level.
+        /// Don't merge on this handler.
         /// </summary>
-        HandlerLevels handlerLevel_ = HandlerLevels.DefaultLevel;
+        internal Boolean DontMerge {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Proxy delegate trigger.
+        /// </summary>
+        internal Boolean ProxyDelegateTrigger {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Current handler level.
         /// </summary>
         public HandlerLevels HandlerLevel {
-            get {
-                return handlerLevel_;
-            }
-            set {
-                handlerLevel_ = value;
-            }
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Forcing setting non-polyjuice handler flag.
+        /// </summary>
+        public Boolean AllowNonPolyjuiceHandler {
+            get;
+            set;
         }
 
         /// <summary>
@@ -43,6 +63,32 @@ namespace Starcounter {
         /// </summary>
         public Boolean CallExternalOnly {
             get; set;
+        }
+
+        /// <summary>
+        /// Parameters info.
+        /// </summary>
+        internal MixedCodeConstants.UserDelegateParamInfo ParametersInfo {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Specific handler id.
+        /// </summary>
+        UInt16 handlerId_ = HandlerOptions.InvalidUriHandlerId;
+
+        /// <summary>
+        /// Specific handler id.
+        /// </summary>
+        internal UInt16 HandlerId {
+            get {
+                return handlerId_;
+            }
+
+            set {
+                handlerId_ = value;
+            }
         }
 
         /// <summary>

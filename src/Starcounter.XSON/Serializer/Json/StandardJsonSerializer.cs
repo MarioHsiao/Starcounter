@@ -31,13 +31,37 @@ namespace Starcounter.Advanced.XSON {
         /// <summary>
         /// Estimates the size of serialization in bytes.
         /// </summary>
-        /// <param name="obj"></param>
-        /// <returns></returns>
         private int _EstimateSizeBytes(Json obj) {
+
             int sizeBytes = 0;
-            bool addAppName = false;
             string htmlUriMerged = null;
             string htmlPartialUrl;
+
+            // Checking if application name should wrap the JSON.
+            bool wrapInAppName = (obj._stepParent == null) &&
+                (!string.IsNullOrEmpty(obj._appName)) &&
+                (StarcounterEnvironment.AppName != obj._appName);
+
+            Boolean skipSiblings = false;
+
+            // Checking if application output is in siblings.
+            if (wrapInAppName) {
+
+                if (obj._stepSiblings != null) {
+
+                    foreach (Json pp in obj._stepSiblings) {
+
+                        if (StarcounterEnvironment.AppName == pp._appName) {
+
+                            obj = pp;
+                            skipSiblings = true;
+                            wrapInAppName = false;
+
+                            break;
+                        }
+                    }
+                }
+            }
 
             if (obj.IsArray) {
 
@@ -67,9 +91,8 @@ namespace Starcounter.Advanced.XSON {
                 sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
             }
 
-            addAppName = (obj._stepParent == null && !string.IsNullOrEmpty(obj._appName));
+            if (wrapInAppName) {
 
-            if (addAppName) {
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
 
                 htmlPartialUrl = obj.GetHtmlPartialUrl();
@@ -130,13 +153,16 @@ namespace Starcounter.Advanced.XSON {
                 sizeBytes += 1; // 1 for comma.
             }
 
-            if (addAppName) {
+            if (wrapInAppName) {
                 sizeBytes += 9; // 1 for comma, 6 for "Html", 1 for ':' and 1 for '}'
             }
 
-            if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+            if (!skipSiblings &&
+                wrapInAppName &&
+                obj._stepSiblings != null &&
+                obj._stepSiblings.Count != 0) {
 
-                if ((!addAppName) && exposedProperties.Count > 0) {
+                if ((!wrapInAppName) && exposedProperties.Count > 0) {
                     sizeBytes++;
                 }
 
@@ -153,7 +179,6 @@ namespace Starcounter.Advanced.XSON {
                     sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
                 }
             }
-
 
             if (htmlUriMerged != null) {
                 htmlUriMerged = "/polyjuice-merger?" + htmlUriMerged;
@@ -177,18 +202,39 @@ namespace Starcounter.Advanced.XSON {
         /// <summary>
         /// Serializes given JSON object.
         /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="buf"></param>
-        /// <param name="origOffset"></param>
-        /// <returns></returns>
         private int _Serialize(Json obj, byte[] buf, int origOffset) {
+
             int valueSize;
             List<Template> exposedProperties;
             TObject tObj;
             int offset = origOffset;
             String htmlUriMerged = null;
 
-            bool addAppName = false;
+            // Checking if application name should wrap the JSON.
+            bool wrapInAppName = (obj._stepParent == null) &&
+                (!string.IsNullOrEmpty(obj._appName)) &&
+                (StarcounterEnvironment.AppName != obj._appName);
+
+            Boolean skipSiblings = false;
+
+            // Checking if application output is in siblings.
+            if (wrapInAppName) {
+
+                if (obj._stepSiblings != null) {
+
+                    foreach (Json pp in obj._stepSiblings) {
+
+                        if (StarcounterEnvironment.AppName == pp._appName) {
+
+                            obj = pp;
+                            skipSiblings = true;
+                            wrapInAppName = false;
+
+                            break;
+                        }
+                    }
+                }
+            }
 
             unsafe {
                 // Starting from the last written position
@@ -222,9 +268,7 @@ namespace Starcounter.Advanced.XSON {
                     *pfrag++ = (byte)'{';
                     offset++;
 
-                    addAppName = (obj._stepParent == null && !string.IsNullOrEmpty(obj._appName));
-
-                    if (addAppName) {
+                    if (wrapInAppName) {
 
                         if (null != obj.GetHtmlPartialUrl()) {
                             htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
@@ -347,14 +391,18 @@ namespace Starcounter.Advanced.XSON {
                         }
                     }
 
-                    if (addAppName) {
+                    if (wrapInAppName) {
                         *pfrag++ = (byte)'}';
                         offset++;
                     }
 
                     // Checking if we have Json siblings on this level.
-                    if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
-                        if (addAppName || exposedProperties.Count > 0) {
+                    if (!skipSiblings &&
+                        wrapInAppName &&
+                        obj._stepSiblings != null &&
+                        obj._stepSiblings.Count != 0) {
+
+                        if (wrapInAppName || exposedProperties.Count > 0) {
                             *pfrag++ = (byte)',';
                             offset++;
                         }
@@ -434,6 +482,7 @@ namespace Starcounter.Advanced.XSON {
                     offset++;
                 }
             }
+
             return offset - origOffset;
         }
 	}

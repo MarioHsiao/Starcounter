@@ -279,17 +279,6 @@ namespace Starcounter
         /// </summary>
         /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public static object GET(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
-            Response r;
-            GET(uri, out r, null, receiveTimeoutMs, ho);
-            return r.Content;
-        }
-
-        /// <summary>
-        /// Performs asynchronous HTTP GET.
-        /// </summary>
-        /// <param name="uri">Resource URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
             Response r;
             GET(uri, out r, null, receiveTimeoutMs, ho);

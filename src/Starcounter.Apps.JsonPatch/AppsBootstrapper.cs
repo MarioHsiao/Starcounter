@@ -200,7 +200,7 @@ namespace Starcounter.Internal {
 
             try {
                 // Handling request on initial level.
-                resp = AppServer_.HandleRequest(req, 0);
+                resp = AppServer_.HandleRequest(req, HandlerOptions.DefaultLevel);
 
                 // Checking if response was handled.
                 if (resp == null)
@@ -209,21 +209,21 @@ namespace Starcounter.Internal {
                 // Determining what we should do with response.
                 switch (resp.HandlingStatus) {
                     case HandlerStatusInternal.Done: {
-                            // Creating response serialization buffer.
-                            if (responseSerializationBuffer_ == null) {
-                                responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
-                            }
-
-                            // Standard response send.
-                            req.SendResponse(resp, responseSerializationBuffer_);
-
-                            break;
+                        // Creating response serialization buffer.
+                        if (responseSerializationBuffer_ == null) {
+                            responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
                         }
+
+                        // Standard response send.
+                        req.SendResponse(resp, responseSerializationBuffer_);
+
+                        break;
+                    }
 
                     default: {
-                            req.CreateFinalizer();
-                            break;
-                        }
+                        req.CreateFinalizer();
+                        break;
+                    }
                 }
             } finally {
                 // Checking if a new session was created during handler call.

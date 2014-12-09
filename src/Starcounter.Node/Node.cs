@@ -242,16 +242,12 @@ namespace Starcounter
         /// <summary>
         /// Delegate to process Node local requests.
         /// </summary>
-        /// <param name="methodAndUriPlusSpace"></param>
-        /// <param name="requestBytes"></param>
-        /// <param name="resp"></param>
-        /// <returns></returns>
         internal delegate Boolean DoLocalNodeRest(
             String methodAndUriPlusSpace,
             Byte[] requestBytes,
             Int32 requestBytesLength,
             UInt16 portNumber,
-            HandlerOptions.HandlerLevels handlerLevel,
+            HandlerOptions handlerOptions,
             out Response resp);
 
         /// <summary>
@@ -949,15 +945,15 @@ namespace Starcounter
             Action<Response, Object> userDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
-            HandlerOptions ho,
+            HandlerOptions handlerOptions,
             Byte[] customBytes = null,
             Int32 customBytesLength = 0)
         {
             Boolean callOnlySpecificHandlerLevel = true;
 
             // Checking if handler options is defined.
-            if (ho == null) {
-                ho = HandlerOptions.DefaultHandlerOptions;
+            if (handlerOptions == null) {
+                handlerOptions = HandlerOptions.DefaultLevel;
                 callOnlySpecificHandlerLevel = false;
             }
 
@@ -980,7 +976,7 @@ namespace Starcounter
                     throw new ArgumentOutOfRangeException("URI should contain at least one character.");
                 }
 
-                requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, ho.DontModifyHeaders, out requestBytesLength);
+                requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, handlerOptions.DontModifyHeaders, out requestBytesLength);
 
             } else {
 
@@ -989,21 +985,15 @@ namespace Starcounter
             }
             
             // Checking if we are on local node.
-            if ((localNode_) && (!ho.CallExternalOnly)) {
+            if ((localNode_) && (!handlerOptions.CallExternalOnly)) {
 
                 // No response initially.
                 Response resp = null;
-                HandlerOptions.HandlerLevels hl = ho.HandlerLevel;
-
-                // Checking if we should call all handler levels from bottom.
-                if (false == callOnlySpecificHandlerLevel) {
-                    hl = HandlerOptions.HandlerLevels.DefaultLevel;
-                }
 
 DO_CODEHOST_ON_GIVEN_LEVEL:
 
                 // Trying to do local node REST.
-                if (doLocalNodeRest_(methodSpaceUriSpace, requestBytes, requestBytesLength, portNumber_, hl, out resp)) {
+                if (doLocalNodeRest_(methodSpaceUriSpace, requestBytes, requestBytesLength, portNumber_, handlerOptions, out resp)) {
 
                     // Checking if handled.
                     if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {
@@ -1037,20 +1027,20 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
                     // Going level by level up.
                     if (false == callOnlySpecificHandlerLevel) {
 
-                        switch (hl) {
+                        switch (handlerOptions.HandlerLevel) {
 
                             case HandlerOptions.HandlerLevels.DefaultLevel: {
-                                hl = HandlerOptions.HandlerLevels.ApplicationLevel;
+                                handlerOptions = HandlerOptions.ApplicationLevel;
                                 goto DO_CODEHOST_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationLevel: {
-                                hl = HandlerOptions.HandlerLevels.ApplicationExtraLevel;
+                                handlerOptions = HandlerOptions.ApplicationExtraLevel;
                                 goto DO_CODEHOST_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
-                                hl = HandlerOptions.HandlerLevels.CodeHostStaticFileServer;
+                                handlerOptions = HandlerOptions.CodeHostStaticFileServer;
                                 goto DO_CODEHOST_ON_GIVEN_LEVEL;
                             }
                         };

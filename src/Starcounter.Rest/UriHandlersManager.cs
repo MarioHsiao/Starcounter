@@ -25,7 +25,7 @@ namespace Starcounter.Rest
         public Func<object> param_message_create_ = null;
         public Byte[] native_param_types_ = null;
         public Byte num_params_ = 0;
-        public UInt16 handler_id_ = UInt16.MaxValue;
+        public UInt16 handler_id_ = HandlerOptions.InvalidUriHandlerId;
         public UInt64 handler_info_ = UInt64.MaxValue;
         public UInt16 port_ = 0;
         public MixedCodeConstants.NetworkProtocolType proto_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
@@ -35,7 +35,7 @@ namespace Starcounter.Rest
         {
             original_uri_info_ = null;
             processed_uri_info_ = null;
-            handler_id_ = UInt16.MaxValue;
+            handler_id_ = HandlerOptions.InvalidUriHandlerId;
 
             if (original_uri_info_ascii_bytes_ != IntPtr.Zero)
             {
@@ -52,6 +52,9 @@ namespace Starcounter.Rest
             }
         }
 
+        /// <summary>
+        /// Initializes URI pointers.
+        /// </summary>
         public void InitUriPointers()
         {
             unsafe
@@ -59,8 +62,7 @@ namespace Starcounter.Rest
                 original_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(original_uri_info_.Length + 1);
                 Byte[] temp = Encoding.ASCII.GetBytes(original_uri_info_);
                 Byte* p = (Byte*) original_uri_info_ascii_bytes_.ToPointer();
-                fixed (Byte* t = temp)
-                {
+                fixed (Byte* t = temp) {
                     BitsAndBytes.MemCpy(p, t, (uint)original_uri_info_.Length);
                 }
 
@@ -69,8 +71,7 @@ namespace Starcounter.Rest
                 processed_uri_info_ascii_bytes_ = BitsAndBytes.Alloc(processed_uri_info_.Length + 1);
                 temp = Encoding.ASCII.GetBytes(processed_uri_info_);
                 p = (Byte*) processed_uri_info_ascii_bytes_.ToPointer();
-                fixed (Byte* t = temp)
-                {
+                fixed (Byte* t = temp) {
                     BitsAndBytes.MemCpy(p, t, (uint)processed_uri_info_.Length);
                 }
 
@@ -78,6 +79,10 @@ namespace Starcounter.Rest
             }
         }
 
+        /// <summary>
+        /// Getting registered URI info for URI matcher creation.
+        /// </summary>
+        /// <returns></returns>
         public unsafe MixedCodeConstants.RegisteredUriManaged GetRegisteredUriManaged()
         {
             MixedCodeConstants.RegisteredUriManaged r = new MixedCodeConstants.RegisteredUriManaged();
@@ -90,22 +95,33 @@ namespace Starcounter.Rest
             // TODO: Resolve this hack with only positive handler ids in generated code.
             r.handler_id = handler_id_ + 1;
 
-            for (Int32 i = 0; i < native_param_types_.Length; i++)
+            for (Int32 i = 0; i < native_param_types_.Length; i++) {
                 r.param_types[i] = native_param_types_[i];
+            }
 
             return r;
         }
     }
 
     /// <summary>
-    /// User handler information.
+    /// URI handler information.
     /// </summary>
     internal class UserHandlerInfo
     {
         /// <summary>
+        /// Handler ID.
+        /// </summary>
+        readonly UInt16 handlerId_;
+
+        /// <summary>
         /// List of user delegates.
         /// </summary>
         List<Func<Request, IntPtr, IntPtr, Response>> userDelegates_ = null;
+
+        /// <summary>
+        /// Proxy delegate.
+        /// </summary>
+        Func<Request, IntPtr, IntPtr, Response> proxyDelegate_ = null;
 
         /// <summary>
         /// List of application names.
@@ -113,13 +129,34 @@ namespace Starcounter.Rest
         List<String> appNames_ = null;
 
         /// <summary>
+        /// Don't merge on this handler.
+        /// </summary>
+        Boolean dontMerge_ = false;
+
+        /// <summary>
+        /// Handler ID.
+        /// </summary>
+        public UInt16 HandlerId {
+            get {
+                return handlerId_;
+            }
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        public UserHandlerInfo(UInt16 handlerId) {
+            handlerId_ = handlerId;
+        }
+
+        /// <summary>
         /// Checks if response is in local cache.
         /// </summary>
-        /// <param name="req"></param>
-        /// <returns></returns>
         Response TryGetResponseFromCache(Request req) {
+
             // Checking if we are in session already.
             if ( !req.IsInternal && req.CameWithCorrectSession) {
+
                 // Obtaining session.
                 Session s = (Session)req.GetAppsSessionInterface();
 
@@ -149,6 +186,7 @@ namespace Starcounter.Rest
         /// <param name="req"></param>
         /// <param name="resp"></param>
         void TryAddResponseToCache(Request req, Response resp) {
+
             // Checking if response is processed later.
             if (resp.HandlingStatus == HandlerStatusInternal.Handled
                 || !req.IsCachable()
@@ -177,14 +215,21 @@ namespace Starcounter.Rest
         /// <summary>
         /// Runs all user delegates.
         /// </summary>
-        /// <param name="req">Original request.</param>
-        /// <param name="methodAndUri">Method and URI pointer.</param>
-        /// <param name="rawParamsInfo">Raw parameters info.</param>
-        /// <returns>Response or merged response.</returns>
-        public Response RunUserDelegates(Request req, IntPtr methodAndUri, IntPtr rawParamsInfo, UriHandlersManager uhm) {
+        public Response RunUserDelegates(
+            Request req,
+            IntPtr methodAndUri,
+            IntPtr rawParamsInfo,
+            HandlerOptions handlerOptions) {
+
             List<Response> responses;
 
             Debug.Assert(userDelegates_ != null);
+
+            // Determining if proxy handler should be used.
+            Boolean useProxyHandler = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
+
+            // Don't merge handler.
+            Boolean dontMerge = dontMerge_ || handlerOptions.DontMerge;
 
             // Checking if there is only one delegate or merge function is not defined.
             if (userDelegates_.Count == 1) {
@@ -196,8 +241,17 @@ namespace Starcounter.Rest
                 Response resp = TryGetResponseFromCache(req);
 
                 if (null == resp) {
-                    // Calling intermediate user delegate.
-                    resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
+
+                    if (useProxyHandler) {
+
+                        // Calling proxy user delegate.
+                        resp = proxyDelegate_(req, methodAndUri, rawParamsInfo);
+
+                    } else {
+
+                        // Calling intermediate user delegate.
+                        resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
+                    }
 
                     // Check if response should be added to cache.
                     TryAddResponseToCache(req, resp);
@@ -206,7 +260,12 @@ namespace Starcounter.Rest
                     resp.AppName = appNames_[0];
                 }
 
-                if ((!req.IsDestroyed()) && (UriInjectMethods.ResponsesMergerRoutine_ != null)) {
+                // Checking if we need to merge.
+                if ((!useProxyHandler) &&
+                    (!req.IsDestroyed()) &&
+                    (UriInjectMethods.ResponsesMergerRoutine_ != null) &&
+                    (!dontMerge)) {
+
                     responses = new List<Response>();
                     responses.Add(resp);
                     return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
@@ -222,7 +281,8 @@ namespace Starcounter.Rest
             string orgRequestAppName = StarcounterEnvironment.AppName;
 
             // Running every delegate from the list.
-            for (int i = 0; i < userDelegates_.Count; i++) {
+            for (Int32 i = 0; i < userDelegates_.Count; i++) {
+
                 var func = userDelegates_[i];
 
                 // Setting application name.
@@ -243,10 +303,11 @@ namespace Starcounter.Rest
                 resp.AppName = appNames_[i];
 
                 // The first response is the one we should merge on.
-                if (appNames_[i] == orgRequestAppName)
+                if (appNames_[i] == orgRequestAppName) {
                     responses.Insert(0, resp);
-                else
+                } else {
                     responses.Add(resp);
+                }
             }
 
             // Checking if we have a response merging function defined.
@@ -271,6 +332,12 @@ namespace Starcounter.Rest
 
         public Func<object> ArgMessageCreate {
             get { return uri_info_.param_message_create_; }
+        }
+
+        public List<String> AppNamesList {
+            get {
+                return appNames_;
+            }
         }
 
         public String AppNames
@@ -311,12 +378,34 @@ namespace Starcounter.Rest
         }
 
         public void AddDelegateToList(
-            Func<Request, IntPtr, IntPtr, Response> user_delegate,
+            Func<Request, IntPtr, IntPtr, Response> userDelegate,
             HandlerOptions ho)
         {
-            userDelegates_.Add(user_delegate);
+            if (proxyDelegate_ != null) {
+                throw new ArgumentOutOfRangeException("Can't add delegate to a handler that already contains a proxy delegate!");
+            }
 
-            appNames_.Add(StarcounterEnvironment.AppName);
+            // Checking if its a special delegate.
+            if (ho.ProxyDelegateTrigger) {
+
+                if (userDelegates_.Count > 1) {
+                    throw new ArgumentOutOfRangeException("Can't add a proxy delegate. Handler already contains more than one delegate!");
+                }
+
+                proxyDelegate_ = userDelegate;
+
+            } else {
+
+                userDelegates_.Add(userDelegate);
+
+                // Checking if application is already on the list.
+                foreach (String a in appNames_) {
+                    if (a == StarcounterEnvironment.AppName) {
+                        throw new ArgumentException("This application has already registered handler: " + ProcessedUriInfo);
+                    }
+                }
+                appNames_.Add(StarcounterEnvironment.AppName);
+            }
         }
 
         public void Init(
@@ -341,6 +430,8 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
 
+            dontMerge_ = ho.DontMerge;
+
             if (param_message_type != null)
                 uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
 
@@ -359,7 +450,7 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        internal static Func<Request, HandlerOptions.HandlerLevels, Response> HandleInternalRequest_;
+        internal static Func<Request, HandlerOptions, Response> HandleInternalRequest_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public delegate void RegisterUriHandlerNativeDelegate(
@@ -387,7 +478,7 @@ namespace Starcounter.Rest
         public static void SetDelegates(
             RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, HandlerOptions.HandlerLevels, Response> handleInternalRequest) {
+            Func<Request, HandlerOptions, Response> handleInternalRequest) {
 
             RegisterUriHandlerNative_ = registerUriHandlerNative;
             OnHttpMessageRoot_ = onHttpMessageRoot;
@@ -409,7 +500,7 @@ namespace Starcounter.Rest
 
         List<PortUris> portUris_ = new List<PortUris>();
 
-        Int32 maxNumHandlersEntries_ = 0;
+        UInt16 maxNumHandlersEntries_ = 0;
 
         public List<PortUris> PortUrisList
         {
@@ -481,7 +572,7 @@ namespace Starcounter.Rest
             get { return maxNumHandlersEntries_; }
         }
 
-        public const Int32 MAX_URI_HANDLERS = 1024;
+        public const Int32 MaxUriHandlers = 1024;
 
         internal void Reset()
         {
@@ -489,9 +580,10 @@ namespace Starcounter.Rest
 
             portUris_ = new List<PortUris>();
 
-            allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
-            for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
-                allUriHandlers_[i] = new UserHandlerInfo();
+            allUriHandlers_ = new UserHandlerInfo[MaxUriHandlers];
+            for (UInt16 i = 0; i < MaxUriHandlers; i++) {
+                allUriHandlers_[i] = new UserHandlerInfo(i);
+            }
         }
 
         public UriHandlersManager()
@@ -499,12 +591,13 @@ namespace Starcounter.Rest
             // Initializing port uris.
             PortUris.GlobalInit();
 
-            allUriHandlers_ = new UserHandlerInfo[MAX_URI_HANDLERS];
-            for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
-                allUriHandlers_[i] = new UserHandlerInfo();
+            allUriHandlers_ = new UserHandlerInfo[MaxUriHandlers];
+            for (UInt16 i = 0; i < MaxUriHandlers; i++) {
+                allUriHandlers_[i] = new UserHandlerInfo(i);
+            }
         }
 
-        public void RunDelegate(Request r, out Response resp)
+        public void RunDelegate(Request r, HandlerOptions handlerOptions, out Response resp)
         {
             unsafe
             {
@@ -528,7 +621,8 @@ namespace Starcounter.Rest
                     r,
                     r.GetRawMethodAndUri(),
                     r.GetRawParametersInfo(),
-                    this);
+                    handlerOptions
+                    );
 
                 // Setting back the application name.
                 StarcounterEnvironment.AppName = origAppName;
@@ -563,14 +657,15 @@ namespace Starcounter.Rest
                     }
                 }
 
-                // TODO: Search for unoccupied slot.
-                handlerId = (UInt16)maxNumHandlersEntries_;
+                // NOTE: Always adding handler to the end of the list (so that handler IDs are always unique).
+                handlerId = maxNumHandlersEntries_;
                 maxNumHandlersEntries_++;
 
                 UInt64 handlerInfo = UInt64.MaxValue;
 
-                if (handlerId >= MAX_URI_HANDLERS)
+                if (handlerId >= MaxUriHandlers) {
                     throw new ArgumentOutOfRangeException("Too many user handlers registered!");
+                }
 
                 allUriHandlers_[handlerId].Init(
                     port,
@@ -620,6 +715,25 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
+        /// Searches for existing processed URI handler.
+        /// </summary>
+        public UserHandlerInfo FindHandlerByProcessedUri(String processedUriInfo) {
+
+            lock (allUriHandlers_) {
+
+                for (UInt16 i = 0; i < MaxUriHandlers; i++) {
+
+                    if (allUriHandlers_[i].ProcessedUriInfo == processedUriInfo) {
+                        
+                        return allUriHandlers_[i];
+                    }
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Unregisters existing URI handler.
         /// </summary>
         /// <param name="methodAndUri"></param>
@@ -627,7 +741,7 @@ namespace Starcounter.Rest
         {
             lock (allUriHandlers_)
             {
-                for (Int32 i = 0; i < MAX_URI_HANDLERS; i++)
+                for (Int32 i = 0; i < MaxUriHandlers; i++)
                 {
                     if (allUriHandlers_[i].ProcessedUriInfo == methodAndUri)
                     {

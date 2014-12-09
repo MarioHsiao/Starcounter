@@ -110,8 +110,7 @@ namespace Starcounter.Rest
                     if (!allUserHandlers[i].IsEmpty())
                     {
                         // Grabbing URIs for this port only.
-                        if (port == allUserHandlers[i].UriInfo.port_)
-                        {
+                        if (port == allUserHandlers[i].UriInfo.port_) {
                             registered_uri_infos.Add(allUserHandlers[i].UriInfo.GetRegisteredUriManaged());
                         }
                     }
