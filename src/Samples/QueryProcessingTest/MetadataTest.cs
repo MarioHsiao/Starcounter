@@ -360,32 +360,36 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("    \"" + test_sql + "\"");
             try
             {
+                HelpMethods.LogEvent("      1.");
                 c = Db.SQL<Column>(test_sql, "WriteLoss").First;
+                HelpMethods.LogEvent("      2.");
             }
             catch (Exception exc)
             {
+                HelpMethods.LogEvent("      3.");
                 Console.WriteLine(exc.ToString());
+                HelpMethods.LogEvent("      4.");
                 throw exc;
             }
-            HelpMethods.LogEvent("      1.");
+            HelpMethods.LogEvent("      5.");
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "WriteLoss");
             Trace.Assert(c.Table != null);
             Trace.Assert(c.Table.Name == "MapPrimitiveType");
             Trace.Assert(c.Table.FullName == "Starcounter.Metadata.MapPrimitiveType");
             Trace.Assert(c.Table is ClrClass);
-            HelpMethods.LogEvent("      2.");
+            HelpMethods.LogEvent("      6.");
             Trace.Assert((c.Table as ClrClass).FullClassName == "Starcounter.Metadata.MapPrimitiveType");
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Table.Equals((c.Table as Starcounter.Internal.Metadata.HostMaterializedTable).MaterializedTable));
             Trace.Assert(c.MaterializedColumn.Table.Name == (c.Table as ClrClass).FullName);
-            HelpMethods.LogEvent("      3.");
+            HelpMethods.LogEvent("      7.");
             Trace.Assert(c.Type != null);
             Trace.Assert(c.Type is Starcounter.Metadata.MapPrimitiveType);
             Trace.Assert((c.Type as Starcounter.Metadata.MapPrimitiveType).DbTypeCode == (ushort)DbTypeCode.Boolean);
             Trace.Assert(c.Type.Name == "Boolean");
-            HelpMethods.LogEvent("      4.");
+            HelpMethods.LogEvent("      8.");
             Trace.Assert(String.IsNullOrEmpty((c.Table as ClrClass).AssemblyName));
             Trace.Assert((c.Table as ClrClass).AppDomainName == "sccode.exe");
 
