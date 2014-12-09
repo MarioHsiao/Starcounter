@@ -174,7 +174,9 @@ namespace Starcounter.Weaver {
 
         void Reuse(string file, WeaverCache.CachedAssembly cachedAssembly) {
             WriteDebug("Assembly {0} not processed, it's reused from the cache.", Path.GetFileName(file));
-            filesToCopy.AddRange(cachedAssembly.Files);
+            if (!cachedAssembly.IsSchemaOnly) {
+                filesToCopy.AddRange(cachedAssembly.Files);
+            }
         }
 
         void Include(string file) {
