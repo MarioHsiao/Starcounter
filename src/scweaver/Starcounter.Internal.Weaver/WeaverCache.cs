@@ -50,6 +50,16 @@ namespace Starcounter.Internal.Weaver {
             public List<string> Files { get; internal set; }
 
             /// <summary>
+            /// Gets a value indicating if the cached artifact is a
+            /// lone schema file, and does not include any binary files.
+            /// </summary>
+            public bool IsSchemaOnly {
+                get {
+                    return Files != null && Files.Count == 1;
+                }
+            }
+
+            /// <summary>
             /// Gets a value indicating if the assembly was looked for but was
             /// not found in the cache. False means either it was not queried
             /// for (because of some previous failure, or the cache being
