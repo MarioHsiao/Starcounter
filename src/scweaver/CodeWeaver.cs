@@ -108,6 +108,16 @@ namespace Starcounter.Weaver {
         public bool DisableWeaverCache { get; set; }
 
         /// <summary>
+        /// Gets a value that indicates the weaver will only include those
+        /// edition libraries that are referenced by the application being
+        /// weaved. The alternative is to always include edition librares
+        /// as part of every application built on a certain edition.
+        /// </summary>
+        public bool OnlyIncludeEditionLibrariesReferenced {
+            get { return false; }
+        }
+
+        /// <summary>
         /// Gets or sets the weaver runtime directory path. This path will be
         /// consulted when the weaver needs to locate neccessary runtime files,
         /// such as the PostSharp-related project- and plugin files.
@@ -477,11 +487,14 @@ namespace Starcounter.Weaver {
 
             // Check if the file is one of the edition libraries. If
             // it is, we just analyze it if it has not been actively
-            // referenced.
+            // referenced, in case we are not always including edition
+            // libraries
             
             var runWeaver = RunWeaver;
-            if (FileManager.IsEditionLibrary(file)) {
-                runWeaver = HasBeenReferenced(module);
+            if (OnlyIncludeEditionLibrariesReferenced) {
+                if (FileManager.IsEditionLibrary(file)) {
+                    runWeaver = HasBeenReferenced(module);
+                }
             }
 
             if (runWeaver) {
