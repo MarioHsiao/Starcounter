@@ -14,14 +14,9 @@ namespace PolyjuiceNamespace {
         internal static Boolean EmulateSoDatabase = true;
 
         /// <summary>
-        /// Emulation global types leaf.
-        /// </summary>
-        internal static SoType GlobalTypesLeaf;
-
-        /// <summary>
         /// The list with all nodes.
         /// </summary>
-        internal static List<SoType> GlobalTypesList;
+        public static List<SoType> GlobalTypesList;
 
         /// <summary>
         /// Handler information for mapped SO type.
@@ -37,6 +32,16 @@ namespace PolyjuiceNamespace {
             /// Handler ID.
             /// </summary>
             public UInt16 HandlerId;
+
+            /// <summary>
+            /// Conversion delegate to SO.
+            /// </summary>
+            public Func<String, String> ConverterToSo;
+
+            /// <summary>
+            /// Conversion delegate from SO.
+            /// </summary>
+            public Func<String, String> ConverterFromSo;
 
             /// <summary>
             /// Processed URI for handler.
@@ -94,7 +99,11 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Maps an existing application processed URI to Society Objects URI.
         /// </summary>
-        public static void Map(String appProcessedUri, String soProcessedUri) {
+        public static void Map(
+            String appProcessedUri,
+            String soProcessedUri,
+            Func<String, String> converterToSo,
+            Func<String, String> converterFromSo) {
 
             // Checking that we have only long parameter.
             Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
@@ -155,17 +164,34 @@ namespace PolyjuiceNamespace {
                 throw new ArgumentException("Application has already registered a mapping handler on the same SO tree path!");
             }
 
+            // Adding handler to SO type.
+            HandlerForSoType handler = AddHandlerToSoType(
+                soType,
+                handlerId,
+                appProcessedUri,
+                appProcessedMethodUriSpace,
+                handlerInfo.AppNamesList[0],
+                converterToSo,
+                converterFromSo);
+
             // Registering the SO handler as a map to corresponding application URI.
-            Handle.GET(appProcessedUri.Replace("@w", "{?}"), (Request req, String p) => {
+            Handle.GET(appProcessedUri.Replace("@w", "{?}"), (Request req, String appObjectId) => {
+
+                String soObjectId = appObjectId;
+
+                // Calling the conversion delegate.
+                if (handler.ConverterToSo != null) {
+                    soObjectId = handler.ConverterToSo(appObjectId);
+                }
+
                 Response resp;
-                X.GET("/so/" + typeName + "/" + p, out resp);
+                X.GET("/so/" + typeName + "/" + soObjectId, out resp);
+
                 return resp;
+
             }, new HandlerOptions() {
                 ProxyDelegateTrigger = true
             });
-
-            // Adding handler to SO type.
-            AddHandlerToSoType(soType, handlerId, appProcessedUri, appProcessedMethodUriSpace, handlerInfo.AppNamesList[0]);
         }
 
         /// <summary>
@@ -226,22 +252,27 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Adding existing handler to SO type tree.
         /// </summary>
-        static void AddHandlerToSoType(
+        static HandlerForSoType AddHandlerToSoType(
             SoType soType,
             UInt16 handlerId,
             String handlerProcessedUri,
             String appProcessedMethodUriSpace,
-            String appName) {
+            String appName,
+            Func<String, String> converterToSo,
+            Func<String, String> converterFromSo) {
+
+            HandlerForSoType x = new HandlerForSoType();
 
             // Checking if we emulate the database with SO.
             if (EmulateSoDatabase) {
 
-                HandlerForSoType x = new HandlerForSoType();
                 x.TheType = soType;
                 x.HandlerId = handlerId;
                 x.HandlerProcessedUri = handlerProcessedUri;
                 x.ParamOffset = (UInt16) appProcessedMethodUriSpace.IndexOf('@');
                 x.AppName = appName;
+                x.ConverterToSo = converterToSo;
+                x.ConverterFromSo = converterFromSo;
 
                 soType.Handlers.Add(x);
 
@@ -249,14 +280,17 @@ namespace PolyjuiceNamespace {
 
                 // Adding handler id to the type.
                 Db.Transaction(() => {
-                    var x = new HandlerForSoType();
                     x.TheType = soType;
                     x.HandlerId = handlerId;
                     x.HandlerProcessedUri = handlerProcessedUri;
                     x.ParamOffset = (UInt16) appProcessedMethodUriSpace.IndexOf('@');
                     x.AppName = appName;
+                    x.ConverterToSo = converterToSo;
+                    x.ConverterFromSo = converterFromSo;
                 });
             }
+
+            return x;
         }
 
         /// <summary>
@@ -269,6 +303,11 @@ namespace PolyjuiceNamespace {
 
             // Processing specific handler.
             Action<HandlerForSoType> processHandler = (HandlerForSoType x) => {
+
+                // Calling the conversion delegate.
+                if (x.ConverterFromSo != null) {
+                    paramStr = x.ConverterFromSo(paramStr);
+                }
 
                 // Setting handler level.
                 ho.HandlerId = x.HandlerId;
@@ -306,43 +345,6 @@ namespace PolyjuiceNamespace {
         /// Initializes everything needed for Polyjuice.
         /// </summary>
         public static void Init() {
-
-            Polyjuice.GlobalTypesList = new List<SoType>();
-
-            Polyjuice.SoType entity = new Polyjuice.SoType() {
-                Inherits = null,
-                Name = "entity",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            GlobalTypesList.Add(entity);
-
-            Polyjuice.SoType physicalobject = new Polyjuice.SoType() {
-                Inherits = entity,
-                Name = "physicalobject",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            GlobalTypesList.Add(physicalobject);
-
-            Polyjuice.SoType product = new Polyjuice.SoType() {
-                Inherits = physicalobject,
-                Name = "product",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            GlobalTypesList.Add(product);
-
-            Polyjuice.SoType vertebrate = new Polyjuice.SoType() {
-                Inherits = physicalobject,
-                Name = "vertebrate",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            GlobalTypesList.Add(vertebrate);
-
-            Polyjuice.GlobalTypesLeaf = new Polyjuice.SoType() {
-                Inherits = vertebrate,
-                Name = "human",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            GlobalTypesList.Add(Polyjuice.GlobalTypesLeaf);
 
             HandlerOptions ho = new HandlerOptions();
             ho.DontMerge = true;
