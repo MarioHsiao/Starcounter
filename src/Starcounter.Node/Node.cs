@@ -1044,7 +1044,13 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
                                 goto DO_CODEHOST_ON_GIVEN_LEVEL;
                             }
                         };
+
+                    } else {
+
+                        // NOTE: We tried a specific handler level but didn't get any response, so returning.
+                        return null;
                     }
+
                 }
             }
 

@@ -27,6 +27,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Application name.
+        /// </summary>
+        internal String AppName {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Don't merge on this handler.
         /// </summary>
         internal Boolean DontMerge {

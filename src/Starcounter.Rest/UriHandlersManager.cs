@@ -236,6 +236,9 @@ namespace Starcounter.Rest
 
                 // Setting current application name.
                 StarcounterEnvironment.AppName = appNames_[0];
+                if (handlerOptions.AppName != null) {
+                    StarcounterEnvironment.AppName = handlerOptions.AppName;
+                }
 
                 // Checking local cache.
                 Response resp = TryGetResponseFromCache(req);

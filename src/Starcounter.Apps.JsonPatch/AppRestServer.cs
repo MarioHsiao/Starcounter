@@ -45,6 +45,17 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
+        /// Gets the exception string.
+        /// </summary>
+        /// <param name="ex">The ex.</param>
+        /// <returns>String.</returns>
+        public static String GetExceptionString(Exception ex) {
+            string errorMsg = ExceptionFormatter.ExceptionToString(ex);
+            errorMsg += "\r\nMore information about this error may be available in the server error log.";
+            return errorMsg;
+        }
+
+        /// <summary>
         /// Handles the response returned from the user handler.
         /// </summary>
         /// <param name="request">Incomming HTTP request.</param>
@@ -100,42 +111,6 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         public Response HandleRequest(Request request, HandlerOptions handlerOptions) {
 
-            Response resp;
-
-            try {
-                return _HandleRequest(request, handlerOptions);
-            }
-            catch (ResponseException exc) {
-                // NOTE: if internal request then throw the exception up.
-                if (request.IsInternal)
-                    throw exc;
-
-                resp = exc.ResponseObject;
-                resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                return resp;
-            }
-            catch (UriInjectMethods.IncorrectSessionException) {
-                resp = Response.FromStatusCode(400);
-                resp["Connection"] = "close";
-                return resp;
-            }
-            catch (Exception exc) {
-                // Logging the exception to server log.
-                LogSources.Hosting.LogException(exc);
-                resp = Response.FromStatusCode(500);
-                resp.Body = GetExceptionString(exc);
-                resp.ContentType = "text/plain";
-                return resp;
-            }
-        }
-
-        // TODO:
-        // Can be moved back to method above when implicit transaction no longer depends on exceptions.
-
-        // Added a separate method that does not catch any exception to allow wrapping whole block
-        // in an implicit transaction. The current solution for the implicit is to catch exception
-        // and upgrade if necessary which does not work when we are catching all exceptions above.
-        private Response _HandleRequest(Request request, HandlerOptions handlerOptions) {
             Response resp = null;
 
             if (!request.IsInternal)
@@ -178,17 +153,6 @@ namespace Starcounter.Internal.Web {
             var badReq = Response.FromStatusCode(400);
             badReq["Connection"] = "close";
             return badReq;
-        }
-
-        /// <summary>
-        /// Gets the exception string.
-        /// </summary>
-        /// <param name="ex">The ex.</param>
-        /// <returns>String.</returns>
-        private String GetExceptionString(Exception ex) {
-            string errorMsg = ExceptionFormatter.ExceptionToString(ex);
-            errorMsg += "\r\nMore information about this error may be available in the server error log.";
-            return errorMsg;
         }
 
         /// <summary>

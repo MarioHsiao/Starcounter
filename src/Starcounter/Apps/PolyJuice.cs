@@ -145,6 +145,10 @@ namespace PolyjuiceNamespace {
             // Checking if we emulate the database with SO.
             if (EmulateSoDatabase) {
 
+                if (null == GlobalTypesList) {
+                    throw new ArgumentException("Global SO emulation is not initialized!");
+                }
+
                 foreach (SoType t in GlobalTypesList) {
                     if (t.Name == typeName) {
                         soType = t;
@@ -184,8 +188,13 @@ namespace PolyjuiceNamespace {
                     soObjectId = handler.ConverterToSo(appObjectId);
                 }
 
+                // Setting calling application name.
+                HandlerOptions ho = new HandlerOptions() {
+                    AppName = StarcounterEnvironment.AppName
+                };
+
                 Response resp;
-                X.GET("/so/" + typeName + "/" + soObjectId, out resp);
+                X.GET("/so/" + typeName + "/" + soObjectId, out resp, null, 0, ho);
 
                 return resp;
 

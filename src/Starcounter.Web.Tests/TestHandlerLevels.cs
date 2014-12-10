@@ -106,10 +106,10 @@ namespace Starcounter.Internal.Tests {
             Assert.AreEqual(handlerUri, resp.Body);
 
             X.GET(handlerUri, out resp, null, 0, HandlerOptions.DefaultLevel);
-            Assert.AreEqual(false, resp.IsSuccessStatusCode);
+            Assert.AreEqual(null, resp);
 
             X.GET(handlerUri, out resp, null, 0, HandlerOptions.ApplicationLevel);
-            Assert.AreEqual(false, resp.IsSuccessStatusCode);
+            Assert.AreEqual(null, resp);
 
             X.GET(handlerUri, out resp, null, 0, HandlerOptions.ApplicationExtraLevel);
             Assert.AreEqual(handlerUri, resp.Body);
@@ -145,7 +145,7 @@ namespace Starcounter.Internal.Tests {
             Assert.AreEqual(resp.Body, handlerUri + "1");
 
             X.GET(handlerUri, out resp, null, 0, HandlerOptions.ApplicationExtraLevel);
-            Assert.AreEqual(false, resp.IsSuccessStatusCode);
+            Assert.AreEqual(null, resp);
         }
 
         [Test]
