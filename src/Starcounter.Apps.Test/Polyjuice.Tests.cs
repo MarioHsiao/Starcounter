@@ -41,27 +41,40 @@ namespace Starcounter.Internal.Tests
             // Not actually a merger anymore but linker of sibling Json parts.
             Handle.MergeResponses((Request req, List<Response> responses) => {
 
-                Response resp = responses[0];
+                var mainResponse = responses[0];
+                Int32 mainResponseId = 0;
 
-                Json json = resp.Resource as Json;
+                // Searching for the current application in responses.
+                /*for (Int32 i = 0; i < responses.Count; i++) {
 
-                // Merging if JSON exists.
-                if (json != null) {
+                    if (responses[i].AppName == StarcounterEnvironment.AppName) {
 
-                    json.SetAppName(resp.AppName);
+                        mainResponse = responses[i];
+                        mainResponseId = i;
+                        break;
+                    }
+                }*/
 
-                    // Going through other responses.
-                    for (Int32 i = 1; i < responses.Count; i++) {
+                var json = mainResponse.Resource as Json;
 
-                        ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
-                        json.AddStepSibling((Json)responses[i].Resource);
+                if ((json != null) && (mainResponse.AppName != StarcounterConstants.LauncherAppName)) {
+
+                    json.SetAppName(mainResponse.AppName);
+
+                    for (Int32 i = 0; i < responses.Count; i++) {
+
+                        if (mainResponseId != i) {
+
+                            ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
+                            json.AddStepSibling((Json)responses[i].Resource);
+                        }
                     }
                 }
 
-                return resp;
+                return mainResponse;
             });
 
-            StarcounterEnvironment.AppName = "App1";
+            StarcounterEnvironment.AppName = "app1";
         }
     }
 
@@ -74,59 +87,7 @@ namespace Starcounter.Internal.Tests
         /// Creates an emulated Society Objects tree.
         /// </summary>
         static void InitSocietyObjects() {
-
             PolyjuiceNamespace.Polyjuice.Init();
-
-            Polyjuice.GlobalTypesList = new List<Polyjuice.SoType>();
-
-            Polyjuice.SoType entity = new Polyjuice.SoType() {
-                Inherits = null,
-                Name = "entity",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(entity);
-
-            Polyjuice.SoType physicalobject = new Polyjuice.SoType() {
-                Inherits = entity,
-                Name = "physicalobject",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(physicalobject);
-
-            Polyjuice.SoType product = new Polyjuice.SoType() {
-                Inherits = physicalobject,
-                Name = "product",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(product);
-
-            Polyjuice.SoType vertebrate = new Polyjuice.SoType() {
-                Inherits = physicalobject,
-                Name = "vertebrate",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(vertebrate);
-
-            Polyjuice.SoType human = new Polyjuice.SoType() {
-                Inherits = vertebrate,
-                Name = "human",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(human);
-
-            Polyjuice.SoType person = new Polyjuice.SoType() {
-                Inherits = vertebrate,
-                Name = "person",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(person);
-
-            Polyjuice.SoType organization = new Polyjuice.SoType() {
-                Inherits = entity,
-                Name = "organization",
-                Handlers = new List<Polyjuice.HandlerForSoType>()
-            };
-            Polyjuice.GlobalTypesList.Add(organization);
         }
 
         /// <summary>
@@ -233,27 +194,31 @@ namespace Starcounter.Internal.Tests
                 return facebookProfileObj;
             });
             
-            Polyjuice.Map("/googlemap/object/@w", "/so/physicalobject/@w",
+            Polyjuice.Map("/googlemap/object/@w", "/so/something/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.Map("/salaryapp/employee/@w", "/so/human/@w",
+            Polyjuice.Map("/salaryapp/employee/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.Map("/skyper/skypeuser/@w", "/so/human/@w",
+            Polyjuice.Map("/skyper/skypeuser/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.Map("/facebook/person/@w", "/so/human/@w",
+            Polyjuice.Map("/facebook/person/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
             Response resp = null, resp1 = null, resp2 = null, resp3 = null, resp4 = null;
 
-            X.GET("/so/physicalobject/123", out resp1); // map only
-            X.GET("/so/human/123", out resp2); // all
-            X.GET("/so/vertebrate/123", out resp3); // map only
+            StarcounterEnvironment.AppName = "app1";
+
+            X.GET("/so/something/123", out resp1); // map only
+            X.GET("/so/person/123", out resp2); // all
+            X.GET("/so/legalentity/123", out resp3); // map only
+
+            Assert.IsTrue(resp1.Body.Equals(resp3.Body));
 
             X.GET("/googlemap/object/123", out resp1); // map only
             X.GET("/salaryapp/employee/123", out resp2); // all
@@ -265,7 +230,7 @@ namespace Starcounter.Internal.Tests
             Assert.IsFalse(resp1.Body.Equals(resp2.Body));
             
             X.GET("/facebook/person/123", out resp);
-            X.GET("/so/human/123", out resp2);
+            X.GET("/so/person/123", out resp2);
 
             StarcounterEnvironment.AppName = "";
             Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp4.Resource).ToJson());
@@ -287,8 +252,8 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsObj.ToJson());
 
             X.GET("/googlemap/object/123", out resp);
-            X.GET("/so/physicalobject/123", out resp2);
-            X.GET("/so/vertebrate/123", out resp3);
+            X.GET("/so/something/123", out resp2);
+            X.GET("/so/legalentity/123", out resp3);
 
             StarcounterEnvironment.AppName = "facebook";
             Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
@@ -316,7 +281,7 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
 
             X.GET("/salaryapp/employee/123", out resp);
-            X.GET("/so/human/123", out resp2);
+            X.GET("/so/person/123", out resp2);
 
             StarcounterEnvironment.AppName = "";
             Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp4.Resource).ToJson());
