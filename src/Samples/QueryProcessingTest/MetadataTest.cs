@@ -219,7 +219,7 @@ namespace QueryProcessingTest {
             Trace.Assert(!c.Unique);
 #endif
             c = Db.SQL<Column>("select c from starcounter.metadata.column c where name = ? and c.Table is RawView",
-                "uniqueIdentifierReversed").First;
+                "UniqueIdentifierReversed").First; // JLI was: 'uniqueIdentifierReversed' (lowercase u at start)
             Trace.Assert(c != null);
             Trace.Assert(c.Name == "UniqueIdentifierReversed");
             Trace.Assert(c.Type != null);
