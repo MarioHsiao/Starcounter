@@ -418,6 +418,17 @@ namespace Starcounter.Binding
         /// </summary>
         private static Type objectPropertyBindingReturnType = typeof(IObjectView);
 
+        private PropertyInfo GetImplicitEntityProperty(PropertyDef propertyDef) {
+            PropertyInfo result = null;
+            if (propertyDef.ColumnName == WeavedNames.InheritsColumn ||
+                    propertyDef.ColumnName == WeavedNames.TypeColumn ||
+                    propertyDef.ColumnName == WeavedNames.IsTypeColumn ||
+                    propertyDef.ColumnName == WeavedNames.TypeNameColumn) {
+                result = typeof(ImplicitEntity).GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            }
+            return result;
+        }
+
         /// <summary>
         /// Creates the object property binding.
         /// </summary>
@@ -434,9 +445,7 @@ namespace Starcounter.Binding
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
             if (propertyInfo == null) {
-                if (propertyDef.ColumnName == WeavedNames.InheritsColumn || propertyDef.ColumnName == WeavedNames.TypeColumn) {
-                    propertyInfo = typeof(ImplicitEntity).GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
-                }
+                propertyInfo = GetImplicitEntityProperty(propertyDef);
             }
             VerifyObjectProperty(propertyInfo);
 
@@ -781,6 +790,9 @@ namespace Starcounter.Binding
             Type propBindingType;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null) {
+                propertyInfo = GetImplicitEntityProperty(propertyDef);
+            }
 
             isNullable = propertyDef.IsNullable;
 
@@ -907,6 +919,9 @@ namespace Starcounter.Binding
             Type propBindingType;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null) {
+                propertyInfo = GetImplicitEntityProperty(propertyDef);
+            }
             VerifyProperty(propertyInfo, returnType);
 
             propBindingTypeName = String.Concat(
