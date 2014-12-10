@@ -226,12 +226,6 @@ namespace Starcounter.Internal {
             if (resp == null)
                 return false;
 
-            // Checking if a new session was created during handler call.
-            if ((null != Session.Current) && (!req.IsInternal))
-                Session.End();
-
-            Session.InitialRequest = null;
-
             // Determining what we should do with response.
             switch (resp.HandlingStatus) {
 
@@ -252,6 +246,12 @@ namespace Starcounter.Internal {
                     break;
                 }
             }
+
+            // Checking if a new session was created during handler call.
+            if ((null != Session.Current) && (!req.IsInternal))
+                Session.End();
+
+            Session.InitialRequest = null;
 
             return true;
         }
