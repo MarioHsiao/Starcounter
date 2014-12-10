@@ -274,6 +274,10 @@ namespace Starcounter {
         /// </summary>
         /// <param name="value"></param>
         internal void SetParent(Json value) {
+            if (value == this) {
+                throw new Exception("Cannot set parent as itself");
+            }
+
             _parent = value;
         }
 
