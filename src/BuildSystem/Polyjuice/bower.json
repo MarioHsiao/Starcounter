@@ -1,9 +1,10 @@
 {
-  "name": "vendor",
+  "name": "sys",
   "version": "0.0.0",
   "private": true,
   "dependencies": {
-    "puppet-js": "~0.0.4",
+    "PuppetJs": "PuppetJs/PuppetJs#master",
+    "puppet-js": "PuppetJs/puppet-js#gh-pages",
     "model-operations": "Polyjuice/model-operations#~0.0.1",
     "imported-template": "~0.0.4",
     "puppet-redirect": "PuppetJs/puppet-redirect#~0.1.0",
