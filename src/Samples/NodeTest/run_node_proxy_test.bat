@@ -37,4 +37,4 @@ staradmin kill all
 :: Copying back the default gateway config.
 COPY /Y scnetworkgateway.xml %SERVER_DIR%\personal\scnetworkgateway.xml
 
-EXIT 1
+EXIT /b 1

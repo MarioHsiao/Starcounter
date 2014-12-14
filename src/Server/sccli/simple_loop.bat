@@ -30,4 +30,4 @@ GOTO :EOF
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the test! 1>&2
-EXIT 1
+EXIT /b 1

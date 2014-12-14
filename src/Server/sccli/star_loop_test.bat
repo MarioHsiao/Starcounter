@@ -32,4 +32,4 @@ GOTO :EOF
 :TESTFAILED
 ECHO Error occurred during the star.exe loop test! 1>&2
 staradmin kill all
-EXIT 1
+EXIT /b 1
