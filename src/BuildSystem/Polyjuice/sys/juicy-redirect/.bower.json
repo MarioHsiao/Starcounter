@@ -1,11 +1,10 @@
 {
   "name": "juicy-redirect",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Custom Element that redirects to a new URL when an attribute is changed",
   "license": "MIT",
   "main": "src/juicy-redirect.html",
   "keywords": [
-    "polymer",
     "web-components"
   ],
   "ignore": [
@@ -15,20 +14,18 @@
     "preview.png",
     "Gruntfile.js"
   ],
-  "dependencies": {
-    "platform": "Polymer/platform#~0.4.1"
-  },
+  "dependencies": {},
   "authors": [
     "Marcin Warpechowski <marcin@nextgen.pl>"
   ],
   "homepage": "https://github.com/Juicy/juicy-redirect",
-  "_release": "0.1.2",
+  "_release": "0.1.3",
   "_resolution": {
     "type": "version",
-    "tag": "0.1.2",
-    "commit": "8824578963f1aca98afa9517759dd792c0fd59c3"
+    "tag": "0.1.3",
+    "commit": "b86932a484d09926fe505b39aca5714b4af4ac70"
   },
   "_source": "git://github.com/Juicy/juicy-redirect.git",
-  "_target": "~0.1.0",
+  "_target": "~0.1.3",
   "_originalSource": "Juicy/juicy-redirect"
 }
