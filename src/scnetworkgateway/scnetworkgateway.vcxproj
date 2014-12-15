@@ -112,11 +112,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;C:\Boost\include\boost-1_56;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\x86_64\lib</AdditionalLibraryDirectories>
@@ -128,7 +127,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseLoopedTest|x64'">
     <ClCompile>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;C:\Boost\include\boost-1_56;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -145,12 +144,12 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <BrowseInformation>false</BrowseInformation>
-      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;C:\Boost\include\boost-1_56;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>ThirdPartyHeaders;OurHeaders;c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\Level0\src\include;..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <WarningLevel>Level3</WarningLevel>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;_UNICODE;PROFILING;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_UNICODE;PROFILING;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\x86_64\lib</AdditionalLibraryDirectories>
