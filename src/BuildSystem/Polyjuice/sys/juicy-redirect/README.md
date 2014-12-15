@@ -21,7 +21,7 @@ Or [download as ZIP](https://github.com/juicy/juicy-redirect/archive/gh-pages.zi
 1. Import Web Components' polyfill:
 
     ```html
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/polymer/0.3.1/platform.js"></script>
+    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
     ```
 
 2. Import Custom Element:

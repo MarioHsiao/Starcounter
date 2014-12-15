@@ -1,8 +1,8 @@
 {
   "name": "imported-template",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "dependencies": {
-    "polymer": "Polymer/polymer#~0.4"
+    "polymer": "Polymer/polymer#<0.8.0"
   },
   "devDependencies": {
     "github-button": "zenorocha/github-button",
