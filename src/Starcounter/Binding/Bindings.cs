@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -217,16 +218,13 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="tableId">The table id.</param>
         /// <returns>TypeBinding.</returns>
-        private static TypeBinding BuildTypeBindingFromTypeDef(int tableId)
-        {
-            try
-            {
-                return BuildTypeBindingFromTypeDef(typeDefsById_[tableId]);
-            }
-            catch (IndexOutOfRangeException)
-            {
-                throw CreateExceptionOnTypeDefNotFound();
-            }
+        private static TypeBinding BuildTypeBindingFromTypeDef(int tableId) {
+            if (tableId >= typeDefsById_.Length)
+                throw CreateExceptionOnTypeDefNotFound(tableId);
+            TypeDef typeDef = typeDefsById_[tableId];
+            if (typeDef == null)
+                throw CreateExceptionOnTypeDefNotFound(tableId);
+            return BuildTypeBindingFromTypeDef(typeDef);
         }
 
         /// <summary>
@@ -327,11 +325,24 @@ namespace Starcounter.Binding
         /// <returns>Exception.</returns>
         private static Exception CreateExceptionOnTypeDefNotFound()
         {
-            // This should not happen. No one should be requesting type binding
-            // for a type that hasn't be registered. Schema must not have been
-            // provided properly.
+            // This can happen if a class was not loaded for the existing table,
+            // while data was read for the table to be presented by the class.
+
 
             throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
+        }
+        /// <summary>
+        /// Creates the exception on type def not found.
+        /// </summary>
+        /// <returns>Exception.</returns>
+        private unsafe static Exception CreateExceptionOnTypeDefNotFound(int tableId) {
+            // This can happen if a class was not loaded for the existing table,
+            // while data was read for the table to be presented by the class.
+            sccoredb.SCCOREDB_TABLE_INFO tableInfo;
+            sccoredb.sccoredb_get_table_info((ushort)tableId, out tableInfo);
+
+            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, 
+                "CLR Class is not loaded for table " + new String(tableInfo.name));
         }
     }
 }

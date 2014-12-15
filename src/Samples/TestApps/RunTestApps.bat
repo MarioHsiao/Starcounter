@@ -22,6 +22,11 @@ REM CALL SelectOnNull2362.bat
 REM POPD
 REM IF %ERRORLEVEL% NEQ 0 GOTO err
 
+PUSHD NotAllLoaded
+CALL NotAllLoaded.bat
+POPD
+IF %ERRORLEVEL% NEQ 0 GOTO err
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 
