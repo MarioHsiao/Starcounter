@@ -329,8 +329,10 @@ namespace Starcounter.Binding
             // while data was read for the table to be presented by the class.
 
 
-            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH);
+            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, 
+                "Internal error: TypeDef is not found.");
         }
+
         /// <summary>
         /// Creates the exception on type def not found.
         /// </summary>
@@ -340,9 +342,16 @@ namespace Starcounter.Binding
             // while data was read for the table to be presented by the class.
             sccoredb.SCCOREDB_TABLE_INFO tableInfo;
             sccoredb.sccoredb_get_table_info((ushort)tableId, out tableInfo);
-
-            throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH, 
-                "CLR Class is not loaded for table " + new String(tableInfo.name));
+            String tableName = new String(tableInfo.name);
+            Type theType = Type.GetType(tableName);
+            if (theType == null)
+                throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH,
+                    "CLR Class is not loaded for table " + tableName);
+            else
+                throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH,
+                    "Internal error: TypeDef cannot be found for the given tableId " 
+                    + tableId + ", while it has name - " + tableName + 
+                    ", and CLR class is loaded.");
         }
     }
 }
