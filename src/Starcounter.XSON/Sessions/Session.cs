@@ -36,9 +36,6 @@ namespace Starcounter {
         [ThreadStatic]
         private static Request _request;
 
-        // Temporary hack to allow shared transactions for newly created objects.
-        private volatile ITransaction _transaction;
-
         private Action<Session> _sessionDestroyUserDelegate;
         private bool _brandNew;
         private bool _isInUse;
@@ -132,14 +129,6 @@ namespace Starcounter {
         internal long ClientServerVersion {
             get { return clientServerVersion; }
             /*internal*/ set { clientServerVersion = value; }
-        }
-
-        public void ShareTransaction(ITransaction transaction) {
-            _transaction = transaction;
-        }
-
-        public ITransaction SharedTransaction {
-            get { return _transaction; }
         }
 
         /// <summary>
@@ -508,7 +497,6 @@ namespace Starcounter {
         internal static void End() {
             if (_current != null) {
                 _current.clientServerVersion = -1;
-                _current._transaction = null;
                 _current.Clear();
                 Session._current = null;
             }
