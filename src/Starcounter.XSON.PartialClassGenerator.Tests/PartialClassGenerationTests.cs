@@ -53,7 +53,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tj = ReadTemplate("Input/minimal.json");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
         [Test]
@@ -61,7 +61,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tj = ReadTemplate("Input/ReuseJson.json");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tj = ReadTemplate("Input/ReuseJson2.json");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, null, null);
 
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var cb = File.ReadAllText("Input/minimal.json.cs");
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(tj, cb, null);
             //            var dom = codegen.GenerateAST();
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
         internal static TJson ReadTemplate(string path) {
@@ -94,7 +94,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var code = PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/ThreadPage.json",
                 "Input/ThreadPage.json.cs").GenerateCode();
-            Console.WriteLine(code);
+            Helper.ConsoleWriteLine(code);
         }
 
 
@@ -104,8 +104,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 "Input/Namespaces.json", null);
 //            var dump = codegen.DumpAstTree();
             var code = codegen.GenerateCode();
-//            Console.WriteLine(dump);
-            Console.WriteLine(code);
+//            Helper.ConsoleWriteLine(dump);
+            Helper.ConsoleWriteLine(code);
         }
 
 		//[Test]
@@ -115,8 +115,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 		//		"PartialClassGeneration/Generic.json.cs");
 		//	var dump = codegen.DumpAstTree();
 		//	var code = codegen.GenerateCode();
-		//	Console.WriteLine(dump);
-		//	Console.WriteLine(code);
+		//	Helper.ConsoleWriteLine(dump);
+		//	Helper.ConsoleWriteLine(code);
 		//}
 
         [Test]
@@ -141,7 +141,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             tobj.ClassName = className;
 
             var generator = PartialClassGenerator.GenerateTypedJsonCode(tobj, null, null);
-            Console.WriteLine(generator.GenerateCode());
+            Helper.ConsoleWriteLine(generator.GenerateCode());
         }
 
         [Test]
@@ -158,7 +158,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             var matches = Regex.Matches(code, pattern);
             foreach (Match match in matches) {
-                Console.WriteLine(match.Value);
+                Helper.ConsoleWriteLine(match.Value);
             }
 
             Assert.IsTrue(matches.Count == 0);
@@ -174,7 +174,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var root = (Json)tobj.CreateInstance();
             root.Data = Helper.GetTreeData();
             
-            Console.WriteLine(root.ToJson());
+            Helper.ConsoleWriteLine(root.ToJson());
         }
     }
 }

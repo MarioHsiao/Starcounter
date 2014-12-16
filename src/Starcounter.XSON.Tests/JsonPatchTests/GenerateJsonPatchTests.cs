@@ -202,10 +202,10 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         protected static void Write(string title, string value) {
-            Console.WriteLine();
-            Console.WriteLine(title);
-            Console.WriteLine(new String('=', title.Length));
-            Console.WriteLine(value);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine(title);
+            Helper.ConsoleWriteLine(new String('=', title.Length));
+            Helper.ConsoleWriteLine(value);
         }
 
         [Test]
@@ -231,9 +231,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Flushed");
-            Console.WriteLine("=========");
-            Console.WriteLine(((Json)j).DebugString);
+            Helper.ConsoleWriteLine("Flushed");
+            Helper.ConsoleWriteLine("=========");
+            Helper.ConsoleWriteLine(((Json)j).DebugString);
 
             var str = jsonPatch.CreateJsonPatch(Session.Current, true);
             Assert.AreEqual("[]", str);
@@ -244,15 +244,15 @@ namespace Starcounter.Internal.XSON.Tests {
             kalle.FirstName = "Kalle";
             j.Friends.Add(kalle);
 
-            Console.WriteLine("Changed");
-            Console.WriteLine("=========");
-            Console.WriteLine(((Json)j).DebugString);
+            Helper.ConsoleWriteLine("Changed");
+            Helper.ConsoleWriteLine("=========");
+            Helper.ConsoleWriteLine(((Json)j).DebugString);
 
             str = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("JSON-Patch");
-            Console.WriteLine("==========");
-            Console.WriteLine(str);
+            Helper.ConsoleWriteLine("JSON-Patch");
+            Helper.ConsoleWriteLine("==========");
+            Helper.ConsoleWriteLine(str);
 
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},{\"op\":\"add\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
         }
@@ -285,15 +285,15 @@ namespace Starcounter.Internal.XSON.Tests {
 
             jockeJson.Friends.Add(henrikJson);
 
-            Console.WriteLine("New stuff");
-            Console.WriteLine("=========");
-            Console.WriteLine(((Json)jockeJson).DebugString);
+            Helper.ConsoleWriteLine("New stuff");
+            Helper.ConsoleWriteLine("=========");
+            Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
 
             jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Flushed");
-            Console.WriteLine("=========");
-            Console.WriteLine(((Json)jockeJson).DebugString);
+            Helper.ConsoleWriteLine("Flushed");
+            Helper.ConsoleWriteLine("=========");
+            Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
 
             var str = jsonPatch.CreateJsonPatch(Session.Current, true);
             Assert.AreEqual("[]", str);
@@ -304,15 +304,15 @@ namespace Starcounter.Internal.XSON.Tests {
             kalle.FirstName = "Kalle";
             jockeJson.Friends.Add(kalle);
 
-            Console.WriteLine("Changed");
-            Console.WriteLine("=========");
-            Console.WriteLine(((Json)jockeJson).DebugString);
+            Helper.ConsoleWriteLine("Changed");
+            Helper.ConsoleWriteLine("=========");
+            Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
 
             str = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("JSON-Patch");
-            Console.WriteLine("==========");
-            Console.WriteLine(str);
+            Helper.ConsoleWriteLine("JSON-Patch");
+            Helper.ConsoleWriteLine("==========");
+            Helper.ConsoleWriteLine(str);
 
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
         }
@@ -347,18 +347,18 @@ namespace Starcounter.Internal.XSON.Tests {
             var after = ((Json)j).DebugString;
             var result = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Before");
-            Console.WriteLine("=====");
-            Console.WriteLine(before);
-            Console.WriteLine("");
-            Console.WriteLine("After");
-            Console.WriteLine("=====");
-            Console.WriteLine(after);
-            Console.WriteLine("");
-            Console.WriteLine("Changes");
-            Console.WriteLine("=====");
-            Console.WriteLine(result);
-            Console.WriteLine("");
+            Helper.ConsoleWriteLine("Before");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(before);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("After");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(after);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("Changes");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(result);
+            Helper.ConsoleWriteLine("");
 
             string facit = 
 @"[{""op"":""replace"",""path"":""/FirstName"",""value"":""Charlie""},
@@ -408,22 +408,22 @@ Assert.AreEqual(facit, result );
 
             var patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Start");
-            Console.WriteLine("=====");
-            Console.WriteLine(start);
-            Console.WriteLine("");
-            Console.WriteLine("Before Change");
-            Console.WriteLine("=============");
-            Console.WriteLine(before);
-            Console.WriteLine("");
-            Console.WriteLine("After Change");
-            Console.WriteLine("============");
-            Console.WriteLine(after);
-            Console.WriteLine("");
-            Console.WriteLine("JSON-Patch");
-            Console.WriteLine("==========");
-            Console.WriteLine(patch);
-            Console.WriteLine("");
+            Helper.ConsoleWriteLine("Start");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(start);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("Before Change");
+            Helper.ConsoleWriteLine("=============");
+            Helper.ConsoleWriteLine(before);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("After Change");
+            Helper.ConsoleWriteLine("============");
+            Helper.ConsoleWriteLine(after);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("JSON-Patch");
+            Helper.ConsoleWriteLine("==========");
+            Helper.ConsoleWriteLine(patch);
+            Helper.ConsoleWriteLine("");
 
             Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
             Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Douglas\"}]",patch);
@@ -432,6 +432,7 @@ Assert.AreEqual(facit, result );
 
         [Test]
         public static void TestPatchForBrandNewRoot() {
+            string debugString;
             dynamic j = new Json();
             dynamic nicke = new Json();
 
@@ -442,15 +443,16 @@ Assert.AreEqual(facit, result );
             nicke.FirstName = "Nicke";
             j.Friends = new List<Json>() { nicke };
 
-            Console.WriteLine("Dirty status");
-            Console.WriteLine("============");
-            Console.WriteLine(j.DebugString);
+            Helper.ConsoleWriteLine("Dirty status");
+            Helper.ConsoleWriteLine("============");
+            debugString = j.DebugString;
+            Helper.ConsoleWriteLine(debugString);
 
             var patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Changes:");
-            Console.WriteLine("========");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("Changes:");
+            Helper.ConsoleWriteLine("========");
+            Helper.ConsoleWriteLine(patch);
 
             Assert.AreEqual(
                 "[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
@@ -468,7 +470,7 @@ Assert.AreEqual(facit, result );
             json.MarkAsReplaced(save);
             patch = jsonPatch.CreateJsonPatch(json.Session, true);
 
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine(patch);
 
             var expected = '[' + string.Format(Helper.PATCH, "/Save$", "null") + ']';
             Assert.AreEqual(expected, patch);
@@ -493,8 +495,8 @@ Assert.AreEqual(facit, result );
             subItem2.Text = "S2";
             item2.SubItems = new List<Json>();
             
-            var patch = jsonPatch.CreateJsonPatch(root.Session, true);
-//            Console.WriteLine(patch);
+            string patch = jsonPatch.CreateJsonPatch(root.Session, true);
+            Helper.ConsoleWriteLine(patch);
 
             root.Items[0] = item2;
             Assert.IsNotNull(item2.Parent);
@@ -503,8 +505,8 @@ Assert.AreEqual(facit, result );
             item2.SubItems.Add(subItem2);
 
             patch = jsonPatch.CreateJsonPatch(root.Session, true);
-            Console.WriteLine(patch);
-            Console.WriteLine();
+            Helper.ConsoleWriteLine(patch);
+            Helper.ConsoleWriteLine("");
 
             var expected = '[' + string.Format(Helper.PATCH, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
             Assert.AreEqual(expected, patch);

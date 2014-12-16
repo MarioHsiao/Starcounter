@@ -193,7 +193,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var ex = Assert.Throws<JsonPatchException>(() => {
                 jsonPatch.EvaluatePatches(session, patchBytes);
             });
-            Console.WriteLine(ex.Message);
+            Helper.ConsoleWriteLine(ex.Message);
 
             // Setting values on three properties in one patch
             patchStr = "["
@@ -248,21 +248,21 @@ namespace Starcounter.Internal.XSON.Tests {
             ((TString)schema.Properties[0]).AddHandler(
                 Helper.CreateInput<string>,
                 (Json pup, Starcounter.Input<string> input) => {
-                    Console.WriteLine("Handler for VirtualValue called.");
+                    Helper.ConsoleWriteLine("Handler for VirtualValue called.");
                     handledCount++;
                 }   
             );
             ((TString)schema.Properties[1]).AddHandler(
                 Helper.CreateInput<string>,
                 (Json pup, Starcounter.Input<string> input) => {
-                    Console.WriteLine("Handler for AbstractValue called.");
+                    Helper.ConsoleWriteLine("Handler for AbstractValue called.");
                     handledCount++;
                 }
             );
             ((TLong)schema.Properties[3]).AddHandler(
                 Helper.CreateInput<long>,
                 (Json pup, Starcounter.Input<long> input) => {
-                    Console.WriteLine("Handler for OtherValue called.");
+                    Helper.ConsoleWriteLine("Handler for OtherValue called.");
                     handledCount++;
                 }
             );
@@ -402,13 +402,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
         private static void PrintPointer(JsonPointer ptr, String originalStr) {
             ptr.Reset();
-            Console.Write("Tokens for \"" + originalStr + "\": ");
+            Helper.ConsoleWrite("Tokens for \"" + originalStr + "\": ");
             while (ptr.MoveNext()) {
-                Console.Write('\'');
-                Console.Write(ptr.Current);
-                Console.Write("' ");
+                Helper.ConsoleWrite("'");
+                Helper.ConsoleWrite(ptr.Current);
+                Helper.ConsoleWrite("' ");
             }
-            Console.WriteLine();
+            Helper.ConsoleWriteLine("");
         }
 
         [Test]
