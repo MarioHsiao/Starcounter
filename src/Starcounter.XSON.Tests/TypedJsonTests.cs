@@ -131,7 +131,7 @@ namespace Starcounter.Internal.XSON.Tests {
             }
             stop = DateTime.Now;
 
-            Console.WriteLine("Dynamic json get/set with " + repeats + " repeats in: " + (stop - start).TotalMilliseconds + " ms");
+            Helper.ConsoleWriteLine("Dynamic json get/set with " + repeats + " repeats in: " + (stop - start).TotalMilliseconds + " ms");
         }
 
         [Test]
@@ -514,7 +514,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.Throws<Exception>(() => json.Items2.Add(item));
 
             string str = json.ToJson();
-            Console.WriteLine(str);
+            Helper.ConsoleWriteLine(str);
         }
 
         [Test]

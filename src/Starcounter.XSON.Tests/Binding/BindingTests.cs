@@ -197,7 +197,6 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Data = new Person();
 
             Exception ex = Assert.Throws<Exception>(() => {
-                Console.WriteLine(json.Name);
             });
 
             Assert.IsTrue(ErrorCode.IsFromErrorCode(ex));
@@ -205,11 +204,10 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(Error.SCERRCREATEDATABINDINGFORJSON, errorCode);
             Assert.IsTrue(ex.Message.Contains("was not found in"));
 
-            Console.WriteLine(ex.Message);
-            Console.WriteLine();
+            Helper.ConsoleWriteLine(ex.Message);
+            Helper.ConsoleWriteLine("");
 
             ex = Assert.Throws<Exception>(() => {
-                Console.WriteLine(json.Age);
             });
 
             Assert.IsTrue(ErrorCode.IsFromErrorCode(ex));
@@ -217,7 +215,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(Error.SCERRCREATEDATABINDINGFORJSON, errorCode);
             Assert.IsTrue(ex.Message.Contains("Incompatible types for binding"));
 
-            Console.WriteLine(ex.Message);
+            Helper.ConsoleWriteLine(ex.Message);
 
         }
     }
