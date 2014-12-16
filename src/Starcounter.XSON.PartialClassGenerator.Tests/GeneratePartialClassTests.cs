@@ -53,7 +53,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			Assert.IsInstanceOf(typeof(TJson), actual);
 			Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
 			var codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
-			Console.WriteLine(codegen.GenerateCode());
+			Helper.ConsoleWriteLine(codegen.GenerateCode());
 		}
 
         /// <summary>
@@ -69,9 +69,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsInstanceOf(typeof(TJson), actual);
             var codegenmodule = new Gen2CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
-            Console.WriteLine(codegen.DumpAstTree());
+            Helper.ConsoleWriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
-            Console.WriteLine(code);
+            Helper.ConsoleWriteLine(code);
             // Assert.AreEqual(facit, code);
         }
 
@@ -85,9 +85,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Assert.IsInstanceOf(typeof(TJson), actual);
             var codegenmodule = new Gen2CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, CodeBehindMetadata.Empty);
-            Console.WriteLine(codegen.DumpAstTree());
+            Helper.ConsoleWriteLine(codegen.DumpAstTree());
             var code = codegen.GenerateCode();
-            Console.WriteLine(code);
+            Helper.ConsoleWriteLine(code);
         }
 
         [Test]
@@ -107,7 +107,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             Gen2CodeGenerationModule codegenmodule = new Gen2CodeGenerationModule();
             ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TJson), "C#", actual, metadata);
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
 		[Test]
@@ -118,8 +118,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 			var astTree = codegen.DumpAstTree();
 			var code = codegen.GenerateCode();
 
-			//Console.WriteLine(astTree);
-			Console.WriteLine(code);
+			//Helper.ConsoleWriteLine(astTree);
+			Helper.ConsoleWriteLine(code);
 		}
 
         [Test]
@@ -128,7 +128,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 "Input/emptyarray.json",
                 null);
 
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
     }
 }
