@@ -197,6 +197,7 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Data = new Person();
 
             Exception ex = Assert.Throws<Exception>(() => {
+                string name = json.Name;
             });
 
             Assert.IsTrue(ErrorCode.IsFromErrorCode(ex));
@@ -208,6 +209,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Helper.ConsoleWriteLine("");
 
             ex = Assert.Throws<Exception>(() => {
+                long age = json.Age;
             });
 
             Assert.IsTrue(ErrorCode.IsFromErrorCode(ex));
