@@ -86,10 +86,21 @@ namespace Starcounter.XSON {
                 nextIsIndex = false;
                 index = ptr.CurrentAsInt;
                 Json list = ((TObjArr)current).Getter(json);
+                if (Session.Current.ClientServerVersion != -1) {
+                    // TODO!
+                    // OT is needed. 
+                    // Check if list was replaced in later versions.
+                    // if not: Transform index...
+
+                }
                 current = list._GetAt(index);
             } else {
                 if (current is TObject) {
                     json = ((TObject)current).Getter(json);
+                    if (Session.Current.ClientServerVersion != -1) {
+                        // TODO!
+                        // Check if object was replaced in later versions.
+                    }
                 }
                 if (json.IsArray) {
                     throw new NotImplementedException();

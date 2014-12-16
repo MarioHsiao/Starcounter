@@ -550,7 +550,9 @@ namespace Starcounter.XSON {
                                 }
 
                                 long patchServerVer = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
-                                session.ClientServerVersion = patchServerVer;
+                                if (patchServerVer != session.ServerVersion) {
+                                    session.ClientServerVersion = patchServerVer;
+                                }
                             }
                         } else {
                             if (patchHandler != null)

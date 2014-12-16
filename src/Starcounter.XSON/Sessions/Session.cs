@@ -72,6 +72,7 @@ namespace Starcounter {
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<DataAndCache>();
             sessionOptions = options;
+            clientServerVersion = -1;
 
             UInt32 errCode = 0;
             if (_request != null) {
@@ -128,9 +129,9 @@ namespace Starcounter {
             get { return serverVersion; }
         }
 
-        public long ClientServerVersion {
+        internal long ClientServerVersion {
             get { return clientServerVersion; }
-            internal set { clientServerVersion = value; }
+            /*internal*/ set { clientServerVersion = value; }
         }
 
         public void ShareTransaction(ITransaction transaction) {
