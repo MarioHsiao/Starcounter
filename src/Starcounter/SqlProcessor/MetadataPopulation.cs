@@ -24,9 +24,10 @@ namespace Starcounter.SqlProcessor {
                     //}
                     string uniqueIdentifierRev = classReverseFullName;
                     string uniqueIdentifier = typeDef.Name;
-                    Starcounter.Internal.Metadata.MaterializedTable mattab =
-                        Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select m from materializedtable m where name = ?",
+                    Starcounter.Metadata.RawView rawview =
+                        Db.SQL<Starcounter.Metadata.RawView>("select m from rawview m where fullname = ?",
                         typeDef.TableDef.Name).First;
+                    Debug.Assert(rawview != null);
                     ClrClass parentView = null;
                     if (typeDef.BaseName != null)
                         parentView = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", typeDef.BaseName).First;
@@ -36,13 +37,14 @@ namespace Starcounter.SqlProcessor {
                         FullClassName = typeDef.Name,
                         UniqueIdentifierReversed = uniqueIdentifierRev,
                         UniqueIdentifier = uniqueIdentifier,
-                        MaterializedTable = mattab,
+                        Mapper = rawview,
                         AssemblyName = (app != null ? app.Name : null),
                         AppDomainName = AppDomain.CurrentDomain.FriendlyName,
                         Inherits = parentView,
                         Updatable = app == null ? false : true
                     };
                     createdViews[j] = obj;
+                    Debug.Assert(obj.Mapper != null);
                 }
                 // Insert meta-data about properties
                 for (int j = 0; j < typeDefs.Length; j++) {
@@ -67,7 +69,7 @@ namespace Starcounter.SqlProcessor {
                                 Starcounter.Internal.Metadata.MaterializedColumn matCol =
                                     Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
                                     "select c from materializedcolumn c where c.table = ? and name = ?",
-                                    theView.MaterializedTable, propDef.ColumnName).First;
+                                    theView.Mapper.MaterializedTable, propDef.ColumnName).First;
                                 Column col = new Column {
                                     Table = theView,
                                     Name = propDef.Name,

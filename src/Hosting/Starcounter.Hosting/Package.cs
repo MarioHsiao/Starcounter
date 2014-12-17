@@ -341,7 +341,6 @@ namespace Starcounter.Hosting {
             HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Table.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.HostMaterializedTable.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
