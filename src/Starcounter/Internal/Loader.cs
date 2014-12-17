@@ -135,15 +135,13 @@ namespace Starcounter.Internal
         {
             var columnDefs = new List<ColumnDef>();
             var propertyDefs = new List<PropertyDef>();
-            Boolean isObjectID = false;
-            Boolean isObjectNo = false;
 
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
 
             // Add column definition for implicit key column.
             columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
 
-            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
+            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
 
@@ -169,11 +167,10 @@ namespace Starcounter.Internal
         /// <param name="propertyDefs">The property defs.</param>
         /// <param name="subClass">if set to <c>true</c> [sub class].</param>
         /// <exception cref="System.Exception"></exception>
-        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass,
-            ref bool isObjectID, ref bool isObjectNo) {
+        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass) {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
             if (baseDatabaseClass != null) {
-                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, true, ref isObjectID, ref isObjectNo);
+                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, true);
             }
 
             var databaseAttributes = databaseClass.Attributes;
