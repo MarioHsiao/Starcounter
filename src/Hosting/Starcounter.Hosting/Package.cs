@@ -264,10 +264,7 @@ namespace Starcounter.Hosting {
                     ImplicitTransaction.Current(true).SetCurrent();
 
                     // Populate properties and columns .NET metadata
-                    for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
-                        var builder = (TypeDefBuilder) unregisteredTypeDefs[i];
-                        unregisteredTypeDefs[i] = builder.BuildFinalTypeDef(unregisteredTypeDefs);
-                    }
+                    unregisteredTypeDefs = MetadataBindingHelper.BuildFinalMetadataTypeDefs(unregisteredTypeDefs);
                     OnPopulateMetadataDefs();
                 }
                 

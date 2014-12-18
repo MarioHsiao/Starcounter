@@ -9,8 +9,8 @@ namespace Starcounter.Internal.Metadata {
     /// instances for metadata classes.
     /// </summary>
     internal class TypeDefBuilder : TypeDef {
-        static ColumnDef[] EmtpyColumns = new ColumnDef[0];
-        static PropertyDef[] EmtpyProperties = new PropertyDef[0];
+        static ColumnDef[] EmptyColumns = new ColumnDef[0];
+        static PropertyDef[] EmptyProperties = new PropertyDef[0];
 
         public TypeDefBuilder(Type t) {
             var name = t.FullName;
@@ -19,12 +19,23 @@ namespace Starcounter.Internal.Metadata {
                 baseName = t.BaseType.FullName;
             }
 
-            TableDef = new TableDef(name, baseName, EmtpyColumns);
-            PropertyDefs = EmtpyProperties;
+            Name = name;
+            BaseName = baseName;
+            TableDef = new TableDef(name, baseName, EmptyColumns);
+            PropertyDefs = EmptyProperties;
             TypeLoader = new TypeLoader(new AssemblyName("Starcounter"), name);
         }
 
-        public TypeDef BuildFinalTypeDef(TypeDef[] metadataTypeDefs) {
+        public TypeDef BuildFinalTypeDef(int thisIndex, ref TypeDef[] metadataTypeDefs) {
+            int baseIndex = -1;
+            if (BaseName != null) {
+                baseIndex = Array.FindIndex(metadataTypeDefs, candidate => candidate.Name == BaseName);
+                var builder = metadataTypeDefs[baseIndex] as TypeDefBuilder;
+                if (builder != null) {
+                    metadataTypeDefs[baseIndex] = BuildFinalTypeDef(baseIndex, ref metadataTypeDefs);
+                }
+            }
+
             // Grab the TableDef that was retrieved based on the layout in
             // the kernel and the set of public properties. This is the info
             // we'll use to construct the TypeDef with.
@@ -42,13 +53,9 @@ namespace Starcounter.Internal.Metadata {
             // Find and use inherited properties in their order
             int nrInheritedProperties = 0;
             if (BaseName != null) {
-                // Find Based on typedef
-                int based = 0;
-                while (based < metadataTypeDefs.Length && metadataTypeDefs[based].Name != BaseName)
-                    based++;
-                Debug.Assert(based < metadataTypeDefs.Length);
-                Debug.Assert(metadataTypeDefs[based].Name == BaseName);
-                TypeDef baseType = metadataTypeDefs[based];
+                Debug.Assert(baseIndex >= 0 && baseIndex < metadataTypeDefs.Length);
+                Debug.Assert(metadataTypeDefs[baseIndex].Name == BaseName);
+                TypeDef baseType = metadataTypeDefs[baseIndex];
 
                 Debug.Assert(baseType.PropertyDefs.Length <= prpDefs.Length);
                 Debug.Assert(baseType.HostedColumns.Length == baseType.PropertyDefs.Length + 1); // Number of columns is bigger by 1 than number of properties
@@ -81,7 +88,7 @@ namespace Starcounter.Internal.Metadata {
                 Debug.Assert(prpDefs[curProp].Name == tableDef.ColumnDefs[j].Name);
             }
 
-            return TypeDef.DefineNew(Name, BaseName, tableDef, TypeLoader, PropertyDefs, hostedColumns);
+            return TypeDef.DefineNew(Name, BaseName, tableDef, TypeLoader, prpDefs, hostedColumns);
         }
     }
 
@@ -97,6 +104,19 @@ namespace Starcounter.Internal.Metadata {
         /// <returns></returns>
         internal static TypeDef CreateTypeTableDef(Type sysType) {
             return new TypeDefBuilder(sysType);
+        }
+
+        internal static TypeDef[] BuildFinalMetadataTypeDefs(TypeDef[] builders) {
+            for (int i = 0; i < builders.Length; i++) {
+                var builder = builders[i] as TypeDefBuilder;
+                if (builder == null) {
+                    Debug.Assert(builders[i] is TypeDef);
+                    continue;
+                }
+
+                builders[i] = builder.BuildFinalTypeDef(i, ref builders);
+            }
+            return builders;
         }
     }
 }
