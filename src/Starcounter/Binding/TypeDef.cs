@@ -158,7 +158,9 @@ namespace Starcounter.Binding
             TypeLoader = typeLoader;
             HostedColumns = hostedColumns;
         }
-            
+
+        protected TypeDef() {
+        }
 
         public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
             var type = new TypeDef(name, baseName, table, properties, hostedColumns, typeLoader);
