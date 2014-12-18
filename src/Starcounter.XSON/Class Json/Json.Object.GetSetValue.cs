@@ -235,7 +235,7 @@ namespace Starcounter {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
-				ArrayAddsAndDeletes.Add(Change.Add((Json)this.Parent, tarr, index));
+				ArrayAddsAndDeletes.Add(Change.Add(this.Parent, tarr, index, item));
 				Dirtyfy();
 				item.SetBoundValuesInTuple();
 			}
@@ -253,7 +253,7 @@ namespace Starcounter {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Update(this.Parent, tarr, index, item));
                 Dirtyfy();
                 item.SetBoundValuesInTuple();
             }
@@ -265,13 +265,13 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="item"></param>
-		internal void CallHasRemovedElement(int index) {
+		internal void CallHasRemovedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
 			if (_dirtyCheckEnabled && Session != null) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
-				ArrayAddsAndDeletes.Add(Change.Remove((Json)this.Parent, tarr, index));
+				ArrayAddsAndDeletes.Add(Change.Remove(this.Parent, tarr, index, item));
 				Dirtyfy();
 			}
 			Parent.ChildArrayHasRemovedAnElement(tarr, index);
