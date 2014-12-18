@@ -144,12 +144,26 @@ namespace Starcounter.Binding
             ColumnRuntimeTypes = columnRuntimeTypes;
         }
 
+        private TypeDef(
+            string name,
+            string baseName,
+            TableDef tableDef,
+            PropertyDef[] properties,
+            HostedColumn[] hostedColumns,
+            TypeLoader typeLoader) {
+            Name = name;
+            TableDef = tableDef;
+            BaseName = baseName;
+            PropertyDefs = properties;
+            TypeLoader = typeLoader;
+            HostedColumns = hostedColumns;
+        }
+            
+
         public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
             // TODO: We expect hosted columns to be in sync. Assert that?
-            // TODO: Replace public ctor eventually, and complete this method.
-            var type = new TypeDef(name, baseName, properties, typeLoader, table, null);
+            var type = new TypeDef(name, baseName, table, properties, hostedColumns, typeLoader);
             type.RefreshProperties();
-            
             return type;
         }
 
