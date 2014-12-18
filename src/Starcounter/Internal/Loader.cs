@@ -148,7 +148,9 @@ namespace Starcounter.Internal
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
 
             // Add column definition for implicit key column.
-            columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
+            var column = new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true);
+            columnDefs.Add(column);
+            hostedColumns.Add(new HostedColumn() { Name = column.Name, TypeCode = DbTypeCode.Key });
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, hostedColumns, false);
             var columnDefArray = columnDefs.ToArray();
@@ -160,10 +162,8 @@ namespace Starcounter.Internal
                 );
             
             var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
-            var typeDef = new TypeDef(
-                databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef,
-                columnRuntimeTypes
-                );
+            var typeDef = TypeDef.DefineNew(
+                databaseClass.Name, baseName, tableDef, typeLoader, propertyDefArray, hostedColumns.ToArray());
 
             return typeDef;
         }
@@ -255,13 +255,18 @@ namespace Starcounter.Internal
                 switch (databaseAttribute.AttributeKind) {
                     case DatabaseAttributeKind.Field:
                         if (!isSynonym) {
-                            columnDefs.Add(new ColumnDef(
+                            var column = new ColumnDef(
                                 DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(databaseAttribute.Name),
                                 BindingHelper.ConvertDbTypeCodeToScTypeCode(type),
                                 isNullable,
                                 subClass
-                                ));
-                            hostedColumns.Add(new HostedColumn() { TypeCode = type, TargetType = targetTypeName });
+                                );
+                            columnDefs.Add(column);
+                            hostedColumns.Add(new HostedColumn() { 
+                                Name = column.Name,
+                                TypeCode = type,
+                                TargetType = targetTypeName 
+                            });
                         }
 
                         var targetAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
