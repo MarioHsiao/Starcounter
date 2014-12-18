@@ -99,13 +99,12 @@ namespace Starcounter {
             if (ArrayAddsAndDeletes != null && ArrayAddsAndDeletes.Count > 0) {
                 for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
                     var change = ArrayAddsAndDeletes[i];
+
                     session.AddChange(change);
-
-                    var index = change.Index;
-                    if (index < list.Count) {
+                    var index = change.Item._cacheIndexInArr;
+                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
                         CheckpointAt(index);
-
-                        item = (Json)list[index];
+                        item = change.Item;
                         item.SetBoundValuesInTuple();
                         item._Dirty = false;
                     }
@@ -115,7 +114,7 @@ namespace Starcounter {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
                     foreach (Change change in ArrayAddsAndDeletes) {
-                        if (change.Index == i) {
+                        if (change.Item._cacheIndexInArr == i) {
                             logChanges = false;
                             break;
                         }
@@ -123,7 +122,7 @@ namespace Starcounter {
 
                     if (logChanges) {
                         ((Json)_list[i]).LogValueChangesWithDatabase(session);
-                    }
+                     }
                 }
 
                 if (session.CheckOption(SessionOptions.EnableProtocolVersioning)) {
@@ -298,7 +297,7 @@ namespace Starcounter {
                         if (_dirtyCheckEnabled) {
                             if (ArrayAddsAndDeletes == null)
                                 ArrayAddsAndDeletes = new List<Change>();
-                            ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
+                            ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index, newJson));
                         }
                         hasChanged = true;
                     }

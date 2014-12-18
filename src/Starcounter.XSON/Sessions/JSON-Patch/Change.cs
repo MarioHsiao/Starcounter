@@ -17,9 +17,9 @@ namespace Starcounter.Internal.XSON {
         public readonly byte ChangeType;
 
         /// <summary>
-        /// The parent of the property that was changed, or item if the change is an array add/replace.
+        /// The parent of the property that was changed.
         /// </summary>
-        private readonly Json parentOrItem;
+        public readonly Json Parent;
 
         /// <summary>
         /// The template of the property that was changed.
@@ -32,17 +32,23 @@ namespace Starcounter.Internal.XSON {
         public readonly Int32 Index;
 
         /// <summary>
+        /// If the change is for an item in an array this will be the item, otherwise it will be null.
+        /// </summary>
+        public readonly Json Item;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="Change" /> struct.
         /// </summary>
         /// <param name="changeType">The change type.</param>
         /// <param name="app">The app that was changed.</param>
         /// <param name="prop">The template of the property that was changed.</param>
         /// <param name="index">The index.</param>
-        private Change(byte changeType, Json obj, TValue prop, Int32 index) {
+        private Change(byte changeType, Json obj, TValue prop, Int32 index, Json item) {
             ChangeType = changeType;
-            parentOrItem = obj;
+            Parent = obj;
             Property = prop;
             Index = index;
+            Item = item;
 
 #if DEBUG
             if (prop != null)
@@ -59,20 +65,6 @@ namespace Starcounter.Internal.XSON {
         //    return (Obj == obj && Property == template);
         //}
 
-        internal Json Parent {
-            get {
-                if (Index == -1 || ChangeType == Change.REMOVE)
-                    return parentOrItem;
-                return parentOrItem.Parent.Parent;
-            }
-        }
-
-        internal Json Item {
-            get {
-                return parentOrItem;
-            }
-        }
-
         /// <summary>
         /// Creates and returns an instance of an Add change.
         /// </summary>
@@ -80,8 +72,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="list">The property of the list where an item was added.</param>
         /// <param name="index">The index in the list of the added item.</param>
         /// <returns></returns>
-        internal static Change Add(Json obj, TObjArr list, Int32 index) {
-            return new Change(Change.ADD, obj, list, index);
+        internal static Change Add(Json obj, TObjArr list, Int32 index, Json item) {
+            return new Change(Change.ADD, obj, list, index, item);
         }
 
 		/// <summary>
@@ -91,7 +83,7 @@ namespace Starcounter.Internal.XSON {
 		/// <param name="tobj"></param>
 		/// <returns></returns>
 		internal static Change Add(Json obj) {
-			return new Change(Change.REPLACE, obj, null, -1);
+			return new Change(Change.REPLACE, obj, null, -1, null);
 		}
 
         /// <summary>
@@ -101,8 +93,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="list">The property of the list where an item was removed.</param>
         /// <param name="index">The index in the list of the removed item.</param>
         /// <returns></returns>
-        internal static Change Remove(Json obj, TObjArr list, Int32 index) {
-            return new Change(Change.REMOVE, obj, list, index);
+        internal static Change Remove(Json obj, TObjArr list, Int32 index, Json item) {
+            return new Change(Change.REMOVE, obj, list, index, item);
         }
 
         /// <summary>
@@ -112,7 +104,7 @@ namespace Starcounter.Internal.XSON {
         /// <param name="property">The template of the property that was updated.</param>
         /// <returns></returns>
         internal static Change Update(Json obj, TValue property) {
-            return new Change(Change.REPLACE, obj, property, -1);
+            return new Change(Change.REPLACE, obj, property, -1, null);
         }
 
         /// <summary>
@@ -122,8 +114,8 @@ namespace Starcounter.Internal.XSON {
         /// <param name="property"></param>
         /// <param name="index"></param>
         /// <returns></returns>
-        internal static Change Update(Json obj, TValue property, int index) {
-            return new Change(Change.REPLACE, obj, property, index);
+        internal static Change Update(Json obj, TValue property, int index, Json item) {
+            return new Change(Change.REPLACE, obj, property, index, item);
         }
     }
 }

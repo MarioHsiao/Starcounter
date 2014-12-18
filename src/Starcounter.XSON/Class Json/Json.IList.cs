@@ -391,7 +391,7 @@ namespace Starcounter {
             if (IsArray) {
                 Json otherItem;
                 var tarr = (TObjArr)this.Template;
-                CallHasRemovedElement(index);
+                CallHasRemovedElement(index, item);
                 for (Int32 i = index; i < list.Count; i++) {
                     otherItem = (Json)_list[i];
                     otherItem._cacheIndexInArr = i;

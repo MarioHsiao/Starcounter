@@ -122,8 +122,9 @@ namespace Starcounter.XSON {
             size = 2;
             size += pathSizes.Length;
 
-            for (int i = 0; i < changes.Count; i++) 
+            for (int i = 0; i < changes.Count; i++) {
                 size += CalculateSize(changes[i], out pathSizes[i]);
+            }
 
             if (versioning) {
                 // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
@@ -200,7 +201,7 @@ namespace Starcounter.XSON {
             if (change.Property != null) {
                 WritePath(ref writer, change, pathSize);
             } else {
-                childJson = change.Item;
+                childJson = change.Parent;
             }
             writer.Write('"');
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
