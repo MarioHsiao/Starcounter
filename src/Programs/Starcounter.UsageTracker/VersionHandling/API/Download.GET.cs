@@ -27,8 +27,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                     Response newResponse = new Response();
                     newResponse.BodyBytes = response.BodyBytes;
                     newResponse.ContentType = response.ContentType;
-//                    newResponse["Cache-Control"] = "private, max-age=0, no-cache";
-//                    newResponse["Cache-Control"] = "must-revalidate";
+
                     return newResponse;
                 }
                 else {
@@ -114,8 +113,6 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
             Response newResponse = new Response();
             newResponse.BodyBytes = response.BodyBytes;
             newResponse.ContentType = response.ContentType;
-            //newResponse["Cache-Control"] = "private, max-age=0, no-cache";
-            //newResponse["Cache-Control"] = "must-revalidate";
 
             return newResponse;
 

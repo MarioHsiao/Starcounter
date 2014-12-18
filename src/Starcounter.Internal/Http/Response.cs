@@ -876,8 +876,9 @@ namespace Starcounter
                         }
                     }
 
-                    if (!cacheControl)
+                    if (!cacheControl) {
                         writer.Write(HttpHeadersUtf8.CacheControlNoCache);
+                    }
 
                     // Checking if session is defined.
                     if (addSetCookie && (null != AppsSession) && (corrRequest_ == null || !corrRequest_.CameWithCorrectSession)) {
