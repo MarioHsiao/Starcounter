@@ -21,6 +21,16 @@ namespace Starcounter.Internal
     /// </summary>
     public static class LoaderHelper
     {
+        // To be deprecated.
+        // This functionality should be supported by the TypeDef
+        // class instead; it's the responsibility of that type to
+        // synchronize the host-level support arrays whenever the
+        // underlying table layout it reference changed (like when
+        // column indexing change because a table upgrade).
+
+
+
+
         /// <summary>
         /// Maps the property defs to column defs.
         /// </summary>
@@ -72,9 +82,7 @@ namespace Starcounter.Internal
                     columnRuntimeTypes[ci] = columnRuntimeTypesTemp[ci].Value;
                 }
                 else {
-                    columnRuntimeTypes[ci] = BindingHelper.ConvertScTypeCodeToDbTypeCode(
-                        columnDefs[ci].Type
-                        );
+                    columnRuntimeTypes[ci] = BindingHelper.ConvertScTypeCodeToDbTypeCode(columnDefs[ci].Type);
                 }
             }
         }
@@ -135,13 +143,14 @@ namespace Starcounter.Internal
         {
             var columnDefs = new List<ColumnDef>();
             var propertyDefs = new List<PropertyDef>();
+            var hostedColumns = new List<HostedColumn>();
 
             string baseName = databaseClass.BaseClass == null ? null : databaseClass.BaseClass.Name;
 
             // Add column definition for implicit key column.
             columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
 
-            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false);
+            GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, hostedColumns, false);
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
 
@@ -165,12 +174,19 @@ namespace Starcounter.Internal
         /// <param name="databaseClass">The database class.</param>
         /// <param name="columnDefs">The column defs.</param>
         /// <param name="propertyDefs">The property defs.</param>
+        /// <param name="hostedColumns">Set of <see cref="HostedColumn"/> instances
+        /// corresponding to every identified column.</param>
         /// <param name="subClass">if set to <c>true</c> [sub class].</param>
         /// <exception cref="System.Exception"></exception>
-        private static void GatherColumnAndPropertyDefs(DatabaseEntityClass databaseClass, List<ColumnDef> columnDefs, List<PropertyDef> propertyDefs, bool subClass) {
+        private static void GatherColumnAndPropertyDefs(
+            DatabaseEntityClass databaseClass, 
+            List<ColumnDef> columnDefs, 
+            List<PropertyDef> propertyDefs,
+            List<HostedColumn> hostedColumns,
+            bool subClass) {
             var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
             if (baseDatabaseClass != null) {
-                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, true);
+                GatherColumnAndPropertyDefs(baseDatabaseClass, columnDefs, propertyDefs, hostedColumns, true);
             }
 
             var databaseAttributes = databaseClass.Attributes;
@@ -245,6 +261,7 @@ namespace Starcounter.Internal
                                 isNullable,
                                 subClass
                                 ));
+                            hostedColumns.Add(new HostedColumn() { TypeCode = type, TargetType = targetTypeName });
                         }
 
                         var targetAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
