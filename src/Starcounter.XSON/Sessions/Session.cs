@@ -526,16 +526,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Adds a value update for an array.
-        /// </summary>
-        /// <param name="obj">The json containing the value.</param>
-        /// <param name="property">The property to update</param>
-        /// <param name="index">The index in the array that should be updated.</param>
-        internal void UpdateValue(Json obj, TObjArr property, int index) {
-            _changes.Add(Change.Update(obj, property, index));
-        }
-
-        /// <summary>
         /// Adds a list of changes to the log
         /// </summary>
         /// <param name="toAdd"></param>
