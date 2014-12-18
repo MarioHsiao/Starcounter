@@ -7,6 +7,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using System;
 
 namespace Starcounter.Binding
 {
@@ -56,7 +57,27 @@ namespace Starcounter.Binding
         /// Array parallel to TableDef.ColumnDefs with type codes of columns as mapped by
         /// properties.
         /// </summary>
+        /// <remarks>
+        /// Obsolete. Will be deprecated and removed in favor of HostedColumns.
+        /// </remarks>
         public DbTypeCode[] ColumnRuntimeTypes;
+
+        /// <summary>
+        /// Gets the set of hosted columns for the current type.
+        /// </summary>
+        /// <remarks>
+        /// This array is always 1-1 to <see cref="this.TableDef.ColumnDefs"/>.
+        /// If a column is indexed there, the same index can be used in this
+        /// array to find the corresponding host-specific information.
+        /// <para>
+        /// Synhronizing the two is the responsibility of the <see cref="Refresh()"/>
+        /// method.
+        /// </para>
+        /// </remarks>
+        public HostedColumn[] HostedColumns { 
+            get;
+            private set; 
+        }
 
         private string LowerName_;
         /// <summary>
@@ -122,6 +143,63 @@ namespace Starcounter.Binding
             TableDef = tableDef;
             ColumnRuntimeTypes = columnRuntimeTypes;
         }
+
+        public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
+            // TODO: We expect hosted columns to be in sync. Assert that?
+            // TODO: Replace public ctor eventually, and complete this method.
+            var type = new TypeDef(name, baseName, properties, typeLoader, table, null);
+            type.RefreshProperties();
+            
+            return type;
+        }
+
+        /// <summary>
+        /// Refresh host-specific instance data held in the current
+        /// type according to the underlying table and it's columns.
+        /// </summary>
+        public void Refresh() {
+            RefreshProperties();
+            RefreshHostedColumns();
+        }
+
+        void RefreshProperties() {
+            // Iterate the set of properties that reference a column
+            // by name and set their index (based on the column index
+            // in the underlying table).
+            // This functionality replace LoaderHelper.MapPropertyDefsToColumnDefs.
+            foreach (var property in PropertyDefs) {
+                if (property.ColumnName != null) {
+                    property.ColumnIndex = Array.FindIndex(TableDef.ColumnDefs, candidate => candidate.Name == property.ColumnName);
+                    if (property.ColumnIndex == -1) {
+                        throw ErrorCode.ToException(
+                            Error.SCERRUNEXPDBMETADATAMAPPING, "Column " + property.ColumnName + " cannot be found in ColumnDefs.");
+                    }
+                }
+            }
+        }
+
+        void RefreshHostedColumns() {
+            var columns = TableDef.ColumnDefs;
+            var hostedColumns = new HostedColumn[columns.Length];
+
+            // Make sure the HostedColumns array is resorted so that
+            // it match the underlying columns array.
+            
+            for (int i = 0; i < columns.Length; i++) {
+                var column = columns[i];
+                var current = HostedColumns.First(candidate => candidate.Name == column.Name);
+                hostedColumns[i] = current;
+            }
+
+            HostedColumns = hostedColumns;
+        }
+
+        #region Metadata-specific helper methods
+
+        // The methods within this region is way to specific for the TypeDef
+        // class; they are solely usable when creating definitions for the
+        // internal metadata-related .NET types. They should be moved to a
+        // more specific space, prefarably in Starcounter.Metadata namespace.
 
         /// <summary>
         /// This is a help method, which creates TypeDef and TableDef for given meta-data type.
@@ -201,6 +279,8 @@ namespace Starcounter.Binding
                 TableDef.ColumnDefs = tblDef.ColumnDefs;
                 ColumnRuntimeTypes = typeCodes;
             }
+
+        #endregion
 
         internal IndexInfo2 GetIndexInfo(string name) {
             var indexInfo = TableDef.GetIndexInfo(name);
