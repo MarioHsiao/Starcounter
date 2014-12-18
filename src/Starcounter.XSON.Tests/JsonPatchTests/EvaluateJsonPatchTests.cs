@@ -35,14 +35,14 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = json;
 
             json.Total = 1L;
-            patch = string.Format(Helper.PATCH, "/Total", "3");
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", "3");
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(3L, json.Total);
 
             json.Total = 1L;
-            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3"));
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("3"));
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
@@ -66,11 +66,11 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Total = 1L;
             patch = "[" 
-                    + string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3"))
+                    + string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("3"))
                     + ","
-                    + string.Format(Helper.PATCH, "/Total", Helper.Jsonify("66"))
+                    + string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("66"))
                     + ","
-                    + string.Format(Helper.PATCH, "/Total", Helper.Jsonify("666")) 
+                    + string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("666")) 
                     + "]";
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
@@ -93,14 +93,14 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = json;
 
             json.Total = 1.0m;
-            patch = string.Format(Helper.PATCH, "/Total", "3.3");
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", "3.3");
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(3.3m, json.Total);
 
             json.Total = 1.0m;
-            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3.3"));
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("3.3"));
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
@@ -122,14 +122,14 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = json;
 
             json.Total = 1.0d;
-            patch = string.Format(Helper.PATCH, "/Total", "3.3");
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", "3.3");
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(3.3d, json.Total);
 
             json.Total = 1.0d;
-            patch = string.Format(Helper.PATCH, "/Total", Helper.Jsonify("3.3"));
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", Helper.Jsonify("3.3"));
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
@@ -151,14 +151,14 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = json;
 
             json.IsTotal = false;
-            patch = string.Format(Helper.PATCH, "/IsTotal", "true");
+            patch = string.Format(Helper.PATCH_REPLACE, "/IsTotal", "true");
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(true, json.IsTotal);
 
             json.IsTotal = false;
-            patch = string.Format(Helper.PATCH, "/IsTotal", Helper.Jsonify("true"));
+            patch = string.Format(Helper.PATCH_REPLACE, "/IsTotal", Helper.Jsonify("true"));
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
             number = jsonPatch.EvaluatePatches(session, patchArr);
             Assert.AreEqual(number, 1);
@@ -180,7 +180,7 @@ namespace Starcounter.Internal.XSON.Tests {
             session.Data = json;
 
             // Setting a value on a editable property
-            patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
+            patchStr = string.Format(Helper.PATCH_REPLACE, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             
             patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
@@ -188,7 +188,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Alpha", json.VirtualValue);
 
             // Setting a value on a readonly property
-            patchStr = string.Format(Helper.PATCH, "/BaseValue", Helper.Jsonify("Beta"));
+            patchStr = string.Format(Helper.PATCH_REPLACE, "/BaseValue", Helper.Jsonify("Beta"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             var ex = Assert.Throws<JsonPatchException>(() => {
                 jsonPatch.EvaluatePatches(session, patchBytes);
@@ -197,11 +197,11 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Setting values on three properties in one patch
             patchStr = "["
-                       + string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Apa"))
+                       + string.Format(Helper.PATCH_REPLACE, "/VirtualValue$", Helper.Jsonify("Apa"))
                        + ","
-                       + string.Format(Helper.PATCH, "/OtherValue$", 1395276000)
+                       + string.Format(Helper.PATCH_REPLACE, "/OtherValue$", 1395276000)
                        + ","
-                       + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
+                       + string.Format(Helper.PATCH_REPLACE, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
@@ -212,9 +212,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Making sure all patches are correctly parsed.
             patchStr = "["
-                       + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/Date$", 1395276000)
+                       + string.Format(Helper.PATCH_REPLACE, "/Content/ApplicationPage/GanttData/ItemDropped/Date$", 1395276000)
                        + ","
-                       + string.Format(Helper.PATCH, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
+                       + string.Format(Helper.PATCH_REPLACE, "/Content/ApplicationPage/GanttData/ItemDropped/TemplateId$", Helper.Jsonify("lm7"))
                        + "]";
 
             jsonPatch.SetPatchHandler(null);
@@ -270,7 +270,7 @@ namespace Starcounter.Internal.XSON.Tests {
             handledCount = 0;
 
             // Setting a value on a editable property
-            patchStr = string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Alpha"));
+            patchStr = string.Format(Helper.PATCH_REPLACE, "/VirtualValue$", Helper.Jsonify("Alpha"));
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
             Assert.AreEqual(1, handledCount);
@@ -280,11 +280,11 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Setting values on three properties in one patch
             patchStr = "["
-                       + string.Format(Helper.PATCH, "/VirtualValue$", Helper.Jsonify("Apa"))
+                       + string.Format(Helper.PATCH_REPLACE, "/VirtualValue$", Helper.Jsonify("Apa"))
                        + ","
-                       + string.Format(Helper.PATCH, "/OtherValue$", 1395276000)
+                       + string.Format(Helper.PATCH_REPLACE, "/OtherValue$", 1395276000)
                        + ","
-                       + string.Format(Helper.PATCH, "/AbstractValue$", Helper.Jsonify("Peta"))
+                       + string.Format(Helper.PATCH_REPLACE, "/AbstractValue$", Helper.Jsonify("Peta"))
                        + "]";
             patchBytes = Encoding.UTF8.GetBytes(patchStr);
             patchCount = jsonPatch.EvaluatePatches(session, patchBytes);
@@ -475,11 +475,11 @@ namespace Starcounter.Internal.XSON.Tests {
         private static string GetVersioningPatch(long clientVersion, long serverVersion) {
             return 
                 "["
-                + string.Format(Helper.PATCH, "/" + JsonPatch.ClientVersionPropertyName, clientVersion)
+                + string.Format(Helper.PATCH_REPLACE, "/" + JsonPatch.ClientVersionPropertyName, clientVersion)
                 + ","
                 + string.Format(Helper.PATCH_TEST, "/" + JsonPatch.ServerVersionPropertyName, serverVersion)
                 + ","
-                + string.Format(Helper.PATCH, "/AbstractValue$", @"""Changed1""")
+                + string.Format(Helper.PATCH_REPLACE, "/AbstractValue$", @"""Changed1""")
                 + "]";
         }
     }

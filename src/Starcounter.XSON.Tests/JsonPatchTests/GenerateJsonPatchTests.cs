@@ -56,7 +56,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ["op":"replace","path":"","value":"ApaPapa"]
             path = "";
-            patch = string.Format(Helper.PATCH, path, @"{""FirstName"":""ApaPapa""}");
+            patch = string.Format(Helper.PATCH_REPLACE, path, @"{""FirstName"":""ApaPapa""}");
             schema = new TObject();
             property = schema.Add<TString>("FirstName");
             json = new Json() { Template = schema };
@@ -71,7 +71,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
             path = "/FirstName";
-            patch = string.Format(Helper.PATCH, path, Helper.Jsonify("ApaPapa"));
+            patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
             schema = new TObject();
             property = schema.Add<TString>("FirstName");
             json = new Json() { Template = schema };
@@ -86,7 +86,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ["op":"replace","path":"/Focused/Age","value":19]
             path = "/Focused/Age";
-            patch = string.Format(Helper.PATCH, path, 19);
+            patch = string.Format(Helper.PATCH_REPLACE, path, 19);
             schema = new TObject();
             property = schema.Add<TObject>("Focused");
             property = ((TObject)property).Add<TLong>("Age");
@@ -102,7 +102,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ["op":"replace","path":"/Items/0/Stats","value":23.5]
             path = "/Items/0/Stats";
-            patch = string.Format(Helper.PATCH, path, 23.5d);
+            patch = string.Format(Helper.PATCH_REPLACE, path, 23.5d);
             schema = new TObject();
             var tarr = schema.Add<TArray<Json>>("Items");
             tarr.ElementType = new TObject();
@@ -121,7 +121,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ["op":"replace","path":"/OtherApp/FirstName","value":"ApaPapa"]
             path = "/OtherApp/FirstName";
-            patch = string.Format(Helper.PATCH, path, Helper.Jsonify("ApaPapa"));
+            patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
             schema = new TObject();
             schema.Add<TLong>("Age");
             json = new Json() { Template = schema };
@@ -142,7 +142,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // ["op":"replace","path":"/Focused/OtherApp/FirstName","value":"ApaPapa"]
             path = "/Focused/OtherApp/FirstName";
-            patch = string.Format(Helper.PATCH, path, Helper.Jsonify("ApaPapa"));
+            patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
             schema = new TObject();
             var focSchema = schema.Add<TObject>("Focused");
             focSchema.Add<TLong>("Age");
@@ -472,7 +472,7 @@ Assert.AreEqual(facit, result );
 
             Helper.ConsoleWriteLine(patch);
 
-            var expected = '[' + string.Format(Helper.PATCH, "/Save$", "null") + ']';
+            var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Save$", "null") + ']';
             Assert.AreEqual(expected, patch);
         }
 
@@ -508,7 +508,7 @@ Assert.AreEqual(facit, result );
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
-            var expected = '[' + string.Format(Helper.PATCH, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
+            var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
             Assert.AreEqual(expected, patch);
         }
 
@@ -523,12 +523,12 @@ Assert.AreEqual(facit, result );
 
             try {
                 var patch = jsonPatch.CreateJsonPatch(root.Session, true);
-                var expected = '[' + string.Format(Helper.PATCH, "", @"{""Number"":65.0}") + ']';
+                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
                 Assert.AreEqual(expected, patch);
 
                 root.Number = 99.5545m;
                 patch = jsonPatch.CreateJsonPatch(root.Session, true);
-                expected = '[' + string.Format(Helper.PATCH, "/Number", "99.5545") + ']';
+                expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
                 Assert.AreEqual(expected, patch);
             } finally {
                 Thread.CurrentThread.CurrentCulture = oldCulture;
@@ -546,12 +546,12 @@ Assert.AreEqual(facit, result );
 
             try {
                 var patch = jsonPatch.CreateJsonPatch(root.Session, true);
-                var expected = '[' + string.Format(Helper.PATCH, "", @"{""Number"":65.0}") + ']';
+                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
                 Assert.AreEqual(expected, patch);
 
                 root.Number = 99.5545d;
                 patch = jsonPatch.CreateJsonPatch(root.Session, true);
-                expected = '[' + string.Format(Helper.PATCH, "/Number", "99.5545") + ']';
+                expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
                 Assert.AreEqual(expected, patch);
             } finally {
                 Thread.CurrentThread.CurrentCulture = oldCulture;
