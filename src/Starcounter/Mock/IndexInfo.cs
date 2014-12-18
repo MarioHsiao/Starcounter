@@ -199,7 +199,7 @@ namespace Starcounter.Binding
             : base(indexInfo) {
             _columnRuntimeTypes = new DbTypeCode[indexInfo.AttributeCount];
             for (var i = 0; i < indexInfo.AttributeCount; i++) {
-                _columnRuntimeTypes[i] = typeDef.ColumnRuntimeTypes[GetColumnIndex(i)];
+                _columnRuntimeTypes[i] = typeDef.HostedColumns[GetColumnIndex(i)].TypeCode;
             }
         }
 

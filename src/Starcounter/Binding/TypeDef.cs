@@ -54,15 +54,6 @@ namespace Starcounter.Binding
         public TableDef TableDef;
 
         /// <summary>
-        /// Array parallel to TableDef.ColumnDefs with type codes of columns as mapped by
-        /// properties.
-        /// </summary>
-        /// <remarks>
-        /// Obsolete. Will be deprecated and removed in favor of HostedColumns.
-        /// </remarks>
-        public DbTypeCode[] ColumnRuntimeTypes;
-
-        /// <summary>
         /// Gets the set of hosted columns for the current type.
         /// </summary>
         /// <remarks>
@@ -125,24 +116,6 @@ namespace Starcounter.Binding
         /// information is available.
         /// </summary>
         public int TypeNameIndex { get; set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TypeDef" /> class.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="baseName">Name of the base.</param>
-        /// <param name="propertyDefs">The property defs.</param>
-        /// <param name="typeLoader">The type loader.</param>
-        /// <param name="tableDef">The table def.</param>
-        public TypeDef(string name, string baseName, PropertyDef[] propertyDefs, TypeLoader typeLoader, TableDef tableDef, DbTypeCode[] columnRuntimeTypes)
-        {
-            Name = name;
-            BaseName = baseName;
-            PropertyDefs = propertyDefs;
-            TypeLoader = typeLoader;
-            TableDef = tableDef;
-            ColumnRuntimeTypes = columnRuntimeTypes;
-        }
 
         private TypeDef(
             string name,
