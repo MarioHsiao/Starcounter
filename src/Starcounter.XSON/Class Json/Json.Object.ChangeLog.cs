@@ -114,7 +114,7 @@ namespace Starcounter {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
                     foreach (Change change in ArrayAddsAndDeletes) {
-                        if (change.Index == i) {
+                        if (change.ChangeType != Change.REMOVE && change.Index == i) {
                             logChanges = false;
                             break;
                         }
