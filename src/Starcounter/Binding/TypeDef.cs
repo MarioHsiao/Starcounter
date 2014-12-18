@@ -161,9 +161,9 @@ namespace Starcounter.Binding
             
 
         public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
-            // TODO: We expect hosted columns to be in sync. Assert that?
             var type = new TypeDef(name, baseName, table, properties, hostedColumns, typeLoader);
             type.RefreshProperties();
+            Trace.Assert(type.AssertHostedColumnsAreInSynchWithColumns());
             return type;
         }
 
@@ -206,6 +206,19 @@ namespace Starcounter.Binding
             }
 
             HostedColumns = hostedColumns;
+        }
+
+        bool AssertHostedColumnsAreInSynchWithColumns() {
+            var hosted = HostedColumns;
+            var columns = TableDef.ColumnDefs;
+            var result = hosted.Length == columns.Length;
+            if (result) {
+                result = hosted.All((hc) => {
+                    return Array.FindIndex(hosted, candidate => candidate.Name == hc.Name) ==
+                        Array.FindIndex(columns, candidate => candidate.Name == hc.Name);
+                });
+            }
+            return result;
         }
 
         internal IndexInfo2 GetIndexInfo(string name) {
