@@ -57,7 +57,7 @@ namespace Starcounter.Binding
         /// Gets the set of hosted columns for the current type.
         /// </summary>
         /// <remarks>
-        /// This array is always 1-1 to <see cref="this.TableDef.ColumnDefs"/>.
+        /// This array is always 1-1 to <c>TableDef.ColumnDefs</c>.
         /// If a column is indexed there, the same index can be used in this
         /// array to find the corresponding host-specific information.
         /// <para>
