@@ -442,7 +442,7 @@ namespace Starcounter.Internal.XSON.Tests {
             correctPatch = "["
                 + string.Format(Helper.PATCH_ADD, "/Items/0", @"{""Number"":1}")
                 + ","
-                + string.Format(Helper.PATCH, "/Items/0", @"{""Number"":2}")
+                + string.Format(Helper.PATCH_REPLACE, "/Items/0", @"{""Number"":2}")
                 + ","
                 + string.Format(Helper.PATCH_REMOVE, "/Items/0")
                 + ","
