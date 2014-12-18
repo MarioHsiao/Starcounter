@@ -137,7 +137,7 @@ namespace Starcounter.Binding
 
         public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
             var type = new TypeDef(name, baseName, table, properties, hostedColumns, typeLoader);
-            type.RefreshProperties();
+            type.Refresh();
             Trace.Assert(type.AssertHostedColumnsAreInSynchWithColumns());
             return type;
         }
