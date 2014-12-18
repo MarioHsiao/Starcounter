@@ -264,8 +264,9 @@ namespace Starcounter.Hosting {
                     ImplicitTransaction.Current(true).SetCurrent();
 
                     // Populate properties and columns .NET metadata
-                    foreach (var typeDef in unregisteredTypeDefs) {
-                        MetadataBindingHelper.PopulatePropertyDef(typeDef, unregisteredTypeDefs);
+                    for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
+                        var builder = (TypeDefBuilder) unregisteredTypeDefs[i];
+                        unregisteredTypeDefs[i] = builder.BuildFinalTypeDef(unregisteredTypeDefs);
                     }
                     OnPopulateMetadataDefs();
                 }
@@ -283,9 +284,7 @@ namespace Starcounter.Hosting {
                     // Remap properties representing columns in case the column
                     // order has changed.
 
-                    LoaderHelper.MapPropertyDefsToColumnDefs(
-                        tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
-                        );
+                    typeDef.Refresh();
                 }
 
                 OnTypesCheckedAndUpdated();

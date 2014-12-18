@@ -1,67 +1,61 @@
 ﻿using Starcounter.Binding;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace Starcounter.Internal.Metadata {
     /// <summary>
-    /// Provides a set of helper methods used when binding metadata
-    /// CLR classes.
+    /// Builder class that knows how to construct <see cref="TypeDef"/>
+    /// instances for metadata classes.
     /// </summary>
-    internal static class MetadataBindingHelper {
-        /// <summary>
-        /// This is a help method, which creates TypeDef and TableDef for given meta-data type.
-        /// </summary>
-        /// <param name="sysType">Instance of System.Type describing the meta-data type.</param>
-        /// <returns></returns>
-        internal static TypeDef CreateTypeTableDef(System.Type sysType) {
-            string typeName = sysType.FullName;
-            System.Type baseSysType = sysType.BaseType;
-            string baseTypeName = null;
-            if (!baseSysType.Equals(typeof(Starcounter.Internal.SystemEntity)))
-                baseTypeName = baseSysType.FullName;
-            string tableName = typeName;
-            string baseTableName = baseTypeName;
-            var systemTableDef = new TableDef(tableName, baseTableName, null);
-            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, null,
-                new TypeLoader(new AssemblyName("Starcounter"), typeName),
-                systemTableDef, null);
-            return sysColumnTypeDef;
+    internal class TypeDefBuilder : TypeDef {
+        static ColumnDef[] EmtpyColumns = new ColumnDef[0];
+        static PropertyDef[] EmtpyProperties = new PropertyDef[0];
+
+        public TypeDefBuilder(Type t) {
+            var name = t.FullName;
+            string baseName = null;
+            if (!t.BaseType.Equals(typeof(Starcounter.Internal.SystemEntity))) {
+                baseName = t.BaseType.FullName;
+            }
+
+            TableDef = new TableDef(name, baseName, EmtpyColumns);
+            PropertyDefs = EmtpyProperties;
+            TypeLoader = new TypeLoader(new AssemblyName("Starcounter"), name);
         }
 
-        /// <summary>
-        /// Populates properties PropertyDefs, ColumnRuntimeTypes, and TableDef.ColumnDefs
-        /// to describe meta-tables, since they cannot be created when TypeDef is created
-        /// </summary>
-        internal static void PopulatePropertyDef(TypeDef target, TypeDef[] typeDefs) {
-            Debug.Assert(target.PropertyDefs == null);
-            TableDef tblDef = Db.LookupTable(target.Name);
-            PropertyInfo[] properties = TypeInfo.GetType(target.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            Debug.Assert(tblDef != null);
+        public TypeDef BuildFinalTypeDef(TypeDef[] metadataTypeDefs) {
+            // Grab the TableDef that was retrieved based on the layout in
+            // the kernel and the set of public properties. This is the info
+            // we'll use to construct the TypeDef with.
+            var tableDef = Db.LookupTable(Name);
+            var properties = TypeInfo.GetType(Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-            Debug.Assert(TypeInfo.GetType(target.Name).FullName == target.Name);
-            Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
-
-            PropertyDef[] prpDefs = new PropertyDef[properties.Length];
-            DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
-            typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
+            Debug.Assert(tableDef != null);
+            Debug.Assert(TypeInfo.GetType(Name).FullName == Name);
+            Debug.Assert(tableDef.ColumnDefs.Length - 1 == properties.Length);
+            
+            var prpDefs = new PropertyDef[properties.Length];
+            var hostedColumns = new HostedColumn[tableDef.ColumnDefs.Length];
+            hostedColumns[0] = new HostedColumn() { Name = "__id", TypeCode = DbTypeCode.Key };
 
             // Find and use inherited properties in their order
             int nrInheritedProperties = 0;
-            if (target.BaseName != null) {
+            if (BaseName != null) {
                 // Find Based on typedef
                 int based = 0;
-                while (based < typeDefs.Length && typeDefs[based].Name != target.BaseName)
+                while (based < metadataTypeDefs.Length && metadataTypeDefs[based].Name != BaseName)
                     based++;
-                Debug.Assert(based < typeDefs.Length);
-                Debug.Assert(typeDefs[based].Name == target.BaseName);
-                TypeDef baseType = typeDefs[based];
+                Debug.Assert(based < metadataTypeDefs.Length);
+                Debug.Assert(metadataTypeDefs[based].Name == BaseName);
+                TypeDef baseType = metadataTypeDefs[based];
 
                 Debug.Assert(baseType.PropertyDefs.Length <= prpDefs.Length);
-                Debug.Assert(baseType.ColumnRuntimeTypes.Length == baseType.PropertyDefs.Length + 1); // Number of columns is bigger by 1 than number of properties
+                Debug.Assert(baseType.HostedColumns.Length == baseType.PropertyDefs.Length + 1); // Number of columns is bigger by 1 than number of properties
 
                 for (; nrInheritedProperties < baseType.PropertyDefs.Length; nrInheritedProperties++) {
                     prpDefs[nrInheritedProperties] = baseType.PropertyDefs[nrInheritedProperties];
-                    typeCodes[nrInheritedProperties + 1] = baseType.ColumnRuntimeTypes[nrInheritedProperties + 1];
+                    hostedColumns[nrInheritedProperties + 1] = baseType.HostedColumns[nrInheritedProperties + 1];
                 }
             }
 
@@ -75,16 +69,34 @@ namespace Starcounter.Internal.Metadata {
                 } else
                     prpDefs[curProp] = new PropertyDef(properties[i].Name, dbTypeCode);
                 prpDefs[curProp].ColumnName = prpDefs[curProp].Name;
-                typeCodes[1 + curProp] = dbTypeCode;
+                hostedColumns[1 + curProp] = new HostedColumn() {
+                    Name = prpDefs[curProp].ColumnName,
+                    TypeCode = dbTypeCode,
+                    TargetType = prpDefs[curProp].TargetTypeName
+                };
                 int j = 1;
-                while (j < prpDefs.Length + 1 && !(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name))
+                while (j < prpDefs.Length + 1 && !(prpDefs[curProp].Name == tableDef.ColumnDefs[j].Name))
                     j++;
-                prpDefs[curProp].IsNullable = tblDef.ColumnDefs[j].IsNullable;
-                Debug.Assert(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name);
+                prpDefs[curProp].IsNullable = tableDef.ColumnDefs[j].IsNullable;
+                Debug.Assert(prpDefs[curProp].Name == tableDef.ColumnDefs[j].Name);
             }
-            target.PropertyDefs = prpDefs;
-            target.TableDef.ColumnDefs = tblDef.ColumnDefs;
-            target.ColumnRuntimeTypes = typeCodes;
+
+            return TypeDef.DefineNew(Name, BaseName, tableDef, TypeLoader, PropertyDefs, hostedColumns);
+        }
+    }
+
+    /// <summary>
+    /// Provides a set of helper methods used when binding metadata
+    /// CLR classes.
+    /// </summary>
+    internal static class MetadataBindingHelper {
+        /// <summary>
+        /// This is a help method, which creates TypeDef and TableDef for given meta-data type.
+        /// </summary>
+        /// <param name="sysType">Instance of System.Type describing the meta-data type.</param>
+        /// <returns></returns>
+        internal static TypeDef CreateTypeTableDef(Type sysType) {
+            return new TypeDefBuilder(sysType);
         }
     }
 }
