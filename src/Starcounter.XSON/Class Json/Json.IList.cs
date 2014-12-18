@@ -384,6 +384,7 @@ namespace Starcounter {
         private void InternalRemove(Json item, int index) {
             list.RemoveAt(index);
             item.SetParent(null);
+            item._cacheIndexInArr = -1;
 
             if (_dirtyCheckEnabled)
                 _SetFlag.RemoveAt(index);
