@@ -9,6 +9,7 @@ using Starcounter.Internal;
 using System.Reflection;
 using System;
 using System.Diagnostics;
+using Starcounter.Internal.Metadata;
 
 namespace Starcounter.Metadata {
     public abstract class Type : SystemEntity {
@@ -35,7 +36,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
+            TypeDef typeDef = MetadataBindingHelper.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -86,7 +87,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
+            TypeDef typeDef = MetadataBindingHelper.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -137,7 +138,7 @@ namespace Starcounter.Metadata {
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
+            TypeDef typeDef = MetadataBindingHelper.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -209,7 +210,7 @@ namespace Starcounter.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal new TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(MethodBase.GetCurrentMethod().DeclaringType);
+            return MetadataBindingHelper.CreateTypeTableDef(MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         /// <inheritdoc />

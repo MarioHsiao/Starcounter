@@ -17,6 +17,7 @@ using Starcounter.Metadata;
 using Starcounter.SqlProcessor;
 using System.Collections.Generic;
 using StarcounterInternal.Hosting;
+using Starcounter.Internal.Metadata;
 
 namespace Starcounter.Hosting {
 
@@ -263,8 +264,7 @@ namespace Starcounter.Hosting {
                     ImplicitTransaction.Current(true).SetCurrent();
 
                     // Populate properties and columns .NET metadata
-                    for (int i = 0; i < unregisteredTypeDefs.Length; i++)
-                        unregisteredTypeDefs[i].PopulatePropertyDef(unregisteredTypeDefs);
+                    unregisteredTypeDefs = MetadataBindingHelper.BuildFinalMetadataTypeDefs(unregisteredTypeDefs);
                     OnPopulateMetadataDefs();
                 }
                 
@@ -281,9 +281,7 @@ namespace Starcounter.Hosting {
                     // Remap properties representing columns in case the column
                     // order has changed.
 
-                    LoaderHelper.MapPropertyDefsToColumnDefs(
-                        tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
-                        );
+                    typeDef.Refresh();
                 }
 
                 OnTypesCheckedAndUpdated();
