@@ -160,9 +160,10 @@ namespace Starcounter.XSON {
                         WritePatch(change, ref writer, pathSizes[i]);
 
                         if (change.Property != null) {
-                            change.Obj.AddInScope(() => {
-                                change.Property.Checkpoint(change.Obj);
-                            });
+                            Json parent = change.Parent;
+                            parent.AddInScope<Json, TValue>((p, t) => {
+                                t.Checkpoint(p);
+                            }, parent, change.Property);
                         }
 
                         if ((i + 1) < changes.Count)
@@ -199,16 +200,16 @@ namespace Starcounter.XSON {
             if (change.Property != null) {
                 WritePath(ref writer, change, pathSize);
             } else {
-                childJson = change.Obj;
+                childJson = change.Item;
             }
             writer.Write('"');
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
 
                 writer.Write(",\"value\":");
                 if (childJson == null && change.Property is TContainer) {
-                    childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
+                    childJson = (Json)change.Property.GetUnboundValueAsObject(change.Parent);
                     if (change.Index != -1)
-                        childJson = (Json)childJson._GetAt(change.Index);
+                        childJson = change.Item;
 
                     if (childJson == null) {
                         writer.Write('{');
@@ -222,10 +223,12 @@ namespace Starcounter.XSON {
                 } else {
                     // TODO: 
                     // Should write value directly to buffer.
+                    Json parent = change.Parent;
                     string value = 
-                        change.Obj.AddAndReturnInScope<Change, string>(
-                            (Change c) => { return c.Property.ValueToJsonString(c.Obj); },
-                            change
+                        parent.AddAndReturnInScope<Json, TValue, string>(
+                            (p, t) => { return t.ValueToJsonString(p); },
+                            parent,
+                            change.Property
                         );
                     writer.Write(value);
                 }
@@ -233,7 +236,7 @@ namespace Starcounter.XSON {
             writer.Write('}');
         }
 
-        private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index) {
+        private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index, Json item) {
             int sizeBytes = 0;
 
             if (property is TLong) {
@@ -255,7 +258,7 @@ namespace Starcounter.XSON {
             } else if (property is TContainer) {
                 var childJson = (Json)property.GetUnboundValueAsObject(parent);
                 if (index != -1) {
-                    childJson = (Json)childJson._GetAt(index);
+                    childJson = item;
                 }
                 if (childJson != null)
                     sizeBytes = ((TContainer)childJson.Template).JsonSerializer.EstimateSizeBytes(childJson);
@@ -280,7 +283,7 @@ namespace Starcounter.XSON {
             size = 19;
             size += _patchOpUtf8Arr[change.ChangeType].Length;
 
-            pathSize = CalculateSizeOfPath(change.Obj, false);
+            pathSize = CalculateSizeOfPath(change.Parent, false);
             if (change.Property != null)
                 pathSize += change.Property.TemplateName.Length;
             else
@@ -292,9 +295,9 @@ namespace Starcounter.XSON {
 
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 size += 9;
-                size += change.Obj.AddAndReturnInScope<Change, int>(
+                size += change.Parent.AddAndReturnInScope<Change, int>(
                             (Change c) => {
-                                return EstimatePropertyValueSizeInBytes(c.Property, c.Obj, c.Index);
+                                return EstimatePropertyValueSizeInBytes(c.Property, c.Parent, c.Index, c.Item);
                             },
                             change);
             }
@@ -363,7 +366,7 @@ namespace Starcounter.XSON {
             }
 
             int positionAfter = writer.Written;
-            WritePath_2(ref writer, change.Obj, sizeToWrite, false);
+            WritePath_2(ref writer, change.Parent, sizeToWrite, false);
             if (positionAfter != writer.Written) {
                 writer.Skip(positionAfter - writer.Written);
             }

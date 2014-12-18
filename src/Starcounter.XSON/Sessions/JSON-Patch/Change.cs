@@ -7,12 +7,9 @@ namespace Starcounter.Internal.XSON {
     /// A change of either a value, added or removed item in an json-tree.
     /// </summary>
     public struct Change {
-//        public const byte UNDEFINED = 0;
         public const byte REMOVE = 1;
         public const byte REPLACE = 2;
         public const byte ADD = 3;
-
- //       internal static Change Null = new Change(UNDEFINED, null, null, -1);
 
         /// <summary>
         /// The type of change.
@@ -20,9 +17,9 @@ namespace Starcounter.Internal.XSON {
         public readonly byte ChangeType;
 
         /// <summary>
-        /// The object that was changed.
+        /// The parent of the property that was changed, or item if the change is an array add/replace.
         /// </summary>
-        public readonly Json Obj;
+        private readonly Json parentOrItem;
 
         /// <summary>
         /// The template of the property that was changed.
@@ -30,8 +27,7 @@ namespace Starcounter.Internal.XSON {
         public readonly TValue Property;
 
         /// <summary>
-        /// The index if the change is add or remove. Will be
-        /// -1 in other cases.
+        /// The index if the change is add or remove. Will be -1 in other cases.
         /// </summary>
         public readonly Int32 Index;
 
@@ -43,23 +39,38 @@ namespace Starcounter.Internal.XSON {
         /// <param name="prop">The template of the property that was changed.</param>
         /// <param name="index">The index.</param>
         private Change(byte changeType, Json obj, TValue prop, Int32 index) {
-#if DEBUG
-			if (prop != null)
-				obj.Template.VerifyProperty(prop);
-#endif
             ChangeType = changeType;
-            Obj = obj;
+            parentOrItem = obj;
             Property = prop;
             Index = index;
+
+#if DEBUG
+            if (prop != null)
+                Parent.Template.VerifyProperty(prop);
+#endif
         }
 
-        /// <summary>
-        /// Returns true if this change is a change of the same app and template.
-        /// </summary>
-        /// <param name="app">The app.</param>
-        /// <param name="template">The template.</param>
-        internal Boolean IsChangeOf(Json obj, TValue template) {
-            return (Obj == obj && Property == template);
+        ///// <summary>
+        ///// Returns true if this change is a change of the same app and template.
+        ///// </summary>
+        ///// <param name="app">The app.</param>
+        ///// <param name="template">The template.</param>
+        //internal Boolean IsChangeOf(Json obj, TValue template) {
+        //    return (Obj == obj && Property == template);
+        //}
+
+        internal Json Parent {
+            get {
+                if (Index == -1 || ChangeType == Change.REMOVE)
+                    return parentOrItem;
+                return parentOrItem.Parent.Parent;
+            }
+        }
+
+        internal Json Item {
+            get {
+                return parentOrItem;
+            }
         }
 
         /// <summary>

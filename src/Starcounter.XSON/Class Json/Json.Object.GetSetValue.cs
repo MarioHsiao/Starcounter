@@ -235,7 +235,7 @@ namespace Starcounter {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
-				ArrayAddsAndDeletes.Add(Change.Add((Json)this.Parent, tarr, index));
+				ArrayAddsAndDeletes.Add(Change.Add(item, tarr, index));
 				Dirtyfy();
 				item.SetBoundValuesInTuple();
 			}
@@ -253,7 +253,7 @@ namespace Starcounter {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
-                ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tarr, index));
+                ArrayAddsAndDeletes.Add(Change.Update(item, tarr, index));
                 Dirtyfy();
                 item.SetBoundValuesInTuple();
             }
