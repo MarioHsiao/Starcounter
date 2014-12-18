@@ -404,5 +404,52 @@ namespace Starcounter.Internal.XSON.Tests {
             correctPatch = @"[{""op"":""replace"",""path"":""/Items/0/Number"",""value"":19}]";
             Assert.AreEqual(correctPatch, patch);
         }
+
+        [Test]
+        public static void TestSeveralModifications() {
+            dynamic root = new Json();
+            dynamic item1;
+            dynamic item2;
+            dynamic item3;
+            string correctPatch;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            // Clearing existing changes.
+            patch = jsonPatch.CreateJsonPatch(Session.Current, true);
+
+            item1 = new Json();
+            item1.Number = 1;
+            root.Items.Add(item1);
+
+            item2 = new Json();
+            item2.Number = 2;
+            root.Items[0] = item2;
+
+            root.Items.Remove(item2); // index 0
+
+            item3 = new Json();
+            item3.Number = 3;
+            root.Items.Insert(0, item3);
+
+            patch = jsonPatch.CreateJsonPatch(Session.Current, true);
+
+            correctPatch = "["
+                + string.Format(Helper.PATCH_ADD, "/Items/0", @"{""Number"":1}")
+                + ","
+                + string.Format(Helper.PATCH, "/Items/0", @"{""Number"":2}")
+                + ","
+                + string.Format(Helper.PATCH_REMOVE, "/Items/0")
+                + ","
+                + string.Format(Helper.PATCH_ADD, "/Items/0", @"{""Number"":3}")
+                + "]";
+
+            Assert.AreEqual(correctPatch, patch);
+        }
     }
 }
