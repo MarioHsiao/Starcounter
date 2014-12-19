@@ -1,6 +1,6 @@
 
 {
-    "Name": "Cliff",
+    "Name$": "Cliff",
     "Items": [
 	    { "Description$": "Take a nap!" }
     ],
