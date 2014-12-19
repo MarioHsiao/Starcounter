@@ -18,7 +18,8 @@ namespace Starcounter {
     public enum SessionOptions : int {
         Default = 0,
         IncludeSchema,
-        EnableProtocolVersioning,
+        PatchVersioning,
+        StrictPatchRejection,
 //        DisableProtocolOT
     }
 
@@ -59,7 +60,7 @@ namespace Starcounter {
         /// The clients current serverversion. Used to check if OT is needed.
         /// </summary>
         private long clientServerVersion;
-        
+
         public Session() : this(SessionOptions.Default) {
         }
 
@@ -69,8 +70,8 @@ namespace Starcounter {
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<DataAndCache>();
             sessionOptions = options;
-            clientServerVersion = -1;
-
+            clientServerVersion = serverVersion;
+            
             UInt32 errCode = 0;
             if (_request != null) {
                 errCode = _request.GenerateNewSession(this);
@@ -498,7 +499,6 @@ namespace Starcounter {
         /// </summary>
         internal static void End() {
             if (_current != null) {
-                _current.clientServerVersion = -1;
                 _current.Clear();
                 Session._current = null;
             }
@@ -643,6 +643,11 @@ namespace Starcounter {
                     }
                 }
             }
+        }
+
+        internal void CleanupOldVersionLogs() {
+            var root = this.Data;
+            root.CleanupOldVersionLogs(ClientServerVersion);
         }
 
         /// <summary>
