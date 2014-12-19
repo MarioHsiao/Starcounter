@@ -91,24 +91,22 @@ namespace Starcounter.XSON {
                 var tObjArr = current as TObjArr;
                 Json list = tObjArr.Getter(json);
                 clientServerVersion = Session.Current.ClientServerVersion;
-                if (clientServerVersion != -1) {
+                if (clientServerVersion != Session.Current.ServerVersion || (list._Dirty == true)) {
                     if (!json.IsValidForVersion(clientServerVersion))
                         throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
 
-                    // TODO!
-                    // OT is needed. Transform index...
-                    throw new NotImplementedException("OT is needed but not implemented yet. Local version: " + Session.Current.ServerVersion + ", clients version: " + Session.Current.ClientServerVersion);
+                    int transformedIndex = list.TransformIndex(clientServerVersion, index);
+                    if (transformedIndex == -1)
+                        throw new JsonPatchException("The object at index " + index + " in array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+                    index = transformedIndex;
                 }
                 current = list._GetAt(index);
             } else {
                 var tobj = current as TObject;
                 if (tobj != null) {
                     json = tobj.Getter(json);
-                    clientServerVersion = Session.Current.ClientServerVersion;
-                    if (clientServerVersion != -1) {
-                        if (!json.IsValidForVersion(clientServerVersion))
-                            throw new JsonPatchException("The object '" + tobj.TemplateName + "' in path has been replaced or removed and is no longer valid.");
-                    }
+                    if (!json.IsValidForVersion(Session.Current.ClientServerVersion))
+                        throw new JsonPatchException("The object '" + tobj.TemplateName + "' in path has been replaced or removed and is no longer valid.");
                 }
                 if (json.IsArray) {
                     throw new NotImplementedException();

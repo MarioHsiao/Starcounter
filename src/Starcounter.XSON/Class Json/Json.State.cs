@@ -63,7 +63,7 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
-        internal List<List<Change>> versionLog = null;
+        internal List<ArrayVersionLog> versionLog = null;
 
         /// <summary>
         /// Implementation field used to cache the Metadata property.

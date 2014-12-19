@@ -7,6 +7,16 @@ using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 
 namespace Starcounter {
+    internal struct ArrayVersionLog {
+        internal long Version;
+        internal List<Change> Changes;
+
+        internal ArrayVersionLog(long version, List<Change> changes) {
+            Version = version;
+            Changes = changes;
+        }
+    }
+
 	partial class Json {
 		/// <summary>
 		/// 
@@ -125,10 +135,10 @@ namespace Starcounter {
                      }
                 }
 
-                if (session.CheckOption(SessionOptions.EnableProtocolVersioning)) {
+                if (session.CheckOption(SessionOptions.PatchVersioning)) {
                     if (versionLog == null)
-                        versionLog = new List<List<Change>>();
-                    versionLog.Add(ArrayAddsAndDeletes);
+                        versionLog = new List<ArrayVersionLog>();
+                    versionLog.Add(new ArrayVersionLog(session.ServerVersion, ArrayAddsAndDeletes));
                 }
                 ArrayAddsAndDeletes = null;
             } else {
@@ -338,6 +348,32 @@ namespace Starcounter {
         /// </remarks>
         internal bool IsValidForVersion(long serverVersion) {
             return (serverVersion >= addedInVersion);
+        }
+
+        internal void CleanupOldVersionLogs(long toVersion) {
+            if (versionLog != null) {
+                Session session = Session;
+                for (int i = 0; i < versionLog.Count; i++) {
+                    if (versionLog[i].Version <= session.ClientServerVersion) {
+                        versionLog.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            if (IsArray) {
+                foreach (Json child in _list) {
+                    child.CleanupOldVersionLogs(toVersion);
+                }
+            } else {
+                var tobj = (TObject)Template;
+                foreach (Template t in tobj.Properties) {
+                    var tcontainer = t as TContainer;
+                    if (tcontainer != null) {
+                        tcontainer.GetValue(this).CleanupOldVersionLogs(toVersion);
+                    }
+                }
+            }
         }
 	}
 }
