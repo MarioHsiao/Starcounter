@@ -101,5 +101,11 @@ namespace Starcounter {
         /// Default value for setting the dirtycheck on or off for new instances of Json.
         /// </summary>
         public static bool DirtyCheckEnabled = true;
+
+        /// <summary>
+        /// If this json is a part of a stateful viewmodel (i.e. puppet) this field contains
+        /// the version the json was added to the viewmodel.
+        /// </summary>
+        private long addedInVersion;
     }
 }

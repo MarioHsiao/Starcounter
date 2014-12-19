@@ -80,26 +80,34 @@ namespace Starcounter.XSON {
 
         private void EvalutateCurrent(JsonPointer ptr, ref bool nextIsIndex) {
             int index;
+            long clientServerVersion;
+
             if (nextIsIndex) {
                 // Previous object was a Set. This token should be an index
                 // to that Set. If not, it's an invalid patch.
                 nextIsIndex = false;
                 index = ptr.CurrentAsInt;
-                Json list = ((TObjArr)current).Getter(json);
-                if (Session.Current.ClientServerVersion != -1) {
-                    // TODO!
-                    // OT is needed. 
-                    // Check if list was replaced in later versions.
-                    // if not: Transform index...
 
+                var tObjArr = current as TObjArr;
+                Json list = tObjArr.Getter(json);
+                clientServerVersion = Session.Current.ClientServerVersion;
+                if (clientServerVersion != -1) {
+                    if (!json.IsValidForVersion(clientServerVersion))
+                        throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+
+                    // TODO!
+                    // OT is needed. Transform index...
+                    throw new NotImplementedException("OT is needed but not implemented yet. Local version: " + Session.Current.ServerVersion + ", clients version: " + Session.Current.ClientServerVersion);
                 }
                 current = list._GetAt(index);
             } else {
-                if (current is TObject) {
-                    json = ((TObject)current).Getter(json);
-                    if (Session.Current.ClientServerVersion != -1) {
-                        // TODO!
-                        // Check if object was replaced in later versions.
+                var tobj = current as TObject;
+                if (tobj != null) {
+                    json = tobj.Getter(json);
+                    clientServerVersion = Session.Current.ClientServerVersion;
+                    if (clientServerVersion != -1) {
+                        if (!json.IsValidForVersion(clientServerVersion))
+                            throw new JsonPatchException("The object '" + tobj.TemplateName + "' in path has been replaced or removed and is no longer valid.");
                     }
                 }
                 if (json.IsArray) {

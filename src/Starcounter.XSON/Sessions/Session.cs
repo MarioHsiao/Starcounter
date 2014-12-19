@@ -254,10 +254,12 @@ namespace Starcounter {
                         value._Session.Data = null;
 
                     value._Session = this;
+                    value.OnSessionSet();
                 }
 
                 // Setting current session.
                 Current = this;
+
             }
         }
 

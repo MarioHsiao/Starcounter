@@ -332,5 +332,17 @@ namespace Starcounter {
 
             return (bind1.Identity == bind2.Identity);
         }
+
+        /// <summary>
+        /// Checks if this object is accessible in an earlier version of the viewmodel.
+        /// </summary>
+        /// <param name="serverVersion">The version of the viewmodel to check</param>
+        /// <returns>true if this object existed in the specified version, false otherwise.</returns>
+        /// <remarks>
+        /// This method is used when versioning is enabled in Session and this json belongs to a viewmodeltree.
+        /// </remarks>
+        internal bool IsValidForVersion(long serverVersion) {
+            return (serverVersion >= addedInVersion);
+        }
 	}
 }
