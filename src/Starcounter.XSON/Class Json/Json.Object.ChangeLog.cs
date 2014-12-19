@@ -294,11 +294,6 @@ namespace Starcounter {
                         ((IList)this)[index] = newJson;
                         newJson.Data = value;
                         oldJson.SetParent(null);
-                        if (_dirtyCheckEnabled) {
-                            if (ArrayAddsAndDeletes == null)
-                                ArrayAddsAndDeletes = new List<Change>();
-                            ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index, newJson));
-                        }
                         hasChanged = true;
                     }
                 }
