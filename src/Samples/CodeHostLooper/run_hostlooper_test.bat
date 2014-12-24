@@ -11,7 +11,7 @@ START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortN
 CodeHostLooper.exe
 
 :: Checking exit code.
-IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+IF ERRORLEVEL 1 GOTO TESTFAILED
 
 :: Success message.
 ECHO Host looper test finished successfully!

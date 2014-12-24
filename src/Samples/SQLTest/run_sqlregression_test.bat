@@ -21,7 +21,7 @@ CMD /C sccreatedb.exe -ip .db SqlTest
 :: weave the application
 CMD /C scweaver.exe s\SQLTest\SQLTest.exe
 
-IF %ERRORLEVEL% NEQ 0 (
+IF ERRORLEVEL 1 (
     ECHO Error: SQL regression test is failed!
     EXIT /b 1
 )
@@ -35,7 +35,7 @@ START 32bitComponents\scsqlparser.exe 8066
 :: start the program
 CALL sccode.exe SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
 
-IF %ERRORLEVEL% NEQ 0 (
+IF ERRORLEVEL 1 (
     ECHO Error: SQL regression test is failed!
     EXIT /b 1
 ) ELSE (

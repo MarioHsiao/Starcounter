@@ -6,7 +6,7 @@ SET DB_NAME=QUERYPROCESSINGTEST
 SET TEST_NAME=QueryProcessingTest
 
 sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
-IF %ERRORLEVEL% NEQ 0 (
+IF ERRORLEVEL 1 (
 ECHO Error: The query processing regression test failed!
 EXIT /b 1
 ) else (
