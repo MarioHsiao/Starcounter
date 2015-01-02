@@ -7,6 +7,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
+using System;
 
 namespace Starcounter.Binding
 {
@@ -53,10 +54,21 @@ namespace Starcounter.Binding
         public TableDef TableDef;
 
         /// <summary>
-        /// Array parallel to TableDef.ColumnDefs with type codes of columns as mapped by
-        /// properties.
+        /// Gets the set of hosted columns for the current type.
         /// </summary>
-        public DbTypeCode[] ColumnRuntimeTypes;
+        /// <remarks>
+        /// This array is always 1-1 to <c>TableDef.ColumnDefs</c>.
+        /// If a column is indexed there, the same index can be used in this
+        /// array to find the corresponding host-specific information.
+        /// <para>
+        /// Synhronizing the two is the responsibility of the <see cref="Refresh()"/>
+        /// method.
+        /// </para>
+        /// </remarks>
+        public HostedColumn[] HostedColumns { 
+            get;
+            private set; 
+        }
 
         private string LowerName_;
         /// <summary>
@@ -105,102 +117,84 @@ namespace Starcounter.Binding
         /// </summary>
         public int TypeNameIndex { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TypeDef" /> class.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="baseName">Name of the base.</param>
-        /// <param name="propertyDefs">The property defs.</param>
-        /// <param name="typeLoader">The type loader.</param>
-        /// <param name="tableDef">The table def.</param>
-        public TypeDef(string name, string baseName, PropertyDef[] propertyDefs, TypeLoader typeLoader, TableDef tableDef, DbTypeCode[] columnRuntimeTypes)
-        {
+        private TypeDef(
+            string name,
+            string baseName,
+            TableDef tableDef,
+            PropertyDef[] properties,
+            HostedColumn[] hostedColumns,
+            TypeLoader typeLoader) {
             Name = name;
-            BaseName = baseName;
-            PropertyDefs = propertyDefs;
-            TypeLoader = typeLoader;
             TableDef = tableDef;
-            ColumnRuntimeTypes = columnRuntimeTypes;
+            BaseName = baseName;
+            PropertyDefs = properties;
+            TypeLoader = typeLoader;
+            HostedColumns = hostedColumns;
+        }
+
+        protected TypeDef() {
+        }
+
+        public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
+            var type = new TypeDef(name, baseName, table, properties, hostedColumns, typeLoader);
+            type.Refresh();
+            Trace.Assert(type.AssertHostedColumnsAreInSynchWithColumns());
+            return type;
         }
 
         /// <summary>
-        /// This is a help method, which creates TypeDef and TableDef for given meta-data type.
+        /// Refresh host-specific instance data held in the current
+        /// type according to the underlying table and it's columns.
         /// </summary>
-        /// <param name="sysType">Instance of System.Type describing the meta-data type.</param>
-        /// <returns></returns>
-        internal static TypeDef CreateTypeTableDef(System.Type sysType) {
-            string typeName = sysType.FullName;
-            System.Type baseSysType = sysType.BaseType;
-            string baseTypeName = null;
-            if (!baseSysType.Equals(typeof(Starcounter.Internal.SystemEntity)))
-                baseTypeName = baseSysType.FullName;
-            string tableName = typeName;
-            string baseTableName = baseTypeName;
-            var systemTableDef = new TableDef(tableName, baseTableName, null);
-            var sysColumnTypeDef = new TypeDef(typeName, baseTypeName, null,
-                new TypeLoader(new AssemblyName("Starcounter"), typeName),
-                systemTableDef, null);
-            return sysColumnTypeDef;
+        public void Refresh() {
+            RefreshProperties();
+            RefreshHostedColumns();
         }
 
-        /// <summary>
-        /// Populates properties PropertyDefs, ColumnRuntimeTypes, and TableDef.ColumnDefs
-        /// to describe meta-tables, since they cannot be created when TypeDef is created
-        /// </summary>
-        internal void PopulatePropertyDef(TypeDef[] typeDefs) {
-            Debug.Assert(_PropertyDefs == null);
-            TableDef tblDef = Db.LookupTable(Name);
-                PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            Debug.Assert(tblDef != null);
-
-            Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
-            Debug.Assert(tblDef.ColumnDefs.Length - 1 == properties.Length);
-                
-            PropertyDef[] prpDefs = new PropertyDef[properties.Length];
-            DbTypeCode[] typeCodes = new DbTypeCode[tblDef.ColumnDefs.Length];
-            typeCodes[0] = DbTypeCode.Key;  // Column 0 is always the key column, __id
-
-                // Find and use inherited properties in their order
-                int nrInheritedProperties = 0;
-                if (BaseName != null) {
-                    // Find Based on typedef
-                    int based = 0;
-                    while (based < typeDefs.Length && typeDefs[based].Name != BaseName)
-                        based++;
-                    Debug.Assert(based < typeDefs.Length);
-                    Debug.Assert(typeDefs[based].Name == BaseName);
-                    TypeDef baseType = typeDefs[based];
-
-                    Debug.Assert(baseType.PropertyDefs.Length <= prpDefs.Length);
-                    Debug.Assert(baseType.ColumnRuntimeTypes.Length == baseType.PropertyDefs.Length + 1); // Number of columns is bigger by 1 than number of properties
-
-                    for (; nrInheritedProperties < baseType.PropertyDefs.Length; nrInheritedProperties++) {
-                        prpDefs[nrInheritedProperties] = baseType.PropertyDefs[nrInheritedProperties];
-                        typeCodes[nrInheritedProperties+1] = baseType.ColumnRuntimeTypes[nrInheritedProperties+1];
+        void RefreshProperties() {
+            // Iterate the set of properties that reference a column
+            // by name and set their index (based on the column index
+            // in the underlying table).
+            // This functionality replace LoaderHelper.MapPropertyDefsToColumnDefs.
+            foreach (var property in PropertyDefs) {
+                if (property.ColumnName != null) {
+                    property.ColumnIndex = Array.FindIndex(TableDef.ColumnDefs, candidate => candidate.Name == property.ColumnName);
+                    if (property.ColumnIndex == -1) {
+                        throw ErrorCode.ToException(
+                            Error.SCERRUNEXPDBMETADATAMAPPING, "Column " + property.ColumnName + " cannot be found in ColumnDefs.");
                     }
                 }
-
-                // Complete with none-inherited properties
-                for (int i = 0, curProp = nrInheritedProperties; i < prpDefs.Length - nrInheritedProperties; i++, curProp++) {
-                DbTypeCode dbTypeCode;
-                if (!System.Enum.TryParse<DbTypeCode>(properties[i].PropertyType.Name, out dbTypeCode)) {
-                    dbTypeCode = DbTypeCode.Object;
-                        prpDefs[curProp] = new PropertyDef(properties[i].Name, dbTypeCode,
-                        properties[i].PropertyType.FullName);
-                } else
-                        prpDefs[curProp] = new PropertyDef(properties[i].Name, dbTypeCode);
-                    prpDefs[curProp].ColumnName = prpDefs[curProp].Name;
-                    typeCodes[1 + curProp] = dbTypeCode;
-                    int j = 1;
-                    while (j < prpDefs.Length + 1 && !(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name))
-                    j++;
-                    prpDefs[curProp].IsNullable = tblDef.ColumnDefs[j].IsNullable;
-                    Debug.Assert(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name);
-                }
-                _PropertyDefs = prpDefs;
-                TableDef.ColumnDefs = tblDef.ColumnDefs;
-                ColumnRuntimeTypes = typeCodes;
             }
+        }
+
+        void RefreshHostedColumns() {
+            var columns = TableDef.ColumnDefs;
+            var hostedColumns = new HostedColumn[columns.Length];
+
+            // Make sure the HostedColumns array is resorted so that
+            // it match the underlying columns array.
+            
+            for (int i = 0; i < columns.Length; i++) {
+                var column = columns[i];
+                var current = HostedColumns.First(candidate => candidate.Name == column.Name);
+                hostedColumns[i] = current;
+            }
+
+            HostedColumns = hostedColumns;
+        }
+
+        bool AssertHostedColumnsAreInSynchWithColumns() {
+            var hosted = HostedColumns;
+            var columns = TableDef.ColumnDefs;
+            var result = hosted.Length == columns.Length;
+            if (result) {
+                result = hosted.All((hc) => {
+                    return Array.FindIndex(hosted, candidate => candidate.Name == hc.Name) ==
+                        Array.FindIndex(columns, candidate => candidate.Name == hc.Name);
+                });
+            }
+            return result;
+        }
 
         internal IndexInfo2 GetIndexInfo(string name) {
             var indexInfo = TableDef.GetIndexInfo(name);

@@ -1,5 +1,6 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Internal.Metadata;
 using System;
 
 namespace Starcounter.Metadata {
@@ -18,7 +19,7 @@ namespace Starcounter.Metadata {
         #endregion
 
         static internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
@@ -91,7 +92,7 @@ namespace Starcounter.Metadata {
         #endregion
 
         static internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+            return MetadataBindingHelper.CreateTypeTableDef(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
         public IndexedColumn(Uninitialized u) : base(u) { }

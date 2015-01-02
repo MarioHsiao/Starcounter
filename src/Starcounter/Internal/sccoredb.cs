@@ -1023,7 +1023,7 @@ namespace Starcounter.Internal
 
             /// <summary>
             /// </summary>
-            public ushort flags;
+            public byte nullable;
 
             /// <summary>
             /// </summary>

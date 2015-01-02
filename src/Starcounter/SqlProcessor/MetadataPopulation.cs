@@ -172,11 +172,15 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void CreateColumnInstances(TypeDef typeDef) {
-            RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
-        typeDef.TableDef.Name).First;
+            RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?", typeDef.TableDef.Name).First;
             Debug.Assert(thisView != null);
-            if (Db.SQL("select c from column c where c.table = ?", thisView).First != null)
-                return; // We don't need to create columns for this table and inheriting, since the were created during inheritence
+
+            if (Db.SQL("select c from column c where c.table = ?", thisView).First != null) {
+                // We don't need to create columns for this table and inheriting, 
+                // since the were created during inheritence
+                return;
+            }
+            
             for (int i = 0; i < typeDef.TableDef.ColumnDefs.Length; i++) {
                 ColumnDef col = typeDef.TableDef.ColumnDefs[i];
                 Starcounter.Internal.Metadata.MaterializedColumn matCol = Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
@@ -189,17 +193,15 @@ namespace Starcounter.SqlProcessor {
                     MaterializedColumn = matCol
                 };
                 if (col.Type == sccoredb.STAR_TYPE_REFERENCE) {
-                    PropertyDef prop = typeDef.PropertyDefs[0];
-                    for (int j = 1; prop.ColumnName != col.Name && j < typeDef.PropertyDefs.Length; j++) {
-                        prop = typeDef.PropertyDefs[j];
-                    }
-                    if (prop.ColumnName == col.Name)
-                        newCol.Type = Db.SQL<RawView>("select v from rawview v where fullname = ?",
-                            prop.TargetTypeName).First;
-                } else
+                    var hostedColumn = typeDef.HostedColumns[i];
+                    Debug.Assert(hostedColumn.Name == col.Name);
+                    newCol.Type = Db.SQL<RawView>("select v from rawview v where fullname = ?",
+                            hostedColumn.TargetType).First;
+                } else {
                     newCol.Type = Db.SQL<Starcounter.Metadata.DbPrimitiveType>(
                         "select t from DbPrimitiveType t where primitivetype = ?",
                         col.Type).First;
+                }
                 Debug.Assert(newCol.Type != null);
             }
             UpdateIndexInstances(thisView.MaterializedTable);
