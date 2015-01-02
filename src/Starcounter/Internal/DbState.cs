@@ -1042,7 +1042,7 @@ namespace Starcounter.Internal
                 valueRef.ETI = value.ThisHandle;
             } else {
                 valueRef.ObjectID = sccoredb.MDBIT_OBJECTID;
-                valueRef.ETI = sccoredb.INVALID_RECORD_ADDR;
+                valueRef.ETI = 0; // Not relevant on invalid id.
             }
             
             r = sccoredb.star_put_reference(
