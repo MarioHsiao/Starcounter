@@ -305,11 +305,13 @@ namespace Starcounter {
                     item.UpgradeToStateful();
                 }
             } else {
-                foreach (Template tChild in ((TObject)Template).Children) {
-                    var container = tChild as TContainer;
-                    if (container != null) {
-                        var childJson = container.GetValue(this);
-                        childJson.UpgradeToStateful();
+                if (Template != null) {
+                    foreach (Template tChild in ((TObject)Template).Properties) {
+                        var container = tChild as TContainer;
+                        if (container != null) {
+                            var childJson = container.GetValue(this);
+                            childJson.UpgradeToStateful();
+                        }
                     }
                 }
             }
