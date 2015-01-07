@@ -1,5 +1,60 @@
 
+#include <wchar.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include "scerrres.h"
 #include "format.h"
+
+size_t StarcounterErrorMessageFormatWithArgs(long ec, wchar_t* buf, size_t max, ...) {
+  static const wchar_t* empty_arg = L"(NULL)";
+  wchar_t* buf_end;
+  wchar_t* p;
+  const wchar_t* arg[10];
+  va_list argptr;
+  const char* msg = StarcounterErrorMessageTemplate(ec);
+
+  va_start(argptr, max);
+  if (!buf) max = 0;
+  buf_end = buf + max;
+  p = buf;
+
+  if (msg) {
+    for (int i = 0; i < 10; ++i)
+      arg[i] = NULL;
+    while (*msg) {
+      if (msg[0] == '{' && isdigit(msg[1]) && msg[2] == '}') {
+        int arg_num = msg[1] - '0';
+        for (int i = 0; i <= arg_num; ++i) {
+          if (!arg[i]) {
+            arg[i] = va_arg(argptr, const wchar_t*);
+            if (!arg[i]) {
+              for (;i < 10; ++i)
+                arg[i] = empty_arg;
+			}
+          }
+        }
+        for (const wchar_t* s = arg[arg_num]; s && *s; ++s) {
+          if (p < buf_end) *p = *s;
+          ++p;
+        }
+        ++msg;
+        ++msg;
+      } else {
+        if (p < buf_end) *p = (wchar_t)(*msg);
+        ++p;
+      }
+      ++msg;
+    }
+  } else {
+    p = buf + swprintf(buf, max, L"(SCERR%ld).", ec);
+  }
+
+  if (p < buf_end) *p = L'\0';
+  else if (buf < buf_end) buf_end[-1] = L'\0';
+  va_end(argptr);
+  return p - buf;
+}
 
 VOID __stdcall FormatStarcounterErrorMessage(
     DWORD errorCode,
@@ -7,6 +62,8 @@ VOID __stdcall FormatStarcounterErrorMessage(
     DWORD outputBufferLength
 )
 {
+	StarcounterErrorMessageFormatWithArgs(errorCode, outputBuffer, outputBufferLength, NULL);
+#if 0
     DWORD dr;
     int ir;
 
@@ -42,4 +99,6 @@ VOID __stdcall FormatStarcounterErrorMessage(
 
     outputBuffer += dr;
     *outputBuffer = 0;
+#endif
 }
+

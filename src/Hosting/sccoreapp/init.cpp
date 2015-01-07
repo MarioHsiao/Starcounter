@@ -48,18 +48,24 @@ void __critical_log_handler(void *c, uint32_t error_code)
 	hmodule = LoadLibrary(L"scerrres.dll");
 	if (hmodule)
 	{
+		typedef extern "C" size_t (*StarcounterErrorMessageFormatWithArgs_t)(long ec, wchar_t* buf, size_t max, ...);
+		if (StarcounterErrorMessageFormatWithArgs_t* p_StarcounterErrorMessageFormatWithArgs = (StarcounterErrorMessageFormatWithArgs_t) GetProcAddress(hmodule, "StarcounterErrorMessageFormatWithArgs")) {
+			dr = p_StarcounterErrorMessageFormatWithArgs(error_code, message, sizeof(message) / sizeof(wchar_t), NULL);
+		}
+#if 0
 		dr = FormatMessage(
-			FORMAT_MESSAGE_FROM_HMODULE, 
-			hmodule, 
+			FORMAT_MESSAGE_FROM_HMODULE,
+			hmodule,
 			error_code,
 			0,
 			message,
 			256,
 			NULL
 			);
+#endif
 		FreeLibrary(hmodule);
 	}
-	
+
 	if (!dr)
 	{
 #pragma warning (disable: 4996)

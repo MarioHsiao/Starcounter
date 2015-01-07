@@ -33,7 +33,7 @@ add_definitions(
     -D_DEBUG
     )
 
-if(WIN32)
+if(0) # was: WIN32
     add_custom_command(
       OUTPUT
         ${SC_OUTPUT_DIR}/scerrres.mc
@@ -42,7 +42,7 @@ if(WIN32)
       COMMAND
         $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME>
       ARGS
-        ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc
+        ..\\errorcodes.xml -mc ${SC_OUTPUT_DIR}/scerrres.mc -ch ${SC_OUTPUT_DIR}/scerrres.h -cc ${SC_OUTPUT_DIR}/scerrres.c
       DEPENDS
         scerrcc
       WORKING_DIRECTORY
@@ -83,7 +83,22 @@ if(WIN32)
       VERBATIM
     )
 else()
-    message(SEND_ERROR "implement scerrres.h generation for Linux")
+    add_custom_command(
+      OUTPUT
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.c
+      COMMAND
+        $<TARGET_PROPERTY:scerrcc,OUTPUT_NAME>
+      ARGS
+        ..\\errorcodes.xml -ch ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h -cc ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.c
+      DEPENDS
+        scerrcc
+      WORKING_DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}
+      COMMENT
+        "Generating scerrres.h and scerrres.c"
+      VERBATIM
+    )
 endif()
 
 add_custom_target(Generate_SCERRRES_H
@@ -91,15 +106,18 @@ add_custom_target(Generate_SCERRRES_H
         ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
 )
 OrganizeVisualStudio(Generate_SCERRRES_H)
-# set_target_properties(Generate_SCERRRES_H PROPERTIES FOLDER "")
 set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h PROPERTIES GENERATED 1)
+set_source_files_properties(${CMAKE_CURRENT_SOURCE_DIR}/scerrres.c PROPERTIES GENERATED 1)
 
 set(scerrres_SOURCES
   Format.cpp
   format.h
+  Format.def
+  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.c
 )
 
-if(WIN32)
+if(0) # was: WIN32
     set(scerrres_SOURCES
         ${scerrres_SOURCES}
         Format.def
@@ -116,5 +134,5 @@ add_library(scerrres SHARED
 )
 
 OrganizeVisualStudio(scerrres) # "level1/Starcounter.ErrorCodes"
-set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
+# set_target_properties(scerrres PROPERTIES LINK_FLAGS ${scerrres_LINKFLAGS})
 add_dependencies(scerrres scerrcc)
