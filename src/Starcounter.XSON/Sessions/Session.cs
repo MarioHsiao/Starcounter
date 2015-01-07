@@ -558,6 +558,10 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         public void GenerateChangeLog() {
+            //            if (_changes.Count != 0) { // New version of the viewmodel. 
+            serverVersion++;
+            //            }
+
             if (_brandNew) {
                 // TODO: 
                 // might be array.
@@ -580,10 +584,6 @@ namespace Starcounter {
                     }
                 }
             }
-
-//            if (_changes.Count != 0) { // New version of the viewmodel. 
-                serverVersion++;
-//            }
         }
 
         /// <summary>

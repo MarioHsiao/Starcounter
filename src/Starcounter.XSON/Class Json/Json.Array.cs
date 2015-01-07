@@ -102,7 +102,7 @@ namespace Starcounter {
                 // There might be old changes logged for this array. We need to find all changes
                 // from the specified version to current for the index.
                 for (int i = 0; i < versionLog.Count; i++) {
-                    if (versionLog[i].Version < fromVersion)
+                    if (versionLog[i].Version <= fromVersion)
                         continue;
                     transformedIndex = FindAndTransformIndex(versionLog[i].Changes, transformedIndex);
                     if (transformedIndex == -1)
