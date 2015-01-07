@@ -17,10 +17,10 @@ namespace Starcounter {
     [Flags]
     public enum SessionOptions : int {
         Default = 0,
-        IncludeSchema,
-        PatchVersioning,
-        StrictPatchRejection,
-//        DisableProtocolOT
+        IncludeSchema = 1,
+        PatchVersioning = 2,
+        StrictPatchRejection = 4,
+//        DisableProtocolOT = 8,
     }
 
     /// <summary>
