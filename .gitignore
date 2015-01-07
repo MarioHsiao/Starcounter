@@ -29,6 +29,7 @@ src/Starcounter.ErrorCodes/ErrorCodeCompiler/scerrcc.pdb
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.dll
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/Starcounter.Errors.pdb
 src/Starcounter.ErrorCodes/scerrres/scerrres.h
+src/Starcounter.ErrorCodes/scerrres/scerrres.c
 
 # Documentation build
 src/BuildSystem/Documentation/Internal/script
