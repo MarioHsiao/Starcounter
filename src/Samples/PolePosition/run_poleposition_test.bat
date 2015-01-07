@@ -45,7 +45,7 @@ ping -n 3 127.0.0.1 > nul
 :: Starting database with some delay.
 sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
 
-IF %ERRORLEVEL% NEQ 0 (
+IF ERRORLEVEL 1 (
     ECHO Error: Poleposition test failed!
     EXIT /b 1
 ) else (

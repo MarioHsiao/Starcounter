@@ -17,7 +17,7 @@ START CMD /C "scservice.exe"
 NodeTest.exe %*
 
 :: Checking exit code.
-IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+IF ERRORLEVEL 1 GOTO TESTFAILED
 
 :: Success message.
 ECHO Test finished successfully!

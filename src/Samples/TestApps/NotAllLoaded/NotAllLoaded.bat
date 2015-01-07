@@ -18,12 +18,12 @@ staradmin --database=%DB_NAME% delete --force db
 ECHO Run Step 1 to create initial schema and index
 COPY /y NotAllLoadedV1.cs NotAllLoaded.cs
 star --database=%DB_NAME% NotAllLoaded.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 ECHO Run Step 2 to update initial schema without indexed column
 COPY /y NotAllLoadedV2.cs NotAllLoaded.cs
 star --database=%DB_NAME% NotAllLoaded.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 REM Clean update
 DEL NotAllLoaded.cs

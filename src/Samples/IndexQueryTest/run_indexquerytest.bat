@@ -25,7 +25,7 @@ sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
-IF %ERRORLEVEL% NEQ 0 (
+IF ERRORLEVEL 1 (
     ECHO Error: The index query regression test failed!
     EXIT /b 1
 ) 
@@ -54,7 +54,7 @@ ping -n 3 127.0.0.1 > nul
 :: Starting database with some delay.
 sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
-IF %ERRORLEVEL% NEQ 0 (
+IF ERRORLEVEL 1 (
     ECHO Error: The index query regression test failed!
     EXIT /b 1
 ) else (

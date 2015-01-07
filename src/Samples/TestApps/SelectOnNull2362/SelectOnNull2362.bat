@@ -16,7 +16,7 @@ staradmin --database=%DB_NAME% delete --force db
 :skipdbdrop
 
 star --database=%DB_NAME% SelectOnNull2362.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 
 ECHO SelectOnNull2362 regression test succeeded.
