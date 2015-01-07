@@ -13,6 +13,7 @@ namespace Starcounter.Advanced {
         TResult AddAndReturn<T, TResult>(Func<T, TResult> func, T arg);
         TResult AddAndReturn<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2);
         TResult AddAndReturn<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3);
+        TResult AddAndReturn<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4);
         Boolean IsDirty { get; }
         void MergeTransaction(ITransaction toMerge);
     }
