@@ -52,7 +52,7 @@ void __critical_log_handler(void *c, uint32_t error_code)
 typedef void* HMODULE;
 #endif
 		typedef size_t (*StarcounterErrorMessageFormatWithArgs_t)(long, wchar_t*, size_t, ...);
-		if (StarcounterErrorMessageFormatWithArgs_t* p_StarcounterErrorMessageFormatWithArgs = (StarcounterErrorMessageFormatWithArgs_t) GetProcAddress((HMODULE)hmodule, "StarcounterErrorMessageFormatWithArgs")) {
+		if (StarcounterErrorMessageFormatWithArgs_t p_StarcounterErrorMessageFormatWithArgs = (StarcounterErrorMessageFormatWithArgs_t) GetProcAddress((HMODULE)hmodule, "StarcounterErrorMessageFormatWithArgs")) {
 			dr = (DWORD) p_StarcounterErrorMessageFormatWithArgs(error_code, message, sizeof(message) / sizeof(wchar_t), NULL);
 		}
 #if 0
