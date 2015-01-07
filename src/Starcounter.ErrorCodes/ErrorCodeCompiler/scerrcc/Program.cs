@@ -236,8 +236,10 @@ class Program
         writer.WriteLine("#include \"scerrres.h\"");
         writer.WriteLine();
         writer.WriteLine("#define SCERRRES_C {0:D4}{1:D2}{2:D2}", DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day);
-        writer.WriteLine("#if SCERRRES_H != SCERRRES_C");
-        writer.WriteLine("# error (\"Expected SCERRRES_H to be the same as SCERRRES_C\")");
+        writer.WriteLine("#ifdef SCERRRES_H");
+        writer.WriteLine("# if SCERRRES_H != SCERRRES_C");
+        writer.WriteLine("#  error (\"Expected SCERRRES_H (\" SCERRRES_H \") to be the same as SCERRRES_C (\" SCERRRES_C \")\")");
+        writer.WriteLine("# endif");
         writer.WriteLine("#endif");
         writer.WriteLine();
         writer.WriteLine("#ifdef __cplusplus");
