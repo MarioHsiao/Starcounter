@@ -113,7 +113,7 @@ namespace Starcounter.XSON {
             int size;
             int[] pathSizes;
             Utf8Writer writer;
-            bool versioning = session.CheckOption(SessionOptions.EnableProtocolVersioning);
+            bool versioning = session.CheckOption(SessionOptions.PatchVersioning);
 
             // TODO:
             // We dont want to create a new array here...
@@ -466,6 +466,7 @@ namespace Starcounter.XSON {
             int used = 0;
             int patchCount = 0;
             int patchStart = -1;
+            int rejectedPatches = 0;
             JsonPatchOperation patchOp = JsonPatchOperation.Undefined;
             int valueSize;
             IntPtr valuePtr;
@@ -476,7 +477,8 @@ namespace Starcounter.XSON {
             int usedTmpBufSize;
             long clientVersion = -1;
 
-            bool versionCheckEnabled = session.CheckOption(SessionOptions.EnableProtocolVersioning);
+            bool versionCheckEnabled = session.CheckOption(SessionOptions.PatchVersioning);
+            session.ClientServerVersion = session.ServerVersion;
 
             try {
                 unsafe {
@@ -553,12 +555,23 @@ namespace Starcounter.XSON {
                                     ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
                                 }
 
-                                long patchServerVer = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
-                                session.ClientServerVersion = patchServerVer;
+                                session.ClientServerVersion = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
+                                session.CleanupOldVersionLogs();
                             }
                         } else {
-                            if (patchHandler != null)
-                                patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                            if (patchHandler != null) {
+                                try {
+                                    patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                                } catch (JsonPatchException) {
+                                    if (session.CheckOption(SessionOptions.StrictPatchRejection))
+                                        throw;
+                                    rejectedPatches++;
+                                } catch (FormatException) {
+                                    if (session.CheckOption(SessionOptions.StrictPatchRejection))
+                                        throw;
+                                    rejectedPatches++;
+                                }
+                            }
                         }
                     }
                 }
@@ -573,6 +586,11 @@ namespace Starcounter.XSON {
                 if (patchStart != -1 && string.IsNullOrEmpty(jpex.Patch))
                     jpex.Patch = GetPatchAsString(patchStart, patchArrayPtr, patchArraySize);
                 throw;
+            }
+
+            if (rejectedPatches > 0) {
+                // TODO:
+                // Callback for rejected patches.
             }
 
             return patchCount;

@@ -21,6 +21,32 @@ namespace Starcounter.Internal.XSON.Tests {
         //}
 
         [Test]
+        public static void TestSoftPatchRejection() {
+            string patch;
+            byte[] patchArr;
+            int number;
+
+            var schema = new TObject();
+            var prop = schema.Add<TLong>("Total");
+            prop.Editable = true;
+
+            dynamic json = new Json() { Template = schema };
+            var session = new Session();
+            session.Data = json;
+            jsonPatch.CreateJsonPatch(session, true);
+
+            json.Total = 1L;
+            patch = string.Format(Helper.PATCH_REPLACE, "/Total", "invalid");
+            patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
+            number = jsonPatch.EvaluatePatches(session, patchArr);
+            Assert.AreEqual(number, 1);
+            Assert.AreEqual(1L, json.Total);
+
+            patch = jsonPatch.CreateJsonPatch(session, true);
+            Assert.AreEqual(   string.Format(Helper.ONE_PATCH_ARR, "/Total", 1), patch);
+        }
+
+        [Test]
         public static void TestIncomingPatchWithInteger() {
             string patch;
             byte[] patchArr;
@@ -48,7 +74,6 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(number, 1);
             Assert.AreEqual(3L, json.Total);
         }
-
 
         [Test]
         public static void TestMultipleIncomingPatchesWithInteger() {
@@ -165,8 +190,6 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(true, json.IsTotal);
         }
 
-
-
         [Test]
         public static void TestIncomingPatches() {
             int patchCount;
@@ -176,7 +199,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
-            var session = new Session();
+            var session = new Session(SessionOptions.StrictPatchRejection);
             session.Data = json;
 
             // Setting a value on a editable property
@@ -424,7 +447,7 @@ namespace Starcounter.Internal.XSON.Tests {
             tJson = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             tValue = (TString)tJson.Properties[1];
             json = (Json)tJson.CreateInstance();
-            session = new Session(SessionOptions.EnableProtocolVersioning);
+            session = new Session(SessionOptions.PatchVersioning);
             session.Data = json;
 
             session.CheckpointChangeLog();
@@ -469,17 +492,300 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(5, session.ClientVersion);
             Assert.AreEqual(1, session.ServerVersion);
             Assert.AreEqual("Changed1", tValue.Getter(json));
-
         }
 
+        [Test]
+        public static void TestPatchOTForObject() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            TestOfOT json = new TestOfOT();
+
+            session = new Session(SessionOptions.PatchVersioning | SessionOptions.StrictPatchRejection);
+            session.Data = json;
+
+            session.CheckpointChangeLog();
+            Assert.AreEqual(0, session.ClientVersion);
+            Assert.AreEqual(0, session.ServerVersion);
+
+            incomingPatch = GetVersioningPatch(1, 0, string.Format(Helper.PATCH_REPLACE, "/Page/Description$", @"""Changed1"""));
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(0, session.ServerVersion);
+            Assert.AreEqual("Changed1", json.Page.Description);
+
+            json.Page.Description = "A";
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true);
+            Assert.AreEqual(1, session.ServerVersion);
+
+            incomingPatch = GetVersioningPatch(2, 0, string.Format(Helper.PATCH_REPLACE, "/Page/Description$", @"""Changed1"""));
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(2, session.ClientVersion);
+            Assert.AreEqual(1, session.ServerVersion);
+            Assert.AreEqual("Changed1", json.Page.Description);
+
+            json.Page = new TestOfOT.PageJson();
+
+            incomingPatch = GetVersioningPatch(3, 0, string.Format(Helper.PATCH_REPLACE, "/Page/Description$", @"""Changed1"""));
+
+            Assert.Throws<JsonPatchException>(() => {
+                evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            });
+        }
+
+        [Test]
+        public static void TestUpdateServerVersion() {
+            Session session = new Session(SessionOptions.PatchVersioning);
+            TestOfOT json = new TestOfOT();
+
+            session.Data = json;
+            Assert.AreEqual(0, session.ServerVersion);
+            Assert.AreEqual(0, session.ClientServerVersion);
+            Assert.AreEqual(0, session.ClientVersion);
+
+            jsonPatch.CreateJsonPatch(session, true);
+            Assert.AreEqual(1, session.ServerVersion);
+
+            jsonPatch.CreateJsonPatch(session, true);
+            jsonPatch.CreateJsonPatch(session, true);
+            jsonPatch.CreateJsonPatch(session, true);
+            Assert.AreEqual(4, session.ServerVersion);
+        }
+
+        [Test]
+        public static void TestUpdateClientVersion() {
+            Session session = new Session(SessionOptions.PatchVersioning);
+            TestOfOT json = new TestOfOT();
+            String incomingPatch;
+
+            session.Data = json;
+            jsonPatch.CreateJsonPatch(session, true);
+
+            incomingPatch = GetVersioningPatch(1, 1, string.Format(Helper.PATCH_REPLACE, "/Name$", @"""A:Change"""));
+            jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(1, session.ClientServerVersion);
+        }
+
+        [Test]
+        public static void TestSuccesfulTransformPendingServerChanges() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            TestOfOT json = new TestOfOT();
+
+            TestOfOT.ItemsElementJson itemA = json.Items.Add(); // 0
+            itemA.Description = "A";
+            TestOfOT.ItemsElementJson itemB = json.Items.Add(); // 1
+            itemB.Description = "B";
+
+            session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 1
+
+            var itemC = new TestOfOT.ItemsElementJson();
+            itemC.Description = "C";
+            json.Items.Insert(0, itemC);
+
+            // ServerVersion is still 1 since no patches have been created, but there are pending changes that needs to be considered.
+            incomingPatch = GetVersioningPatch(1, 1, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(1, session.ServerVersion);
+            Assert.AreEqual("A:Change", itemA.Description);
+            Assert.AreEqual("C", itemC.Description);
+        }
+
+        [Test]
+        public static void TestSuccesfulTransformOneVersionBehind() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            TestOfOT json = new TestOfOT();
+
+            TestOfOT.ItemsElementJson itemA = json.Items.Add(); // 0
+            itemA.Description = "A";
+            TestOfOT.ItemsElementJson itemB = json.Items.Add(); // 1
+            itemB.Description = "B";
+
+            session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 1
+            
+            var itemC = new TestOfOT.ItemsElementJson();
+            itemC.Description = "C";
+            json.Items.Insert(0, itemC);
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 2
+            
+            // One version behind, index 0 should be 1
+            incomingPatch = GetVersioningPatch(1, 1, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(2, session.ServerVersion);
+            Assert.AreEqual("A:Change", itemA.Description);
+            Assert.AreEqual("C", itemC.Description);
+        }
+
+        [Test]
+        public static void TestSuccesfulTransformSeveralVersionsBehindWithAdds() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            TestOfOT json = new TestOfOT();
+
+            var itemA = new TestOfOT.ItemsElementJson();
+            itemA.Description = "A";
+            var itemB = new TestOfOT.ItemsElementJson();
+            itemB.Description = "B";
+            var itemC = new TestOfOT.ItemsElementJson();
+            itemC.Description = "C";
+            var itemDummy = new TestOfOT.ItemsElementJson();
+            itemDummy.Description = "Dummy";
+
+            session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 1
+            json.Items.Add(itemDummy); // index 0
+            json.Items.Insert(0, itemA);
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 2
+
+            json.Items.Insert(0, itemC); // itemA -> index 1
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 3
+            json.Items.Insert(0, itemB); // itemA -> index 2
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 4
+
+            // Several versions behind, index 0 should be 2
+            incomingPatch = GetVersioningPatch(1, 2, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(4, session.ServerVersion);
+            Assert.AreEqual("A:Change", itemA.Description);
+            Assert.AreEqual("C", itemC.Description);
+            Assert.AreEqual("Dummy", itemDummy.Description);
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 5
+        }
+
+        [Test]
+        public static void TestSuccesfulTransformSeveralVersionsBehindWithAddsAndRemoves() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            TestOfOT json = new TestOfOT();
+
+            var itemA = new TestOfOT.ItemsElementJson();
+            itemA.Description = "A";
+            var itemB = new TestOfOT.ItemsElementJson();
+            itemB.Description = "B";
+            var itemC = new TestOfOT.ItemsElementJson();
+            itemC.Description = "C";
+            var itemDummy = new TestOfOT.ItemsElementJson();
+            itemDummy.Description = "Dummy";
+
+            session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 1
+            json.Items.Add(itemDummy); // index 0
+            json.Items.Insert(0, itemA);
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 2
+            json.Items.Insert(0, itemC); // itemA -> index 1
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 3
+            json.Items.Insert(0, itemB); // itemA -> index 2
+            json.Items.Remove(itemC); // itemA -> index 1
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 4
+
+            // Several versions behind, index 0 should be 1
+            incomingPatch = GetVersioningPatch(1, 2, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            Assert.AreEqual(3, evaluatedCount);
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(4, session.ServerVersion);
+            Assert.AreEqual("A:Change", itemA.Description);
+            Assert.AreEqual("C", itemC.Description);
+            Assert.AreEqual("B", itemB.Description);
+            Assert.AreEqual("Dummy", itemDummy.Description);
+        }
+
+        [Test]
+        public static void TestUnsuccesfulTransformSeveralVersionsBehindWithAddsAndRemoves() {
+            int evaluatedCount;
+            string incomingPatch;
+            string outgoingPatch;
+            Session session;
+            TestOfOT json = new TestOfOT();
+
+            var itemA = new TestOfOT.ItemsElementJson();
+            itemA.Description = "A";
+            var itemB = new TestOfOT.ItemsElementJson();
+            itemB.Description = "B";
+            var itemC = new TestOfOT.ItemsElementJson();
+            itemC.Description = "C";
+            var itemDummy = new TestOfOT.ItemsElementJson();
+            itemDummy.Description = "Dummy";
+
+            session = new Session(SessionOptions.PatchVersioning);
+            session.Data = json;
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 1
+            json.Items.Add(itemDummy); // index 0
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 2
+            json.Items.Insert(0, itemA);
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 3
+            json.Items.Insert(0, itemC); // itemA -> index 1
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 4
+            json.Items.Insert(0, itemB); // itemA -> index 2
+            json.Items.Remove(itemA); // itemA -> invalid
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 5
+
+            // Several versions behind, index 0 should be 1
+            incomingPatch = GetVersioningPatch(1, 3, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
+
+            evaluatedCount = jsonPatch.EvaluatePatches(session, Encoding.UTF8.GetBytes(incomingPatch));
+            
+            Assert.AreEqual(1, session.ClientVersion);
+            Assert.AreEqual(5, session.ServerVersion);
+            Assert.AreEqual("A", itemA.Description);
+            Assert.AreEqual("C", itemC.Description);
+            Assert.AreEqual("B", itemB.Description);
+            Assert.AreEqual("Dummy", itemDummy.Description);
+
+            outgoingPatch = jsonPatch.CreateJsonPatch(session, true); // ServerVersion: 6
+        }
+
+
         private static string GetVersioningPatch(long clientVersion, long serverVersion) {
-            return 
+            return
                 "["
                 + string.Format(Helper.PATCH_REPLACE, "/" + JsonPatch.ClientVersionPropertyName, clientVersion)
                 + ","
                 + string.Format(Helper.PATCH_TEST, "/" + JsonPatch.ServerVersionPropertyName, serverVersion)
                 + ","
                 + string.Format(Helper.PATCH_REPLACE, "/AbstractValue$", @"""Changed1""")
+                + "]";
+        }
+
+        private static string GetVersioningPatch(long clientVersion, long serverVersion, string valuePatch) {
+            return
+                "["
+                + string.Format(Helper.PATCH_REPLACE, "/" + JsonPatch.ClientVersionPropertyName, clientVersion)
+                + ","
+                + string.Format(Helper.PATCH_TEST, "/" + JsonPatch.ServerVersionPropertyName, serverVersion)
+                + ","
+                + valuePatch
                 + "]";
         }
     }

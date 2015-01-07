@@ -145,6 +145,10 @@ namespace Starcounter {
             }
         }
 
+        internal void OnSessionSet() {
+            UpgradeToStateful();
+        }
+
         /// <summary>
         /// The schema element of this app instance
         /// </summary>
@@ -279,6 +283,38 @@ namespace Starcounter {
             }
 
             _parent = value;
+
+            // When this json is connected to a jsontree we check if the tree is a stateful viewmodel.
+            // If so we need to upgrade it to enable keeping track of changes.
+            if (this.Session != null) {
+                this.UpgradeToStateful();
+            }
+        }
+
+        /// <summary>
+        /// Upgrades this json to a stateful puppet that keeps track of changes done.
+        /// </summary>
+        private void UpgradeToStateful() {
+            // TODO:
+            // Do upgrade of dirtychecks instead of static field.
+
+            this.addedInVersion = this.Session.ServerVersion;
+
+            if (this.IsArray) {
+                foreach (Json item in _list) {
+                    item.UpgradeToStateful();
+                }
+            } else {
+                if (Template != null) {
+                    foreach (Template tChild in ((TObject)Template).Properties) {
+                        var container = tChild as TContainer;
+                        if (container != null) {
+                            var childJson = container.GetValue(this);
+                            childJson.UpgradeToStateful();
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

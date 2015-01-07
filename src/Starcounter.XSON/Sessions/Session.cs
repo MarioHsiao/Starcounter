@@ -17,9 +17,10 @@ namespace Starcounter {
     [Flags]
     public enum SessionOptions : int {
         Default = 0,
-        IncludeSchema,
-        EnableProtocolVersioning,
-//        DisableProtocolOT
+        IncludeSchema = 1,
+        PatchVersioning = 2,
+        StrictPatchRejection = 4,
+//        DisableProtocolOT = 8,
     }
 
     /// <summary>
@@ -59,7 +60,7 @@ namespace Starcounter {
         /// The clients current serverversion. Used to check if OT is needed.
         /// </summary>
         private long clientServerVersion;
-        
+
         public Session() : this(SessionOptions.Default) {
         }
 
@@ -69,7 +70,8 @@ namespace Starcounter {
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<DataAndCache>();
             sessionOptions = options;
-
+            clientServerVersion = serverVersion;
+            
             UInt32 errCode = 0;
             if (_request != null) {
                 errCode = _request.GenerateNewSession(this);
@@ -125,9 +127,9 @@ namespace Starcounter {
             get { return serverVersion; }
         }
 
-        public long ClientServerVersion {
+        internal long ClientServerVersion {
             get { return clientServerVersion; }
-            internal set { clientServerVersion = value; }
+            /*internal*/ set { clientServerVersion = value; }
         }
 
         /// <summary>
@@ -253,10 +255,12 @@ namespace Starcounter {
                         value._Session.Data = null;
 
                     value._Session = this;
+                    value.OnSessionSet();
                 }
 
                 // Setting current session.
                 Current = this;
+
             }
         }
 
@@ -495,7 +499,6 @@ namespace Starcounter {
         /// </summary>
         internal static void End() {
             if (_current != null) {
-                _current.clientServerVersion = -1;
                 _current.Clear();
                 Session._current = null;
             }
@@ -555,6 +558,10 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         public void GenerateChangeLog() {
+            //            if (_changes.Count != 0) { // New version of the viewmodel. 
+            serverVersion++;
+            //            }
+
             if (_brandNew) {
                 // TODO: 
                 // might be array.
@@ -577,10 +584,6 @@ namespace Starcounter {
                     }
                 }
             }
-
-//            if (_changes.Count != 0) { // New version of the viewmodel. 
-                serverVersion++;
-//            }
         }
 
         /// <summary>
@@ -640,6 +643,11 @@ namespace Starcounter {
                     }
                 }
             }
+        }
+
+        internal void CleanupOldVersionLogs() {
+            var root = this.Data;
+            root.CleanupOldVersionLogs(ClientServerVersion);
         }
 
         /// <summary>
