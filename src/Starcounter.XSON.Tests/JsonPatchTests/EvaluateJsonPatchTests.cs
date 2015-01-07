@@ -199,7 +199,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
             dynamic json = schema.CreateInstance();
-            var session = new Session();
+            var session = new Session(SessionOptions.StrictPatchRejection);
             session.Data = json;
 
             // Setting a value on a editable property
