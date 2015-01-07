@@ -113,8 +113,6 @@ set(scerrres_SOURCES
   Format.cpp
   format.h
   Format.def
-  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/scerrres.c
 )
 
 if(0) # was: WIN32
