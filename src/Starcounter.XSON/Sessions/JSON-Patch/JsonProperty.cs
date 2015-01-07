@@ -60,25 +60,27 @@ namespace Starcounter.XSON {
 
         private void DoEvaluate(JsonPointer pointer, Json root) {
             bool nextIsIndex = false;
+            bool otEnabled = Session.Current.CheckOption(SessionOptions.PatchVersioning);
             json = root;
            
             while (pointer.MoveNext()) {
                 // TODO: 
                 // Check if this can be improved. Searching for transaction and execute every
                 // step in a new action is not the most efficient way.
-                nextIsIndex = json.AddAndReturnInScope<JsonProperty, JsonPointer, bool, bool>(
-                    (prop, ptr, isIndex) => {
-                        prop.EvalutateCurrent(ptr, ref isIndex);
+                nextIsIndex = json.AddAndReturnInScope<JsonProperty, JsonPointer, bool, bool, bool>(
+                    (prop, ptr, ot, isIndex) => {
+                        prop.EvalutateCurrent(ptr, ot, ref isIndex);
                         return isIndex;
                     }, 
                     this, 
-                    pointer, 
+                    pointer,
+                    otEnabled, 
                     nextIsIndex);
             }
 
         }
 
-        private void EvalutateCurrent(JsonPointer ptr, ref bool nextIsIndex) {
+        private void EvalutateCurrent(JsonPointer ptr, bool otEnabled, ref bool nextIsIndex) {
             int index;
             long clientServerVersion;
 
@@ -91,21 +93,24 @@ namespace Starcounter.XSON {
                 var tObjArr = current as TObjArr;
                 Json list = tObjArr.Getter(json);
                 clientServerVersion = Session.Current.ClientServerVersion;
-                if (clientServerVersion != Session.Current.ServerVersion || (list._Dirty == true)) {
-                    if (!json.IsValidForVersion(clientServerVersion))
-                        throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
 
-                    int transformedIndex = list.TransformIndex(clientServerVersion, index);
-                    if (transformedIndex == -1)
-                        throw new JsonPatchException("The object at index " + index + " in array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
-                    index = transformedIndex;
+                if (otEnabled) {
+                    if (clientServerVersion != Session.Current.ServerVersion || (list._Dirty == true)) {
+                        if (!list.IsValidForVersion(clientServerVersion))
+                            throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+
+                        int transformedIndex = list.TransformIndex(clientServerVersion, index);
+                        if (transformedIndex == -1)
+                            throw new JsonPatchException("The object at index " + index + " in array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
+                        index = transformedIndex;
+                    }
                 }
                 current = list._GetAt(index);
             } else {
                 var tobj = current as TObject;
                 if (tobj != null) {
                     json = tobj.Getter(json);
-                    if (!json.IsValidForVersion(Session.Current.ClientServerVersion))
+                    if (otEnabled && !json.IsValidForVersion(Session.Current.ClientServerVersion))
                         throw new JsonPatchException("The object '" + tobj.TemplateName + "' in path has been replaced or removed and is no longer valid.");
                 }
                 if (json.IsArray) {
