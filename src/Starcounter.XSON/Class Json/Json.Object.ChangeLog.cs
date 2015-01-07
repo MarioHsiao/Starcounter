@@ -354,7 +354,7 @@ namespace Starcounter {
             if (versionLog != null) {
                 Session session = Session;
                 for (int i = 0; i < versionLog.Count; i++) {
-                    if (versionLog[i].Version <= session.ClientServerVersion) {
+                    if (versionLog[i].Version < session.ClientServerVersion) {
                         versionLog.RemoveAt(i);
                         i--;
                     }
