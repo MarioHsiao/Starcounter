@@ -966,7 +966,7 @@ namespace Starcounter.Binding
                 }
                 else if (r == Error.SCERRVALUEUNDEFINED) {
                     value.ObjectID = sccoredb.MDBIT_OBJECTID;
-                    value.ETI = sccoredb.INVALID_RECORD_ADDR;
+                    //value.ETI = 0; // Not relevant on invalid id.
                     return value;
                 }
                 else {

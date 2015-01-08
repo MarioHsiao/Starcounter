@@ -47,7 +47,7 @@ namespace Starcounter.Binding
                     columns[i] = new ColumnDef(
                         new string(columnInfo.name),
                         columnInfo.type,
-                        (columnInfo.flags & sccoredb.MDB_ATTRFLAG_NULLABLE) != 0,
+                        columnInfo.nullable != 0,
                         i < inheritedColumnCount
                         );
                 }

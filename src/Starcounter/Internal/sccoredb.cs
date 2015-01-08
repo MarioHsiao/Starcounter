@@ -33,15 +33,6 @@ namespace Starcounter.Internal
         public const ulong MDBIT_OBJECTID = 0; // TODO:
 
         /// <summary>
-        /// The INVALI d_ DEFINITIO n_ ADDR
-        /// </summary>
-        public const ulong INVALID_DEFINITION_ADDR = 0xFFFFFFFFFF;
-        /// <summary>
-        /// The INVALI d_ RECOR d_ ADDR
-        /// </summary>
-        public const ulong INVALID_RECORD_ADDR = 0xFFFFFFFFFF;
-
-        /// <summary>
         /// </summary>
         public const byte STAR_TYPE_STRING = 0x01;
 
@@ -1023,7 +1014,7 @@ namespace Starcounter.Internal
 
             /// <summary>
             /// </summary>
-            public ushort flags;
+            public byte nullable;
 
             /// <summary>
             /// </summary>

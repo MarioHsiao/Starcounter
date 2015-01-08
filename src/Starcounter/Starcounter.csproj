@@ -71,6 +71,7 @@
     <Compile Include="Binding\BindingHelper.cs" />
     <Compile Include="Binding\BytePropertyBinding.cs" />
     <Compile Include="Binding\DotNetBindingHelpers.cs" />
+    <Compile Include="Binding\HostedColumn.cs" />
     <Compile Include="Binding\TableCreate.cs" />
     <Compile Include="Binding\ObjectPropertyBinding.cs" />
     <Compile Include="Binding\SinglePropertyBinding.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Metadata\MaterializedIndex.cs" />
     <Compile Include="Metadata\MaterializedTable.cs" />
     <Compile Include="Metadata\BaseType.cs" />
+    <Compile Include="Metadata\MetadataBindingHelper.cs" />
     <Compile Include="Metadata\RuntimeIndex.cs" />
     <Compile Include="Metadata\RuntimeMember.cs" />
     <Compile Include="Metadata\RuntimeView.cs" />

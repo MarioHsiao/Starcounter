@@ -1,5 +1,6 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
+using Starcounter.Internal.Metadata;
 using System;
 using System.Reflection;
 
@@ -31,7 +32,7 @@ namespace Starcounter.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
@@ -99,7 +100,7 @@ namespace Starcounter.Metadata {
         #endregion
 
         static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
@@ -120,7 +121,7 @@ namespace Starcounter.Metadata {
         #endregion
 
         static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
@@ -142,7 +143,7 @@ namespace Starcounter.Metadata {
 
         static new internal TypeDef CreateTypeDef() {
             System.Type thisSysType = MethodBase.GetCurrentMethod().DeclaringType;
-            TypeDef typeDef = TypeDef.CreateTypeTableDef(thisSysType);
+            TypeDef typeDef = MetadataBindingHelper.CreateTypeTableDef(thisSysType);
             return typeDef;
         }
 
@@ -201,7 +202,7 @@ namespace Starcounter.Internal.Metadata {
         #endregion
 
         static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 

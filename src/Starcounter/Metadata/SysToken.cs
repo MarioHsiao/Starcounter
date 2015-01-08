@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Metadata {
         #endregion
     
         static internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 

@@ -38,7 +38,7 @@ namespace Starcounter.Internal.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
@@ -106,7 +106,7 @@ namespace Starcounter.Internal.Metadata {
         /// <returns>A <see cref="TypeDef"/> representing the current
         /// type.</returns>
         static internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
+            return MetadataBindingHelper.CreateTypeTableDef(
                 System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         }
 
