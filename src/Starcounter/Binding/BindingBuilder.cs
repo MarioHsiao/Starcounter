@@ -4,6 +4,7 @@
 // </copyright>
 // ***********************************************************************
 
+using Sc.Server.Weaver;
 using Starcounter.Internal;
 using System;
 using System.Reflection;
@@ -114,7 +115,7 @@ namespace Starcounter.Binding
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             ilGenerator = methodBuilder.GetILGenerator();
             ilGenerator.BeginScope();
-            if (type.IsAbstract != true)
+            if (!type.IsAbstract)
             {
                 utypes = new Type[1];
                 utypes[0] = typeof(Uninitialized);
@@ -417,6 +418,17 @@ namespace Starcounter.Binding
         /// </summary>
         private static Type objectPropertyBindingReturnType = typeof(IObjectView);
 
+        private PropertyInfo GetImplicitEntityProperty(PropertyDef propertyDef) {
+            PropertyInfo result = null;
+            if (propertyDef.ColumnName == WeavedNames.InheritsColumn ||
+                    propertyDef.ColumnName == WeavedNames.TypeColumn ||
+                    propertyDef.ColumnName == WeavedNames.IsTypeColumn ||
+                    propertyDef.ColumnName == WeavedNames.TypeNameColumn) {
+                result = typeof(ImplicitEntity).GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            }
+            return result;
+        }
+
         /// <summary>
         /// Creates the object property binding.
         /// </summary>
@@ -432,6 +444,9 @@ namespace Starcounter.Binding
             ObjectPropertyBinding propertyBinding;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null) {
+                propertyInfo = GetImplicitEntityProperty(propertyDef);
+            }
             VerifyObjectProperty(propertyInfo);
 
             propBindingTypeName = String.Concat(
@@ -775,6 +790,9 @@ namespace Starcounter.Binding
             Type propBindingType;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null) {
+                propertyInfo = GetImplicitEntityProperty(propertyDef);
+            }
 
             isNullable = propertyDef.IsNullable;
 
@@ -901,6 +919,9 @@ namespace Starcounter.Binding
             Type propBindingType;
 
             propertyInfo = thisType.GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
+            if (propertyInfo == null) {
+                propertyInfo = GetImplicitEntityProperty(propertyDef);
+            }
             VerifyProperty(propertyInfo, returnType);
 
             propBindingTypeName = String.Concat(
@@ -950,9 +971,19 @@ namespace Starcounter.Binding
             typeBuilder.DefineMethodOverride(methodBuilder, methodInfo);
             ilGenerator = methodBuilder.GetILGenerator();
             ilGenerator.BeginScope();
-            ilGenerator.Emit(OpCodes.Ldarg_1);
-            ilGenerator.Emit(OpCodes.Castclass, thisType);
-            ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+            if (!propertyInfo.DeclaringType.IsAssignableFrom(thisType)) {
+                // Nasty, temporary hack to get around #2061 and #2428.
+                // A better approach is to bind this to some kind of static
+                // utility method that accept the THIS parameter we are loading
+                // onto the stack and read the underlying column using the info
+                // provided by the instance passed to it.
+                ScAssertion.Assert(propertyInfo.DeclaringType == typeof(ImplicitEntity));
+                ilGenerator.Emit(OpCodes.Ldnull);
+            } else {
+                ilGenerator.Emit(OpCodes.Ldarg_1);
+                ilGenerator.Emit(OpCodes.Castclass, thisType);
+                ilGenerator.Emit(OpCodes.Callvirt, propertyInfo.GetGetMethod());
+            }
             ilGenerator.Emit(OpCodes.Ret);
             ilGenerator.EndScope();
         }

@@ -125,7 +125,7 @@ namespace IndexQueryTest.InheritedIndex {
 
         internal static void TestGetAllIndexInfos() {
             IndexInfo[] indexes = Bindings.GetTypeBindingInsensitive("Professor").GetAllInheritedIndexInfos();
-            Trace.Assert(indexes.Length == 11);
+            Trace.Assert(indexes.Length == 12);
             // Type Professor
             Trace.Assert(indexes[0].Name == "auto");
             Trace.Assert(indexes[1].Name == "companyIndx");
@@ -141,6 +141,8 @@ namespace IndexQueryTest.InheritedIndex {
             Trace.Assert(indexes[8].Name == "auto");
             Trace.Assert(indexes[10].Name == "personBirthdayGender");
             Trace.Assert(indexes[9].Name == "personName");
+            // Type ImplicitEntity
+            Trace.Assert(indexes[11].Name == "auto");
         }
 
         internal static void TestGetInheritedIndexInfo() {

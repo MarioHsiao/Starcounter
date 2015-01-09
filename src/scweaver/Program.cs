@@ -242,12 +242,14 @@ namespace Starcounter.Weaver {
             }
 
             var schema = new DatabaseSchema();
-            var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
-            databaseAssembly.SetSchema(schema);
-            schema.Assemblies.Add(databaseAssembly);
+            schema.AddStarcounterAssembly();
+
+            //var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
+            //databaseAssembly.SetSchema(schema);
+            //schema.Assemblies.Add(databaseAssembly);
 
             for (int i = 0; i < schemaFiles.Length; i++) {
-                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
+                var databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
                 schema.Assemblies.Add(databaseAssembly);
             }
 

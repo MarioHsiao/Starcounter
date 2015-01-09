@@ -1,9 +1,11 @@
-﻿using Starcounter.Binding;
+﻿using Sc.Server.Weaver;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using Starcounter.Internal.Metadata;
 using Starcounter.Metadata;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {

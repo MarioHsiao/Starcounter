@@ -54,22 +54,6 @@ namespace Starcounter.Internal.Weaver {
                     ));
             }
 
-            var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
-                return candidate != attribute && candidate.IsTypeReference;
-            });
-
-            if (other != null) {
-                ScMessageSource.WriteError(
-                    MessageLocation.Unknown,
-                    Error.SCERRINVALIDTYPEREFERENCE,
-                    string.Format("Attribute {0}.{1} is marked a type; {2}.{3} is too.",
-                    attribute.DeclaringClass.Name,
-                    attribute.Name,
-                    other.DeclaringClass.Name,
-                    other.Name
-                    ));
-            }
-
             if (attribute.IsInheritsReference) {
                 ScMessageSource.WriteError(
                     MessageLocation.Unknown,
@@ -113,22 +97,6 @@ namespace Starcounter.Internal.Weaver {
                     ));
             }
 
-            var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
-                return candidate != attribute && candidate.IsInheritsReference;
-            });
-
-            if (other != null) {
-                ScMessageSource.WriteError(
-                    MessageLocation.Unknown,
-                    Error.SCERRINVALIDINHERITSREFERENCE,
-                    string.Format("Attribute {0}.{1} is marked [Inherits]; {2}.{3} is too.",
-                    attribute.DeclaringClass.Name,
-                    attribute.Name,
-                    other.DeclaringClass.Name,
-                    other.Name
-                    ));
-            }
-
             if (attribute.IsTypeReference) {
                 ScMessageSource.WriteError(
                     MessageLocation.Unknown,
@@ -159,22 +127,6 @@ namespace Starcounter.Internal.Weaver {
                     string.Format("Attribute {0}.{1} is not a string.",
                     attribute.DeclaringClass.Name,
                     attribute.Name
-                    ));
-            }
-
-            var other = attribute.DeclaringClass.FindAttributeInAncestors((candidate) => {
-                return candidate != attribute && candidate.IsTypeName;
-            });
-
-            if (other != null) {
-                ScMessageSource.WriteError(
-                    MessageLocation.Unknown,
-                    Error.SCERRINVALIDTYPENAME,
-                    string.Format("Attribute {0}.{1} is marked [TypeName]; {2}.{3} is too.",
-                    attribute.DeclaringClass.Name,
-                    attribute.Name,
-                    other.DeclaringClass.Name,
-                    other.Name
                     ));
             }
 

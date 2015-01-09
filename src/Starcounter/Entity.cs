@@ -1,5 +1,6 @@
 ﻿
 using Starcounter.Advanced;
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 
@@ -10,13 +11,18 @@ namespace Starcounter {
     /// classes, as an alternative to the [Database] attribute.
     /// </summary>
     [Database]
-    public abstract partial class Entity : IEntity {
+    public abstract partial class Entity : IEntity  {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
         public Entity Type {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get {
+                return (Entity)DbState.ReadTypeReference(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type__);
+            }
+            set {
+                WriteType(value);
+            }
         }
 
         /// <summary>
@@ -29,37 +35,20 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Creates a new entity whose dynamic type will be the
-        /// current entity, i.e. instantiating the current entity
-        /// (where the current entity is to be considered a type).
-        /// </summary>
-        /// <returns>A new entity whose dynamic type is the
-        /// current entity.</returns>
-        public Entity Create() {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Creates a new entity whose parent dynamic type
-        /// will be the current entity, i.e. deriving the
-        /// current entity (where the current entity is to
-        /// be considered a type).
-        /// </summary>
-        /// <returns>A new entity whose base dynamic type is
-        /// the current entity.</returns>
-        public Entity Derive() {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Gets or sets the name of the current entity. The
         /// name is commonly used to name entities that are
         /// types, but can be used on entities that are not
         /// types too, giving them a logical name.
         /// </summary>
-        public string Name { 
-            get { throw new NotImplementedException(); } 
-            set { throw new NotImplementedException(); } 
+        public string Name {
+            get {
+                return DbState.ReadTypeName(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type_name__);
+            }
+            set {
+                DbState.WriteTypeName(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__type_name__, value);
+            }
         }
 
         /// <summary>
@@ -87,13 +76,6 @@ namespace Starcounter {
         }
         
         /// <summary>
-        /// Deletes the current entity.
-        /// </summary>
-        public void Delete() {
-            Db.Delete(this);
-        }
-        
-        /// <summary>
         /// Gets or sets a property of the current entity.
         /// </summary>
         /// <param name="propertName">The name of the
@@ -110,8 +92,13 @@ namespace Starcounter {
         /// </summary>
         /// <seealso cref="Derive"/>
         public Entity TypeInherits {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get {
+                return (Entity)DbState.ReadInherits(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__inherits__);
+            }
+            set {
+                WriteInherits(value);
+            }
         }
         
         /// <summary>
@@ -119,8 +106,18 @@ namespace Starcounter {
         /// entity should be considered a dynamic type.
         /// </summary>
         public bool IsType {
-            get { throw new NotImplementedException(); }
-            set { throw new NotImplementedException(); }
+            get {
+                return DbState.ReadBoolean(
+                    __sc__this_id__, 
+                    __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__is_type__);
+            }
+            set {
+                DbState.WriteBoolean(
+                    __sc__this_id__, 
+                    __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__is_type__, value);
+            }
         }
         
         /// <summary>
@@ -159,6 +156,37 @@ namespace Starcounter {
             : this(__starcounterTypeSpecification.tableHandle, __starcounterTypeSpecification.typeBinding, (Uninitialized)null) {
         }
 
+        /// <summary>
+        /// Creates a new entity whose dynamic type will be the
+        /// current entity, i.e. instantiating the current entity
+        /// (where the current entity is to be considered a type).
+        /// </summary>
+        /// <returns>A new entity whose dynamic type is the
+        /// current entity.</returns>
+        public Entity Create() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Creates a new entity whose parent dynamic type
+        /// will be the current entity, i.e. deriving the
+        /// current entity (where the current entity is to
+        /// be considered a type).
+        /// </summary>
+        /// <returns>A new entity whose base dynamic type is
+        /// the current entity.</returns>
+        public Entity Derive() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Deletes the current entity.
+        /// </summary>
+        public void Delete() {
+            Db.Delete(this);
+        }
+
+
         /// <inheritdoc />
         public override bool Equals(object obj) {
             IBindable bindable = obj as IBindable;
@@ -184,5 +212,21 @@ namespace Starcounter {
         /// deleted.
         /// </summary>
         public virtual void OnDelete() { }
+
+        internal void WriteType(IObjectProxy type) {
+            DbState.WriteTypeReference(
+                __sc__this_id__,
+                __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle___sc__type__,
+                type);
+        }
+
+        internal void WriteInherits(IObjectProxy type) {
+            DbState.WriteInherits(
+                __sc__this_id__,
+                __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle___sc__inherits__,
+                type);
+        }
     }
 }
