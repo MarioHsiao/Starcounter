@@ -144,6 +144,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
+    <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
+  </PropertyGroup>  
+  <PropertyGroup>
     <ItemDefinitionGroup>
       <CustomBuildStep>
         <Command>$(ProjectDir)..\Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(ProjectDir)..\Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</Command>
