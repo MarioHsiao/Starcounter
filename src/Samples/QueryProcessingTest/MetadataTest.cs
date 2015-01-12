@@ -68,7 +68,7 @@ namespace QueryProcessingTest {
                 "inherits")) {
                 count++;
                 }
-            Trace.Assert(count == 5);
+            Trace.Assert(count == 4);
             RawView rv = Db.SQL<RawView>("select rw from rawview rw where fullname = ?", 
                 "Starcounter.Metadata.Type").First;
             Trace.Assert(rv != null);
@@ -87,20 +87,19 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.Inherits.FullName == "Starcounter.Metadata.VMView");
             Trace.Assert(rv.Inherits.Name == "VMView");
             Trace.Assert(rv.Inherits.Inherits != null);
+            Trace.Assert(rv.Inherits.Inherits.FullName == "Starcounter.Metadata.Table");
+            Trace.Assert(rv.Inherits.Inherits.Name == "Table");
             Trace.Assert(rv.Inherits.Inherits.Inherits != null);
-            Trace.Assert(rv.Inherits.Inherits.Inherits.FullName == "Starcounter.Metadata.Table");
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "Table");
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits != null);
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.FullName == "Starcounter.Metadata.Type");
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Name == "Type");
-            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits.Inherits == null);
+            Trace.Assert(rv.Inherits.Inherits.Inherits.FullName == "Starcounter.Metadata.Type");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Name == "Type");
+            Trace.Assert(rv.Inherits.Inherits.Inherits.Inherits == null);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv")) {
                 Trace.Assert(v.MaterializedTable != null);
                 //Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
-            Trace.Assert(count == 45);
+            Trace.Assert(count == 44);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
@@ -110,7 +109,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!String.IsNullOrWhiteSpace(v.Name));
                 count++;
             }
-            Trace.Assert(count == 18);
+            Trace.Assert(count == 17);
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?", 
                 "materialized_index").First;
             Trace.Assert(rv != null);
@@ -239,7 +238,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!tc.Unique);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 30 + 20);
+            Trace.Assert(nrColumns == 51);
             nrColumns = 0;
             foreach (Column tc in Db.SQL<Column>("select c from starcounter.metadata.column c where c.Table is RawView")) {
                 Trace.Assert(tc.Type != null);
@@ -254,7 +253,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.UniqueIdentifier);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 150);
+            Trace.Assert(nrColumns == 151);
             Starcounter.Internal.Metadata.MaterializedIndex i = 
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "ColumnPrimaryKey").First;
