@@ -168,7 +168,9 @@ namespace StarcounterInternal.Hosting
 
             OnInputVerifiedAndAssemblyResolverUpdated();
 
-            var typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory);
+            var typeDefs = Db.Environment.HasDatabase ? 
+                SchemaLoader.LoadAndConvertSchema(inputFile.Directory) 
+                : new List<TypeDef>();
 
             OnSchemaVerifiedAndLoaded();
 

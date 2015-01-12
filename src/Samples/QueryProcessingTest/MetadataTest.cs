@@ -109,7 +109,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
-            Trace.Assert(count == 46);
+            Trace.Assert(count == 48);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
@@ -495,8 +495,8 @@ namespace QueryProcessingTest {
                         nrIndColumns += numColIndx;
                     }
             }
-            Trace.Assert(nrIndexes == 36);
-            Trace.Assert(nrIndColumns == 39);
+            Trace.Assert(nrIndexes == 38);
+            Trace.Assert(nrIndColumns == 41);
         }
 
         public static void TestRuntimeIndex() {
@@ -507,8 +507,8 @@ namespace QueryProcessingTest {
                 nrIndexes++;
                 nrIndColumns += Db.SQL<Int64>("select count(c) from indexedcolumn c where \"index\" = ?", i).First;
             }
-            Trace.Assert(nrIndexes == 36);
-            Trace.Assert(nrIndColumns == 39);
+            Trace.Assert(nrIndexes == 38);
+            Trace.Assert(nrIndColumns == 41);
             Trace.Assert(nrIndColumns == Db.SlowSQL<Int64>(
                 "select count(*) from indexedcolumn").First);
         }

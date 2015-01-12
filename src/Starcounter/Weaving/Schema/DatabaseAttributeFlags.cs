@@ -19,5 +19,11 @@ namespace Sc.Server.Weaver.Schema {
         /// of the declaring class.
         /// </summary>
         public const int TypeName = 4;
+
+        /// <summary>
+        /// Set of flags combining all flags that indicate an attribute is
+        /// referencing one of the built-in, implicit entity columns.
+        /// </summary>
+        public const int EntityAttributeMask = TypeReference | IneritsReference | TypeName;
     }
 }

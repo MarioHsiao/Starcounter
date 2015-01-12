@@ -43,6 +43,27 @@ public class DatabaseSchema
     }
 
     /// <summary>
+    /// Gets a reference to the internally defined Starcounter
+    /// Entity type as it is described in the weaver schema.
+    /// </summary>
+    public DatabaseEntityClass EntityClass {
+        get {
+            return FindDatabaseClass(typeof(Starcounter.Entity).FullName) as DatabaseEntityClass;
+        }
+    }
+
+    /// <summary>
+    /// Gets a reference to the internally defined Starcounter
+    /// implicit Entity type as it is described in the weaver
+    /// schema.
+    /// </summary>
+    public DatabaseEntityClass ImplicitEntityClass {
+        get {
+            return FindDatabaseClass(WeavedNames.ImplicitEntityClass) as DatabaseEntityClass;
+        }
+    }
+
+    /// <summary>
     /// </summary>
     public void AddStarcounterAssembly()
     {
@@ -51,6 +72,12 @@ public class DatabaseSchema
         databaseAssembly = new DatabaseAssembly("Starcounter", System.Reflection.Assembly.GetExecutingAssembly().FullName);
         databaseAssembly.SetSchema(this);
         Assemblies.Add(databaseAssembly);
+
+        var entityClass = EntityWeaving.DefineEntityClass(databaseAssembly);
+        databaseAssembly.DatabaseClasses.Add(entityClass);
+
+        var implicitEntityClass = EntityWeaving.DefineImplicitEntityClass(databaseAssembly);
+        databaseAssembly.DatabaseClasses.Add(implicitEntityClass);
     }
 
     /// <summary>

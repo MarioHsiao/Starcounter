@@ -126,13 +126,17 @@ namespace Starcounter.Hosting {
         /// should be assigned.</param>
         /// <param name="index">The column index to assign the handle.
         /// </param>
-        public void SetColumnIndex(string columnName, int index) {
+        public void SetColumnIndex(string columnName, int index, bool throwIfNotExist = true) {
             var handleName = TypeSpecification.FieldNameToColumnHandleName(columnName);
             var field = typeSpecificationType.GetField(handleName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             if (field == null) {
-                var msg = string.Format("Missing column handle: {0}/{1}", columnName, handleName);
-                throw ErrorCode.ToException(Error.SCERRTYPESPECILLEGALCONSTRUCT, msg);
+                if (throwIfNotExist) {
+                    var msg = string.Format("Missing column handle: {0}/{1}", columnName, handleName);
+                    throw ErrorCode.ToException(Error.SCERRTYPESPECILLEGALCONSTRUCT, msg);
+                }
+                return;
             }
+
             field.SetValue(null, index);
         }
 

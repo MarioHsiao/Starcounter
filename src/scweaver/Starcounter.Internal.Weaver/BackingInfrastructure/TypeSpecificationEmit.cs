@@ -122,10 +122,10 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             }
         }
 
-        public FieldDefDeclaration IncludeField(FieldDefDeclaration field) {
+        public FieldDefDeclaration GenerateColumnHandle(string columnFieldName) {
             var specType = this.emittedSpec;
             var columnHandle = new FieldDefDeclaration {
-                Name = TypeSpecification.FieldNameToColumnHandleName(field.Name),
+                Name = TypeSpecification.FieldNameToColumnHandleName(columnFieldName),
                 Attributes = FieldAttributes.Public | FieldAttributes.Static,
                 FieldType = assemblySpec.Int32Type
             };
@@ -133,7 +133,7 @@ namespace Starcounter.Internal.Weaver.BackingInfrastructure {
             return columnHandle;
         }
 
-        public IField GetColumnHandle(string typeNameDeclaring, string fieldName) {
+        public IField LookupColumnHandle(string typeNameDeclaring, string fieldName) {
             IType synonymTargetType;
 
             var module = assemblySpec.Module;

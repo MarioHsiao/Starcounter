@@ -3938,6 +3938,12 @@
         The transaction was aborted after being merged into another transaction.
       </message>
     </code>
+    <code hex="0027" severity="Error" name="ScErrRecordTooLargeAbort">
+      <message>
+        The transaction was aborted because record generated exeeded the maximum
+        allowed record size.
+      </message>
+    </code>
   </facility>
 
 <!--

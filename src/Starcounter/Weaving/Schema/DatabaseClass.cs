@@ -79,7 +79,18 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
     {
         get
         {
-            return DatabaseClassRef.Resolve(baseClass, this);
+            var result = DatabaseClassRef.Resolve(baseClass, this);
+            if (result == null) {
+                // For any class where the base class has not been
+                // explicitly set, we return the implicit entity class
+                // if the current class is not any of the entity
+                // classes itself.
+
+                if (!this.IsEntityClass && !this.IsImplicitEntityClass) {
+                    result = Schema.ImplicitEntityClass;
+                }
+            }
+            return result;
         }
         set
         {
@@ -122,7 +133,7 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
         {
             return this.attributes[name];
         }
-        if (this.baseClass != null)
+        if (this.BaseClass != null)
         {
             return this.BaseClass.FindAttributeInAncestors(name);
         }
@@ -138,7 +149,7 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
     public DatabaseAttribute FindAttributeInAncestors(Func<DatabaseAttribute, bool> predicate) {
         var result = this.attributes.FirstOrDefault(predicate);
         if (result == null) {
-            if (baseClass != null) {
+            if (BaseClass != null) {
                 return BaseClass.FindAttributeInAncestors(predicate);
             }
         }
@@ -197,7 +208,7 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
         if (this.attributes.Count > 0)
         {
             writer.Indent++;
-            writer.WriteLine("Base: {0}", this.baseClass);
+            writer.WriteLine("Base: {0}", this.BaseClass);
             writer.WriteLine("Attributes:");
             writer.Indent++;
             foreach (DatabaseAttribute attribute in this.attributes)
@@ -206,6 +217,18 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
             }
             writer.Indent--;
             writer.Indent--;
+        }
+    }
+
+    internal bool IsEntityClass {
+        get {
+            return Name.Equals(typeof(Starcounter.Entity).FullName);
+        }
+    }
+
+    internal bool IsImplicitEntityClass {
+        get {
+            return Name.Equals(WeavedNames.ImplicitEntityClass);
         }
     }
 
