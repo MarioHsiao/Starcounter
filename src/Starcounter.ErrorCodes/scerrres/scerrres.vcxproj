@@ -111,7 +111,7 @@
     <!-- <Message Text="Path to SDK: $(FrameworkSdkDir) " Importance="high" /> -->
     <MakeDir Directories="$(OutDir)" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter\Error.cs" />
-    <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter.Internal\Error.cs" />
+    <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangeintcs ..\..\Starcounter.Internal\Error.cs" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -mc $(OutDir)\$(AssemblyName).mc" />
     <Exec Command="&quot;$(FrameworkSdkDir)\Bin\x64\mc.exe&quot; -r $(OutDir) -v $(OutDir)\$(AssemblyName).mc" />
     <RC Source="$(OutDir)\$(AssemblyName).rc" AdditionalOptions="/V" />

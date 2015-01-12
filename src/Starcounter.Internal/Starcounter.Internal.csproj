@@ -146,11 +146,11 @@
   <PropertyGroup>
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>  
-  <PropertyGroup>
-    <!-- JLI: Removed as it breaks build deps, uses custom build step above instead
+  <!-- JLI: Removed as it breaks build deps, uses custom build step above instead
+    <PropertyGroup>
       <PreBuildEvent>$(ProjectDir)..\Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(ProjectDir)..\Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</PreBuildEvent>
-    -->
-  </PropertyGroup>
+    </PropertyGroup>
+  -->
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
