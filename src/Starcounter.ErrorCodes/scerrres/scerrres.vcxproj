@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -116,4 +116,8 @@
     <CL Sources="Format.cpp" AdditionalOptions="/c /D FORMATMESSAGE_EXPORTS /Fo$(OutDir)\$(AssemblyName).obj /DEBUG /Zi /Fd$(OutDir)\$(AssemblyName).pdb" />
     <LINK Sources="$(OutDir)\$(AssemblyName).res;$(OutDir)\$(AssemblyName).obj" AdditionalOptions="/MACHINE:X64 /DLL /DEBUG /PDB:$(OutDir)\$(AssemblyName).pdb /DEF:format.def /OUT:$(OutDir)\$(AssemblyName).dll" />
   </Target>
+  <PropertyGroup>
+    <PostBuildEvent>..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter\Error.cs</PostBuildEvent>
+    <PostBuildEvent>..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter.Internal\Error.cs</PostBuildEvent>
+  </PropertyGroup>  
 </Project>

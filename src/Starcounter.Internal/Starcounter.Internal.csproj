@@ -147,13 +147,6 @@
     <CustomBuildBeforeTargets>ClCompile</CustomBuildBeforeTargets>
   </PropertyGroup>  
   <PropertyGroup>
-    <ItemDefinitionGroup>
-      <CustomBuildStep>
-        <Command>$(ProjectDir)..\Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(ProjectDir)..\Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</Command>
-        <Outputs>$(ProjectDir)Error.cs</Outputs>
-        <Inputs>$(ProjectDir)..\Starcounter.ErrorCodes\errorcodes.xml</Inputs>
-      </CustomBuildStep>
-    </ItemDefinitionGroup>
     <!-- JLI: Removed as it breaks build deps, uses custom build step above instead
       <PreBuildEvent>$(ProjectDir)..\Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(ProjectDir)..\Starcounter.ErrorCodes\errorcodes.xml -orangeintcs $(ProjectDir)Error.cs</PreBuildEvent>
     -->
