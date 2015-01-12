@@ -107,7 +107,7 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <!-- Building error codes manually. -->
-  <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll;scerrres.h">
+  <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll;scerrres.h;..\..\Starcounter\Error.cs;..\..\Starcounter.Internal\Error.cs">
     <!-- <Message Text="Path to SDK: $(FrameworkSdkDir) " Importance="high" /> -->
     <MakeDir Directories="$(OutDir)" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter\Error.cs" />
