@@ -17,5 +17,6 @@ target_link_libraries(bmx
     sccoredbg
     coalmine
     sccorelog
+    sccoreerr
 )
 OrganizeVisualStudio(bmx) # "level1/Chunks"

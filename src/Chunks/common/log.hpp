@@ -24,7 +24,11 @@
 #include <string.h>
 #include <cwchar>
 //---
-#include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
+#ifdef USE_SCCOREERR_LIBRARY
+# include <sccoreerr.h>
+#else
+# include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
+#endif
 #include "../../Starcounter.ErrorCodes/scerrres/format.h"
 
 // Level0 includes.
@@ -65,189 +69,189 @@ namespace starcounter {
 /// Exception class.
 class log_exception {
 public:
-	typedef uint32_t error_code_type;
-	
-	explicit log_exception(error_code_type err)
-	: err_(err) {}
-	
-	error_code_type error_code() const {
-		return err_;
-	}
-	
+    typedef uint32_t error_code_type;
+
+    explicit log_exception(error_code_type err)
+    : err_(err) {}
+
+    error_code_type error_code() const {
+        return err_;
+    }
+
 private:
-	error_code_type err_;
+    error_code_type err_;
 };
 
 /// Class log.
 class log {
 public:
-	enum type {
-		entry_debug = SC_ENTRY_DEBUG,
-		entry_success_audit = SC_ENTRY_SUCCESS_AUDIT,
-		entry_failure_audit = SC_ENTRY_FAILURE_AUDIT,
-		entry_notice = SC_ENTRY_NOTICE,
-		entry_warning = SC_ENTRY_WARNING,
-		entry_error = SC_ENTRY_ERROR,
-		entry_critical = SC_ENTRY_CRITICAL
-	};
+    enum type {
+        entry_debug = SC_ENTRY_DEBUG,
+        entry_success_audit = SC_ENTRY_SUCCESS_AUDIT,
+        entry_failure_audit = SC_ENTRY_FAILURE_AUDIT,
+        entry_notice = SC_ENTRY_NOTICE,
+        entry_warning = SC_ENTRY_WARNING,
+        entry_error = SC_ENTRY_ERROR,
+        entry_critical = SC_ENTRY_CRITICAL
+    };
 
-	/// Default constructor. It will not open the log.
-	log();
-	
-	/// Constructor that will try to open a Starcounter log.
-	/**
-	 * @param server_name The name of the server, for example "PERSONAL" or
-	 *		"SYSTEM".
-	 * @param process_name The name of the process doing the logging, for
-	 *		example "scipcmonitor".
-	 * @param server_log_dir
-	 */
-	explicit log(const char* server_name, const char* process_name,
-	const wchar_t* server_log_dir);
-	
-	/// Destructor will try to close the log if it is open.
-	~log();
-	
-	/// Try to open a Starcounter log if not already open.
-	/**
-	 * @param server_name The name of the server, for example "PERSONAL" or
-	 *		"SYSTEM".
-	 * @param process_name The name of the process doing the logging, for
-	 *		example "scipcmonitor".
-	 * @param server_log_dir
-	 */
-	void open(const char* server_name, const char* process_name,
-	const wchar_t* server_log_dir);
-	
-	/// Closes this Starcounter log.
-	void close();
-	
-	/// Put debug into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void debug(uint32_t error_code);
+    /// Default constructor. It will not open the log.
+    log();
 
-	/// Put debug into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void debug(const wchar_t* message, uint32_t error_code = 0);
-	
-	/// Put success audit into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void success_audit(uint32_t error_code);
+    /// Constructor that will try to open a Starcounter log.
+    /**
+     * @param server_name The name of the server, for example "PERSONAL" or
+     *      "SYSTEM".
+     * @param process_name The name of the process doing the logging, for
+     *      example "scipcmonitor".
+     * @param server_log_dir
+     */
+    explicit log(const char* server_name, const char* process_name,
+    const wchar_t* server_log_dir);
 
-	/// Put success audit into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void success_audit(const wchar_t* message, uint32_t error_code = 0);
+    /// Destructor will try to close the log if it is open.
+    ~log();
 
-	/// Put failure audit into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void failure_audit(uint32_t error_code);
+    /// Try to open a Starcounter log if not already open.
+    /**
+     * @param server_name The name of the server, for example "PERSONAL" or
+     *      "SYSTEM".
+     * @param process_name The name of the process doing the logging, for
+     *      example "scipcmonitor".
+     * @param server_log_dir
+     */
+    void open(const char* server_name, const char* process_name,
+    const wchar_t* server_log_dir);
 
-	/// Put failure audit into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void failure_audit(const wchar_t* message, uint32_t error_code = 0);
+    /// Closes this Starcounter log.
+    void close();
 
-	/// Put notice into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void notice(uint32_t error_code);
+    /// Put debug into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void debug(uint32_t error_code);
 
-	/// Put notice into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void notice(const wchar_t* message, uint32_t error_code = 0);
+    /// Put debug into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void debug(const wchar_t* message, uint32_t error_code = 0);
 
-	/// Put warning into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void warning(uint32_t error_code);
+    /// Put success audit into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void success_audit(uint32_t error_code);
 
-	/// Put warning into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void warning(const wchar_t* message, uint32_t error_code = 0);
+    /// Put success audit into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void success_audit(const wchar_t* message, uint32_t error_code = 0);
 
-	/// Put error into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void error(uint32_t error_code);
+    /// Put failure audit into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void failure_audit(uint32_t error_code);
 
-	/// Put error into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void error(const wchar_t* message, uint32_t error_code = 0);
-	
-	/// Put critical into log.
-	/**
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void critical(uint32_t error_code);
+    /// Put failure audit into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void failure_audit(const wchar_t* message, uint32_t error_code = 0);
 
-	/// Put critical into log.
-	/**
-	 * @param message The message to be logged.
-	 * @param error_code The error code (optional), as defined in:
-	 *		\Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
-	 */
-	void critical(const wchar_t* message, uint32_t error_code = 0);
-	
+    /// Put notice into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void notice(uint32_t error_code);
+
+    /// Put notice into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void notice(const wchar_t* message, uint32_t error_code = 0);
+
+    /// Put warning into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void warning(uint32_t error_code);
+
+    /// Put warning into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void warning(const wchar_t* message, uint32_t error_code = 0);
+
+    /// Put error into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void error(uint32_t error_code);
+
+    /// Put error into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void error(const wchar_t* message, uint32_t error_code = 0);
+
+    /// Put critical into log.
+    /**
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void critical(uint32_t error_code);
+
+    /// Put critical into log.
+    /**
+     * @param message The message to be logged.
+     * @param error_code The error code (optional), as defined in:
+     *      \Level1\src\Starcounter.ErrorCodes\scerrres\scerrres.h
+     */
+    void critical(const wchar_t* message, uint32_t error_code = 0);
+
 private:
-	/// process_uri() composes the process URI to:
-	/// sc://<computer_name>/<server_name>/<process_name>
-	/// in lower case. For example:
-	/// sc://andreas/personal/scipcmonitor
-	/**
-	 * @param server_name The server name. For example "PERSONAL" or "SYSTEM".
-	 * @param process_name The process name. For example "scipcmonitor".
-	 * @buffer The buffer shall contain enough space for the process URI.
-	 * @size The number of characters in the process URI.
-	 * @return 0 on success, or return value from ::GetLastError() on failure.
-	 */
-	int32_t process_uri(const char* server_name, const char* process_name,
-	wchar_t* buffer, std::size_t* size);
+    /// process_uri() composes the process URI to:
+    /// sc://<computer_name>/<server_name>/<process_name>
+    /// in lower case. For example:
+    /// sc://andreas/personal/scipcmonitor
+    /**
+     * @param server_name The server name. For example "PERSONAL" or "SYSTEM".
+     * @param process_name The process name. For example "scipcmonitor".
+     * @buffer The buffer shall contain enough space for the process URI.
+     * @size The number of characters in the process URI.
+     * @return 0 on success, or return value from ::GetLastError() on failure.
+     */
+    int32_t process_uri(const char* server_name, const char* process_name,
+    wchar_t* buffer, std::size_t* size);
 
-	// Objects of type log are not copyable.
-	log(const log&);
-	const log& operator=(const log&);
-	
-	uint64_t handle_;
-	bool is_open_;
+    // Objects of type log are not copyable.
+    log(const log&);
+    const log& operator=(const log&);
+
+    uint64_t handle_;
+    bool is_open_;
 };
 
 } // namespace starcounter

@@ -42,7 +42,11 @@
 #include "server.hpp"
 #include "scheduler.hpp"
 
-#include <scerrres.h>
+#ifdef USE_SCCOREERR_LIBRARY
+# include <sccoreerr.h>
+#else
+# include <scerrres.h>
+#endif
 
 #define _E_UNSPECIFIED SCERRUNSPECIFIED
 #define _E_INVALID_SERVER_NAME SCERRINVALIDSERVERNAME
@@ -76,13 +80,13 @@ of the hardware (all cores, although not all threads, will be busy at peak load)
 Should work well I think.
 
 (We might not want to use all the cores on the machine for this of course but it
-doesn't matter for this example). 
+doesn't matter for this example).
 #endif
 
 EXTERN_C unsigned long sc_initialize_io_service(
-    const char* name, 
+    const char* name,
     const char* server_name,
-    unsigned long port_count, 
+    unsigned long port_count,
     bool is_system,
     unsigned int num_shm_chunks,
     unsigned char gateway_num_workers);
@@ -90,20 +94,20 @@ EXTERN_C unsigned long sc_initialize_io_service(
 unsigned long sc_initialize_io_service(
     const char* name,
     const char* server_name,
-    unsigned long port_count, 
+    unsigned long port_count,
     bool is_system,
     unsigned int num_shm_chunks,
     unsigned char gateway_num_workers)
 {
-	try {
-		if (strlen(name) > 127) return _E_INVALID_SERVER_NAME;
-		
-		// Initialize the shared memory segments and all objects in it.
-		unsigned long dr = starcounter::core::initialize(name, server_name, port_count, is_system, num_shm_chunks, gateway_num_workers);
-		return dr;
-	}
-	catch (...) {
-		std::cerr << "main: unknown exception thrown" << std::endl;
-		return _E_UNSPECIFIED;
-	}
+    try {
+        if (strlen(name) > 127) return _E_INVALID_SERVER_NAME;
+
+        // Initialize the shared memory segments and all objects in it.
+        unsigned long dr = starcounter::core::initialize(name, server_name, port_count, is_system, num_shm_chunks, gateway_num_workers);
+        return dr;
+    }
+    catch (...) {
+        std::cerr << "main: unknown exception thrown" << std::endl;
+        return _E_UNSPECIFIED;
+    }
 }

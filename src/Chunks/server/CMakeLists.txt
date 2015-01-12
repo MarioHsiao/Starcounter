@@ -45,4 +45,5 @@ set(server_HEADER_FILES
 )
 
 add_library(server SHARED ${server_SOURCE_FILES} ${server_HEADER_FILES})
+target_link_libraries(server sccoreerr)
 OrganizeVisualStudio(server) # "level1/Chunks"
