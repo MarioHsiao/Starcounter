@@ -6,8 +6,6 @@
 #include "scerrres.h"
 #include "format.h"
 
-#include "scerrres.c"
-
 size_t StarcounterErrorMessageFormatWithArgs(long ec, wchar_t* buf, size_t max, ...) {
   static const wchar_t* empty_arg = L"(NULL)";
   wchar_t* buf_end;
