@@ -137,6 +137,18 @@
       <Project>{885eb31b-cf41-4c6c-a7be-53b32a0c8b82}</Project>
       <Name>BitsAndBytes.Unsafe</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc\scerrcc.csproj">
+      <Project>{9e8d97fc-87a3-4a7c-b318-9414b5eea60e}</Project>
+      <Name>scerrcc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.ErrorCodes\scerrres\scerrres.vcxproj">
+      <Project>{5a65d606-6613-4139-8853-b5f26313e4df}</Project>
+      <Name>scerrres</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.ErrorCodes\Starcounter.Errors\Starcounter.Errors.csproj">
+      <Project>{1f4d1e72-c615-42b1-9b29-d5a9cede09e0}</Project>
+      <Name>Starcounter.Errors</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
