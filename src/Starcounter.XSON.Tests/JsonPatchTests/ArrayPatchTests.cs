@@ -30,18 +30,18 @@ namespace Starcounter.Internal.XSON.Tests {
 			var after = ((Json)j).DebugString;
             var result = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-			Console.WriteLine("Before");
-			Console.WriteLine("=====");
-			Console.WriteLine(before);
-			Console.WriteLine("");
-			Console.WriteLine("After");
-			Console.WriteLine("=====");
-			Console.WriteLine(after);
-			Console.WriteLine("");
-			Console.WriteLine("Changes");
-			Console.WriteLine("=====");
-			Console.WriteLine(result);
-			Console.WriteLine("");
+			Helper.ConsoleWriteLine("Before");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(before);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("After");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(after);
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("Changes");
+            Helper.ConsoleWriteLine("=====");
+            Helper.ConsoleWriteLine(result);
+            Helper.ConsoleWriteLine("");
 
 			string facit = @"[{""op"":""add"",""path"":""/Friends/1"",""value"":{""FirstName"":""Henrik"",""LastName"":""Boman""}}]";
 			Assert.AreEqual(facit, result);
@@ -55,7 +55,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void CreateANewArrayProperty() {
             dynamic j = new Json();
             dynamic nicke = new Json();
-
+            string debugString;
             Session.Current = new Session() { Data = j };
 
             j.FirstName = "Jack";
@@ -65,15 +65,16 @@ namespace Starcounter.Internal.XSON.Tests {
 
             j.Friends = new List<Json>() { nicke };
 
-            Console.WriteLine("Dirty status");
-            Console.WriteLine("============");
-            Console.WriteLine(j.DebugString);
+            Helper.ConsoleWriteLine("Dirty status");
+            Helper.ConsoleWriteLine("============");
+            debugString = j.DebugString;
+            Helper.ConsoleWriteLine(debugString);
 
             var patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Changes:");
-            Console.WriteLine("========");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("Changes:");
+            Helper.ConsoleWriteLine("========");
+            Helper.ConsoleWriteLine(patch);
 
             Assert.AreEqual(
                "[{\"op\":\"replace\",\"path\":\"/Friends\",\"value\":[{\"FirstName\":\"Nicke\"}]}]", patch);
@@ -85,7 +86,7 @@ namespace Starcounter.Internal.XSON.Tests {
         /// </summary>
         [Test]       
 		public static void ReplaceAnElementInAnArray() {
-
+            string debugString;
             TObject schema = new TObject() { ClassName = "Person" };
             TObject friendSchema = new TObject() { ClassName = "Friend" };
 
@@ -115,16 +116,16 @@ namespace Starcounter.Internal.XSON.Tests {
             henrik["FirstName"] = "Henrik";
             (j["Friends"] as Json)[0] = henrik;
 
-            Console.WriteLine("Dirty status");
-            Console.WriteLine("============");
-            Console.WriteLine(j.DebugString);
-
+            Helper.ConsoleWriteLine("Dirty status");
+            Helper.ConsoleWriteLine("============");
+            debugString = j.DebugString;
+            Helper.ConsoleWriteLine(debugString);
 
             var patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("Changes:");
-            Console.WriteLine("========");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("Changes:");
+            Helper.ConsoleWriteLine("========");
+            Helper.ConsoleWriteLine(patch);
 
 			Assert.AreEqual(
 				"[{\"op\":\"replace\",\"path\":\"/Friends/0\",\"value\":{\"FirstName\":\"Henrik\"}}]", patch);
@@ -165,14 +166,15 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void AssignArrayPropertyToNewArray() {
+            string debugString;
             dynamic company = new Json();
             company.Name = "Starcounter";
  
             Session.Current = new Session() { Data = company };
             var patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine(patch);
-            Console.WriteLine();
+            Helper.ConsoleWriteLine(patch);
+            Helper.ConsoleWriteLine("");
 
             dynamic person = new Json();
             dynamic person2 = new Json();
@@ -183,13 +185,14 @@ namespace Starcounter.Internal.XSON.Tests {
             company.Success = true;
 
 
-            Console.WriteLine("After status");
-            Console.WriteLine("============");
-            Console.WriteLine(company.DebugString);
-            
-            Console.WriteLine("JSON-Patch");
-            Console.WriteLine("==========");
-            Console.WriteLine(jsonPatch.CreateJsonPatch(Session.Current, true));
+            Helper.ConsoleWriteLine("After status");
+            Helper.ConsoleWriteLine("============");
+            debugString = company.DebugString;
+            Helper.ConsoleWriteLine(debugString);
+
+            Helper.ConsoleWriteLine("JSON-Patch");
+            Helper.ConsoleWriteLine("==========");
+            Helper.ConsoleWriteLine(jsonPatch.CreateJsonPatch(Session.Current, true));
         }
 
         [Test]
@@ -204,9 +207,9 @@ namespace Starcounter.Internal.XSON.Tests {
             nicke.FirstName = "Nicke";
             j.Friends = new List<Json>() { nicke };
 
-            Console.WriteLine("Changes:");
-            Console.WriteLine("========");
-            Console.WriteLine(jsonPatch.CreateJsonPatch(Session.Current, true));
+            Helper.ConsoleWriteLine("Changes:");
+            Helper.ConsoleWriteLine("========");
+            Helper.ConsoleWriteLine(jsonPatch.CreateJsonPatch(Session.Current, true));
         }
 
         [Test]
@@ -227,9 +230,9 @@ namespace Starcounter.Internal.XSON.Tests {
             var p2 = j.Friends.Add();
             p2.FirstName = "Asa";
 
-            Console.WriteLine("Changes:");
-            Console.WriteLine("========");
-            Console.WriteLine(jsonPatch.CreateJsonPatch(Session.Current, true));
+            Helper.ConsoleWriteLine("Changes:");
+            Helper.ConsoleWriteLine("========");
+            Helper.ConsoleWriteLine(jsonPatch.CreateJsonPatch(Session.Current, true));
         }
 
         [Test]
@@ -258,9 +261,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("BEFORE:");
-            Console.WriteLine("-----------");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("BEFORE:");
+            Helper.ConsoleWriteLine("-----------");
+            Helper.ConsoleWriteLine(patch);
 
             item = new Json();
             item.Number = 99;
@@ -268,9 +271,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("AFTER");
-            Console.WriteLine("----------");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("AFTER");
+            Helper.ConsoleWriteLine("----------");
+            Helper.ConsoleWriteLine(patch);
 
             string correctPatch = @"[{""op"":""replace"",""path"":""/Items/1"",""value"":{""Number"":99}}]";
             Assert.AreEqual(correctPatch, patch);
@@ -302,9 +305,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("BEFORE:");
-            Console.WriteLine("-----------");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("BEFORE:");
+            Helper.ConsoleWriteLine("-----------");
+            Helper.ConsoleWriteLine(patch);
 
             item = new Json();
             item.Number = 99;
@@ -312,9 +315,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("AFTER");
-            Console.WriteLine("----------");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("AFTER");
+            Helper.ConsoleWriteLine("----------");
+            Helper.ConsoleWriteLine(patch);
 
             string correctPatch = @"[{""op"":""add"",""path"":""/Items/1"",""value"":{""Number"":99}}]";
             Assert.AreEqual(correctPatch, patch);
@@ -346,16 +349,16 @@ namespace Starcounter.Internal.XSON.Tests {
 
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("BEFORE:");
-            Console.WriteLine("-----------");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("BEFORE:");
+            Helper.ConsoleWriteLine("-----------");
+            Helper.ConsoleWriteLine(patch);
 
             root.Items.RemoveAt(1);
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
 
-            Console.WriteLine("AFTER");
-            Console.WriteLine("----------");
-            Console.WriteLine(patch);
+            Helper.ConsoleWriteLine("AFTER");
+            Helper.ConsoleWriteLine("----------");
+            Helper.ConsoleWriteLine(patch);
 
             string correctPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
             Assert.AreEqual(correctPatch, patch);
@@ -399,6 +402,53 @@ namespace Starcounter.Internal.XSON.Tests {
             item1.Number = 19;
             patch = jsonPatch.CreateJsonPatch(Session.Current, true);
             correctPatch = @"[{""op"":""replace"",""path"":""/Items/0/Number"",""value"":19}]";
+            Assert.AreEqual(correctPatch, patch);
+        }
+
+        [Test]
+        public static void TestSeveralModifications() {
+            dynamic root = new Json();
+            dynamic item1;
+            dynamic item2;
+            dynamic item3;
+            string correctPatch;
+            string patch;
+
+            Session.Current = new Session() { Data = root };
+            Assert.NotNull(Session.Current);
+
+            root.FirstName = "Jack";
+            root.Items = new List<Json>();
+
+            // Clearing existing changes.
+            patch = jsonPatch.CreateJsonPatch(Session.Current, true);
+
+            item1 = new Json();
+            item1.Number = 1;
+            root.Items.Add(item1);
+
+            item2 = new Json();
+            item2.Number = 2;
+            root.Items[0] = item2;
+
+            root.Items.Remove(item2); // index 0
+
+            item3 = new Json();
+            item3.Number = 3;
+            root.Items.Insert(0, item3);
+
+            patch = jsonPatch.CreateJsonPatch(Session.Current, true);
+
+            correctPatch = "["
+                + string.Format(Helper.PATCH_ADD, "/Items/0", @"{""Number"":1}")
+                + ","
+                + string.Format(Helper.PATCH_REPLACE, "/Items/0", @"{""Number"":2}")
+                + ","
+                + string.Format(Helper.PATCH_REMOVE, "/Items/0")
+                + ","
+                + string.Format(Helper.PATCH_ADD, "/Items/0", @"{""Number"":3}")
+                + "]";
+
             Assert.AreEqual(correctPatch, patch);
         }
     }

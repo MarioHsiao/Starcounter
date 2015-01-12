@@ -287,7 +287,7 @@ namespace Starcounter.Internal.XSON.Tests {
             TObject objTemplate;
             objTemplate = Helper.CreateJsonTemplateFromFile("person.json");
             ParseNode parseTree = ParseTreeGenerator.BuildParseTree(objTemplate);
-            Console.WriteLine(parseTree.ToString());
+            Helper.ConsoleWriteLine(parseTree.ToString());
         }
 
         [Test]
@@ -296,7 +296,7 @@ namespace Starcounter.Internal.XSON.Tests {
             objTemplate = Helper.CreateJsonTemplateFromFile("person.json");
 
 			StdDomGenerator domGenerator = new StdDomGenerator(objTemplate);
-            Console.WriteLine(domGenerator.GenerateDomTree().ToString(true));
+            Helper.ConsoleWriteLine(domGenerator.GenerateDomTree().ToString(true));
         }
 
 		[Test]
@@ -305,7 +305,7 @@ namespace Starcounter.Internal.XSON.Tests {
             objTemplate = Helper.CreateJsonTemplateFromFile("person.json");
 
 			FTJDomGenerator domGenerator = new FTJDomGenerator(objTemplate);
-			Console.WriteLine(domGenerator.GenerateDomTree().ToString(true));
+            Helper.ConsoleWriteLine(domGenerator.GenerateDomTree().ToString(true));
 		}
 
 		[Test]
@@ -316,7 +316,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			objTemplate.ClassName = "PreGenerated";
 
 			StdCSharpGenerator generator = new StdCSharpGenerator(new StdDomGenerator(objTemplate));
-			Console.WriteLine(generator.GenerateCode());
+            Helper.ConsoleWriteLine(generator.GenerateCode());
 		}
 
 		[Test]
@@ -327,7 +327,7 @@ namespace Starcounter.Internal.XSON.Tests {
 			objTemplate.ClassName = "PreGenerated";
 
 			FTJCSharpGenerator generator = new FTJCSharpGenerator(new FTJDomGenerator(objTemplate));
-			Console.WriteLine(generator.GenerateCode());
+            Helper.ConsoleWriteLine(generator.GenerateCode());
 		}
 
         [Test]
@@ -415,8 +415,8 @@ namespace Starcounter.Internal.XSON.Tests {
 		//	size = serializer.ToJsonUtf8(person, out jsonArr);
 		//	codegenJson = Encoding.UTF8.GetString(jsonArr, 0, size);
 
-		//	Console.WriteLine("Count: " + size);
-		//	Console.WriteLine(codegenJson);
+        //	Helper.ConsoleWriteLine("Count: " + size);
+        //	Helper.ConsoleWriteLine(codegenJson);
 
 		//	AssertAreEqual(Encoding.UTF8.GetBytes(correctJson), jsonArr, size);
 		//	Assert.AreEqual(correctJson, codegenJson);

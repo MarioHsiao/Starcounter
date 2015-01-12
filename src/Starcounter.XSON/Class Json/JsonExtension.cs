@@ -143,6 +143,17 @@ namespace Starcounter.Advanced.XSON {
             return func(arg1, arg2, arg3);
         }
 
+        /// <summary>
+        /// Executes the specifed Func either in the scope of a transaction
+        /// on the object or if no transaction is found, just executes the function.
+        /// </summary>
+        /// <param name="func">The delegate to execute</param>
+        public static TResult AddAndReturnInScope<T1, T2, T3, T4, TResult>(this Json json, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+            var t = json.Transaction;
+            if (t != null)
+                return t.AddAndReturn<T1, T2, T3, T4, TResult>(func, arg1, arg2, arg3, arg4);
+            return func(arg1, arg2, arg3, arg4);
+        }
 
         private static void MergeTransaction(Json main, Json toMerge) {
             var mainTransaction = main.ThisTransaction;

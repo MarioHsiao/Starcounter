@@ -592,7 +592,7 @@ int32_t ConstructHttp400(
 const char* const kHttpGenericHtmlHeader =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
-    "Cache-control: no-cache\r\n"
+    "Cache-control: no-store\r\n"
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 
@@ -603,7 +603,7 @@ const int32_t kHttpGenericHtmlHeaderInsertPoint = static_cast<int32_t> (strstr(k
 const char* const kHttpStatisticsHeader =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: application/json\r\n"
-    "Cache-control: no-cache\r\n"
+    "Cache-control: no-store\r\n"
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 

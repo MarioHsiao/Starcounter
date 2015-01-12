@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -43,6 +44,16 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 node.Nodes.Add(child);
                 CreateChildNodes(child, Random.Next(1, 5), depth + 1);
             }
+        }
+
+        [Conditional("CONSOLE")]
+        internal static void ConsoleWriteLine(string msg) {
+            Console.WriteLine(msg);
+        }
+
+        [Conditional("CONSOLE")]
+        internal static void ConsoleWrite(string msg) {
+            Console.Write(msg);
         }
     }
 

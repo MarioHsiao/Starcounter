@@ -181,15 +181,8 @@ public class CPersonalServer : CComponentBase
     internal static void StartServiceIfAutomatic() {
         var service = ServerService.Find();
         if (service != null) {
-            // Only start it if it's automatic start type.
-            // Otherwise, start the personal server?
-            // TODO:
-
-            var config = WindowsServiceHelper.GetServiceConfig(service.ServiceName);
-            if (config.dwStartType == (uint) Win32Service.SERVICE_START.SERVICE_AUTO_START) {
-                Utilities.ReportSetupEvent("Starting Starcounter service...");
-                ServerService.Start(service.ServiceName);
-            }
+            Utilities.ReportSetupEvent("Starting Starcounter service...");
+            ServerService.Start(service.ServiceName);
         }
     }
 
@@ -248,42 +241,6 @@ public class CPersonalServer : CComponentBase
     }
 
     /// <summary>
-    /// Checks if server directory exists and asks user for its removal.
-    /// </summary>
-    public Boolean InstallToExistingServerDirectory(String serverDir)
-    {
-        // Checking if server directory exists.
-        if (Directory.Exists(serverDir)) {
-
-            // Checking if server XML file exists.
-            if (File.Exists(PersonalServerConfigPath)) {
-
-                if (!Utilities.AskUserForDecision(
-                    "You have chosen an existing server directory. New Starcounter installation will just point to it without creating new files. Do you want to continue?",
-                    "Installing server in existing directory...")) {
-
-                    throw new InstallerAbortedException("User rejected installing to existing server directory: " + serverDir);
-                }
-
-                return true;
-
-            } else {
-
-                if (!Utilities.AskUserForDecision(
-                    "You have chosen an existing directory for server installation. Starcounter server files in this directory will be overwritten. Do you want to continue?",
-                    "Installing server in existing directory...")) {
-
-                    throw new InstallerAbortedException("User rejected installing to existing server directory: " + serverDir);
-                }
-
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Installs component.
     /// </summary>
     public override void Install()
@@ -298,9 +255,6 @@ public class CPersonalServer : CComponentBase
 
         // Server related directories.
         String serverOuterDir = ComponentPath;
-
-        // Checking for existing server directory.
-        Boolean useExistingServerInstallation = InstallToExistingServerDirectory(serverOuterDir);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for personal database engine...");
@@ -330,17 +284,33 @@ public class CPersonalServer : CComponentBase
         // Creating new server repository.
         RepositorySetup setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.PersonalServer);
 
+        String serverInnerDir = setup.Structure.RepositoryDirectory;
+        String serverConfigPath = setup.Structure.ServerConfigurationPath;
+
+        Boolean pointToExistingServerDir = true;
+
         // Checking if server should be installed.
-        if (!useExistingServerInstallation) {
+        if (!File.Exists(serverConfigPath)) {
+
+            pointToExistingServerDir = false;
+
+            // Checking if user wants to install server into existing directory.
+            if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(serverInnerDir))) {
+
+                // Asking user for decision about overwriting server files.
+                if (false == Utilities.AskUserForDecision(
+                    "You have chosen a non-empty directory for server installation. Starcounter server-related files in this directory will be overwritten. Do you want to continue?",
+                    "Installing server in non-empty directory...")) {
+
+                    throw new InstallerAbortedException("User rejected installing to existing server directory: " + serverOuterDir);
+                }
+            }
 
             // Logging event.
             Utilities.ReportSetupEvent("Creating structure for the server...");
 
             setup.Execute();
         }
-
-        String serverInnerDir = setup.Structure.RepositoryDirectory;
-        String serverConfigPath = setup.Structure.ServerConfigurationPath;
 
         // Loading new or existing server config.
         ServerConfiguration serverConf = ServerConfiguration.Load(serverConfigPath);
@@ -414,7 +384,7 @@ public class CPersonalServer : CComponentBase
         InstallerMain.CopyGatewayConfig(
             serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort),
-            useExistingServerInstallation);
+            pointToExistingServerDir);
 
         // Creating service
         CreateWindowsService();

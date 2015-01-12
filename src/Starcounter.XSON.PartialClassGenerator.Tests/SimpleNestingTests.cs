@@ -33,8 +33,8 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             //    return str;
             //});
 
-            //Console.WriteLine(dump);
-            Console.WriteLine(codegen.GenerateCode());
+            //Helper.ConsoleWriteLine(dump);
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
 
            // Assert.AreEqual(typeof(AstRoot), dom.GetType() );
            // Assert.AreEqual(typeof(AstJsonClass), dom.Children[0].GetType());
@@ -57,18 +57,18 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 return node.ToString();
             });
 
-            Console.WriteLine(dump);
+            Helper.ConsoleWriteLine(dump);
 
             Assert.AreEqual(typeof(AstRoot), dom.GetType());
             var rootClass = (AstBase)dom.Children[0];
             //var otherClass = (AstBase)dom.Children[0].Children[3];
             //var noLongerNestedClass = (AstClass)dom.Children[1];
-            Console.WriteLine(codegen.GenerateCode());
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
 
             //Assert.AreEqual("Hello", ((AstClass)dom.Children[0]).ClassStemIdentifier); // Name gotten from code-behind in ParentChild.json.v3.cs
 
             //Assert.AreEqual("Mail", noLongerNestedClass.ClassStemIdentifier); // Name gotten from code-behind in ParentChild.json.v3.cs
-            //Console.WriteLine(dump);
+            //Helper.ConsoleWriteLine(dump);
         }
     }
 }

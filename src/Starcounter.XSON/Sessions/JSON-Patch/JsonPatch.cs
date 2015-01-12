@@ -113,7 +113,7 @@ namespace Starcounter.XSON {
             int size;
             int[] pathSizes;
             Utf8Writer writer;
-            bool versioning = session.CheckOption(SessionOptions.EnableProtocolVersioning);
+            bool versioning = session.CheckOption(SessionOptions.PatchVersioning);
 
             // TODO:
             // We dont want to create a new array here...
@@ -122,8 +122,9 @@ namespace Starcounter.XSON {
             size = 2;
             size += pathSizes.Length;
 
-            for (int i = 0; i < changes.Count; i++) 
+            for (int i = 0; i < changes.Count; i++) {
                 size += CalculateSize(changes[i], out pathSizes[i]);
+            }
 
             if (versioning) {
                 // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
@@ -160,9 +161,10 @@ namespace Starcounter.XSON {
                         WritePatch(change, ref writer, pathSizes[i]);
 
                         if (change.Property != null) {
-                            change.Obj.AddInScope(() => {
-                                change.Property.Checkpoint(change.Obj);
-                            });
+                            Json parent = change.Parent;
+                            parent.AddInScope<Json, TValue>((p, t) => {
+                                t.Checkpoint(p);
+                            }, parent, change.Property);
                         }
 
                         if ((i + 1) < changes.Count)
@@ -199,16 +201,16 @@ namespace Starcounter.XSON {
             if (change.Property != null) {
                 WritePath(ref writer, change, pathSize);
             } else {
-                childJson = change.Obj;
+                childJson = change.Parent;
             }
             writer.Write('"');
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
 
                 writer.Write(",\"value\":");
                 if (childJson == null && change.Property is TContainer) {
-                    childJson = (Json)change.Property.GetUnboundValueAsObject(change.Obj);
+                    childJson = (Json)change.Property.GetUnboundValueAsObject(change.Parent);
                     if (change.Index != -1)
-                        childJson = (Json)childJson._GetAt(change.Index);
+                        childJson = change.Item;
 
                     if (childJson == null) {
                         writer.Write('{');
@@ -222,10 +224,12 @@ namespace Starcounter.XSON {
                 } else {
                     // TODO: 
                     // Should write value directly to buffer.
+                    Json parent = change.Parent;
                     string value = 
-                        change.Obj.AddAndReturnInScope<Change, string>(
-                            (Change c) => { return c.Property.ValueToJsonString(c.Obj); },
-                            change
+                        parent.AddAndReturnInScope<Json, TValue, string>(
+                            (p, t) => { return t.ValueToJsonString(p); },
+                            parent,
+                            change.Property
                         );
                     writer.Write(value);
                 }
@@ -233,7 +237,7 @@ namespace Starcounter.XSON {
             writer.Write('}');
         }
 
-        private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index) {
+        private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index, Json item) {
             int sizeBytes = 0;
 
             if (property is TLong) {
@@ -255,7 +259,7 @@ namespace Starcounter.XSON {
             } else if (property is TContainer) {
                 var childJson = (Json)property.GetUnboundValueAsObject(parent);
                 if (index != -1) {
-                    childJson = (Json)childJson._GetAt(index);
+                    childJson = item;
                 }
                 if (childJson != null)
                     sizeBytes = ((TContainer)childJson.Template).JsonSerializer.EstimateSizeBytes(childJson);
@@ -280,7 +284,7 @@ namespace Starcounter.XSON {
             size = 19;
             size += _patchOpUtf8Arr[change.ChangeType].Length;
 
-            pathSize = CalculateSizeOfPath(change.Obj, false);
+            pathSize = CalculateSizeOfPath(change.Parent, false);
             if (change.Property != null)
                 pathSize += change.Property.TemplateName.Length;
             else
@@ -292,9 +296,9 @@ namespace Starcounter.XSON {
 
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 size += 9;
-                size += change.Obj.AddAndReturnInScope<Change, int>(
+                size += change.Parent.AddAndReturnInScope<Change, int>(
                             (Change c) => {
-                                return EstimatePropertyValueSizeInBytes(c.Property, c.Obj, c.Index);
+                                return EstimatePropertyValueSizeInBytes(c.Property, c.Parent, c.Index, c.Item);
                             },
                             change);
             }
@@ -363,7 +367,7 @@ namespace Starcounter.XSON {
             }
 
             int positionAfter = writer.Written;
-            WritePath_2(ref writer, change.Obj, sizeToWrite, false);
+            WritePath_2(ref writer, change.Parent, sizeToWrite, false);
             if (positionAfter != writer.Written) {
                 writer.Skip(positionAfter - writer.Written);
             }
@@ -462,6 +466,7 @@ namespace Starcounter.XSON {
             int used = 0;
             int patchCount = 0;
             int patchStart = -1;
+            int rejectedPatches = 0;
             JsonPatchOperation patchOp = JsonPatchOperation.Undefined;
             int valueSize;
             IntPtr valuePtr;
@@ -472,7 +477,8 @@ namespace Starcounter.XSON {
             int usedTmpBufSize;
             long clientVersion = -1;
 
-            bool versionCheckEnabled = session.CheckOption(SessionOptions.EnableProtocolVersioning);
+            bool versionCheckEnabled = session.CheckOption(SessionOptions.PatchVersioning);
+            session.ClientServerVersion = session.ServerVersion;
 
             try {
                 unsafe {
@@ -549,12 +555,23 @@ namespace Starcounter.XSON {
                                     ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
                                 }
 
-                                long patchServerVer = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
-                                session.ClientServerVersion = patchServerVer;
+                                session.ClientServerVersion = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
+                                session.CleanupOldVersionLogs();
                             }
                         } else {
-                            if (patchHandler != null)
-                                patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                            if (patchHandler != null) {
+                                try {
+                                    patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                                } catch (JsonPatchException) {
+                                    if (session.CheckOption(SessionOptions.StrictPatchRejection))
+                                        throw;
+                                    rejectedPatches++;
+                                } catch (FormatException) {
+                                    if (session.CheckOption(SessionOptions.StrictPatchRejection))
+                                        throw;
+                                    rejectedPatches++;
+                                }
+                            }
                         }
                     }
                 }
@@ -569,6 +586,11 @@ namespace Starcounter.XSON {
                 if (patchStart != -1 && string.IsNullOrEmpty(jpex.Patch))
                     jpex.Patch = GetPatchAsString(patchStart, patchArrayPtr, patchArraySize);
                 throw;
+            }
+
+            if (rejectedPatches > 0) {
+                // TODO:
+                // Callback for rejected patches.
             }
 
             return patchCount;

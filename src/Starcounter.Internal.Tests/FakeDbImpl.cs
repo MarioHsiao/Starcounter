@@ -72,6 +72,10 @@ namespace Starcounter.XSON.Tests {
             return func(arg1, arg2, arg3);
         }
 
+        public TResult AddAndReturn<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+            return func(arg1, arg2, arg3, arg4);
+        }
+
         public void Add<T>(Action<T> action, T arg) {
             action(arg);
         }

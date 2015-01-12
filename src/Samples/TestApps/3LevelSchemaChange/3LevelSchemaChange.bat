@@ -19,17 +19,17 @@ staradmin --database=%DB_NAME% delete --force db
 ECHO Run Step 1 to create initial schema
 COPY /y 3LevelSchemaChange.Step1.cs 3LevelSchemaChange.cs
 star --database=%DB_NAME% 3LevelSchemaChange.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 ECHO Run Step 2 to update the initial schema with more columns
 COPY /y 3LevelSchemaChange.Step2.cs 3LevelSchemaChange.cs
 star --database=%DB_NAME% 3LevelSchemaChange.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 ECHO Run Step 1 again to update the schema with less columns
 COPY /y 3LevelSchemaChange.Step1.cs 3LevelSchemaChange.cs
 star --database=%DB_NAME% 3LevelSchemaChange.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 REM Clean update
 DEL 3LevelSchemaChange.cs
