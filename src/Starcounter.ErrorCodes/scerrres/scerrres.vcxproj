@@ -110,14 +110,12 @@
   <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll;scerrres.h">
     <!-- <Message Text="Path to SDK: $(FrameworkSdkDir) " Importance="high" /> -->
     <MakeDir Directories="$(OutDir)" />
+    <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter\Error.cs" />
+    <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter.Internal\Error.cs" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -mc $(OutDir)\$(AssemblyName).mc" />
     <Exec Command="&quot;$(FrameworkSdkDir)\Bin\x64\mc.exe&quot; -r $(OutDir) -v $(OutDir)\$(AssemblyName).mc" />
     <RC Source="$(OutDir)\$(AssemblyName).rc" AdditionalOptions="/V" />
     <CL Sources="Format.cpp" AdditionalOptions="/c /D FORMATMESSAGE_EXPORTS /Fo$(OutDir)\$(AssemblyName).obj /DEBUG /Zi /Fd$(OutDir)\$(AssemblyName).pdb" />
     <LINK Sources="$(OutDir)\$(AssemblyName).res;$(OutDir)\$(AssemblyName).obj" AdditionalOptions="/MACHINE:X64 /DLL /DEBUG /PDB:$(OutDir)\$(AssemblyName).pdb /DEF:format.def /OUT:$(OutDir)\$(AssemblyName).dll" />
   </Target>
-  <PropertyGroup>
-    <PostBuildEvent>..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter\Error.cs</PostBuildEvent>
-    <PostBuildEvent>..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -orangestdcs ..\..\Starcounter.Internal\Error.cs</PostBuildEvent>
-  </PropertyGroup>  
 </Project>
