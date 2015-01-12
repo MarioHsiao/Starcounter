@@ -1,6 +1,4 @@
 LIBRARY	"scerrres"
 
 EXPORTS
-	StarcounterErrorMessageTemplate
-	StarcounterErrorMessageFormatWithArgs
 	FormatStarcounterErrorMessage

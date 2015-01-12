@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.IO;
 
 namespace scerrcc
 {
 static class CommandLine
 {
-    public static void ParseArgs(string[] args, ref Stream instream, ref TextWriter csfile, ref TextWriter orangestdcsfile, ref TextWriter orangeintcsfile, ref TextWriter mcfile, ref TextWriter exceptionAssistantContentFile, ref TextWriter scerrres_h, ref TextWriter scerrres_c)
+    public static void ParseArgs(string[] args, ref Stream instream, ref TextWriter csfile, ref TextWriter orangestdcsfile, ref TextWriter orangeintcsfile, ref TextWriter mcfile, ref TextWriter exceptionAssistantContentFile)
     {
         if (args.Length == 0)
         {
@@ -30,12 +30,6 @@ static class CommandLine
                     break;
                 case "-mc":
                     GetMcStream(args, inputLastModified, ref mcfile, ref i);
-                    break;
-                case "-ch":
-                    GetSCERRRES_HStream(args, inputLastModified, ref scerrres_h, ref i);
-                    break;
-                case "-cc":
-                    GetSCERRRES_CStream(args, inputLastModified, ref scerrres_c, ref i);
                     break;
                 case "-ea":
                     GetEAContentStream(args, ref exceptionAssistantContentFile, ref i);
@@ -140,50 +134,6 @@ static class CommandLine
         {
             Program.Verbose("Using file {0} for MC output", args[i]);
             mcfile = OpenWritableIfYounger(args[i], inputLastModified);
-        }
-    }
-    
-    private static void GetSCERRRES_HStream(string[] args, DateTime inputLastModified, ref TextWriter scerrres_h, ref int i)
-    {
-        if (++i == args.Length)
-        {
-            Program.Die("-ch switch requires a filename argument");
-        }
-        else if (scerrres_h != null)
-        {
-            Program.Die("SCERRRES.H file already opened");
-        }
-        else if (args[i] == "-")
-        {
-            Program.Verbose("Using stdout for SCERRRES.H output");
-            scerrres_h = Console.Out;
-        }
-        else
-        {
-            Program.Verbose("Using file {0} for SCERRRES.H output", args[i]);
-            scerrres_h = OpenWritableIfYounger(args[i], inputLastModified);
-        }
-    }
-
-    private static void GetSCERRRES_CStream(string[] args, DateTime inputLastModified, ref TextWriter scerrres_c, ref int i)
-    {
-        if (++i == args.Length)
-        {
-            Program.Die("-cc switch requires a filename argument");
-        }
-        else if (scerrres_c != null)
-        {
-            Program.Die("SCERRRES.C file already opened");
-        }
-        else if (args[i] == "-")
-        {
-            Program.Verbose("Using stdout for SCERRRES.C output");
-            scerrres_c = Console.Out;
-        }
-        else
-        {
-            Program.Verbose("Using file {0} for SCERRRES.C output", args[i]);
-            scerrres_c = OpenWritableIfYounger(args[i], inputLastModified);
         }
     }
 
