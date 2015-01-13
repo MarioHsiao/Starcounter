@@ -20,6 +20,7 @@ namespace Starcounter {
         /// Specific handler levels.
         /// </summary>
         public enum HandlerLevels {
+            FilteringLevel,
             DefaultLevel,
             ApplicationLevel,
             ApplicationExtraLevel,
@@ -50,12 +51,19 @@ namespace Starcounter {
             set;
         }
 
+        HandlerLevels handlerLevel_ = HandlerLevels.DefaultLevel;
+
         /// <summary>
         /// Current handler level.
         /// </summary>
         public HandlerLevels HandlerLevel {
-            get;
-            set;
+            get {
+                return handlerLevel_;
+            }
+
+            set {
+                handlerLevel_ = value;
+            }
         }
 
         /// <summary>
@@ -100,16 +108,17 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Don't modify headers.
-        /// </summary>
-        internal Boolean DontModifyHeaders {
-            get; set;
-        }
-
-        /// <summary>
         /// Default handler options.
         /// </summary>
         public static HandlerOptions DefaultHandlerOptions = new HandlerOptions() {
+            HandlerLevel = HandlerOptions.HandlerLevels.DefaultLevel
+        };
+
+        /// <summary>
+        /// Security level.
+        /// </summary>
+        public readonly static HandlerOptions FilteringLevel = new HandlerOptions() {
+            HandlerLevel = HandlerOptions.HandlerLevels.FilteringLevel
         };
 
         /// <summary>

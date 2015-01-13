@@ -63,6 +63,11 @@ namespace Starcounter {
         Boolean isInternalRequest_;
 
         /// <summary>
+        /// Bytes for the corresponding request.
+        /// </summary>
+        Byte[] requestBytes_;
+
+        /// <summary>
         /// Indicates if WebSocket upgrade is requested.
         /// </summary>
         Boolean webSocketUpgrade_;
@@ -76,11 +81,6 @@ namespace Starcounter {
         /// Just using Request as holder for user Message instance type.
         /// </summary>
         Type messageObjectType_;
-
-        /// <summary>
-        /// Reference to response.
-        /// </summary>
-        Response response_;
 
         /// <summary>
         /// Managed handler id.
@@ -271,20 +271,6 @@ namespace Starcounter {
         public HTTP_METHODS MethodEnum { get; set; }
 
         /// <summary>
-        /// Set or get the Response object attached to this request.
-        /// Used to declare response object that should be returned to the original request.
-        /// </summary>
-        public Response Response
-        {
-            get { return response_; }
-            set
-            {
-                response_ = value;
-                response_.Request = this;
-            }
-        }
-
-        /// <summary>
         /// Returns True if method is idempotent.
         /// </summary>
         public Boolean IsIdempotent()
@@ -329,25 +315,25 @@ namespace Starcounter {
         /// </summary>
         [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 sc_init_http_parser();
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="Request" /> class.
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public Request(Byte[] buf, Int32 buf_len)
+        internal Request(Byte[] buf, Int32 buf_len)
         {
             unsafe {
                 InternalInit(buf, buf_len, null);
             }
         }
-
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="Request" /> class.
         /// </summary>
         /// <param name="buf"></param>
         /// <param name="params_info"></param>
-        public unsafe Request(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
+        internal unsafe Request(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
         {
             InternalInit(buf, buf_len, params_info_ptr);
         }
@@ -437,7 +423,7 @@ namespace Starcounter {
         /// Initializes request structure.
         /// </summary>
         /// <param name="buf"></param>
-        unsafe void InternalInit(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
+        unsafe void InternalInit(Byte[] requestBytes, Int32 buf_len, Byte* params_info_ptr)
         {
             unsafe
             {
@@ -457,7 +443,9 @@ namespace Starcounter {
                 socketDataIntPtr_ = BitsAndBytes.Alloc(alloc_size);
                 Byte* requestNativeBuf = (Byte*) socketDataIntPtr_.ToPointer();
 
-                fixed (Byte* fixed_buf = buf)
+                requestBytes_ = requestBytes;
+
+                fixed (Byte* fixed_buf = requestBytes)
                 {
                     // Copying HTTP request data.
                     BitsAndBytes.MemCpy(requestNativeBuf, fixed_buf, (UInt32)buf_len);
@@ -1089,7 +1077,7 @@ namespace Starcounter {
         /// Gets the request as byte array.
         /// </summary>
         /// <returns>Request bytes.</returns>
-        Byte[] GetRequestByteArray_Slow()
+        public Byte[] GetRequestByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
@@ -1125,14 +1113,14 @@ namespace Starcounter {
         /// <summary>
         /// Gets the whole request size.
         /// </summary>
-        public UInt32 GetRequestLength()
+        public Int32 GetRequestLength()
         {
             unsafe
             {
                 if (null == http_request_struct_)
                     throw new ArgumentException("HTTP request not initialized.");
 
-                return http_request_struct_->request_len_bytes_;
+                return (Int32) http_request_struct_->request_len_bytes_;
             }
         }
 
@@ -1208,7 +1196,8 @@ namespace Starcounter {
         public void SendResponse(Response resp, Byte[] serializationBuf)
         {
             try {
-                resp.ConstructFromFields(serializationBuf);
+
+                resp.ConstructFromFields(this, serializationBuf);
 
                 SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
 
@@ -1253,7 +1242,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes) 
+        public void GetRawMethodAndUri(out IntPtr ptr, out Int32 sizeBytes) 
         {
             unsafe
             {
@@ -1269,7 +1258,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out UInt32 sizeBytes) 
+        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out Int32 sizeBytes) 
         {
             unsafe
             {
@@ -1718,12 +1707,12 @@ namespace Starcounter {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUri(out IntPtr ptr, out UInt32 sizeBytes)
+        public void GetRawMethodAndUri(out IntPtr ptr, out Int32 sizeBytes)
         {
             // NOTE: Method and URI must always exist.
 
             ptr = new IntPtr(socket_data_ + request_offset_);
-            sizeBytes = (UInt32) (uri_offset_ - request_offset_ + uri_len_bytes_);
+            sizeBytes = (uri_offset_ - request_offset_ + uri_len_bytes_);
         }
 
         /// <summary>

@@ -1,6 +1,4 @@
-﻿//#define STUB_AGGREGATED
-
-// ***********************************************************************
+﻿// ***********************************************************************
 // <copyright file="AppServer.cs" company="Starcounter AB">
 //     Copyright (c) Starcounter AB.  All rights reserved.
 // </copyright>
@@ -58,32 +56,23 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Handles the response returned from the user handler.
         /// </summary>
-        /// <param name="request">Incomming HTTP request.</param>
-        /// <param name="response">Result of calling user handler (i.e. the delegate).</param>
-        /// <returns>The same object as provide in the response parameter</returns>
-        public Response OnResponseHttp(Request req, Response resp) {
+        public Response ProcessHttpResponse(Request req, Response resp) {
+
             Debug.Assert(resp != null);
-
-#if STUB_AGGREGATED
-
-            if (req.IsAggregated)
-                return SchedulerResources.Current.AggregationStubResponse;
-#endif
 
             try {
                 // Checking if we need to resolve static resource.
                 if (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent) {
                     resp = ResolveAndPrepareFile(req.Uri, req);
                     resp.HandlingStatus = HandlerStatusInternal.Done;
-                }
-                else {
+                } else {
                     // NOTE: Checking if its internal request then just returning response without modification.
                     if (req.IsInternal)
                         return resp;
 
                     // Checking if JSON object is attached.
                     if (resp.Resource is Json) {
-                        Json r = (Json)resp.Resource;
+                        Json r = (Json) resp.Resource;
 
                         while (r.Parent != null)
                             r = r.Parent;
@@ -91,8 +80,6 @@ namespace Starcounter.Internal.Web {
                         resp.Resource = (Json)r;
                     }
                 }
-
-                resp.Request = req;
 
                 return resp;
             }
@@ -107,30 +94,36 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// Handles request.
+        /// Runs delegate and process response.
         /// </summary>
-        public Response HandleRequest(Request request, HandlerOptions handlerOptions) {
+        public Response RunDelegateAndProcessResponse(Request req, HandlerOptions handlerOptions) {
 
             Response resp = null;
 
-            if (!request.IsInternal)
-                Session.InitialRequest = request;
+            if (!req.IsInternal) {
+                Session.InitialRequest = req;
+            }
 
             Profiler.Current.Start(ProfilerNames.Empty);
             Profiler.Current.Stop(ProfilerNames.Empty);
 
             // Running all available HTTP handlers.
             Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
-            UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel).RunDelegate(request, handlerOptions, out resp);
+
+            UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
+            uhm.RunDelegate(req, handlerOptions, out resp);
+
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
             // Checking if we still have no response.
-            if (resp == null || resp.HandlingStatus == HandlerStatusInternal.NotHandled)
+            if (resp == null)
                 return null;
 
             // Handling and returning the HTTP response.
             Profiler.Current.Start(ProfilerNames.HandleResponse);
-            resp = OnResponseHttp(request, resp);
+
+            resp = ProcessHttpResponse(req, resp);
+
             Profiler.Current.Stop(ProfilerNames.HandleResponse);
 
             return resp;
