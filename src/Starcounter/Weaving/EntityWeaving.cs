@@ -19,14 +19,19 @@ namespace Sc.Server.Weaver {
             var entity = new DatabaseEntityClass(assembly, WeavedNames.EntityClass);
             DefineImplicitFields(entity, entity);
 
-            AddDefinedProperty(entity, "Type", entity, entity.Attributes[WeavedNames.TypeColumn]);
-            AddDefinedProperty(entity, "TypeInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
-            AddDefinedProperty(
+            var attribute = AddDefinedProperty(entity, "Type", entity, entity.Attributes[WeavedNames.TypeColumn]);
+            attribute.IsTypeReference = true;
+
+            attribute = AddDefinedProperty(entity, "TypeInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
+            attribute.IsInheritsReference = true;
+
+            attribute = AddDefinedProperty(
                 entity,
                 "Name", 
                 DatabasePrimitiveType.GetInstance(DatabasePrimitive.String),
                 entity.Attributes[WeavedNames.TypeNameColumn]
                 );
+            attribute.IsTypeName = true;
 
             AddDefinedProperty(
                 entity, 

@@ -15,6 +15,7 @@ namespace Starcounter {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
+        [Type]
         public Entity Type {
             get {
                 return (Entity)DbState.ReadTypeReference(__sc__this_id__, __sc__this_handle__,
@@ -40,6 +41,7 @@ namespace Starcounter {
         /// types, but can be used on entities that are not
         /// types too, giving them a logical name.
         /// </summary>
+        [TypeName]
         public string Name {
             get {
                 return DbState.ReadTypeName(__sc__this_id__, __sc__this_handle__,
@@ -91,6 +93,7 @@ namespace Starcounter {
         /// current entity.
         /// </summary>
         /// <seealso cref="Derive"/>
+        [Inherits]
         public Entity TypeInherits {
             get {
                 return (Entity)DbState.ReadInherits(__sc__this_id__, __sc__this_handle__,
