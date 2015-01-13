@@ -119,7 +119,6 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_DbPrimitiveType;
             internal static int columnHandle_WriteLoss;
             internal static int columnHandle_ReadLoss;
-            internal static int columnHandle_DbTypeCode;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -177,14 +176,6 @@ namespace Starcounter.Metadata {
                     value);
             }
         }
-
-        public UInt16 DbTypeCode {
-            get { return DbState.ReadUInt16(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_DbTypeCode); }
-            internal set {
-                DbState.WriteUInt16(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_DbTypeCode,
-                    value);
-            }
-        }
     }
 
     public sealed class ClrPrimitiveType : Starcounter.Metadata.MapPrimitiveType {
@@ -193,6 +184,7 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
+            internal static int columnHandle_DbTypeCode;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -220,6 +212,14 @@ namespace Starcounter.Metadata {
         internal ClrPrimitiveType()
             : this(null) {
             DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public UInt16 DbTypeCode {
+            get { return DbState.ReadUInt16(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_DbTypeCode); }
+            internal set {
+                DbState.WriteUInt16(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_DbTypeCode,
+                    value);
+            }
         }
     }
 }

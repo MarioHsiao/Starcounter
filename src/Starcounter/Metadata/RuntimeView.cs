@@ -88,12 +88,13 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class RawView : Starcounter.Internal.Metadata.HostMaterializedTable {
+    public sealed class RawView : Starcounter.Metadata.Table {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
+            internal static int columnHandle_MaterializedTable;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -107,14 +108,26 @@ namespace Starcounter.Metadata {
         internal RawView() : this(null) {
             DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
+
+        public Starcounter.Internal.Metadata.MaterializedTable MaterializedTable {
+            get {
+                return (Starcounter.Internal.Metadata.MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle_MaterializedTable);
+            }
+            internal set {
+                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_MaterializedTable, value);
+            }
+        }
     }
 
-    public abstract class VMView : Starcounter.Internal.Metadata.HostMaterializedTable {
+    public abstract class VMView : Starcounter.Metadata.Table {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
+            internal static int columnHandle_Mapper;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -125,6 +138,17 @@ namespace Starcounter.Metadata {
         }
 
         public VMView(Uninitialized u) : base(u) { }
+
+        public RawView Mapper {
+            get {
+                return (RawView)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Mapper);
+            }
+            internal set {
+                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Mapper, value);
+            }
+        }
     }
 
     public sealed class ClrClass : VMView {
@@ -183,43 +207,6 @@ namespace Starcounter.Metadata {
             internal set {
                 DbState.WriteString(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_FullClassName, value);
-            }
-        }
-    }
-}
-
-namespace Starcounter.Internal.Metadata {
-    public abstract class HostMaterializedTable : Starcounter.Metadata.Table {
-        #region Infrastructure, reflecting what is emitted by the weaver.
-#pragma warning disable 0649, 0169
-        internal new class __starcounterTypeSpecification {
-            internal static ushort tableHandle;
-            internal static TypeBinding typeBinding;
-            internal static int columnHandle_MaterializedTable;
-        }
-#pragma warning disable 0628, 0169
-        #endregion
-
-        static new internal TypeDef CreateTypeDef() {
-            return TypeDef.CreateTypeTableDef(
-                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        }
-
-        public HostMaterializedTable(Uninitialized u) : base(u) { }
-
-        //internal HostMaterializedTable()
-        //    : this(null) {
-        //        DbState.Insert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
-        //}
-
-        public MaterializedTable MaterializedTable {
-            get {
-                return (MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                __starcounterTypeSpecification.columnHandle_MaterializedTable);
-            }
-            internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedTable, value);
             }
         }
     }
