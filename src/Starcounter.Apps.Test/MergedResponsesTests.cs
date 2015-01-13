@@ -94,6 +94,8 @@ namespace Starcounter.Internal.Test
                 return mergedResp;
             });
 
+            StarcounterEnvironment.AppName = "App1";
+
             Handle.GET("/apps", () =>
             {
                 var eTemplate = new TObject();
@@ -107,6 +109,8 @@ namespace Starcounter.Internal.Test
 
                 return e;
             });
+
+            StarcounterEnvironment.AppName = "App2";
 
             Handle.GET("/apps", () =>
             {

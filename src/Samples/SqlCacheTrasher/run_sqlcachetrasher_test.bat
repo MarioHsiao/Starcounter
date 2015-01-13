@@ -1,4 +1,3 @@
-
 :: Checking if test should be run.
 IF "%SC_RUN_SQLCACHETRASHER_TEST%"=="False" GOTO :EOF
 
@@ -9,12 +8,13 @@ SET DB_NAME=SQLCACHETRASHER
 SET TEST_NAME=SqlCacheTrasher
 ::SET TEST_ARGS=--UserArguments="param12345"
 
+:: Killing all SC processes.
 staradmin kill all
 
 :: Checking for existing dirs.
 IF EXIST .db (
-RMDIR .db /S /Q
-RMDIR .db.output /S /Q
+    RMDIR .db /S /Q
+    RMDIR .db.output /S /Q
 )
 
 :: Checking if directories exist.
@@ -44,3 +44,11 @@ ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
 sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
+
+IF ERRORLEVEL 1 (
+    ECHO Error: SQLCacheTrasher test failed!
+    EXIT /b 1
+) else (
+    ECHO SQLCacheTrasher test succeeded.
+    EXIT /b 0
+)

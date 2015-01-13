@@ -181,15 +181,8 @@ public class CPersonalServer : CComponentBase
     internal static void StartServiceIfAutomatic() {
         var service = ServerService.Find();
         if (service != null) {
-            // Only start it if it's automatic start type.
-            // Otherwise, start the personal server?
-            // TODO:
-
-            var config = WindowsServiceHelper.GetServiceConfig(service.ServiceName);
-            if (config.dwStartType == (uint) Win32Service.SERVICE_START.SERVICE_AUTO_START) {
-                Utilities.ReportSetupEvent("Starting Starcounter service...");
-                ServerService.Start(service.ServiceName);
-            }
+            Utilities.ReportSetupEvent("Starting Starcounter service...");
+            ServerService.Start(service.ServiceName);
         }
     }
 
@@ -248,31 +241,6 @@ public class CPersonalServer : CComponentBase
     }
 
     /// <summary>
-    /// Checks if server directory exists and asks user for its removal.
-    /// </summary>
-    /// <param name="serverDir"></param>
-    public static void CheckExistingServerDirectory(String serverDir)
-    {
-        if (Directory.Exists(serverDir))
-        {
-            if (!Utilities.AskUserForDecision(
-                "Server directory already exists: " + serverDir + Environment.NewLine +
-                "Would you like to delete it? NOTE: Databases and files stored in the server directory would be automatically removed!" + Environment.NewLine +
-                "(by clicking 'NO' server configuration files would be overwritten and other files would try to be preserved).",
-                "Server directory already exists..."))
-            {
-                // TODO: Talk with Anders about catching this type of exception in GUI.
-                //throw new InstallerAbortedException("User rejected removal of server directory: " + serverDir);
-            }
-            else
-            {
-                // Removing directory.
-                Utilities.ForceDeleteDirectory(new DirectoryInfo(serverDir));
-            }
-        }
-    }
-
-    /// <summary>
     /// Installs component.
     /// </summary>
     public override void Install()
@@ -287,9 +255,6 @@ public class CPersonalServer : CComponentBase
 
         // Server related directories.
         String serverOuterDir = ComponentPath;
-
-        // Checking for existing server directory.
-        CheckExistingServerDirectory(serverOuterDir);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for personal database engine...");
@@ -316,16 +281,39 @@ public class CPersonalServer : CComponentBase
             }
         }
 
-        // Logging event.
-        Utilities.ReportSetupEvent("Creating structure for the server...");
-
         // Creating new server repository.
         RepositorySetup setup = RepositorySetup.NewDefault(serverOuterDir, StarcounterEnvironment.ServerNames.PersonalServer);
 
-        setup.Execute();
-
         String serverInnerDir = setup.Structure.RepositoryDirectory;
-        String serverConfigPath = setup.ServerConfiguration.ConfigurationFilePath;
+        String serverConfigPath = setup.Structure.ServerConfigurationPath;
+
+        Boolean pointToExistingServerDir = true;
+
+        // Checking if server should be installed.
+        if (!File.Exists(serverConfigPath)) {
+
+            pointToExistingServerDir = false;
+
+            // Checking if user wants to install server into existing directory.
+            if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(serverInnerDir))) {
+
+                // Asking user for decision about overwriting server files.
+                if (false == Utilities.AskUserForDecision(
+                    "You have chosen a non-empty directory for server installation. Starcounter server-related files in this directory will be overwritten. Do you want to continue?",
+                    "Installing server in non-empty directory...")) {
+
+                    throw new InstallerAbortedException("User rejected installing to existing server directory: " + serverOuterDir);
+                }
+            }
+
+            // Logging event.
+            Utilities.ReportSetupEvent("Creating structure for the server...");
+
+            setup.Execute();
+        }
+
+        // Loading new or existing server config.
+        ServerConfiguration serverConf = ServerConfiguration.Load(serverConfigPath);
 
         // Replacing default server parameters.
         if (!Utilities.ReplaceXMLParameterInFile(
@@ -376,19 +364,18 @@ public class CPersonalServer : CComponentBase
         }
 
         // Save SendUsageAndCrashReports setting
-        if (setup.ServerConfiguration.SendUsageAndCrashReports != sendUsageAndCrashReports) {
-            setup.ServerConfiguration.SendUsageAndCrashReports = sendUsageAndCrashReports;
-            setup.ServerConfiguration.Save();
+        if (serverConf.SendUsageAndCrashReports != sendUsageAndCrashReports) {
+            serverConf.SendUsageAndCrashReports = sendUsageAndCrashReports;
+            serverConf.Save();
         }
-
 
         Environment.SetEnvironmentVariable(
             ConstantsBank.SCEnvVariableDefaultPersonalPort,
             serverSystemPortString,
             EnvironmentVariableTarget.User);
 
-        // Creating server config.
-        InstallerMain.CreateServerConfig(
+        // Pointing to server config.
+        InstallerMain.PointToServerConfig(
             StarcounterEnvironment.ServerNames.PersonalServer,
             serverInnerDir,
             PersonalServerConfigPath);
@@ -396,7 +383,8 @@ public class CPersonalServer : CComponentBase
         // Copying gateway configuration.
         InstallerMain.CopyGatewayConfig(
             serverInnerDir,
-            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort));
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort),
+            pointToExistingServerDir);
 
         // Creating service
         CreateWindowsService();
@@ -421,7 +409,6 @@ public class CPersonalServer : CComponentBase
 
         // Updating progress.
         InstallerMain.ProgressIncrement();
-
     }
 
     // Path to server configuration file.
@@ -485,7 +472,6 @@ public class CPersonalServer : CComponentBase
             null,
             EnvironmentVariableTarget.User);
 
-
         // Logging event.
         Utilities.ReportSetupEvent("Deleting personal database server registry entries...");
 
@@ -498,19 +484,6 @@ public class CPersonalServer : CComponentBase
 
         // Deleting personal server configuration folder if demanded.
         Utilities.ReportSetupEvent("Deleting personal database server configuration...");
-
-        // Getting the server installation path.
-        try
-        {
-            String personalServerPath = ComponentPath;
-
-            if (Utilities.DirectoryIsNotEmpty(new DirectoryInfo(personalServerPath)))
-            {
-                InstallerMain.FinalSetupMessage += "You can find and manually delete the Personal Server databases directory in: '" +
-                    personalServerPath + "'" + Environment.NewLine;
-            }
-        }
-        catch { }
 
         // Deleting the config file.
         if (File.Exists(PersonalServerConfigPath))

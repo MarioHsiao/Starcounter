@@ -7,6 +7,16 @@ using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 
 namespace Starcounter {
+    internal struct ArrayVersionLog {
+        internal long Version;
+        internal List<Change> Changes;
+
+        internal ArrayVersionLog(long version, List<Change> changes) {
+            Version = version;
+            Changes = changes;
+        }
+    }
+
 	partial class Json {
 		/// <summary>
 		/// 
@@ -99,13 +109,12 @@ namespace Starcounter {
             if (ArrayAddsAndDeletes != null && ArrayAddsAndDeletes.Count > 0) {
                 for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
                     var change = ArrayAddsAndDeletes[i];
+
                     session.AddChange(change);
-
-                    var index = change.Index;
-                    if (index < list.Count) {
+                    var index = change.Item._cacheIndexInArr;
+                    if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
                         CheckpointAt(index);
-
-                        item = (Json)list[index];
+                        item = change.Item;
                         item.SetBoundValuesInTuple();
                         item._Dirty = false;
                     }
@@ -115,7 +124,7 @@ namespace Starcounter {
                     // Skip all items we have already added to the changelog.
                     logChanges = true;
                     foreach (Change change in ArrayAddsAndDeletes) {
-                        if (change.Index == i) {
+                        if (change.ChangeType != Change.REMOVE && change.Index == i) {
                             logChanges = false;
                             break;
                         }
@@ -123,9 +132,15 @@ namespace Starcounter {
 
                     if (logChanges) {
                         ((Json)_list[i]).LogValueChangesWithDatabase(session);
-                    }
+                     }
                 }
-                ArrayAddsAndDeletes.Clear();
+
+                if (session.CheckOption(SessionOptions.PatchVersioning)) {
+                    if (versionLog == null)
+                        versionLog = new List<ArrayVersionLog>();
+                    versionLog.Add(new ArrayVersionLog(session.ServerVersion, ArrayAddsAndDeletes));
+                }
+                ArrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < _list.Count; t++) {
                     ((Json)_list[t]).LogValueChangesWithDatabase(session);
@@ -289,11 +304,6 @@ namespace Starcounter {
                         ((IList)this)[index] = newJson;
                         newJson.Data = value;
                         oldJson.SetParent(null);
-                        if (_dirtyCheckEnabled) {
-                            if (ArrayAddsAndDeletes == null)
-                                ArrayAddsAndDeletes = new List<Change>();
-                            ArrayAddsAndDeletes.Add(Change.Update((Json)this.Parent, tArr, index));
-                        }
                         hasChanged = true;
                     }
                 }
@@ -326,6 +336,44 @@ namespace Starcounter {
                 return obj1.Equals(obj2);
 
             return (bind1.Identity == bind2.Identity);
+        }
+
+        /// <summary>
+        /// Checks if this object is accessible in an earlier version of the viewmodel.
+        /// </summary>
+        /// <param name="serverVersion">The version of the viewmodel to check</param>
+        /// <returns>true if this object existed in the specified version, false otherwise.</returns>
+        /// <remarks>
+        /// This method is used when versioning is enabled in Session and this json belongs to a viewmodeltree.
+        /// </remarks>
+        internal bool IsValidForVersion(long serverVersion) {
+            return (serverVersion >= addedInVersion);
+        }
+
+        internal void CleanupOldVersionLogs(long toVersion) {
+            if (versionLog != null) {
+                Session session = Session;
+                for (int i = 0; i < versionLog.Count; i++) {
+                    if (versionLog[i].Version <= session.ClientServerVersion) {
+                        versionLog.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            if (IsArray) {
+                foreach (Json child in _list) {
+                    child.CleanupOldVersionLogs(toVersion);
+                }
+            } else {
+                var tobj = (TObject)Template;
+                foreach (Template t in tobj.Properties) {
+                    var tcontainer = t as TContainer;
+                    if (tcontainer != null) {
+                        tcontainer.GetValue(this).CleanupOldVersionLogs(toVersion);
+                    }
+                }
+            }
         }
 	}
 }

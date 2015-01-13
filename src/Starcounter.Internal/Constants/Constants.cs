@@ -22,6 +22,16 @@ namespace Starcounter.Internal
         public const Byte MaximumSchedulersNumber = 128;
 
         /// <summary>
+        /// Launcher application name.
+        /// </summary>
+        public const string LauncherAppName = "Launcher";
+
+        /// <summary>
+        /// Launcher application name.
+        /// </summary>
+        public const string SocietyObjectsPrefix = "SocietyObjects";
+
+        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants
@@ -96,7 +106,6 @@ namespace Starcounter.Internal
             /// ScTrayIcon
             /// </summary>
             public const string ScTrayIcon = "sctrayicon";
-
         }
 
         /// <summary>

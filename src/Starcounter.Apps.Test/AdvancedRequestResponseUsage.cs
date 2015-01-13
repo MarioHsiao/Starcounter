@@ -36,10 +36,10 @@ namespace Starcounter.Internal.Test
             Response resp;
             Object obj;
             
-            obj = X.GET("/return_400");
+            obj = X.GET<String>("/return_400");
             Assert.AreEqual(obj, null);
 
-            obj = X.GET("/return_200");
+            obj = X.GET<String>("/return_200");
             Assert.AreEqual(obj, null);
 
             X.GET("/return_400", out resp);

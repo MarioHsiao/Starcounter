@@ -15,7 +15,7 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    run_node_proxy_test.bat
    
    :: Checking exit code.
-   IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+   IF ERRORLEVEL 1 GOTO TESTFAILED
 )
 
 :: Success message.
@@ -28,4 +28,4 @@ GOTO :EOF
 :TESTFAILED
 ECHO Error occurred during the loop proxy test! 1>&2
 staradmin kill all
-EXIT 1
+EXIT /b 1

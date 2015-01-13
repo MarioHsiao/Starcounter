@@ -34,14 +34,25 @@ namespace Starcounter.Internal.Web {
         /// If the URI does not point to a App view model or a user implemented
         /// handler, this is where the request will go.
         /// </summary>
-        private Dictionary<UInt16, StaticWebServer> staticFileServers_;
+        private Dictionary<UInt16, StaticWebServer> fileServerPerPort_;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppRestServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
         public AppRestServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
-            staticFileServers_ = staticFileServer;
+            fileServerPerPort_ = staticFileServer;
+        }
+
+        /// <summary>
+        /// Gets the exception string.
+        /// </summary>
+        /// <param name="ex">The ex.</param>
+        /// <returns>String.</returns>
+        public static String GetExceptionString(Exception ex) {
+            string errorMsg = ExceptionFormatter.ExceptionToString(ex);
+            errorMsg += "\r\nMore information about this error may be available in the server error log.";
+            return errorMsg;
         }
 
         /// <summary>
@@ -98,46 +109,8 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Handles request.
         /// </summary>
-        /// <param name="request">The request.</param>
-        /// <returns>The bytes according to the appropriate protocol</returns>
-        public Response HandleRequest(Request request, Int32 handlerLevel) {
+        public Response HandleRequest(Request request, HandlerOptions handlerOptions) {
 
-            Response resp;
-
-            try {
-                return _HandleRequest(request, handlerLevel);
-            }
-            catch (ResponseException exc) {
-                // NOTE: if internal request then throw the exception up.
-                if (request.IsInternal)
-                    throw exc;
-
-                resp = exc.ResponseObject;
-                resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
-                return resp;
-            }
-            catch (UriInjectMethods.IncorrectSessionException) {
-                resp = Response.FromStatusCode(400);
-                resp["Connection"] = "close";
-                return resp;
-            }
-            catch (Exception exc) {
-                // Logging the exception to server log.
-                LogSources.Hosting.LogException(exc);
-                resp = Response.FromStatusCode(500);
-                resp.Body = GetExceptionString(exc);
-                resp.ContentType = "text/plain";
-                return resp;
-            }
-        }
-
-        // TODO:
-        // Can be moved back to method above when implicit transaction no longer depends on exceptions.
-
-        // Added a separate method that does not catch any exception to allow wrapping whole block
-        // in an implicit transaction. The current solution for the implicit is to catch exception
-        // and upgrade if necessary which does not work when we are catching all exceptions above.
-        private Response _HandleRequest(Request request, Int32 handlerLevel) {
             Response resp = null;
 
             if (!request.IsInternal)
@@ -148,7 +121,7 @@ namespace Starcounter.Internal.Web {
 
             // Running all available HTTP handlers.
             Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
-            UriHandlersManager.GetUriHandlersManager(handlerLevel).RunDelegate(request, out resp);
+            UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel).RunDelegate(request, handlerOptions, out resp);
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
             // Checking if we still have no response.
@@ -173,24 +146,13 @@ namespace Starcounter.Internal.Web {
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
-            if (staticFileServers_.TryGetValue(request.PortNumber, out staticWebServer)) {
+            if (fileServerPerPort_.TryGetValue(request.PortNumber, out staticWebServer)) {
                 return staticWebServer.GetStaticResponseClone(relativeUri, request);
             }
 
             var badReq = Response.FromStatusCode(400);
             badReq["Connection"] = "close";
             return badReq;
-        }
-
-        /// <summary>
-        /// Gets the exception string.
-        /// </summary>
-        /// <param name="ex">The ex.</param>
-        /// <returns>String.</returns>
-        private String GetExceptionString(Exception ex) {
-            string errorMsg = ExceptionFormatter.ExceptionToString(ex);
-            errorMsg += "\r\nMore information about this error may be available in the server error log.";
-            return errorMsg;
         }
 
         /// <summary>
@@ -201,22 +163,32 @@ namespace Starcounter.Internal.Web {
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
         public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path) {
-            lock (staticFileServers_) {
+
+            lock (fileServerPerPort_) {
+
                 StaticWebServer staticWebServer;
 
                 // Try to fetch static web server.
-                if (staticFileServers_.TryGetValue(port, out staticWebServer)) {
+                if (fileServerPerPort_.TryGetValue(port, out staticWebServer)) {
+
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
-                }
-                else {
+
+                } else {
+
                     staticWebServer = new StaticWebServer();
-                    staticFileServers_.Add(port, staticWebServer);
+                    fileServerPerPort_.Add(port, staticWebServer);
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+
+                    // Determining if its an Administrator application.
+                    HandlerOptions ho = HandlerOptions.DefaultLevel;
+                    if (!StarcounterEnvironment.IsAdministratorApp) {
+                        ho = HandlerOptions.CodeHostStaticFileServer;
+                    }
 
                     // Registering static handler on given port.
                     Handle.GET(port, "/{?}", (string res) => {
                         return HandlerStatus.ResolveStaticContent;
-                    });
+                    }, ho);
                 }
             }
         }
@@ -229,10 +201,12 @@ namespace Starcounter.Internal.Web {
 
             Dictionary<UInt16, IList<string>> list = new Dictionary<ushort, IList<string>>();
 
-            foreach (KeyValuePair<UInt16, StaticWebServer> entry in staticFileServers_) {
+            foreach (KeyValuePair<UInt16, StaticWebServer> entry in fileServerPerPort_) {
 
                 List<string> portList = GetWorkingDirectories(entry.Key);
+
                 if (portList != null) {
+
                     foreach (string folder in portList) {
 
                         if (list.ContainsKey(entry.Key)) {
@@ -258,23 +232,25 @@ namespace Starcounter.Internal.Web {
             StaticWebServer staticWebServer;
 
             // Try to fetch static web server.
-            if (staticFileServers_.TryGetValue(port, out staticWebServer)) {
+            if (fileServerPerPort_.TryGetValue(port, out staticWebServer)) {
                 return staticWebServer.GetWorkingDirectories(port);
             }
 
             return null;
         }
 
-
         /// <summary>
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
         public int Housekeep() {
-            lock (staticFileServers_) {
+
+            lock (fileServerPerPort_) {
+
                 // Doing house keeping for each port.
-                foreach (KeyValuePair<UInt16, StaticWebServer> s in staticFileServers_)
+                foreach (KeyValuePair<UInt16, StaticWebServer> s in fileServerPerPort_) {
                     s.Value.Housekeep();
+                }
 
                 return 0;
             }

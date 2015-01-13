@@ -4,7 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
 namespace Starcounter {
@@ -81,6 +84,69 @@ namespace Starcounter {
 
         internal void UpdateCachedIndex() {
             _cacheIndexInArr = ((IList)Parent).IndexOf(this);
+        }
+
+        internal int TransformIndex(long fromVersion, int orgIndex) {
+            int transformedIndex;
+            Session s;
+            long currentVersion;
+            
+            if ((_Dirty == false) && (versionLog == null || versionLog.Count == 0))
+                return orgIndex;
+
+            s = Session;
+            currentVersion = s.ServerVersion;
+            transformedIndex = orgIndex;
+
+            if (versionLog != null) {
+                // There might be old changes logged for this array. We need to find all changes
+                // from the specified version to current for the index.
+                for (int i = 0; i < versionLog.Count; i++) {
+                    if (versionLog[i].Version <= fromVersion)
+                        continue;
+                    transformedIndex = FindAndTransformIndex(versionLog[i].Changes, transformedIndex);
+                    if (transformedIndex == -1)
+                        break;
+                }
+            }
+
+            if (transformedIndex != -1 && ArrayAddsAndDeletes != null) {
+                // There are current changes made that haven't been pushed to client yet.
+                transformedIndex = FindAndTransformIndex(ArrayAddsAndDeletes, transformedIndex);
+            }
+            return transformedIndex;
+        }
+
+        private int FindAndTransformIndex(List<Change> changes, int index) {
+            Change change;
+            int transformedIndex = index;
+
+            for (int i = 0; i < changes.Count; i++) {
+                change = changes[i];
+
+                if (change.ChangeType == Change.ADD) {
+                    // If the type of change is add and index on change is equal or lower than the specified index
+                    // we increase it, otherwise we ignore it.
+                    if (change.Index <= transformedIndex)
+                        transformedIndex++;
+                } else if (change.ChangeType == Change.REMOVE) {
+                    // If the type of change is remove and index in change is equal to transformed index, it is invalid.
+                    // If the index in change is lower than transformed index we decrease the transformed index.
+                    if (change.Index < transformedIndex) {
+                        transformedIndex--;
+                    } else if (change.Index == transformedIndex) {
+                        transformedIndex = -1;
+                        break;
+                    }
+                } else {
+                    if (change.Index == transformedIndex) {
+                        transformedIndex = -1;
+                        break;
+                    }
+                }
+            }
+
+            return transformedIndex;
         }
     }
 }

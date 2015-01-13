@@ -1,4 +1,3 @@
-
 :: Checking if test should be run.
 IF "%SC_RUN_INDEXQUERY_TEST%"=="False" GOTO :EOF
 
@@ -8,13 +7,13 @@ SET DB_OUT_DIR=.db.output
 SET DB_NAME=ACCOUNTTEST
 SET TEST_NAME=IndexQueryTest
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+:: Killing all SC processes.
+staradmin kill all
 
 :: Checking for existing dirs.
 IF EXIST .db (
-RMDIR .db /S /Q
-RMDIR .db.output /S /Q
+    RMDIR .db /S /Q
+    RMDIR .db.output /S /Q
 )
 
 :: Checking if directories exist.
@@ -26,9 +25,9 @@ sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
 scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
-IF %ERRORLEVEL% NEQ 0 (
-ECHO Error: The index query regression test failed!
-EXIT /b 1
+IF ERRORLEVEL 1 (
+    ECHO Error: The index query regression test failed!
+    EXIT /b 1
 ) 
 
 :: Starting IPC monitor first.
@@ -55,10 +54,10 @@ ping -n 3 127.0.0.1 > nul
 :: Starting database with some delay.
 sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
-IF %ERRORLEVEL% NEQ 0 (
-ECHO Error: The index query regression test failed!
-EXIT /b 1
+IF ERRORLEVEL 1 (
+    ECHO Error: The index query regression test failed!
+    EXIT /b 1
 ) else (
-ECHO The index query  regression test succeeded.
-EXIT /b 0
+    ECHO The index query  regression test succeeded.
+    EXIT /b 0
 )

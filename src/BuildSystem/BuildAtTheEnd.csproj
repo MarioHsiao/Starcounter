@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <OutputPath>..\..\bin\Release</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <OutputPath>..\..\bin\Debug</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <ProjectGuid>{BA826B5D-86CE-41F5-9BD8-3716065479F7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>BuildAtTheEnd</RootNamespace>
+    <AssemblyName>BuildAtTheEnd</AssemblyName>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <Target Name="DoAfterBuild">
+    <!-- Creating copied files lists. -->
+    <ItemGroup>
+      <All32BitDllsToCopy Include=" $(OutputPath)\FasterThanJson.dll; $(OutputPath)\Starcounter.BitsAndBytes.dll; $(OutputPath)\Starcounter.BitsAndBytes.Unsafe.dll; $(OutputPath)\Starcounter.Internal.dll; $(OutputPath)\Starcounter.Logging.dll; $(OutputPath)\Starcounter.XSON.dll; $(OutputPath)\Mono.CSharp.dll; $(OutputPath)\Mono.Cecil.dll" />
+      <PublicAssemblies Include=" $(OutputPath)\Starcounter.ClientResolver.dll; $(OutputPath)\Starcounter.dll; $(OutputPath)\Starcounter.Bootstrap.dll; $(OutputPath)\Starcounter.Apps.JsonPatch.dll; $(OutputPath)\Starcounter.Internal.dll; $(OutputPath)\Starcounter.Logging.dll; $(OutputPath)\Starcounter.HyperMedia.dll; $(OutputPath)\Starcounter.Node.dll; $(OutputPath)\Starcounter.XSON.dll" />
+    </ItemGroup>
+    <!-- Coyping selected files. -->
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(All32BitDllsToCopy)" DestinationFolder="$(OutputPath)\32BitComponents" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PublicAssemblies)" DestinationFolder="$(OutputPath)\Public Assemblies" />
+  </Target>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Target Name="Build" DependsOnTargets="DoAfterBuild" />
+</Project>

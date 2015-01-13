@@ -33,7 +33,7 @@ namespace Starcounter {
                 return _data;
             }
             set {
-                AttachTransaction();
+                AttachCurrentScope();
 
                 this.AddInScope<Json, object>((j, v) => {
                     if (j.IsArray) {
@@ -48,14 +48,6 @@ namespace Starcounter {
                     }
                 },
                 this, value);
-            }
-        }
-
-        private void AttachTransaction(){
-            if (_DB != null && _DB.Current != null) {
-                if (Transaction == null || Transaction != _DB.Current) {
-                    _transaction = _DB.Current;
-                }
             }
         }
 
@@ -116,11 +108,14 @@ namespace Starcounter {
             for (Int32 i = 0; i < template.Properties.Count; i++) {
                 child = template.Properties[i] as TValue;
 
+                if (child is TTrigger)
+                    continue;
+
                 if (child.BindingStrategy != BindingStrategy.Unbound && !child.isVerifiedUnbound) {
                     child.InvalidateBoundGetterAndSetter();
                     child.SetDefaultValue(this);
-                    if (Session.Current != null)
-                        Session.Current.UpdateValue(this, child);
+                    if (this.HasBeenSent)
+                        MarkAsReplaced(child);
                 }
             }
         }

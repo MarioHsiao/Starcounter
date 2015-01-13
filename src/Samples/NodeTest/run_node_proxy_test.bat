@@ -17,7 +17,7 @@ START CMD /C "scservice.exe"
 NodeTest.exe %*
 
 :: Checking exit code.
-IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+IF ERRORLEVEL 1 GOTO TESTFAILED
 
 :: Success message.
 ECHO Test finished successfully!
@@ -37,4 +37,4 @@ staradmin kill all
 :: Copying back the default gateway config.
 COPY /Y scnetworkgateway.xml %SERVER_DIR%\personal\scnetworkgateway.xml
 
-EXIT 1
+EXIT /b 1

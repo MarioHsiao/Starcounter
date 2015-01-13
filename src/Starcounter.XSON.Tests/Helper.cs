@@ -1,6 +1,6 @@
-﻿
-using System;
+﻿using System;
 using System.Collections;
+using System.Diagnostics;
 using System.IO;
 using NUnit.Framework;
 using Starcounter.Templates;
@@ -8,7 +8,10 @@ using Starcounter.XSON;
 
 namespace Starcounter.Internal.XSON.Tests {
     internal static class Helper {
-        internal const string PATCH = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
+        internal const string PATCH_REPLACE = "{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}";
+        internal const string PATCH_ADD = "{{\"op\":\"add\",\"path\":\"{0}\",\"value\":{1}}}";
+        internal const string PATCH_REMOVE = "{{\"op\":\"remove\",\"path\":\"{0}\"}}";
+        internal const string PATCH_TEST = "{{\"op\":\"test\",\"path\":\"{0}\",\"value\":{1}}}";
         internal const string ONE_PATCH_ARR = "[{{\"op\":\"replace\",\"path\":\"{0}\",\"value\":{1}}}]";
         internal const string ONE_ADD_PATCH_ARR = "[{{\"op\":\"add\",\"path\":\"{0}\",\"value\":{1}}}]";
         internal static JsonProperty CreateSampleApp() {
@@ -68,24 +71,24 @@ namespace Starcounter.Internal.XSON.Tests {
             str += ", Type: " + property.GetType().Name;
             str += ")";
 
-            Console.WriteLine("------------------------------------------");
-            Console.WriteLine("Property:");
-            Console.WriteLine(str);
-            Console.WriteLine();
-            Console.WriteLine("UnboundGetter:");
-            Console.WriteLine(property.DebugUnboundGetter);
-            Console.WriteLine();
-            Console.WriteLine("UnboundSetter:");
-            Console.WriteLine(property.DebugUnboundSetter);
-            Console.WriteLine();
+            ConsoleWriteLine("------------------------------------------");
+            ConsoleWriteLine("Property:");
+            ConsoleWriteLine(str);
+            ConsoleWriteLine("");
+            ConsoleWriteLine("UnboundGetter:");
+            ConsoleWriteLine(property.DebugUnboundGetter);
+            ConsoleWriteLine("");
+            ConsoleWriteLine("UnboundSetter:");
+            ConsoleWriteLine(property.DebugUnboundSetter);
+            ConsoleWriteLine("");
 
             if (bound) {
-                Console.WriteLine("BoundGetter:");
-                Console.WriteLine(property.DebugBoundGetter);
-                Console.WriteLine();
-                Console.WriteLine("BoundSetter:");
-                Console.WriteLine(property.DebugBoundSetter);
-                Console.WriteLine();
+                ConsoleWriteLine("BoundGetter:");
+                ConsoleWriteLine(property.DebugBoundGetter);
+                ConsoleWriteLine("");
+                ConsoleWriteLine("BoundSetter:");
+                ConsoleWriteLine(property.DebugBoundSetter);
+                ConsoleWriteLine("");
             }
         }
 
@@ -100,24 +103,24 @@ namespace Starcounter.Internal.XSON.Tests {
             str += ", Type: " + property.GetType().Name;
             str += ")";
 
-            Console.WriteLine("------------------------------------------");
-            Console.WriteLine("Property:");
-            Console.WriteLine(str);
-            Console.WriteLine();
-            Console.WriteLine("UnboundGetter:");
-            Console.WriteLine(property.DebugUnboundGetter);
-            Console.WriteLine();
-            Console.WriteLine("UnboundSetter:");
-            Console.WriteLine(property.DebugUnboundSetter);
-            Console.WriteLine();
+            ConsoleWriteLine("------------------------------------------");
+            ConsoleWriteLine("Property:");
+            ConsoleWriteLine(str);
+            ConsoleWriteLine("");
+            ConsoleWriteLine("UnboundGetter:");
+            ConsoleWriteLine(property.DebugUnboundGetter);
+            ConsoleWriteLine("");
+            ConsoleWriteLine("UnboundSetter:");
+            ConsoleWriteLine(property.DebugUnboundSetter);
+            ConsoleWriteLine("");
 
             if (bound) {
-                Console.WriteLine("BoundGetter:");
-                Console.WriteLine(property.DebugBoundGetter);
-                Console.WriteLine();
-                Console.WriteLine("BoundSetter:");
-                Console.WriteLine(property.DebugBoundSetter);
-                Console.WriteLine();
+                ConsoleWriteLine("BoundGetter:");
+                ConsoleWriteLine(property.DebugBoundGetter);
+                ConsoleWriteLine("");
+                ConsoleWriteLine("BoundSetter:");
+                ConsoleWriteLine(property.DebugBoundSetter);
+                ConsoleWriteLine("");
             }
         }
 #endif
@@ -235,6 +238,16 @@ namespace Starcounter.Internal.XSON.Tests {
             for (Int32 i = 0; i < expected.Length; i++) {
                 Assert.AreEqual(expected[i], received[i]);
             }
+        }
+
+        [Conditional("CONSOLE")]
+        internal static void ConsoleWriteLine(string msg) {
+            Console.WriteLine(msg);
+        }
+
+        [Conditional("CONSOLE")]
+        internal static void ConsoleWrite(string msg) {
+            Console.Write(msg);
         }
     }
 

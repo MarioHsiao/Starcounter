@@ -47,7 +47,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
             //            var str = TreeHelper.GenerateTreeString(dom, (IReadOnlyTree node) => node.ToString() ); 
             var str = TreeHelper.GenerateTreeString(dom);
-            Console.WriteLine(str);
+            Helper.ConsoleWriteLine(str);
 
             Assert.AreEqual(root, dom.GetType().Name);
         }

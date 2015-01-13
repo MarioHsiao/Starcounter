@@ -61,6 +61,12 @@ namespace Starcounter.Weaver {
         public readonly string InputDirectory;
 
         /// <summary>
+        /// The directory where the weaver looks for edition
+        /// libraries.
+        /// </summary>
+        public readonly string EditionLibrariesDirectory;
+
+        /// <summary>
         /// The cache directory used by the weaver.
         /// </summary>
         public readonly string CacheDirectory;
@@ -100,6 +106,16 @@ namespace Starcounter.Weaver {
         /// transformed on every run.
         /// </summary>
         public bool DisableWeaverCache { get; set; }
+
+        /// <summary>
+        /// Gets a value that indicates the weaver will only include those
+        /// edition libraries that are referenced by the application being
+        /// weaved. The alternative is to always include edition librares
+        /// as part of every application built on a certain edition.
+        /// </summary>
+        public bool OnlyIncludeEditionLibrariesReferenced {
+            get { return false; }
+        }
 
         /// <summary>
         /// Gets or sets the weaver runtime directory path. This path will be
@@ -148,6 +164,12 @@ namespace Starcounter.Weaver {
         /// </summary>
         private WeaverCache Cache;
 
+        /// <summary>
+        /// List of assemblies actually referenced from any other assembly
+        /// processed by the weaver.
+        /// </summary>
+        List<AssemblyName> activelyReferencedAssemblies;
+
         public CodeWeaver(string directory, string file, string outputDirectory, string cacheDirectory) {
             this.InputDirectory = directory;
             this.OutputDirectory = outputDirectory;
@@ -161,6 +183,8 @@ namespace Starcounter.Weaver {
             } catch {
                 this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
             }
+
+            this.EditionLibrariesDirectory = Path.Combine(WeaverRuntimeDirectory, "EditionLibraries");
         }
 
         /// <summary>
@@ -206,6 +230,7 @@ namespace Starcounter.Weaver {
                 postSharpSettings.OverwriteAssemblyNames = false;
                 postSharpSettings.DisableReflection = true;
                 postSharpSettings.SearchDirectories.Add(this.InputDirectory);
+                postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
                 postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
 
                 // Move all assemblies in the cached weaver schema to that of the
@@ -214,6 +239,9 @@ namespace Starcounter.Weaver {
                 foreach (var cachedAssembly in this.Cache.Schema.Assemblies) {
                     ScAnalysisTask.DatabaseSchema.Assemblies.Add(cachedAssembly);
                 }
+
+                // Prepare indexing of actually referenced assemblies
+                activelyReferencedAssemblies = new List<AssemblyName>();
 
                 using (IPostSharpObject postSharpObject = PostSharpObject.CreateInstance(postSharpSettings, this)) {
                     ((PostSharpObject)postSharpObject).Domain.AssemblyLocator.DefaultOptions |= PostSharp.Sdk.CodeModel.AssemblyLocatorOptions.ForClrLoading;
@@ -327,6 +355,7 @@ namespace Starcounter.Weaver {
             this.Cache.Disabled = this.DisableWeaverCache;
             this.Cache.AssemblySearchDirectories.Add(this.InputDirectory);
             this.Cache.AssemblySearchDirectories.Add(this.WeaverRuntimeDirectory);
+            this.Cache.AssemblySearchDirectories.Add(this.EditionLibrariesDirectory);
 
             return true;
         }
@@ -456,10 +485,19 @@ namespace Starcounter.Weaver {
                 return null;
             }
 
+            // Check if the file is one of the edition libraries. If
+            // it is, we just analyze it if it has not been actively
+            // referenced, in case we are not always including edition
+            // libraries
             
-            // Yes, we'll have it processed.
+            var runWeaver = RunWeaver;
+            if (OnlyIncludeEditionLibrariesReferenced) {
+                if (FileManager.IsEditionLibrary(file)) {
+                    runWeaver = HasBeenReferenced(module);
+                }
+            }
 
-            if (RunWeaver) {
+            if (runWeaver) {
                 weaverProjectFile = this.WeaverProjectFile;
                 parameters = new ProjectInvocationParameters(weaverProjectFile);
                 parameters.PreventOverwriteAssemblyNames = false;
@@ -472,11 +510,12 @@ namespace Starcounter.Weaver {
 
                 parameters = new ProjectInvocationParameters(this.AnalyzerProjectFile);
                 parameters.PreventOverwriteAssemblyNames = true;
+                parameters.Properties["NoTransformation"] = bool.TrueString;
             }
 
             // Apply all general, shared parameters
 
-            parameters.Properties["ScInputDirectory"] = this.InputDirectory;
+            parameters.Properties["ScInputDirectory"] = Path.GetDirectoryName(file);
             parameters.Properties["ScCacheDirectory"] = this.CacheDirectory;
             parameters.Properties["CacheTimestamp"] =
                 XmlConvert.ToString(File.GetLastWriteTime(file),
@@ -488,6 +527,13 @@ namespace Starcounter.Weaver {
             parameters.Properties["DontCopyToOutput"] = this.WeaveToCacheOnly ? bool.TrueString : bool.FalseString;
 
             return parameters;
+        }
+
+        bool HasBeenReferenced(ModuleDeclaration module) {
+            var reference = activelyReferencedAssemblies.Find((candidate) => {
+                return string.Equals(candidate.Name, module.Assembly.Name, StringComparison.InvariantCultureIgnoreCase);
+            });
+            return reference != null;
         }
 
         #region IPostSharpHost Members (methods called back by PostSharp)
@@ -522,6 +568,7 @@ namespace Starcounter.Weaver {
         /// <param name="assemblyName">Name of the assembly to load.</param>
         /// <returns>A <see cref="ModuleLoadStrategy"/>, or <b>null</b> to use the default mechanism.</returns>
         string IPostSharpHost.ResolveAssemblyReference(AssemblyName assemblyName) {
+            activelyReferencedAssemblies.Add(assemblyName);
             return null;
         }
 

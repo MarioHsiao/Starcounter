@@ -120,6 +120,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                             }
                             else {
                                 // TEMP ID!
+                                //appStoreItem.ID = remoteItem.ID;
                                 appStoreItem.ID = string.Format("{0:X8}", (appStoreHost + remoteStore.ID + remoteItem.ID).GetHashCode());
                             }
 
@@ -181,43 +182,43 @@ namespace Starcounter.Administrator.Server.Handlers {
             //              "Url" : ""
             //          }
             //      }
-            //Handle.GET(port, "/api/admin/appstore/apps/{?}", (string id, Request req) => {
+            Handle.GET(port, "/api/admin/appstore/apps/{?}", (string id, Request req) => {
 
-            //    try {
+                try {
 
-            //        if (string.IsNullOrEmpty(appStoreHost)) {
-            //            ErrorResponse errorResponse = new ErrorResponse();
-            //            errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
-            //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-            //        }
+                    if (string.IsNullOrEmpty(appStoreHost)) {
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
 
-            //        // Get items
-            //        string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
-            //        Response response;
-            //        X.GET(uri, out response, null, 10000);
-            //        if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
-            //            return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
-            //        }
+                    // Get items
+                    string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
+                    Response response;
+                    X.GET(uri, out response, null, 10000);
+                    if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
+                        return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
+                    }
 
-            //        Representations.JSON.AppStoreApplications appStoreItems = new Representations.JSON.AppStoreApplications();
-            //        appStoreItems.PopulateFromJson(response.Body);
+                    Representations.JSON.AppStoreApplications appStoreItems = new Representations.JSON.AppStoreApplications();
+                    appStoreItems.PopulateFromJson(response.Body);
 
-            //        foreach (var appStore in appStoreItems.Stores) {
+                    foreach (var appStore in appStoreItems.Stores) {
 
-            //            foreach (var appStoreItem in appStore.Items) {
+                        foreach (var appStoreItem in appStore.Items) {
 
-            //                if (appStoreItem.ID == id) {
-            //                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreItem.ToJsonUtf8() };
-            //                }
-            //            }
-            //        }
+                            if (appStoreItem.ID == id) {
+                                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreItem.ToJsonUtf8() };
+                            }
+                        }
+                    }
 
-            //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
-            //    }
-            //    catch (Exception e) {
-            //        return RestUtils.CreateErrorResponse(e);
-            //    }
-            //});
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                }
+                catch (Exception e) {
+                    return RestUtils.CreateErrorResponse(e);
+                }
+            });
         }
 
         /// <summary>

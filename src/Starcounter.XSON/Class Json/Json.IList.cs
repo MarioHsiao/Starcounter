@@ -384,6 +384,7 @@ namespace Starcounter {
         private void InternalRemove(Json item, int index) {
             list.RemoveAt(index);
             item.SetParent(null);
+            item._cacheIndexInArr = -1;
 
             if (_dirtyCheckEnabled)
                 _SetFlag.RemoveAt(index);
@@ -391,7 +392,7 @@ namespace Starcounter {
             if (IsArray) {
                 Json otherItem;
                 var tarr = (TObjArr)this.Template;
-                CallHasRemovedElement(index);
+                CallHasRemovedElement(index, item);
                 for (Int32 i = index; i < list.Count; i++) {
                     otherItem = (Json)_list[i];
                     otherItem._cacheIndexInArr = i;

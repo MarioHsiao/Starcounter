@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using Starcounter.Internal.Tests;
 using Starcounter.Rest;
 
-namespace Starcounter.Internal.Test
+namespace Starcounter.Internal.Tests
 {
     /// <summary>
     /// Tests user HTTP delegates registration and usage.

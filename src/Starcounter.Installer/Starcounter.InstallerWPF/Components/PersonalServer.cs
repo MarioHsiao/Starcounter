@@ -49,17 +49,13 @@ namespace Starcounter.InstallerWPF.Components {
         protected override void SetDefaultValues() {
             base.SetDefaultValues();
 
+#if !SIMULATE_CLEAN_INSTALLATION
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
-
-            this.SendUsageAndCrashReports = true;
-#if SIMULATE_CLEAN_INSTALLATION
-            this.IsInstalled = false;
 #endif
 
-            string basePath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                                                     Configuration.StarcounterCommonPath);
+            this.SendUsageAndCrashReports = true;
 
-            this.Path = basePath;
+            this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), ConstantsBank.SCProductName);
 
             this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;

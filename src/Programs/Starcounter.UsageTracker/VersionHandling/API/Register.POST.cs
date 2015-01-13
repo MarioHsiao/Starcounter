@@ -73,7 +73,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
             });
 
-            Handle.CUSTOM(port, "OPTIONS", "/register", (Request request) => {
+            Handle.CUSTOM(port, "OPTIONS /register", (Request request) => {
 
                 try {
 
