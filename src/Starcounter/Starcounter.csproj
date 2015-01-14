@@ -63,6 +63,7 @@
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\PolyJuice.cs" />
     <Compile Include="Binary.cs" />
+    <Compile Include="Binding\AutoCreatedType.cs" />
     <Compile Include="Binding\BinaryPropertyBinding.cs" />
     <Compile Include="Binding\BindingBuilder.cs" />
     <Compile Include="Binding\BooleanPropertyBinding.cs" />
