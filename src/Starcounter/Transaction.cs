@@ -415,6 +415,16 @@ namespace Starcounter
                 SetCurrent(old);
             }
         }
+
+        TResult ITransaction.AddAndReturn<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                return func(arg1, arg2, arg3, arg4);
+            } finally {
+                SetCurrent(old);
+            }
+        }
 		
 
         void ITransaction.MergeTransaction(ITransaction toMerge) {

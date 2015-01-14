@@ -11,13 +11,17 @@ using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using Starcounter.Advanced;
+using Starcounter.XSON;
 
 namespace Starcounter {
-    //[Flags]
-    //public enum SessionOptions : int {
-    //    Default = 0,
-    //    IncludeSchema,
-    //}
+    [Flags]
+    public enum SessionOptions : int {
+        Default = 0,
+        IncludeSchema = 1,
+        PatchVersioning = 2,
+        StrictPatchRejection = 4,
+//        DisableProtocolOT = 8,
+    }
 
     /// <summary>
     /// 
@@ -33,26 +37,42 @@ namespace Starcounter {
         [ThreadStatic]
         private static Request _request;
 
-        // Temporary hack to allow shared transactions for newly created objects.
-        private volatile ITransaction _transaction;
-
         private Action<Session> _sessionDestroyUserDelegate;
         private bool _brandNew;
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
         private List<Change> _changes; // The log of Json tree changes pertaining to the session data
         private List<DataAndCache> _stateList;
-//        private SessionOptions _sessionOptions;
-        
-        public Session() {
+        private SessionOptions sessionOptions;
+
+        /// <summary>
+        /// Array of queued patches in order from the current clientversion.
+        /// </summary>
+        private List<Byte[]> patchQueue;
+
+        /// <summary>
+        /// Versioning for local and remote version of the viewmodel
+        /// </summary>
+        private long clientVersion;
+        private long serverVersion;
+
+        /// <summary>
+        /// The clients current serverversion. Used to check if OT is needed.
+        /// </summary>
+        private long clientServerVersion;
+
+        public Session() : this(SessionOptions.Default) {
+        }
+
+        public Session(SessionOptions options) {
             _brandNew = true;
             _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<DataAndCache>();
-//            _sessionOptions = SessionOptions.Default;
-
+            sessionOptions = options;
+            clientServerVersion = serverVersion;
+            
             UInt32 errCode = 0;
-
             if (_request != null) {
                 errCode = _request.GenerateNewSession(this);
             } else {
@@ -65,21 +85,51 @@ namespace Starcounter {
                 throw ErrorCode.ToException(errCode);
         }
 
-        //public SessionOptions Options {
-        //    get { return _sessionOptions; }
-        //    set { _sessionOptions = value; }
-        //}
-
-        //internal bool CheckOption(SessionOptions option) {
-        //    return (_sessionOptions & option) == option;
-        //}
-
-        public void ShareTransaction(ITransaction transaction) {
-            _transaction = transaction;
+        public SessionOptions Options {
+            get { return sessionOptions; }
         }
 
-        public ITransaction SharedTransaction {
-            get { return _transaction; }
+        public bool CheckOption(SessionOptions option) {
+            return (sessionOptions & option) == option;
+        }
+
+        internal void EnqueuePatch(byte[] patchArray, int index) {
+            if (patchQueue == null)
+                patchQueue = new List<byte[]>(8);
+
+            for (int i = patchQueue.Count; i < index + 1; i++)
+                patchQueue.Add(null);
+            
+            patchQueue[index] = patchArray;
+        }
+
+        internal byte[] GetNextEnqueuedPatch() {
+            byte[] ret = null;
+            if (patchQueue != null && patchQueue.Count > 0) {
+                ret = patchQueue[0];
+                patchQueue.RemoveAt(0);
+            }
+            return ret;
+        }
+
+        /// <summary>
+        /// Gets the versionnumber for the remote version of the viewmodel.
+        /// </summary>
+        public long ClientVersion {
+            get { return clientVersion; }
+            internal set { clientVersion = value; }
+        }
+
+        /// <summary>
+        /// Gets the versionnumber for the local version of the viewmodel.
+        /// </summary>
+        public long ServerVersion {
+            get { return serverVersion; }
+        }
+
+        internal long ClientServerVersion {
+            get { return clientServerVersion; }
+            /*internal*/ set { clientServerVersion = value; }
         }
 
         /// <summary>
@@ -205,10 +255,12 @@ namespace Starcounter {
                         value._Session.Data = null;
 
                     value._Session = this;
+                    value.OnSessionSet();
                 }
 
                 // Setting current session.
                 Current = this;
+
             }
         }
 
@@ -447,7 +499,6 @@ namespace Starcounter {
         /// </summary>
         internal static void End() {
             if (_current != null) {
-                _current._transaction = null;
                 _current.Clear();
                 Session._current = null;
             }
@@ -475,16 +526,6 @@ namespace Starcounter {
         internal void UpdateValue(Json obj, TValue property) {
             _changes.Add(Change.Update(obj, property));
             property.Checkpoint(obj);
-        }
-
-        /// <summary>
-        /// Adds a value update for an array.
-        /// </summary>
-        /// <param name="obj">The json containing the value.</param>
-        /// <param name="property">The property to update</param>
-        /// <param name="index">The index in the array that should be updated.</param>
-        internal void UpdateValue(Json obj, TObjArr property, int index) {
-            _changes.Add(Change.Update(obj, property, index));
         }
 
         /// <summary>
@@ -517,6 +558,10 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         public void GenerateChangeLog() {
+            //            if (_changes.Count != 0) { // New version of the viewmodel. 
+            serverVersion++;
+            //            }
+
             if (_brandNew) {
                 // TODO: 
                 // might be array.
@@ -598,6 +643,11 @@ namespace Starcounter {
                     }
                 }
             }
+        }
+
+        internal void CleanupOldVersionLogs() {
+            var root = this.Data;
+            root.CleanupOldVersionLogs(ClientServerVersion);
         }
 
         /// <summary>

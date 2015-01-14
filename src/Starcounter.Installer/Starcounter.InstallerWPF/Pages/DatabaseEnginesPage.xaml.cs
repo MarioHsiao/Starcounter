@@ -32,7 +32,7 @@ namespace Starcounter.InstallerWPF.Pages {
 
         void DatabaseEnginesPage_Loaded(object sender, RoutedEventArgs e) {
 
-            MainWindow win = Application.Current.MainWindow as MainWindow;
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
             InstallationBase installationBaseComponent = win.Configuration.Components[InstallationBase.Identifier] as InstallationBase;
 
             // Personal Server DUP path check

@@ -74,7 +74,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 //}
                 //else
                 //{
-                NavigationCommands.NextPage.Execute(null, Application.Current.MainWindow);
+                NavigationCommands.NextPage.Execute(null, System.Windows.Application.Current.MainWindow);
                 //}
             }
         }
@@ -181,7 +181,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 if (this._CloseSystemMenuButtonIsEnabled == value) return;
                 this._CloseSystemMenuButtonIsEnabled = value;
 
-                var hwnd = new WindowInteropHelper(Application.Current.MainWindow).Handle;
+                var hwnd = new WindowInteropHelper(System.Windows.Application.Current.MainWindow).Handle;
                 IntPtr menu = GetSystemMenu(hwnd, false);
 
                 if (value) {
@@ -374,7 +374,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 if (currentSlide.AutoClose) {
 
                     // Go to next "page"
-                    NavigationCommands.NextPage.Execute(null, Application.Current.MainWindow);
+                    NavigationCommands.NextPage.Execute(null, System.Windows.Application.Current.MainWindow);
                 }
             }
 

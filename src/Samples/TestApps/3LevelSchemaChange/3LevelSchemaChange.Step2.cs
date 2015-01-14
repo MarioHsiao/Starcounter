@@ -74,7 +74,7 @@ class Program {
 			ScAssertion.Assert(count == 1);
 			ScAssertion.Assert(views[i] != null);
 			ScAssertion.Assert(views[i].UniqueIdentifier == "Starcounter.Raw." + tblNames[i]);
-			ScAssertion.Assert(views[i].MaterializedTable.Equals(clrClassses[i].MaterializedTable));
+			ScAssertion.Assert(views[i].MaterializedTable.Equals(clrClassses[i].Mapper.MaterializedTable));
 		}
 		ScAssertion.Assert(views[0].Equals(views[1].Inherits));
 		ScAssertion.Assert(views[1].Equals(views[2].Inherits));

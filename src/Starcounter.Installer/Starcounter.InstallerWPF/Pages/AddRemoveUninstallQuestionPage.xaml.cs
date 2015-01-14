@@ -27,7 +27,7 @@ namespace Starcounter.InstallerWPF.Pages
         {
             get
             {
-                return base.HasErrors || ((MainWindow)Application.Current.MainWindow).SetupOptions == SetupOptions.None;
+                return base.HasErrors || ((MainWindow)System.Windows.Application.Current.MainWindow).SetupOptions == SetupOptions.None;
             }
         }
 
@@ -66,7 +66,7 @@ namespace Starcounter.InstallerWPF.Pages
             this.setupOptions_RadioButton_Option2.Background = commandToBackgroundConverter.Convert(ComponentCommand.Uninstall, typeof(Brush), null, null) as Brush;
             this.setupOptions_RadioButton_Option3.Background = commandToBackgroundConverter.Convert(ComponentCommand.Uninstall, typeof(Brush), null, null) as Brush;
 
-            MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
+            MainWindow mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
 
             switch (mainWindow.SetupOptions)
             {
@@ -103,7 +103,7 @@ namespace Starcounter.InstallerWPF.Pages
         /// <param name="e">The <see cref="System.Windows.RoutedEventArgs"/> instance containing the event data.</param>
         private void RadioButton_Checked(object sender, RoutedEventArgs e)
         {
-            MainWindow mainWindow = Application.Current.MainWindow as MainWindow;
+            MainWindow mainWindow = System.Windows.Application.Current.MainWindow as MainWindow;
 
             if (setupOptions_RadioButton_Option1.IsChecked == true)
             {

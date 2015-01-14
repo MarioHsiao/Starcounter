@@ -1,0 +1,52 @@
+<!-- juicy-redirect v0.1.3 | MIT License -->
+<script>
+    (function (global) {
+        var JuicyRedirectElementPrototype = Object.create(HTMLLinkElement.prototype);
+
+        JuicyRedirectElementPrototype.attachedCallback = function(){
+            this.redirect( this.getAttribute("url") );
+        }
+        /**
+         * @event juicy-redirect-pushstate
+         * Called whenever `history.state` is changed.
+         * @property {String} url new URL
+         */
+        JuicyRedirectElementPrototype.attributeChangedCallback = function (attributeName, oldVal, newVal) {
+            switch(attributeName) {
+                case "url":
+                    document.contains(this) && this.redirect( newVal );
+                    break;
+            }
+        };
+        JuicyRedirectElementPrototype.redirect = function(url){
+            if(!url){
+                return false;
+            }
+            if(url == "current") {
+                url = window.location.href;
+            }
+            if(this.hasAttribute("history")) {
+                history.pushState(null, null, url);
+                this.dispatchEvent(
+                    new CustomEvent(
+                        "juicy-redirect-pushstate",
+                        {
+                            "detail":{"url":url},
+                            "bubbles": true
+                        }
+                    )
+                );
+            }
+            else {
+                window.location = url;
+            }
+            this.setAttribute("url", "");
+            return url;
+        }
+
+        global.JuicyRedirectElement = document.registerElement('juicy-redirect', {
+            prototype: JuicyRedirectElementPrototype,
+            extends: "link"
+        });
+    })(window);
+</script>

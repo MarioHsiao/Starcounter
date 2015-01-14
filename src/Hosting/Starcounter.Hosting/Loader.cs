@@ -81,7 +81,7 @@ namespace StarcounterInternal.Hosting
                     sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
                     Starcounter.Metadata.Type.CreateTypeDef(), Starcounter.Metadata.DbPrimitiveType.CreateTypeDef(), 
                     Starcounter.Metadata.MapPrimitiveType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
-                    Table.CreateTypeDef(), Starcounter.Internal.Metadata.HostMaterializedTable.CreateTypeDef(), RawView.CreateTypeDef(),
+                    Table.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), Member.CreateTypeDef(), 
                     Column.CreateTypeDef(), CodeProperty.CreateTypeDef(), Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
                 },

@@ -58,14 +58,14 @@ namespace Starcounter.Tools {
 
             // Assure single instance
             if (mutex.WaitOne(TimeSpan.Zero, true)) {
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
+                System.Windows.Forms.Application.EnableVisualStyles();
+                System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
 
                 TrayIconApp oContext = new TrayIconApp();
                 oContext.AutoStarted = (args.Length > 0 && args[0] == "-autostarted");
                 oContext.Setup();
 
-                Application.Run(oContext);
+                System.Windows.Forms.Application.Run(oContext);
                 mutex.ReleaseMutex();
             }
             else {
@@ -79,8 +79,8 @@ namespace Starcounter.Tools {
         /// </summary>
         public TrayIconApp() {
 
-            Application.ThreadException += Application_ThreadException;
-            Application.ApplicationExit += Application_ApplicationExit;
+            System.Windows.Forms.Application.ThreadException += Application_ThreadException;
+            System.Windows.Forms.Application.ApplicationExit += Application_ApplicationExit;
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             //Instantiate the component Module to hold everything    
             this.applicationContainer = new System.ComponentModel.Container();

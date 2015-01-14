@@ -109,7 +109,7 @@ namespace Starcounter.Internal.Web {
                 response.CacheControl = "public,max-age=31536000";
 
             response.ContentLength = contentLength;
-            response.Content = payload;
+            response.BodyBytes = payload;
 
             if (statusCode == HttpStatusCode.OK && shouldBeCached && cached == null) {
                 if (response.Uris == null)

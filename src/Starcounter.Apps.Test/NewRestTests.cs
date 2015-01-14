@@ -37,7 +37,7 @@ namespace Starcounter.Internal.Test
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.HandleRequest, UriHandlersManager.AddExtraHandlerLevel);
+            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.HandleRequest);
             Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
 
             // Initializing system profilers.
@@ -417,22 +417,22 @@ namespace Starcounter.Internal.Test
                 return "CUSTOM REPORT!";
             });
 
-            Handle.CUSTOM("SEARCH", "/", () =>
+            Handle.CUSTOM("SEARCH /", () =>
             {
                 return "CUSTOM SEARCH!";
             });
 
-            Handle.CUSTOM("OPTIONS", "/", () =>
+            Handle.CUSTOM("OPTIONS /", () =>
             {
                 return "CUSTOM OPTIONS!";
             });
 
-            Handle.CUSTOM("OPTIONS", "/hello/{?}", (String p1) =>
+            Handle.CUSTOM("OPTIONS /hello/{?}", (String p1) =>
             {
                 return "CUSTOM OPTIONS HELLO!";
             });
 
-            Handle.CUSTOM("DELETE", "/hello/{?}", (String p1) =>
+            Handle.CUSTOM("DELETE /hello/{?}", (String p1) =>
             {
                 return "CUSTOM DELETE HELLO!";
             });

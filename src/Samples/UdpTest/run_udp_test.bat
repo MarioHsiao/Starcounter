@@ -11,7 +11,7 @@ START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortN
 UdpTest.exe
 
 :: Checking exit code.
-IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+IF ERRORLEVEL 1 GOTO TESTFAILED
 
 :: Success message.
 ECHO UDP test finished successfully!
@@ -24,4 +24,4 @@ GOTO :EOF
 :TESTFAILED
 ECHO Error occurred during the test! 1>&2
 staradmin kill all
-EXIT 1
+EXIT /b 1

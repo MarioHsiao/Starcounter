@@ -3,6 +3,10 @@
 # 32-bit components
 32BitComponents\
 
+# Polyjuice client files
+Polyjuice\
+sys\
+
 # Some folders
 cli-apps\
 cli-templates\
@@ -105,8 +109,6 @@ PostSharp.Sdk.dll
 PostSharp.Sdk.XmlSerializers.dll
 PostSharp.Settings.dll
 PostSharp-Platform.config
-recovery.dll
-recovery.pdb
 sc.ico
 Sc.Tools.Logging.dll
 Sc.Tools.Logging.pdb
@@ -140,10 +142,6 @@ sccoredbm.dll
 sccoredbm.exp
 sccoredbm.lib
 sccoredbm.pdb
-sccoreerr.dll
-sccoreerr.exp
-sccoreerr.lib
-sccoreerr.pdb
 sccorelib.dll
 sccorelib.exp
 sccorelib.lib
@@ -312,10 +310,6 @@ sunflower.dll
 sunflower.exp
 sunflower.lib
 sunflower.pdb
-systables.dll
-systables.exp
-systables.lib
-systables.pdb
 testtemplate.html
 TurboText_en-GB_3.dll
 TurboText_en-GB_3.exp

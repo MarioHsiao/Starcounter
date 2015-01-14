@@ -10,6 +10,7 @@ using Starcounter.Templates;
 using System.Diagnostics;
 
 using TJson = Starcounter.Templates.TObject;
+using PlayersDemoApp;
 
 namespace Starcounter.Internal.Test {
     /// <summary>
@@ -27,7 +28,7 @@ namespace Starcounter.Internal.Test {
             var app = new Json() { Template = at };
 			st.Setter(app, "Joachim");
 			Assert.AreEqual("Joachim", st.Getter(app));
-            Console.WriteLine(app.ToJson());
+            Helper.ConsoleWriteLine(app.ToJson());
         }
 
         /// <summary>
@@ -42,7 +43,7 @@ namespace Starcounter.Internal.Test {
             var app2 = new Json() { Template = search };
             userId.Setter(app, "Jocke");
             search.Setter(app, app2);
-            Console.WriteLine(app.ToJson()); //, IncludeView.Never));
+            Helper.ConsoleWriteLine(app.ToJson()); //, IncludeView.Never));
         }
 
         /// <summary>
@@ -77,11 +78,11 @@ namespace Starcounter.Internal.Test {
             //	                     app.QuickAndDirtyObject.DebugDump());
             Assert.AreEqual("Adrienne", firstName.Getter((Json)(persons.Getter(obj)._GetAt(1))));
 
-            Console.WriteLine("Raw tuple:");
-            //	     Console.WriteLine(app.QuickAndDirtyObject.DebugDump());
-            Console.WriteLine("");
-            Console.WriteLine("JSON:");
-            Console.WriteLine(obj.ToJson());
+            Helper.ConsoleWriteLine("Raw tuple:");
+            //	     Helper.ConsoleWriteLine(app.QuickAndDirtyObject.DebugDump());
+            Helper.ConsoleWriteLine("");
+            Helper.ConsoleWriteLine("JSON:");
+            Helper.ConsoleWriteLine(obj.ToJson());
         }
 
 //        [Test]
@@ -99,7 +100,7 @@ namespace Starcounter.Internal.Test {
 //                acc.Balance = 1000;
 //            }
 //            sw.Stop();
-//            Console.WriteLine(String.Format("Time to create {0} documents was {1} milliseconds", count, sw.ElapsedMilliseconds));
+//            Helper.ConsoleWriteLine(String.Format("Time to create {0} documents was {1} milliseconds", count, sw.ElapsedMilliseconds));
 //        }
     }
 }

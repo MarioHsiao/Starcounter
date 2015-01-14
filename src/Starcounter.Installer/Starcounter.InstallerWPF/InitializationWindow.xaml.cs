@@ -385,10 +385,10 @@ namespace Starcounter.InstallerWPF {
             // TODO: Fix automatic loading of styles!
 
             var colors = new Uri("pack://application:,,,/colors.xaml", UriKind.RelativeOrAbsolute);
-            Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = colors });
+            System.Windows.Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = colors });
 
             var styles = new Uri("pack://application:,,,/styles.xaml", UriKind.RelativeOrAbsolute);
-            Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = styles });
+            System.Windows.Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary() { Source = styles });
 
             // Try extracting static installer dependencies (only parent process does this).
             ExtractInstallerDependencies();
@@ -678,7 +678,7 @@ namespace Starcounter.InstallerWPF {
             }
 
             // Registering exceptions handling and application exit event.
-            Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
+            System.Windows.Application.Current.DispatcherUnhandledException += new System.Windows.Threading.DispatcherUnhandledExceptionEventHandler(App_DispatcherUnhandledException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             String silentMsg = "Silently ending installer process.";
@@ -894,11 +894,11 @@ namespace Starcounter.InstallerWPF {
         }
 
         private void ShowError(Exception e) {
-            if (Application.Current.MainWindow is MainWindow) {
-                ((MainWindow)Application.Current.MainWindow).OnError(e);
+            if (System.Windows.Application.Current.MainWindow is MainWindow) {
+                ((MainWindow)System.Windows.Application.Current.MainWindow).OnError(e);
 
                 // The layout will not be updated after an exception, i don't know why!. this is a workaround for that
-                ((MainWindow)Application.Current.MainWindow).UpdateLayout();
+                ((MainWindow)System.Windows.Application.Current.MainWindow).UpdateLayout();
             }
             else {
                 WpfMessageBox.Show(e.ToString(), "Starcounter Installer", WpfMessageBoxButton.OK, WpfMessageBoxImage.Error);

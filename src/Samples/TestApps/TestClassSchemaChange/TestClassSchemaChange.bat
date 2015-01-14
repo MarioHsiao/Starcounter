@@ -18,12 +18,12 @@ staradmin --database=%DB_NAME% delete --force db
 ECHO Run Step 1 to create initial schema
 COPY /y TestClassSchemaChangeV1.cs TestClassSchemaChange.cs
 star --database=%DB_NAME% TestClassSchemaChange.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 ECHO Run Step 2 to update initial schema with more columns
 COPY /y TestClassSchemaChangeV2.cs TestClassSchemaChange.cs
 star --database=%DB_NAME% TestClassSchemaChange.cs
-IF %ERRORLEVEL% NEQ 0 GOTO err
+IF ERRORLEVEL 1 GOTO err
 
 REM Clean update
 DEL TestClassSchemaChange.cs

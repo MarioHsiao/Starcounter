@@ -17,7 +17,7 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    NodeTest.exe -ServerPort=8181 %*
    
    :: Checking exit code.
-   IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+   IF ERRORLEVEL 1 GOTO TESTFAILED
 )
 
 :: Success message.
@@ -29,4 +29,4 @@ GOTO :EOF
 :: If we are here than some test has failed.
 :TESTFAILED
 ECHO Error occurred during the test! 1>&2
-EXIT 1
+EXIT /b 1

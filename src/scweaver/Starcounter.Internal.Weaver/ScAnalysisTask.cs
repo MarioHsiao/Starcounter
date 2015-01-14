@@ -421,6 +421,12 @@ namespace Starcounter.Internal.Weaver {
             };
             DatabaseSchema.Assemblies.Add(_databaseAssembly);
 
+            var val = Project.Properties["NoTransformation"];
+            bool notTransformed = !string.IsNullOrEmpty(val) && val.Equals(bool.TrueString);
+            if (notTransformed) {
+                _databaseAssembly.IsTransformed = false;
+            }
+
             // Check if the assembly indicates it's strongly named.
             // We currently can't transform such assemblies.
 

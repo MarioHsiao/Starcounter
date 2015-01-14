@@ -68,8 +68,7 @@ namespace Starcounter.Internal {
                     GatewayHandlers.RegisterTcpSocketHandler,
                     GatewayHandlers.RegisterUdpSocketHandler,
                     OnHttpMessageRoot,
-                    AppServer_.HandleRequest,
-                    UriHandlersManager.AddExtraHandlerLevel);
+                    AppServer_.HandleRequest);
 
                 AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
             }
@@ -193,41 +192,62 @@ namespace Starcounter.Internal {
         /// <param name="request">The http request</param>
         /// <returns>Returns true if the request was handled</returns>
         private static Boolean OnHttpMessageRoot(Request req) {
+
             Response resp = null;
 
             try {
+
                 // Handling request on initial level.
-                resp = AppServer_.HandleRequest(req, 0);
+                resp = AppServer_.HandleRequest(req, HandlerOptions.DefaultLevel);
 
-                // Checking if response was handled.
-                if (resp == null)
-                    return false;
+            } catch (ResponseException exc) {
 
-                // Determining what we should do with response.
-                switch (resp.HandlingStatus) {
-                    case HandlerStatusInternal.Done: {
-                            // Creating response serialization buffer.
-                            if (responseSerializationBuffer_ == null) {
-                                responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
-                            }
+                resp = exc.ResponseObject;
+                resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
 
-                            // Standard response send.
-                            req.SendResponse(resp, responseSerializationBuffer_);
+            } catch (UriInjectMethods.IncorrectSessionException) {
+                resp = Response.FromStatusCode(400);
+                resp["Connection"] = "close";
 
-                            break;
-                        }
+            } catch (Exception exc) {
 
-                    default: {
-                            req.CreateFinalizer();
-                            break;
-                        }
+                // Logging the exception to server log.
+                LogSources.Hosting.LogException(exc);
+                resp = Response.FromStatusCode(500);
+                resp.Body = AppRestServer.GetExceptionString(exc);
+                resp.ContentType = "text/plain";
+            } 
+
+            // Checking if response was handled.
+            if (resp == null)
+                return false;
+
+            // Determining what we should do with response.
+            switch (resp.HandlingStatus) {
+
+                case HandlerStatusInternal.Done: {
+                    // Creating response serialization buffer.
+                    if (responseSerializationBuffer_ == null) {
+                        responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
+                    }
+
+                    // Standard response send.
+                    req.SendResponse(resp, responseSerializationBuffer_);
+
+                    break;
                 }
-            } finally {
-                // Checking if a new session was created during handler call.
-                if ((null != Session.Current) && (!req.IsInternal))
-                    Session.End();
-                Session.InitialRequest = null;
+
+                default: {
+                    req.CreateFinalizer();
+                    break;
+                }
             }
+
+            // Checking if a new session was created during handler call.
+            if ((null != Session.Current) && (!req.IsInternal))
+                Session.End();
+
+            Session.InitialRequest = null;
 
             return true;
         }

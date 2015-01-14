@@ -97,7 +97,7 @@ namespace Starcounter.InstallerWPF.Pages {
                 if (this._CloseSystemMenuButtonIsEnabled == value) return;
                 this._CloseSystemMenuButtonIsEnabled = value;
 
-                var hwnd = new WindowInteropHelper(Application.Current.MainWindow).Handle;
+                var hwnd = new WindowInteropHelper(System.Windows.Application.Current.MainWindow).Handle;
                 IntPtr menu = GetSystemMenu(hwnd, false);
 
                 if (value) {
@@ -143,7 +143,7 @@ namespace Starcounter.InstallerWPF.Pages {
             // Referring to the user configuration.
             Configuration config = (Configuration)DataContext;
 
-            MainWindow mainwindow = Application.Current.MainWindow as MainWindow;
+            MainWindow mainwindow = System.Windows.Application.Current.MainWindow as MainWindow;
 
             this.IsInstalling = true;
 

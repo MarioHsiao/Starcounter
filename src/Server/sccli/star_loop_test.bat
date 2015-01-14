@@ -19,7 +19,7 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
    
    :: Checking exit code.
-   IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
+   IF ERRORLEVEL 1 GOTO TESTFAILED
 )
 
 :: Success message.
@@ -32,4 +32,4 @@ GOTO :EOF
 :TESTFAILED
 ECHO Error occurred during the star.exe loop test! 1>&2
 staradmin kill all
-EXIT 1
+EXIT /b 1

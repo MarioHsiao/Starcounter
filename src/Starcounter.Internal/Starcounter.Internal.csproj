@@ -49,6 +49,8 @@
     <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Application.cs" />
+    <Compile Include="ApplicationBase.cs" />
     <Compile Include="bmx.cs" />
     <Compile Include="CommandLine\CommandLineStringParser.cs" />
     <Compile Include="CommandLine\InvalidCommandLineException.cs" />

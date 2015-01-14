@@ -18,6 +18,12 @@ namespace Starcounter.Weaver {
         List<string> filesToCopy;
         List<string> presentTargetFiles;
 
+        /// <summary>
+        /// Index of the first edition library file, if any. The
+        /// index is based on the <see cref="sourceFiles"/> list.
+        /// </summary>
+        int editionLibriesIndex;
+
         public readonly string SourceDirectory;
         public readonly string TargetDirectory;
         public readonly WeaverCache Cache;
@@ -41,6 +47,7 @@ namespace Starcounter.Weaver {
             filesToCopy = new List<string>();
             exclusionPolicy = new FileExclusionPolicy(sourceDir);
             presentTargetFiles = new List<string>();
+            editionLibriesIndex = -1;
         }
 
         /// <summary>
@@ -69,6 +76,14 @@ namespace Starcounter.Weaver {
             return outdatedAssemblies.ContainsKey(file);
         }
 
+        public bool IsEditionLibrary(string file) {
+            var result = false;
+            if (editionLibriesIndex != -1) {
+                result = sourceFiles.IndexOf(file, editionLibriesIndex) != -1;
+            }
+            return result;
+        }
+
         /// <summary>
         /// Synchronize the two directories, removing all files
         /// considered obsolete from the target directory and copying
@@ -84,6 +99,17 @@ namespace Starcounter.Weaver {
 
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.dll"));
             sourceFiles.AddRange(Directory.GetFiles(SourceDirectory, "*.exe"));
+
+            // Assure we always add edition libraries LAST - this is what we depend
+            // on to avoid having to weave them when they are not referenced
+            var editionLibraries = CodeWeaver.Current.EditionLibrariesDirectory;
+            if (Directory.Exists(editionLibraries)) {
+                var libs = Directory.GetFiles(editionLibraries, "*.dll");
+                if (libs.Length > 0) {
+                    editionLibriesIndex = sourceFiles.Count;
+                    sourceFiles.AddRange(libs);
+                }
+            }
             
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.exe"));
@@ -143,7 +169,9 @@ namespace Starcounter.Weaver {
 
         void Reuse(string file, WeaverCache.CachedAssembly cachedAssembly) {
             WriteDebug("Assembly {0} not processed, it's reused from the cache.", Path.GetFileName(file));
-            filesToCopy.AddRange(cachedAssembly.Files);
+            if (!cachedAssembly.IsSchemaOnly) {
+                filesToCopy.AddRange(cachedAssembly.Files);
+            }
         }
 
         void Include(string file) {

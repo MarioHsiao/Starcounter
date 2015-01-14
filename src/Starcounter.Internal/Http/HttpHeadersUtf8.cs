@@ -44,7 +44,7 @@ namespace Starcounter.Internal {
 			Http11 = Encoding.UTF8.GetBytes("HTTP/1.1 ");
             Http11NoSpace = Encoding.UTF8.GetBytes("HTTP/1.1");
 			ServerSc = Encoding.UTF8.GetBytes("Server: SC" + Constants.CRLF);
-			CacheControlNoCache = Encoding.UTF8.GetBytes("Cache-Control: no-cache" + Constants.CRLF);
+			CacheControlNoCache = Encoding.UTF8.GetBytes("Cache-Control: no-store" + Constants.CRLF);
 			CacheControlStart = Encoding.UTF8.GetBytes("Cache-Control: ");
 			ContentTypeStart = Encoding.UTF8.GetBytes(ContentTypeHeader + ": ");
 			ContentEncodingStart = Encoding.UTF8.GetBytes(ContentEncodingHeader + ": ");

@@ -1,4 +1,3 @@
-
 :: Checking if test should be run.
 IF "%SC_RUN_QUERYPROCESSING_TEST%"=="False" GOTO :EOF
 
@@ -8,13 +7,13 @@ SET DB_OUT_DIR=.db.output
 SET DB_NAME=QUERYPROCESSINGTEST
 SET TEST_NAME=QueryProcessingTest
 
-:: Killing all processes.
-CMD /C "kill_all.bat" 2>NUL
+:: Killing all SC processes.
+staradmin kill all
 
 :: Checking for existing dirs.
 IF EXIST .db (
-RMDIR .db /S /Q
-RMDIR .db.output /S /Q
+    RMDIR .db /S /Q
+    RMDIR .db.output /S /Q
 )
 
 IF EXIST s\QueryProcessingTest\dumpQueryProcessingDB.sql DEL s\QueryProcessingTest\dumpQueryProcessingDB.sql
@@ -29,9 +28,9 @@ IF %ERRORLEVEL% NEQ 0 EXIT /b 1
 
 :: Weaving the test.
 CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
-IF %ERRORLEVEL% NEQ 0 (
-ECHO Error: The query processing regression test failed!
-EXIT /b 1
+IF ERRORLEVEL 1 (
+    ECHO Error: The query processing regression test failed!
+    EXIT /b 1
 )
 
 :: Starting IPC monitor first.
@@ -63,17 +62,19 @@ IF %ERRORLEVEL% NEQ 0 EXIT /b 1
 
 :: Starting database with some delay.
 sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
-IF %ERRORLEVEL% NEQ 0 (
-ECHO Error: The query processing regression test failed!
-EXIT /b 1
+
+IF ERRORLEVEL 1 (
+    ECHO Error: The query processing regression test failed!
+    EXIT /b 1
 )
 
 sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
-IF %ERRORLEVEL% NEQ 0 (
-ECHO Error: The query processing regression test failed!
-EXIT /b 1
+
+IF ERRORLEVEL 1 (
+    ECHO Error: The query processing regression test failed!
+    EXIT /b 1
 ) else (
-ECHO The query processing regression test succeeded.
-EXIT /b 0
+    ECHO The query processing regression test succeeded.
+    EXIT /b 0
 )
 

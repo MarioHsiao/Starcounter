@@ -41,6 +41,10 @@ namespace Starcounter.XSON {
             : this(Encoding.UTF8.GetBytes(pointer)) {
         }
 
+        internal byte[] GetRawBuffer() {
+            return pointer;
+        }
+
         /// <summary>
         /// Finds the next token.
         /// </summary>

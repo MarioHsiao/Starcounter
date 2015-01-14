@@ -110,7 +110,7 @@ namespace Starcounter.InstallerWPF.Pages
                 if (this._CloseSystemMenuButtonIsEnabled == value) return;
                 this._CloseSystemMenuButtonIsEnabled = value;
 
-                var hwnd = new WindowInteropHelper(Application.Current.MainWindow).Handle;
+                var hwnd = new WindowInteropHelper(System.Windows.Application.Current.MainWindow).Handle;
                 IntPtr menu = GetSystemMenu(hwnd, false);
 
                 if (value)

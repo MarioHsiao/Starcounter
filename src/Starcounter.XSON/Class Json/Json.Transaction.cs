@@ -26,6 +26,22 @@ namespace Starcounter {
             }
         }
 
+        // TODO:
+        // Added to be able to use the correct syntax in samples.
+        public ITransaction Scope {
+            get {
+                return Transaction;
+            }
+        }
+
+        public void AttachCurrentScope() {
+            if (_DB != null && _DB.Current != null) {
+                if (Transaction == null || Transaction != _DB.Current) {
+                    _transaction = _DB.Current;
+                }
+            }
+        }
+
         /// <summary>
         /// Returns the transaction that is set on this app. Does NOT
         /// look in parents.
