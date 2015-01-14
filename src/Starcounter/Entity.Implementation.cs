@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace Starcounter {
 
-    public abstract partial class Entity : IBindable, IObjectView, IObjectProxy {
+    public partial class Entity : IBindable, IObjectView, IObjectProxy {
         static Entity() {
             HostManager.InitTypeSpecification(typeof(__starcounterTypeSpecification));
         }
