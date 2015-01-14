@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Hosting;
 using Starcounter.Internal;
 using System.Collections.Generic;
 
@@ -11,6 +12,13 @@ namespace Starcounter.Binding {
     /// </summary>
     public sealed class AutoCreatedType : SystemEntity {
         #region Infrastructure, reflecting what is emitted by the weaver.
+        static bool initialized = false;
+        internal static void InitType() {
+            if (!initialized) {
+                initialized = true;
+                HostManager.InitTypeSpecification(typeof(AutoCreatedType.__starcounterTypeSpecification));
+            }
+        }
 #pragma warning disable 0649, 0169
         internal class __starcounterTypeSpecification {
             internal static ushort tableHandle;
