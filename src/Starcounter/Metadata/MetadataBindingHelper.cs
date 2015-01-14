@@ -23,7 +23,7 @@ namespace Starcounter.Internal.Metadata {
             BaseName = baseName;
             TableDef = new TableDef(name, baseName, EmptyColumns);
             PropertyDefs = EmptyProperties;
-            TypeLoader = new TypeLoader(new AssemblyName("Starcounter"), name);
+            TypeLoader = TypeLoader.ForStarcounterType(name);
         }
 
         public TypeDef BuildFinalTypeDef(int thisIndex, ref TypeDef[] metadataTypeDefs) {
