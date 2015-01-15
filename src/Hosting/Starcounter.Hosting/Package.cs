@@ -255,6 +255,8 @@ namespace Starcounter.Hosting {
                     uint e = systables.star_prepare_system_tables();
                     if (e != 0) throw ErrorCode.ToException(e);
 
+                    ImplicitTransaction.CreateOrSetCurrent();
+
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                     OnRuntimeMetadataPopulated();
                     // Call CLR class clean up
