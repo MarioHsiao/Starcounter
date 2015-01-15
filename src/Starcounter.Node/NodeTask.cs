@@ -236,7 +236,7 @@ namespace Starcounter {
                     try
                     {
                         // Trying to parse the response.
-                        resp_ = new Response(accumBuffer_, 0, totallyReceivedBytes_, null, false);
+                        resp_ = new Response(accumBuffer_, 0, totallyReceivedBytes_, false);
 
                         // Setting offset bytes to 0.
                         receiveOffsetBytes_ = 0;
@@ -443,7 +443,7 @@ namespace Starcounter {
                 }
 
                 // Trying to parse the response.
-                resp_ = new Response(bytes, offset, resp_len_bytes, null, false);
+                resp_ = new Response(bytes, offset, resp_len_bytes, false);
 
                 // Getting the whole response size.
                 responseSizeBytes_ = resp_.ResponseSizeBytes;
@@ -554,7 +554,7 @@ namespace Starcounter {
                         try
                         {
                             // Trying to parse the response.
-                            resp_ = new Response(accumBuffer_, 0, totallyReceivedBytes_, null, false);
+                            resp_ = new Response(accumBuffer_, 0, totallyReceivedBytes_, false);
 
                             // Setting offset bytes to 0.
                             receiveOffsetBytes_ = 0;
@@ -616,11 +616,12 @@ namespace Starcounter {
             }
 
             // Logging the exception to server log.
-            if (nodeInst_.ShouldLogErrors)
+            if (nodeInst_.ShouldLogErrors) {
                 Node.nodeLogException_(exc);
+            }
 
-            resp_ = new Response()
-            {
+            resp_ = new Response() {
+
                 StatusCode = 503,
                 StatusDescription = "Service Unavailable",
                 ContentType = "text/plain",
@@ -628,12 +629,13 @@ namespace Starcounter {
             };
 
             // Parsing the response.
-            resp_.ConstructFromFields(null);
+            resp_.ConstructFromFields(null, null);
             resp_.ParseResponseFromPlainBuffer();
 
             // Invoking user delegate.
-            if (null != userDelegate_)
+            if (null != userDelegate_) {
                 nodeInst_.CallUserDelegate(resp_, userDelegate_, userObject_, boundSchedulerId_);
+            }
 
             // Freeing connection resources.
             nodeInst_.FreeConnection(this, isSyncCall);

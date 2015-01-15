@@ -88,7 +88,7 @@ namespace Starcounter.Internal
 
             for (Int32 i = 0; i < numSchedulers; i++) {
                 all_schedulers_resources_[i] = new SchedulerResources();
-                all_schedulers_resources_[i].AggregationStubResponse.ConstructFromFields(null);
+                all_schedulers_resources_[i].AggregationStubResponse.ConstructFromFields(null, null);
             }
         }
 

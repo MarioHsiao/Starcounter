@@ -29,7 +29,7 @@ namespace Starcounter.Rest
         public UInt64 handler_info_ = UInt64.MaxValue;
         public UInt16 port_ = 0;
         public MixedCodeConstants.NetworkProtocolType proto_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
-        public HTTP_METHODS http_method_ = HTTP_METHODS.GET;
+        public MixedCodeConstants.HTTP_METHODS http_method_ = MixedCodeConstants.HTTP_METHODS.GET;
 
         public void Destroy()
         {
@@ -190,8 +190,10 @@ namespace Starcounter.Rest
             // Checking if response is processed later.
             if (resp.HandlingStatus == HandlerStatusInternal.Handled
                 || !req.IsCachable()
-                || Session.Current == null)
+                || Session.Current == null) {
+
                 return;
+            }
 
             // In case of returned JSON object within current session we need to save it
             // for later reuse.
@@ -256,11 +258,18 @@ namespace Starcounter.Rest
                         resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
                     }
 
-                    // Check if response should be added to cache.
-                    TryAddResponseToCache(req, resp);
+                    // Checking if we have any response.
+                    if (null == resp) {
 
-                    // Setting to which application the response belongs.
-                    resp.AppName = appNames_[0];
+                        return null;
+
+                    } else {
+                        // Check if response should be added to cache.
+                        TryAddResponseToCache(req, resp);
+
+                        // Setting to which application the response belongs.
+                        resp.AppName = appNames_[0];
+                    }
                 }
 
                 // Checking if we need to merge.
@@ -295,8 +304,14 @@ namespace Starcounter.Rest
                 Response resp = TryGetResponseFromCache(req);
 
                 if (null == resp) {
+
                     // Calling intermediate user delegate.
                     resp = func(req, methodAndUri, rawParamsInfo);
+
+                    // Checking if we have any response.
+                    if (null == resp) {
+                        continue;
+                    }
 
                     // Check if response should be added to cache.
                     TryAddResponseToCache(req, resp);
@@ -453,7 +468,7 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        internal static Func<Request, HandlerOptions, Response> HandleInternalRequest_;
+        internal static Func<Request, HandlerOptions, Response> runDelegateAndProcessResponse_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public delegate void RegisterUriHandlerNativeDelegate(
@@ -475,17 +490,17 @@ namespace Starcounter.Rest
 
         // Checking if this Node supports local resting.
         internal static Boolean IsSupportingLocalNodeResting() {
-            return HandleInternalRequest_ != null;
+            return runDelegateAndProcessResponse_ != null;
         }
 
         public static void SetDelegates(
             RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, HandlerOptions, Response> handleInternalRequest) {
+            Func<Request, HandlerOptions, Response> runDelegateAndProcessResponse) {
 
             RegisterUriHandlerNative_ = registerUriHandlerNative;
             OnHttpMessageRoot_ = onHttpMessageRoot;
-            HandleInternalRequest_ = handleInternalRequest;
+            runDelegateAndProcessResponse_ = runDelegateAndProcessResponse;
         }
 
         /// <summary>
@@ -522,8 +537,8 @@ namespace Starcounter.Rest
 
         public PortUris AddPort(UInt16 port)
         {
-            lock (UriInjectMethods.HandleInternalRequest_)
-            {
+            lock (UriInjectMethods.runDelegateAndProcessResponse_) {
+
                 // Searching for existing port if any.
                 PortUris portUris = SearchPort(port);
                 if (portUris != null)
@@ -600,30 +615,39 @@ namespace Starcounter.Rest
             }
         }
 
-        public void RunDelegate(Request r, HandlerOptions handlerOptions, out Response resp)
+        public static UInt16 GetPortNumber(Request req, HandlerOptions handlerOptions) {
+
+            UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
+
+            return uhm.AllUserHandlerInfos[req.ManagedHandlerId].UriInfo.port_;
+        }
+
+        public void RunDelegate(Request req, HandlerOptions handlerOptions, out Response resp)
         {
             unsafe
             {
-                UserHandlerInfo uhi = allUriHandlers_[r.ManagedHandlerId];
+                resp = null;
+
+                UserHandlerInfo uhi = allUriHandlers_[req.ManagedHandlerId];
 
                 // Checking if we had custom type user Message argument.
                 if (uhi.ArgMessageType != null) {
-                    r.ArgMessageObjectType = uhi.ArgMessageType;
-                    r.ArgMessageObjectCreate = uhi.ArgMessageCreate;
+                    req.ArgMessageObjectType = uhi.ArgMessageType;
+                    req.ArgMessageObjectCreate = uhi.ArgMessageCreate;
                 }
 
                 // Setting some request parameters.
-                r.PortNumber = uhi.UriInfo.port_;
-                r.MethodEnum = uhi.UriInfo.http_method_;
+                req.PortNumber = uhi.UriInfo.port_;
+                req.MethodEnum = uhi.UriInfo.http_method_;
 
                 // Saving original application name.
                 String origAppName = StarcounterEnvironment.AppName;
 
                 // Calling user delegate.
                 resp = uhi.RunUserDelegates(
-                    r,
-                    r.GetRawMethodAndUri(),
-                    r.GetRawParametersInfo(),
+                    req,
+                    req.GetRawMethodAndUri(),
+                    req.GetRawParametersInfo(),
                     handlerOptions
                     );
 
