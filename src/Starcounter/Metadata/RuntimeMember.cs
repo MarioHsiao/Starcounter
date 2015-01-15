@@ -196,4 +196,42 @@ namespace Starcounter.Metadata {
             }
         }
     }
+
+    public sealed class MappedProperty : Property {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_Get;
+            internal static int columnHandle_Set;
+            internal static int columnHandle_Column;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static internal new TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        public MappedProperty(Uninitialized u) : base(u) { }
+
+        internal MappedProperty()
+            : this(null) {
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle,
+                ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public Starcounter.Metadata.Column Column {
+            get {
+                return (Starcounter.Metadata.Column)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Column);
+            }
+            internal set {
+                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Column, value);
+            }
+        }
+    }
 }

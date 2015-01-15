@@ -203,8 +203,8 @@ namespace Starcounter.Binding
                     int j = 1;
                     while (j < prpDefs.Length + 1 && !(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name))
                         j++;
-                    prpDefs[curProp].IsNullable = tblDef.ColumnDefs[j].IsNullable;
                     Debug.Assert(prpDefs[curProp].Name == tblDef.ColumnDefs[j].Name);
+                    prpDefs[curProp].IsNullable = tblDef.ColumnDefs[j].IsNullable;
                 }
                 _PropertyDefs = prpDefs;
                 TableDef.ColumnDefs = tblDef.ColumnDefs;
