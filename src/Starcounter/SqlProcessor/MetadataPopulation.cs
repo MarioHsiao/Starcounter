@@ -63,7 +63,9 @@ namespace Starcounter.SqlProcessor {
                                 CodeProperty codeProp = new CodeProperty {
                                     Table = theView,
                                     Name = propDef.Name,
-                                    Type = propType
+                                    Type = propType,
+                                    Get = true,
+                                    Set = true
                                 };
                             } else {
                                 Starcounter.Internal.Metadata.MaterializedColumn matCol =

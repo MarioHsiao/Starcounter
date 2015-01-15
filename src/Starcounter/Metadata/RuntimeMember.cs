@@ -159,12 +159,14 @@ namespace Starcounter.Metadata {
         }
     }
     
-    public sealed class CodeProperty : Member {
+    public sealed class CodeProperty : Property {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
+            internal static int columnHandle_Get;
+            internal static int columnHandle_Set;
             internal static int columnHandle_Polymorphic;
         }
 #pragma warning disable 0628, 0169
