@@ -52,6 +52,8 @@ namespace Starcounter.Hosting {
             GCHandle gcHandle = (GCHandle)hPackage;
             Package p = (Package)gcHandle.Target;
             gcHandle.Free();
+            
+            ImplicitTransaction.CreateOrSetCurrent();
             p.Process();
         }
 
@@ -152,9 +154,7 @@ namespace Starcounter.Hosting {
             try {
                 OnProcessingStarted();
 
-                Db.ImplicitScope(() => {
-                    UpdateDatabaseSchemaAndRegisterTypes(unregisteredTypeDefinitions);
-                }, 0);
+                UpdateDatabaseSchemaAndRegisterTypes(unregisteredTypeDefinitions);
 
                 if (application != null && !StarcounterEnvironment.IsAdministratorApp)
                     AppsBootstrapper.Bootstrap(application.WorkingDirectory);
@@ -255,13 +255,15 @@ namespace Starcounter.Hosting {
                     uint e = systables.star_prepare_system_tables();
                     if (e != 0) throw ErrorCode.ToException(e);
 
+                    ImplicitTransaction.CreateOrSetCurrent();
+
                     Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
                     OnRuntimeMetadataPopulated();
                     // Call CLR class clean up
                     Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
                     OnCleanClrMetadata();
 
-                    ImplicitTransaction.Current(true).SetCurrent();
+                    ImplicitTransaction.CreateOrSetCurrent();
 
                     // Populate properties and columns .NET metadata
                     unregisteredTypeDefs = MetadataBindingHelper.BuildFinalMetadataTypeDefs(unregisteredTypeDefs);
@@ -412,18 +414,10 @@ namespace Starcounter.Hosting {
 
             try {
                 if (entrypoint.GetParameters().Length == 0) {
-
-                    Db.ImplicitScope(() => {
-                        entrypoint.Invoke(null, null);
-                    });
-
+                    entrypoint.Invoke(null, null);
                 } else {
                     var arguments = application.Arguments ?? new string[0];
-
-                    Db.ImplicitScope(() => {
-                        entrypoint.Invoke(null, new object[] { arguments });
-                    });
-
+                    entrypoint.Invoke(null, new object[] { arguments });
                 }
             } catch (TargetInvocationException te) {
                 var entrypointException = te.InnerException;
