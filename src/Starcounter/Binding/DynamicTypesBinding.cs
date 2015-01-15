@@ -63,21 +63,15 @@ namespace Starcounter.Binding {
             // See issue #2482
             // TODO:
 
-            // Check that any type reference is only allowed ONCE
-            // per database class; otherwise we can not determine what
-            // table to create it in.
-            // This should be enforced as part of weaving.
-            // TODO:
-
-            // We must also enforce in the weaver that hierarchies of
+            // We must enforce in the weaver that hierarchies of
             // types are correct. If there is an "explicit type", such
             // as in our "Car/CarModel" sample, then "CarModel" can
             // not derive just anything.
             // TODO:
 
             // Create the instance, store the ID of it for future
-            // reference in the dictionary and finally create the
-            // tracked auto-creation type for it.
+            // reference in the dictionary and finally update the
+            // metadata to reference the auto created instance.
             
             ulong oid = 0, addr = 0;
             DbState.Insert(tb.TableId, ref oid, ref addr);
