@@ -271,8 +271,7 @@ namespace Starcounter
             }
         }
 
-        /// <summary>
-                                
+        /// <summary>                        
         /// </summary>
         public static void SetEnvironment(DbEnvironment e) // TODO: Internal
         {
