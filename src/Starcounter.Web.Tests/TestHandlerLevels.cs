@@ -33,8 +33,8 @@ namespace Starcounter.Internal.Tests {
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.HandleRequest);
-            Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
+            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
+            Node.InjectHostedImpl(UriManagedHandlersCodegen.RunUriMatcherAndCallHandler, null);
 
             // Initializing system profilers.
             Profiler.Init(true);
@@ -98,8 +98,8 @@ namespace Starcounter.Internal.Tests {
 
             handlerUri = "/HandlerMultiB";
 
-            Handle.GET(handlerUri, () => { return HandlerStatus.NotHandled; }, HandlerOptions.DefaultLevel);
-            Handle.GET(handlerUri, () => { return HandlerStatus.NotHandled; }, HandlerOptions.ApplicationLevel);
+            Handle.GET(handlerUri, () => { return null; }, HandlerOptions.DefaultLevel);
+            Handle.GET(handlerUri, () => { return null; }, HandlerOptions.ApplicationLevel);
             Handle.GET(handlerUri, () => { return handlerUri; }, HandlerOptions.ApplicationExtraLevel);
 
             X.GET(handlerUri, out resp);

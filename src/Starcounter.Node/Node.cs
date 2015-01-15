@@ -82,7 +82,7 @@ namespace Starcounter
         /// <summary>
         /// Performs local Node REST call.
         /// </summary>
-        static DoLocalNodeRest doLocalNodeRest_;
+        static RunUriMatcherAndCallHandlerDelegate runUriMatcherAndCallHandler_;
 
         /// <summary>
         /// Pending async tasks.
@@ -97,13 +97,11 @@ namespace Starcounter
         /// <summary>
         /// Initializes Node implementation.
         /// </summary>
-        /// <param name="rest"></param>
-        /// <param name="logSource"></param>
         internal static void InjectHostedImpl(
-            DoLocalNodeRest doLocalNodeRest,
+            RunUriMatcherAndCallHandlerDelegate runUriMatcherAndCallHandler,
             Action<Exception> nodeLogException)
         {
-            doLocalNodeRest_ = doLocalNodeRest;
+            runUriMatcherAndCallHandler_ = runUriMatcherAndCallHandler;
             nodeLogException_ = nodeLogException;
         }
 
@@ -240,9 +238,9 @@ namespace Starcounter
         internal delegate Response HandleResponse(Request request, Response x);
 
         /// <summary>
-        /// Delegate to process Node local requests.
+        /// Delegate to run URI matcher and call handler.
         /// </summary>
-        internal delegate Boolean DoLocalNodeRest(
+        internal delegate Boolean RunUriMatcherAndCallHandlerDelegate(
             String methodAndUriPlusSpace,
             Byte[] requestBytes,
             Int32 requestBytesLength,
@@ -715,12 +713,16 @@ namespace Starcounter
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            if (ho == null)
-                ho = new HandlerOptions();
-
-            ho.DontModifyHeaders = true;
-
-            DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, userDelegate, userObject, receiveTimeoutMs, ho, req);
+            DoRESTRequestAndGetResponse(
+                req.Method,
+                req.Uri,
+                req.Headers,
+                req.BodyBytes,
+                userDelegate,
+                userObject,
+                receiveTimeoutMs,
+                ho,
+                req);
         }
 
         /// <summary>
@@ -735,12 +737,17 @@ namespace Starcounter
         /// <returns>HTTP response.</returns>
         public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            if (ho == null)
-                ho = new HandlerOptions();
-
-            ho.DontModifyHeaders = true;
-
-            return DoRESTRequestAndGetResponse(req.Method, req.Uri, req.Headers, req.BodyBytes, null, null, receiveTimeoutMs, ho, req.CustomBytes, req.CustomBytesLength);
+            return DoRESTRequestAndGetResponse(
+                req.Method,
+                req.Uri,
+                req.Headers,
+                req.BodyBytes,
+                null,
+                null,
+                receiveTimeoutMs,
+                ho,
+                req.CustomBytes,
+                req.CustomBytesLength);
         }
 
         /// <summary>
@@ -777,13 +784,6 @@ namespace Starcounter
                 else
                 {
                     userDelegate.Invoke(resp, userObject);
-                }
-
-                // Checking if response should be sent.
-                if (resp.Request != null)
-                {
-                    resp.Request.SendResponse(resp, null);
-                    resp.Request = null;
                 }
             }
             catch (Exception exc)
@@ -829,7 +829,6 @@ namespace Starcounter
             String relativeUri,
             String customHeaders,
             Byte[] bodyBytes,
-            Boolean dontModifyHeaders,
             out Int32 requestBytesLength) {
 
             Utf8Writer writer;
@@ -847,20 +846,17 @@ namespace Starcounter
                     writer.Write(HttpHeadersUtf8.Http11NoSpace);
                     writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
-                    // Checking if headers should be sent as-is.
-                    if (!dontModifyHeaders) {
-                        writer.Write(HttpHeadersUtf8.HostStart);
-                        writer.Write(hostName_);
-                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
+                    writer.Write(HttpHeadersUtf8.HostStart);
+                    writer.Write(hostName_);
+                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
-                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-                        if (bodyBytes != null)
-                            writer.Write(bodyBytes.Length);
-                        else
-                            writer.Write(0);
+                    writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                    if (bodyBytes != null)
+                        writer.Write(bodyBytes.Length);
+                    else
+                        writer.Write(0);
 
-                        writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-                    }
+                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
 
                     // Checking if headers already supplied.
                     if (customHeaders != null) {
@@ -884,8 +880,8 @@ namespace Starcounter
         }
 
         void DoAsyncTransfer(
-            Byte[] dataBytes,
-            Int32 dataBytesLength,
+            Byte[] requestBytes,
+            Int32 requestBytesLength,
             Action<Response, Object> userDelegate,
             Action<AggregationStruct> aggrMsgDelegate = null,
             Object userObject = null,
@@ -922,7 +918,7 @@ namespace Starcounter
                 currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
             // Initializing connection.
-            nt.ResetButKeepSocket(dataBytes, dataBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
+            nt.ResetButKeepSocket(requestBytes, requestBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
 
             // Checking if we don't use aggregation.
             if (!UsesAggregation()) {
@@ -932,6 +928,41 @@ namespace Starcounter
                 // Putting to aggregation queue.
                 aggr_pending_async_tasks_.Enqueue(nt);
             }
+        }
+
+        /// <summary>
+        /// Filters the request.
+        /// </summary>
+        public static Response FilterRequest(
+            String method,
+            String relativeUri,
+            Byte[] requestBytes,
+            Int32 requestBytesLength,
+            UInt16 portNumber) {
+
+            String processedRelativeUri = relativeUri;
+
+#if CASE_INSENSITIVE_URI_MATCHER
+
+            // Making incoming URI lower case.
+            processedRelativeUri = relativeUri.ToLowerInvariant();
+#endif
+
+            String methodSpaceUriSpace = method + " " + processedRelativeUri + " ";
+
+            // No response initially.
+            Response resp = null;
+
+            // Running URI matcher and calling determined handler.
+            runUriMatcherAndCallHandler_(
+                methodSpaceUriSpace,
+                requestBytes,
+                requestBytesLength,
+                portNumber,
+                HandlerOptions.FilteringLevel,
+                out resp);
+
+            return resp;
         }
 
         /// <summary>
@@ -949,14 +980,6 @@ namespace Starcounter
             Byte[] customBytes = null,
             Int32 customBytesLength = 0)
         {
-            Boolean callOnlySpecificHandlerLevel = true;
-
-            // Checking if handler options is defined.
-            if (handlerOptions == null) {
-                handlerOptions = HandlerOptions.DefaultLevel;
-                callOnlySpecificHandlerLevel = false;
-            }
-
             Int32 requestBytesLength;
             Byte[] requestBytes;
             String processedRelativeUri = relativeUri;
@@ -976,12 +999,25 @@ namespace Starcounter
                     throw new ArgumentOutOfRangeException("URI should contain at least one character.");
                 }
 
-                requestBytes = ConstructRequestBytes(method, relativeUri, customHeaders, bodyBytes, handlerOptions.DontModifyHeaders, out requestBytesLength);
+                requestBytes = ConstructRequestBytes(
+                    method,
+                    relativeUri,
+                    customHeaders,
+                    bodyBytes,
+                    out requestBytesLength);
 
             } else {
 
                 requestBytes = customBytes;
                 requestBytesLength = customBytesLength;
+            }
+
+            Boolean callOnlySpecificHandlerLevel = true;
+
+            // Checking if handler options is defined.
+            if (handlerOptions == null) {
+                handlerOptions = HandlerOptions.DefaultLevel;
+                callOnlySpecificHandlerLevel = false;
             }
             
             // Checking if we are on local node.
@@ -990,31 +1026,53 @@ namespace Starcounter
                 // No response initially.
                 Response resp = null;
 
-DO_CODEHOST_ON_GIVEN_LEVEL:
-
                 // Trying to do local node REST.
-                if (doLocalNodeRest_(methodSpaceUriSpace, requestBytes, requestBytesLength, portNumber_, handlerOptions, out resp)) {
+                if (runUriMatcherAndCallHandler_(
+                    methodSpaceUriSpace,
+                    requestBytes,
+                    requestBytesLength,
+                    portNumber_,
+                    HandlerOptions.FilteringLevel,
+                    out resp)) {
 
-                    // Checking if handled.
-                    if (resp.HandlingStatus != HandlerStatusInternal.NotHandled) {
+                    // Checking if user has supplied a delegate to be called.
+                    if (null != userDelegate) {
 
-                        // Checking if user has supplied a delegate to be called.
-                        if (null != userDelegate) {
+                        // Invoking user delegate.
+                        userDelegate.Invoke(resp, userObject);
 
-                            // Invoking user delegate.
-                            userDelegate.Invoke(resp, userObject);
-
-                            // Checking if response should be sent.
-                            if (resp.Request != null) {
-                                resp.Request.SendResponse(resp, null);
-                                resp.Request = null;
-                            }
-
-                            return null;
-                        }
-
-                        return resp;
+                        return null;
                     }
+
+                    return resp;
+                }
+
+                // Checking if we have a response or if its not a gateway level handler.
+                if (resp != null) {
+                    return resp;
+                }
+
+DO_CALL_ON_GIVEN_LEVEL:
+
+                // Running URI matcher and call handler.
+                if (runUriMatcherAndCallHandler_(
+                    methodSpaceUriSpace,
+                    requestBytes,
+                    requestBytesLength,
+                    portNumber_,
+                    handlerOptions,
+                    out resp)) {
+
+                    // Checking if user has supplied a delegate to be called.
+                    if (null != userDelegate) {
+
+                        // Invoking user delegate.
+                        userDelegate.Invoke(resp, userObject);
+
+                        return null;
+                    }
+
+                    return resp;
                 }
             
                 // Checking if we have a response or if its not a gateway level handler.
@@ -1031,17 +1089,17 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
 
                             case HandlerOptions.HandlerLevels.DefaultLevel: {
                                 handlerOptions = HandlerOptions.ApplicationLevel;
-                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                                goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationLevel: {
                                 handlerOptions = HandlerOptions.ApplicationExtraLevel;
-                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                                goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
                                 handlerOptions = HandlerOptions.CodeHostStaticFileServer;
-                                goto DO_CODEHOST_ON_GIVEN_LEVEL;
+                                goto DO_CALL_ON_GIVEN_LEVEL;
                             }
                         };
 
@@ -1050,7 +1108,6 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
                         // NOTE: We tried a specific handler level but didn't get any response, so returning.
                         return null;
                     }
-
                 }
             }
 
@@ -1068,8 +1125,8 @@ DO_CODEHOST_ON_GIVEN_LEVEL:
                 return null;
             }
 
-            lock (finished_async_tasks_)
-            {
+            lock (finished_async_tasks_) {
+
                 // Initializing connection.
                 sync_task_info_.ResetButKeepSocket(requestBytes, requestBytesLength, null, null, userObject, receiveTimeoutMs, 0);
 

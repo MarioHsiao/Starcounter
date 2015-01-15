@@ -92,20 +92,6 @@ namespace bmx
     const uint8_t BMX_PING = 254;
     const uint8_t BMX_PONG = 255;
 
-    // Supported HTTP methods.
-    enum HTTP_METHODS
-    {
-        GET_METHOD,
-        POST_METHOD,
-        PUT_METHOD,
-        DELETE_METHOD,
-        HEAD_METHOD,
-        OPTIONS_METHOD,
-        TRACE_METHOD,
-        PATCH_METHOD,    
-        OTHER_METHOD
-    };
-
     // Entrance to process any BMX message.
     extern uint32_t OnIncomingBmxMessage(
         uint16_t managed_handler_id,
