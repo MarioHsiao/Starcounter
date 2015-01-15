@@ -118,6 +118,48 @@ namespace Starcounter.Metadata {
         }
     }
 
+    public abstract class Property : Member {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_Get;
+            internal static int columnHandle_Set;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static internal new TypeDef CreateTypeDef() {
+            return MetadataBindingHelper.CreateTypeTableDef(
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        public Property(Uninitialized u) : base(u) { }
+
+        public Boolean Get {
+            get {
+                return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Get);
+            }
+            internal set {
+                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Get, value);
+            }
+        }
+        
+        public Boolean Set {
+            get {
+                return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Set);
+            }
+            internal set {
+                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Set, value);
+            }
+        }
+    }
+    
     public sealed class CodeProperty : Member {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
