@@ -12,6 +12,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_Table;
             internal static int columnHandle_Name;
             internal static int columnHandle_Type;
+            internal static int columnHandle_Inherited;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -53,6 +54,17 @@ namespace Starcounter.Metadata {
             internal set {
                 DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_Type, value);
+            }
+        }
+
+        public Boolean Inherited {
+            get {
+                return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Inherited);
+            }
+            internal set {
+                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Inherited, value);
             }
         }
     }
