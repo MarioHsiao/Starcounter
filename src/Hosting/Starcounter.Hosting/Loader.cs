@@ -83,7 +83,8 @@ namespace StarcounterInternal.Hosting
                     Starcounter.Metadata.MapPrimitiveType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
                     Table.CreateTypeDef(), RawView.CreateTypeDef(),
                     VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), Member.CreateTypeDef(), 
-                    Column.CreateTypeDef(), CodeProperty.CreateTypeDef(), Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
+                    Column.CreateTypeDef(), Property.CreateTypeDef(), CodeProperty.CreateTypeDef(), 
+                    Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
                 },
                 stopwatch_
                 );
