@@ -74,7 +74,7 @@ namespace Starcounter.Binding {
             // metadata to reference the auto created instance.
             
             ulong oid = 0, addr = 0;
-            DbState.Insert(tb.TableId, ref oid, ref addr);
+            DbState.SystemInsert(tb.TableId, ref oid, ref addr);
             var proxy = tb.NewInstance(addr, oid);
             var entity = EntityHelper.ToEntity(proxy);
             entity.Name = typeDef.Name;
