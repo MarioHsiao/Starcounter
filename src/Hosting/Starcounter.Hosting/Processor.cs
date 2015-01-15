@@ -4,11 +4,11 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
+using System.Runtime.InteropServices;
 using Starcounter;
 using Starcounter.Hosting;
 using Starcounter.Internal;
-using System;
-using System.Runtime.InteropServices;
 
 namespace StarcounterInternal.Hosting
 {
@@ -85,6 +85,8 @@ namespace StarcounterInternal.Hosting
             var gcHandle = (GCHandle)hTask;
             var task = (ITask)gcHandle.Target;
             gcHandle.Free();
+            
+            ImplicitTransaction.CreateOrSetCurrent();
             task.Run();
         }
     }
