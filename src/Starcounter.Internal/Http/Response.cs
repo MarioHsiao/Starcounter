@@ -21,15 +21,9 @@ namespace Starcounter
         Handled = 1,
 
         /// <summary>
-        /// The handler didn't handle the request.
-        /// Request is going to be handled by outer handler, for example, a static files resolver.
-        /// </summary>
-        NotHandled = 2,
-
-        /// <summary>
         /// If static files resolver should take care of response.
         /// </summary>
-        ResolveStaticContent = 3
+        ResolveStaticContent = 2
     }
 
     /// <summary>
@@ -46,12 +40,6 @@ namespace Starcounter
         /// The response was handled by some explicit means.
         /// </summary>
         Handled,
-
-        /// <summary>
-        /// The handler didn't handle the request.
-        /// Request is going to be handled by outer handler, for example, a static files resolver.
-        /// </summary>
-        NotHandled,
 
         /// <summary>
         /// If static files resolver should take care of response.
@@ -249,11 +237,6 @@ namespace Starcounter
         Boolean isInternalResponse_;
 
         /// <summary>
-        /// Reference to corresponding request.
-        /// </summary>
-        Request corrRequest_;
-
-        /// <summary>
         /// Underlying memory stream.
         /// </summary>
         MemoryStream memStream_;
@@ -296,7 +279,6 @@ namespace Starcounter
 
             System.Diagnostics.Debug.Assert(null == memStream_);
             System.Diagnostics.Debug.Assert(IntPtr.Zero == responseStructIntPtr_);
-            System.Diagnostics.Debug.Assert(null == corrRequest_);
             System.Diagnostics.Debug.Assert(IntPtr.Zero == socketDataIntPtr_);
             System.Diagnostics.Debug.Assert(null == wsHandshakeResp_);
             System.Diagnostics.Debug.Assert(null == cookies_);
@@ -764,7 +746,7 @@ namespace Starcounter
 		/// <summary>
 		/// Constructs response buffer from fields that are set.
 		/// </summary>
-		internal void ConstructFromFields(Byte[] givenBuffer) {
+		internal void ConstructFromFields(Request req, Byte[] givenBuffer) {
 
 			// Checking if we have a custom response.
 			if (!customFields_)
@@ -774,10 +756,16 @@ namespace Starcounter
             Utf8Writer writer;
 
 			byte[] bytes = bodyBytes_;
+
 			if (resource_ != null) {
 
                 Profiler.Current.Start(ProfilerNames.GetPreferredMimeType);
-				var mimetype = corrRequest_.PreferredMimeType;
+
+                MimeType mimetype = MimeType.Unspecified;
+                if (req != null) {
+                    mimetype = req.PreferredMimeType;
+                }
+
                 Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
 
 				try {
@@ -785,13 +773,21 @@ namespace Starcounter
 					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
 				} catch (UnsupportedMimeTypeException exc) {
 					throw new Exception(
-						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", corrRequest_[HttpHeadersUtf8.GetAcceptHeader], exc.ToString()));
+						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", mimetype.ToString(), exc.ToString()));
 				}
 
 				if (bytes == null) {
 					// The preferred requested mime type was not supported, try to see if there are
 					// other options.
-					IEnumerator<MimeType> secondaryChoices = corrRequest_.PreferredMimeTypes;
+					IEnumerator<MimeType> secondaryChoices = null;
+                    if (req != null) {
+                        secondaryChoices = req.PreferredMimeTypes;
+                    } else {
+                        var l = new List<MimeType>();
+                        l.Add(mimetype);
+                        secondaryChoices = l.GetEnumerator();
+                    }
+
 					secondaryChoices.MoveNext(); // The first one is already accounted for
 					while (bytes == null && secondaryChoices.MoveNext()) {
 						mimetype = secondaryChoices.Current;
@@ -881,7 +877,7 @@ namespace Starcounter
                     }
 
                     // Checking if session is defined.
-                    if (addSetCookie && (null != AppsSession) && (corrRequest_ == null || !corrRequest_.CameWithCorrectSession)) {
+                    if (addSetCookie && (null != AppsSession) && ((req == null) || (!req.CameWithCorrectSession))) {
 
                         if (AppsSession.use_session_cookie_) {
                             writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
@@ -1084,19 +1080,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// A response may be associated with a request. If a response is created without a content type,
-        /// the primary content type of the Accept header in the request will be assumed.
-        /// </summary>
-        public Request Request {
-            get {
-                return corrRequest_;
-            }
-            set {
-                corrRequest_ = value;
-            }
-        }
-
-        /// <summary>
         /// Setting the response buffer.
         /// </summary>
         /// <param name="response_buf"></param>
@@ -1213,15 +1196,12 @@ namespace Starcounter
         /// </summary>
         /// <param name="buf">The buf.</param>
         /// <exception cref="System.NotImplementedException"></exception>
-        public Response(Byte[] buf, Int32 offset, Int32 lenBytes, Request httpRequest = null, Boolean complete = true)
+        public Response(Byte[] buf, Int32 offset, Int32 lenBytes, Boolean complete = true)
         {
-            unsafe
-            {
+            unsafe {
+
                 // Parsing given buffer.
                 TryParseResponse(buf, offset, lenBytes, complete);
-
-                // Setting corresponding HTTP request.
-                corrRequest_ = httpRequest;
             }
         }
 

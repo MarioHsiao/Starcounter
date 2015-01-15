@@ -67,15 +67,15 @@ namespace Starcounter.Internal {
                     GatewayHandlers.RegisterUriHandlerNative,
                     GatewayHandlers.RegisterTcpSocketHandler,
                     GatewayHandlers.RegisterUdpSocketHandler,
-                    OnHttpMessageRoot,
-                    AppServer_.HandleRequest);
+                    ProcessExternalRequest,
+                    AppServer_.RunDelegateAndProcessResponse);
 
                 AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
             }
 
             // Injecting required hosted Node functionality.
             Node.InjectHostedImpl(
-                UriManagedHandlersCodegen.DoLocalNodeRest,
+                UriManagedHandlersCodegen.RunUriMatcherAndCallHandler,
                 NodeErrorLogSource.LogException);
 
             // Initializing global sessions.
@@ -187,18 +187,36 @@ namespace Starcounter.Internal {
         static Byte[] responseSerializationBuffer_;
 
         /// <summary>
-        /// Entry-point for all incoming http requests from the Network Gateway.
+        /// Entry-point for all external HTTP requests from the Network Gateway.
         /// </summary>
-        /// <param name="request">The http request</param>
-        /// <returns>Returns true if the request was handled</returns>
-        private static Boolean OnHttpMessageRoot(Request req) {
+        private static Boolean ProcessExternalRequest(Request req) {
 
             Response resp = null;
 
             try {
 
-                // Handling request on initial level.
-                resp = AppServer_.HandleRequest(req, HandlerOptions.DefaultLevel);
+                // Getting appropriate handler level manager.
+                UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.FilteringLevel);
+
+                // Checking if there are any registered handlers.
+                if (uhm.NumRegisteredHandlers > 0) {
+
+                    req.PortNumber = UriHandlersManager.GetPortNumber(req, HandlerOptions.DefaultLevel);
+
+                    resp = Node.FilterRequest(
+                        req.Method,
+                        req.Uri,
+                        req.GetRequestByteArray_Slow(),
+                        req.GetRequestLength(),
+                        req.PortNumber);
+                }
+
+                // Checking if filter level did allow this request.
+                if (null == resp) {
+
+                    // Handling request on initial level.
+                    resp = AppServer_.RunDelegateAndProcessResponse(req, HandlerOptions.DefaultLevel);
+                }
 
             } catch (ResponseException exc) {
 
@@ -206,6 +224,7 @@ namespace Starcounter.Internal {
                 resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
 
             } catch (UriInjectMethods.IncorrectSessionException) {
+
                 resp = Response.FromStatusCode(400);
                 resp["Connection"] = "close";
 
@@ -226,6 +245,7 @@ namespace Starcounter.Internal {
             switch (resp.HandlingStatus) {
 
                 case HandlerStatusInternal.Done: {
+
                     // Creating response serialization buffer.
                     if (responseSerializationBuffer_ == null) {
                         responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];

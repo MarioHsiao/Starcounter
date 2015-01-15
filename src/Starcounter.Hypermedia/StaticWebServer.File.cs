@@ -127,7 +127,7 @@ namespace Starcounter.Internal.Web {
                 }
 
                 // Creating byte representation of the response.
-                response.ConstructFromFields(null);
+                response.ConstructFromFields(req, null);
                 cacheOnUri_[relativeUri] = response;
 
                 // TODO: 

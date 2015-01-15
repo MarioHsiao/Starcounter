@@ -910,7 +910,7 @@ namespace Starcounter.Rest
             TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
             UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, HandlerOptions, Response> handleInternalRequest)
+            Func<Request, HandlerOptions, Response> runDelegateAndProcessResponse)
         {
             TcpSocket.InitTcpSockets(tcpSocketHandler);
             UdpSocket.InitUdpSockets(udpSocketHandler);
@@ -918,16 +918,16 @@ namespace Starcounter.Rest
             UriInjectMethods.SetDelegates(
                 registerUriHandlerNative,
                 onHttpMessageRoot,
-                handleInternalRequest);
+                runDelegateAndProcessResponse);
 
             RequestHandler.InitREST();
             UriHandlersManager.Init();
         }
 
         /// <summary>
-        /// Performs local node REST.
+        /// Run URI matcher and call determined handler.
         /// </summary>
-        internal static Boolean DoLocalNodeRest(
+        internal static Boolean RunUriMatcherAndCallHandler(
             String methodSpaceUriSpace,
             Byte[] requestBytes,
             Int32 requestBytesLength,
@@ -938,11 +938,17 @@ namespace Starcounter.Rest
             resp = null;
 
             // Checking if local RESTing is initialized.
-            if (!UriInjectMethods.IsSupportingLocalNodeResting())
+            if (!UriInjectMethods.IsSupportingLocalNodeResting()) {
                 return false;
+            }
 
             // Getting appropriate handler level manager.
             UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
+
+            // Checking if there are any registered handlers.
+            if (uhm.NumRegisteredHandlers <= 0) {
+                return false;
+            }
 
             // Checking if port is initialized.
             PortUris portUris = uhm.SearchPort(portNumber);
@@ -950,48 +956,50 @@ namespace Starcounter.Rest
                 portUris = uhm.AddPort(portNumber);
 
             // Calling the code generation for URIs if needed.
-            if (null == portUris.MatchUriAndGetHandlerId)
-            {
+            if (null == portUris.MatchUriAndGetHandlerId) {
+
                 if (!portUris.GenerateUriMatcher(
                     portNumber,
                     uhm.AllUserHandlerInfos,
-                    uhm.NumRegisteredHandlers))
-                {
+                    uhm.NumRegisteredHandlers)) {
+
                     return false;
                 }
             }
 
             // Calling the generated URI matcher.
             Int32 handlerId = handlerOptions.HandlerId;
-            unsafe
-            {
+
+            unsafe {
+
                 // Allocating space for parameter information.
                 Byte* paramsStackBuf = stackalloc Byte[MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES];
-                MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams = 
-                    (MixedCodeConstants.UserDelegateParamInfo*) paramsStackBuf;
-
-                // Setting parameters info from handler options.
-                *handlerNativeParams = handlerOptions.ParametersInfo;
-
-                MixedCodeConstants.UserDelegateParamInfo** handlerNativeParamsAddr = &handlerNativeParams;
-
-                // Copying string to stack buffer instead of pinning the request bytes.
-                Int32 len = methodSpaceUriSpace.Length;
-                Byte* uri_info = stackalloc Byte[len];
-                for (Int32 i = 0; i < len; i++) {
-                    uri_info[i] = (Byte) methodSpaceUriSpace[i];
-                }
 
                 // Checking if handler is predefined.
-                if (handlerId == HandlerOptions.InvalidUriHandlerId) {
+                if (HandlerOptions.InvalidUriHandlerId == handlerId) {
+
+                    MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams =
+                    (MixedCodeConstants.UserDelegateParamInfo*)paramsStackBuf;
+
+                    // Setting parameters info from handler options.
+                    *handlerNativeParams = handlerOptions.ParametersInfo;
+
+                    MixedCodeConstants.UserDelegateParamInfo** handlerNativeParamsAddr = &handlerNativeParams;
+
+                    // Copying string to stack buffer instead of pinning the request bytes.
+                    Int32 len = methodSpaceUriSpace.Length;
+                    Byte* uri_info = stackalloc Byte[len];
+                    for (Int32 i = 0; i < len; i++) {
+                        uri_info[i] = (Byte) methodSpaceUriSpace[i];
+                    }
 
                     // TODO: Resolve this hack with only positive handler ids in generated code.
                     handlerId = portUris.MatchUriAndGetHandlerId(uri_info, (UInt32)len, handlerNativeParamsAddr) - 1;
                 }
 
                 // Checking if we have found the handler.
-                if (handlerId >= 0)
-                {
+                if (handlerId >= 0) {
+
                     // Creating HTTP request.
                     Request req = new Request(requestBytes, requestBytesLength, paramsStackBuf);
 
@@ -999,7 +1007,7 @@ namespace Starcounter.Rest
                     req.MethodEnum = uhm.AllUserHandlerInfos[handlerId].UriInfo.http_method_;
 
                     // Invoking original user delegate with parameters here.
-                    resp = UriInjectMethods.HandleInternalRequest_(req, handlerOptions);
+                    resp = UriInjectMethods.runDelegateAndProcessResponse_(req, handlerOptions);
 
                     // Checking if handled the response.
                     if (resp == null)
