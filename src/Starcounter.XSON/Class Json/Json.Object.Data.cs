@@ -33,7 +33,10 @@ namespace Starcounter {
                 return _data;
             }
             set {
-                AttachCurrentScope();
+                // TODO:
+                // Temporary fix to be able to run existing usercode until the correct implementation can be pushed (#2403).
+                if (_transaction == null)
+                    AttachCurrentScope();
 
                 this.AddInScope<Json, object>((j, v) => {
                     if (j.IsArray) {

@@ -49,7 +49,7 @@ namespace Starcounter.Internal.Tests {
 			byte[] content = new byte[] { (byte)'H', (byte)'e', (byte)'l', (byte)'l', (byte)'o' };
 			for (int i = 0; i < repeats; i++) {
 				response = new Response() { BodyBytes = content, ContentLength = content.Length };
-				response.ConstructFromFields(null);
+				response.ConstructFromFields(null, null);
 				ret = response.ResponseBytes;
 				retSize = response.ResponseSizeBytes;
 			}
@@ -183,7 +183,7 @@ namespace Starcounter.Internal.Tests {
 
 			start = DateTime.Now;
 			for (int i = 0; i < repeats; i++) {
-				response.ConstructFromFields(null);
+				response.ConstructFromFields(null, null);
 			}
 			stop = DateTime.Now;
 			Console.Write((stop - start).TotalMilliseconds);

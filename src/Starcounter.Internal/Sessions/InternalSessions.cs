@@ -65,22 +65,6 @@ namespace Starcounter.Internal
         void RunSync(Action action, Byte schedId = Byte.MaxValue);
     }
 
-    /// <summary>
-    /// Enum HTTP_METHODS
-    /// </summary>
-    public enum HTTP_METHODS
-    {
-        GET,
-        POST,
-        PUT,
-        PATCH,
-        DELETE,
-        HEAD,
-        OPTIONS,
-        TRACE,
-        OTHER_METHOD
-    };
-
     public class UriHelper
     {
         /// <summary>
@@ -88,15 +72,15 @@ namespace Starcounter.Internal
         /// </summary>
         /// <param name="method"></param>
         /// <returns></returns>
-        public static HTTP_METHODS GetMethodFromString(String method)
+        public static MixedCodeConstants.HTTP_METHODS GetMethodFromString(String method)
         {
-            foreach (HTTP_METHODS m in Enum.GetValues(typeof(HTTP_METHODS)))
+            foreach (MixedCodeConstants.HTTP_METHODS m in Enum.GetValues(typeof(MixedCodeConstants.HTTP_METHODS)))
             {
                 if (method.StartsWith(m.ToString()))
                     return m;
             }
 
-            return HTTP_METHODS.OTHER_METHOD;
+            return MixedCodeConstants.HTTP_METHODS.OTHER;
         }
     }
 

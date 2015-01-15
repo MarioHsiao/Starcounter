@@ -30,8 +30,8 @@ namespace Starcounter.Internal.Tests
             Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.HandleRequest);
-            Node.InjectHostedImpl(UriManagedHandlersCodegen.DoLocalNodeRest, null);
+            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
+            Node.InjectHostedImpl(UriManagedHandlersCodegen.RunUriMatcherAndCallHandler, null);
 
             // Initializing system profilers.
             Profiler.Init(true);
@@ -149,6 +149,17 @@ namespace Starcounter.Internal.Tests
             facebookProfileObj.LastName = "Lennon";
             facebookProfileObj.Age = "43";
             facebookProfileObj.Html = "Profile.html";
+
+            // Logging handler calls.
+            Handle.GET("{?}", (Request req, String str) => {
+
+                Assert.IsTrue(str == req.Uri);
+
+                Console.WriteLine("Called handler " + str);
+
+                return null;
+
+            }, HandlerOptions.FilteringLevel);
 
             StarcounterEnvironment.AppName = "googlemap";
 
