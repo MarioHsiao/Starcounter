@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -72,6 +72,7 @@
     <Compile Include="Binding\BindingHelper.cs" />
     <Compile Include="Binding\BytePropertyBinding.cs" />
     <Compile Include="Binding\DotNetBindingHelpers.cs" />
+    <Compile Include="Binding\DynamicTypesBinding.cs" />
     <Compile Include="Binding\HostedColumn.cs" />
     <Compile Include="Binding\TableCreate.cs" />
     <Compile Include="Binding\ObjectPropertyBinding.cs" />
