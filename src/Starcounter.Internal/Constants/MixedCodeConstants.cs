@@ -5,6 +5,7 @@
 // C++ code--removes public keyword for C++
 #define public
 
+#undef DELETE
 typedef char* const String;
 typedef unsigned int uint;
 
@@ -54,6 +55,9 @@ namespace Starcounter.Internal
         /// </summary>
         public const int SESSION_STRUCT_SIZE = 16;
 
+        /// <summary>
+        /// Offsets in gateway socket data.
+        /// </summary>
         public enum SOCKET_DATA_FLAGS
         {
             SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION = 1,
@@ -76,6 +80,22 @@ namespace Starcounter.Internal
             SOCKET_DATA_GATEWAY_AND_IPC_TEST = 2 << 18,
             SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19,
             SOCKET_DATA_HOST_LOOPING_CHUNKS = 2 << 20
+        };
+
+        /// <summary>
+        /// Enum HTTP_METHODS
+        /// </summary>
+        public enum HTTP_METHODS
+        {
+            GET,
+            POST,
+            PUT,
+            PATCH,
+            DELETE,
+            HEAD,
+            OPTIONS,
+            TRACE,
+            OTHER
         };
 
         /// <summary>

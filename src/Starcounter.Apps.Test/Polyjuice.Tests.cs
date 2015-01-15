@@ -151,7 +151,9 @@ namespace Starcounter.Internal.Tests
             facebookProfileObj.Html = "Profile.html";
 
             // Logging handler calls.
-            Handle.GET("{?}", (String str) => {
+            Handle.GET("{?}", (Request req, String str) => {
+
+                Assert.IsTrue(str == req.Uri);
 
                 Console.WriteLine("Called handler " + str);
 

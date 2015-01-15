@@ -780,39 +780,39 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             switch (method)
             {
             case http_method::HTTP_GET: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::GET_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::GET;
                 break;
 
             case http_method::HTTP_POST: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::POST_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::POST;
                 break;
 
             case http_method::HTTP_PUT: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::PUT_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::PUT;
                 break;
 
             case http_method::HTTP_DELETE: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::DELETE_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::DELETE;
                 break;
 
             case http_method::HTTP_HEAD: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::HEAD_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::HEAD;
                 break;
 
             case http_method::HTTP_OPTIONS: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::OPTIONS_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::OPTIONS;
                 break;
 
             case http_method::HTTP_TRACE: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::TRACE_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::TRACE;
                 break;
 
             case http_method::HTTP_PATCH: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::PATCH_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::PATCH;
                 break;
 
             default: 
-                http_request_.http_method_ = bmx::HTTP_METHODS::OTHER_METHOD;
+                http_request_.http_method_ = MixedCodeConstants::HTTP_METHODS::OTHER;
                 break;
             }
 

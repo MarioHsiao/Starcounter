@@ -268,7 +268,7 @@ namespace Starcounter {
         /// <summary>
         /// Accessors to HTTP method.
         /// </summary>
-        public HTTP_METHODS MethodEnum { get; set; }
+        public MixedCodeConstants.HTTP_METHODS MethodEnum { get; set; }
 
         /// <summary>
         /// Returns True if method is idempotent.
@@ -277,10 +277,10 @@ namespace Starcounter {
         {
             switch (MethodEnum)
             {
-                case HTTP_METHODS.GET:
-                case HTTP_METHODS.PUT:
-                case HTTP_METHODS.DELETE:
-                case HTTP_METHODS.HEAD:
+                case MixedCodeConstants.HTTP_METHODS.GET:
+                case MixedCodeConstants.HTTP_METHODS.PUT:
+                case MixedCodeConstants.HTTP_METHODS.DELETE:
+                case MixedCodeConstants.HTTP_METHODS.HEAD:
                     return true;
             }
 
@@ -294,7 +294,7 @@ namespace Starcounter {
         {
             switch (MethodEnum)
             {
-                case HTTP_METHODS.GET:
+                case MixedCodeConstants.HTTP_METHODS.GET:
                     return true;
             }
 
@@ -371,6 +371,7 @@ namespace Starcounter {
             isSingleChunk_ = single_chunk;
             origChunk_ = chunk_data;
             socketDataIntPtr_ = socket_data_intptr;
+            MethodEnum = (MixedCodeConstants.HTTP_METHODS) http_request_struct_->http_method_;
 
             // Checking if session is correct.
             GetAppsSessionInterface();

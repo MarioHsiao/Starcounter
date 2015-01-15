@@ -29,7 +29,7 @@ namespace Starcounter.Rest
         public UInt64 handler_info_ = UInt64.MaxValue;
         public UInt16 port_ = 0;
         public MixedCodeConstants.NetworkProtocolType proto_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
-        public HTTP_METHODS http_method_ = HTTP_METHODS.GET;
+        public MixedCodeConstants.HTTP_METHODS http_method_ = MixedCodeConstants.HTTP_METHODS.GET;
 
         public void Destroy()
         {

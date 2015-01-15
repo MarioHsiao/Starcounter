@@ -779,7 +779,15 @@ namespace Starcounter
 				if (bytes == null) {
 					// The preferred requested mime type was not supported, try to see if there are
 					// other options.
-					IEnumerator<MimeType> secondaryChoices = req.PreferredMimeTypes;
+					IEnumerator<MimeType> secondaryChoices = null;
+                    if (req != null) {
+                        secondaryChoices = req.PreferredMimeTypes;
+                    } else {
+                        var l = new List<MimeType>();
+                        l.Add(mimetype);
+                        secondaryChoices = l.GetEnumerator();
+                    }
+
 					secondaryChoices.MoveNext(); // The first one is already accounted for
 					while (bytes == null && secondaryChoices.MoveNext()) {
 						mimetype = secondaryChoices.Current;
