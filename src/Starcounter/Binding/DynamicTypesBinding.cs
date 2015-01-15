@@ -1,5 +1,6 @@
 ﻿using Starcounter.Advanced;
 using Starcounter.Internal;
+using Starcounter.Metadata;
 using System.Collections.Generic;
 using System.Diagnostics;
 
@@ -21,8 +22,6 @@ namespace Starcounter.Binding {
         }
 
         static void DiscoverTypesAndAssureThem(TypeDef[] unregisteredTypes) {
-            AutoCreatedType.InitType();
-
             foreach (var typeDef in unregisteredTypes) {
                 ProcessType(typeDef);
             }
@@ -47,19 +46,18 @@ namespace Starcounter.Binding {
 
             // Check if the type already exist. If it does, we should not
             // create a new one.
-            
-            var autoType = Db.SQL<AutoCreatedType>(
-                "select t from AutoCreatedType t where Name = ?", typeDef.Name).First;
-            if (autoType != null) {
-                var existingType = DbHelper.FromID(autoType.ID);
+
+            var rawView = Db.SQL<RawView>("SELECT r FROM RawView r WHERE FullName = ?", typeDef.Name).First;
+            if (rawView.AutoTypeInstance > 0) {
+                var existingType = DbHelper.FromID(rawView.AutoTypeInstance);
                 // Here, we should handle possible refactoring
                 // of the type tree.
                 // TODO:
                 Trace.Assert(existingType.TypeBinding == tb);
-                typesDiscovered[typeDef.Name] = autoType.ID;
+                typesDiscovered[typeDef.Name] = rawView.AutoTypeInstance;
                 return;
             }
-
+            
             // Check if the type is abstract. If so, what should we
             // do? Have this being an error?
             // See issue #2482
@@ -96,10 +94,7 @@ namespace Starcounter.Binding {
             }
 
             typesDiscovered[typeDef.Name] = oid;
-            
-            autoType = new AutoCreatedType();
-            autoType.Name = typeDef.Name;
-            autoType.ID = oid;
+            rawView.AutoTypeInstance = oid;
         }
 
         static TypeBinding GetDeclaredTargetType(TypeDef typeDef) {
