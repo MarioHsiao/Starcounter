@@ -111,10 +111,10 @@ namespace Starcounter
                 // Obtaining client's port.
                 UInt16 clientPort = *(UInt16*) (rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
 
-                Db.ImplicitScope(() => {
-                    // Calling user callback.
-                    userCallback(clientIp, clientPort, dataBytes);
-                }, 0);
+                ImplicitTransaction.CreateOrSetCurrent();
+
+                // Calling user callback.
+                userCallback(clientIp, clientPort, dataBytes);
 
                 *isHandled = true;
 
@@ -213,11 +213,11 @@ namespace Starcounter
                     rawSocket.Destroy();
                 }
 
-                Db.ImplicitScope(() => {
-                    // Calling user callback.
-                    userCallback(rawSocket, dataBytes);
-                }, 0);
+                ImplicitTransaction.CreateOrSetCurrent();
 
+                // Calling user callback.
+                userCallback(rawSocket, dataBytes);
+                
                 // Destroying original chunk etc.
                 rawSocket.DestroyDataStream();
 
@@ -343,11 +343,11 @@ namespace Starcounter
                         isAggregated);
                 }
 
-                Db.ImplicitScope(() => {
-                    // Calling user callback.
-                    *isHandled = UriInjectMethods.OnHttpMessageRoot_(req);
-                }, 0);
-            
+                ImplicitTransaction.CreateOrSetCurrent();
+
+                // Calling user callback.
+                *isHandled = UriInjectMethods.OnHttpMessageRoot_(req);
+
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
 
@@ -575,11 +575,11 @@ namespace Starcounter
 
                 Debug.Assert(null != wsInternal.SocketContainer);
 
-                Db.ImplicitScope(() => {
-                    // Adding session reference.
-                    *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
-                }, 0);
+                ImplicitTransaction.CreateOrSetCurrent();
 
+                // Adding session reference.
+                *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
+               
                 // Destroying original chunk etc.
                 ws.WsInternal.DestroyDataStream();
             
