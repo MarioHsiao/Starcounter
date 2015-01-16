@@ -82,7 +82,7 @@ class Program {
 		ScAssertion.Assert(views[3].Equals(views[4].Inherits));
 		for(int i = 0; i < tblNames.Length; i++) {
 			count = 0;
-			foreach(Column c in Db.SQL<Column>("select c from column c where c.Table = ? order by c desc", 
+			foreach(MappedProperty c in Db.SQL<MappedProperty>("select c from mappedProperty c where c.Table = ? order by c desc", 
 					clrClassses[i])) {
 				if (i < 3)
 					ScAssertion.Assert(c.Name == colNames[0 + count]);
