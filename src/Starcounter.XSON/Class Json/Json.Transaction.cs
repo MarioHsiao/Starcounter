@@ -12,35 +12,23 @@ namespace Starcounter {
                 if (_transaction != null)
                     return _transaction;
 
-                Json parentWithTrans = GetNearestObjParentWithTransaction();
-                if (parentWithTrans != null)
-                    return parentWithTrans.Transaction;
+                if (_parent != null)
+                    return _parent.Transaction;
 
                 return null;
             }
-            set {
-                //if (_transaction != null) {
-                //    throw new Exception("An transaction is already set for this object. Changing transaction_ is not allowed.");
-                //}
+            private set {
                 _transaction = value;
             }
         }
 
-        // TODO:
-        // Added to be able to use the correct syntax in samples.
-        public ITransaction Scope {
-            get {
-                return Transaction;
-            }
-        }
-
-        public void AttachCurrentScope() {
-            if (_DB != null && _DB.Current != null) {
-                if (Transaction == null || Transaction != _DB.Current) {
-                    _transaction = _DB.Current;
-                }
-            }
-        }
+        //public void AttachCurrentScope() {
+        //    if (_DB != null && _DB.Current != null) {
+        //        if (Transaction == null || Transaction != _DB.Current) {
+        //            _transaction = _DB.Current;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Returns the transaction that is set on this app. Does NOT
@@ -49,24 +37,6 @@ namespace Starcounter {
         internal ITransaction ThisTransaction {
             get { return _transaction; }
             set { _transaction = value; }
-        }
-
-        /// <summary>
-        /// Returns the nearest parent that has a transaction.
-        /// </summary>
-        /// <returns>An Obj or null if this is the root Obj.</returns>
-        Json GetNearestObjParentWithTransaction() {
-            Json parent = Parent;
-            while (parent != null) {
-                Json objParent = parent as Json;
-
-                if ((null != objParent) && (null != objParent.Transaction))
-                    return objParent;
-
-                parent = parent.Parent;
-            }
-
-            return (Json)parent;
         }
     }
 }
