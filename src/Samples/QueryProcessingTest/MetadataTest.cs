@@ -109,7 +109,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(!String.IsNullOrWhiteSpace(v.Name));
                 count++;
             }
-            Trace.Assert(count == 19);
+            Trace.Assert(count == 20);
 #if false
             rv = Db.SQL<RawView>("select rw from rawview rw where name = ?",
                 "MaterializedIndex").First;
