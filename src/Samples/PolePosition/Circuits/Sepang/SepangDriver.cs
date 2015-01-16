@@ -20,7 +20,7 @@ public class SepangDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 TypeDeleter.DeleteAllOfType<Tree>();
                 RootHolder.Root = null;
                 transaction.Commit();
@@ -33,7 +33,7 @@ public class SepangDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 RootHolder.Root = Tree.Create(Setup.TreeDepth);
                 transaction.Commit();
             });
@@ -45,7 +45,7 @@ public class SepangDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 RootHolder.Root.Traverse(t => AddToCheckSum(t));
             });
         }
@@ -62,7 +62,7 @@ public class SepangDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 RootHolder.Root.Traverse(t => t.Delete());
                 RootHolder.Root = null;
                 transaction.Commit();

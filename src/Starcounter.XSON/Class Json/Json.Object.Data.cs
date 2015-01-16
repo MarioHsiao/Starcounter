@@ -38,7 +38,7 @@ namespace Starcounter {
                 if (_transaction == null)
                     AttachCurrentScope();
 
-                this.AddInScope<Json, object>((j, v) => {
+                this.Scope<Json, object>((j, v) => {
                     if (j.IsArray) {
                         j._PendingEnumeration = true;
                         j._data = (IEnumerable)v;

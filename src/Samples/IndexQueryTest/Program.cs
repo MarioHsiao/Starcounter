@@ -46,7 +46,7 @@ namespace IndexQueryTest
 #endif
 
             using (Transaction t = new Transaction()) {
-                t.Add(() => {
+                t.Scope(() => {
                     HelpMethods.LogEvent("Test of CREATE/DROP INDEX and DROP TABLE completed.");
                     HelpMethods.LogEvent("Test inherited indexes");
                     InheritedIndex.InheritedIndexTest.RunInheritedIndexTest();

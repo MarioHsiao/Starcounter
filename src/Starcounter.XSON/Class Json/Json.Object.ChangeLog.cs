@@ -48,7 +48,7 @@ namespace Starcounter {
 				}
 			} else {
 				if (Template != null) {
-                    this.AddInScope<TObject>( 
+                    this.Scope<TObject>( 
                         (tjson) => {
                             for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
                                 var property = tjson.Properties.ExposedProperties[i] as TValue;
@@ -165,7 +165,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session to report to</param>
 		private void LogObjectValueChangesWithDatabase(Session session) {
-            this.AddInScope<Session>((s) => {
+            this.Scope<Session>((s) => {
                 var template = (TObject)Template;
                 if (template == null)
                     return;
@@ -252,7 +252,7 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
-                this.AddInScope(() => {
+                this.Scope(() => {
                     TObject tobj = (TObject)Template;
                     if (tobj != null) {
                         for (int i = 0; i < tobj.Properties.Count; i++) {

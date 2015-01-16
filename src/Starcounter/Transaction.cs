@@ -194,7 +194,7 @@ namespace Starcounter
         /// Constructor that creates and runs a new transaction.
         /// </summary>
         public Transaction(Action action) : this(false) {
-            this.Add(action);
+            this.Scope(action);
         }
 
         /// <summary>
@@ -280,7 +280,7 @@ namespace Starcounter
         /// Executes some code within this transaction scope.
         /// </summary>
         /// <param name="action">Delegate that is called on transaction.</param>
-        public void Add(Action action) {
+        public void Scope(Action action) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -290,7 +290,7 @@ namespace Starcounter
             }
         }
 
-        void ITransaction.Add<T>(Action<T> action, T arg) {
+        public void Scope<T>(Action<T> action, T arg) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -300,7 +300,7 @@ namespace Starcounter
             }
         }
 
-        void ITransaction.Add<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+        public void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -310,7 +310,7 @@ namespace Starcounter
             }
         }
 
-        void ITransaction.Add<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+        public void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -320,7 +320,7 @@ namespace Starcounter
             }
         }
 
-        TResult ITransaction.AddAndReturn<TResult>(Func<TResult> func) {
+        public TResult Scope<TResult>(Func<TResult> func) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -330,7 +330,7 @@ namespace Starcounter
             }
         }
 
-        TResult ITransaction.AddAndReturn<T, TResult>(Func<T, TResult> func, T arg) {
+        public TResult Scope<T, TResult>(Func<T, TResult> func, T arg) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -340,7 +340,7 @@ namespace Starcounter
             }
         }
 
-        TResult ITransaction.AddAndReturn<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+        public TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -350,7 +350,7 @@ namespace Starcounter
             }
         }
 
-        TResult ITransaction.AddAndReturn<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+        public TResult Scope<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -360,7 +360,7 @@ namespace Starcounter
             }
         }
 
-        TResult ITransaction.AddAndReturn<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public TResult Scope<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             Transaction old = _current;
             try {
                 SetCurrent(this);
@@ -370,7 +370,6 @@ namespace Starcounter
             }
         }
 		
-
         void ITransaction.MergeTransaction(ITransaction toMerge) {
             Transaction old = _current;
             Transaction trans = (Transaction)toMerge;

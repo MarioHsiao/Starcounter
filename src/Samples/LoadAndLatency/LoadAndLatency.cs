@@ -414,7 +414,7 @@ namespace LoadAndLatency
                 LogEvent("   Purging all existing objects...");
                 using (Transaction transaction = new Transaction())
                 {
-                    transaction.Add(() => {
+                    transaction.Scope(() => {
                         //Int32 trans = 0;
 
                         foreach (TestClass t in Db.SQL("SELECT t FROM TestClass t")) {
@@ -604,7 +604,7 @@ namespace LoadAndLatency
                 // Transaction scope.
                 using (Transaction transaction = new Transaction())
                 {
-                    transaction.Add(() => {
+                    transaction.Scope(() => {
                         SqlEnumerator<Object> sqlEnum = null;
 
                         // Running throw all transactions.
@@ -709,7 +709,7 @@ namespace LoadAndLatency
                     // Transaction scope.
                     using (Transaction transaction = new Transaction())
                     {
-                        transaction.Add(() => {
+                        transaction.Scope(() => {
                             // Fetching the enumerator.
                             using (SqlEnumerator<Object> sqlEnum = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c WHERE c.prop_int64 >= ? FETCH ?", m, fetchNumber).GetEnumerator()) {
                                 // Fetching only the first result and getting the object checksum.
@@ -1279,7 +1279,7 @@ namespace LoadAndLatency
                     {
                         using (Transaction transaction = new Transaction())
                         {
-                            transaction.Add(() => {
+                            transaction.Scope(() => {
                                 //Int32 trans = 0;
 
                                 foreach (SimpleObject p in Db.SQL("SELECT s FROM SimpleObject s")) {
@@ -1768,7 +1768,7 @@ namespace LoadAndLatency
 
             using (Transaction transaction = new Transaction())
             {
-                transaction.Add(() => {
+                transaction.Scope(() => {
                     SqlEnumerator<Object> sqlResult = null;
                     try {
                         sqlResult = (SqlEnumerator<Object>)Db.SQL("SELECT c FROM TestClass c").GetEnumerator();
@@ -2003,7 +2003,7 @@ namespace LoadAndLatency
             {
                 using (Transaction transaction = new Transaction())
                 {
-                    transaction.Add(() => {
+                    transaction.Scope(() => {
                         for (Int64 i = 0; i < NumObjectsPerTransaction; i++) {
                             TestClass testClassInstance = new TestClass(
                                 true,

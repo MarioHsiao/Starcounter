@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿ ﻿using System;
 using System.Collections.Generic;
 
 namespace Starcounter.Advanced.XSON {
@@ -48,10 +48,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
-        public static void AddInScope(this Json json, Action action) {
+        public static void Scope(this Json json, Action action) {
             var t = json.Transaction;
             if (t != null)
-                t.Add(action);
+                t.Scope(action);
             else 
                 action();
         }
@@ -61,10 +61,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
-        public static void AddInScope<T>(this Json json, Action<T> action, T arg) {
+        public static void Scope<T>(this Json json, Action<T> action, T arg) {
             var t = json.Transaction;
             if (t != null)
-                t.Add<T>(action, arg);
+                t.Scope<T>(action, arg);
             else
                 action(arg);
         }
@@ -74,10 +74,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
-        public static void AddInScope<T1, T2>(this Json json, Action<T1, T2> action, T1 arg1, T2 arg2) {
+        public static void Scope<T1, T2>(this Json json, Action<T1, T2> action, T1 arg1, T2 arg2) {
             var t = json.Transaction;
             if (t != null)
-                t.Add<T1, T2>(action, arg1, arg2);
+                t.Scope<T1, T2>(action, arg1, arg2);
             else
                 action(arg1, arg2);
         }
@@ -87,10 +87,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="action">The delegate to execute</param>
-        public static void AddInScope<T1, T2, T3>(this Json json, Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+        public static void Scope<T1, T2, T3>(this Json json, Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
             var t = json.Transaction;
             if (t != null)
-                t.Add<T1, T2, T3>(action, arg1, arg2, arg3);
+                t.Scope<T1, T2, T3>(action, arg1, arg2, arg3);
             else
                 action(arg1, arg2, arg3);
         }
@@ -100,10 +100,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
-        public static T AddAndReturnInScope<T>(this Json json, Func<T> func) {
+        public static T Scope<T>(this Json json, Func<T> func) {
             var t = json.Transaction;
             if (t != null)
-                return t.AddAndReturn<T>(func);
+                return t.Scope<T>(func);
             return func();
         }
 
@@ -112,10 +112,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
-        public static TResult AddAndReturnInScope<T1, TResult>(this Json json, Func<T1, TResult> func, T1 arg1) {
+        public static TResult Scope<T1, TResult>(this Json json, Func<T1, TResult> func, T1 arg1) {
             var t = json.Transaction;
             if (t != null)
-                return t.AddAndReturn<T1, TResult>(func, arg1);
+                return t.Scope<T1, TResult>(func, arg1);
             return func(arg1);
         }
 
@@ -124,10 +124,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
-        public static TResult AddAndReturnInScope<T1, T2, TResult>(this Json json, Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+        public static TResult Scope<T1, T2, TResult>(this Json json, Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
             var t = json.Transaction;
             if (t != null)
-                return t.AddAndReturn<T1, T2, TResult>(func, arg1, arg2);
+                return t.Scope<T1, T2, TResult>(func, arg1, arg2);
             return func(arg1, arg2);
         }
 
@@ -136,10 +136,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the action.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
-        public static TResult AddAndReturnInScope<T1, T2, T3, TResult>(this Json json, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+        public static TResult Scope<T1, T2, T3, TResult>(this Json json, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
             var t = json.Transaction;
             if (t != null)
-                return t.AddAndReturn<T1, T2, T3, TResult>(func, arg1, arg2, arg3);
+                return t.Scope<T1, T2, T3, TResult>(func, arg1, arg2, arg3);
             return func(arg1, arg2, arg3);
         }
 
@@ -148,10 +148,10 @@ namespace Starcounter.Advanced.XSON {
         /// on the object or if no transaction is found, just executes the function.
         /// </summary>
         /// <param name="func">The delegate to execute</param>
-        public static TResult AddAndReturnInScope<T1, T2, T3, T4, TResult>(this Json json, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public static TResult Scope<T1, T2, T3, T4, TResult>(this Json json, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             var t = json.Transaction;
             if (t != null)
-                return t.AddAndReturn<T1, T2, T3, T4, TResult>(func, arg1, arg2, arg3, arg4);
+                return t.Scope<T1, T2, T3, T4, TResult>(func, arg1, arg2, arg3, arg4);
             return func(arg1, arg2, arg3, arg4);
         }
 
