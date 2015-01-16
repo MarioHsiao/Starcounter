@@ -309,8 +309,9 @@ namespace Starcounter {
                     foreach (Template tChild in ((TObject)Template).Properties) {
                         var container = tChild as TContainer;
                         if (container != null) {
-                            var childJson = container.GetValue(this);
-                            childJson.UpgradeToStateful();
+                            var childJson = (Json)container.GetUnboundValueAsObject(this);
+                            if (childJson != null) 
+                                childJson.UpgradeToStateful();
                         }
                     }
                 }
