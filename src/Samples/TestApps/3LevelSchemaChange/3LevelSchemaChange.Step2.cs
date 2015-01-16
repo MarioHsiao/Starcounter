@@ -96,7 +96,8 @@ class Program {
 		}
 		for(int i = 0; i < totalNrCols; i++) {
 			count = 0;
-			foreach(Column c in Db.SQL<Column>("select c from column c where name = ? and c.\"table\" is ? order by \"table\" desc", colNames[i], typeof(ClrClass))) {
+			foreach(MappedProperty c in Db.SQL<MappedProperty>("select c from MappedProperty c where name = ? and c.\"table\" is ? order by \"table\" desc", 
+					colNames[i], typeof(ClrClass))) {
 				ScAssertion.Assert(c.Table.Equals(clrClassses[colTab[i] + count]));
 				count++;
 			}
