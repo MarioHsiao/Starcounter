@@ -33,11 +33,6 @@ namespace Starcounter {
                 return _data;
             }
             set {
-                // TODO:
-                // Temporary fix to be able to run existing usercode until the correct implementation can be pushed (#2403).
-                if (_transaction == null)
-                    AttachCurrentScope();
-
                 this.Scope<Json, object>((j, v) => {
                     if (j.IsArray) {
                         j._PendingEnumeration = true;

@@ -170,14 +170,14 @@ namespace Starcounter
         }
 
         public static void Scope(Action action, bool forceNew = false) {
-            ITransaction t = Starcounter.Transaction.GetCurrent();
+            ITransaction t = Starcounter.Transaction.Current;
             if (forceNew || t == null)
                 t = new Starcounter.Transaction(false, false);
             t.Scope(action);
         }
 
         public static T Scope<T>(Func<T> func, bool forceNew = false) {
-            ITransaction t = Starcounter.Transaction.GetCurrent();
+            ITransaction t = Starcounter.Transaction.Current;
             if (forceNew || t == null)
                 t = new Starcounter.Transaction(false, false);
             return t.Scope<T>(func);
@@ -205,7 +205,7 @@ namespace Starcounter
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0)
                 {
-                    var currentTransaction = Starcounter.Transaction.GetCurrent();
+                    var currentTransaction = Starcounter.Transaction.Current;
                     Starcounter.Transaction.SetManagedCurrentToNull();
 
                     try {

@@ -34,7 +34,7 @@ namespace Starcounter.Internal {
         }
 
         ITransaction IDb.Current {
-            get { return Transaction.GetCurrent(); }
+            get { return Transaction.Current; }
         }
     }
 }

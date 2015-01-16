@@ -87,7 +87,7 @@ namespace Starcounter
         /// Sets given transaction as current.
         /// </summary>
         /// <param name="value">Transaction to set as current.</param>
-        public static void SetCurrent(Transaction value) {
+        internal static void SetCurrent(Transaction value) {
             // Checking if current transaction is the same.
             if (value == _current)
                 return;
@@ -118,8 +118,10 @@ namespace Starcounter
         /// Returns current transaction if any.
         /// </summary>
         /// <returns></returns>
-        public static Transaction GetCurrent() {
-            return _current;
+        public static Transaction Current {
+            get {
+                return _current;
+            }
         }
 
         /// <summary>
@@ -315,6 +317,16 @@ namespace Starcounter
             try {
                 SetCurrent(this);
                 action(arg1, arg2, arg3);
+            } finally {
+                SetCurrent(old);
+            }
+        }
+
+        public void Scope<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+            Transaction old = _current;
+            try {
+                SetCurrent(this);
+                action(arg1, arg2, arg3, arg4);
             } finally {
                 SetCurrent(old);
             }
