@@ -29,11 +29,11 @@ namespace Starcounter {
     public sealed class Session : IAppsSession, IDisposable {
         private class DataAndCache {
             internal Json Data;
-            internal Dictionary<string, Json> Cache;
         }
 
         [ThreadStatic]
         private static Session _current;
+
         [ThreadStatic]
         private static Request _request;
 
@@ -415,81 +415,12 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Tries to get cached JSON node.
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <returns></returns>
-        internal Json GetCachedJsonNode(String uri) {
-            Json obj;
-            Json root;
-            DataAndCache dac;
-
-            dac = GetStateObject();
-            if (dac == null)
-                return null;
-
-            var cache = dac.Cache;
-            if ((cache == null) || (!cache.TryGetValue(uri, out obj)))
-                return null;
-
-            Debug.Assert(null != obj);
-
-            // Checking if its a root.
-            root = dac.Data;
-            if (root == obj)
-                return root;
-
-            // Checking if node has no parent, indicating that it was removed from tree.
-            // We need to check all the way up to the root, since a parent might have been removed 
-            // further up.
-            if (obj.HasThisRoot(root))
-                return obj;
-
-            return null;
-        }
-
-        /// <summary>
-        /// Adds JSON node to cache.
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="obj"></param>
-        internal void AddJsonNodeToCache(String uri, Json obj) {
-            DataAndCache dac;
-
-            dac = AssureStateObject();
-            if (dac.Cache == null)
-                dac.Cache = new Dictionary<string, Json>();
-
-            // Adding current URI to cache.
-            dac.Cache[uri] = obj;
-        }
-
-        /// <summary>
-        /// Removes URI entry from cache.
-        /// </summary>
-        /// <param name="uri">URI entry.</param>
-        /// <returns>True if URI entry is removed.</returns>
-        internal Boolean RemoveUriFromCache(String uri) {
-            DataAndCache dac = GetStateObject();
-
-            if (dac != null && dac.Cache != null && dac.Cache.ContainsKey(uri)) {
-                dac.Cache.Remove(uri);
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Start usage of given session.
         /// </summary>
         /// <param name="session"></param>
         internal static void Start(Session session) {
             Debug.Assert(_current == null);
-
-            // Session still can be null, e.g. did not pass the verification.
-            if (session == null)
-                return;
+            Debug.Assert(session != null);
 
             Session._current = session;
         }
@@ -498,8 +429,11 @@ namespace Starcounter {
         /// Finish usage of current session.
         /// </summary>
         internal static void End() {
+
             if (_current != null) {
+
                 _current.Clear();
+
                 Session._current = null;
             }
         }
@@ -658,9 +592,8 @@ namespace Starcounter {
             foreach (var dac in _stateList) {
                 if (dac.Data != null)
                     DisposeJsonRecursively(dac.Data);
-                if (dac.Cache != null)
-                    dac.Cache.Clear();
             }
+
             _indexPerApplication.Clear();
 
             if (InternalSession != null) {

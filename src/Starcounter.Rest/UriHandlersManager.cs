@@ -150,70 +150,25 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
-        /// Checks if response is in local cache.
+        /// Start the session that came with request.
         /// </summary>
-        Response TryGetResponseFromCache(Request req) {
+        void StartSessionThatCameWithRequest(Request req) {
 
             // Checking if we are in session already.
-            if ( !req.IsInternal && req.CameWithCorrectSession) {
+            if (!req.IsInternal && req.CameWithCorrectSession) {
 
                 // Obtaining session.
-                Session s = (Session)req.GetAppsSessionInterface();
+                Session s = (Session) req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
                 if (null != s) {
+
                     // Starting session.
                     Session.Start(s);
-
-                    // Checking if we can reuse the cache.
-                    Response resp;
-                    if ((req.IsInternal) && (X.CheckLocalCache(req.Uri, null, null, out resp))) {
-
-                        // Setting the session again.
-                        resp.AppsSession = Session.Current.InternalSession;
-
-                        return resp;
-                    }
                 }
             }
-
-            return null;
         }
 
-        /// <summary>
-        /// Checking if response should be added to cache.
-        /// </summary>
-        /// <param name="req"></param>
-        /// <param name="resp"></param>
-        void TryAddResponseToCache(Request req, Response resp) {
-
-            // Checking if response is processed later.
-            if (resp.HandlingStatus == HandlerStatusInternal.Handled
-                || !req.IsCachable()
-                || Session.Current == null) {
-
-                return;
-            }
-
-            // In case of returned JSON object within current session we need to save it
-            // for later reuse.
-            Json rootJsonObj = Session.Current.Data;
-            Json curJsonObj = null;
-
-            // Setting session on result only if its original request.
-            if ((!req.IsInternal) && (!req.CameWithCorrectSession))
-                resp.AppsSession = Session.Current.InternalSession;
-
-            // Converting response to JSON.
-            curJsonObj = resp;
-
-            if ((null != curJsonObj) &&
-                (null != rootJsonObj) &&
-                (curJsonObj.HasThisRoot(rootJsonObj))) {
-                Session.Current.AddJsonNodeToCache(req.Uri, curJsonObj);
-            }
-        }
-        
         /// <summary>
         /// Runs all user delegates.
         /// </summary>
@@ -233,6 +188,9 @@ namespace Starcounter.Rest
             // Don't merge handler.
             Boolean dontMerge = dontMerge_ || handlerOptions.DontMerge;
 
+            // Starting the session that came with request.
+            StartSessionThatCameWithRequest(req);
+
             // Checking if there is only one delegate or merge function is not defined.
             if (userDelegates_.Count == 1) {
 
@@ -242,34 +200,28 @@ namespace Starcounter.Rest
                     StarcounterEnvironment.AppName = handlerOptions.AppName;
                 }
 
-                // Checking local cache.
-                Response resp = TryGetResponseFromCache(req);
+                Response resp = null;
 
+                if (useProxyHandler) {
+
+                    // Calling proxy user delegate.
+                    resp = proxyDelegate_(req, methodAndUri, rawParamsInfo);
+
+                } else {
+
+                    // Calling intermediate user delegate.
+                    resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
+                }
+
+                // Checking if we have any response.
                 if (null == resp) {
 
-                    if (useProxyHandler) {
+                    return null;
 
-                        // Calling proxy user delegate.
-                        resp = proxyDelegate_(req, methodAndUri, rawParamsInfo);
+                } else {
 
-                    } else {
-
-                        // Calling intermediate user delegate.
-                        resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
-                    }
-
-                    // Checking if we have any response.
-                    if (null == resp) {
-
-                        return null;
-
-                    } else {
-                        // Check if response should be added to cache.
-                        TryAddResponseToCache(req, resp);
-
-                        // Setting to which application the response belongs.
-                        resp.AppName = appNames_[0];
-                    }
+                    // Setting to which application the response belongs.
+                    resp.AppName = appNames_[0];
                 }
 
                 // Checking if we need to merge.
@@ -300,21 +252,12 @@ namespace Starcounter.Rest
                 // Setting application name.
                 StarcounterEnvironment.AppName = appNames_[i];
 
-                // Checking local cache.
-                Response resp = TryGetResponseFromCache(req);
+                // Calling intermediate user delegate.
+                Response resp = func(req, methodAndUri, rawParamsInfo);
 
+                // Checking if we have any response.
                 if (null == resp) {
-
-                    // Calling intermediate user delegate.
-                    resp = func(req, methodAndUri, rawParamsInfo);
-
-                    // Checking if we have any response.
-                    if (null == resp) {
-                        continue;
-                    }
-
-                    // Check if response should be added to cache.
-                    TryAddResponseToCache(req, resp);
+                    continue;
                 }
 
                 // Setting to which application the response belongs.

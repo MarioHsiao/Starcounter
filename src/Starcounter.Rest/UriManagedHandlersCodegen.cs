@@ -922,6 +922,15 @@ namespace Starcounter.Rest
 
             RequestHandler.InitREST();
             UriHandlersManager.Init();
+
+            // Setting the pointer to get current session.
+            ScSessionClass.GetCurrent = () => {
+                if (Session.Current != null)
+                    return Session.Current.InternalSession;
+
+                return null;
+            };
+
         }
 
         /// <summary>
@@ -975,26 +984,26 @@ namespace Starcounter.Rest
                 // Allocating space for parameter information.
                 Byte* paramsStackBuf = stackalloc Byte[MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES];
 
+                MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams = (MixedCodeConstants.UserDelegateParamInfo*) paramsStackBuf;
+
+                // Setting parameters info from handler options.
+                *handlerNativeParams = handlerOptions.ParametersInfo;
+
                 // Checking if handler is predefined.
                 if (HandlerOptions.InvalidUriHandlerId == handlerId) {
 
-                    MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams =
-                    (MixedCodeConstants.UserDelegateParamInfo*)paramsStackBuf;
-
-                    // Setting parameters info from handler options.
-                    *handlerNativeParams = handlerOptions.ParametersInfo;
-
+                    // Pointing to address of handler parameters.
                     MixedCodeConstants.UserDelegateParamInfo** handlerNativeParamsAddr = &handlerNativeParams;
 
                     // Copying string to stack buffer instead of pinning the request bytes.
                     Int32 len = methodSpaceUriSpace.Length;
-                    Byte* uri_info = stackalloc Byte[len];
+                    Byte* methodSpaceUriSpaceOnStack = stackalloc Byte[len];
                     for (Int32 i = 0; i < len; i++) {
-                        uri_info[i] = (Byte) methodSpaceUriSpace[i];
+                        methodSpaceUriSpaceOnStack[i] = (Byte) methodSpaceUriSpace[i];
                     }
 
                     // TODO: Resolve this hack with only positive handler ids in generated code.
-                    handlerId = portUris.MatchUriAndGetHandlerId(uri_info, (UInt32)len, handlerNativeParamsAddr) - 1;
+                    handlerId = portUris.MatchUriAndGetHandlerId(methodSpaceUriSpaceOnStack, (UInt32)len, handlerNativeParamsAddr) - 1;
                 }
 
                 // Checking if we have found the handler.

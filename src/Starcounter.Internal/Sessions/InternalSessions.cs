@@ -246,6 +246,12 @@ namespace Starcounter.Internal
     public class ScSessionClass
     {
         /// <summary>
+        /// Get current session instance.
+        /// </summary>
+        /// <returns></returns>
+        public static Func<ScSessionClass> GetCurrent;
+
+        /// <summary>
         /// Internal session structure.
         /// </summary>
         public ScSessionStruct session_struct_;

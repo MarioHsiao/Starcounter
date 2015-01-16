@@ -19,7 +19,6 @@ namespace Starcounter {
         /// </summary>
         /// <param name="protocol_type">Type of network protocol. Default HTTP v1.</param>
         public Request() {
-            
         }
 
         /// <summary>
@@ -269,37 +268,6 @@ namespace Starcounter {
         /// Accessors to HTTP method.
         /// </summary>
         public MixedCodeConstants.HTTP_METHODS MethodEnum { get; set; }
-
-        /// <summary>
-        /// Returns True if method is idempotent.
-        /// </summary>
-        public Boolean IsIdempotent()
-        {
-            switch (MethodEnum)
-            {
-                case MixedCodeConstants.HTTP_METHODS.GET:
-                case MixedCodeConstants.HTTP_METHODS.PUT:
-                case MixedCodeConstants.HTTP_METHODS.DELETE:
-                case MixedCodeConstants.HTTP_METHODS.HEAD:
-                    return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Returns True if request is cachable.
-        /// </summary>
-        public Boolean IsCachable()
-        {
-            switch (MethodEnum)
-            {
-                case MixedCodeConstants.HTTP_METHODS.GET:
-                    return true;
-            }
-
-            return false;
-        }
 
         /// <summary>
         /// Parses internal HTTP request.
