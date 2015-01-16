@@ -58,7 +58,6 @@ namespace Starcounter
     /// Represents a long running transaction.
     /// </summary>
     public partial class Transaction : ITransaction, IDisposable {
-
         private const ulong _INVALID_VERIFY = 0xFF;
 
         /// <summary>
@@ -72,7 +71,17 @@ namespace Starcounter
         /// </para>
         /// </remarks>
         [ThreadStatic]
-        internal static Transaction _current;
+        private static Transaction _current;
+
+        /// <summary>
+        /// Method that bypasses the call to kernel and just sets the managed field _current
+        /// to null. Also does not set the implicit transaction. This should be used carefully since
+        /// it might break implicit transaction functionality. 
+        /// Currently used by Db.Transaction(...) and in the end of each task.
+        /// </summary>
+        internal static void SetManagedCurrentToNull() {
+            _current = null;
+        }
 
         /// <summary>
         /// Sets given transaction as current.
@@ -100,17 +109,8 @@ namespace Starcounter
             else {
                 handle = 0;
                 verify = _INVALID_VERIFY;
-
-                if (ImplicitTransaction.SetCurrentIfCreated()) {
-                    _current = null;
-                } else {
-                    uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
-                    if (r == 0) {
-                        _current = value;
-                        return;
-                    }
-                    throw ToException(value, r);
-                }
+                _current = null;
+                ImplicitTransaction.CreateOrSetCurrent();
             }
         }
 
