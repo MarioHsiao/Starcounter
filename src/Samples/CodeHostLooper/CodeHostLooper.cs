@@ -89,7 +89,12 @@ namespace CodeHostLooper {
 
                     Console.WriteLine("Starting looping scheduler number " + i + "...");
 
-                    resp = localNode.GET("/loop/" + i, "SchedulerId: " + i + "\r\n" + "LoopHost: True\r\n");
+                    Dictionary<String, String> headers = new Dictionary<String, String> {
+                        { "SchedulerId", i.ToString() },
+                        { "LoopHost", "True" }
+                    };
+
+                    resp = localNode.GET("/loop/" + i, headers);
 
                     if (!resp.IsSuccessStatusCode)
                         throw new ArgumentOutOfRangeException("Loop creation response is not successful.");
@@ -99,7 +104,11 @@ namespace CodeHostLooper {
                         Thread.Sleep(1000);
                     }
 
-                    resp = localNode.GET("/loopstats/0", "SchedulerId: 0\r\n");
+                    headers = new Dictionary<String, String> {
+                        { "SchedulerId", "0" }
+                    };
+
+                    resp = localNode.GET("/loopstats/0", headers);
 
                     if (!resp.IsSuccessStatusCode)
                         throw new ArgumentOutOfRangeException("Loop stats fetch response is not successful.");

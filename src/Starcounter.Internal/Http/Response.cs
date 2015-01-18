@@ -107,6 +107,15 @@ namespace Starcounter
     public sealed partial class Response : Finalizing
     {
         /// <summary>
+        /// Parses internal HTTP response.
+        /// </summary>
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_parse_http_response(
+            Byte* response_buf,
+            UInt32 response_size_bytes,
+            Byte* out_http_response);
+
+        /// <summary>
         /// Application name this response came from.
         /// </summary>
         String appName_;
@@ -387,14 +396,12 @@ namespace Starcounter
         {
             get
             {
-                if (0 == statusCode_)
-                {
-                    unsafe
-                    {
-                        if (null == httpResponseStruct_)
-                            throw new ArgumentException("HTTP response not initialized.");
+                if (0 == statusCode_) {
 
-                        return httpResponseStruct_->status_code_;
+                    unsafe {
+
+                        if (null != httpResponseStruct_)
+                            statusCode_ = httpResponseStruct_->status_code_;
                     }
                 }
 
@@ -415,14 +422,12 @@ namespace Starcounter
         {
             get
             {
-                if (null == statusDescription_)
-                {
-                    unsafe
-                    {
-                        if (null == httpResponseStruct_)
-                            return null;
+                if (null == statusDescription_) {
 
-                        return httpResponseStruct_->GetStatusDescription();
+                    unsafe {
+
+                        if (null != httpResponseStruct_)
+                            statusDescription_ = httpResponseStruct_->GetStatusDescription();
                     }
                 }
 
@@ -494,24 +499,23 @@ namespace Starcounter
         {
             get
             {
-                if (customFields_)
+                if (null == bodyString_)
                 {
-                    if (null == bodyString_)
-                    {
-                        if (null != bodyBytes_)
-                        {
-                            return Encoding.UTF8.GetString(bodyBytes_);
-                        }
-                        else if (resource_ != null)
-                        {
-                            return resource_.AsMimeType(MimeType.Unspecified);
-                        }
-                    }
+                    if (null != bodyBytes_) {
 
-                    return bodyString_;
+                        bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
+
+                    } else if (resource_ != null) {
+
+                        bodyString_ = resource_.AsMimeType(MimeType.Unspecified);
+
+                    } else {
+
+                        bodyString_ = GetBodyStringUtf8_Slow();
+                    }
                 }
 
-                return GetBodyStringUtf8_Slow();
+                return bodyString_;
             }
 
             set
@@ -574,7 +578,11 @@ namespace Starcounter
                 return ExtractBodyFromByteHttpResponse();
             }
 
-            bodyBytes_ = GetBodyBytes_Slow();
+            unsafe {
+                if (null != httpResponseStruct_)
+                    bodyBytes_ = httpResponseStruct_->GetBodyByteArray_Slow();
+            }
+
             return bodyBytes_;
         }
 
@@ -630,25 +638,27 @@ namespace Starcounter
         {
             get
             {
-                if (customFields_)
-                {
-                    if (null == bodyBytes_)
-                    {
-                        if (null != bodyString_)
-                        {
-                            return Encoding.UTF8.GetBytes(bodyString_);
-                        }
-                        else if (resource_ != null)
-                        {
-                            MimeType discard;
-                            return resource_.AsMimeType(MimeType.Unspecified, out discard);
+                if (null == bodyBytes_) {
+
+                    if (null != bodyString_) {
+
+                        bodyBytes_ = Encoding.UTF8.GetBytes(bodyString_);
+
+                    } else if (null != resource_) {
+
+                        MimeType discard;
+                        bodyBytes_ = resource_.AsMimeType(MimeType.Unspecified, out discard);
+
+                    } else {
+
+                        unsafe {
+                            if (null != httpResponseStruct_)
+                                bodyBytes_ = httpResponseStruct_->GetBodyByteArray_Slow();
                         }
                     }
-
-                    return bodyBytes_;
                 }
 
-                return GetBodyBytes_Slow();
+                return bodyBytes_;
             }
 
             set
@@ -985,28 +995,22 @@ namespace Starcounter
         {
             get
             {
-                if (customFields_)
-                {
-                    if (responseBodySizeBytes_ > 0)
-                        return responseBodySizeBytes_;
+                if (responseBodySizeBytes_ > 0)
+                    return responseBodySizeBytes_;
 
-                    if (null != bodyBytes_)
-                        return bodyBytes_.Length;
+                if (null != bodyBytes_)
+                    return bodyBytes_.Length;
 
-                    if (null != bodyString_)
-                        return bodyString_.Length;
+                if (null != bodyString_)
+                    return bodyString_.Length;
 
-                    // By default returning no content.
-                    return 0;
+                unsafe {
+
+                    if (null != httpResponseStruct_)
+                        return httpResponseStruct_->content_len_bytes_;
                 }
 
-                unsafe
-                {
-                    if (null == httpResponseStruct_)
-                        return 0;
-
-                    return httpResponseStruct_->content_len_bytes_;
-                }
+                return 0;
             }
             set
             {
@@ -1021,16 +1025,16 @@ namespace Starcounter
         {
             get
             {
-                if (responseBytes_ != null)
-                    return responseBytes_;
+                if (null == responseBytes_) {
 
-                unsafe
-                {
-                    if (null == httpResponseStruct_)
-                        throw new ArgumentException("HTTP response not initialized.");
+                    unsafe {
 
-                    return httpResponseStruct_->GetResponseByte_Slow();
+                        if (null != httpResponseStruct_)
+                            responseBytes_ = httpResponseStruct_->GetResponseBytes_Slow();
+                    }
                 }
+
+                return responseBytes_;
             }
 
             set
@@ -1050,27 +1054,17 @@ namespace Starcounter
         {
             get
             {
-                if (responseBytes_ != null)
-                    return responseSizeBytes_;
+                if (responseSizeBytes_ <= 0) {
 
-                unsafe
-                {
-                    if (null == httpResponseStruct_)
-                        return 0;
-
-                    return (Int32)httpResponseStruct_->response_len_bytes_;
+                    unsafe {
+                        if (null != httpResponseStruct_)
+                            responseSizeBytes_ = (Int32)httpResponseStruct_->response_len_bytes_;
+                    }
                 }
+
+                return responseSizeBytes_;
             }
         }
-
-        /// <summary>
-        /// Parses internal HTTP response.
-        /// </summary>
-        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_parse_http_response(
-            Byte* response_buf,
-            UInt32 response_size_bytes,
-            Byte* out_http_response);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Response" /> class.
@@ -1292,6 +1286,7 @@ namespace Starcounter
                             k++;
 
                         customHeaderFields[headerName] = headerAndValue.Substring(k);
+                        break;
                     }
                 }
             }
@@ -1331,28 +1326,11 @@ namespace Starcounter
                         return headersString_;
                     }
 
-                    if (null == httpResponseStruct_)
-                        return null;
-                    
-                    headersString_ = httpResponseStruct_->GetHeadersStringUtf8_Slow();
+                    if (null != httpResponseStruct_)
+                        headersString_ = httpResponseStruct_->GetHeadersStringUtf8_Slow();
+
                     return headersString_;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw headers length.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public UInt32 GetHeadersLength()
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    throw new ArgumentException("HTTP response not initialized.");
-
-                return httpResponseStruct_->GetHeadersLength();
             }
         }
 
@@ -1373,33 +1351,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Gets the content as byte array.
-        /// </summary>
-        /// <returns>content bytes.</returns>
-        Byte[] GetBodyByteArray_Slow()
-        {
-            // TODO: Provide a more efficient interface with existing Byte[] and offset.
-
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    return null;
-
-                return httpResponseStruct_->GetBodyByteArray_Slow();
-            }
-        }
-
-        /// <summary>
-        /// Byte array of the response.
-        /// </summary>
-        /// <param name="r"></param>
-        /// <returns></returns>
-        public static implicit operator Byte[](Response r)
-        {
-            return r.ResponseBytes;
-        }
-
-        /// <summary>
         /// Gets body as UTF8 string.
         /// </summary>
         /// <returns>UTF8 string.</returns>
@@ -1411,66 +1362,6 @@ namespace Starcounter
                     return null;
 
                 return httpResponseStruct_->GetBodyStringUtf8_Slow();
-            }
-        }
-
-        /// <summary>
-        /// Gets body bytes.
-        /// </summary>
-        Byte[] GetBodyBytes_Slow()
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    return null;
-
-                return httpResponseStruct_->GetBodyByteArray_Slow();
-            }
-        }
-
-        /// <summary>
-        /// Gets headers as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        String GetHeadersStringUtf8_Slow()
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    return null;
-
-                return httpResponseStruct_->GetHeadersStringUtf8_Slow();
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw response.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetResponseRaw(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    throw new ArgumentException("HTTP response not initialized.");
-
-                httpResponseStruct_->GetResponseRaw(out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
-        /// Gets response as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        internal String GetResponseStringUtf8_Slow()
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    throw new ArgumentException("HTTP response not initialized.");
-
-                return httpResponseStruct_->GetResponseStringUtf8_Slow();
             }
         }
 
@@ -1487,22 +1378,6 @@ namespace Starcounter
                     throw new ArgumentException("HTTP response not initialized.");
 
                 httpResponseStruct_->GetRawHeaders(out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw session string.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr, out UInt32 sizeBytes)
-        {
-            unsafe
-            {
-                if (null == httpResponseStruct_)
-                    throw new ArgumentException("HTTP response not initialized.");
-
-                httpResponseStruct_->GetRawSessionString(out ptr, out sizeBytes);
             }
         }
 
@@ -1732,7 +1607,7 @@ namespace Starcounter
         /// Gets the response as bytes.
         /// </summary>
         /// <returns>Byte array.</returns>
-        internal Byte[] GetResponseByte_Slow()
+        internal Byte[] GetResponseBytes_Slow()
         {
             Byte[] respBytes = new Byte[response_len_bytes_];
             Marshal.Copy(new IntPtr(socket_data_ + response_offset_), respBytes, 0, (int)response_len_bytes_);

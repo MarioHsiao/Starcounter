@@ -67,7 +67,7 @@ namespace Starcounter.Internal.Web {
                     resp.HandlingStatus = HandlerStatusInternal.Done;
                 } else {
                     // NOTE: Checking if its internal request then just returning response without modification.
-                    if (req.IsInternal)
+                    if (!req.IsExternal)
                         return resp;
 
                     // Checking if JSON object is attached.
@@ -96,11 +96,15 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// Runs delegate and process response.
         /// </summary>
-        public Response RunDelegateAndProcessResponse(Request req, HandlerOptions handlerOptions) {
+        public Response RunDelegateAndProcessResponse(
+            IntPtr methodSpaceUriSpace,
+            IntPtr parametersInfo,
+            Request req,
+            HandlerOptions handlerOptions) {
 
             Response resp = null;
 
-            if (!req.IsInternal) {
+            if (req.IsExternal) {
                 Session.InitialRequest = req;
             }
 
@@ -111,7 +115,7 @@ namespace Starcounter.Internal.Web {
             Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
 
             UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
-            uhm.RunDelegate(req, handlerOptions, out resp);
+            uhm.RunDelegate(methodSpaceUriSpace, parametersInfo, req, handlerOptions, out resp);
 
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 

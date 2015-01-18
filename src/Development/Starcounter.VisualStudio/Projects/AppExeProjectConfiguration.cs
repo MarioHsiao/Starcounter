@@ -158,7 +158,7 @@ namespace Starcounter.VisualStudio.Projects {
             Engine engine;
             ErrorDetail errorDetail;
             int statusCode;
-            string headers;
+            Dictionary<String, String> headers;
 
             AppsEvents.OnDebuggerProcessChange = DebuggerStateChanged;
             ResponseExtensions.OnUnexpectedResponse = this.HandleUnexpectedResponse;
@@ -234,7 +234,9 @@ namespace Starcounter.VisualStudio.Projects {
 
             ExecutableReference exeRef = engine.GetExecutable(debugConfig.AssemblyPath);
             if (exeRef != null) {
-                headers = string.Format("ETag: {0}{1}", engineETag, HTTPHelp.CRLF);
+
+                headers = new Dictionary<String, String> { { "ETag", engineETag } };
+
                 this.WriteDebugLaunchStatus("Stopping engine");
                 response = node.DELETE(node.ToLocal(exeRef.Uri), (String)null, headers);
                 response.FailIfNotSuccessOr(404, 412);

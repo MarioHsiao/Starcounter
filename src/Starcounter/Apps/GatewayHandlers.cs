@@ -306,7 +306,7 @@ namespace Starcounter
                         throw ErrorCode.ToException(errorCode);
 
                     // Obtaining Request structure.
-                    req.Init(
+                    req.InitExternal(
                         rawChunk,
                         isSingleChunk,
                         chunkIndex,
@@ -330,7 +330,7 @@ namespace Starcounter
                     }*/
 
                     // Obtaining Request structure.
-                    req.Init(
+                    req.InitExternal(
                         rawChunk,
                         isSingleChunk,
                         taskInfo->chunk_index,

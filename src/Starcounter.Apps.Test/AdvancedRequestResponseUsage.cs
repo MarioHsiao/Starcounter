@@ -218,7 +218,7 @@ namespace Starcounter.Internal.Test
             {
                 Assert.IsTrue("/response1" == req.Uri);
                 Assert.IsTrue("Another body!" == req.Body);
-                Assert.IsTrue("Host: 127.0.0.1\r\nContent-Length: 13\r\nMyHeader1: value1\r\nMyHeader2: value2\r\n" == req.Headers);
+                Assert.IsTrue("MyHeader1: value1\r\nMyHeader2: value2\r\n" == req.Headers);
                 Assert.IsTrue("value1" == req["MyHeader1"]);
                 Assert.IsTrue("value2" == req["MyHeader2"]);
 
@@ -258,7 +258,11 @@ namespace Starcounter.Internal.Test
                 return resp;
             });
 
-            Response resp2 = localNode.POST("/response1", "Another body!", "MyHeader1: value1\r\nMyHeader2: value2\r\n");
+            Dictionary<String, String> headers = new Dictionary<String, String> {
+                { "MyHeader1", "value1" },
+                { "MyHeader2", "value2" }
+            };
+            Response resp2 = localNode.POST("/response1", "Another body!", headers);
 
             Assert.IsTrue("Haha!" == resp2["MySuperHeader"]);
             Assert.IsTrue("Hahaha!" == resp2["MyAnotherSuperHeader"]);
