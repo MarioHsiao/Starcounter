@@ -195,7 +195,6 @@ namespace Starcounter
             uint r;
             ulong handle;
             ulong verify;
-            ImplicitTransaction it;
 
             if (maxRetries < 0) {
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
@@ -212,10 +211,8 @@ namespace Starcounter
                 r = sccoredb.star_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0)
                 {
-                    it = ImplicitTransaction.Current(true);
-                    it.explicitTransactionCreated = true;
-                    var currentTransaction = Starcounter.Transaction._current;
-                    Starcounter.Transaction._current = null;
+                    var currentTransaction = Starcounter.Transaction.GetCurrent();
+                    Starcounter.Transaction.SetManagedCurrentToNull();
 
                     try {
                         action();
@@ -246,7 +243,7 @@ namespace Starcounter
 
                             Starcounter.Transaction.SetCurrent(currentTransaction);
                         } else {
-                            it.SetCurrent();     
+                            ImplicitTransaction.CreateOrSetCurrent();
                         }
                     }
                 }
@@ -274,100 +271,7 @@ namespace Starcounter
             }
         }
 
-        /// <summary>
-        /// An implicit scope wraps an autocreated readonly transaction, that is always set as current after
-        /// an ordinary transactionscope is ended. It will also upgrade the implicit transaction to write if 
-        /// needed with automatic retries. After the task is executed and an implicit transaction exists, it 
-        /// is committed if it's writeable and released. 
-        /// </summary>
-        /// <remarks>
-        /// Currently there are three places where this scope is used, main entrypoint for an application, calls to 
-        /// rest-handlers and scheduled tasks.
-        /// </remarks>
-        /// <param name="action"></param>
-        /// <param name="maxRetries"></param>
-        internal static void ImplicitScope(Action action, int maxRetries = 100) {
-            int retries;
-            ImplicitTransaction it;
-
-            if (!Environment.HasDatabase) {
-                // Running with nodb switch, which means that no database is initialized. Just invoke the action and return.
-                action();
-                return;
-            }
-
-            if (maxRetries < 0)
-                throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
-
-            retries = 0;
-            it = ImplicitTransaction.Current(true);
-
-            if (!it.insideMicroTask) {
-                it.insideMicroTask = true;
-                it.CreateOrSetReadOnly();
-                try {
-                    for (; ; ) {
-
-                        try {
-                            it.explicitTransactionCreated = false;
-                            action();
-
-                            if (it.IsWritable()) {
-                                if (Starcounter.Transaction._current != null) {
-                                    // We have a long running transaction set as current. If we also have an implicit 
-                                    // transaction with modifications we need to throw exception since we cannot retry 
-                                    // a scope with a manuell transaction in it.
-                                    throw ErrorCode.ToException(Error.SCERRAMBIGUOUSIMPLICITTRANSACTION);
-                                }
-                                it.Commit();
-                            }
-                            return;
-                        } catch (Exception ex) {
-                            // TODO:
-                            // Throwing and catching exception is too slow.
-                            uint ec;
-                            Exception real = ex;
-                            if (ex is TargetInvocationException && ex.InnerException != null) {
-                                real = ex.InnerException;
-                            }
-
-                            if (ErrorCode.TryGetCode(real, out ec) && ec == Error.SCERRREADONLYTRANSACTION) {
-                                it.UpgradeToReadWrite();
-                                continue; // We don't count this as a retry, just a restart.
-                            }
-
-                            if (it.IsWritable()) {
-                                ec = it.ReleaseLocked();
-                                if (ec == 0) {
-                                    if (ex is ITransactionConflictException) {
-                                        if (++retries <= maxRetries)
-                                            continue;
-                                        throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
-                                    }
-                                    throw;
-                                }
-                                HandleFatalErrorInTransactionScope(ec);
-                            }
-                            throw;
-                        }
-                    }
-                } finally {
-                    it.insideMicroTask = false;
-                    it.ReleaseReadOnly();
-                }
-            } else {
-                try {
-                    action();
-                } catch {
-                    if (it.IsWritable())
-                        sccoredb.star_external_abort();
-                    throw;
-                }
-                return;
-            }
-        }
-
-        /// <summary>
+        /// <summary>                        
         /// </summary>
         public static void SetEnvironment(DbEnvironment e) // TODO: Internal
         {

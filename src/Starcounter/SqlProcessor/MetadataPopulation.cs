@@ -70,16 +70,19 @@ namespace Starcounter.SqlProcessor {
                                     Set = true
                                 };
                             } else {
-                                Starcounter.Internal.Metadata.MaterializedColumn matCol =
-                                    Db.SQL<Starcounter.Internal.Metadata.MaterializedColumn>(
-                                    "select c from materializedcolumn c where c.table = ? and name = ?",
-                                    theView.Mapper.MaterializedTable, propDef.ColumnName).First;
-                                Column col = new Column {
+                                Starcounter.Metadata.Column rawCol =
+                                    Db.SQL<Starcounter.Metadata.Column>(
+                                    "select c from column c where c.table = ? and name = ?",
+                                    theView.Mapper, propDef.ColumnName).First;
+                                Debug.Assert(rawCol != null);
+                                MappedProperty prop = new MappedProperty {
                                     Table = theView,
+                                    Column = rawCol,
+                                    Inherited = rawCol.Inherited,
                                     Name = propDef.Name,
-                                    MaterializedColumn = matCol,
                                     Type = propType,
-                                    Unique = false
+                                    Set = true,
+                                    Get = true
                                 };
                             }
                         } else {
@@ -196,7 +199,8 @@ namespace Starcounter.SqlProcessor {
                 Column newCol = new Column {
                     Table = thisView,
                     Name = matCol.Name,
-                    MaterializedColumn = matCol
+                    MaterializedColumn = matCol,
+                    Inherited = col.IsInherited
                 };
                 if (col.Type == sccoredb.STAR_TYPE_REFERENCE) {
                     var hostedColumn = typeDef.HostedColumns[i];
