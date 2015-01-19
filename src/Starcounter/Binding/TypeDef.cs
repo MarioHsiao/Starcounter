@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Linq;
 using System;
+using Starcounter.Internal;
 
 namespace Starcounter.Binding
 {
@@ -17,7 +18,6 @@ namespace Starcounter.Binding
     /// </summary>
     public class TypeDef
     {
-
         /// <summary>
         /// The name
         /// </summary>
@@ -117,13 +117,21 @@ namespace Starcounter.Binding
         /// </summary>
         public int TypeNameIndex { get; set; }
 
+        /// <summary>
+        /// Raw object reference to a resolved dynamic type in the form of a
+        /// <see cref="ObjectRef"/>. If no dynamic type has been established
+        /// for the current type, this reference is invalid.
+        /// </summary>
+        /// <remarks>Will be initialized as part of binding.</remarks>
+        public ObjectRef RuntimeDefaultTypeRef;
+
         private TypeDef(
             string name,
             string baseName,
             TableDef tableDef,
             PropertyDef[] properties,
             HostedColumn[] hostedColumns,
-            TypeLoader typeLoader) {
+            TypeLoader typeLoader) : this() {
             Name = name;
             TableDef = tableDef;
             BaseName = baseName;
@@ -133,6 +141,8 @@ namespace Starcounter.Binding
         }
 
         protected TypeDef() {
+            RuntimeDefaultTypeRef = new ObjectRef();
+            RuntimeDefaultTypeRef.InitInvalid();
         }
 
         public static TypeDef DefineNew(string name, string baseName, TableDef table, TypeLoader typeLoader, PropertyDef[] properties, HostedColumn[] hostedColumns) {
