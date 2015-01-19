@@ -212,68 +212,7 @@ namespace Starcounter
                 nodesDict.Add(endpoint, node);
             }
         }
-
-        /// <summary>
-        /// Checks for local cache.
-        /// </summary>
-        /// <param name="uri"></param>
-        /// <param name="customHeaders"></param>
-        /// <param name="userObject"></param>
-        /// <param name="userDelegate"></param>
-        internal static Boolean CheckLocalCache(String uri, Object userObject, Action<Response, Object> userDelegate, out Response resp)
-        {
-            if (uri == null || uri.Length < 1)
-                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
-
-            resp = null;
-
-            // Checking if we can reuse the cache.
-            if (uri[0] == '/')
-            {
-                if (null != Session.Current)
-                {
-                    Json cachedObj = Session.Current.GetCachedJsonNode(uri);
-                    if (null != cachedObj)
-                    {
-                        // Calling user delegate directly.
-                        if (null != userDelegate)
-                            userDelegate.Invoke(cachedObj, userObject);
-                        else
-                            resp = cachedObj;
-
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Checks if given URI is cached.
-        /// </summary>
-        /// <param name="uri">URI string.</param>
-        /// <returns>True is URI is cached.</returns>
-        public static Boolean IsCached(String uri) {
-
-            Response response;
-
-            return X.CheckLocalCache(uri, null, null, out response);
-        }
-
-        /// <summary>
-        /// Removes given URI entry from the cache.
-        /// </summary>
-        /// <param name="uri">URI string.</param>
-        /// <returns>True if entry is removed.</returns>
-        public static Boolean Forget(String uri) {
-
-            if (null != Session.Current)
-                return Session.Current.RemoveUriFromCache(uri);
-
-            return false;
-        }
-
+        
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
@@ -305,10 +244,6 @@ namespace Starcounter
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         public static void GET(String uri, out Response response, String customHeaders = null, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            // Checking if we can reuse the cache.
-            if (IsInSccode && CheckLocalCache(uri, null, null, out response))
-                return;
-
             Node node;
             String relativeUri;
 
@@ -327,12 +262,6 @@ namespace Starcounter
         /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         public static void GET(String uri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            Response resp;
-
-            // Checking if we can reuse the cache.
-            if (IsInSccode && CheckLocalCache(uri, userObject, userDelegate, out resp))
-                return;
-
             Node node;
             String relativeUri;
 
