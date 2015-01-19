@@ -68,7 +68,8 @@ IF ERRORLEVEL 1 (
     EXIT /b 1
 )
 
-sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+:: Disabling the second run due to reasoning in #2477
+:: sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
 IF ERRORLEVEL 1 (
     ECHO Error: The query processing regression test failed!

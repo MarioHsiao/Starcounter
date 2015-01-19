@@ -120,5 +120,20 @@ namespace Starcounter.Binding
             ColumnIndex = -1;
             SpecialFlags = 0;
         }
+
+        /// <summary>
+        /// Creates a new <see cref="PropertyDef"/> from a column,
+        /// where the returned definition will derive its values from
+        /// the given column and also map to it.
+        /// </summary>
+        /// <param name="column">The column to base the property defintion
+        /// on.</param>
+        /// <returns>A new property definition.</returns>
+        public static PropertyDef FromMappedColumn(ColumnDef column) {
+            var prop = new PropertyDef(column.Name, BindingHelper.ConvertScTypeCodeToDbTypeCode(column.Type));
+            prop.ColumnName = column.Name;
+            prop.IsNullable = column.IsNullable;
+            return prop;
+        }
     }
 }

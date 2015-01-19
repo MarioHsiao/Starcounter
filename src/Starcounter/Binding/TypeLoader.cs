@@ -15,6 +15,7 @@ namespace Starcounter.Binding
     /// </summary>
     public class TypeLoader
     {
+        static readonly AssemblyName StarcounterAssemblyName = new AssemblyName("Starcounter");
 
         /// <summary>
         /// The assembly name_
@@ -41,6 +42,18 @@ namespace Starcounter.Binding
                 var version = assemblyName_.Version == null ? "null" : assemblyName_.Version.ToString();
                 return string.Format("{0}, ({1}, Version={2})", typeName_, assemblyName_.Name, version);
             }
+        }
+
+        /// <summary>
+        /// Factory method that creates a type loader for a type hosted
+        /// in the Starcounter assembly.
+        /// </summary>
+        /// <param name="name">The name of the type to create the loader
+        /// from.</param>
+        /// <returns>A type loader responsble for loading the given
+        /// Starcounter type.</returns>
+        public static TypeLoader ForStarcounterType(string name) {
+            return new TypeLoader(StarcounterAssemblyName, name);
         }
 
         /// <summary>

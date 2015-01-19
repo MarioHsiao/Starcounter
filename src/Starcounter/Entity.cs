@@ -11,7 +11,7 @@ namespace Starcounter {
     /// classes, as an alternative to the [Database] attribute.
     /// </summary>
     [Database]
-    public abstract partial class Entity : IEntity  {
+    public partial class Entity : IEntity  {
         /// <summary>
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
