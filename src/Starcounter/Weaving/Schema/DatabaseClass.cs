@@ -141,7 +141,7 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
     }
 
     /// <summary>
-    /// Searches an attribute by name in the current class and in all ancestors, using
+    /// Searches an attribute in the current class and in all ancestors, using
     /// a specified predicate to determine if attributes are considered matches or not.
     /// </summary>
     /// <param name="predicate">The predicate that determine if an attribute match.</param>
