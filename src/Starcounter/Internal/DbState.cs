@@ -1059,6 +1059,21 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(r);
         }
 
+        static void WriteObjRefNotNullFast(ulong oid, ulong address, Int32 index, ObjectRef value) {
+            var r = sccoredb.star_put_reference(
+                oid,
+                address,
+                index,
+                value.ObjectID,
+                value.Address
+                );
+            if (r == 0) {
+                return;
+            }
+
+            throw ErrorCode.ToException(r);
+        }
+
         /// <summary>
         /// 
         /// </summary>
