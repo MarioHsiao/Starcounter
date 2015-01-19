@@ -290,7 +290,7 @@ namespace Starcounter
             System.Diagnostics.Debug.Assert(IntPtr.Zero == responseStructIntPtr_);
             System.Diagnostics.Debug.Assert(IntPtr.Zero == socketDataIntPtr_);
             System.Diagnostics.Debug.Assert(null == wsHandshakeResp_);
-            System.Diagnostics.Debug.Assert(null == cookies_);
+            System.Diagnostics.Debug.Assert((null == cookies_) || (0 == cookies_.Count));
             System.Diagnostics.Debug.Assert(null == resource_);
 
             return resp;
@@ -531,6 +531,7 @@ namespace Starcounter
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T GetContent<T>() {
+
             if (typeof(T) == typeof(String)) {
                 return (T)(object)GetContentString(MimeType.Unspecified);
             }
@@ -545,14 +546,15 @@ namespace Starcounter
         /// </summary>
         /// <returns></returns>
         public string GetContentString(MimeType mimeType) {
+
             if (null != resource_)
                 return resource_.AsMimeType(mimeType);
 
-            if (null != bodyBytes_)
-                return Encoding.UTF8.GetString(bodyBytes_);
-
             if (null != bodyString_)
                 return bodyString_;
+
+            if (null != bodyBytes_)
+                return Encoding.UTF8.GetString(bodyBytes_);
 
             return GetBodyStringUtf8_Slow();
         }
@@ -798,6 +800,7 @@ namespace Starcounter
                     }
 
 					secondaryChoices.MoveNext(); // The first one is already accounted for
+
 					while (bytes == null && secondaryChoices.MoveNext()) {
 						mimetype = secondaryChoices.Current;
 						bytes = resource_.AsMimeType(mimetype, out mimetype);
@@ -1057,8 +1060,10 @@ namespace Starcounter
                 if (responseSizeBytes_ <= 0) {
 
                     unsafe {
-                        if (null != httpResponseStruct_)
-                            responseSizeBytes_ = (Int32)httpResponseStruct_->response_len_bytes_;
+
+                        if (null != httpResponseStruct_) {
+                            responseSizeBytes_ = (Int32) httpResponseStruct_->response_len_bytes_;
+                        }
                     }
                 }
 
@@ -1076,8 +1081,6 @@ namespace Starcounter
         /// <summary>
         /// Setting the response buffer.
         /// </summary>
-        /// <param name="response_buf"></param>
-        /// <param name="response_len_bytes"></param>
         internal void SetResponseBuffer(Byte[] response_buf, MemoryStream mem_stream, Int32 response_len_bytes)
         {
             // Creating finalizer if needed.
@@ -1111,21 +1114,9 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Parses the HTTP response from plain buffer.
-        /// </summary>
-        internal void ParseResponseFromPlainBuffer()
-        {
-            if (null != responseBytes_)
-                TryParseResponse(responseBytes_, 0, responseSizeBytes_, true);
-        }
-
-        /// <summary>
         /// Parses HTTP response from buffer.
         /// </summary>
-        /// <param name="buf"></param>
-        /// <param name="bufLenBytes"></param>
-        /// <param name="complete"></param>
-        internal void TryParseResponse(Byte[] buf, Int32 offsetBytes, Int32 bufLenBytes, Boolean complete)
+        internal void TryParseResponseFromPlainBuffer(Byte[] buf, Int32 offsetBytes, Int32 bufLenBytes, Boolean complete)
         {
             UInt32 err_code;
             unsafe
@@ -1188,14 +1179,12 @@ namespace Starcounter
         /// <summary>
         /// Initializes a new instance of the <see cref="Response" /> class.
         /// </summary>
-        /// <param name="buf">The buf.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
         public Response(Byte[] buf, Int32 offset, Int32 lenBytes, Boolean complete = true)
         {
             unsafe {
 
                 // Parsing given buffer.
-                TryParseResponse(buf, offset, lenBytes, complete);
+                TryParseResponseFromPlainBuffer(buf, offset, lenBytes, complete);
             }
         }
 

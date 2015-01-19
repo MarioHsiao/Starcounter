@@ -1024,9 +1024,6 @@ namespace Starcounter.Rest
                     if (resp == null)
                         return false;
 
-                    // Parsing the response.
-                    resp.ParseResponseFromPlainBuffer();
-
                     // Request successfully handled.
                     return true;
                 }
