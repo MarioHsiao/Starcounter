@@ -669,7 +669,6 @@ namespace Starcounter
             bodyString_ = null;
             statusDescription_ = null;
             statusCode_ = 0;
-            AppsSession = null;
             resource_ = null;
         }
 
@@ -877,15 +876,16 @@ namespace Starcounter
                     }
 
                     // Checking if session is defined.
-                    if (addSetCookie && (null != AppsSession) && ((req == null) || (!req.CameWithCorrectSession))) {
+                    ScSessionClass session = ScSessionClass.GetCurrent();
+                    if (addSetCookie && (null != session) && ((req == null) || (!req.CameWithCorrectSession))) {
 
-                        if (AppsSession.use_session_cookie_) {
+                        if (session.use_session_cookie_) {
                             writer.Write(HttpHeadersUtf8.SetSessionCookieStart);
-                            writer.Write(AppsSession.ToAsciiString());
+                            writer.Write(session.ToAsciiString());
                         } else {
                             writer.Write(HttpHeadersUtf8.SetCookieLocationStart);
                             writer.Write(ScSessionClass.DataLocationUriPrefixEscaped);
-                            writer.Write(AppsSession.ToAsciiString());
+                            writer.Write(session.ToAsciiString());
                         }
                         writer.Write(HttpHeadersUtf8.SetCookiePathEnd);
                     }
@@ -952,9 +952,9 @@ namespace Starcounter
                 }
             }
 
-			if (null != AppsSession) {
+			if (null != ScSessionClass.GetCurrent()) {
 				size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
-				size += AppsSession.ToAsciiString().Length;
+				size += ScSessionClass.GetCurrent().ToAsciiString().Length;
 			}
 
 			if (null != bodyString_)
@@ -1638,11 +1638,6 @@ namespace Starcounter
                 }
             }
         }
-
-        /// <summary>
-        /// Getting session for apps.
-        /// </summary>
-        internal ScSessionClass AppsSession { get; set; }
 
         /// <summary>
         /// Gets the session struct.

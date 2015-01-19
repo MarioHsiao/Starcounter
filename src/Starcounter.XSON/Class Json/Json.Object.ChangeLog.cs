@@ -370,7 +370,9 @@ namespace Starcounter {
                 foreach (Template t in tobj.Properties) {
                     var tcontainer = t as TContainer;
                     if (tcontainer != null) {
-                        tcontainer.GetValue(this).CleanupOldVersionLogs(toVersion);
+                        var json = (Json)tcontainer.GetUnboundValueAsObject(this);
+                        if (json != null)
+                            json.CleanupOldVersionLogs(toVersion);
                     }
                 }
             }
