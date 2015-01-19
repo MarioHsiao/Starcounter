@@ -137,6 +137,12 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(dr);
         }
 
+        public static void WriteDefaultTypeReference(ulong oid, ulong address, TypeBinding binding) {
+            WriteObjRefNotNullFast(
+                oid, address, binding.TypeDef.TypePropertyIndex, binding.TypeDef.RuntimeDefaultTypeRef
+                );
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1034,15 +1040,14 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteObject(ulong oid, ulong address, Int32 index, IObjectProxy value) {
-            ObjectRef valueRef;
+            ObjectRef valueRef = new ObjectRef();
             uint r;
             
             if (value != null) {
                 valueRef.ObjectID = value.Identity;
                 valueRef.ETI = value.ThisHandle;
             } else {
-                valueRef.ObjectID = sccoredb.MDBIT_OBJECTID;
-                valueRef.ETI = 0; // Not relevant on invalid id.
+                valueRef.InitInvalid();
             }
             
             r = sccoredb.star_put_reference(
