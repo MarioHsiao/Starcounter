@@ -33,7 +33,11 @@ namespace Starcounter.Internal {
             Db.Transaction(action);
         }
 
-        ITransaction IDb.Current {
+        void IDb.Scope(Action action) {
+            Db.Scope(action);
+        }
+
+        ITransaction IDb.CurrentTransaction {
             get { return Transaction.Current; }
         }
     }

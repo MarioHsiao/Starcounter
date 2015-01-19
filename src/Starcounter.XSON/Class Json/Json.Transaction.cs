@@ -17,18 +17,12 @@ namespace Starcounter {
 
                 return null;
             }
-            private set {
-                _transaction = value;
-            }
         }
 
-        //public void AttachCurrentScope() {
-        //    if (_DB != null && _DB.Current != null) {
-        //        if (Transaction == null || Transaction != _DB.Current) {
-        //            _transaction = _DB.Current;
-        //        }
-        //    }
-        //}
+        public void AttachCurrentTransaction() {
+            if (_DB != null && _DB.CurrentTransaction != null)
+                _transaction = _DB.CurrentTransaction;
+        }
 
         /// <summary>
         /// Returns the transaction that is set on this app. Does NOT

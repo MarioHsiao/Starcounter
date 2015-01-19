@@ -94,7 +94,7 @@ namespace Starcounter {
         public Json()
             : base() {
             _cacheIndexInArr = -1;
-            _transaction = null;
+            AttachCurrentTransaction();
             _dirtyCheckEnabled = DirtyCheckEnabled;
             if (_Template == null) {
                 Template = GetDefaultTemplate();

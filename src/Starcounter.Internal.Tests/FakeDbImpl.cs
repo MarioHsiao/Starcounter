@@ -31,7 +31,11 @@ namespace Starcounter.XSON.Tests {
 
         }
 
-        ITransaction IDb.Current { get { return null; } }
+        void IDb.Scope(Action action) {
+
+        }
+
+        ITransaction IDb.CurrentTransaction { get { return null; } }
     }
 
     internal class FakeTransaction : ITransaction {
