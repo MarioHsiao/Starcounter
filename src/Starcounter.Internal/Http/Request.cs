@@ -467,18 +467,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Checks if request is destroyed already.
-        /// </summary>
-        /// <returns>True if destroyed.</returns>
-        internal bool IsDestroyed()
-        {
-            unsafe
-            {
-                return (http_request_struct_ == null) && (session_ == null);
-            }
-        }
-
-        /// <summary>
         /// Checking if its a looping host chunk.
         /// </summary>
         /// <returns></returns>

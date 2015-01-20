@@ -226,7 +226,6 @@ namespace Starcounter.Rest
 
                 // Checking if we need to merge.
                 if ((!useProxyHandler) &&
-                    (!req.IsDestroyed()) &&
                     (UriInjectMethods.ResponsesMergerRoutine_ != null) &&
                     (!dontMerge)) {
 
@@ -242,7 +241,7 @@ namespace Starcounter.Rest
 
             // Saving the name of the app the request originated from. Used to 
             // decide which response should be used to merge the others to.
-            String orgRequestAppName = StarcounterEnvironment.AppName;
+            String origRequestAppName = StarcounterEnvironment.AppName;
 
             // Running every delegate from the list.
             for (Int32 i = 0; i < userDelegates_.Count; i++) {
@@ -264,7 +263,7 @@ namespace Starcounter.Rest
                 resp.AppName = appNames_[i];
 
                 // The first response is the one we should merge on.
-                if (appNames_[i] == orgRequestAppName) {
+                if (appNames_[i] == origRequestAppName) {
                     responses.Insert(0, resp);
                 } else {
                     responses.Add(resp);
@@ -563,51 +562,6 @@ namespace Starcounter.Rest
             UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
 
             return uhm.AllUserHandlerInfos[req.ManagedHandlerId].UriInfo.port_;
-        }
-
-        public void RunDelegate(
-            IntPtr methodSpaceUriSpaceOnStack,
-            IntPtr parametersInfoOnStack,
-            Request req,
-            HandlerOptions handlerOptions,
-            out Response resp)
-        {
-            unsafe
-            {
-                resp = null;
-
-                UserHandlerInfo uhi = allUriHandlers_[req.ManagedHandlerId];
-
-                // Checking if we had custom type user Message argument.
-                if (uhi.ArgMessageType != null) {
-                    req.ArgMessageObjectType = uhi.ArgMessageType;
-                    req.ArgMessageObjectCreate = uhi.ArgMessageCreate;
-                }
-
-                // Setting some request parameters.
-                req.PortNumber = uhi.UriInfo.port_;
-                req.MethodEnum = uhi.UriInfo.http_method_;
-
-                // Saving original application name.
-                String origAppName = StarcounterEnvironment.AppName;
-
-                try {
-
-                    // Calling user delegate.
-                    resp = uhi.RunUserDelegates(
-                        req,
-                        methodSpaceUriSpaceOnStack,
-                        parametersInfoOnStack,
-                        handlerOptions
-                        );
-
-                } finally {
-
-                    // Setting back the application name.
-                    StarcounterEnvironment.AppName = origAppName;
-
-                }
-            }
         }
 
         /// <summary>

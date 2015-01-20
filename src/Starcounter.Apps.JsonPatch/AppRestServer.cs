@@ -97,8 +97,8 @@ namespace Starcounter.Internal.Web {
         /// Runs delegate and process response.
         /// </summary>
         public Response RunDelegateAndProcessResponse(
-            IntPtr methodSpaceUriSpace,
-            IntPtr parametersInfo,
+            IntPtr methodSpaceUriSpaceOnStack,
+            IntPtr parametersInfoOnStack,
             Request req,
             HandlerOptions handlerOptions) {
 
@@ -115,7 +115,41 @@ namespace Starcounter.Internal.Web {
             Profiler.Current.Start(ProfilerNames.GetUriHandlersManager);
 
             UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
-            uhm.RunDelegate(methodSpaceUriSpace, parametersInfo, req, handlerOptions, out resp);
+
+            unsafe {
+
+                UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
+
+                // Checking if we had custom type user Message argument.
+                if (uhi.ArgMessageType != null) {
+                    req.ArgMessageObjectType = uhi.ArgMessageType;
+                    req.ArgMessageObjectCreate = uhi.ArgMessageCreate;
+                }
+
+                // Setting some request parameters.
+                req.PortNumber = uhi.UriInfo.port_;
+                req.MethodEnum = uhi.UriInfo.http_method_;
+
+                // Saving original application name.
+                String origAppName = StarcounterEnvironment.AppName;
+
+                try {
+
+                    // Calling user delegate.
+                    resp = uhi.RunUserDelegates(
+                        req,
+                        methodSpaceUriSpaceOnStack,
+                        parametersInfoOnStack,
+                        handlerOptions
+                        );
+
+                } finally {
+
+                    // Setting back the application name.
+                    StarcounterEnvironment.AppName = origAppName;
+
+                }
+            }
 
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
