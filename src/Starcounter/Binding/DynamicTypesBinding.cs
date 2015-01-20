@@ -49,12 +49,14 @@ namespace Starcounter.Binding {
 
             var rawView = Db.SQL<RawView>("SELECT r FROM RawView r WHERE FullName = ?", typeDef.Name).First;
             if (rawView.AutoTypeInstance > 0) {
-                var existingType = DbHelper.FromID(rawView.AutoTypeInstance);
+                var existingType = DbHelper.FromID(rawView.AutoTypeInstance) as IObjectProxy;
                 // Here, we should handle possible refactoring
                 // of the type tree.
                 // TODO:
                 Trace.Assert(existingType.TypeBinding == tb);
                 typesDiscovered[typeDef.Name] = rawView.AutoTypeInstance;
+                typeDef.RuntimeDefaultTypeRef.ObjectID = existingType.Identity;
+                typeDef.RuntimeDefaultTypeRef.Address = existingType.ThisHandle;
                 return;
             }
             
@@ -89,6 +91,8 @@ namespace Starcounter.Binding {
 
             typesDiscovered[typeDef.Name] = oid;
             rawView.AutoTypeInstance = oid;
+            typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
+            typeDef.RuntimeDefaultTypeRef.Address = addr;
         }
 
         static TypeBinding GetDeclaredTargetType(TypeDef typeDef) {

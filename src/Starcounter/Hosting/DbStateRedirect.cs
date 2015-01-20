@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Binding;
 using System;
 
 namespace Starcounter.Hosting {
@@ -12,6 +13,10 @@ namespace Starcounter.Hosting {
 
         public static void Insert(ushort tableId, ref ulong oid, ref ulong address) {
             DbStateRedirect.Target.Insert(tableId, ref oid, ref address);
+        }
+
+        public static void WriteDefaultTypeReference(ulong oid, ulong address, TypeBinding binding) {
+            DbStateRedirect.Target.WriteDefaultTypeReference(oid, address, binding);
         }
 
         public static bool ReadBoolean(ulong oid, ulong address, int index) {

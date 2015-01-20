@@ -27,6 +27,7 @@ using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
 
+    using Sc.Server.Weaver;
     using Starcounter.Internal.Weaver.EqualityImpl;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
@@ -669,7 +670,11 @@ namespace Starcounter.Internal.Weaver {
             EmitUninitializedConstructor(typeDef);
 
             if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
-                insertConstructor = EmitInsertConstructor(typeDef, typeSpecification);
+                var dynamicTypeRef = databaseClass.FindAttributeInAncestors((candidate) => {
+                    return candidate.IsTypeReference && 
+                        candidate.DeclaringClass.Name != WeavedNames.ImplicitEntityClass;
+                });
+                insertConstructor = EmitInsertConstructor(typeDef, typeSpecification, dynamicTypeRef);
             }
 
             // Enhance other constructors only for entity classes.
@@ -885,7 +890,7 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
-        private MethodDefDeclaration EmitInsertConstructor(TypeDefDeclaration typeDef, TypeSpecificationEmit typeSpecification) {
+        private MethodDefDeclaration EmitInsertConstructor(TypeDefDeclaration typeDef, TypeSpecificationEmit typeSpecification, DatabaseAttribute dynamicTypeReference) {
             Trace.Assert(WeaverUtilities.IsDatabaseRoot(typeDef));
 
             var insertionPoint = new MethodDefDeclaration() {
@@ -943,11 +948,19 @@ namespace Starcounter.Internal.Weaver {
                 null);
             _writer.AttachInstructionSequence(sequence);
 
+            // Invoke object.ctor();
+
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
             _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectConstructor);
+
+            // this.__sc__this__binding = typeBinding;
+
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
             _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, typeBindingParameter);
             _writer.EmitInstructionField(OpCodeNumber.Stfld, typeSpecification.ThisBinding);
+
+            // DbState.Insert(...)
+
             _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, tableIdParameter);
             _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
             _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisIdentity);
@@ -955,6 +968,21 @@ namespace Starcounter.Internal.Weaver {
             _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisHandle);
             _writer.EmitInstructionMethod(OpCodeNumber.Call,
                 _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("Insert"), BindingOptions.Default));
+
+            if (dynamicTypeReference != null) {
+
+                // DbState.WriteDefaultTypeReference(...)
+
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, typeSpecification.ThisIdentity);
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, typeSpecification.ThisHandle);
+                _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, typeBindingParameter);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call,
+                    _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("WriteDefaultTypeReference"), 
+                    BindingOptions.Default));
+            }
+
             _writer.EmitInstruction(OpCodeNumber.Ret);
             _writer.DetachInstructionSequence();
             

@@ -46,6 +46,7 @@ namespace Starcounter {
         private Entity(ushort tableId, TypeBinding typeBinding, Initialized dummy) {
             this.__sc__this_binding__ = typeBinding;
             DbState.Insert(tableId, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+            DbState.WriteDefaultTypeReference(this.__sc__this_id__, this.__sc__this_handle__, typeBinding);
         }
 
         [DebuggerHidden]

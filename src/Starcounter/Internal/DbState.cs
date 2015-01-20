@@ -138,6 +138,26 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Assign the given object's reference to its default dynamic type.
+        /// No error checking is done; the method assumes it has been established
+        /// upfront that the given type actually define a relationship to a
+        /// dynamic type.
+        /// </summary>
+        /// <param name="oid">The object whose type reference are to be set to
+        /// the default dynamic type.</param>
+        /// <param name="address">The address of the object.</param>
+        /// <param name="binding">The type binding of the object that are to be
+        /// written; the type binding is used to resolve the default dynamic type
+        /// of the about-to-be-written object.</param>
+        public static void WriteDefaultTypeReference(ulong oid, ulong address, TypeBinding binding) {
+            var typeDef = binding.TypeDef;
+            var prop = typeDef.PropertyDefs[typeDef.TypePropertyIndex];
+            WriteObjRefNotNullFast(
+                oid, address, prop.ColumnIndex, typeDef.RuntimeDefaultTypeRef
+                );
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="oid"></param>
@@ -1034,15 +1054,14 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteObject(ulong oid, ulong address, Int32 index, IObjectProxy value) {
-            ObjectRef valueRef;
+            ObjectRef valueRef = new ObjectRef();
             uint r;
             
             if (value != null) {
                 valueRef.ObjectID = value.Identity;
                 valueRef.ETI = value.ThisHandle;
             } else {
-                valueRef.ObjectID = sccoredb.MDBIT_OBJECTID;
-                valueRef.ETI = 0; // Not relevant on invalid id.
+                valueRef.InitInvalid();
             }
             
             r = sccoredb.star_put_reference(
@@ -1052,6 +1071,21 @@ namespace Starcounter.Internal
                      valueRef.ObjectID,
                      valueRef.ETI
                  );
+            if (r == 0) {
+                return;
+            }
+
+            throw ErrorCode.ToException(r);
+        }
+
+        static void WriteObjRefNotNullFast(ulong oid, ulong address, Int32 index, ObjectRef value) {
+            var r = sccoredb.star_put_reference(
+                oid,
+                address,
+                index,
+                value.ObjectID,
+                value.Address
+                );
             if (r == 0) {
                 return;
             }
