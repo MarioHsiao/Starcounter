@@ -970,9 +970,17 @@ namespace Starcounter.Internal.Weaver {
                 _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("Insert"), BindingOptions.Default));
 
             if (dynamicTypeReference != null) {
-                // Call into the host to assign the default dynamic type
-                // TODO:
-                throw new NotImplementedException();
+
+                // DbState.WriteDefaultTypeReference(...)
+
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, typeSpecification.ThisIdentity);
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, typeSpecification.ThisHandle);
+                _writer.EmitInstructionParameter(OpCodeNumber.Ldarg, typeBindingParameter);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call,
+                    _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("WriteDefaultTypeReference"), 
+                    BindingOptions.Default));
             }
 
             _writer.EmitInstruction(OpCodeNumber.Ret);
