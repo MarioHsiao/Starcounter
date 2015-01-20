@@ -138,8 +138,10 @@ namespace Starcounter.Internal
         }
 
         public static void WriteDefaultTypeReference(ulong oid, ulong address, TypeBinding binding) {
+            var typeDef = binding.TypeDef;
+            var prop = typeDef.PropertyDefs[typeDef.TypePropertyIndex];
             WriteObjRefNotNullFast(
-                oid, address, binding.TypeDef.TypePropertyIndex, binding.TypeDef.RuntimeDefaultTypeRef
+                oid, address, prop.ColumnIndex, typeDef.RuntimeDefaultTypeRef
                 );
         }
 
