@@ -7,6 +7,7 @@ namespace Starcounter.Hosting {
     public interface IDbState {
 
         void Insert(ushort tableId, ref ulong oid, ref ulong address);
+        void WriteDefaultTypeReference(ulong oid, ulong address, TypeBinding binding);
         bool ReadBoolean(ulong oid, ulong address, int index);
         Nullable<bool> ReadNullableBoolean(ulong oid, ulong address, int index);
         byte ReadByte(ulong oid, ulong address, int index);
