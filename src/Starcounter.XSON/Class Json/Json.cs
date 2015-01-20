@@ -274,6 +274,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// URI that corresponds to this Json cache entry.
+        /// </summary>
+        public String CacheUri {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// 
         /// </summary>
         /// <param name="value"></param>
