@@ -27,6 +27,7 @@ using IMethod = PostSharp.Sdk.CodeModel.IMethod;
 
 namespace Starcounter.Internal.Weaver {
 
+    using Sc.Server.Weaver;
     using Starcounter.Internal.Weaver.EqualityImpl;
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
 
@@ -670,7 +671,8 @@ namespace Starcounter.Internal.Weaver {
 
             if (WeaverUtilities.IsDatabaseRoot(typeDef)) {
                 var dynamicTypeRef = databaseClass.FindAttributeInAncestors((candidate) => {
-                    return candidate.IsTypeReference;
+                    return candidate.IsTypeReference && 
+                        candidate.DeclaringClass.Name != WeavedNames.ImplicitEntityClass;
                 });
                 insertConstructor = EmitInsertConstructor(typeDef, typeSpecification, dynamicTypeRef);
             }
