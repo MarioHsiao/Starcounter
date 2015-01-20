@@ -140,15 +140,13 @@ namespace Starcounter.XSON {
                     writer.Write('[');
 
                     if (versioning) {
-                        // TODO:
-                        // Change order when clientside js is fixed.
-                        writer.Write(testClientVersionPatch);
-                        writer.Write(session.ClientVersion);
+                        writer.Write(replaceServerVersionPatch);
+                        writer.Write(session.ServerVersion);
                         writer.Write('}');
                         writer.Write(',');
 
-                        writer.Write(replaceServerVersionPatch);
-                        writer.Write(session.ServerVersion);
+                        writer.Write(testClientVersionPatch);
+                        writer.Write(session.ClientVersion);
                         writer.Write('}');
 
                         if (changes.Count > 0) {
