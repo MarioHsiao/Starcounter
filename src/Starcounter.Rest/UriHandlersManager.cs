@@ -155,7 +155,7 @@ namespace Starcounter.Rest
         void StartSessionThatCameWithRequest(Request req) {
 
             // Checking if we are in session already.
-            if (!req.IsInternal && req.CameWithCorrectSession) {
+            if (req.IsExternal && req.CameWithCorrectSession) {
 
                 // Obtaining session.
                 Session s = (Session) req.GetAppsSessionInterface();
@@ -174,8 +174,8 @@ namespace Starcounter.Rest
         /// </summary>
         public Response RunUserDelegates(
             Request req,
-            IntPtr methodAndUri,
-            IntPtr rawParamsInfo,
+            IntPtr methodSpaceUriSpaceOnStack,
+            IntPtr parametersInfoOnStack,
             HandlerOptions handlerOptions) {
 
             List<Response> responses;
@@ -205,12 +205,12 @@ namespace Starcounter.Rest
                 if (useProxyHandler) {
 
                     // Calling proxy user delegate.
-                    resp = proxyDelegate_(req, methodAndUri, rawParamsInfo);
+                    resp = proxyDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
 
                 } else {
 
                     // Calling intermediate user delegate.
-                    resp = userDelegates_[0](req, methodAndUri, rawParamsInfo);
+                    resp = userDelegates_[0](req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
                 }
 
                 // Checking if we have any response.
@@ -226,7 +226,6 @@ namespace Starcounter.Rest
 
                 // Checking if we need to merge.
                 if ((!useProxyHandler) &&
-                    (!req.IsDestroyed()) &&
                     (UriInjectMethods.ResponsesMergerRoutine_ != null) &&
                     (!dontMerge)) {
 
@@ -242,7 +241,7 @@ namespace Starcounter.Rest
 
             // Saving the name of the app the request originated from. Used to 
             // decide which response should be used to merge the others to.
-            string orgRequestAppName = StarcounterEnvironment.AppName;
+            String origRequestAppName = StarcounterEnvironment.AppName;
 
             // Running every delegate from the list.
             for (Int32 i = 0; i < userDelegates_.Count; i++) {
@@ -253,7 +252,7 @@ namespace Starcounter.Rest
                 StarcounterEnvironment.AppName = appNames_[i];
 
                 // Calling intermediate user delegate.
-                Response resp = func(req, methodAndUri, rawParamsInfo);
+                Response resp = func(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
 
                 // Checking if we have any response.
                 if (null == resp) {
@@ -264,7 +263,7 @@ namespace Starcounter.Rest
                 resp.AppName = appNames_[i];
 
                 // The first response is the one we should merge on.
-                if (appNames_[i] == orgRequestAppName) {
+                if (appNames_[i] == origRequestAppName) {
                     responses.Insert(0, resp);
                 } else {
                     responses.Add(resp);
@@ -411,7 +410,7 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        internal static Func<Request, HandlerOptions, Response> runDelegateAndProcessResponse_;
+        internal static Func<IntPtr, IntPtr, Request, HandlerOptions, Response> runDelegateAndProcessResponse_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
         public static Action<string, ushort> OnHandlerRegistered_;
         public delegate void RegisterUriHandlerNativeDelegate(
@@ -439,7 +438,7 @@ namespace Starcounter.Rest
         public static void SetDelegates(
             RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, HandlerOptions, Response> runDelegateAndProcessResponse) {
+            Func<IntPtr, IntPtr, Request, HandlerOptions, Response> runDelegateAndProcessResponse) {
 
             RegisterUriHandlerNative_ = registerUriHandlerNative;
             OnHttpMessageRoot_ = onHttpMessageRoot;
@@ -563,40 +562,6 @@ namespace Starcounter.Rest
             UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(handlerOptions.HandlerLevel);
 
             return uhm.AllUserHandlerInfos[req.ManagedHandlerId].UriInfo.port_;
-        }
-
-        public void RunDelegate(Request req, HandlerOptions handlerOptions, out Response resp)
-        {
-            unsafe
-            {
-                resp = null;
-
-                UserHandlerInfo uhi = allUriHandlers_[req.ManagedHandlerId];
-
-                // Checking if we had custom type user Message argument.
-                if (uhi.ArgMessageType != null) {
-                    req.ArgMessageObjectType = uhi.ArgMessageType;
-                    req.ArgMessageObjectCreate = uhi.ArgMessageCreate;
-                }
-
-                // Setting some request parameters.
-                req.PortNumber = uhi.UriInfo.port_;
-                req.MethodEnum = uhi.UriInfo.http_method_;
-
-                // Saving original application name.
-                String origAppName = StarcounterEnvironment.AppName;
-
-                // Calling user delegate.
-                resp = uhi.RunUserDelegates(
-                    req,
-                    req.GetRawMethodAndUri(),
-                    req.GetRawParametersInfo(),
-                    handlerOptions
-                    );
-
-                // Setting back the application name.
-                StarcounterEnvironment.AppName = origAppName;
-            }
         }
 
         /// <summary>

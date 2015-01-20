@@ -169,8 +169,7 @@ namespace Starcounter {
         /// Resets the connection details, but keeps the existing socket.
         /// </summary>
         public void ResetButKeepSocket(
-            Byte[] requestBytes,
-            Int32 requestBytesLength,
+            Request req,
             Action<Response, Object> userDelegate,
             Action<Node.AggregationStruct> aggrMsgDelegate,
             Object userObject,
@@ -182,8 +181,13 @@ namespace Starcounter {
             receiveOffsetBytes_ = 0;
             responseSizeBytes_ = 0;
 
-            requestBytes_ = requestBytes;
-            requestBytesLength_ = requestBytesLength;
+            if (req != null) {
+                requestBytes_ = req.RequestBytes;
+                requestBytesLength_ = req.RequestLength;
+            } else {
+                requestBytes_ = null;
+                requestBytesLength_ = 0;
+            }
 
             userDelegate_ = userDelegate;
             userObject_ = userObject;
@@ -615,7 +619,6 @@ namespace Starcounter {
 
             // Parsing the response.
             resp_.ConstructFromFields(null, null);
-            resp_.ParseResponseFromPlainBuffer();
 
             // Invoking user delegate.
             if (null != userDelegate_) {

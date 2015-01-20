@@ -242,8 +242,8 @@ namespace Starcounter
         /// </summary>
         internal delegate Boolean RunUriMatcherAndCallHandlerDelegate(
             String methodAndUriPlusSpace,
-            Byte[] requestBytes,
-            Int32 requestBytesLength,
+            String methodAndUriPlusSpaceLower,
+            Request req,
             UInt16 portNumber,
             HandlerOptions handlerOptions,
             out Response resp);
@@ -271,12 +271,12 @@ namespace Starcounter
         /// <summary>
         /// Constructor.
         /// </summary>
-        /// <param name="hostName">Name of the host to connect to.</param>
-        /// <param name="portNumber">Port number to connect to.</param>
-        /// <param name="defaultReceiveTimeoutMs">Default receive timeout.</param>
-        /// <param name="useAggregation">True to use aggregation to Starcounter server.</param>
-        /// <param name="aggrPortNumber">Aggregation port on Starcounter server.</param>
-        public Node(String hostName, UInt16 portNumber = 0, Int32 defaultReceiveTimeoutMs = 0, Boolean useAggregation = false, UInt16 aggrPortNumber = 0)
+        public Node(
+            String hostName,
+            UInt16 portNumber = 0,
+            Int32 defaultReceiveTimeoutMs = 0,
+            Boolean useAggregation = false,
+            UInt16 aggrPortNumber = 0)
         {
             if (hostName.ToLower().Contains("localhost") ||
                 hostName.ToLower().Contains("127.0.0.1"))
@@ -334,7 +334,7 @@ namespace Starcounter
                 Boolean nodeAggrInitialized = false;
 
                 // Requesting socket creation.
-                DoAsyncTransfer(null, 0, null, (AggregationStruct aggr_struct) => {
+                DoAsyncTransfer(null, null, (AggregationStruct aggr_struct) => {
                     unsafe { this_node_aggr_struct_ = aggr_struct; }
                     nodeAggrInitialized = true;
                 }, null, 0);
@@ -353,22 +353,14 @@ namespace Starcounter
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void GET(String relativeUri, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void GET(String relativeUri, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP GET.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
         public Response GET(String relativeUri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             return DoRESTRequestAndGetResponse("GET", relativeUri, null, null, null, null, receiveTimeoutMs, ho);
@@ -377,346 +369,220 @@ namespace Starcounter
         /// <summary>
         /// Performs synchronous HTTP GET.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response GET(String relativeUri, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response GET(String relativeUri, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("GET", relativeUri, customHeaders, null, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("GET", relativeUri, headersDictionary, null, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void POST(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP POST.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP POST.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response POST(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response POST(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP POST.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response POST(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response POST(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("POST", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("POST", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PUT(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PUT.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PUT.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <returns>HTTP response.</returns>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public Response PUT(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PUT(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PUT.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response PUT(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PUT(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PUT", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PUT", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PATCH(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP PATCH.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PATCH.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response PATCH(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PATCH(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP PATCH.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response PATCH(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response PATCH(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("PATCH", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("PATCH", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void DELETE(String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP DELETE.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP DELETE.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response DELETE(String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response DELETE(String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP DELETE.
         /// </summary>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response DELETE(String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response DELETE(String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse("DELETE", relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse("DELETE", relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        /// <param name="method">HTTP method, e.g.: "OPTIONS", "HEAD".</param>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        /// <param name="method">HTTP method, e.g.: "OPTIONS", "HEAD".</param>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public void CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
+            DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, userDelegate, userObject, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        /// <param name="method">HTTP method, e.g.: "OPTIONS", "HEAD".</param>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(String method, String relativeUri, String body, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response CustomRESTRequest(String method, String relativeUri, String body, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             Byte[] bodyBytes = null;
             if (body != null)
                 bodyBytes = Encoding.UTF8.GetBytes(body);
 
-            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        /// <param name="method">HTTP method, e.g.: "OPTIONS", "HEAD".</param>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
-        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, String customHeaders, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
+        public Response CustomRESTRequest(String method, String relativeUri, Byte[] bodyBytes, Dictionary<String, String> headersDictionary, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
-            return DoRESTRequestAndGetResponse(method, relativeUri, customHeaders, bodyBytes, null, null, receiveTimeoutMs, ho);
+            return DoRESTRequestAndGetResponse(method, relativeUri, headersDictionary, bodyBytes, null, null, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP request with given HTTP method.
         /// </summary>
-        /// <param name="method">HTTP method, e.g.: "OPTIONS", "HEAD".</param>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="req">Original HTTP request.</param>
-        /// <param name="userObject">User object to be passed on response.</param>
-        /// <param name="userDelegate">User delegate to be called on response.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
         public void CustomRESTRequest(Request req, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                req.Headers,
+                req.HeadersDictionary,
                 req.BodyBytes,
                 userDelegate,
                 userObject,
@@ -728,26 +594,18 @@ namespace Starcounter
         /// <summary>
         /// Performs synchronous HTTP request with given HTTP method.
         /// </summary>
-        /// <param name="method">HTTP method, e.g.: "OPTIONS", "HEAD".</param>
-        /// <param name="relativeUri">Relative HTTP URI, e.g.: "/hello", "index.html", "/"</param>
-        /// <param name="body">HTTP body or null.</param>
-        /// <param name="customHeaders">Custom HTTP headers or null, e.g.: "MyNewHeader: value123\r\n"</param>
-        /// <param name="req">Original HTTP request.</param>
-        /// <param name="receiveTimeoutMs">Timeout for receive in milliseconds.</param>
-        /// <returns>HTTP response.</returns>
         public Response CustomRESTRequest(Request req, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
         {
             return DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                req.Headers,
+                req.HeadersDictionary,
                 req.BodyBytes,
                 null,
                 null,
                 receiveTimeoutMs,
                 ho,
-                req.CustomBytes,
-                req.CustomBytesLength);
+                req);
         }
 
         /// <summary>
@@ -766,8 +624,6 @@ namespace Starcounter
         /// <summary>
         /// Simply calls given user delegate.
         /// </summary>
-        /// <param name="resp"></param>
-        /// <param name="userDelegate"></param>
         internal void CallUserDelegate(
             Response resp,
             Action<Response, Object> userDelegate,
@@ -797,91 +653,10 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Calculates estimated number of bytes for Request.
+        /// Perform asynchronous REST.
         /// </summary>
-        /// <param name="method"></param>
-        /// <param name="relativeUri"></param>
-        /// <param name="customHeaders"></param>
-        /// <param name="bodyBytes"></param>
-        /// <returns></returns>
-        Int32 EstimateRequestLengthBytes(
-            String method,
-            String relativeUri,
-            String customHeaders,
-            Byte[] bodyBytes)
-        {
-            Int32 len_bytes = method.Length;
-            len_bytes += relativeUri.Length;
-            len_bytes += hostName_.Length;
-            len_bytes += 64; // For spaces, colons, newlines.
-
-            if (null != customHeaders)
-                len_bytes += customHeaders.Length;
-
-            if (null != bodyBytes)
-                len_bytes += bodyBytes.Length;
-
-            return len_bytes;
-        }
-
-        public Byte[] ConstructRequestBytes(
-            String method,
-            String relativeUri,
-            String customHeaders,
-            Byte[] bodyBytes,
-            out Int32 requestBytesLength) {
-
-            Utf8Writer writer;
-
-            Byte[] requestBytes = new Byte[EstimateRequestLengthBytes(method, relativeUri, customHeaders, bodyBytes)];
-
-            unsafe {
-                fixed (byte* p = requestBytes) {
-                    writer = new Utf8Writer(p);
-
-                    writer.Write(method);
-                    writer.Write(' ');
-                    writer.Write(relativeUri);
-                    writer.Write(' ');
-                    writer.Write(HttpHeadersUtf8.Http11NoSpace);
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    writer.Write(HttpHeadersUtf8.HostStart);
-                    writer.Write(hostName_);
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    writer.Write(HttpHeadersUtf8.ContentLengthStart);
-                    if (bodyBytes != null)
-                        writer.Write(bodyBytes.Length);
-                    else
-                        writer.Write(0);
-
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    // Checking if headers already supplied.
-                    if (customHeaders != null) {
-                        // Checking for correct custom headers format.
-                        if (!customHeaders.EndsWith(StarcounterConstants.NetworkConstants.CRLF))
-                            throw new ArgumentException("Each custom header should be in following form: \"<HeaderName>:<space><value>\\r\\n\" For example: \"MyNewHeader: value123\\r\\n\"");
-
-                        writer.Write(customHeaders);
-                    }
-
-                    writer.Write(StarcounterConstants.NetworkConstants.CRLF);
-
-                    if (bodyBytes != null)
-                        writer.Write(bodyBytes);
-                }
-
-                requestBytesLength = writer.Written;
-            }
-
-            return requestBytes;
-        }
-
         void DoAsyncTransfer(
-            Byte[] requestBytes,
-            Int32 requestBytesLength,
+            Request req,
             Action<Response, Object> userDelegate,
             Action<AggregationStruct> aggrMsgDelegate = null,
             Object userObject = null,
@@ -918,7 +693,13 @@ namespace Starcounter
                 currentSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
             // Initializing connection.
-            nt.ResetButKeepSocket(requestBytes, requestBytesLength, userDelegate, aggrMsgDelegate, userObject, receiveTimeoutMs, currentSchedulerId);
+            nt.ResetButKeepSocket(
+                req,
+                userDelegate,
+                aggrMsgDelegate,
+                userObject,
+                receiveTimeoutMs,
+                currentSchedulerId);
 
             // Checking if we don't use aggregation.
             if (!UsesAggregation()) {
@@ -933,22 +714,18 @@ namespace Starcounter
         /// <summary>
         /// Filters the request.
         /// </summary>
-        public static Response FilterRequest(
-            String method,
-            String relativeUri,
-            Byte[] requestBytes,
-            Int32 requestBytesLength,
-            UInt16 portNumber) {
+        public static Response FilterRequest(Request req) {
 
-            String processedRelativeUri = relativeUri;
+            Debug.Assert(req != null);
+
+            String methodSpaceUriSpace = req.Method + " " + req.Uri + " ";
+            String methodSpaceUriSpaceLower = methodSpaceUriSpace;
 
 #if CASE_INSENSITIVE_URI_MATCHER
 
             // Making incoming URI lower case.
-            processedRelativeUri = relativeUri.ToLowerInvariant();
+            methodSpaceUriSpaceLower = req.Method + " " + req.Uri.ToLowerInvariant() + " ";
 #endif
-
-            String methodSpaceUriSpace = method + " " + processedRelativeUri + " ";
 
             // No response initially.
             Response resp = null;
@@ -956,9 +733,9 @@ namespace Starcounter
             // Running URI matcher and calling determined handler.
             runUriMatcherAndCallHandler_(
                 methodSpaceUriSpace,
-                requestBytes,
-                requestBytesLength,
-                portNumber,
+                methodSpaceUriSpaceLower,
+                req,
+                req.PortNumber,
                 HandlerOptions.FilteringLevel,
                 out resp);
 
@@ -971,46 +748,22 @@ namespace Starcounter
         public Response DoRESTRequestAndGetResponse(
             String method,
             String relativeUri,
-            String customHeaders,
+            Dictionary<String, String> headersDictionary,
             Byte[] bodyBytes,
             Action<Response, Object> userDelegate,
             Object userObject,
             Int32 receiveTimeoutMs,
             HandlerOptions handlerOptions,
-            Byte[] customBytes = null,
-            Int32 customBytesLength = 0)
+            Request req = null)
         {
-            Int32 requestBytesLength;
-            Byte[] requestBytes;
-            String processedRelativeUri = relativeUri;
+            String methodSpaceUriSpace = method + " " + relativeUri + " ";
+            String methodSpaceUriSpaceLower = methodSpaceUriSpace;
 
 #if CASE_INSENSITIVE_URI_MATCHER
 
             // Making incoming URI lower case.
-            processedRelativeUri = relativeUri.ToLowerInvariant();
+            methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
 #endif
-
-            String methodSpaceUriSpace = method + " " + processedRelativeUri + " ";
-            
-            // Checking if request is defined and initialized.
-            if (customBytes == null) {
-
-                if (relativeUri == null || relativeUri.Length < 1) {
-                    throw new ArgumentOutOfRangeException("URI should contain at least one character.");
-                }
-
-                requestBytes = ConstructRequestBytes(
-                    method,
-                    relativeUri,
-                    customHeaders,
-                    bodyBytes,
-                    out requestBytesLength);
-
-            } else {
-
-                requestBytes = customBytes;
-                requestBytesLength = customBytesLength;
-            }
 
             Boolean callOnlySpecificHandlerLevel = true;
 
@@ -1018,6 +771,18 @@ namespace Starcounter
             if (handlerOptions == null) {
                 handlerOptions = HandlerOptions.DefaultLevel;
                 callOnlySpecificHandlerLevel = false;
+            }
+
+            // Creating the request object if it does not exist.
+            if (req == null) {
+
+                req = new Request() {
+
+                    Method = method,
+                    Uri = relativeUri,
+                    BodyBytes = bodyBytes,
+                    HeadersDictionary = headersDictionary
+                };
             }
             
             // Checking if we are on local node.
@@ -1029,8 +794,8 @@ namespace Starcounter
                 // Trying to do local node REST.
                 if (runUriMatcherAndCallHandler_(
                     methodSpaceUriSpace,
-                    requestBytes,
-                    requestBytesLength,
+                    methodSpaceUriSpaceLower,
+                    req,
                     portNumber_,
                     HandlerOptions.FilteringLevel,
                     out resp)) {
@@ -1057,8 +822,8 @@ DO_CALL_ON_GIVEN_LEVEL:
                 // Running URI matcher and call handler.
                 if (runUriMatcherAndCallHandler_(
                     methodSpaceUriSpace,
-                    requestBytes,
-                    requestBytesLength,
+                    methodSpaceUriSpaceLower,
+                    req,
                     portNumber_,
                     handlerOptions,
                     out resp)) {
@@ -1120,7 +885,7 @@ DO_CALL_ON_GIVEN_LEVEL:
             if (null != userDelegate) {
 
                 // Trying to perform an async request.
-                DoAsyncTransfer(requestBytes, requestBytesLength, userDelegate, null, userObject, receiveTimeoutMs);
+                DoAsyncTransfer(req, userDelegate, null, userObject, receiveTimeoutMs);
 
                 return null;
             }
@@ -1128,7 +893,7 @@ DO_CALL_ON_GIVEN_LEVEL:
             lock (finished_async_tasks_) {
 
                 // Initializing connection.
-                sync_task_info_.ResetButKeepSocket(requestBytes, requestBytesLength, null, null, userObject, receiveTimeoutMs, 0);
+                sync_task_info_.ResetButKeepSocket(req, null, null, userObject, receiveTimeoutMs, 0);
 
                 // Doing synchronous request and returning response.
                 return sync_task_info_.PerformSyncRequest();
@@ -1367,15 +1132,6 @@ START_RECEIVING:
                 Console.WriteLine(exc);
                 throw exc;
             }
-        }
-
-        /// <summary>
-        /// Add some more sophistication here
-        /// </summary>
-        /// <param name="p"></param>
-        /// <returns></returns>
-        private bool UserSuspectedOfForgettingLeadingSlash(string p) {
-            return true;
         }
     }
 }

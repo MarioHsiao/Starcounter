@@ -203,19 +203,18 @@ namespace Starcounter.Internal {
 
                     req.PortNumber = UriHandlersManager.GetPortNumber(req, HandlerOptions.DefaultLevel);
 
-                    resp = Node.FilterRequest(
-                        req.Method,
-                        req.Uri,
-                        req.GetRequestByteArray_Slow(),
-                        req.GetRequestLength(),
-                        req.PortNumber);
+                    resp = Node.FilterRequest(req);
                 }
 
                 // Checking if filter level did allow this request.
                 if (null == resp) {
 
                     // Handling request on initial level.
-                    resp = AppServer_.RunDelegateAndProcessResponse(req, HandlerOptions.DefaultLevel);
+                    resp = AppServer_.RunDelegateAndProcessResponse(
+                        req.GetRawMethodAndUri(),
+                        req.GetRawParametersInfo(),
+                        req,
+                        HandlerOptions.DefaultLevel);
                 }
 
             } catch (ResponseException exc) {
@@ -264,7 +263,7 @@ namespace Starcounter.Internal {
             }
 
             // Checking if a new session was created during handler call.
-            if ((null != Session.Current) && (!req.IsInternal))
+            if ((null != Session.Current) && (req.IsExternal))
                 Session.End();
 
             Session.InitialRequest = null;

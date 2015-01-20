@@ -15,9 +15,23 @@ namespace Starcounter {
     public sealed class Request : Finalizing
     {
         /// <summary>
+        /// Parses internal HTTP request.
+        /// </summary>
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public unsafe extern static UInt32 sc_parse_http_request(
+            Byte* request_buf,
+            UInt32 request_size_bytes,
+            Byte* out_http_request);
+
+        /// <summary>
+        /// Initializes the Apps HTTP parser.
+        /// </summary>
+        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        public extern static UInt32 sc_init_http_parser();
+
+        /// <summary>
         /// Request constructor.
         /// </summary>
-        /// <param name="protocol_type">Type of network protocol. Default HTTP v1.</param>
         public Request() {
         }
 
@@ -57,14 +71,19 @@ namespace Starcounter {
         UInt16 portNumber_;
 
         /// <summary>
-        /// Indicates if this Request is internally constructed from Apps.
+        /// Indicates if this Request is externally constructed.
         /// </summary>
-        Boolean isInternalRequest_;
+        Boolean isExternalRequest_;
 
         /// <summary>
         /// Bytes for the corresponding request.
         /// </summary>
         Byte[] requestBytes_;
+
+        /// <summary>
+        /// Request bytes length.
+        /// </summary>
+        Int32 requestBytesLen_;
 
         /// <summary>
         /// Indicates if WebSocket upgrade is requested.
@@ -87,24 +106,9 @@ namespace Starcounter {
         UInt16 managedHandlerId_;
 
         /// <summary>
-        /// The gzip advisable_
-        /// </summary>
-        bool gzipAdvisable_;
-
-        /// <summary>
         /// Indicates if user wants to send custom request.
         /// </summary>
         Boolean customFields_;
-
-        /// <summary>
-        /// Bytes that represent custom request.
-        /// </summary>
-        Byte[] customBytes_;
-
-        /// <summary>
-        /// Length in bytes for custom bytes array.
-        /// </summary>
-        Int32 customBytesLen_;
 
         /// <summary>
         /// Body string.
@@ -225,11 +229,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns True if request is internal.
+        /// Returns True if request is external.
         /// </summary>
-        public Boolean IsInternal
+        public Boolean IsExternal
         {
-            get { return isInternalRequest_; }
+            get { return isExternalRequest_; }
         }
 
         /// <summary>
@@ -270,54 +274,19 @@ namespace Starcounter {
         public MixedCodeConstants.HTTP_METHODS MethodEnum { get; set; }
 
         /// <summary>
-        /// Parses internal HTTP request.
-        /// </summary>
-        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_parse_http_request(
-            Byte* request_buf,
-            UInt32 request_size_bytes,
-            Byte* out_http_request);
-
-        /// <summary>
-        /// Initializes the Apps HTTP parser.
-        /// </summary>
-        [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static UInt32 sc_init_http_parser();
-        
-        /// <summary>
         /// Initializes a new instance of the <see cref="Request" /> class.
         /// </summary>
-        /// <param name="buf">The buf.</param>
-        /// <exception cref="System.NotImplementedException"></exception>
-        internal Request(Byte[] buf, Int32 buf_len)
+        internal Request(Byte[] requestBytes, Int32 requestBytesLen)
         {
             unsafe {
-                InternalInit(buf, buf_len, null);
+                InternalInit(requestBytes, requestBytesLen);
             }
         }
         
         /// <summary>
         /// Initializes a new instance of the <see cref="Request" /> class.
         /// </summary>
-        /// <param name="buf"></param>
-        /// <param name="params_info"></param>
-        internal unsafe Request(Byte[] buf, Int32 buf_len, Byte* params_info_ptr)
-        {
-            InternalInit(buf, buf_len, params_info_ptr);
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Request" /> class.
-        /// </summary>
-        /// <param name="chunk_data">The chunk_data.</param>
-        /// <param name="single_chunk">The single_chunk.</param>
-        /// <param name="chunk_index">The chunk_index.</param>
-        /// <param name="handler_id">The handler id.</param>
-        /// <param name="http_request_begin">The http_request_begin.</param>
-        /// <param name="socket_data">The socket_data.</param>
-        /// <param name="data_stream">The data_stream.</param>
-        /// <param name="protocol_type">Type of network protocol.</param>
-        internal unsafe void Init(
+        internal unsafe void InitExternal(
             Byte* chunk_data,
             Boolean single_chunk,
             UInt32 chunk_index,
@@ -329,6 +298,9 @@ namespace Starcounter {
             Boolean webSocketUpgrade,
             Boolean isAggregated)
         {
+            // Indicating that request is external.
+            isExternalRequest_ = true;
+
             http_request_struct_ = (HttpRequestInternal*) http_request_begin;
             session_ = (ScSessionStruct*)(socket_data + MixedCodeConstants.SOCKET_DATA_OFFSET_SESSION);
             http_request_struct_->socket_data_ = socket_data;
@@ -391,18 +363,12 @@ namespace Starcounter {
         /// <summary>
         /// Initializes request structure.
         /// </summary>
-        /// <param name="buf"></param>
-        unsafe void InternalInit(Byte[] requestBytes, Int32 buf_len, Byte* params_info_ptr)
+        unsafe void InternalInit(Byte[] requestBytes, Int32 requestBytesLen)
         {
             unsafe
             {
-                // Indicating that request is internal.
-                isInternalRequest_ = true;
-
                 // Allocating space for Request contents and structure.
-                Int32 alloc_size = buf_len + sizeof(HttpRequestInternal);
-                if (params_info_ptr != null)
-                    alloc_size += MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES;
+                Int32 alloc_size = requestBytesLen + sizeof(HttpRequestInternal);
 
                 if (IntPtr.Zero != socketDataIntPtr_) {
                     BitsAndBytes.Free(socketDataIntPtr_);
@@ -413,26 +379,20 @@ namespace Starcounter {
                 Byte* requestNativeBuf = (Byte*) socketDataIntPtr_.ToPointer();
 
                 requestBytes_ = requestBytes;
+                requestBytesLen_ = requestBytesLen;
 
                 fixed (Byte* fixed_buf = requestBytes)
                 {
                     // Copying HTTP request data.
-                    BitsAndBytes.MemCpy(requestNativeBuf, fixed_buf, (UInt32)buf_len);
+                    BitsAndBytes.MemCpy(requestNativeBuf, fixed_buf, (UInt32)requestBytesLen);
                 }
 
                 // Pointing to HTTP request structure.
-                http_request_struct_ = (HttpRequestInternal*) (requestNativeBuf + buf_len);
+                http_request_struct_ = (HttpRequestInternal*) (requestNativeBuf + requestBytesLen);
 
                 // Setting the request data pointer.
                 http_request_struct_->socket_data_ = requestNativeBuf;
 
-                // Checking if we have parameters info supplied.
-                if (params_info_ptr != null)
-                {
-                    http_request_struct_->params_info_ptr_ = requestNativeBuf + buf_len + sizeof(HttpRequestInternal);
-                    BitsAndBytes.MemCpy(http_request_struct_->params_info_ptr_, params_info_ptr, MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES);
-                }
-                
                 // NOTE: No internal sessions support.
                 session_ = null;
 
@@ -440,7 +400,7 @@ namespace Starcounter {
                 // Simply on which socket to send this "request"?
 
                 // Executing HTTP request parser and getting Request structure as result.
-                UInt32 err_code = sc_parse_http_request(requestNativeBuf, (UInt32)buf_len, (Byte*)http_request_struct_);
+                UInt32 err_code = sc_parse_http_request(requestNativeBuf, (UInt32)requestBytesLen, (Byte*)http_request_struct_);
 
                 // Checking if any error occurred.
                 if (err_code != 0)
@@ -476,7 +436,7 @@ namespace Starcounter {
 
                 // Checking if we have constructed this Request
                 // internally in Apps or externally in Gateway.
-                if (isInternalRequest_)
+                if (!isExternalRequest_)
                 {
                     if (IntPtr.Zero != socketDataIntPtr_) {
                         BitsAndBytes.Free(socketDataIntPtr_);
@@ -507,18 +467,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Checks if request is destroyed already.
-        /// </summary>
-        /// <returns>True if destroyed.</returns>
-        internal bool IsDestroyed()
-        {
-            unsafe
-            {
-                return (http_request_struct_ == null) && (session_ == null);
-            }
-        }
-
-        /// <summary>
         /// Checking if its a looping host chunk.
         /// </summary>
         /// <returns></returns>
@@ -527,7 +475,8 @@ namespace Starcounter {
             if (null == origChunk_)
                 return false;
 
-            return (((*(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0);
+            return (((*(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) &
+                (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0);
         }
 
         /// <summary>
@@ -535,6 +484,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="ws"></param>
         internal unsafe void InitWebSocket(WebSocket ws, UInt32 channelId, UInt64 cargoId) {
+
             System.Diagnostics.Debug.Assert(http_request_struct_->socket_data_ != null);
 
             *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = channelId;
@@ -572,14 +522,14 @@ namespace Starcounter {
         /// </summary>
         /// <param name="ptr">The PTR.</param>
         /// <param name="sizeBytes">The size bytes.</param>
-        public IntPtr GetRawParametersInfo()
+        internal IntPtr GetRawParametersInfo()
         {
             unsafe
             {
                 if (null == http_request_struct_)
                     throw new ArgumentException("HTTP request not initialized.");
 
-                if (!isInternalRequest_)
+                if (isExternalRequest_)
                     return new IntPtr(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
 
                 return new IntPtr(http_request_struct_->params_info_ptr_);
@@ -600,16 +550,6 @@ namespace Starcounter {
 
                 return http_request_struct_->GetRawMethodAndUri();
             }
-        }
-
-        /// <summary>
-        /// Gets or sets the gzip advisable.
-        /// </summary>
-        /// <value>The gzip advisable.</value>
-        public Boolean GzipAdvisable 
-        {
-            get { return gzipAdvisable_; }
-            set { gzipAdvisable_ = value; }
         }
 
         /// <summary>
@@ -647,26 +587,23 @@ namespace Starcounter {
         {
             get
             {
-                if (null == bodyString_)
-                {
-                    if (null != bodyBytes_)
-                    {
+                if (null == bodyString_) {
+
+                    if (null != bodyBytes_) {
+
                         bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
-                        return bodyString_;
+
+                    } else {
+
+                        unsafe {
+
+                            if (null != http_request_struct_)
+                                bodyString_ = http_request_struct_->GetBodyStringUtf8_Slow();
+                        }
                     }
                 }
-                else
-                {
-                    return bodyString_;
-                }
 
-                unsafe
-                {
-                    if (null == http_request_struct_)
-                        return null;
-
-                    return http_request_struct_->GetBodyStringUtf8_Slow();
-                }
+                return bodyString_;
             }
 
             set
@@ -685,10 +622,15 @@ namespace Starcounter {
             {
                 if (null == bodyBytes_)
                 {
-                    if (bodyString_ != null)
+                    if (bodyString_ != null) {
                         bodyBytes_ = Encoding.UTF8.GetBytes(bodyString_);
-                    else
-                        bodyBytes_ = GetBodyBytes_Slow();
+                    } else {
+
+                        unsafe {
+                            if (http_request_struct_ != null)
+                                bodyBytes_ = http_request_struct_->GetBodyByteArray_Slow();
+                        }
+                    }
                 }
 
                 return bodyBytes_;
@@ -731,10 +673,8 @@ namespace Starcounter {
                         return headersString_;
                     }
 
-                    if (null == http_request_struct_)
-                        return null;
-
-                    headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
+                    if (null != http_request_struct_)
+                        headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
 
                     return headersString_;
                 }
@@ -808,14 +748,14 @@ namespace Starcounter {
         {
             get
             {
-                if (null == uriString_)
-                {
-                    unsafe
-                    {
-                        if (null == http_request_struct_)
-                            throw new ArgumentException("HTTP request not initialized.");
+                if (null == uriString_) {
 
-                        uriString_ = http_request_struct_->Uri;
+                    unsafe {
+
+                        if (null != http_request_struct_) {
+
+                            uriString_ = http_request_struct_->Uri;    
+                        }
                     }
                 }
 
@@ -841,8 +781,9 @@ namespace Starcounter {
 
                 unsafe
                 {
-                    if (http_request_struct_ != null)
+                    if (http_request_struct_ != null) {
                         hostNameString_ = this[HttpHeadersUtf8.HostHeader];
+                    }
                 }
 
                 return hostNameString_;
@@ -856,36 +797,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// 
+        /// Estimate response size in bytes.
         /// </summary>
-        public Int32 CustomBytesLength
-        {
-            get { return customBytesLen_; }
-        }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		public byte[] CustomBytes {
-			get { return customBytes_; }
-		}
-
-        /// <summary>
-        /// Resets all custom fields.
-        /// </summary>
-        internal void ResetAllCustomFields()
-        {
-            customFields_ = false;
-
-            headersString_ = null;
-            bodyString_ = null;
-            bodyBytes_ = null;
-            hostNameString_ = null;
-            uriString_ = null;
-            methodString_ = null;
-        }
-
 		private int EstimateNeededSize() {
+
 			int size = HttpHeadersUtf8.TotalByteSize;
 
 			size += methodString_.Length;
@@ -1000,13 +915,13 @@ namespace Starcounter {
 					}
 
 					// Finally setting the request bytes.
-					customBytes_ = buf;
-                    customBytesLen_ = writer.Written;
+					requestBytes_ = buf;
+                    requestBytesLen_ = writer.Written;
 				}
 			}
 
 			customFields_ = false;
-            return customBytesLen_;
+            return requestBytesLen_;
 		}
 
         /// <summary>
@@ -1026,19 +941,25 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the content as byte array.
+        /// Obtain available request bytes.
         /// </summary>
-        /// <returns></returns>
-        Byte[] GetBodyByteArray_Slow()
-        {
-            // TODO: Provide a more efficient interface with existing Byte[] and offset.
+        public Byte[] RequestBytes {
 
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    return null;
+            get {
+                if (requestBytes_ != null)
+                    return requestBytes_;
 
-                return http_request_struct_->GetBodyByteArray_Slow();
+                if (customFields_) {
+                    ConstructFromFields();
+                    return requestBytes_;
+                }
+
+                requestBytes_ = GetRequestByteArray_Slow();
+                return requestBytes_;
+            }
+
+            set {
+                requestBytes_ = value;
             }
         }
 
@@ -1046,14 +967,15 @@ namespace Starcounter {
         /// Gets the request as byte array.
         /// </summary>
         /// <returns>Request bytes.</returns>
-        public Byte[] GetRequestByteArray_Slow()
+        internal Byte[] GetRequestByteArray_Slow()
         {
             // TODO: Provide a more efficient interface with existing Byte[] and offset.
 
             unsafe
             {
-                if (null == http_request_struct_)
+                if (null == http_request_struct_) {
                     throw new ArgumentException("HTTP request not initialized.");
+                }
 
                 return http_request_struct_->GetRequestByteArray_Slow();
             }
@@ -1068,11 +990,11 @@ namespace Starcounter {
             {
                 unsafe
                 {
-                    if (null == http_request_struct_)
-                        throw new ArgumentException("HTTP request not initialized.");
+                    if (null != http_request_struct_) {
 
-                    if (!isInternalRequest_)
-                        return new IPAddress(*(Int64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_CLIENT_IP));
+                        if (isExternalRequest_)
+                            return new IPAddress(*(Int64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_CLIENT_IP));
+                    }
 
                     return IPAddress.Loopback;
                 }
@@ -1080,57 +1002,54 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the whole request size.
+        /// Request length in bytes.
         /// </summary>
-        public Int32 GetRequestLength()
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
+        public Int32 RequestLength {
+            get {
 
-                return (Int32) http_request_struct_->request_len_bytes_;
+                if (requestBytesLen_ > 0)
+                    return requestBytesLen_;
+
+                if (customFields_) {
+                    ConstructFromFields();
+                    return requestBytesLen_;
+                }
+
+                unsafe {
+
+                    if (null != http_request_struct_) {
+
+                        requestBytesLen_ = (Int32)http_request_struct_->request_len_bytes_;
+                    }
+                }
+
+                return requestBytesLen_;
             }
-        }
 
-        /// <summary>
-        /// Byte array of the request.
-        /// </summary>
-        /// <param name="r"></param>
-        /// <returns></returns>
-        public static implicit operator Byte[](Request r)
-        {
-            return r.GetRequestByteArray_Slow();
-        }
-
-        /// <summary>
-        /// Gets body bytes.
-        /// </summary>
-        Byte[] GetBodyBytes_Slow()
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    return null;
-
-                return http_request_struct_->GetBodyByteArray_Slow();
+            set {
+                requestBytesLen_ = value;
             }
         }
 
         /// <summary>
         /// Gets the length of the content in bytes.
         /// </summary>
-        /// <value>The length of the content.</value>
-        public UInt32 ContentLength
+        public Int32 ContentLength
         {
             get
             {
                 unsafe
                 {
-                    if (null == http_request_struct_)
-                        throw new ArgumentException("HTTP request not initialized.");
+                    if (bodyString_ != null)
+                        return bodyString_.Length;
 
-                    return http_request_struct_->content_len_bytes_;
+                    if (bodyBytes_ != null)
+                        return bodyBytes_.Length;
+
+                    if (null != http_request_struct_)   
+                        return (Int32) http_request_struct_->content_len_bytes_;
+
+                    return 0;
                 }
             }
         }
@@ -1138,10 +1057,6 @@ namespace Starcounter {
         /// <summary>
         /// Sends the response.
         /// </summary>
-        /// <param name="buffer">The buffer to send.</param>
-        /// <param name="offset">The offset within buffer.</param>
-        /// <param name="length">The length of the data to send.</param>
-        /// <param name="connFlags">The connection flags.</param>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
             // Simply returning if its a looping chunk.
@@ -1161,7 +1076,6 @@ namespace Starcounter {
         /// <summary>
         /// Sends response on this request.
         /// </summary>
-        /// <param name="resp">Response object to send.</param>
         public void SendResponse(Response resp, Byte[] serializationBuf)
         {
             try {
@@ -1176,41 +1090,8 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the raw request.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) 
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                http_request_struct_->GetRequestRaw(out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
-        /// Gets request as UTF8 string.
-        /// </summary>
-        /// <returns>UTF8 string.</returns>
-        String GetRequestStringUtf8_Slow() 
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                return http_request_struct_->GetRequestStringUtf8_Slow();
-            }
-        }
-
-        /// <summary>
         /// Gets the raw method and URI.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawMethodAndUri(out IntPtr ptr, out Int32 sizeBytes) 
         {
             unsafe
@@ -1223,73 +1104,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the raw method and URI plus extra character.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawMethodAndUriPlusAnExtraCharacter(out IntPtr ptr, out Int32 sizeBytes) 
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                http_request_struct_->GetRawMethodAndUri(out ptr, out sizeBytes);
-            }
-
-            sizeBytes += 1;
-        }
-
-        /// <summary>
-        /// Gets the raw headers.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) 
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                http_request_struct_->GetRawHeaders(out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw session string.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawSessionString(out IntPtr ptr) 
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                http_request_struct_->GetRawSessionString(out ptr);
-            }
-        }
-
-        /// <summary>
-        /// Gets the raw header.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeader(byte[] key, out IntPtr ptr, out UInt32 sizeBytes) 
-        {
-            unsafe
-            {
-                if (null == http_request_struct_)
-                    throw new ArgumentException("HTTP request not initialized.");
-
-                http_request_struct_->GetHeaderValue(key, out ptr, out sizeBytes);
-            }
-        }
-
-        /// <summary>
         /// Headers dictionary accessors.
         /// </summary>
         public Dictionary<String, String> HeadersDictionary
@@ -1298,17 +1112,19 @@ namespace Starcounter {
             {
                 if (null == customHeaderFields_)
                 {
-                    String headersString = headersString_;
-                    if (headersString == null)
+                    if (headersString_ == null)
                     {
                         unsafe
                         {
-                            if (null != http_request_struct_)
-                                headersString = http_request_struct_->GetHeadersStringUtf8_Slow();
+                            if (null != http_request_struct_) {
+                                headersString_ = http_request_struct_->GetHeadersStringUtf8_Slow();
+                            } else {
+                                return null;
+                            }
                         }
                     }
 
-                    customHeaderFields_ = Response.CreateHeadersDictionaryFromHeadersString(headersString);
+                    customHeaderFields_ = Response.CreateHeadersDictionaryFromHeadersString(headersString_);
                 }
 
                 return customHeaderFields_;
@@ -1323,8 +1139,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the <see cref="String" /> with the specified name.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>String.</returns>
         public String this[String name] 
         {
             get
@@ -1438,98 +1252,11 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// Update session details.
-        /// </summary>
-        internal void UpdateSessionDetails()
-        {
-            // Don't do anything on internal requests.
-            if (isInternalRequest_)
-                return;
-
-            unsafe
-            {
-                // Fetching session information.
-                ScSessionClass s = GlobalSessions.AllGlobalSessions.GetSessionClass(
-                    session_->scheduler_id_,
-                    session_->linear_index_,
-                    session_->random_salt_);
-            }
-        }
-
         // Reference to corresponding session.
         public IAppsSession Session
         {
             get;
             internal set;
-        }
-
-        /// <summary>
-        /// Attaches existing session on this HTTP request.
-        /// </summary>
-        /// <param name="apps_session"></param>
-        public void AttachSession(IAppsSession apps_session)
-        {
-            unsafe
-            {
-                *session_ = apps_session.InternalSession.session_struct_;
-            }
-        }
-
-        /// <summary>
-        /// Kills existing session.
-        /// </summary>
-        public UInt32 DestroySession() 
-        {
-            UInt32 err_code;
-
-            unsafe 
-            {
-                // Simply generating new session.
-                err_code = GlobalSessions.AllGlobalSessions.DestroySession(
-                    session_->scheduler_id_,
-                    session_->linear_index_,
-                    session_->random_salt_);
-
-                // Killing this session by setting invalid unique number and salt.
-                session_->Destroy();
-            }
-
-            return err_code;
-        }
-
-        /// <summary>
-        /// Returns unique session number.
-        /// </summary>
-        public UInt64 UniqueSessionIndex 
-        {
-            get 
-            {
-                unsafe { return session_->linear_index_; }
-            }
-        }
-
-        /// <summary>
-        /// Returns session salt.
-        /// </summary>
-        public UInt64 SessionSalt
-        {
-            get
-            {
-                unsafe { return session_->random_salt_; }
-            }
-        }
-
-        /// <summary>
-        /// Gets the session struct.
-        /// </summary>
-        /// <value>The session struct.</value>
-        public ScSessionStruct SessionStruct
-        {
-            get
-            {
-                unsafe { return *session_; }
-            }
         }
 
         /// <summary>
@@ -1542,10 +1269,11 @@ namespace Starcounter {
             {
                 unsafe
                 {
-                    if (null == http_request_struct_)
-                        throw new ArgumentException("HTTP request not initialized.");
+                    if (null != http_request_struct_) {
+                        return (http_request_struct_->gzip_accepted_ != 0);
+                    }
 
-                    return (http_request_struct_->gzip_accepted_ != 0);
+                    return false;
                 }
             }
         }
@@ -1592,9 +1320,8 @@ namespace Starcounter {
         /// <summary>
         /// Gets the raw request.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
+
             ptr = new IntPtr(socket_data_ + request_offset_);
 
             sizeBytes = request_len_bytes_;
@@ -1603,9 +1330,8 @@ namespace Starcounter {
         /// <summary>
         /// Gets the content raw pointer.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         public void GetBodyRaw(out IntPtr ptr, out UInt32 sizeBytes) {
+
             if (content_len_bytes_ <= 0)
                 ptr = IntPtr.Zero;
             else
@@ -1617,7 +1343,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the content as byte array.
         /// </summary>
-        /// <returns>Content bytes.</returns>
         internal Byte[] GetBodyByteArray_Slow()
         {
             // Checking if there is a content.
@@ -1635,7 +1360,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the request as byte array.
         /// </summary>
-        /// <returns>Request bytes.</returns>
         internal Byte[] GetRequestByteArray_Slow()
         {
             // Checking if there is a request.
@@ -1651,19 +1375,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the request as UTF8 string.
-        /// </summary>
-        /// <returns>Request string.</returns>
-        internal String GetRequestStringUtf8_Slow()
-        {
-            return new String((SByte*)(socket_data_ + request_offset_), 0, (Int32)request_len_bytes_, Encoding.UTF8);
-        }
-
-        /// <summary>
         /// Gets body as UTF8 string.
         /// </summary>
-        /// <returns>UTF8 string.</returns>
         internal String GetBodyStringUtf8_Slow() {
+
             // Checking if there is a body.
             if (content_len_bytes_ <= 0)
                 return null;
@@ -1674,8 +1389,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the raw method and URI.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawMethodAndUri(out IntPtr ptr, out Int32 sizeBytes)
         {
             // NOTE: Method and URI must always exist.
@@ -1687,31 +1400,14 @@ namespace Starcounter {
         /// <summary>
         /// Gets the raw method and URI.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         public IntPtr GetRawMethodAndUri() {
             // NOTE: Method and URI must always exist.
             return new IntPtr(socket_data_ + request_offset_);
         }
 
         /// <summary>
-        /// Gets the raw headers.
-        /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetRawHeaders(out IntPtr ptr, out UInt32 sizeBytes) {
-            if (headers_len_bytes_ <= 0)
-                ptr = IntPtr.Zero;
-            else
-                ptr = new IntPtr(socket_data_ + headers_offset_);
-
-            sizeBytes = headers_len_bytes_;
-        }
-
-        /// <summary>
         /// Gets headers as ASCII string.
         /// </summary>
-        /// <returns>ASCII string.</returns>
         internal String GetHeadersStringUtf8_Slow()
         {
             // Checking if there are cookies.
@@ -1724,8 +1420,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the raw session string.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         public void GetRawSessionString(out IntPtr ptr) {
             ptr = new IntPtr(socket_data_ + session_string_offset_);
         }
@@ -1733,7 +1427,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the session string.
         /// </summary>
-        /// <returns>String.</returns>
         public String GetSessionString()
         {
             IntPtr raw_session_string;
@@ -1745,19 +1438,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the header value.
         /// </summary>
-        /// <param name="headerName">Name of the header.</param>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
-        public void GetHeaderValue(byte[] headerName, out IntPtr ptr, out UInt32 sizeBytes) {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Gets the header value.
-        /// </summary>
-        /// <param name="headerName">Name of the header.</param>
-        /// <param name="headersString">Reference of the header string.</param>
-        /// <returns>String.</returns>
         public String GetHeaderValue(String headerName, ref String headersString) {
 
             // Constructing the string if its the first time.
@@ -1787,47 +1467,10 @@ namespace Starcounter {
         /// <summary>
         /// Gets the URI.
         /// </summary>
-        /// <value>The URI.</value>
         public String Uri {
             get {
                 if (uri_len_bytes_ > 0)
                     return Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + uri_offset_), (Int32)uri_len_bytes_);
-
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Gets the HTTP method.
-        /// </summary>
-        /// <value>The method.</value>
-        public String Method
-        {
-            get
-            {
-                // TODO: Pre-calculate the method length!
-                unsafe
-                {
-                    // Calculate number of characters in method.
-                    Int32 method_len = 0;
-                    Byte* begin = socket_data_ + request_offset_;
-                    while (*begin != ' ')
-                    {
-                        method_len++;
-                        begin++;
-
-                        // TODO: Security check.
-                        if (method_len > 16)
-                        {
-                            method_len = 0;
-                            break;
-                        }
-                    }
-
-                    if (method_len > 0)
-                        return Marshal.PtrToStringAnsi(new IntPtr(socket_data_ + request_offset_), (Int32)method_len);
-
-                }
 
                 return null;
             }

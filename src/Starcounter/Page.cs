@@ -36,9 +36,21 @@ namespace Starcounter {
             set { Template.Html.Setter(this, value); }
         }
 
-        public override string AsMimeType(MimeType mimeType) {
+        public override byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType, Request request = null) {
+
+            resultingMimeType = mimeType;
+
             if (mimeType == MimeType.Text_Html) {
-                return X.GET<string>(Html);
+                return X.GET<Byte[]>(Html);
+            }
+
+            return base.AsMimeType(mimeType, out resultingMimeType, request);
+        }
+
+        public override string AsMimeType(MimeType mimeType) {
+
+            if (mimeType == MimeType.Text_Html) {
+                return X.GET<String>(Html);
             }
             return base.AsMimeType(mimeType);
         }

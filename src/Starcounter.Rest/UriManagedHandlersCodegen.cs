@@ -66,8 +66,8 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > 16))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
+                if (p.len_ > 16)
+                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
 
                 return (Int32)FastParseInt(dataBegin + p.offset_, p.len_);
             }
@@ -80,8 +80,8 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > 16))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
+                if (p.len_ > 16)
+                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
 
                 return FastParseInt(dataBegin + p.offset_, p.len_);
             }
@@ -92,10 +92,6 @@ namespace Starcounter.Rest
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
-
-                // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > req.GetRequestLength()))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
 
                 return Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_);
             }
@@ -108,8 +104,8 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > 5))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
+                if (p.len_ > 5)
+                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
 
                 Byte b = *(((Byte*)dataBegin) + p.offset_);
                 if (b == 't' || b == 'T')
@@ -126,8 +122,8 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > 32))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
+                if (p.len_ > 32)
+                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
 
                 return Decimal.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -140,8 +136,8 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > 32))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
+                if (p.len_ > 32)
+                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
 
                 return Double.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -154,8 +150,8 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if ((p.offset_ >= req.GetRequestLength()) || (p.len_ > 32))
-                    throw new ArgumentOutOfRangeException("Wrong handler called for request: " + req.Uri);
+                if (p.len_ > 32)
+                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
 
                 return DateTime.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -165,12 +161,9 @@ namespace Starcounter.Rest
         {
             unsafe
             {
-                IntPtr bodyPtr;
-                uint bodySize;
-                Json m = (Json)req.ArgMessageObjectCreate();
+                Json m = (Json) req.ArgMessageObjectCreate();
 
-                req.GetBodyRaw(out bodyPtr, out bodySize);
-                m.PopulateFromJson(bodyPtr, (int)bodySize);
+                m.PopulateFromJson(req.Body);
 
                 return m;
             }
@@ -910,7 +903,7 @@ namespace Starcounter.Rest
             TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
             UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
             Func<Request, Boolean> onHttpMessageRoot,
-            Func<Request, HandlerOptions, Response> runDelegateAndProcessResponse)
+            Func<IntPtr, IntPtr,Request, HandlerOptions, Response> runDelegateAndProcessResponse)
         {
             TcpSocket.InitTcpSockets(tcpSocketHandler);
             UdpSocket.InitUdpSockets(udpSocketHandler);
@@ -938,13 +931,15 @@ namespace Starcounter.Rest
         /// </summary>
         internal static Boolean RunUriMatcherAndCallHandler(
             String methodSpaceUriSpace,
-            Byte[] requestBytes,
-            Int32 requestBytesLength,
+            String methodSpaceUriSpaceLower,
+            Request req,
             UInt16 portNumber,
             HandlerOptions handlerOptions,
             out Response resp)
         {
             resp = null;
+
+            Debug.Assert(req != null);
 
             // Checking if local RESTing is initialized.
             if (!UriInjectMethods.IsSupportingLocalNodeResting()) {
@@ -982,9 +977,9 @@ namespace Starcounter.Rest
             unsafe {
 
                 // Allocating space for parameter information.
-                Byte* paramsStackBuf = stackalloc Byte[MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES];
+                Byte* parametersInfoBufferOnStack = stackalloc Byte[MixedCodeConstants.PARAMS_INFO_MAX_SIZE_BYTES];
 
-                MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams = (MixedCodeConstants.UserDelegateParamInfo*) paramsStackBuf;
+                MixedCodeConstants.UserDelegateParamInfo* handlerNativeParams = (MixedCodeConstants.UserDelegateParamInfo*) parametersInfoBufferOnStack;
 
                 // Setting parameters info from handler options.
                 *handlerNativeParams = handlerOptions.ParametersInfo;
@@ -996,34 +991,38 @@ namespace Starcounter.Rest
                     MixedCodeConstants.UserDelegateParamInfo** handlerNativeParamsAddr = &handlerNativeParams;
 
                     // Copying string to stack buffer instead of pinning the request bytes.
-                    Int32 len = methodSpaceUriSpace.Length;
-                    Byte* methodSpaceUriSpaceOnStack = stackalloc Byte[len];
+                    Int32 len = methodSpaceUriSpaceLower.Length;
+                    Byte* methodSpaceUriSpaceLowerOnStack = stackalloc Byte[len];
                     for (Int32 i = 0; i < len; i++) {
-                        methodSpaceUriSpaceOnStack[i] = (Byte) methodSpaceUriSpace[i];
+                        methodSpaceUriSpaceLowerOnStack[i] = (Byte)methodSpaceUriSpaceLower[i];
                     }
 
                     // TODO: Resolve this hack with only positive handler ids in generated code.
-                    handlerId = portUris.MatchUriAndGetHandlerId(methodSpaceUriSpaceOnStack, (UInt32)len, handlerNativeParamsAddr) - 1;
+                    handlerId = portUris.MatchUriAndGetHandlerId(methodSpaceUriSpaceLowerOnStack, (UInt32)len, handlerNativeParamsAddr) - 1;
                 }
 
                 // Checking if we have found the handler.
                 if (handlerId >= 0) {
 
-                    // Creating HTTP request.
-                    Request req = new Request(requestBytes, requestBytesLength, paramsStackBuf);
-
                     req.ManagedHandlerId = (UInt16) handlerId;
                     req.MethodEnum = uhm.AllUserHandlerInfos[handlerId].UriInfo.http_method_;
 
+                    // Creating the stack native method and URI.
+                    Byte* methodSpaceUriSpaceOnStack = stackalloc Byte[methodSpaceUriSpace.Length];
+                    for (Int32 i = 0; i < methodSpaceUriSpace.Length; i++) {
+                        methodSpaceUriSpaceOnStack[i] = (Byte) methodSpaceUriSpace[i];
+                    }
+
                     // Invoking original user delegate with parameters here.
-                    resp = UriInjectMethods.runDelegateAndProcessResponse_(req, handlerOptions);
+                    resp = UriInjectMethods.runDelegateAndProcessResponse_(
+                        new IntPtr(methodSpaceUriSpaceOnStack),
+                        new IntPtr(parametersInfoBufferOnStack),
+                        req,
+                        handlerOptions);
 
                     // Checking if handled the response.
                     if (resp == null)
                         return false;
-
-                    // Parsing the response.
-                    resp.ParseResponseFromPlainBuffer();
 
                     // Request successfully handled.
                     return true;

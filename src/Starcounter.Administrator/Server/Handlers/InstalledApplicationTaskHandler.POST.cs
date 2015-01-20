@@ -384,7 +384,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
 
             // Get package from host
-            string headers = "Accept: application/octet-stream\r\n";
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/octet-stream" } };
             X.GET(sourceUrl, out response, headers, 0, opt);
             if (response.StatusCode >= 200 && response.StatusCode < 300) {
 
