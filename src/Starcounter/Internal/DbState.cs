@@ -137,6 +137,18 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(dr);
         }
 
+        /// <summary>
+        /// Assign the given object's reference to its default dynamic type.
+        /// No error checking is done; the method assumes it has been established
+        /// upfront that the given type actually define a relationship to a
+        /// dynamic type.
+        /// </summary>
+        /// <param name="oid">The object whose type reference are to be set to
+        /// the default dynamic type.</param>
+        /// <param name="address">The address of the object.</param>
+        /// <param name="binding">The type binding of the object that are to be
+        /// written; the type binding is used to resolve the default dynamic type
+        /// of the about-to-be-written object.</param>
         public static void WriteDefaultTypeReference(ulong oid, ulong address, TypeBinding binding) {
             var typeDef = binding.TypeDef;
             var prop = typeDef.PropertyDefs[typeDef.TypePropertyIndex];
