@@ -178,11 +178,20 @@ public class CPersonalServer : CComponentBase
         return setup;
     }
 
-    internal static void StartServiceIfAutomatic() {
-        var service = ServerService.Find();
-        if (service != null) {
-            Utilities.ReportSetupEvent("Starting Starcounter service...");
-            ServerService.Start(service.ServiceName);
+    internal static void StartServiceIfNoVsExtension() {
+
+        var vsComponent2012 = InstallerMain.VS2012IntegrationComponent;
+        var vsComponent2013 = InstallerMain.VS2013IntegrationComponent;
+
+        if (!(vsComponent2012.IsInstalled() || vsComponent2012.ShouldBeInstalled() ||
+            vsComponent2013.IsInstalled() || vsComponent2013.ShouldBeInstalled())) {
+
+            var service = ServerService.Find();
+
+            if (service != null) {
+                Utilities.ReportSetupEvent("Starting Starcounter service...");
+                ServerService.Start(service.ServiceName);
+            }
         }
     }
 
