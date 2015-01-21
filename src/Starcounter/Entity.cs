@@ -183,24 +183,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Creates a new entity whose parent dynamic type
-        /// will be the current entity, i.e. deriving the
-        /// current entity (where the current entity is to
-        /// be considered a type).
-        /// </summary>
-        /// <returns>A new entity whose base dynamic type is
-        /// the current entity.</returns>
-        public Entity Derive() {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
         /// Deletes the current entity.
         /// </summary>
         public void Delete() {
             Db.Delete(this);
         }
-
 
         /// <inheritdoc />
         public override bool Equals(object obj) {
