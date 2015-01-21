@@ -517,7 +517,9 @@ namespace Starcounter.Tracking {
             // v2 - 2013-06-14 Added "version" to the header
             //                 The response "installation.sequenceNo" was changed to "installation.installationNo" 
             // ==================================================================================================
-            node.POST(uri, content, "Accept: application/starcounter.tracker.usage-v2+json\r\n", null, (Response respAsync, Object userObject) => {
+
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/starcounter.tracker.usage-v2+json" } };
+            node.POST(uri, content, headers, null, (Response respAsync, Object userObject) => {
 
                 if (respAsync.IsSuccessStatusCode) {
 

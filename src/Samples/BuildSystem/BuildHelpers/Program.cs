@@ -90,7 +90,8 @@ namespace BuildHelpers
                                 for (Int32 i = 0; i < truncatedBuf.Length; i++)
                                     checkSum += truncatedBuf[i];
 
-                                resp = X.PUT(uploadUri + "/" + resId, truncatedBuf, "UploadSettings: Final\r\n");
+                                Dictionary<String, String> header = new Dictionary<String, String> { { "UploadSettings", "Final" } };
+                                resp = X.PUT(uploadUri + "/" + resId, truncatedBuf, header);
                             }
                             else
                             {

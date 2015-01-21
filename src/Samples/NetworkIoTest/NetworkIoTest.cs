@@ -147,7 +147,7 @@ namespace NetworkIoTestApp
             {
                 if (r.CameWithCorrectSession)
                 {
-                    r.DestroySession();
+                    r.Session.Destroy();
                     return "Session deleted!";
                 }
                 else
