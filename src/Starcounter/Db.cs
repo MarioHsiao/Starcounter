@@ -165,26 +165,7 @@ namespace Starcounter
             Transaction(action, 0, forceSnapshot, maxRetries);
         }
 
-        internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transaction(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
-        }
-
-        public static void Scope(Action action, bool forceNew = false) {
-            ITransaction t = Starcounter.Transaction.Current;
-            if (forceNew || t == null)
-                t = new Starcounter.Transaction(false, false);
-            t.Scope(action);
-        }
-
-        public static T Scope<T>(Func<T> func, bool forceNew = false) {
-            ITransaction t = Starcounter.Transaction.Current;
-            if (forceNew || t == null)
-                t = new Starcounter.Transaction(false, false);
-            return t.Scope<T>(func);
-        }
-
-        internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100)
-        {
+        internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100) {
             int retries;
             uint r;
             ulong handle;
@@ -200,20 +181,18 @@ namespace Starcounter
 
             retries = 0;
 
-            for (; ; )
-            {
+            for (; ; ) {
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
-                if (r == 0)
-                {
+                if (r == 0) {
                     var currentTransaction = Starcounter.Transaction.Current;
+                    var currentHandle = TransactionHandle.Empty; // TODO:
                     Starcounter.Transaction.SetManagedCurrentToNull();
 
                     try {
                         action();
                         Starcounter.Transaction.Commit(1, 1);
                         return;
-                    }
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         if (
                             sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
                             sccoredb.sccoredb_free_transaction(handle, verify) == 0
@@ -225,19 +204,8 @@ namespace Starcounter
                             throw;
                         }
                         HandleFatalErrorInTransactionScope();
-                    }
-                    finally {
-                        if (currentTransaction != null) {
-                            // There should be no current transaction and so
-                            // there should be no reason setting the current
-                            // transaction to the replaced one (other then the
-                            // current transcation being bound to another
-                            // thread).
-
-                            Starcounter.Transaction.SetCurrent(currentTransaction);
-                        } else {
-                            ImplicitTransaction.CreateOrSetCurrent();
-                        }
+                    } finally {
+                        Starcounter.Transaction.SetCurrent(currentTransaction, currentHandle);
                     }
                 }
 
@@ -249,8 +217,7 @@ namespace Starcounter
 
                     try {
                         action();
-                    }
-                    catch {
+                    } catch {
                         // Operation will fail only if transaction is already
                         // aborted (in which case we need not abort it).
 
@@ -261,6 +228,53 @@ namespace Starcounter
                 }
 
                 throw ErrorCode.ToException(r);
+            }
+        }
+
+        internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transaction(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
+        }
+
+        public static void Scope(Action action, bool isReadOnly = false) {
+            Transaction old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionHandle oldHandle = Starcounter.Transaction.GetCurrentScopeNoCheck();
+
+            TransactionHandle newHandle = TransactionHandle.Empty;
+            try {
+                newHandle = Starcounter.Transaction.CreateManualAndSetCurrent(isReadOnly, true);
+                action();
+            } finally {
+                CheckAndReleaseTransaction(newHandle);
+                Starcounter.Transaction.SetCurrent(old, oldHandle);
+            }
+        }
+
+        public static T Scope<T>(Func<T> func, bool isReadOnly = false) {
+            Transaction old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionHandle oldHandle = Starcounter.Transaction.GetCurrentScopeNoCheck();
+
+            TransactionHandle newHandle = TransactionHandle.Empty;
+            try {
+                newHandle = Starcounter.Transaction.CreateManualAndSetCurrent(isReadOnly, true);
+                return func();
+            } finally {
+                CheckAndReleaseTransaction(newHandle);
+                Starcounter.Transaction.SetCurrent(old, oldHandle);
+            }
+        }
+
+        private static void CheckAndReleaseTransaction(TransactionHandle handle) {
+            // If a (managed) transaction object have been instantiated, We don't dispose it but leave it to either 
+            // the finalizer or the code that created the managed transaction.
+            // If not it will be cleaned up here.
+            var t = Starcounter.Transaction.GetCurrentNoCheck();
+            if (t == null) {
+                try {
+                    if (Starcounter.Transaction.GetIsDirty(handle.Handle, handle.Verify))
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: Error for writing and not referencing it.
+                } finally {
+                    Starcounter.Transaction.ReleaseManualHandle(handle);
+                }
             }
         }
 
