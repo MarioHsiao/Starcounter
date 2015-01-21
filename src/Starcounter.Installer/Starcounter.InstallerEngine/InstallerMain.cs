@@ -783,7 +783,7 @@ namespace Starcounter.InstallerEngine
                     StartPostSetupProcesses(false);
 
                     // Restarting Starcounter service if needed.
-                    CPersonalServer.StartServiceIfAutomatic();
+                    CPersonalServer.StartServiceIfNoVsExtension();
                 }
                 catch (InstallerAbortedException userCanceled)
                 {
