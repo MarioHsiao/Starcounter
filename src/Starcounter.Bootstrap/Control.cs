@@ -169,8 +169,6 @@ namespace StarcounterInternal.Bootstrap {
                             ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
                             Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                         }
-
-                        PuppetRestHandler.Register(configuration.DefaultUserHttpPort);
                     });
                 }
 
@@ -195,7 +193,8 @@ namespace StarcounterInternal.Bootstrap {
                     configuration.DefaultUserHttpPort,
                     configuration.DefaultSystemHttpPort,
                     configuration.DefaultSessionTimeoutMinutes,
-                    configuration.Name);
+                    configuration.Name,
+                    configuration.NoNetworkGateway);
 
                 OnAppsBoostraperInitialized();
 

@@ -412,7 +412,6 @@ namespace Starcounter.Rest
 
         internal static Func<IntPtr, IntPtr, Request, HandlerOptions, Response> runDelegateAndProcessResponse_;
         public static Func<Request, Boolean> OnHttpMessageRoot_;
-        public static Action<string, ushort> OnHandlerRegistered_;
         public delegate void RegisterUriHandlerNativeDelegate(
             UInt16 port,
             String appName,
@@ -425,10 +424,6 @@ namespace Starcounter.Rest
         internal static RegisterUriHandlerNativeDelegate RegisterUriHandlerNative_;
 
         public static Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
-
-        public static void SetHandlerRegisteredCallback(Action<string, ushort> callback) {
-            OnHandlerRegistered_ = callback;
-        }
 
         // Checking if this Node supports local resting.
         internal static Boolean IsSupportingLocalNodeResting() {
@@ -638,9 +633,6 @@ namespace Starcounter.Rest
 
                 // Updating handler info from received value.
                 allUriHandlers_[handlerId].UriInfo.handler_info_ = handlerInfo;
-
-                if (UriInjectMethods.OnHandlerRegistered_ != null)
-                    UriInjectMethods.OnHandlerRegistered_(originalUriInfo, port);
 
                 // Resetting port URIs matcher.
                 PortUris portUris = SearchPort(port);
