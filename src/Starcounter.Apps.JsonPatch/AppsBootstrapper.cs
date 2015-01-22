@@ -83,6 +83,9 @@ namespace Starcounter.Internal {
 
             SchedulerResources.Init(numSchedulers);
 
+            // Registering JSON patch handlers.
+            PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
+
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
             int interval = 1000 * 60;

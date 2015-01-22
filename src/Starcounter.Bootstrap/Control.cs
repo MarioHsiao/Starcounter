@@ -169,8 +169,6 @@ namespace StarcounterInternal.Bootstrap {
                             ConsoleOuputRestHandler.Register(configuration.DefaultUserHttpPort, configuration.DefaultSystemHttpPort);
                             Profiler.SetupHandler(configuration.DefaultSystemHttpPort, Db.Environment.DatabaseNameLower);
                         }
-
-                        PuppetRestHandler.Register(configuration.DefaultUserHttpPort);
                     });
                 }
 
