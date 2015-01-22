@@ -193,7 +193,8 @@ namespace StarcounterInternal.Bootstrap {
                     configuration.DefaultUserHttpPort,
                     configuration.DefaultSystemHttpPort,
                     configuration.DefaultSessionTimeoutMinutes,
-                    configuration.Name);
+                    configuration.Name,
+                    configuration.NoNetworkGateway);
 
                 OnAppsBoostraperInitialized();
 

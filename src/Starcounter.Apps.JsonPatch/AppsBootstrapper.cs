@@ -41,7 +41,8 @@ namespace Starcounter.Internal {
             UInt16 defaultUserHttpPort,
             UInt16 defaultSystemHttpPort,
             UInt32 sessionTimeoutMinutes,
-            String dbName)
+            String dbName,
+            Boolean noNetworkGateway)
         {
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
@@ -83,8 +84,10 @@ namespace Starcounter.Internal {
 
             SchedulerResources.Init(numSchedulers);
 
-            // Registering JSON patch handlers.
-            PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
+            // Registering JSON patch handlers on default user port.
+            if (!noNetworkGateway) {
+                PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
+            }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
