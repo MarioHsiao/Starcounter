@@ -38,6 +38,60 @@ namespace Starcounter
         public static event EventHandler DatabaseStopping;
 
         /// <summary>
+        /// Returns the "dynamic type" instance corresponding to the
+        /// database class with the given name.
+        /// </summary>
+        /// <param name="name">The type name whose type are to
+        /// be returned</param>
+        /// <returns>The "dynamic type" instance of the given database
+        /// type.</returns>
+        public static Entity TypeOf(string name) {
+            var td = Bindings.GetTypeDef(name);
+            return (Entity)DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+        }
+
+        /// <summary>
+        /// Returns the "dynamic type" instance corresponding to the
+        /// database class T.
+        /// </summary>
+        /// <typeparam name="T">The database class whose type are to
+        /// be returned</typeparam>
+        /// <returns>The "dynamic type" instance of the given database
+        /// class.</returns>
+        public static Entity TypeOf<T>() {
+            return TypeOf(typeof(T).FullName);
+        }
+
+        /// <summary>
+        /// Returns the "dynamic type" instance corresponding to the
+        /// database class T, where the type is represented by class
+        /// T2.
+        /// </summary>
+        /// <typeparam name="T">The database class whose type are to
+        /// be returned</typeparam>
+        /// <typeparam name="T2">The class of the type.</typeparam>
+        /// <returns>The "dynamic type" instance of the given database
+        /// class.</returns>
+        public static T2 TypeOf<T, T2>() {
+            var t = typeof(T);
+            return TypeOf<T2>(t.FullName);
+        }
+
+        /// <summary>
+        /// Returns the "dynamic type" instance corresponding to the
+        /// given typename, where the type is represented by class
+        /// T.
+        /// </summary>
+        /// <typeparam name="T">The class of the type instance.</typeparam>
+        /// <param name="name">The name of the type to retreive.</param>
+        /// <returns>The "dynamic type" instance with the given name.
+        /// </returns>
+        public static T TypeOf<T>(string name) {
+            var td = Bindings.GetTypeDef(name);
+            return (T)DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+        }
+        
+        /// <summary>
         /// Lookups the table.
         /// </summary>
         /// <param name="name">The name.</param>
