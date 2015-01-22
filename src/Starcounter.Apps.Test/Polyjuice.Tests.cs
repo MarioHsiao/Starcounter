@@ -98,7 +98,7 @@ namespace Starcounter.Internal.Tests
 
             const String FacebookAppName = "FacebookApp";
             const String GoogleMapsAppName = "GoogleMapsApp";
-            const String SkyperAppName = "SkypeApp";
+            const String SkypeAppName = "SkypeApp";
             const String SalaryAppName = "SalaryApp";
             const String SomeAppName = "SomeOtherApp";
 
@@ -128,7 +128,7 @@ namespace Starcounter.Internal.Tests
             skypeUserObjRef.Template = skypeUserTemplate;
 
             var skypeUserWrappedTemplate = new TObject();
-            skypeUserWrappedTemplate.Add<TObject>(SkyperAppName);
+            skypeUserWrappedTemplate.Add<TObject>(SkypeAppName);
 
             dynamic skypeUserObjRefWrapped = new Json();
             skypeUserObjRefWrapped.Template = skypeUserWrappedTemplate;
@@ -167,10 +167,10 @@ namespace Starcounter.Internal.Tests
             facebookProfileObjRefWrapped.FacebookApp = facebookProfileObjRef;
 
             var allWrappedTemplate = new TObject();
-            allWrappedTemplate.Add<TObject>(GoogleMapsAppName);
-            allWrappedTemplate.Add<TObject>(SkyperAppName);
             allWrappedTemplate.Add<TObject>(SalaryAppName);
+            allWrappedTemplate.Add<TObject>(SkypeAppName);
             allWrappedTemplate.Add<TObject>(FacebookAppName);
+            allWrappedTemplate.Add<TObject>(GoogleMapsAppName);
 
             dynamic allObjRefWrapped = new Json();
             allObjRefWrapped.Template = allWrappedTemplate;
@@ -200,7 +200,7 @@ namespace Starcounter.Internal.Tests
                 return o;
             });
 
-            StarcounterEnvironment.AppName = SkyperAppName;
+            StarcounterEnvironment.AppName = SkypeAppName;
 
             Handle.GET("/SkypeApp/skypeuser/{?}", (String id) => {
 
@@ -275,7 +275,7 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsObjRefWrapped.ToJson());
 
             X.GET("/so/person/123", out resp2); // all
-            //Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjRefWrapped.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjRefWrapped.ToJson());
 
             Assert.IsTrue(resp1.Body.Equals(resp3.Body));
 
@@ -302,7 +302,7 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp.Resource).ToJson() == salaryAppObjRef.ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == salaryAppObjRef.ToJson());
 
-            StarcounterEnvironment.AppName = SkyperAppName;
+            StarcounterEnvironment.AppName = SkypeAppName;
             Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjRef.ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == skypeUserObjRef.ToJson());
 
@@ -324,7 +324,7 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
             Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
 
-            StarcounterEnvironment.AppName = SkyperAppName;
+            StarcounterEnvironment.AppName = SkypeAppName;
             Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
             Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
@@ -354,7 +354,7 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp.Resource).ToJson() == salaryAppObjRef.ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == salaryAppObjRef.ToJson());
 
-            StarcounterEnvironment.AppName = SkyperAppName;
+            StarcounterEnvironment.AppName = SkypeAppName;
             Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjRef.ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == skypeUserObjRef.ToJson());
 
