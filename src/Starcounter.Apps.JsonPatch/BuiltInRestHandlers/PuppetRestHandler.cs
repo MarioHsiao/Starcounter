@@ -13,12 +13,10 @@ namespace Starcounter.Internal {
     /// the public Session data of a Starcounter application.
     /// </summary>
     internal static class PuppetRestHandler {
-        private static JsonPatch jsonPatch = new JsonPatch();
-        private static List<UInt16> registeredPorts = new List<UInt16>();
 
-        internal static void Register(UInt16 defaultUserHttpPort) {
-            Starcounter.Rest.UriInjectMethods.SetHandlerRegisteredCallback(HandlerRegistered);
-        }
+        private static JsonPatch jsonPatch = new JsonPatch();
+
+        private static List<UInt16> registeredPorts = new List<UInt16>();
 
         /// <summary>
         /// Name of the WebSocket Json-Patch channel.
@@ -69,7 +67,8 @@ namespace Starcounter.Internal {
             } 
         }
 
-        private static void HandlerRegistered(string uri, ushort port) {
+        internal static void RegisterJsonPatchHandlers(ushort port) {
+
             if (registeredPorts.Contains(port))
                 return;
 
