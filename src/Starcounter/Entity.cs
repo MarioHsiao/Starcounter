@@ -167,19 +167,19 @@ namespace Starcounter {
         /// <returns>A new entity whose dynamic type is the
         /// current entity.</returns>
         public Entity Create() {
-            throw new NotImplementedException();
-        }
+            // Proper error messages including new error codes.
+            // Delayed until final implementation though (see
+            // #2500 for more info).
+            // TODO:
+            if (!IsType) throw new InvalidOperationException("This object is not a type.");
+            if (string.IsNullOrEmpty(this.Name)) throw new InvalidOperationException("The type name is not specified.");
 
-        /// <summary>
-        /// Creates a new entity whose parent dynamic type
-        /// will be the current entity, i.e. deriving the
-        /// current entity (where the current entity is to
-        /// be considered a type).
-        /// </summary>
-        /// <returns>A new entity whose base dynamic type is
-        /// the current entity.</returns>
-        public Entity Derive() {
-            throw new NotImplementedException();
+            var tb = Bindings.GetTypeBinding(this.Name);
+            ulong oid = 0, addr = 0;
+            DbState.Insert(tb.TableId, ref oid, ref addr);
+            var proxy = (Entity) tb.NewInstance(addr, oid);
+            proxy.Type = this;
+            return proxy;
         }
 
         /// <summary>
@@ -188,7 +188,6 @@ namespace Starcounter {
         public void Delete() {
             Db.Delete(this);
         }
-
 
         /// <inheritdoc />
         public override bool Equals(object obj) {
