@@ -247,10 +247,6 @@ namespace Starcounter.Internal
             ref string targetTypeName,
             ref bool isNullable,
             ref bool isSynonym) {
-            
-            if (!attribute.IsPersistent) {
-                return null;
-            }
 
             DbTypeCode type;
             var databaseAttributeType = attribute.AttributeType;
@@ -271,7 +267,10 @@ namespace Starcounter.Internal
                 } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
                     type = DbTypeCode.String;
                 } else {
-                    
+                    if (!attribute.IsPersistent) {
+                        return null;
+                    }
+
                     // This type is not supported (but theres no way code will
                     // ever reach here unless theres some internal error). We
                     // just  raise an internal exception indicating the field
