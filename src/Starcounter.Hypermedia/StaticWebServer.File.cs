@@ -54,7 +54,7 @@ namespace Starcounter.Internal.Web {
             int contentLength;
             Response response;
             string fileExtension = null;
-            string mimeType;
+            string mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
             string dir = null;
             string fileName = null;
             

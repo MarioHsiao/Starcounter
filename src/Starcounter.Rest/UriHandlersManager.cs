@@ -194,54 +194,67 @@ namespace Starcounter.Rest
             // Checking if there is only one delegate or merge function is not defined.
             if (userDelegates_.Count == 1) {
 
-                // Setting current application name.
-                StarcounterEnvironment.AppName = appNames_[0];
-                if (handlerOptions.AppName != null) {
-                    StarcounterEnvironment.AppName = handlerOptions.AppName;
-                }
-
                 Response resp = null;
 
                 if (useProxyHandler) {
 
+                    // Setting current application name.
+                    if (handlerOptions.AppName != null) {
+                        StarcounterEnvironment.AppName = handlerOptions.AppName;
+                    }
+
                     // Calling proxy user delegate.
                     resp = proxyDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
 
+                    // Checking if we have any response.
+                    if (null == resp) {
+
+                        return null;
+
+                    } else {
+
+                        // Setting to which application the response belongs.
+                        Debug.Assert(null != resp.AppName);
+                    }
+
                 } else {
+
+                    // Setting current application name.
+                    StarcounterEnvironment.AppName = appNames_[0];
+
+                    if (handlerOptions.AppName != null) {
+                        StarcounterEnvironment.AppName = handlerOptions.AppName;
+                    }
 
                     // Calling intermediate user delegate.
                     resp = userDelegates_[0](req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
-                }
 
-                // Checking if we have any response.
-                if (null == resp) {
+                    // Checking if we have any response.
+                    if (null == resp) {
 
-                    return null;
+                        return null;
 
-                } else {
+                    } else {
 
-                    // Setting to which application the response belongs.
-                    resp.AppName = appNames_[0];
-                }
+                        // Setting to which application the response belongs.
+                        resp.AppName = appNames_[0];
+                    }
 
-                // Checking if we need to merge.
-                if ((!useProxyHandler) &&
-                    (UriInjectMethods.ResponsesMergerRoutine_ != null) &&
-                    (!dontMerge)) {
+                    // Checking if we need to merge.
+                    if ((UriInjectMethods.ResponsesMergerRoutine_ != null) && (!dontMerge)) {
 
-                    responses = new List<Response>();
-                    responses.Add(resp);
-                    return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
+                        responses = new List<Response>();
+                        responses.Add(resp);
+                        return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
+                    }
                 }
 
                 return resp;
             }
 
-            responses = new List<Response>();
+            Debug.Assert(false == useProxyHandler);
 
-            // Saving the name of the app the request originated from. Used to 
-            // decide which response should be used to merge the others to.
-            String origRequestAppName = StarcounterEnvironment.AppName;
+            responses = new List<Response>();
 
             // Running every delegate from the list.
             for (Int32 i = 0; i < userDelegates_.Count; i++) {
@@ -262,12 +275,8 @@ namespace Starcounter.Rest
                 // Setting to which application the response belongs.
                 resp.AppName = appNames_[i];
 
-                // The first response is the one we should merge on.
-                if (appNames_[i] == origRequestAppName) {
-                    responses.Insert(0, resp);
-                } else {
-                    responses.Add(resp);
-                }
+                // Adding responses to the list.
+                responses.Add(resp);
             }
 
             // Checking if we have a response merging function defined.
