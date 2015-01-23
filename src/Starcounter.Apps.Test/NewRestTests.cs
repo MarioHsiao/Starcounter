@@ -292,7 +292,11 @@ namespace Starcounter.Internal.Test
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
 
-            Handle.GET("/CaseInsensitive", () => {
+            Handle.GET("/CaseInsensitive", (Request req) => {
+
+                Assert.IsTrue("/CaseInsensitive" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 return 200;
             });
 
@@ -321,8 +325,11 @@ namespace Starcounter.Internal.Test
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
 
-            Handle.GET("/response1", () =>
+            Handle.GET("/response1", (Request req) =>
             {
+                Assert.IsTrue("/response1" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 Response r = new Response()
                 {
                     StatusCode = 404,

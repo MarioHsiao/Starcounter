@@ -39,40 +39,7 @@ namespace Starcounter.Internal.Tests
             X.LocalNode = true;
 
             // Not actually a merger anymore but linker of sibling Json parts.
-            Handle.MergeResponses((Request req, List<Response> responses) => {
-
-                var mainResponse = responses[0];
-                Int32 mainResponseId = 0;
-
-                // Searching for the current application in responses.
-                /*for (Int32 i = 0; i < responses.Count; i++) {
-
-                    if (responses[i].AppName == StarcounterEnvironment.AppName) {
-
-                        mainResponse = responses[i];
-                        mainResponseId = i;
-                        break;
-                    }
-                }*/
-
-                var json = mainResponse.Resource as Json;
-
-                if ((json != null) && (mainResponse.AppName != StarcounterConstants.LauncherAppName)) {
-
-                    json.SetAppName(mainResponse.AppName);
-
-                    for (Int32 i = 0; i < responses.Count; i++) {
-
-                        if (mainResponseId != i) {
-
-                            ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
-                            json.AddStepSibling((Json)responses[i].Resource);
-                        }
-                    }
-                }
-
-                return mainResponse;
-            });
+            Handle.MergeResponses(Polyjuice.DefaultMerger);
         }
     }
 
@@ -113,9 +80,9 @@ namespace Starcounter.Internal.Tests
             var googleMapsWrappedTemplate = new TObject();
             googleMapsWrappedTemplate.Add<TObject>(GoogleMapsAppName);
 
-            dynamic googleMapsObjRefWrapped = new Json();
-            googleMapsObjRefWrapped.Template = googleMapsWrappedTemplate;
-            googleMapsObjRefWrapped.GoogleMapsApp = googleMapsObjRef;
+            dynamic googleMapsWrappedRef = new Json();
+            googleMapsWrappedRef.Template = googleMapsWrappedTemplate;
+            googleMapsWrappedRef.GoogleMapsApp = googleMapsObjRef;
 
             var skypeUserTemplate = new TObject();
             skypeUserTemplate.Add<TString>("FirstName", "John");
@@ -130,9 +97,9 @@ namespace Starcounter.Internal.Tests
             var skypeUserWrappedTemplate = new TObject();
             skypeUserWrappedTemplate.Add<TObject>(SkypeAppName);
 
-            dynamic skypeUserObjRefWrapped = new Json();
-            skypeUserObjRefWrapped.Template = skypeUserWrappedTemplate;
-            skypeUserObjRefWrapped.SkypeApp = skypeUserObjRef;
+            dynamic skypeUserObjWrappedRef = new Json();
+            skypeUserObjWrappedRef.Template = skypeUserWrappedTemplate;
+            skypeUserObjWrappedRef.SkypeApp = skypeUserObjRef;
 
             var salaryTemplate = new TObject();
             salaryTemplate.Add<TString>("FullName", "John Lennon");
@@ -162,9 +129,9 @@ namespace Starcounter.Internal.Tests
             var facebookProfileWrappedTemplate = new TObject();
             facebookProfileWrappedTemplate.Add<TObject>(FacebookAppName);
 
-            dynamic facebookProfileObjRefWrapped = new Json();
-            facebookProfileObjRefWrapped.Template = facebookProfileWrappedTemplate;
-            facebookProfileObjRefWrapped.FacebookApp = facebookProfileObjRef;
+            dynamic facebookProfileObjWrappedRef = new Json();
+            facebookProfileObjWrappedRef.Template = facebookProfileWrappedTemplate;
+            facebookProfileObjWrappedRef.FacebookApp = facebookProfileObjRef;
 
             var allWrappedTemplate = new TObject();
             allWrappedTemplate.Add<TObject>(SalaryAppName);
@@ -172,14 +139,14 @@ namespace Starcounter.Internal.Tests
             allWrappedTemplate.Add<TObject>(FacebookAppName);
             allWrappedTemplate.Add<TObject>(GoogleMapsAppName);
 
-            dynamic allObjRefWrapped = new Json();
-            allObjRefWrapped.Template = allWrappedTemplate;
-            allObjRefWrapped.SalaryApp = new Json() { Template = salaryTemplate };
-            allObjRefWrapped.SkypeApp = new Json() { Template = skypeUserTemplate };
-            allObjRefWrapped.FacebookApp = new Json() { Template = facebookProfileTemplate };
-            allObjRefWrapped.GoogleMapsApp = new Json() { Template = googleMapsTemplate };
+            dynamic allObjWrappedRef = new Json();
+            allObjWrappedRef.Template = allWrappedTemplate;
+            allObjWrappedRef.SalaryApp = new Json() { Template = salaryTemplate };
+            allObjWrappedRef.SkypeApp = new Json() { Template = skypeUserTemplate };
+            allObjWrappedRef.FacebookApp = new Json() { Template = facebookProfileTemplate };
+            allObjWrappedRef.GoogleMapsApp = new Json() { Template = googleMapsTemplate };
 
-            // Logging handler calls.
+            // Logging all handler calls.
             Handle.GET("{?}", (Request req, String str) => {
 
                 Assert.IsTrue(str == req.Uri);
@@ -236,17 +203,21 @@ namespace Starcounter.Internal.Tests
 
             // Testing wrapped application outputs.
 
-            X.GET("/GoogleMapsApp/object/12345", out resp);
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsObjRefWrapped.ToJson());
+            X.GET("/GoogleMapsApp/object/12345", out resp); // maps wrapped
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(googleMapsTemplate == ((Json)resp.Resource).Template);
 
-            X.GET("/SkypeApp/skypeuser/12345", out resp);
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjRefWrapped.ToJson());
+            X.GET("/SkypeApp/skypeuser/12345", out resp); // skype wrapped
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjWrappedRef.ToJson());
+            Assert.IsTrue(skypeUserTemplate == ((Json)resp.Resource).Template);
 
-            X.GET("/SalaryApp/employee/12345", out resp);
+            X.GET("/SalaryApp/employee/12345", out resp); // salary wrapped
             Assert.IsTrue(((Json)resp.Resource).ToJson() == salaryAppObjRefWrapped.ToJson());
+            Assert.IsTrue(salaryTemplate == ((Json)resp.Resource).Template);
 
-            X.GET("/FacebookApp/person/12345", out resp);
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjRefWrapped.ToJson());
+            X.GET("/FacebookApp/person/12345", out resp); // facebook wrapped
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjWrappedRef.ToJson());
+            Assert.IsTrue(facebookProfileTemplate == ((Json)resp.Resource).Template);
             
             // Hierarchy: something -> legalentity -> person.
 
@@ -268,30 +239,50 @@ namespace Starcounter.Internal.Tests
 
             Response resp1 = null, resp2 = null, resp3 = null, resp4 = null;
 
-            X.GET("/so/something/123", out resp1); // google maps only
-            Assert.IsTrue(((Json)resp1.Resource).ToJson() == googleMapsObjRefWrapped.ToJson());
+            X.GET("/so/something/123", out resp1); // maps only
+            Assert.IsTrue(googleMapsTemplate == ((Json)resp1.Resource).Template);
+            Assert.IsTrue(((Json)resp1.Resource).ToJson() == googleMapsWrappedRef.ToJson());
 
-            X.GET("/so/legalentity/123", out resp3); // map only
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsObjRefWrapped.ToJson());
+            X.GET("/so/legalentity/123", out resp3); // maps only
+            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(googleMapsTemplate == ((Json)resp3.Resource).Template);
 
             X.GET("/so/person/123", out resp2); // all
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjRefWrapped.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
 
             Assert.IsTrue(resp1.Body.Equals(resp3.Body));
 
-            X.GET("/GoogleMapsApp/object/123", out resp1); // map only
+            X.GET("/GoogleMapsApp/object/123", out resp1); // maps only
+            Assert.IsTrue(((Json)resp1.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(googleMapsTemplate == ((Json)resp1.Resource).Template);
+
             X.GET("/SalaryApp/employee/123", out resp2); // all
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+
             X.GET("/SkypeApp/skypeuser/123", out resp3); // all
+            Assert.IsTrue(((Json)resp3.Resource).ToJson() == allObjWrappedRef.ToJson());
+
             X.GET("/FacebookApp/person/123", out resp4); // all
+            Assert.IsTrue(((Json)resp4.Resource).ToJson() == allObjWrappedRef.ToJson());
 
             Assert.IsTrue(resp2.Body.Equals(resp3.Body));
             Assert.IsTrue(resp3.Body.Equals(resp4.Body));
             Assert.IsFalse(resp1.Body.Equals(resp2.Body));
-            
-            X.GET("/FacebookApp/person/123", out resp);
-            X.GET("/so/person/123", out resp2);
 
-            StarcounterEnvironment.AppName = "";
+            StarcounterEnvironment.AppName = FacebookAppName;
+
+            X.GET("/FacebookApp/person/123", out resp); // facebook
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjRef.ToJson());
+            Assert.IsTrue(facebookProfileTemplate == ((Json)resp.Resource).Template);
+
+            StarcounterEnvironment.AppName = SomeAppName;
+
+            X.GET("/FacebookApp/person/123", out resp); // all
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+
+            X.GET("/so/person/123", out resp2); // all
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+
             Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp4.Resource).ToJson());
 
             StarcounterEnvironment.AppName = FacebookAppName;
@@ -310,41 +301,49 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsObjRef.ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsObjRef.ToJson());
 
-            X.GET("/GoogleMapsApp/object/123", out resp);
-            X.GET("/so/something/123", out resp2);
-            X.GET("/so/legalentity/123", out resp3);
+            StarcounterEnvironment.AppName = SomeAppName;
+
+            X.GET("/GoogleMapsApp/object/123", out resp); // maps only
+            X.GET("/so/something/123", out resp2); // maps only
+            X.GET("/so/legalentity/123", out resp3); // maps only
+
+            Assert.IsTrue(resp.Body.Equals(resp2.Body));
+            Assert.IsTrue(resp3.Body.Equals(resp2.Body));
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = FacebookAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = SalaryAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = SkypeAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = GoogleMapsAppName;
             Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsObjRef.ToJson());
             Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsObjRef.ToJson());
             Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsObjRef.ToJson());
 
-            StarcounterEnvironment.AppName = "";
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == ((Json)resp1.Resource).ToJson());
+            StarcounterEnvironment.AppName = SomeAppName;
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
 
-            X.GET("/SalaryApp/employee/123", out resp);
-            X.GET("/so/person/123", out resp2);
+            X.GET("/SalaryApp/employee/123", out resp); // all
+            X.GET("/so/person/123", out resp2); // all
 
-            StarcounterEnvironment.AppName = "";
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp4.Resource).ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == ((Json)resp4.Resource).ToJson());
+            Assert.IsTrue(resp.Body.Equals(resp2.Body));
+
+            StarcounterEnvironment.AppName = SomeAppName;
+            Assert.IsTrue(((Json)resp.Resource).ToJson() == allObjWrappedRef.ToJson());
+            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = FacebookAppName;
             Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjRef.ToJson());

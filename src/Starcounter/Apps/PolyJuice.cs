@@ -4,6 +4,7 @@ using Starcounter.Metadata;
 using Starcounter.Rest;
 using System;
 using System.Collections.Generic;
+using Starcounter.Advanced.XSON;
 
 namespace PolyjuiceNamespace {
 
@@ -579,6 +580,44 @@ namespace PolyjuiceNamespace {
             tree_.Connect("something", "eventinfo");
             tree_.Connect("something", "fixedtype");
         }
+
+        /// <summary>
+        /// Default merger function for PolyJuice.
+        /// </summary>
+        public static Response DefaultMerger(Request req, List<Response> responses) {
+
+                var mainResponse = responses[0];
+                Int32 mainResponseId = 0;
+
+                // Searching for the current application in responses.
+                for (Int32 i = 0; i < responses.Count; i++) {
+
+                    if (responses[i].AppName == StarcounterEnvironment.AppName) {
+
+                        mainResponse = responses[i];
+                        mainResponseId = i;
+                        break;
+                    }
+                }
+
+                Json mainJson = mainResponse.Resource as Json;
+
+                if ((mainJson != null) && (mainResponse.AppName != StarcounterConstants.LauncherAppName)) {
+
+                    mainJson.SetAppName(mainResponse.AppName);
+
+                    for (Int32 i = 0; i < responses.Count; i++) {
+
+                        if (mainResponseId != i) {
+
+                            ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
+                            mainJson.AddStepSibling((Json)responses[i].Resource);
+                        }
+                    }
+                }
+
+                return mainResponse;
+            }
 
         /// <summary>
         /// Initializes everything needed for Polyjuice.
