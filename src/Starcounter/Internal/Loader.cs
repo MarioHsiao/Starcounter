@@ -16,6 +16,8 @@ using System.Diagnostics;
 namespace Starcounter.Internal
 {
 
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+
     /// <summary>
     /// Class LoaderHelper
     /// </summary>
@@ -180,64 +182,16 @@ namespace Starcounter.Internal
             for (int i = 0; i < databaseAttributes.Count; i++) {
                 var databaseAttribute = databaseAttributes[i];
 
-                DbTypeCode type;
                 string targetTypeName = null;
+                bool isNullable = false;
+                bool isSynonym = false;
 
-                var databaseAttributeType = databaseAttribute.AttributeType;
-
-                DatabasePrimitiveType databasePrimitiveType;
-                DatabaseEnumType databaseEnumType;
-                DatabaseEntityClass databaseEntityClass;
-                DatabaseArrayType databaseArrayType;
-
-                try {
-                    if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
-                        type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
-                    } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
-                        type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
-                    } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
-                        type = DbTypeCode.Object;
-                        targetTypeName = databaseEntityClass.Name;
-                    } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
-                        type = DbTypeCode.String;
-                    } else {
-                        if (!databaseAttribute.IsPersistent) continue;
-
-                        // This type is not supported (but theres no way code will
-                        // ever reach here unless theres some internal error). We
-                        // just  raise an internal exception indicating the field
-                        // and that this condition was experienced (indicating an
-                        // internal bug).
-                        // 
-                        // In comment to the above: appearently, the code in the
-                        // weaver is not up-to-date with the latest changes done in
-                        // the code host. So let's provide an informative exception
-                        // here anyway, helping our users to help themselves.
-                        throw new NotSupportedException();
-                    }
-                } catch (NotSupportedException) {
-                    throw ErrorCode.ToException(
-                        Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
-                        string.Format(
-                        "The attribute type of attribute {0}.{1} was found invalid.",
-                        databaseAttribute.DeclaringClass.Name,
-                        databaseAttribute.Name
-                        ));
+                var typeResult = ConvertDatabaseAttributeToVariables(databaseAttribute, ref targetTypeName, ref isNullable, ref isSynonym);
+                if (!typeResult.HasValue) {
+                    continue;
                 }
 
-                var isNullable = databaseAttribute.IsNullable;
-                var isSynonym = databaseAttribute.SynonymousTo != null;
-
-                // Fix handling that always nullable types are correcly
-                // tagged as nullable in the schema file.
-
-                switch (type) {
-                    case DbTypeCode.Object:
-                    case DbTypeCode.String:
-                    case DbTypeCode.Binary:
-                        isNullable = true;
-                        break;
-                }
+                DbTypeCode type = typeResult.Value;
 
                 switch (databaseAttribute.AttributeKind) {
                     case DatabaseAttributeKind.Field:
@@ -264,6 +218,7 @@ namespace Starcounter.Internal
                             AddProperty(propertyDef, propertyDefs);
                         }
                         break;
+
                     case DatabaseAttributeKind.Property:
                         if (databaseAttribute.IsPublicRead) {
                             var propertyDef = new PropertyDef(
@@ -285,6 +240,75 @@ namespace Starcounter.Internal
                         break;
                 }
             }
+        }
+
+        static DbTypeCode? ConvertDatabaseAttributeToVariables(
+            DatabaseAttribute attribute,
+            ref string targetTypeName,
+            ref bool isNullable,
+            ref bool isSynonym) {
+            
+            if (!attribute.IsPersistent) {
+                return null;
+            }
+
+            DbTypeCode type;
+            var databaseAttributeType = attribute.AttributeType;
+
+            DatabasePrimitiveType databasePrimitiveType;
+            DatabaseEnumType databaseEnumType;
+            DatabaseEntityClass databaseEntityClass;
+            DatabaseArrayType databaseArrayType;
+
+            try {
+                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
+                    type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
+                } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
+                    type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
+                } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
+                    type = DbTypeCode.Object;
+                    targetTypeName = databaseEntityClass.Name;
+                } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
+                    type = DbTypeCode.String;
+                } else {
+                    
+                    // This type is not supported (but theres no way code will
+                    // ever reach here unless theres some internal error). We
+                    // just  raise an internal exception indicating the field
+                    // and that this condition was experienced (indicating an
+                    // internal bug).
+                    // 
+                    // In comment to the above: appearently, the code in the
+                    // weaver is not up-to-date with the latest changes done in
+                    // the code host. So let's provide an informative exception
+                    // here anyway, helping our users to help themselves.
+                    throw new NotSupportedException();
+                }
+            } catch (NotSupportedException) {
+                throw ErrorCode.ToException(
+                    Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
+                    string.Format(
+                    "The attribute type of attribute {0}.{1} was found invalid.",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
+
+            isNullable = attribute.IsNullable;
+            isSynonym = attribute.SynonymousTo != null;
+
+            // Fix handling that always nullable types are correcly
+            // tagged as nullable in the schema file.
+
+            switch (type) {
+                case DbTypeCode.Object:
+                case DbTypeCode.String:
+                case DbTypeCode.Binary:
+                    isNullable = true;
+                    break;
+            }
+
+            return type;
         }
 
         /// <summary>
