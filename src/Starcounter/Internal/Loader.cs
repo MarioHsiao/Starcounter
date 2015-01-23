@@ -146,6 +146,8 @@ namespace Starcounter.Internal
             columnDefs.Add(new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, baseName == null ? false : true));
 
             GatherColumnAndPropertyDefs(databaseClass, columnDefs, propertyDefs, false, ref isObjectID, ref isObjectNo);
+            DetectColumnsWithNoPublicMapping(databaseClass, columnDefs, propertyDefs);
+
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
 
@@ -309,6 +311,45 @@ namespace Starcounter.Internal
 
             return type;
         }
+
+        static void DetectColumnsWithNoPublicMapping(
+            DatabaseEntityClass databaseClass,
+            List<ColumnDef> columns,
+            List<PropertyDef> properties) {
+            var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
+            if (baseDatabaseClass != null) {
+                DetectColumnsWithNoPublicMapping(baseDatabaseClass, columns, properties);
+            }
+
+            foreach (var attribute in databaseClass.Attributes) {
+
+                bool doesNotApply = attribute.AttributeKind != DatabaseAttributeKind.Field;
+                doesNotApply = doesNotApply || attribute.IsPublicRead;
+                if (doesNotApply) continue;
+
+                string targetTypeName = null;
+                bool isNullable = false;
+                bool isSynonym = false;
+
+                var typeResult = ConvertDatabaseAttributeToVariables(attribute, ref targetTypeName, ref isNullable, ref isSynonym);
+                if (!typeResult.HasValue || isSynonym) {
+                    continue;
+                }
+
+                // Find any property that map to this attribute
+                var columnName = DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(attribute.Name);
+                var mapping = properties.Find((candidate) => {
+                    return candidate.ColumnName == columnName;
+                });
+                if (mapping != null) continue;
+
+                // Do our stuff!
+                // TODO:
+
+                Console.WriteLine("{0}.{1} is not mapped", attribute.Name, attribute.DeclaringClass.Name);
+            }
+        }
+
 
         /// <summary>
         /// 
