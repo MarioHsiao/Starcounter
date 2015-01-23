@@ -3542,6 +3542,9 @@
     <code hex="0050" severity="Error" name="ScErrUnexpectedResponse">
       <message>An internal node call returned an unexpected response.</message>
     </code>
+    <code hex="0051" severity="Error" name="ScErrColumnHasNoProperty">
+      <message>The column is not exposed with a property, it can not be accessed.</message>
+    </code>
  </facility>
 
   <!-- Error codes related to query processing. -->
