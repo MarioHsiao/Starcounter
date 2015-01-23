@@ -294,7 +294,6 @@ namespace Starcounter.Internal.Test
 
             Handle.GET("/CaseInsensitive", (Request req) => {
 
-                Assert.IsTrue("/CaseInsensitive" == req.Uri);
                 Assert.IsTrue("127.0.0.1:8080" == req.Host);
 
                 return 200;
