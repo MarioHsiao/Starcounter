@@ -31,6 +31,15 @@ namespace Starcounter {
             return quotedPath.ToString();
         }
 
+        /// <summary>
+        /// Gets the name of a property the unload can use to read the
+        /// raw value of <paramref name="col"/> using the high-level SQL
+        /// API.
+        /// </summary>
+        /// <param name="col">The column the unload are creating an
+        /// INSERT statement using.</param>
+        /// <returns>A property that can be used to read the value of
+        /// the given column using the high-level SQL API.</returns>
         private static string GetPropertyName(Column col) {
             Debug.Assert(col.Table is RawView);
 
