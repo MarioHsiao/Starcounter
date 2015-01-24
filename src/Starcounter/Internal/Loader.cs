@@ -87,6 +87,8 @@ namespace Starcounter.Internal
     /// </summary>
     public static class SchemaLoader
     {
+        static int errorsFoundWithCodeScErrNonPublicFieldNotExposed;
+
         internal static LogSource Log = LogSources.CodeHostLoader;
 
         /// <summary>
@@ -96,6 +98,8 @@ namespace Starcounter.Internal
         /// <returns>List{TypeDef}.</returns>
         public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
         {
+            errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
+
             var schemaFiles = inputDir.GetFiles("*.schema");
 
             var databaseSchema = new DatabaseSchema();
@@ -124,6 +128,11 @@ namespace Starcounter.Internal
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
                 typeDefs.Add(EntityClassToTypeDef(databaseClass, typeLoader));
+            }
+
+            if (errorsFoundWithCodeScErrNonPublicFieldNotExposed > 0) {
+                throw ErrorCode.ToException(Error.SCERRCANTBINDAPPWITHPRIVATEDATA,
+                    string.Format("{0} illegal fields exist.", errorsFoundWithCodeScErrNonPublicFieldNotExposed));
             }
 
             return typeDefs;
@@ -372,6 +381,7 @@ namespace Starcounter.Internal
             Log.LogError(ErrorCode.ToMessage(Error.SCERRNONPUBLICFIELDNOTEXPOSED, 
                 string.Format("{0}.{1} not exposed", attribute.DeclaringClass.Name, attribute.Name)
                 ));
+            errorsFoundWithCodeScErrNonPublicFieldNotExposed++;
         }
 
         /// <summary>
