@@ -12,12 +12,12 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Starcounter.Logging;
 
 namespace Starcounter.Internal
 {
-
     using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
-
+    
     /// <summary>
     /// Class LoaderHelper
     /// </summary>
@@ -87,6 +87,8 @@ namespace Starcounter.Internal
     /// </summary>
     public static class SchemaLoader
     {
+        internal static LogSource Log = LogSources.CodeHostLoader;
+
         /// <summary>
         /// Loads the and convert schema.
         /// </summary>
@@ -343,13 +345,34 @@ namespace Starcounter.Internal
                 });
                 if (mapping != null) continue;
 
-                // Do our stuff!
-                // TODO:
-
-                Console.WriteLine("{0}.{1} is not mapped", attribute.Name, attribute.DeclaringClass.Name);
+                HandleColumnWithNoPublicMapping(
+                    databaseClass,
+                    columns,
+                    properties,
+                    attribute,
+                    typeResult.Value,
+                    targetTypeName,
+                    isNullable
+                    );
             }
         }
 
+        static void HandleColumnWithNoPublicMapping(
+            DatabaseEntityClass databaseClass,
+            List<ColumnDef> columns,
+            List<PropertyDef> properties,
+            DatabaseAttribute attribute,
+            DbTypeCode type,
+            string targetTypeName,
+            bool isNullable) {
+
+            // This is our current strategy. Will change in upcoming
+            // version. See #2508.
+
+            Log.LogError(ErrorCode.ToMessage(Error.SCERRNONPUBLICFIELDNOTEXPOSED, 
+                string.Format("{0}.{1} not exposed", attribute.DeclaringClass.Name, attribute.Name)
+                ));
+        }
 
         /// <summary>
         /// 
