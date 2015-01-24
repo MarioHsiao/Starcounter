@@ -3250,6 +3250,11 @@
         Object cannot be used as a type.
       </message>
     </code>
+    <code hex="011D" severity="Error" name="ScErrNonPublicFieldNotExposed">
+      <message>
+        The database field was not public and no public property exist that expose it.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
