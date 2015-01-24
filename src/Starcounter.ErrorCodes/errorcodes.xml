@@ -1343,6 +1343,9 @@
     <code hex="0094" severity="Error" name="ScErrBadInternalSystemPort">
         <message>Internal system port is missing in configuration file or has invalid value.</message>
     </code>
+    <code hex="0095" severity="Error" name="ScErrCantBindAppWithPrivateData">
+      <message>The application can not start because it contains at least one database class with private data. See separate errors with ID "ScErrNonPublicFieldNotExposed".</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
@@ -3250,6 +3253,11 @@
         Object cannot be used as a type.
       </message>
     </code>
+    <code hex="011D" severity="Error" name="ScErrNonPublicFieldNotExposed">
+      <message>
+        The database field was not public and no public property exist that expose it.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3541,6 +3549,9 @@
     </code>
     <code hex="0050" severity="Error" name="ScErrUnexpectedResponse">
       <message>An internal node call returned an unexpected response.</message>
+    </code>
+    <code hex="0051" severity="Error" name="ScErrColumnHasNoProperty">
+      <message>The column is not exposed with a property, it can not be accessed.</message>
     </code>
  </facility>
 
