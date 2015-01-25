@@ -31,11 +31,28 @@ namespace Starcounter {
             return quotedPath.ToString();
         }
 
+        /// <summary>
+        /// Gets the name of a property the unload can use to read the
+        /// raw value of <paramref name="col"/> using the high-level SQL
+        /// API.
+        /// </summary>
+        /// <param name="col">The column the unload are creating an
+        /// INSERT statement using.</param>
+        /// <returns>A property that can be used to read the value of
+        /// the given column using the high-level SQL API.</returns>
         private static string GetPropertyName(Column col) {
             Debug.Assert(col.Table is RawView);
-            PropertyDef prop = (from propDef in Bindings.GetTypeDef(((RawView)col.Table).FullName).PropertyDefs
-                                where propDef.ColumnName == col.MaterializedColumn.Name
-                                select propDef).First();
+
+            var typeDef = Bindings.GetTypeDef(((RawView)col.Table).FullName);
+            var prop = typeDef.PropertyDefs.FirstOrDefault((candidate) => {
+                return candidate.ColumnName == col.MaterializedColumn.Name;
+            });
+            if (prop == null) {
+                throw ErrorCode.ToException(
+                    Error.SCERRCOLUMNHASNOPROPERTY, 
+                    string.Format("Missing property for {0}.{1}", col.Table.Name, col.MaterializedColumn.Name));
+            }
+
             return prop.Name;
         }
 
