@@ -184,8 +184,7 @@ namespace Starcounter
             for (; ; ) {
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0) {
-                    var currentTransaction = Starcounter.Transaction.Current;
-                    var currentHandle = TransactionHandle.Empty; // TODO:
+                    var currentTransaction = Starcounter.Transaction.GetCurrentNoCheck();
                     Starcounter.Transaction.SetManagedCurrentToNull();
 
                     try {
@@ -205,7 +204,7 @@ namespace Starcounter
                         }
                         HandleFatalErrorInTransactionScope();
                     } finally {
-                        Starcounter.Transaction.SetCurrent(currentTransaction, currentHandle);
+                        Starcounter.Transaction.SetCurrent(currentTransaction);
                     }
                 }
 
@@ -236,45 +235,135 @@ namespace Starcounter
         }
 
         public static void Scope(Action action, bool isReadOnly = false) {
-            Transaction old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionHandle oldHandle = Starcounter.Transaction.GetCurrentScopeNoCheck();
+            if (!Db.Environment.HasDatabase) {
+                action();
+                return;
+            }
 
-            TransactionHandle newHandle = TransactionHandle.Empty;
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
             try {
-                newHandle = Starcounter.Transaction.CreateManualAndSetCurrent(isReadOnly, true);
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
                 action();
             } finally {
-                CheckAndReleaseTransaction(newHandle);
-                Starcounter.Transaction.SetCurrent(old, oldHandle);
+                CheckAndReleaseTransaction(t, old);
+            }
+        }
+
+        public static void Scope<T>(Action<T> action, T arg, bool isReadOnly = false) {
+            if (!Db.Environment.HasDatabase) {
+                action(arg);
+                return;
+            }
+
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
+            try {
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
+                action(arg);
+            } finally {
+                CheckAndReleaseTransaction(t, old);
+            }
+        }
+
+        public static void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2, bool isReadOnly = false) {
+            if (!Db.Environment.HasDatabase) {
+                action(arg1, arg2);
+                return;
+            }
+           
+
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
+            try {
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
+                action(arg1, arg2);
+            } finally {
+                CheckAndReleaseTransaction(t, old);
+            }
+        }
+
+        public static void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3, bool isReadOnly = false) {
+            if (!Db.Environment.HasDatabase) {
+                action(arg1, arg2, arg3);
+                return;
+            }
+
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
+            try {
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
+                action(arg1, arg2, arg3);
+            } finally {
+                CheckAndReleaseTransaction(t, old);
             }
         }
 
         public static T Scope<T>(Func<T> func, bool isReadOnly = false) {
-            Transaction old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionHandle oldHandle = Starcounter.Transaction.GetCurrentScopeNoCheck();
+            if (!Db.Environment.HasDatabase)
+                return func();
 
-            TransactionHandle newHandle = TransactionHandle.Empty;
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
             try {
-                newHandle = Starcounter.Transaction.CreateManualAndSetCurrent(isReadOnly, true);
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
                 return func();
             } finally {
-                CheckAndReleaseTransaction(newHandle);
-                Starcounter.Transaction.SetCurrent(old, oldHandle);
+                CheckAndReleaseTransaction(t, old);
             }
         }
 
-        private static void CheckAndReleaseTransaction(TransactionHandle handle) {
-            // If a (managed) transaction object have been instantiated, We don't dispose it but leave it to either 
-            // the finalizer or the code that created the managed transaction.
-            // If not it will be cleaned up here.
-            var t = Starcounter.Transaction.GetCurrentNoCheck();
-            if (t == null) {
-                try {
-                    if (Starcounter.Transaction.GetIsDirty(handle.Handle, handle.Verify))
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: Error for writing and not referencing it.
-                } finally {
-                    Starcounter.Transaction.ReleaseManualHandle(handle);
+        public static TReturn Scope<T, TReturn>(Func<T, TReturn> func, T arg, bool isReadOnly = false) {
+            if (!Db.Environment.HasDatabase)
+                return func(arg);
+
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
+            try {
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
+                return func(arg);
+            } finally {
+                CheckAndReleaseTransaction(t, old);
+            }
+        }
+
+        public static TReturn Scope<T1, T2, TReturn>(Func<T1, T2, TReturn> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
+            if (!Db.Environment.HasDatabase)
+                return func(arg1, arg2);
+
+            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
+            TransactionBase t = null;
+            try {
+                t = new TransactionBase(isReadOnly, false);
+                Starcounter.Transaction.SetCurrent(t);
+                return func(arg1, arg2);
+            } finally {
+                CheckAndReleaseTransaction(t, old);
+            }
+        }
+
+        private static void CheckAndReleaseTransaction(TransactionBase created, TransactionBase old) {
+            try {
+                var current = Starcounter.Transaction.GetCurrentNoCheck();
+
+                // If current is not the same as the object we created it means that an object with finalizer have been created.
+                // Then we cannot dispose and release the kerneltransaction here. Otherwise we dispose it directly.
+                if (created != null && current == created) {
+                    try {
+                        if (created.IsDirty)
+                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: Error for writing and not referencing it.
+                    } finally {
+                        created.Release();
+                    }
                 }
+            } finally {
+                Starcounter.Transaction.SetCurrent(old);
             }
         }
 

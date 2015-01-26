@@ -111,11 +111,7 @@ namespace Starcounter
                 // Obtaining client's port.
                 UInt16 clientPort = *(UInt16*) (rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
 
-                ImplicitTransaction.CreateOrSetCurrent();
-
-                // Calling user callback.
-                userCallback(clientIp, clientPort, dataBytes);
-
+                Db.Scope<IPAddress, ushort, byte[]>(userCallback, clientIp, clientPort, dataBytes, true);
                 *isHandled = true;
 
                 // Reset managed task state before exiting managed task entry point.
@@ -213,10 +209,8 @@ namespace Starcounter
                     rawSocket.Destroy();
                 }
 
-                ImplicitTransaction.CreateOrSetCurrent();
-
                 // Calling user callback.
-                userCallback(rawSocket, dataBytes);
+                Db.Scope<TcpSocket, byte[]>(userCallback, rawSocket, dataBytes, true);
                 
                 // Destroying original chunk etc.
                 rawSocket.DestroyDataStream();
@@ -343,10 +337,7 @@ namespace Starcounter
                         isAggregated);
                 }
 
-                ImplicitTransaction.CreateOrSetCurrent();
-
-                // Calling user callback.
-                *isHandled = UriInjectMethods.OnHttpMessageRoot_(req);
+                *isHandled  = Db.Scope<Request, bool>(UriInjectMethods.OnHttpMessageRoot_, req, true); 
 
                 // Reset managed task state before exiting managed task entry point.
                 TaskHelper.Reset();
@@ -575,10 +566,8 @@ namespace Starcounter
 
                 Debug.Assert(null != wsInternal.SocketContainer);
 
-                ImplicitTransaction.CreateOrSetCurrent();
-
                 // Adding session reference.
-                *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
+                *isHandled = Db.Scope<ushort, WebSocket, bool>(AllWsChannels.WsManager.RunHandler, managedHandlerId, ws, true);
                
                 // Destroying original chunk etc.
                 ws.WsInternal.DestroyDataStream();
