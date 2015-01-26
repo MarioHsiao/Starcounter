@@ -9,6 +9,8 @@
 	"DisplayName": "", 
 	"Description": "",
 	"Company" : "",
+	"Heading": "",
+	"Rating":0,
 	"VersionDate" : "",
 	"Executable" : "",
 	"ResourceFolder" : "",
