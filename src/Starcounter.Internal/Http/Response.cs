@@ -986,7 +986,8 @@ namespace Starcounter
             get
             {
                 UInt16 statusCode = StatusCode;
-                return (statusCode >= 200) && (statusCode <= 226);
+
+                return (0 == statusCode) || ((statusCode >= 200) && (statusCode <= 226));
             }
         }
 
