@@ -404,7 +404,7 @@ namespace Starcounter.Internal
             // This is our current strategy. Will change in upcoming
             // version. See #2508.
 
-            Log.LogError(ErrorCode.ToMessage(Error.SCERRNONPUBLICFIELDNOTEXPOSED, 
+            Log.LogError(ErrorCode.ToMessage(Error.SCERRUNSPECIFIED, 
                 string.Format("{0}.{1} not exposed", attribute.DeclaringClass.Name, attribute.Name)
                 ));
             errorsFoundWithCodeScErrNonPublicFieldNotExposed++;
