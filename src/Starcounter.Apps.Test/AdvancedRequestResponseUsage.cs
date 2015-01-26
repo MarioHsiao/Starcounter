@@ -25,11 +25,20 @@ namespace Starcounter.Internal.Test
     {
         [Test]
         public void TestReturnTypesForX1() {
-            Handle.GET("/return_400", () => {
+
+            Handle.GET("/return_400", (Request req) => {
+
+                Assert.IsTrue("/return_400" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 return 400;
             });
 
-            Handle.GET("/return_200", () => {
+            Handle.GET("/return_200", (Request req) => {
+
+                Assert.IsTrue("/return_200" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 return 200;
             });
 
@@ -66,8 +75,11 @@ namespace Starcounter.Internal.Test
             Node localNode = new Node("127.0.0.1", 8080);
             localNode.LocalNode = true;
 
-            Handle.GET("/response10", () =>
+            Handle.GET("/response10", (Request req) =>
             {
+                Assert.IsTrue("/response10" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 Response r = new Response()
                 {
                     StatusCode = 404,
@@ -127,6 +139,9 @@ namespace Starcounter.Internal.Test
 
             Handle.GET("/response11", (Request req) =>
             {
+                Assert.IsTrue("/response11" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 Response r = new Response()
                 {
                     StatusCode = 203,
@@ -175,8 +190,11 @@ namespace Starcounter.Internal.Test
             Assert.IsTrue("Here is my body!".Length == resp.ContentLength);
             Assert.IsTrue("MySuperHeader: Haha!\r\nMyAnotherSuperHeader: Hahaha!\r\nAllow: POST\r\nNewHeader: Haha\r\nContent-Type: application/json\r\nContent-Encoding: zzzip\r\nSet-Cookie: MyCookie=CookieValue\r\n" == resp.Headers);
 
-            Handle.GET("/response12", () =>
+            Handle.GET("/response12", (Request req) =>
             {
+                Assert.IsTrue("/response12" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 return new Response()
                 {
                     StatusCode = 204,
@@ -221,6 +239,7 @@ namespace Starcounter.Internal.Test
                 Assert.IsTrue("MyHeader1: value1\r\nMyHeader2: value2\r\n" == req.Headers);
                 Assert.IsTrue("value1" == req["MyHeader1"]);
                 Assert.IsTrue("value2" == req["MyHeader2"]);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
 
                 req["MyHeader3"] = "value3";
                 req["MyHeader4"] = "value4";
@@ -243,6 +262,9 @@ namespace Starcounter.Internal.Test
 
             Handle.POST("/response2", (Request req) =>
             {
+                Assert.IsTrue("/response2" == req.Uri);
+                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+
                 Response resp = new Response()
                 {
                     StatusCode = 203,

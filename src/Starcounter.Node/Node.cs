@@ -254,6 +254,16 @@ namespace Starcounter
         public UInt16 PortNumber { get { return portNumber_; } }
 
         /// <summary>
+        /// Endpoint string for this node.
+        /// </summary>
+        String endpoint_;
+
+        /// <summary>
+        /// Endpoint consists of IP and port separated by colon.
+        /// </summary>
+        public String Endpoint { get { return endpoint_; } }
+
+        /// <summary>
         /// Returns this node port number.
         /// </summary>
         public UInt16 AggrPortNumber { get { return aggrPortNumber_; } }
@@ -286,16 +296,20 @@ namespace Starcounter
                     localNode_ = true;
             }
 
-            if (0 == portNumber)
+            if (0 == portNumber) {
                 portNumber = StarcounterEnvironment.Default.UserHttpPort;
+            }
 
             aggrPortNumber_ = aggrPortNumber;
 
-            if (0 == aggrPortNumber_)
+            if (0 == aggrPortNumber_) {
                 aggrPortNumber_ = StarcounterEnvironment.Default.AggregationPort;
+            }
 
             hostName_ = hostName;
             portNumber_ = portNumber;
+            endpoint_ = hostName + ":" + portNumber;
+
             DefaultReceiveTimeoutMs = defaultReceiveTimeoutMs;
 
             sync_task_info_ = new NodeTask(this);
@@ -756,15 +770,6 @@ namespace Starcounter
             HandlerOptions handlerOptions,
             Request req = null)
         {
-            String methodSpaceUriSpace = method + " " + relativeUri + " ";
-            String methodSpaceUriSpaceLower = methodSpaceUriSpace;
-
-#if CASE_INSENSITIVE_URI_MATCHER
-
-            // Making incoming URI lower case.
-            methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
-#endif
-
             Boolean callOnlySpecificHandlerLevel = true;
 
             // Checking if handler options is defined.
@@ -781,12 +786,22 @@ namespace Starcounter
                     Method = method,
                     Uri = relativeUri,
                     BodyBytes = bodyBytes,
-                    HeadersDictionary = headersDictionary
+                    HeadersDictionary = headersDictionary,
+                    Host = Endpoint
                 };
             }
-            
+
             // Checking if we are on local node.
             if ((localNode_) && (!handlerOptions.CallExternalOnly)) {
+
+                String methodSpaceUriSpace = method + " " + relativeUri + " ";
+                String methodSpaceUriSpaceLower = methodSpaceUriSpace;
+
+#if CASE_INSENSITIVE_URI_MATCHER
+
+                // Making incoming URI lower case.
+                methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
+#endif
 
                 // No response initially.
                 Response resp = null;
