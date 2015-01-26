@@ -184,11 +184,11 @@ namespace Starcounter
             for (; ; ) {
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0) {
-                    var currentTransaction = Starcounter.Transaction.GetCurrentNoCheckAndSetToNull();
+                    var currentTransaction = Starcounter.TransactionBase.GetCurrentNoCheckAndSetToNull();
                     
                     try {
                         action();
-                        Starcounter.Transaction.Commit(1, 1);
+                        Starcounter.TransactionBase.Commit(1, 1);
                         return;
                     } catch (Exception ex) {
                         if (
@@ -203,7 +203,7 @@ namespace Starcounter
                         }
                         HandleFatalErrorInTransactionScope();
                     } finally {
-                        Starcounter.Transaction.SetCurrent(currentTransaction);
+                        Starcounter.TransactionBase.SetCurrent(currentTransaction);
                     }
                 }
 
@@ -349,11 +349,14 @@ namespace Starcounter
 
         private static void CheckAndReleaseTransaction(TransactionBase created, TransactionBase old) {
             try {
-                var current = Starcounter.Transaction.GetCurrentNoCheck();
+                var current = Starcounter.TransactionBase.GetCurrentNoCheck();
 
                 // If current is not the same as the object we created it means that an object with finalizer have been created.
                 // Then we cannot dispose and release the kerneltransaction here. Otherwise we dispose it directly.
-                if (created != null && current == created) {
+                if (current != null) {
+                    // TODO:
+                    // Verify that current and created have the same verify and handle
+
                     try {
                         if (created.IsDirty)
                             throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: Error for writing and not referencing it.
