@@ -184,9 +184,8 @@ namespace Starcounter
             for (; ; ) {
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0) {
-                    var currentTransaction = Starcounter.Transaction.GetCurrentNoCheck();
-                    Starcounter.Transaction.SetManagedCurrentToNull();
-
+                    var currentTransaction = Starcounter.Transaction.GetCurrentNoCheckAndSetToNull();
+                    
                     try {
                         action();
                         Starcounter.Transaction.Commit(1, 1);

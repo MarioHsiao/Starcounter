@@ -147,16 +147,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Method that bypasses the call to kernel and just sets the managed field _current
-        /// to null. Also does not set the implicit transaction. This should be used carefully since
-        /// it might break implicit transaction functionality. 
-        /// Currently used by Db.Transaction(...) and in the end of each task.
-        /// </summary>
-        internal static void SetManagedCurrentToNull() {
-            _current = null;
-        }
-
-        /// <summary>
         /// Sets given transaction as current.
         /// </summary>
         /// <param name="value">Transaction to set as current.</param>
@@ -176,11 +166,6 @@ namespace Starcounter {
                 verify = _INVALID_VERIFY;
             }
 
-            if (_current != null && _current._handle == handle) {
-                System.Diagnostics.Debugger.Launch();
-                return;
-            }
-
             uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
             if (r == 0) {
                 _current = value;
@@ -198,6 +183,7 @@ namespace Starcounter {
             get {
                 var current = _current;
                 if (current != null && !(current is Transaction)) {
+                    // Creating a transaction with finalizer.
                     current = new Transaction(current._handle, current._verify, current._flags);
                     _current = current;
                 }
@@ -205,8 +191,22 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        ///
+        /// </summary>
         internal static TransactionBase GetCurrentNoCheck() {
             return _current;
+        }
+
+        /// <summary>
+        /// Method that bypasses the call to kernel and just sets the managed field _current
+        /// to null. 
+        /// Currently used by Db.Transaction(...) and in the end of each task.
+        /// </summary>
+        internal static TransactionBase GetCurrentNoCheckAndSetToNull() {
+            var ret = _current;
+            _current = null;
+            return ret;
         }
 
         /// <summary>
