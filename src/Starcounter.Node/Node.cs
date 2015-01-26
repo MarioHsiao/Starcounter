@@ -770,15 +770,6 @@ namespace Starcounter
             HandlerOptions handlerOptions,
             Request req = null)
         {
-            String methodSpaceUriSpace = method + " " + relativeUri + " ";
-            String methodSpaceUriSpaceLower = methodSpaceUriSpace;
-
-#if CASE_INSENSITIVE_URI_MATCHER
-
-            // Making incoming URI lower case.
-            methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
-#endif
-
             Boolean callOnlySpecificHandlerLevel = true;
 
             // Checking if handler options is defined.
@@ -799,9 +790,18 @@ namespace Starcounter
                     Host = Endpoint
                 };
             }
-            
+
             // Checking if we are on local node.
             if ((localNode_) && (!handlerOptions.CallExternalOnly)) {
+
+                String methodSpaceUriSpace = method + " " + relativeUri + " ";
+                String methodSpaceUriSpaceLower = methodSpaceUriSpace;
+
+#if CASE_INSENSITIVE_URI_MATCHER
+
+                // Making incoming URI lower case.
+                methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
+#endif
 
                 // No response initially.
                 Response resp = null;

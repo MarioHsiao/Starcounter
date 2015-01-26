@@ -12,10 +12,12 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using Starcounter.Logging;
 
 namespace Starcounter.Internal
 {
-
+    using DatabaseAttribute = Sc.Server.Weaver.Schema.DatabaseAttribute;
+    
     /// <summary>
     /// Class LoaderHelper
     /// </summary>
@@ -93,6 +95,10 @@ namespace Starcounter.Internal
     /// </summary>
     public static class SchemaLoader
     {
+        static int errorsFoundWithCodeScErrNonPublicFieldNotExposed;
+
+        internal static LogSource Log = LogSources.CodeHostLoader;
+
         /// <summary>
         /// Loads the and convert schema.
         /// </summary>
@@ -100,6 +106,8 @@ namespace Starcounter.Internal
         /// <returns>List{TypeDef}.</returns>
         public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
         {
+            errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
+
             var schemaFiles = inputDir.GetFiles("*.schema");
 
             var databaseSchema = new DatabaseSchema();
@@ -129,6 +137,11 @@ namespace Starcounter.Internal
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
                 typeDefs.Add(EntityClassToTypeDef(databaseClass, typeLoader));
+            }
+
+            if (errorsFoundWithCodeScErrNonPublicFieldNotExposed > 0) {
+                throw ErrorCode.ToException(Error.SCERRCANTBINDAPPWITHPRIVATEDATA,
+                    string.Format("{0} illegal fields exist.", errorsFoundWithCodeScErrNonPublicFieldNotExposed));
             }
 
             return typeDefs;
@@ -194,64 +207,16 @@ namespace Starcounter.Internal
             for (int i = 0; i < databaseAttributes.Count; i++) {
                 var databaseAttribute = databaseAttributes[i];
 
-                DbTypeCode type;
                 string targetTypeName = null;
+                bool isNullable = false;
+                bool isSynonym = false;
 
-                var databaseAttributeType = databaseAttribute.AttributeType;
-
-                DatabasePrimitiveType databasePrimitiveType;
-                DatabaseEnumType databaseEnumType;
-                DatabaseEntityClass databaseEntityClass;
-                DatabaseArrayType databaseArrayType;
-
-                try {
-                    if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
-                        type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
-                    } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
-                        type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
-                    } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
-                        type = DbTypeCode.Object;
-                        targetTypeName = databaseEntityClass.Name;
-                    } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
-                        type = DbTypeCode.String;
-                    } else {
-                        if (!databaseAttribute.IsPersistent) continue;
-
-                        // This type is not supported (but theres no way code will
-                        // ever reach here unless theres some internal error). We
-                        // just  raise an internal exception indicating the field
-                        // and that this condition was experienced (indicating an
-                        // internal bug).
-                        // 
-                        // In comment to the above: appearently, the code in the
-                        // weaver is not up-to-date with the latest changes done in
-                        // the code host. So let's provide an informative exception
-                        // here anyway, helping our users to help themselves.
-                        throw new NotSupportedException();
-                    }
-                } catch (NotSupportedException) {
-                    throw ErrorCode.ToException(
-                        Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
-                        string.Format(
-                        "The attribute type of attribute {0}.{1} was found invalid.",
-                        databaseAttribute.DeclaringClass.Name,
-                        databaseAttribute.Name
-                        ));
+                var typeResult = ConvertDatabaseAttributeToVariables(databaseAttribute, ref targetTypeName, ref isNullable, ref isSynonym);
+                if (!typeResult.HasValue) {
+                    continue;
                 }
 
-                var isNullable = databaseAttribute.IsNullable;
-                var isSynonym = databaseAttribute.SynonymousTo != null;
-
-                // Fix handling that always nullable types are correcly
-                // tagged as nullable in the schema file.
-
-                switch (type) {
-                    case DbTypeCode.Object:
-                    case DbTypeCode.String:
-                    case DbTypeCode.Binary:
-                        isNullable = true;
-                        break;
-                }
+                DbTypeCode type = typeResult.Value;
 
                 switch (databaseAttribute.AttributeKind) {
                     case DatabaseAttributeKind.Field:
@@ -309,6 +274,140 @@ namespace Starcounter.Internal
                         break;
                 }
             }
+        }
+
+        static DbTypeCode? ConvertDatabaseAttributeToVariables(
+            DatabaseAttribute attribute,
+            ref string targetTypeName,
+            ref bool isNullable,
+            ref bool isSynonym) {
+
+            DbTypeCode type;
+            var databaseAttributeType = attribute.AttributeType;
+
+            DatabasePrimitiveType databasePrimitiveType;
+            DatabaseEnumType databaseEnumType;
+            DatabaseEntityClass databaseEntityClass;
+            DatabaseArrayType databaseArrayType;
+
+            try {
+                if ((databasePrimitiveType = databaseAttributeType as DatabasePrimitiveType) != null) {
+                    type = PrimitiveToTypeCode(databasePrimitiveType.Primitive);
+                } else if ((databaseEnumType = databaseAttributeType as DatabaseEnumType) != null) {
+                    type = PrimitiveToTypeCode(databaseEnumType.UnderlyingType);
+                } else if ((databaseEntityClass = databaseAttributeType as DatabaseEntityClass) != null) {
+                    type = DbTypeCode.Object;
+                    targetTypeName = databaseEntityClass.Name;
+                } else if ((databaseArrayType = databaseAttributeType as DatabaseArrayType) != null) {
+                    type = DbTypeCode.String;
+                } else {
+                    if (!attribute.IsPersistent) {
+                        return null;
+                    }
+
+                    // This type is not supported (but theres no way code will
+                    // ever reach here unless theres some internal error). We
+                    // just  raise an internal exception indicating the field
+                    // and that this condition was experienced (indicating an
+                    // internal bug).
+                    // 
+                    // In comment to the above: appearently, the code in the
+                    // weaver is not up-to-date with the latest changes done in
+                    // the code host. So let's provide an informative exception
+                    // here anyway, helping our users to help themselves.
+                    throw new NotSupportedException();
+                }
+            } catch (NotSupportedException) {
+                throw ErrorCode.ToException(
+                    Error.SCERRUNSUPPORTEDATTRIBUTETYPE,
+                    string.Format(
+                    "The attribute type of attribute {0}.{1} was found invalid.",
+                    attribute.DeclaringClass.Name,
+                    attribute.Name
+                    ));
+            }
+
+            isNullable = attribute.IsNullable;
+            isSynonym = attribute.SynonymousTo != null;
+
+            // Fix handling that always nullable types are correcly
+            // tagged as nullable in the schema file.
+
+            switch (type) {
+                case DbTypeCode.Object:
+                case DbTypeCode.String:
+                case DbTypeCode.Binary:
+                    isNullable = true;
+                    break;
+            }
+
+            return type;
+        }
+
+        static void DetectColumnsWithNoPublicMapping(
+            DatabaseEntityClass databaseClass,
+            List<ColumnDef> columns,
+            List<PropertyDef> properties) {
+            
+            if (databaseClass != null) {
+                throw new NotImplementedException("This feature is no longer in use in this Starcounter version");
+            }
+            
+            var baseDatabaseClass = databaseClass.BaseClass as DatabaseEntityClass;
+            if (baseDatabaseClass != null) {
+                DetectColumnsWithNoPublicMapping(baseDatabaseClass, columns, properties);
+            }
+
+            foreach (var attribute in databaseClass.Attributes) {
+
+                bool doesNotApply = attribute.AttributeKind != DatabaseAttributeKind.Field;
+                doesNotApply = doesNotApply || attribute.IsPublicRead;
+                if (doesNotApply) continue;
+
+                string targetTypeName = null;
+                bool isNullable = false;
+                bool isSynonym = false;
+
+                var typeResult = ConvertDatabaseAttributeToVariables(attribute, ref targetTypeName, ref isNullable, ref isSynonym);
+                if (!typeResult.HasValue || isSynonym) {
+                    continue;
+                }
+
+                // Find any property that map to this attribute
+                var columnName = DotNetBindingHelpers.CSharp.BackingFieldNameToPropertyName(attribute.Name);
+                var mapping = properties.Find((candidate) => {
+                    return candidate.ColumnName == columnName;
+                });
+                if (mapping != null) continue;
+
+                HandleColumnWithNoPublicMapping(
+                    databaseClass,
+                    columns,
+                    properties,
+                    attribute,
+                    typeResult.Value,
+                    targetTypeName,
+                    isNullable
+                    );
+            }
+        }
+
+        static void HandleColumnWithNoPublicMapping(
+            DatabaseEntityClass databaseClass,
+            List<ColumnDef> columns,
+            List<PropertyDef> properties,
+            DatabaseAttribute attribute,
+            DbTypeCode type,
+            string targetTypeName,
+            bool isNullable) {
+
+            // This is our current strategy. Will change in upcoming
+            // version. See #2508.
+
+            Log.LogError(ErrorCode.ToMessage(Error.SCERRNONPUBLICFIELDNOTEXPOSED, 
+                string.Format("{0}.{1} not exposed", attribute.DeclaringClass.Name, attribute.Name)
+                ));
+            errorsFoundWithCodeScErrNonPublicFieldNotExposed++;
         }
 
         /// <summary>
