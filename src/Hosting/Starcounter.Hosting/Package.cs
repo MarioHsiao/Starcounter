@@ -51,8 +51,6 @@ namespace Starcounter.Hosting {
             GCHandle gcHandle = (GCHandle)hPackage;
             Package p = (Package)gcHandle.Target;
             gcHandle.Free();
-            
-            ImplicitTransaction.CreateOrSetCurrent();
             p.Process();
         }
 
@@ -251,18 +249,25 @@ namespace Starcounter.Hosting {
             if (unregisteredTypeDefs.Length != 0)
             {
                 if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
-                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
-                    OnRuntimeMetadataPopulated();
-                    // Call CLR class clean up
-                    Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
-                    OnCleanClrMetadata();
 
-                    ImplicitTransaction.CreateOrSetCurrent();
+                    // Using transaction directly here instead of Db.Scope and scope it two times because of 
+                    // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
+                    using (var transaction = new Transaction(true)) {
+                        transaction.Scope(() => {
+                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
 
-                    // Populate properties and columns .NET metadata
-                    for (int i = 0; i < unregisteredTypeDefs.Length; i++)
-                        unregisteredTypeDefs[i].PopulatePropertyDef(unregisteredTypeDefs);
-                    OnPopulateMetadataDefs();
+                            OnRuntimeMetadataPopulated();
+                            // Call CLR class clean up
+                            Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
+                            OnCleanClrMetadata();
+                        });
+                        transaction.Scope(() => {
+                            // Populate properties and columns .NET metadata
+                            for (int i = 0; i < unregisteredTypeDefs.Length; i++)
+                                unregisteredTypeDefs[i].PopulatePropertyDef(unregisteredTypeDefs);
+                            OnPopulateMetadataDefs();
+                        });
+                    }
                 }
                 List<TypeDef> updateColumns = new List<TypeDef>();
 
@@ -405,26 +410,28 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
-            var entrypoint = assembly_.EntryPoint;
+            Db.Scope(() => {
+                var entrypoint = assembly_.EntryPoint;
 
-            try {
-                if (entrypoint.GetParameters().Length == 0) {
-                    entrypoint.Invoke(null, null);
-                } else {
-                    var arguments = application.Arguments ?? new string[0];
-                    entrypoint.Invoke(null, new object[] { arguments });
+                try {
+                    if (entrypoint.GetParameters().Length == 0) {
+                        entrypoint.Invoke(null, null);
+                    } else {
+                        var arguments = application.Arguments ?? new string[0];
+                        entrypoint.Invoke(null, new object[] { arguments });
+                    }
+                } catch (TargetInvocationException te) {
+                    var entrypointException = te.InnerException;
+                    if (entrypointException == null) throw;
+
+                    var detail = entrypointException.Message;
+                    if (!ErrorCode.IsFromErrorCode(entrypointException)) {
+                        detail = entrypointException.ToString();
+                    }
+
+                    throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
                 }
-            } catch (TargetInvocationException te) {
-                var entrypointException = te.InnerException;
-                if (entrypointException == null) throw;
-
-                var detail = entrypointException.Message;
-                if (!ErrorCode.IsFromErrorCode(entrypointException)) {
-                    detail = entrypointException.ToString();
-                }
-
-                throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
-            }
+            });
 
             OnEntryPointExecuted();
         }

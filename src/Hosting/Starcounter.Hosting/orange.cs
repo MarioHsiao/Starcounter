@@ -356,7 +356,6 @@ namespace StarcounterInternal.Hosting
                     //TODO: 
                     // This callback should no longer be called (and will be removed), since an implicit transaction
                     // always should be set. If it is called it is an bug where the implicit transaction is missing.
-//                    ImplicitTransaction.CreateOrSetCurrent();
                     return 0;
                 }
                 catch (System.OutOfMemoryException) {

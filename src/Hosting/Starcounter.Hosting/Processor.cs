@@ -85,8 +85,6 @@ namespace StarcounterInternal.Hosting
             var gcHandle = (GCHandle)hTask;
             var task = (ITask)gcHandle.Target;
             gcHandle.Free();
-            
-            ImplicitTransaction.CreateOrSetCurrent();
             task.Run();
         }
     }
