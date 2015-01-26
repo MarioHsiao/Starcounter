@@ -528,17 +528,20 @@ namespace Starcounter
         /// <summary>
         /// Getting content by type.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
         public T GetContent<T>() {
 
             if (typeof(T) == typeof(String)) {
                 return (T)(object)GetContentString(MimeType.Unspecified);
             }
+
             if (typeof(T) == typeof(byte[])) {
                 return (T)(object)GetContentBytes();
-            } 
-            return (T)Content;
+            }
+            
+            if (Content is T)
+                return (T) Content;
+
+            return default(T);
         }
 
         /// <summary>

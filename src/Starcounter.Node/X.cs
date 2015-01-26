@@ -218,15 +218,8 @@ namespace Starcounter
             Response resp;
             GET(uri, out resp, null, receiveTimeoutMs, ho);
 
-            if (null != resp) {
-
-                if (!resp.IsSuccessStatusCode) {
-
-                    throw new ResponseException(resp);
-                }
-
+            if (null != resp)
                 return resp.GetContent<T>();
-            }
 
             return default(T);
         }
