@@ -215,6 +215,7 @@ namespace Administrator.Server.ApplicationContainer {
             appConfig.DisplayName = packageConfig.DisplayName;
             appConfig.Company = packageConfig.Company;
             appConfig.Description = packageConfig.Description;
+            appConfig.Heading = packageConfig.Heading;
             //appConfig.ImageUri = packageConfig.ImageUri;
             appConfig.VersionDate = packageConfig.VersionDate;
         }

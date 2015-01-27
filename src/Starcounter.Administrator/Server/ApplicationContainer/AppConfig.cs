@@ -31,6 +31,8 @@ namespace Administrator.Server.ApplicationContainer {
 
         public string DisplayName;      // Displayname
         public string Company;          // Company name
+
+        public string Heading;          // Heading
         public string Description;      // Description
         public string ImageUri;         // Image
 
