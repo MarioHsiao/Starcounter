@@ -95,8 +95,26 @@ namespace Sc.Server.Weaver.Schema {
         /// <summary>
         /// Gets or sets a value indicating whether this instance is public read.
         /// </summary>
+        /// <remarks>
+        /// An attribute is not considered public read only if it is explicitly
+        /// declared public. As an example, a protected field in a public class is
+        /// considered public as well. Basically, this property indicates if its
+        /// possible to read the property outside the assembly in which it is
+        /// defined.
+        /// </remarks>
         /// <value><c>true</c> if this instance is public read; otherwise, <c>false</c>.</value>
         public bool IsPublicRead { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value if the attribute was originally declared
+        /// as public (i.e. the original field or property was).
+        /// </summary>
+        /// <remarks>
+        /// If the attribute originates from a property, the visibility of
+        /// the getter is used to derive this value; if no getter exist,
+        /// false is returned.
+        /// </remarks>
+        public bool IsDeclaredPublic { get; set; }
 
         /// <summary>
         /// Gets a value indicating of the current attribute is to be
