@@ -335,7 +335,7 @@ namespace Starcounter.Internal
             foreach (var attribute in databaseClass.Attributes) {
 
                 bool doesNotApply = attribute.AttributeKind != DatabaseAttributeKind.Field;
-                doesNotApply = doesNotApply || attribute.IsPublicRead;
+                doesNotApply = doesNotApply || attribute.IsDeclaredPublic;
                 if (doesNotApply) continue;
 
                 string targetTypeName = null;
