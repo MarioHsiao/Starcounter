@@ -219,7 +219,7 @@ namespace Starcounter.Internal
 
                         var targetAttribute = databaseAttribute.SynonymousTo ?? databaseAttribute;
 
-                        if (databaseAttribute.IsPublicRead) {
+                        if (databaseAttribute.IsDeclaredPublic) {
                             var propertyDef = new PropertyDef(
                                  databaseAttribute.Name,
                                  type,
