@@ -13,7 +13,7 @@ namespace Starcounter.Advanced {
 
         IRuntimeEntity IRuntimeEntity.Type {
             get {
-                return instance.Type == null ? null : new EntityBasedRuntimeEntity(instance.Type);
+                return instance.Type == null ? null : EntityHelper.ToEntity(instance.Type);
             }
             set {
                 instance.WriteType(value.Proxy);
@@ -22,7 +22,7 @@ namespace Starcounter.Advanced {
 
         IRuntimeEntity IRuntimeEntity.Inherits {
             get {
-                return instance.TypeInherits == null ? null : new EntityBasedRuntimeEntity(instance.TypeInherits);
+                return instance.TypeInherits == null ? null : EntityHelper.ToEntity(instance.TypeInherits);
             }
             set {
                 instance.WriteInherits(value.Proxy);
