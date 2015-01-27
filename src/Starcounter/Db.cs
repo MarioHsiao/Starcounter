@@ -45,9 +45,9 @@ namespace Starcounter
         /// be returned</param>
         /// <returns>The "dynamic type" instance of the given database
         /// type.</returns>
-        public static Entity TypeOf(string name) {
+        public static IObjectView TypeOf(string name) {
             var td = Bindings.GetTypeDef(name);
-            return (Entity)DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+            return DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Starcounter
         /// be returned</typeparam>
         /// <returns>The "dynamic type" instance of the given database
         /// class.</returns>
-        public static Entity TypeOf<T>() {
+        public static IObjectView TypeOf<T>() {
             return TypeOf(typeof(T).FullName);
         }
 
