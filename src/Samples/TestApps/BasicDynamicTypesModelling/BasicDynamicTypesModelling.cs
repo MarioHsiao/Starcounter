@@ -11,6 +11,13 @@ public class Foo2 : Entity {
   [TypeName] public string Name;
 }
 
+// A few modelling tests assuring the proposed,
+// upcoming Heads model
+public class Something : Entity {
+  [Type] public SomethingKind Kind;
+}
+public class SomethingKind : Something {}
+
 class Program {
 	static void Main() {
 		var f1 = Db.SQL<Entity>("SELECT e FROM Entity e WHERE e.IsType = ? AND e.Name = ?", true, typeof(Foo1).Name).First;
@@ -32,6 +39,21 @@ class Program {
 			var f2a = Db.SQL<Foo2>("SELECT f2 FROM Foo2 f2 WHERE f2 IS ?", Db.TypeOf<Foo2>()).First;
 			ScAssertion.Assert(f2a != null, "f2a should not be NULL");
 			ScAssertion.Assert(f2a.Type.Equals(Db.TypeOf<Foo2>()), "f2a.Type should be equal to Db.TypeOf<Foo2>()");
+		});
+		
+		Db.Transaction(() => {
+			var s = new Something();
+			ScAssertion.Assert(s.Type != null, "s.Type != null");
+			ScAssertion.Assert(s.Kind != null, "s.Kind != null");
+			ScAssertion.Assert(Db.TypeOf<Something>() != null, "Db.TypeOf<Something>() != null");
+			ScAssertion.Assert(Db.TypeOf<Something, SomethingKind>().Name == typeof(Something).Name, "Db.TypeOf<Something>().Name == typeof(Something).Name");
+			ScAssertion.Assert(s.Kind.Equals(Db.TypeOf<Something>()), "s.Kind.Equals(Db.TypeOf<Something>())");
+			ScAssertion.Assert(s.Kind.Name == typeof(Something).Name, "s.Kind.Name == typeof(Something).Name");
+			var s2 = Db.SQL<Something>("SELECT s FROM Something s WHERE s IS ?", Db.TypeOf<Something>()).First;
+			ScAssertion.Assert(s2 != null, "s2 should not be NULL");
+			ScAssertion.Assert(s2.Type.Equals(Db.TypeOf<Something>()), "s2.Type should be equal to Db.TypeOf<Something>()");
+			ScAssertion.Assert(s2.Kind.Equals(Db.TypeOf<Something>()), "s2.Kind should be equal to Db.TypeOf<Something>()");
+			ScAssertion.Assert(s2.Type.Equals(s2.Kind), "s2.Kind should be equal to Db.TypeOf<Something>()");
 		});
 	}
 }
