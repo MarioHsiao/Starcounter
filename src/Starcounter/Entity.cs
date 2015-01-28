@@ -16,13 +16,13 @@ namespace Starcounter {
         /// Gets or sets the dynamic type of the current entity.
         /// </summary>
         [Type]
-        public Entity Type {
+        public IObjectView Type {
             get {
-                return (Entity)DbState.ReadTypeReference(__sc__this_id__, __sc__this_handle__,
+                return DbState.ReadTypeReference(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle___sc__type__);
             }
             set {
-                WriteType(value);
+                WriteType(value as IObjectProxy);
             }
         }
 
@@ -94,13 +94,13 @@ namespace Starcounter {
         /// </summary>
         /// <seealso cref="Derive"/>
         [Inherits]
-        public Entity TypeInherits {
+        public IObjectView TypeInherits {
             get {
-                return (Entity)DbState.ReadInherits(__sc__this_id__, __sc__this_handle__,
+                return DbState.ReadInherits(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle___sc__inherits__);
             }
             set {
-                WriteInherits(value);
+                WriteInherits(value as IObjectProxy);
             }
         }
         
