@@ -15,7 +15,7 @@ namespace Starcounter.Binding
     /// </summary>
     public class TypeLoader
     {
-        static readonly AssemblyName StarcounterAssemblyName = new AssemblyName("Starcounter");
+        static readonly AssemblyName StarcounterAssemblyName = Assembly.GetExecutingAssembly().GetName();
 
         /// <summary>
         /// The assembly name_
@@ -50,7 +50,7 @@ namespace Starcounter.Binding
         /// </summary>
         internal bool LoadsFromStarcounterAssembly {
             get {
-                return object.ReferenceEquals(assemblyName_, StarcounterAssemblyName);
+                return assemblyName_.FullName.Equals(StarcounterAssemblyName.FullName);
             }
         }
 
