@@ -1,6 +1,7 @@
 ﻿using Sc.Server.Weaver;
 using Starcounter.Binding;
 using Starcounter.Internal;
+using System;
 
 namespace Starcounter.Advanced {
     /// <summary>
@@ -72,6 +73,26 @@ namespace Starcounter.Advanced {
         bool IDbTuple.IsType {
             get { return DbState.ReadBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex); }
             set { DbState.WriteBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex, value); }
+        }
+
+        IDbTuple IDbTuple.Create() {
+            // Proper error messages including new error codes.
+            // Delayed until final implementation though (see
+            // #2500 for more info).
+            // TODO:
+            var self = (IDbTuple)this;
+            if (!self.IsType) throw new InvalidOperationException("This object is not a type.");
+            if (string.IsNullOrEmpty(self.Name)) throw new InvalidOperationException("The type name is not specified.");
+
+            var tb = Bindings.GetTypeBinding(self.Name);
+            ulong oid = 0, addr = 0;
+            DbState.Insert(tb.TableId, ref oid, ref addr);
+            var proxy = tb.NewInstance(addr, oid);
+
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Type = self;
+
+            return tuple;
         }
     }
 }

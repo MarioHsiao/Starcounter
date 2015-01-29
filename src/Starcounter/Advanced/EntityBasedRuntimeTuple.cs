@@ -50,5 +50,10 @@ namespace Starcounter.Advanced {
         Binding.IObjectProxy IDbTuple.Proxy {
             get { return instance; }
         }
+
+        IDbTuple IDbTuple.Create() {
+            var e = instance.Create();
+            return new EntityBasedRuntimeTuple(e);
+        }
     }
 }

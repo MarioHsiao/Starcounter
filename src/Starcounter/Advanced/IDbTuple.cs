@@ -50,5 +50,13 @@ namespace Starcounter.Advanced {
         IObjectProxy Proxy {
             get;
         }
+
+        /// <summary>
+        /// Support runtime instantiation of database tuples acting
+        /// as types.
+        /// </summary>
+        /// <returns>A new database tuple whose type will be set to
+        /// the current tuple.</returns>
+        IDbTuple Create();
     }
 }

@@ -91,5 +91,9 @@ namespace Starcounter.Advanced {
         public static void SetIsType(object obj, bool value) {
             ToTuple(obj).IsType = value;
         }
+
+        public static IDbTuple Create(object obj) {
+            return ToTuple(obj).Create();
+        }
     }
 }
