@@ -108,5 +108,28 @@ namespace Starcounter.Binding {
 
             return result;
         }
+
+        /// <summary>
+        /// Return <c>true</c> if <paramref name="property"/>, resolved
+        /// from <paramref name="resolvedFrom"/> is defined by the user, or
+        /// inherited from a Starcounter base type.
+        /// </summary>
+        static bool IsUserDefinedProperty(int property, TypeDef resolvedFrom) {
+            if (resolvedFrom.IsStarcounterType) {
+                return false;
+            }
+
+            if (resolvedFrom.BaseName == null) {
+                return true;
+            }
+
+            var prop = resolvedFrom.PropertyDefs[property];
+            var baseDef = Bindings.GetTypeDef(resolvedFrom.BaseName);
+            if (property < baseDef.PropertyDefs.Length) {
+                return IsUserDefinedProperty(property, baseDef);
+            }
+
+            return true;
+        }
     }
 }
