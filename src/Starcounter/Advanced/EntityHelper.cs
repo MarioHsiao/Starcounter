@@ -15,17 +15,17 @@ namespace Starcounter.Advanced {
 
         /// <summary>
         /// Retreives a type that can be used to access properties
-        /// defined by Starcounter entity, such as the dynamic type
+        /// defined by Starcounter tuples, such as the dynamic type
         /// fields.
         /// </summary>
-        /// <param name="obj">An object whose entity properties the
+        /// <param name="obj">An object whose tuple properties the
         /// client want to access.</param>
-        /// <returns>An instance of a class that allows basic Entity
+        /// <returns>An instance of a class that allows basic tuple
         /// properties to be accessed.</returns>
-        public static IDbTuple ToEntity(object obj) {
-            var entity = obj as IDbTuple;
-            if (entity != null) {
-                return entity;
+        public static IDbTuple ToTuple(object obj) {
+            var tuple = obj as IDbTuple;
+            if (tuple != null) {
+                return tuple;
             }
             var e = obj as Entity;
             if (e != null) {
@@ -46,7 +46,7 @@ namespace Starcounter.Advanced {
         }
 
         public static IDbTuple GetType(object obj) {
-            return ToEntity(obj).Type;
+            return ToTuple(obj).Type;
         }
 
         public static void SetType(object obj, object type) {
@@ -54,23 +54,23 @@ namespace Starcounter.Advanced {
             if (type != null) {
                 e = type as IDbTuple;
                 if (e == null) {
-                    e = ToEntity(type);
+                    e = ToTuple(type);
                 }
             }
 
-            ToEntity(obj).Type = e;
+            ToTuple(obj).Type = e;
         }
 
         public static string GetName(object obj) {
-            return ToEntity(obj).Name;
+            return ToTuple(obj).Name;
         }
 
         public static void SetName(object obj, string name) {
-            ToEntity(obj).Name = name;
+            ToTuple(obj).Name = name;
         }
 
         public static IDbTuple GetInherits(object obj) {
-            return ToEntity(obj).Inherits;
+            return ToTuple(obj).Inherits;
         }
 
         public static void SetInherits(object obj, object type) {
@@ -78,19 +78,19 @@ namespace Starcounter.Advanced {
             if (type != null) {
                 e = type as IDbTuple;
                 if (e == null) {
-                    e = ToEntity(type);
+                    e = ToTuple(type);
                 }
             }
 
-            ToEntity(obj).Inherits = e;
+            ToTuple(obj).Inherits = e;
         }
 
         public static bool IsType(object obj) {
-            return ToEntity(obj).IsType;
+            return ToTuple(obj).IsType;
         }
 
         public static void SetIsType(object obj, bool value) {
-            ToEntity(obj).IsType = value;
+            ToTuple(obj).IsType = value;
         }
     }
 }

@@ -89,7 +89,7 @@ namespace Starcounter.Binding {
                 
                 DbState.SystemInsert(declaredType.TableId, ref oid, ref addr);
                 var proxy = declaredType.NewInstance(addr, oid);
-                var entity = EntityHelper.ToEntity(proxy);
+                var entity = EntityHelper.ToTuple(proxy);
                 entity.Name = typeDef.Name;
                 entity.IsType = true;
                 if (typeDef.BaseName != null) {

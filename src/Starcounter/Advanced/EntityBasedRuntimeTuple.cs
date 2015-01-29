@@ -13,7 +13,7 @@ namespace Starcounter.Advanced {
 
         IDbTuple IDbTuple.Type {
             get {
-                return instance.Type == null ? null : EntityHelper.ToEntity(instance.Type);
+                return instance.Type == null ? null : EntityHelper.ToTuple(instance.Type);
             }
             set {
                 instance.WriteType(value.Proxy);
@@ -22,7 +22,7 @@ namespace Starcounter.Advanced {
 
         IDbTuple IDbTuple.Inherits {
             get {
-                return instance.TypeInherits == null ? null : EntityHelper.ToEntity(instance.TypeInherits);
+                return instance.TypeInherits == null ? null : EntityHelper.ToTuple(instance.TypeInherits);
             }
             set {
                 instance.WriteInherits(value.Proxy);
