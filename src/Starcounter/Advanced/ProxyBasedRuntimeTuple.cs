@@ -50,7 +50,7 @@ namespace Starcounter.Advanced {
 
         IDbTuple IDbTuple.Type {
             get {
-                return EntityHelper.ToTuple(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex));
+                return TupleHelper.ToTuple(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex));
             }
             set {
                 DbState.WriteTypeReference(proxy.Identity, proxy.ThisHandle, typeIndex, value.Proxy);
@@ -59,7 +59,7 @@ namespace Starcounter.Advanced {
 
         IDbTuple IDbTuple.Inherits {
             get {
-                return EntityHelper.ToTuple(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex));
+                return TupleHelper.ToTuple(DbState.ReadTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex));
             }
             set { DbState.WriteTypeReference(proxy.Identity, proxy.ThisHandle, inheritsIndex, value.Proxy); }
         }

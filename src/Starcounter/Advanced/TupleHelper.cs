@@ -7,11 +7,10 @@ using System;
 namespace Starcounter.Advanced {
 
     /// <summary>
-    /// Helper class to access dynamic types properties and fields
-    /// for database classes defined only with the [Database] attribute,
-    /// and not inheriting <see cref="Entity"/>.
+    /// Helper class to access common Starcounter tuple data
+    /// for any database class, no matter the way it is declared.
     /// </summary>
-    public static class EntityHelper {
+    public static class TupleHelper {
 
         /// <summary>
         /// Retreives a type that can be used to access properties

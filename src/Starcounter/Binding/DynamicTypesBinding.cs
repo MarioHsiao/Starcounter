@@ -89,14 +89,14 @@ namespace Starcounter.Binding {
                 
                 DbState.SystemInsert(declaredType.TableId, ref oid, ref addr);
                 var proxy = declaredType.NewInstance(addr, oid);
-                var entity = EntityHelper.ToTuple(proxy);
-                entity.Name = typeDef.Name;
-                entity.IsType = true;
+                var tuple = TupleHelper.ToTuple(proxy);
+                tuple.Name = typeDef.Name;
+                tuple.IsType = true;
                 if (typeDef.BaseName != null) {
                     ulong baseID = typesDiscovered[typeDef.BaseName];
                     if (baseID != ulong.MaxValue) {
                         var baseType = DbHelper.FromID(baseID);
-                        EntityHelper.SetInherits(entity, baseType);
+                        TupleHelper.SetInherits(tuple, baseType);
                     }
                 }
 
