@@ -3,10 +3,9 @@
 namespace Starcounter.Advanced {
     
     /// <summary>
-    /// Defines the interface of any entity. All database classes that
-    /// are defined not using <see cref="Entity"/> class as their base
-    /// class can be represented by the <see cref="IDbTuple"/> interface
-    /// using runtime factory/cast method <see cref="EntityHelper.ToEntity(object)"/>.
+    /// Defines the interface of any database typpe. All database classes can be
+    /// represented by the <see cref="IDbTuple"/> interface using runtime factory/cast
+    /// method <see cref="EntityHelper.ToEntity(object)"/>.
     /// </summary>
     public interface IDbTuple {
         /// <summary>
