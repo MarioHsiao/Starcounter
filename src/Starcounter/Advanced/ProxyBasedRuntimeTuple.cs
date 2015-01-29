@@ -73,5 +73,9 @@ namespace Starcounter.Advanced {
             get { return DbState.ReadBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex); }
             set { DbState.WriteBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex, value); }
         }
+
+        IDbTuple IDbTuple.Create() {
+            throw new System.NotImplementedException();
+        }
     }
 }

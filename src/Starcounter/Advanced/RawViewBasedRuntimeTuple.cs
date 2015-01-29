@@ -56,6 +56,10 @@ namespace Starcounter.Advanced {
             get { return instance; }
         }
 
+        IDbTuple IDbTuple.Create() {
+            throw new System.NotImplementedException();
+        }
+
         void RaiseExceptionWhenModified() {
             // Any attempt to update the raw view must fail; it's
             // not editable.
