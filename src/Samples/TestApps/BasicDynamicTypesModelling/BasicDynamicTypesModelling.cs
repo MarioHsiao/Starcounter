@@ -61,15 +61,15 @@ class Program {
 			Assert(s2.Type.Equals(s2.Kind), "s2.Kind should be equal to Db.TypeOf<Something>()");
 		});
 		
-		var e = EntityHelper.ToEntity(Db.TypeOf<Foo1>());
+		var e = TupleHelper.ToTuple(Db.TypeOf<Foo1>());
 		Assert(e != null);
 		Assert(e.IsType);
 		Assert(e.Name == typeof(Foo1).FullName);
-		e = EntityHelper.ToEntity(Db.TypeOf<Foo2>());
+		e = TupleHelper.ToTuple(Db.TypeOf<Foo2>());
 		Assert(e != null);
 		Assert(e.IsType);
 		Assert(e.Name == typeof(Foo2).FullName);
-		e = EntityHelper.ToEntity(Db.TypeOf<Something>());
+		e = TupleHelper.ToTuple(Db.TypeOf<Something>());
 		Assert(e != null);
 		Assert(e.IsType);
 		Assert(e.Name == typeof(Something).FullName);
