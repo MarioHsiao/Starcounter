@@ -33,7 +33,7 @@ namespace Starcounter.Advanced {
             }
             var rawView = obj as RawView;
             if (rawView != null) {
-                return new RawViewBasedRuntimeEntity(rawView);
+                return new RawViewBasedRuntimeTuple(rawView);
             }
             var proxy = obj as IObjectProxy;
             if (proxy != null) {

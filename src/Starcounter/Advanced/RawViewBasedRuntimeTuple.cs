@@ -5,10 +5,10 @@ namespace Starcounter.Advanced {
     /// Runtime type exposing a given <see cref="RawView"/>
     /// as a <see cref="IDbTuple"/>.
     /// </summary>
-    internal class RawViewBasedRuntimeEntity : IDbTuple {
+    internal class RawViewBasedRuntimeTuple : IDbTuple {
         readonly RawView instance;
 
-        internal RawViewBasedRuntimeEntity(RawView rw) {
+        internal RawViewBasedRuntimeTuple(RawView rw) {
             instance = rw;
         }
 
@@ -27,7 +27,7 @@ namespace Starcounter.Advanced {
         IDbTuple IDbTuple.Inherits {
             get {
                 var baseView = instance.Inherits as RawView;
-                return baseView != null ? new RawViewBasedRuntimeEntity(baseView) : null;
+                return baseView != null ? new RawViewBasedRuntimeTuple(baseView) : null;
             }
             set {
                 RaiseExceptionWhenModified();
