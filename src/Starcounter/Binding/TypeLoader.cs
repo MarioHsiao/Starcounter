@@ -45,6 +45,16 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// Gets a value that indicates if the type to load is to be loaded from
+        /// one of the Starcounter assemblies.
+        /// </summary>
+        internal bool LoadsFromStarcounterAssembly {
+            get {
+                return object.ReferenceEquals(assemblyName_, StarcounterAssemblyName);
+            }
+        }
+
+        /// <summary>
         /// Factory method that creates a type loader for a type hosted
         /// in the Starcounter assembly.
         /// </summary>
