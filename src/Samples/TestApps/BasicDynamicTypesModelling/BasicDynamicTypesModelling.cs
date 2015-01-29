@@ -31,6 +31,12 @@ class Program {
 			var f1 = new Foo1();
 			Assert(f1.Type != null, "Foo1.Type should not be NULL");
 			Assert(f1.Type.Equals(Db.TypeOf<Foo1>()), "Foo1.Type should be equal to Db.TypeOf<Foo1>");
+			var f1a = TupleHelper.Create(f1.Type).Proxy as Foo1;
+			Assert(f1a != null);
+			Assert(f1.Type.Equals(f1a.Type));
+			var f1b = TupleHelper.Create(f1.Type).Proxy as Foo1;
+			Assert(f1b != null);
+			Assert(f1a.Type.Equals(f1b.Type));
 		});
 		
 		Db.Transaction(() => {
@@ -44,6 +50,9 @@ class Program {
 			var f2a = Db.SQL<Foo2>("SELECT f2 FROM Foo2 f2 WHERE f2 IS ?", Db.TypeOf<Foo2>()).First;
 			Assert(f2a != null, "f2a should not be NULL");
 			Assert(f2a.Type.Equals(Db.TypeOf<Foo2>()), "f2a.Type should be equal to Db.TypeOf<Foo2>()");
+			var f2c = TupleHelper.Create(Db.TypeOf<Foo2>()).Proxy as Foo2;
+			Assert(f2c != null);
+			Assert(f2c.Type.GetType() == typeof(Foo2Type));
 		});
 		
 		Db.Transaction(() => {
@@ -59,6 +68,9 @@ class Program {
 			Assert(s2.Type.Equals(Db.TypeOf<Something>()), "s2.Type should be equal to Db.TypeOf<Something>()");
 			Assert(s2.Kind.Equals(Db.TypeOf<Something>()), "s2.Kind should be equal to Db.TypeOf<Something>()");
 			Assert(s2.Type.Equals(s2.Kind), "s2.Kind should be equal to Db.TypeOf<Something>()");
+			var s3 = s2.Kind.Create() as Something;
+			Assert(s3 != null, "s3 should not be NULL");
+			Assert(TupleHelper.GetName(s3.Kind) == typeof(Something).FullName);
 		});
 		
 		var e = TupleHelper.ToTuple(Db.TypeOf<Foo1>());
