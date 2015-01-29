@@ -37,7 +37,7 @@ namespace Starcounter.Advanced {
             }
             var proxy = obj as IObjectProxy;
             if (proxy != null) {
-                return new ProxyBasedRuntimeEntity(proxy);
+                return new ProxyBasedRuntimeTuple(proxy);
             }
 
             // Decide how to report this, and what to allow

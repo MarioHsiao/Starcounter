@@ -5,16 +5,16 @@ using Starcounter.Internal;
 namespace Starcounter.Advanced {
     /// <summary>
     /// Runtime type exposing a given <see cref="IObjectProxy"/>
-    /// as an entity (via <see cref="IDbTuple"/>.
+    /// as a tuple (via <see cref="IDbTuple"/>.
     /// </summary>
-    internal class ProxyBasedRuntimeEntity : IDbTuple {
+    internal class ProxyBasedRuntimeTuple : IDbTuple {
         readonly IObjectProxy proxy;
         int typeIndex;
         int isTypeIndex;
         int inheritsIndex;
         int typeNameIndex;
 
-        internal ProxyBasedRuntimeEntity(IObjectProxy p) {
+        internal ProxyBasedRuntimeTuple(IObjectProxy p) {
             proxy = p;
             Initialize();
         }
