@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Advanced\EntityBasedRuntimeEntity.cs" />
+    <Compile Include="Advanced\RawViewBasedRuntimeEntity.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\PolyJuice.cs" />
