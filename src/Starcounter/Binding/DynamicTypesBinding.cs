@@ -56,7 +56,7 @@ namespace Starcounter.Binding {
                 // TODO:
 
                 if (existingType is RawView) {
-                    Trace.Assert(declaredType == null);
+                    Trace.Assert(declaredType == null || typeDef.IsStarcounterType);
                 } else {
                     Trace.Assert(declaredType != null && existingType.TypeBinding == declaredType);
                 }
