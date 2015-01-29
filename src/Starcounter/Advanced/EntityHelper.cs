@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Advanced;
 using Starcounter.Binding;
+using Starcounter.Metadata;
 using System;
 
 namespace Starcounter.Advanced {
@@ -29,6 +30,10 @@ namespace Starcounter.Advanced {
             var e = obj as Entity;
             if (e != null) {
                 return new EntityBasedRuntimeEntity(e);
+            }
+            var rawView = obj as RawView;
+            if (rawView != null) {
+                return new RawViewBasedRuntimeEntity(rawView);
             }
             var proxy = obj as IObjectProxy;
             if (proxy != null) {
