@@ -52,7 +52,8 @@ namespace Starcounter.Advanced {
         }
 
         IDbTuple IDbTuple.Create() {
-            throw new System.NotImplementedException();
+            var e = instance.Create();
+            return new EntityBasedRuntimeTuple(e);
         }
     }
 }
