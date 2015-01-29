@@ -29,7 +29,7 @@ namespace Starcounter.Advanced {
             }
             var e = obj as Entity;
             if (e != null) {
-                return new EntityBasedRuntimeEntity(e);
+                return new EntityBasedRuntimeTuple(e);
             }
             var rawView = obj as RawView;
             if (rawView != null) {

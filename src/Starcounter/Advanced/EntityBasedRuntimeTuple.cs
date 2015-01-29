@@ -4,10 +4,10 @@ namespace Starcounter.Advanced {
     /// Runtime type exposing a given <see cref="Entity"/>
     /// as a <see cref="IDbTuple"/>.
     /// </summary>
-    internal class EntityBasedRuntimeEntity : IDbTuple {
+    internal class EntityBasedRuntimeTuple : IDbTuple {
         readonly Entity instance;
 
-        internal EntityBasedRuntimeEntity(Entity entity) {
+        internal EntityBasedRuntimeTuple(Entity entity) {
             instance = entity;
         }
 
