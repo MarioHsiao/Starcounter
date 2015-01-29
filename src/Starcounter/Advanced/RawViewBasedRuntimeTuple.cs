@@ -1,4 +1,6 @@
-﻿using Starcounter.Metadata;
+﻿using Starcounter.Binding;
+using Starcounter.Internal;
+using Starcounter.Metadata;
 
 namespace Starcounter.Advanced {
     /// <summary>
@@ -57,7 +59,16 @@ namespace Starcounter.Advanced {
         }
 
         IDbTuple IDbTuple.Create() {
-            throw new System.NotImplementedException();
+            var self = (IDbTuple)this;
+            var tb = Bindings.GetTypeBinding(self.Name);
+            ulong oid = 0, addr = 0;
+            DbState.Insert(tb.TableId, ref oid, ref addr);
+            var proxy = tb.NewInstance(addr, oid);
+
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Type = self;
+
+            return tuple;
         }
 
         void RaiseExceptionWhenModified() {
