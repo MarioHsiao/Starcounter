@@ -15,7 +15,7 @@ namespace Starcounter.Binding
     /// </summary>
     public class TypeLoader
     {
-        static readonly AssemblyName StarcounterAssemblyName = new AssemblyName("Starcounter");
+        static readonly AssemblyName StarcounterAssemblyName = Assembly.GetExecutingAssembly().GetName();
 
         /// <summary>
         /// The assembly name_
@@ -41,6 +41,16 @@ namespace Starcounter.Binding
             get {
                 var version = assemblyName_.Version == null ? "null" : assemblyName_.Version.ToString();
                 return string.Format("{0}, ({1}, Version={2})", typeName_, assemblyName_.Name, version);
+            }
+        }
+
+        /// <summary>
+        /// Gets a value that indicates if the type to load is to be loaded from
+        /// one of the Starcounter assemblies.
+        /// </summary>
+        internal bool LoadsFromStarcounterAssembly {
+            get {
+                return assemblyName_.FullName.Equals(StarcounterAssemblyName.FullName);
             }
         }
 

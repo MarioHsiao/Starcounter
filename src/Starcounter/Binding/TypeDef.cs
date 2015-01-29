@@ -97,6 +97,16 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
+        /// Gets a value that indicates if the current type is defined by
+        /// Starcounter.
+        /// </summary>
+        public bool IsStarcounterType {
+            get {
+                return TypeLoader.LoadsFromStarcounterAssembly;
+            }
+        }
+
+        /// <summary>
         /// Gets the index of the property that references the (dynamic)
         /// type (if any) of the current TypeDef. Set to -1 when no such
         /// information is available.

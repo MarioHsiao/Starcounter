@@ -2,34 +2,34 @@
 namespace Starcounter.Advanced {
     /// <summary>
     /// Runtime type exposing a given <see cref="Entity"/>
-    /// as a <see cref="IRuntimeEntity"/>.
+    /// as a <see cref="IDbTuple"/>.
     /// </summary>
-    internal class EntityBasedRuntimeEntity : IRuntimeEntity {
+    internal class EntityBasedRuntimeTuple : IDbTuple {
         readonly Entity instance;
 
-        internal EntityBasedRuntimeEntity(Entity entity) {
+        internal EntityBasedRuntimeTuple(Entity entity) {
             instance = entity;
         }
 
-        IRuntimeEntity IRuntimeEntity.Type {
+        IDbTuple IDbTuple.Type {
             get {
-                return instance.Type == null ? null : EntityHelper.ToEntity(instance.Type);
+                return instance.Type == null ? null : TupleHelper.ToTuple(instance.Type);
             }
             set {
                 instance.WriteType(value.Proxy);
             }
         }
 
-        IRuntimeEntity IRuntimeEntity.Inherits {
+        IDbTuple IDbTuple.Inherits {
             get {
-                return instance.TypeInherits == null ? null : EntityHelper.ToEntity(instance.TypeInherits);
+                return instance.TypeInherits == null ? null : TupleHelper.ToTuple(instance.TypeInherits);
             }
             set {
                 instance.WriteInherits(value.Proxy);
             }
         }
 
-        bool IRuntimeEntity.IsType {
+        bool IDbTuple.IsType {
             get {
                 return instance.IsType;
             }
@@ -38,7 +38,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        string IRuntimeEntity.Name {
+        string IDbTuple.Name {
             get {
                 return instance.Name;
             }
@@ -47,7 +47,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        Binding.IObjectProxy IRuntimeEntity.Proxy {
+        Binding.IObjectProxy IDbTuple.Proxy {
             get { return instance; }
         }
     }

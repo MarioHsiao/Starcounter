@@ -58,7 +58,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Advanced\DbEnvironment.cs" />
-    <Compile Include="Advanced\EntityBasedRuntimeEntity.cs" />
+    <Compile Include="Advanced\EntityBasedRuntimeTuple.cs" />
+    <Compile Include="Advanced\RawViewBasedRuntimeTuple.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\PolyJuice.cs" />
@@ -107,11 +108,11 @@
     <Compile Include="DbException.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Entity.Implementation.cs" />
-    <Compile Include="Advanced\IRuntimeEntity.cs" />
+    <Compile Include="Advanced\IDbTuple.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
     <Compile Include="Internal\ImplicitEntity.cs" />
-    <Compile Include="Advanced\ProxyBasedRuntimeEntity.cs" />
+    <Compile Include="Advanced\ProxyBasedRuntimeTuple.cs" />
     <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
     <Compile Include="Hosting\BackingException.cs" />
@@ -149,7 +150,7 @@
     <Compile Include="Metadata\SysToken.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
-    <Compile Include="Advanced\EntityHelper.cs" />
+    <Compile Include="Advanced\TupleHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
     <Compile Include="Mock\FilterCallback.cs" />
     <Compile Include="Mock\GlobalQueryCache.cs" />
