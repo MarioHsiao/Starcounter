@@ -22,8 +22,8 @@ namespace Starcounter.Advanced {
         /// client want to access.</param>
         /// <returns>An instance of a class that allows basic Entity
         /// properties to be accessed.</returns>
-        public static IRuntimeEntity ToEntity(object obj) {
-            var entity = obj as IRuntimeEntity;
+        public static IDbTuple ToEntity(object obj) {
+            var entity = obj as IDbTuple;
             if (entity != null) {
                 return entity;
             }
@@ -45,14 +45,14 @@ namespace Starcounter.Advanced {
             throw new InvalidOperationException();
         }
 
-        public static IRuntimeEntity GetType(object obj) {
+        public static IDbTuple GetType(object obj) {
             return ToEntity(obj).Type;
         }
 
         public static void SetType(object obj, object type) {
-            IRuntimeEntity e = null;
+            IDbTuple e = null;
             if (type != null) {
-                e = type as IRuntimeEntity;
+                e = type as IDbTuple;
                 if (e == null) {
                     e = ToEntity(type);
                 }
@@ -69,14 +69,14 @@ namespace Starcounter.Advanced {
             ToEntity(obj).Name = name;
         }
 
-        public static IRuntimeEntity GetInherits(object obj) {
+        public static IDbTuple GetInherits(object obj) {
             return ToEntity(obj).Inherits;
         }
 
         public static void SetInherits(object obj, object type) {
-            IRuntimeEntity e = null;
+            IDbTuple e = null;
             if (type != null) {
-                e = type as IRuntimeEntity;
+                e = type as IDbTuple;
                 if (e == null) {
                     e = ToEntity(type);
                 }

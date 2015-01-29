@@ -3,16 +3,16 @@
 namespace Starcounter.Advanced {
     /// <summary>
     /// Runtime type exposing a given <see cref="RawView"/>
-    /// as a <see cref="IRuntimeEntity"/>.
+    /// as a <see cref="IDbTuple"/>.
     /// </summary>
-    internal class RawViewBasedRuntimeEntity : IRuntimeEntity {
+    internal class RawViewBasedRuntimeEntity : IDbTuple {
         readonly RawView instance;
 
         internal RawViewBasedRuntimeEntity(RawView rw) {
             instance = rw;
         }
 
-        IRuntimeEntity IRuntimeEntity.Type {
+        IDbTuple IDbTuple.Type {
             get {
                 // Return the terminating meta type when we implement
                 // multiple layers in the type hierarchy.
@@ -24,7 +24,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        IRuntimeEntity IRuntimeEntity.Inherits {
+        IDbTuple IDbTuple.Inherits {
             get {
                 var baseView = instance.Inherits as RawView;
                 return baseView != null ? new RawViewBasedRuntimeEntity(baseView) : null;
@@ -34,7 +34,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        bool IRuntimeEntity.IsType {
+        bool IDbTuple.IsType {
             get {
                 return true;
             }
@@ -43,7 +43,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        string IRuntimeEntity.Name {
+        string IDbTuple.Name {
             get {
                 return instance.FullName;
             }
@@ -52,7 +52,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        Binding.IObjectProxy IRuntimeEntity.Proxy {
+        Binding.IObjectProxy IDbTuple.Proxy {
             get { return instance; }
         }
 

@@ -5,14 +5,14 @@ namespace Starcounter.Advanced {
     /// <summary>
     /// Defines the interface of any entity. All database classes that
     /// are defined not using <see cref="Entity"/> class as their base
-    /// class can be represented by the <see cref="IRuntimeEntity"/> interface
+    /// class can be represented by the <see cref="IDbTuple"/> interface
     /// using runtime factory/cast method <see cref="EntityHelper.ToEntity(object)"/>.
     /// </summary>
-    public interface IRuntimeEntity {
+    public interface IDbTuple {
         /// <summary>
         /// Gets or sets the type of the current entity.
         /// </summary>
-        IRuntimeEntity Type {
+        IDbTuple Type {
             get;
             set;
         }
@@ -21,7 +21,7 @@ namespace Starcounter.Advanced {
         /// Gets or sets the type the current entity is
         /// a subtype of.
         /// </summary>
-        IRuntimeEntity Inherits {
+        IDbTuple Inherits {
             get;
             set;
         }
