@@ -131,14 +131,14 @@
 
                 <td>{{item.DisplayName}}</td>
                 <td>{{item.Description}}</td>
-                <td>{{item.Version}}</td>
-                <td >
+                <td >{{item.Version}}</td>
+                <td style="width:130px">
                     <select title="Select database" class="form-control pull-right"  ng-model="item._databaseName" name="Database">
                         <option value="{{database.name}}" ng-repeat="database in databases | orderBy: 'name'">{{database.name}}</option>
                     </select>
                 </td>
                 <td>
-                    <div class="pull-right">
+                    <div style="width:125px"  class="pull-right">
                         <div ng-show="item.task.Text" class="spinner tiny"></div>
                         <button class="btn btn-default btn-sm btn-success" ng-disabled="item.task != null || !item._databaseName" ng-click="btnStartInstalled(item)" title="Start Application">Start</button>
                         <button class="btn btn-default btn-sm btn-danger" ng-disabled="item.task != null" ng-click="btnUninstall(item)" title="UnInstall">Uninstall</button>
