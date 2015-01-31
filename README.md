@@ -7,7 +7,7 @@ It threives on complexity and massive multiuser activity such that can found in 
 This repository is reserved for the public Starcounter bits.
 
 # Download installer
-* [Windows](http://downloads.starcounter.com/beta)
+* [Windows](http://downloads.starcounter.com/download/Starcounter/StableBuilds/latest)
 
 # More information
 

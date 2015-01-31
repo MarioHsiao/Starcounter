@@ -17,6 +17,12 @@ CALL IndexedColumnDrop.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+PUSHD DropTable
+CALL DropTable.bat
+POPD
+IF ERRORLEVEL 1 GOTO err
+
+REM The test is excluded, since the bug 2462 was not fixed
 REM PUSHD SelectOnNull2362
 REM CALL SelectOnNull2362.bat
 REM POPD
