@@ -1,16 +1,10 @@
-﻿using Starcounter;
+using Starcounter;
 using System;
 using System.Diagnostics;
 
 namespace QueryProcessingTest {
     public static class TestKinds {
-        // Disabling these test temporarily in branch NEXT until we
-        // have straighten out and fully support, or adapt to, #2531.
-        public static bool Disabled = true;
-
         public static void RunKindsTest() {
-            if (Disabled) return;
-
             HelpMethods.LogEvent("Test kinds like behavior");
             Db.Transaction(delegate {
                 var porsche911 = new CarModel() { Brand = "Porsche", ModelName = "911" };
