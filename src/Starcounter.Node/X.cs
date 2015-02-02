@@ -214,17 +214,14 @@ namespace Starcounter
         /// Performs asynchronous HTTP GET.
         /// </summary>
         public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
-            Response r;
-            GET(uri, out r, null, receiveTimeoutMs, ho);
-            return r.GetContent<T>();
-        }
 
-        /// <summary>
-        /// Performs asynchronous HTTP GET.
-        /// </summary>
-        public static T GET<T>(String uri, out Response response, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
-            GET(uri, out response, null, receiveTimeoutMs, ho);
-            return response.GetContent<T>();
+            Response resp;
+            GET(uri, out resp, null, receiveTimeoutMs, ho);
+
+            if (null != resp)
+                return resp.GetContent<T>();
+
+            return default(T);
         }
 
         /// <summary>

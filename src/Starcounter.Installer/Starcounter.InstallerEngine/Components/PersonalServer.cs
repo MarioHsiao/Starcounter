@@ -203,10 +203,15 @@ public class CPersonalServer : CComponentBase
 
         // Checking for Starcounter service existence.
         Boolean serviceStillFound = false;
-        for (Int32 i = 0; i < 5; i++) {
+
+        for (Int32 i = 0; i < 30; i++) {
+
             var allServices = ServiceController.GetServices();
+
             foreach (ServiceController someService in allServices) {
+
                 if (ServerService.IsServerService(someService)) {
+
                     serviceStillFound = true;
                     break;
                 }

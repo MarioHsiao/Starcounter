@@ -148,6 +148,8 @@ namespace Starcounter.Administrator.Server.Handlers {
                             appStoreItem.VersionDate = remoteItem.VersionDate;
                             appStoreItem.Size = remoteItem.Size;
                             appStoreItem.ImageUrl = remoteItem.ImageUrl;
+                            appStoreItem.Rating = remoteItem.Rating;
+                            appStoreItem.Heading = remoteItem.Heading;
                         }
                     }
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = appStoreApplications.ToJsonUtf8() };

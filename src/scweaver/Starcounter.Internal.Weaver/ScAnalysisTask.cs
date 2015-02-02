@@ -1137,6 +1137,7 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             databaseAttribute.IsPublicRead = field.IsPublic();
+            databaseAttribute.IsDeclaredPublic = field.Visibility == PostSharp.Reflection.Visibility.Public;
         }
 
         /// <summary>
@@ -1281,6 +1282,8 @@ namespace Starcounter.Internal.Weaver {
             databaseAttribute.BackingField = ScanPropertyGetter(databaseAttribute);
             SetDatabaseAttributeType(property, false, databaseAttribute);
             databaseAttribute.IsPublicRead = property.Getter != null ? property.Getter.IsPublic() : false;
+            databaseAttribute.IsDeclaredPublic = 
+                property.Getter != null ? property.Getter.Visibility == PostSharp.Reflection.Visibility.Public : false;
         }
 
         /// <summary>

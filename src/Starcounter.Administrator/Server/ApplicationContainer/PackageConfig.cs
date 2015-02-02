@@ -21,6 +21,7 @@ namespace Administrator.Server.ApplicationContainer {
         public string DisplayName;      // Displayname
         public string Company;          // Company name
         public string Description;      // Description
+        public string Heading;          // Heading
         public string ImageUri;         // Image
         public DateTime VersionDate;    // Version date
     }

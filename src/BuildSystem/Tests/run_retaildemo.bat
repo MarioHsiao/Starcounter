@@ -15,10 +15,11 @@ SET RetailServerExe=RetailDemo\Starcounter\bin\%Configuration%\ScRetailDemo.exe
 :: Test parameters.
 SET NumberOfCustomers=10000
 SET NumberOfWorkers=4
-SET NumberOfOperations=10000
+SET NumberOfOperations=300000
 
 :: Killing existing processes.
 "%StarcounterBin%/staradmin.exe" kill all
+IF EXIST "%SC_CHECKOUT_DIR%/RetailDemo" rd /q /s "%SC_CHECKOUT_DIR%/RetailDemo"
 
 :: Pulling repository.
 
@@ -52,7 +53,7 @@ ECHO Transfering money between accounts using aggregation.
 %RetailClientExe% -UseAggregation=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0
 IF ERRORLEVEL 1 GOTO FAILED
 
-ECHO Transfering money between accounts using aggregation.
+ECHO Mixed transactions using aggregation.
 %RetailClientExe% -UseAggregation=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=%NumberOfOperations% -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=%NumberOfOperations%
 IF ERRORLEVEL 1 GOTO FAILED
 
@@ -71,7 +72,7 @@ ECHO Transfering money between accounts using asyncronous Node.
 %RetailClientExe% -DoAsyncNode=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0
 IF ERRORLEVEL 1 GOTO FAILED
 
-ECHO Transfering money between accounts using asyncronous Node.
+ECHO Mixed transactions using asyncronous Node.
 %RetailClientExe% -DoAsyncNode=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=%NumberOfOperations% -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=%NumberOfOperations%
 IF ERRORLEVEL 1 GOTO FAILED
 
@@ -90,14 +91,27 @@ ECHO Transfering money between accounts using syncronous Node.
 %RetailClientExe% -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0
 IF ERRORLEVEL 1 GOTO FAILED
 
-ECHO Transfering money between accounts using syncronous Node.
+ECHO Mixed transactions using syncronous Node.
 %RetailClientExe% -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=%NumberOfOperations% -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=%NumberOfOperations%
 IF ERRORLEVEL 1 GOTO FAILED
 
-"%StarcounterBin%/staradmin.exe" kill all
 POPD
 
+SET DB_NAME=default
+
+ECHO Deleting database %DB_NAME%
+
+staradmin --database=%DB_NAME% stop db
+IF ERRORLEVEL 1 GOTO FAILED
+
+staradmin --database=%DB_NAME% delete --force db
+IF ERRORLEVEL 1 GOTO FAILED
+
 :: Build finished successfully.
+ECHO RetailDemo test finished successfully!
+
+"%StarcounterBin%/staradmin.exe" kill all
+
 GOTO :EOF
 
 :: If we are here than some test has failed.

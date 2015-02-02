@@ -406,10 +406,12 @@ internal static class SqlProcessor
         if (errorCode != 0) {
             Exception ex = ErrorCode.ToException(errorCode);
             if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute DROP TABLE statement.");
             throw ex;
         }
+        DeleteMetadataDroppedTable(typePath);
     }
+
     internal static void AddMetadataIndex(string tableName, string indexName) {
         Db.SystemTransaction(delegate {
             MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
@@ -423,13 +425,27 @@ internal static class SqlProcessor
     internal static void DeleteMetadataIndex(string tableName, string indexName) {
         Db.SystemTransaction(delegate {
             Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
-                "select i from \"index\" i where i.table.fullname = ? and name = ?",
+                "select i from starcounter.metadata.\"index\" i where i.table.fullname = ? and name = ?",
                 tableName, indexName).First;
             Debug.Assert(indx != null);
             foreach (Starcounter.Metadata.IndexedColumn colIndx in Db.SQL<Starcounter.Metadata.IndexedColumn>(
-                "select c from indexedcolumn c where \"index\" = ?", indx))
+                "select c from starcounter.metadata.indexedcolumn c where \"index\" = ?", indx))
                 colIndx.Delete();
             indx.Delete();
+        });
+    }
+
+    internal static void DeleteMetadataDroppedTable(string tableName) {
+        Db.SystemTransaction(delegate {
+            var tbl = Db.SQL<Starcounter.Metadata.RawView>(
+                "select v from starcounter.metadata.RawView v where fullname = ?", 
+                tableName).First;
+            Debug.Assert(tbl != null);
+            foreach (var col in Db.SQL<Starcounter.Metadata.Column>(
+                "select c from starcounter.metadata.column c where c.table = ?",
+                tbl))
+                col.Delete();
+            tbl.Delete();
         });
     }
 
