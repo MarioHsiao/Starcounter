@@ -165,7 +165,7 @@ namespace Starcounter {
             if (_DB != null)
                 transaction = _DB.CurrentTransaction;
             
-            if (transaction != null)
+            if (transaction != null && transaction != Transaction)
                 _transaction = transaction; 
         }
 

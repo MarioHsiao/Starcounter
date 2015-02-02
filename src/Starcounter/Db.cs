@@ -184,11 +184,12 @@ namespace Starcounter
             for (; ; ) {
                 r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
                 if (r == 0) {
-                    var currentTransaction = Starcounter.TransactionBase.GetCurrentNoCheckAndSetToNull();
-                    
+                    // We only set the handle to none here, since Transaction.Current will follow this value.
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+
                     try {
                         action();
-                        Starcounter.TransactionBase.Commit(1, 1);
+                        TransactionManager.Commit(1, 1);
                         return;
                     } catch (Exception ex) {
                         if (
@@ -203,7 +204,7 @@ namespace Starcounter
                         }
                         HandleFatalErrorInTransactionScope();
                     } finally {
-                        Starcounter.TransactionBase.SetCurrent(currentTransaction);
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
                     }
                 }
 
@@ -239,14 +240,15 @@ namespace Starcounter
                 return;
             }
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action();
             } finally {
-                CheckAndReleaseTransaction(t, old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -256,14 +258,15 @@ namespace Starcounter
                 return;
             }
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg);
             } finally {
-                CheckAndReleaseTransaction(t, old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -272,16 +275,16 @@ namespace Starcounter
                 action(arg1, arg2);
                 return;
             }
-           
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2);
             } finally {
-                CheckAndReleaseTransaction(t, old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -291,81 +294,63 @@ namespace Starcounter
                 return;
             }
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2, arg3);
             } finally {
-                CheckAndReleaseTransaction(t, old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
-        public static T Scope<T>(Func<T> func, bool isReadOnly = false) {
+        public static TResult Scope<TResult>(Func<TResult> func, bool isReadOnly = false) {
             if (!Db.Environment.HasDatabase)
                 return func();
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 return func();
             } finally {
-                CheckAndReleaseTransaction(t, old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
-        public static TReturn Scope<T, TReturn>(Func<T, TReturn> func, T arg, bool isReadOnly = false) {
+        public static TResult Scope<T, TResult>(Func<T, TResult> func, T arg, bool isReadOnly = false) {
             if (!Db.Environment.HasDatabase)
                 return func(arg);
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
                 return func(arg);
             } finally {
-                CheckAndReleaseTransaction(t, old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
-        public static TReturn Scope<T1, T2, TReturn>(Func<T1, T2, TReturn> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
+        public static TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
             if (!Db.Environment.HasDatabase)
                 return func(arg1, arg2);
 
-            TransactionBase old = Starcounter.Transaction.GetCurrentNoCheck();
-            TransactionBase t = null;
+           TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = TransactionManager.CurrentTransaction;
             try {
-                t = new TransactionBase(isReadOnly, false);
-                Starcounter.Transaction.SetCurrent(t);
+                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
                 return func(arg1, arg2);
             } finally {
-                CheckAndReleaseTransaction(t, old);
-            }
-        }
-
-        private static void CheckAndReleaseTransaction(TransactionBase created, TransactionBase old) {
-            try {
-                var current = Starcounter.TransactionBase.GetCurrentNoCheck();
-
-                // If current is not the same as the object we created it means that an object with finalizer have been created.
-                // Then we cannot dispose and release the kerneltransaction here. Otherwise we dispose it directly.
-                if (current != null) {
-                    // TODO:
-                    // Verify that current and created have the same verify and handle
-
-                    try {
-                        if (created.IsDirty)
-                            throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: Error for writing and not referencing it.
-                    } finally {
-                        created.Release();
-                    }
-                }
-            } finally {
-                Starcounter.Transaction.SetCurrent(old);
+                TransactionManager.SetCurrentTransaction(old);
+                if (!TransactionManager.HasTemporaryRef(transactionHandle))
+                    TransactionManager.Dispose(transactionHandle);
             }
         }
 
