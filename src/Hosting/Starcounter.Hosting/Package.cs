@@ -118,11 +118,21 @@ namespace Starcounter.Hosting {
         /// </summary>
         internal void Process()
         {
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
+
             Application.CurrentAssigned = application_;
             try {
                 ProcessWithinCurrentApplication(application_);
             } finally {
                 Application.CurrentAssigned = null;
+                TransactionManager.Cleanup();
             }
         }
 
@@ -300,19 +310,21 @@ namespace Starcounter.Hosting {
                     });
 
 #if DEBUG   // Assure that parents were set.
-                foreach (TypeDef typeDef in updateColumns) {
-                    RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
-                typeDef.TableDef.Name).First;
-                    Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
-                        "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
-                    Debug.Assert(thisView.MaterializedTable.Equals(matTab));
-                    Debug.Assert(matTab != null);
-                    RawView parentTab = Db.SQL<RawView>(
-                        "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-                    Debug.Assert(matTab.BaseTable == null && parentTab == null ||
-                        matTab.BaseTable != null && parentTab != null &&
-                        matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
-                }
+                Db.Scope(() => {
+                    foreach (TypeDef typeDef in updateColumns) {
+                        RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
+                    typeDef.TableDef.Name).First;
+                        Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
+                            "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+                        Debug.Assert(thisView.MaterializedTable.Equals(matTab));
+                        Debug.Assert(matTab != null);
+                        RawView parentTab = Db.SQL<RawView>(
+                            "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
+                        Debug.Assert(matTab.BaseTable == null && parentTab == null ||
+                            matTab.BaseTable != null && parentTab != null &&
+                            matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
+                    }
+                });
 #endif
                 OnColumnsCheckedAndUpdated();
 

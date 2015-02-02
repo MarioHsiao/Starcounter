@@ -149,6 +149,7 @@
     <Compile Include="Page.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
+    <Compile Include="TransactionManager.cs" />
     <Compile Include="TransientAttribute.cs" />
     <Compile Include="ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />
