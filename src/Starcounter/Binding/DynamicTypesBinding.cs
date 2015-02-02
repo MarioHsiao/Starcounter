@@ -96,7 +96,9 @@ namespace Starcounter.Binding {
                     ulong baseID = typesDiscovered[typeDef.BaseName];
                     if (baseID != ulong.MaxValue) {
                         var baseType = DbHelper.FromID(baseID);
-                        TupleHelper.SetInherits(tuple, baseType);
+                        if (baseType.GetType().IsAssignableFrom(proxy.GetType())) {
+                            TupleHelper.SetInherits(tuple, baseType);
+                        }
                     }
                 }
 
