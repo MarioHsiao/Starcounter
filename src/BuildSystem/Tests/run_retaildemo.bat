@@ -5,10 +5,10 @@ IF "%SC_RUN_RETAILDEMO_TEST%"=="False" GOTO :EOF
 IF "%SC_CHECKOUT_DIR%"=="" SET SC_CHECKOUT_DIR=%cd%
 
 SET Path=%Path%;c:\Program Files (x86)\Git\bin
-SET GIT_SSH=C:\Program Files (x86)\Atlassian\SourceTree\tools\putty\plink.exe
-SET MsbuildExe=C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe
+IF "%GIT_SSH%"=="" SET GIT_SSH=C:\Program Files (x86)\Atlassian\SourceTree\tools\putty\plink.exe
+IF "%MsbuildExe%"=="" SET MsbuildExe=C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe
 
-SET Configuration=Debug
+IF "%Configuration%"=="" SET Configuration=Debug
 SET RetailClientExe=RetailDemo\Client\bin\%Configuration%\RetailClient.exe
 SET RetailServerExe=RetailDemo\Starcounter\bin\%Configuration%\ScRetailDemo.exe
 
