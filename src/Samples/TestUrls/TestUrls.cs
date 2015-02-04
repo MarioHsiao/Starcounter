@@ -32,7 +32,7 @@ namespace NodeTest
                 Boolean hostIsReady = false;
                 Console.Write("Waiting for the host");
 
-                for (Int32 i = 0; i < 10; i++) {
+                for (Int32 i = 0; i < 30; i++) {
 
                     Response resp = node.GET("/");
 

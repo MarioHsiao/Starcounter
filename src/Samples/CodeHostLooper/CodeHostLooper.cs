@@ -64,7 +64,7 @@ namespace CodeHostLooper {
 
                 Response resp;
 
-                for (Int32 i = 0; i < 10; i++) {
+                for (Int32 i = 0; i < 30; i++) {
 
                     resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerEchoPort + "/echotest", "Test!", null, 5000);
 

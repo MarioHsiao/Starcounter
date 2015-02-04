@@ -944,7 +944,7 @@ namespace NodeTest
 
                 Response resp;
 
-                for (Int32 i = 0; i < 10; i++) {
+                for (Int32 i = 0; i < 30; i++) {
 
                     resp = X.POST(Settings.CompleteHttpUri, "Test!", null, 5000);
 

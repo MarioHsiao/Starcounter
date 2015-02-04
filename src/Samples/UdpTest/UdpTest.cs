@@ -95,7 +95,7 @@ namespace UdpClientCs {
 
             Response resp;
 
-            for (Int32 i = 0; i < 10; i++) {
+            for (Int32 i = 0; i < 30; i++) {
 
                 resp = X.POST("http://" + settings.ServerIp + ":8080/echotest", "Test!", null, 5000);
 
