@@ -5,7 +5,7 @@ IF "%SC_RUN_HOST_LOOPER_TEST%"=="False" GOTO :EOF
 staradmin kill all
 
 :: Starting NetworkIoTest in background.
-START CMD /C "star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS"
+star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
 
 :: Starting the client part of the test.
 CodeHostLooper.exe
