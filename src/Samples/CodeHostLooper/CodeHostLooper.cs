@@ -58,32 +58,8 @@ namespace CodeHostLooper {
                 if (settings.NumberOfSchedulersToUse > Environment.ProcessorCount - 1)
                     throw new ArgumentException("Number of scheduler parameters should be less than number of virtual CPUs.");
 
-                // Waiting until host is available.
-                Boolean hostIsReady = false;
-                Console.Write("Waiting for the host to be ready");
-
-                Response resp;
-
-                for (Int32 i = 0; i < 30; i++) {
-
-                    resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerEchoPort + "/echotest", "Test!", null, 5000);
-
-                    if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
-
-                        hostIsReady = true;
-                        break;
-                    }
-
-                    Thread.Sleep(3000);
-                    Console.Write(".");
-                }
-
-                Console.WriteLine();
-
-                if (!hostIsReady)
-                    throw new Exception("Host is not ready by some reason!");
-
                 Node localNode = new Node(settings.ServerIp, settings.ServerPort);
+                Response resp;
 
                 for (Byte i = 1; i < settings.NumberOfSchedulersToUse; i++) {
 

@@ -89,31 +89,6 @@ namespace UdpClientCs {
                 ServerPort = 8787
             };
 
-            // Waiting until host is available.
-            Boolean hostIsReady = false;
-            Console.Write("Waiting for the host to be ready");
-
-            Response resp;
-
-            for (Int32 i = 0; i < 30; i++) {
-
-                resp = X.POST("http://" + settings.ServerIp + ":8080/echotest", "Test!", null, 5000);
-
-                if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
-
-                    hostIsReady = true;
-                    break;
-                }
-
-                Thread.Sleep(3000);
-                Console.Write(".");
-            }
-
-            Console.WriteLine();
-
-            if (!hostIsReady)
-                throw new Exception("Host is not ready by some reason!");
-
             Console.WriteLine("Starting UDP echo test with workers: " + numWorkers);
 
             Stopwatch timer = new Stopwatch();

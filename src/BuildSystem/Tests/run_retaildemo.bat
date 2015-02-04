@@ -17,9 +17,14 @@ SET NumberOfCustomers=10000
 SET NumberOfWorkers=4
 SET NumberOfOperations=300000
 
+SET DB_NAME=default
+
 :: Killing existing processes.
 "%StarcounterBin%/staradmin.exe" kill all
 IF EXIST "%SC_CHECKOUT_DIR%/RetailDemo" rd /q /s "%SC_CHECKOUT_DIR%/RetailDemo"
+
+ECHO Deleting database %DB_NAME%
+staradmin --database=%DB_NAME% delete --force db
 
 :: Pulling repository.
 
@@ -96,8 +101,6 @@ ECHO Mixed transactions using syncronous Node.
 IF ERRORLEVEL 1 GOTO FAILED
 
 POPD
-
-SET DB_NAME=default
 
 ECHO Deleting database %DB_NAME%
 

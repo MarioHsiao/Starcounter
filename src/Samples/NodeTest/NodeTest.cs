@@ -938,33 +938,8 @@ namespace NodeTest
                 Console.WriteLine("AsyncMode: " + settings.AsyncMode);
                 Console.WriteLine("UseAggregation: " + settings.UseAggregation);
 
-                // Waiting until host is available.
-                Boolean hostIsReady = false;
-                Console.Write("Waiting for the host");
-
-                Response resp;
-
-                for (Int32 i = 0; i < 30; i++) {
-
-                    resp = X.POST(Settings.CompleteHttpUri, "Test!", null, 5000);
-
-                    if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
-
-                        hostIsReady = true;
-                        break;
-                    }
-
-                    Thread.Sleep(3000);
-                    Console.Write(".");
-                }
-
-                Console.WriteLine();
-
-                if (!hostIsReady)
-                    throw new Exception("Host is not ready by some reason!");
-
                 // Resetting the counters.
-                resp = X.DELETE(Settings.ResetCountersUri, (String) null, null, 5000);
+                Response resp = X.DELETE(Settings.ResetCountersUri, (String) null, null, 5000);
                 if (200 != resp.StatusCode) {
                     throw new Exception("Can't reset counters properly!");
                 }

@@ -5,7 +5,7 @@ IF "%SC_RUN_URLS_TEST%"=="False" GOTO :EOF
 staradmin kill all
 
 :: Starting Starcounter in background.
-START CMD /C "scservice.exe"
+star "%StarcounterBin%\s\NetworkIoTest\NetworkIoTest.exe"
 
 :: Starting the client part of the test.
 TestUrls.exe

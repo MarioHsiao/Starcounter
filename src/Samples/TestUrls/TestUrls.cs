@@ -28,28 +28,7 @@ namespace NodeTest
 
                 Node node = new Node("127.0.0.1", 8181);
 
-                // Waiting until host is available.
-                Boolean hostIsReady = false;
-                Console.Write("Waiting for the host");
-
-                for (Int32 i = 0; i < 30; i++) {
-
-                    Response resp = node.GET("/");
-
-                    if (200 == resp.StatusCode) {
-
-                        hostIsReady = true;
-                        break;
-                    }
-
-                    Thread.Sleep(3000);
-                    Console.Write(".");
-                }
-
-                Console.WriteLine("Host is ready! Starting the test.");
-
-                if (!hostIsReady)
-                    throw new Exception("Host is not ready by some reason!");
+                Console.Write("Starting the test!");
 
                 // Repeating needed amount of times.
                 for (Int32 i = 0; i < NumRequests; i++) {
