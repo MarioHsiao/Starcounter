@@ -728,8 +728,10 @@ namespace Starcounter.InstallerEngine
                     try
                     {
                         proc.Kill();
-                        proc.WaitForExit(30000);
-                        if (!proc.HasExited)
+                        
+                        Boolean exited = proc.WaitForExit(30000);
+
+                        if (!exited)
                         {
                             String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
                                                          "Please shutdown the corresponding application explicitly.";
@@ -747,7 +749,7 @@ namespace Starcounter.InstallerEngine
                             return false;
                         }
                     }
-                    catch { }
+                    catch {}
                     finally { proc.Close(); }
                 }
             }
