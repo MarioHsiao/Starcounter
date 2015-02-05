@@ -1,0 +1,94 @@
+<!--<link rel="import" href="juicy-error-stacktrace-reporter.html">-->
+<!--<link rel="import" href="fast-json-patch-error-reporter.html">-->
+<!--<link rel="import" href="juicy-error-dialog.html">-->
+<link rel="import" href="puppet-js-view-model-tree.html">
+
+<polymer-element name="starcounter-debug-aid">
+  <template>
+    <style>
+      :host {
+        font-family: sans-serif;
+      }
+
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #overlay.hidden {
+        display: none;
+      }
+
+      #dialog {
+        background: white;
+        box-shadow: 0 13px 25px 0 rgba(0, 0, 0, 0.3);
+        width: 90vw;
+        height: 90vh;
+        overflow: auto;
+        padding: 10px 4px 4px 4px;
+      }
+    </style>
+
+    <div id="overlay" class="hidden">
+      <div id="dialog">
+        <template if="{{showJsonEditor}}">
+          <puppet-js-view-model-tree></puppet-js-view-model-tree>
+        </template>
+
+        <!-- uncomment with a nice tabbed UI and no errors in Launcher
+        <juicy-error-dialog id="errorDialog" on-error-catched="{{openDialog}}">
+          <template>
+            <fast-json-patch-error-reporter></fast-json-patch-error-reporter>
+            <juicy-error-stacktrace-reporter></juicy-error-stacktrace-reporter>
+          </template>
+        </juicy-error-dialog>-->
+      </div>
+    </div>
+    <content></content>
+  </template>
+  <script>
+    Polymer("starcounter-debug-aid", {
+      showJsonEditor: false,
+      ready: function () {
+        var that = this;
+        window.addEventListener("keyup", function (ev) {
+          if ((ev.keyCode === 192 || ev.keyCode === 220) && (ev.ctrlKey || ev.metaKey)) { //CTRL+` (Windows) or CMD+§ (Mac) or CTRL+/ (Windows+Parallels)
+            if (that.$.overlay.classList.contains("hidden")) {
+              that.openDialog();
+            }
+            else {
+              that.closeDialog();
+            }
+          }
+          else if (ev.keyCode === 27) { //Esc
+            if (!that.$.overlay.classList.contains("hidden")) {
+              that.closeDialog();
+            }
+          }
+        });
+        //window.addEventListener("error", this.openDialog.bind(this));
+        this.$.overlay.addEventListener("click", function (ev) {
+          if (ev.target === that.$.overlay) {
+            that.closeDialog();
+          }
+        });
+      },
+      closeDialog: function () {
+        this.$.overlay.classList.add("hidden");
+        //this.$.errorDialog.reset();
+        this.showJsonEditor = false;
+      },
+      openDialog: function () {
+        this.$.overlay.classList.remove("hidden");
+        this.showJsonEditor = true;
+      }
+    });
+  </script>
+</polymer-element>
