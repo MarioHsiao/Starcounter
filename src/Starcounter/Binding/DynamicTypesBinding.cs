@@ -11,10 +11,7 @@ namespace Starcounter.Binding {
     /// are in use.
     /// </summary>
     internal static class DynamicTypesBinding {
-        // Code host level "cache" that indicates what defined
-        // types have already been processed.
-        static Dictionary<string, ulong> typesDiscovered = new Dictionary<string, ulong>();
-
+        
         public static void DiscoverNewTypes(TypeDef[] unregisteredTypes) {
             Db.Transact(() => {
                 DiscoverTypesAndAssureThem(unregisteredTypes);
@@ -28,7 +25,7 @@ namespace Starcounter.Binding {
         }
 
         static void ProcessType(TypeDef typeDef) {
-            if (typesDiscovered.ContainsKey(typeDef.Name)) {
+            if (typeDef.RuntimeDefaultTypeRef.ObjectID != 0) {
                 return;
             }
 
@@ -36,8 +33,6 @@ namespace Starcounter.Binding {
                 var parent = Bindings.GetTypeDef(typeDef.BaseName);
                 ProcessType(parent);
             }
-
-            typesDiscovered.Add(typeDef.Name, ulong.MaxValue);
 
             bool userDeclaredType;
             var declaredType = GetDeclaredTargetType(typeDef, out userDeclaredType);
@@ -61,7 +56,6 @@ namespace Starcounter.Binding {
                     Trace.Assert(declaredType != null && existingType.TypeBinding == declaredType);
                 }
                 
-                typesDiscovered[typeDef.Name] = rawView.AutoTypeInstance;
                 typeDef.RuntimeDefaultTypeRef.ObjectID = existingType.Identity;
                 typeDef.RuntimeDefaultTypeRef.Address = existingType.ThisHandle;
                 return;
@@ -93,12 +87,12 @@ namespace Starcounter.Binding {
                 tuple.Name = typeDef.Name;
                 tuple.IsType = true;
                 if (typeDef.BaseName != null) {
-                    ulong baseID = typesDiscovered[typeDef.BaseName];
-                    if (baseID != ulong.MaxValue) {
-                        var baseType = DbHelper.FromID(baseID);
-                        if (baseType.GetType().IsAssignableFrom(proxy.GetType())) {
-                            TupleHelper.SetInherits(tuple, baseType);
-                        }
+                    var baseDef = Bindings.GetTypeDef(typeDef.BaseName);
+                    ulong baseID = baseDef.RuntimeDefaultTypeRef.ObjectID;
+                    Trace.Assert(baseID != 0);
+                    var baseType = DbHelper.FromID(baseID);
+                    if (baseType.GetType().IsAssignableFrom(proxy.GetType())) {
+                        TupleHelper.SetInherits(tuple, baseType);
                     }
                 }
 
@@ -108,7 +102,6 @@ namespace Starcounter.Binding {
                 addr = rawViewProxy.ThisHandle;
             }
 
-            typesDiscovered[typeDef.Name] = oid;
             rawView.AutoTypeInstance = oid;
             typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
             typeDef.RuntimeDefaultTypeRef.Address = addr;
