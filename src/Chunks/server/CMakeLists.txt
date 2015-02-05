@@ -4,6 +4,11 @@ cmake_minimum_required(VERSION 2.8.10)
 
 project(server)
 
+if(MSVC)
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /O2 /Oi /Gy")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /O2 /Oi /Gy")
+endif()
+
 set(server_SOURCE_FILES
     ../common/mapped_region.cpp
     ../common/shared_memory_object.cpp
