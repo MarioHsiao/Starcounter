@@ -45,7 +45,7 @@ set(sc_ipc_test_HEADER_FILES
 add_executable(sc_ipc_test ${sc_ipc_test_SOURCE_FILES} ${sc_ipc_test_HEADER_FILES})
 OrganizeVisualStudio(sc_ipc_test) # "level1/Chunks"
 target_link_libraries(sc_ipc_test
-    bmx
+#    bmx
     sccoreerr
 )
 add_test(NAME sc_ipc_test COMMAND $<TARGET_FILE:sc_ipc_test>)
