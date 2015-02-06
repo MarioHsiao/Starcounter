@@ -1,9 +1,9 @@
 {
-  "name": "puppet-js",
-  "version": "0.0.6",
+  "name": "puppet-client",
+  "version": "0.0.1",
   "description": "Custom Element to bind server-side view models with HTML nodes (HTML Templates/Web Components/AngularJs Apps) using PuppetJs communication (JSON-Patch)",
   "license": "MIT",
-  "main": "src/puppet-js.html",
+  "main": "src/puppet-client.html",
   "keywords": [
     "web-components",
     "websocket"
@@ -19,20 +19,10 @@
   ],
   "dependencies": {
     "polymer": "<0.8.0",
-    "PuppetJs": "~0.2.0"
+    "PuppetJs": "~0.3.0"
   },
   "devDependencies": {
     "model-operations": "Polyjuice/model-operations",
     "puppet-bunny": "PuppetJs/puppet-bunny"
-  },
-  "homepage": "https://github.com/PuppetJs/puppet-js",
-  "_release": "0.0.6",
-  "_resolution": {
-    "type": "version",
-    "tag": "0.0.6",
-    "commit": "cc2bd1c874463dbb36c17077e826b2644f166225"
-  },
-  "_source": "git://github.com/PuppetJs/puppet-js.git",
-  "_target": "~0.0.6",
-  "_originalSource": "PuppetJs/puppet-js"
+  }
 }

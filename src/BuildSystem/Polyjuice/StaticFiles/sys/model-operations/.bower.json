@@ -18,6 +18,6 @@
     "commit": "ded75e3bfa9dfae20703b75724a4f84b43bcb801"
   },
   "_source": "git://github.com/Polyjuice/model-operations.git",
-  "_target": "~0.0.1",
+  "_target": "~0.0.2",
   "_originalSource": "Polyjuice/model-operations"
 }
