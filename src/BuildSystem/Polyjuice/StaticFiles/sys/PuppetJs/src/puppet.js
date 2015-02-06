@@ -1,4 +1,4 @@
-/*! puppet.js 0.2.6
+/*! puppet.js 0.3.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -12,23 +12,29 @@
 
   /**
    * Defines a connection to a remote PATCH server, returns callback to a object that is persistent between browser and server
-   * @param remoteUrl If undefined, current window.location.href will be used as the PATCH server URL
-   * @param callback Called after initial state object is received from the server
-   * @param obj Optional object where the parsed JSON data will be inserted
+   * @param {Object}             [options]                    map of arguments
+   * @param {String}             [options.remoteUrl]          PATCH server URL
+   * @param {Function}           [options.callback]           Called after initial state object is received from the server (NOT necessarily after WS connection was established)
+   * @param {Object}             [options.obj]                object where the parsed JSON data will be inserted
+   * @param {Boolean}            [options.useWebSocket=false] Set to true to enable WebSocket support
+   * @param {RegExp}             [options.ignoreAdd=null]     Regular Expression for `add` operations to be ignored (tested against JSON Pointer in JSON Patch)
+   * @param {Boolean}            [options.debug=false]        Set to true to enable debugging mode
+   * @param {Function}           [options.onRemoteChange]     Helper callback triggered each time a patch is obtained from server
+   * @param {JSONPointer}        [options.localVersionPath]   local version path, set it to enable Versioned JSON Patch communication
+   * @param {JSONPointer}        [options.remoteVersionPath]  remote version path, set it (and `localVersionPath`) to enable Versioned JSON Patch communication
+   * @param {Boolean}            [options.ot=false]           true to enable OT
+   * @param {Boolean}            [options.purity=false]       true to enable purist mode of OT
    */
-  function Puppet(remoteUrl, callback, obj) {
-    if (window.Promise === undefined) {
-      throw new Error("Promise API not available. If you are using an outdated browser, make sure to load a Promise/A+ shim, e.g. https://github.com/jakearchibald/es6-promise");
-    }
-
-    this.debug = true;
-    this.remoteUrl = remoteUrl;
-    this.callback = callback;
-    this.obj = obj || {};
+  function Puppet(options) {
+    options || (options={});
+    this.debug = options.debug != undefined ? options.debug : true;
+    this.remoteUrl = options.remoteUrl;
+    this.obj = options.obj || {};
     this.observer = null;
     this.referer = null;
-
-    var useWebSocket = false;
+    this.onRemoteChange = options.onRemoteChange;
+    
+    useWebSocket = options.useWebSocket || false;
     var that = this;
     Object.defineProperty(this, "useWebSocket", {
       get: function () {
@@ -47,11 +53,22 @@
       }
     });
 
-    this.localPatchQueue = [];
     this.handleResponseCookie();
 
+    if(options.localVersionPath){
+      if(!options.remoteVersionPath){
+        //just versioning
+        this.queue = new JSONPatchQueueSynchronous(options.localVersionPath, jsonpatch.apply, options.purity);
+      } else {
+        // double versioning or OT
+        this.queue = options.ot ?
+          new JSONPatchOTAgent(JSONPatchOT.transform, [options.localVersionPath, options.remoteVersionPath], jsonpatch.apply, options.purity) :
+          new JSONPatchQueue([options.localVersionPath, options.remoteVersionPath], jsonpatch.apply, options.purity); // full or noop OT
+      }
+    }
+
     this.ignoreCache = [];
-    this.ignoreAdd = null; //undefined, null or regexp (tested against JSON Pointer in JSON Patch)
+    this.ignoreAdd = options.ignoreAdd || null; //undefined, null or regexp (tested against JSON Pointer in JSON Patch)
 
     //usage:
     //puppet.ignoreAdd = null;  //undefined or null means that all properties added on client will be sent to server
@@ -59,21 +76,8 @@
     //puppet.ignoreAdd = /\/\$.+/; //ignore the "add" operations of properties that start with $
     //puppet.ignoreAdd = /\/_.+/; //ignore the "add" operations of properties that start with _
 
-    this.cancelled = false;
-    this.lastRequestPromise = this.xhr(this.remoteUrl, 'application/json', null, this.bootstrap.bind(this));
+    this.xhr(this.remoteUrl, 'application/json', null, this.bootstrap.bind(this, options.callback) );
   }
-
-  /**
-   * PuppetJsClickTrigger$ contains Unicode symbols for "NULL" text rendered stylized using Unicode
-   * character "SYMBOL FOR NULL" (2400)
-   *
-   * With PuppetJs, any property having `null` value will be rendered as stylized "NULL" text
-   * to emphasize that it probably should be set as empty string instead.
-   *
-   * The benefit of having this string is that any local change to `null` value (also
-   * from `null` to `null`) can be detected and sent as `null` to the server.
-   */
-  var PuppetJsClickTrigger$ = "\u2400";
 
   function markObjPropertyByPath(obj, path) {
     var keys = path.split('/');
@@ -88,10 +92,7 @@
 
   function placeMarkers(parent, key) {
     var subject = parent[key];
-    if (subject === null) {
-      parent[key] = PuppetJsClickTrigger$;
-    }
-    else if (typeof subject === 'object' && !subject.hasOwnProperty('$parent')) {
+    if (subject !== null && typeof subject === 'object' && !subject.hasOwnProperty('$parent')) {
       Object.defineProperty(subject, '$parent', {
         enumerable: false,
         get: function () {
@@ -125,17 +126,21 @@
   }
   /**
    * [bootstrap description]
-   * @param  {[type]} res [description]
-   * @return {Promise || true}     Promise for #webSocketUpgrade or just `true` is websockets disabled.
+   * @param  {XHRResponse} res XHR response
+   * @return {Puppet}     itself
    */
-  Puppet.prototype.bootstrap = function (res) {
+  Puppet.prototype.bootstrap = function (callback, res) {
     var tmp = JSON.parse(res.responseText);
     recursiveExtend(this.obj, tmp);
 
+    if (this.debug) {
+      this.remoteObj = JSON.parse(JSON.stringify(this.obj));
+    }
+
     recursiveMarkObjProperties(this, "obj");
     this.observe();
-    if (this.callback) {
-      this.callback(this.obj);
+    if (callback) {
+      callback.call(this, this.obj);
     }
     if (lastClickHandler) {
       document.body.removeEventListener('click', lastClickHandler);
@@ -146,45 +151,45 @@
     document.body.addEventListener('click', lastClickHandler = this.clickHandler.bind(this));
     window.addEventListener('popstate', lastPopstateHandler = this.historyHandler.bind(this)); //better here than in constructor, because Chrome triggers popstate on page load
     window.addEventListener('puppet-redirect-pushstate', lastPushstateHandler = this.historyHandler.bind(this));
-    document.body.addEventListener('blur', lastBlurHandler = this.sendLocalChange.bind(this), true);
+    document.body.addEventListener('blur', lastBlurHandler = this.clickAndBlurCallback.bind(this), true);
 
     if (!lastPuppet) {
       lastPuppet = this;
       this.fixShadowRootClicks();
     }
 
-    return this.useWebSocket ? this.webSocketUpgrade() : true ;
+    if (this.useWebSocket){
+      this.webSocketUpgrade();
+    }
+    return this;
   };
 
   /**
    * Send a WebSocket upgrade request to the server.
    * For testing purposes WS upgrade url is hardcoded now in PuppetJS (replace __default/ID with __default/wsupgrade/ID)
    * In future, server should suggest the WebSocket upgrade URL
-   * @returns {Promise} that WS get opened, resolves/rejects with WS event [description]
+   * @returns {WebSocket} created WebSocket
    */
-  Puppet.prototype.webSocketUpgrade = function () {
+  Puppet.prototype.webSocketUpgrade = function (callback, response) {
     var that = this;
     var host = window.location.host;
     var wsPath = this.referer.replace(/__([^\/]*)\//g, "__$1/wsupgrade/");
     var upgradeURL = "ws://" + host + wsPath;
-    return new Promise(function (resolve, reject) {
-      that._ws = new WebSocket(upgradeURL);
-      that._ws.onopen = function (event) {
-        resolve( event );
-      };
-      that._ws.onmessage = function (event) {
-        var patches = JSON.parse(event.data);
-        that.handleRemoteChange(patches);
-        that.webSocketSendResolve( event );
-      };
-      that._ws.onerror = function (event) {
-        that.showError("WebSocket connection could not be made", (event.data || "") + "\nCould not connect to: " + upgradeURL);
-        reject( event );
-      };
-      that._ws.onclose = function (event) {
-        that.showError("WebSocket connection closed", event.code + " " + event.reason);
-      };
-    });
+
+    that._ws = new WebSocket(upgradeURL);
+    that._ws.onopen = function (event) {
+      //TODO: trigger on-ready event (tomalec)
+    };
+    that._ws.onmessage = function (event) {
+      var patches = JSON.parse(event.data);
+      that.handleRemoteChange(patches);
+    };
+    that._ws.onerror = function (event) {
+      that.showError("WebSocket connection could not be made", (event.data || "") + "\nCould not connect to: " + upgradeURL);
+    };
+    that._ws.onclose = function (event) {
+      that.showError("WebSocket connection closed", event.code + " " + event.reason);
+    };
   };
 
   Puppet.prototype.handleResponseHeader = function (xhr) {
@@ -217,124 +222,147 @@
   };
 
   Puppet.prototype.observe = function () {
-    this.cancelled = false;
-    this.observer = jsonpatch.observe(this.obj, this.queueLocalChange.bind(this));
+    this.observer = jsonpatch.observe(this.obj, this.filterChangedCallback.bind(this));
   };
 
   Puppet.prototype.unobserve = function () {
-    this.cancelled = true;
     if (this.observer) { //there is a bug in JSON-Patch when trying to unobserve something that is already unobserved
       jsonpatch.unobserve(this.obj, this.observer);
       this.observer = null;
     }
   };
 
-  Puppet.prototype.queueLocalChange = function (patches) {
-    Array.prototype.push.apply(this.localPatchQueue, patches);
-    if ((document.activeElement.nodeName !== 'INPUT' && document.activeElement.nodeName !== 'TEXTAREA') || document.activeElement.getAttribute('update-on') === 'input') {
-      this.flattenPatches(this.localPatchQueue);
-      if (this.localPatchQueue.length) {
-        this.handleLocalChange(this.localPatchQueue);
-        this.localPatchQueue.length = 0;
+  Puppet.prototype.filterChangedCallback = function (patches) {
+    this.filterIgnoredPatches(patches);
+    // do nothing for empty change
+    if(patches.length){
+      // TODO: Find out nicer solution, as currently `.activeElement` does not necessarily matches changed node (tomalec)
+      if ((document.activeElement.nodeName !== 'INPUT' && document.activeElement.nodeName !== 'TEXTAREA') || document.activeElement.getAttribute('update-on') === 'input') {
+        this.handleLocalChange(patches);
+        // Clear already processed patch sequence, 
+        // as `jsonpatch.generate` may return this object to for example `#clickAndBlurCallback`
+        patches.length = 0; 
       }
     }
   };
 
-  Puppet.prototype.sendLocalChange = function (ev) {
+  Puppet.prototype.clickAndBlurCallback = function (ev) {
     if (ev && (ev.target === document.body || ev.target.nodeName === "BODY")) { //Polymer warps ev.target so it is not exactly document.body
       return; //IE triggers blur event on document.body. This is not what we need
     }
-    jsonpatch.generate(this.observer);
-    this.flattenPatches(this.localPatchQueue);
-    if (this.localPatchQueue.length) {
-      this.handleLocalChange(this.localPatchQueue);
-      this.localPatchQueue.length = 0;
+    var patches = jsonpatch.generate(this.observer); // calls also observe callback -> #filterChangedCallback
+    if(patches.length){
+      this.handleLocalChange(patches);
     }
   };
 
-  Puppet.prototype.isIgnored = function (path, op) {
-    if (this.ignoreAdd) {
-      if (op === 'add' && this.ignoreAdd.test(path)) {
-        this.ignoreCache[path] = true;
-        return true;
-      }
-      var arr = path.split('/');
-      var joined = '';
-      for (var i = 1, ilen = arr.length; i < ilen; i++) {
-        joined += '/' + arr[i];
-        if (this.ignoreCache[joined]) {
-          return true; //once we decided to ignore something that was added, other operations (replace, remove, ...) are ignored as well
-        }
+  function isIgnored(pattern, ignoreCache, path, op) {
+    if (op === 'add' && pattern.test(path)) {
+      ignoreCache[path] = true;
+      return true;
+    }
+    var arr = path.split('/');
+    var joined = '';
+    for (var i = 1, ilen = arr.length; i < ilen; i++) {
+      joined += '/' + arr[i];
+      if (ignoreCache[joined]) {
+        return true; //once we decided to ignore something that was added, other operations (replace, remove, ...) are ignored as well
       }
     }
     return false;
-  };
+  }
 
-  //merges redundant patches and ignores private member changes
-  Puppet.prototype.flattenPatches = function (patches) {
-    var seen = {};
-    for (var i = 0, ilen = patches.length; i < ilen; i++) {
-      if (this.isIgnored(patches[i].path, patches[i].op)) { //if it is ignored, remove patch
-        patches.splice(i, 1); //ignore changes to properties that start with PRIVATE_PREFIX
-        ilen--;
-        i--;
-      }
-      else if (patches[i].op === 'replace') { //if it is already seen in the patches array, replace the previous instance
-        if (seen[patches[i].path] !== undefined) {
-          patches[seen[patches[i].path]] = patches[i];
-          patches.splice(i, 1);
+  //ignores private member changes
+  Puppet.prototype.filterIgnoredPatches = function (patches) {
+    if(this.ignoreAdd){
+      for (var i = 0, ilen = patches.length; i < ilen; i++) {
+        if (isIgnored(this.ignoreAdd, this.ignoreCache, patches[i].path, patches[i].op)) { //if it is ignored, remove patch
+          patches.splice(i, 1); //ignore changes to properties that start with PRIVATE_PREFIX
           ilen--;
           i--;
         }
-        else {
-          seen[patches[i].path] = i;
-        }
       }
     }
+    return patches;
   };
 
   Puppet.prototype.handleLocalChange = function (patches) {
     var that = this;
-    var txt = JSON.stringify(patches);
+    
+    if(this.debug) {
+      var errors = this.validatePatches(patches, this.remoteObj, true);
+      errors.forEach(function(error, index) {
+        if(error) {
+          that.showError("Outgoing patch validation error", error + "\n\nIn patch:\n\n" + JSON.stringify(patches[index]) );
+        }
+      });
+    }
+
+    var txt = JSON.stringify( this.queue? this.queue.send(patches) : patches);
     if (txt.indexOf('__Jasmine_been_here_before__') > -1) {
       throw new Error("PuppetJs did not handle Jasmine test case correctly");
     }
     if (this.useWebSocket) {
       if(!this._ws) {
-        this.lastRequestPromise = this.lastRequestPromise.then( this.webSocketUpgrade.bind(this) );
-      }
-      this.lastRequestPromise = this.lastRequestPromise.then( this.webSocketSend.bind(this,txt) );
+        this.webSocketUpgrade(function(){
+      that._ws.send(txt);
+    });
+      } else {
+    this._ws.send(txt);
+    }
     }
     else {
       //"referer" should be used as the url when sending JSON Patches (see https://github.com/PuppetJs/PuppetJs/wiki/Server-communication)
-      this.lastRequestPromise = this.lastRequestPromise.then(function () {
-        return that.xhr(that.referer || that.remoteUrl, 'application/json-patch+json', txt, function (res) {
+      this.xhr(that.referer || that.remoteUrl, 'application/json-patch+json', txt, function (res) {
           var patches = JSON.parse(res.responseText || '[]'); //fault tolerance - empty response string should be treated as empty patch array
           that.handleRemoteChange(patches);
-        })
-      });
+        });
     }
     this.unobserve();
     patches.forEach(function (patch) {
-      if ((patch.op === "add" || patch.op === "replace" || patch.op === "test") && patch.value === null) {
-        patch.value = PuppetJsClickTrigger$;
-        jsonpatch.apply(that.obj, [patch]);
-      }
       markObjPropertyByPath(that.obj, patch.path);
     });
     this.observe();
   };
 
+  /**
+   * Performs patch sequence validation using Fast-JSON-Patch. Only run when the `debug` flag is set to `true`.
+   * Can be overridden/monkey patched to add more validations.
+   * Additional parameter `isOutgoing` allows to make validations depending whether the sequence is incoming or outgoing.
+   * @param sequence
+   * @param tree
+   * @param isOutgoing
+   * @returns {Array}
+   */
+  Puppet.prototype.validatePatches = function (sequence, tree, isOutgoing) {
+    var errors = jsonpatch.validate(sequence, tree);
+    return errors;
+  };
+
   Puppet.prototype.handleRemoteChange = function (patches) {
+    // Versioning: versionedpatch.rev
+    var that = this;
+
     if (!this.observer) {
       return; //ignore remote change if we are not watching anymore
     }
-    if (patches.length === void 0) {
-      throw new Error("Patches should be an array");
+
+    if(this.debug) {
+      var errors = this.validatePatches(patches, this.obj, false);
+      errors.forEach(function(error, index) {
+        if(error) {
+          that.showError("Incoming patch validation error", error + "\n\nIn patch:\n\n" + JSON.stringify(patches[index]));
+        }
+      });
     }
+
     this.unobserve();
-    jsonpatch.apply(this.obj, patches);
-    var that = this;
+    if(this.queue){
+      this.queue.receive(this.obj, patches); 
+    }else{
+      jsonpatch.apply(this.obj, patches);      
+    }
+
     patches.forEach(function (patch) {
       if (patch.path === "") {
         var desc = JSON.stringify(patches);
@@ -351,16 +379,18 @@
     if (this.onRemoteChange) {
       this.onRemoteChange(patches);
     }
+
+    if(this.debug) {
+      this.remoteObj = JSON.parse(JSON.stringify(this.obj));
+    }
   };
 
   Puppet.prototype.changeState = function (href) {
     var that = this;
-    this.lastRequestPromise = this.lastRequestPromise.then(function () {
-      return that.xhr(href, 'application/json-patch+json', null, function (res) {
-        var patches = JSON.parse(res.responseText || '[]'); //fault tolerance - empty response string should be treated as empty patch array
-        that.handleRemoteChange(patches);
-      })
-    });
+        return that.xhr(href, 'application/json-patch+json', null, function (res) {
+          var patches = JSON.parse(res.responseText || '[]'); //fault tolerance - empty response string should be treated as empty patch array
+          that.handleRemoteChange(patches);
+        });
   };
 
   Puppet.prototype.clickHandler = function (event) {
@@ -395,7 +425,7 @@
       event.preventDefault();
     }
     else {
-      this.sendLocalChange(); //needed for checkbox
+      this.clickAndBlurCallback(); //needed for checkbox
     }
   };
 
@@ -421,7 +451,7 @@
         DIV.style.border = '1px solid #dFb5b4';
         DIV.style.background = '#fcf2f2';
         DIV.style.padding = '10px 16px';
-        DIV.style.position = 'absolute';
+        DIV.style.position = 'fixed';
         DIV.style.top = '0';
         DIV.style.left = '0';
         DIV.style.zIndex = '999';
@@ -446,66 +476,46 @@
    * @param url (Optional) URL to send the request. If empty string, undefined or null given - the request will be sent to window location
    * @param accept (Optional) HTTP accept header
    * @param data (Optional) Data payload
-   * @param callback (Optional) function
+   * @param [callback(response)] callback to be called in context of puppet with response as argument
    * @param beforeSend (Optional) Function that modifies the XHR object before the request is sent. Added for hackability
-   * @returns {Promise} Promise that XHR will be sent. Resolves with response, or callback's result for response (if callback given)
+   * @returns {XMLHttpRequest} performed XHR
    */
   Puppet.prototype.xhr = function (url, accept, data, callback, beforeSend) {
     //this.handleResponseCookie();
     cookie.erase('Location'); //more invasive cookie erasing because sometimes the cookie was still visible in the requests
     var that = this;
-    return new Promise(function (resolve, reject) {
-      if (that.cancelled) {
-        console.error("PuppetJs: Promise cancelled on request");
-        reject();
-        return;
-      }
-      var req = new XMLHttpRequest();
-      req.onload = function () {
-        var res = this;
-        that.handleResponseCookie();
-        that.handleResponseHeader(res);
-        if (res.status >= 400 && res.status <= 599) {
-          that.showError('PuppetJs JSON response error', 'Server responded with error ' + res.status + ' ' + res.statusText + '\n\n' + res.responseText);
-          reject();
-        }
-        else {
-          resolve( callback && callback.call(that, res) || res);
-        }
-      };
-      url = url || window.location.href;
-      if (data) {
-        req.open("PATCH", url, true);
-        req.setRequestHeader('Content-Type', 'application/json-patch+json');
+    var req = new XMLHttpRequest();
+    req.onload = function () {
+      var res = this;
+      that.handleResponseCookie();
+      that.handleResponseHeader(res);
+      if (res.status >= 400 && res.status <= 599) {
+        that.showError('PuppetJs JSON response error', 'Server responded with error ' + res.status + ' ' + res.statusText + '\n\n' + res.responseText);
       }
       else {
-        req.open("GET", url, true);
+        callback && callback.call(that, res);
       }
-      if (accept) {
-        req.setRequestHeader('Accept', accept);
-      }
-      if (that.referer) {
-        req.setRequestHeader('X-Referer', that.referer);
-      }
-      if (beforeSend) {
-        beforeSend.call(that, req);
-      }
-      req.send(data);
-    });
-  };
+    };
+    url = url || window.location.href;
+    if (data) {
+      req.open("PATCH", url, true);
+      req.setRequestHeader('Content-Type', 'application/json-patch+json');
+    }
+    else {
+      req.open("GET", url, true);
+    }
+    if (accept) {
+      req.setRequestHeader('Accept', accept);
+    }
+    if (that.referer) {
+      req.setRequestHeader('X-Referer', that.referer);
+    }
+    if (beforeSend) {
+      beforeSend.call(that, req);
+    }
+    req.send(data);
 
-  /**
-   * Internal method to perform WebSocket request that returns a promise which is resolved when the response comes
-   * @param data Data payload
-   * @returns {Promise} that data will be sent to WS, resolves with WS event
-   * @see #webSocketUpgrade
-   */
-  Puppet.prototype.webSocketSend = function (data) {
-    var that = this;
-    return new Promise(function (resolve, reject) {
-      that.webSocketSendResolve = resolve;
-      that._ws.send(data);
-    });
+    return req;
   };
 
   /**

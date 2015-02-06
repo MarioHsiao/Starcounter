@@ -51,31 +51,6 @@ namespace SiegeTest {
 
                 settings.Init(args);
 
-                // Waiting until host is available.
-                Boolean hostIsReady = false;
-                Console.Write("Waiting for the host to be ready");
-
-                Response resp;
-
-                for (Int32 i = 0; i < 10; i++) {
-
-                    resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerPort + "/echotest", "Test!", null, 5000);
-
-                    if ((200 == resp.StatusCode) && ("Test!" == resp.Body)) {
-
-                        hostIsReady = true;
-                        break;
-                    }
-
-                    Thread.Sleep(3000);
-                    Console.Write(".");
-                }
-
-                Console.WriteLine();
-
-                if (!hostIsReady)
-                    throw new Exception("Host is not ready by some reason!");
-
                 Console.Write("Starting Siege test...");
 
                 ProcessStartInfo processInfo = new ProcessStartInfo();
@@ -113,7 +88,7 @@ namespace SiegeTest {
                     throw new Exception("Number of failed transactions is non-zero: " + output);
                 }
 
-                resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerPort + "/echotest", "Test!", null, 5000);
+                Response resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerPort + "/echotest", "Test!", null, 5000);
 
                 if ((200 != resp.StatusCode) || ("Test!" != resp.Body)) {
                     throw new Exception("Error accessing code-host after Siege run!");
