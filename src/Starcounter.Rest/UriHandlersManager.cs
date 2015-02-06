@@ -143,6 +143,15 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
+        /// Is proxy delegate?
+        /// </summary>
+        public Boolean IsProxyDelegate {
+            get {
+                return (proxyDelegate_ != null);
+            }
+        }
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public UserHandlerInfo(UInt16 handlerId) {

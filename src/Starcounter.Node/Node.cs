@@ -196,6 +196,15 @@ namespace Starcounter
         Socket aggrSocket_;
 
         /// <summary>
+        /// Disconnecting aggregation socket.
+        /// </summary>
+        public void StopAggregation() {
+            if (UsesAggregation()) {
+                aggrSocket_.Disconnect(false);
+            }
+        }
+
+        /// <summary>
         /// Returns True if this node uses aggregation.
         /// </summary>
         /// <returns></returns>
@@ -979,6 +988,11 @@ DO_CALL_ON_GIVEN_LEVEL:
                         {
                             Thread.Sleep(1);
 
+                            // Checking if socket is not connected.
+                            if (!aggrSocket_.Connected) {
+                                return;
+                            }
+
                             // Receiving from scratch.
                             num_received_bytes = 0;
 
@@ -1073,6 +1087,11 @@ START_RECEIVING:
                         {
                             // Sleeping some time.
                             Thread.Sleep(1);
+
+                            // Checking if socket is not connected.
+                            if (!aggrSocket_.Connected) {
+                                return;
+                            }
 
                             // Checking if we have anything to send.
                             Int32 send_bytes_offset = 0;
