@@ -580,8 +580,9 @@ namespace Starcounter {
         }
 
         internal void CleanupOldVersionLogs() {
-            var root = this.Data;
-            root.CleanupOldVersionLogs(ClientServerVersion);
+            var root = this.GetFirstData();
+            if (root != null)
+                root.CleanupOldVersionLogs(ClientServerVersion);
         }
 
         /// <summary>
