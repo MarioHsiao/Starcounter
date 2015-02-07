@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 
 namespace NodeTest {
@@ -34,6 +35,24 @@ namespace NodeTest {
             new Request { Uri = "/app/services/LogService.js" },
             new Request { Uri = "/app/partials/applications.html" }
         };
+
+        static void CreateRequestsFromFile(String filePath) {
+
+            String[] urls = File.ReadAllLines(filePath);
+
+            RequestsToTest = new Request[urls.Length];
+
+            for (Int32 i = 0; i < urls.Length; i++) {
+
+                if ((urls[i].Length < 1) || (!urls[i].StartsWith("/"))) {
+                    throw new ArgumentException("Wrong input URL: " + urls[i]);
+                }
+
+                RequestsToTest[i] = new Request {
+                    Uri = urls[i]
+                };
+            }
+        }
 
         static Int32 RunTest(Boolean useAggregation) {
 
@@ -121,6 +140,8 @@ namespace NodeTest {
         static Int32 Main(string[] args) {
 
             //Debugger.Launch();
+
+            //CreateRequestsFromFile("input.txt");
 
             Int32 errCode = RunTest(false);
             if (0 != errCode)
