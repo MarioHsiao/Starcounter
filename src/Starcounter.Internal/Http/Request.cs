@@ -925,7 +925,9 @@ namespace Starcounter {
                     requestBytes_ = buf;
                     requestBytesLen_ = writer.Written;
 
-                    System.Diagnostics.Debug.Assert(requestBytesLen_ <= estimatedNumBytes);
+                    if (requestBytesLen_ > estimatedNumBytes) {
+                        throw new ArgumentOutOfRangeException("Terrible situation: requestBytesLen_ > estimatedNumBytes");
+                    }
                 }
             }
 

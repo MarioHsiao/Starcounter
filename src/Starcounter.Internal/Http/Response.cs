@@ -942,7 +942,9 @@ namespace Starcounter
             responseBytes_ = buf;
             responseSizeBytes_ = writer.Written;
 
-            System.Diagnostics.Debug.Assert(responseSizeBytes_ <= estimatedNumBytes);
+            if (responseSizeBytes_ > estimatedNumBytes) {
+                throw new ArgumentOutOfRangeException("Terrible situation: responseSizeBytes_ > estimatedNumBytes");
+            }
 
             customFields_ = false;
         }
