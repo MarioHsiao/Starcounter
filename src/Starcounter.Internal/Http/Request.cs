@@ -799,16 +799,16 @@ namespace Starcounter {
         /// <summary>
         /// Estimate response size in bytes.
         /// </summary>
-		private int EstimateNeededSize() {
+        private int EstimateNeededSize() {
 
-			int size = HttpHeadersUtf8.TotalByteSize;
+            int size = HttpHeadersUtf8.TotalByteSize;
 
-			size += methodString_.Length;
-			size += uriString_.Length;
-			size += hostNameString_.Length;
-			
-			if (null != headersString_)
-				size += headersString_.Length;
+            size += methodString_.Length;
+            size += uriString_.Length;
+            size += hostNameString_.Length;
+
+            if (null != headersString_)
+                size += headersString_.Length;
 
             if (null != customHeaderFields_) {
                 foreach (KeyValuePair<string, string> h in customHeaderFields_) {
@@ -816,57 +816,64 @@ namespace Starcounter {
                 }
             }
 
-			if (null != bodyString_)
-				size += bodyString_.Length << 1;
-			else if (null != bodyBytes_) 
-				size += bodyBytes_.Length;
+            if (null != cookies_) {
+                foreach (String c in cookies_) {
+                    size += HttpHeadersUtf8.GetCookieStart.Length;
+                    size += c.Length;
+                    size += HttpHeadersUtf8.CRLF.Length;
+                }
+            }
 
-			return size;
-		}
+            if (null != bodyString_)
+                size += bodyString_.Length << 1;
+            else if (null != bodyBytes_)
+                size += bodyBytes_.Length;
+
+            return size;
+        }
 
 		/// <summary>
 		/// Constructs Response from fields that are set.
 		/// </summary>
-		public Int32 ConstructFromFields(Boolean dontModifyHeaders = false, Byte[] givenBuffer = null) {
+        public Int32 ConstructFromFields(Boolean dontModifyHeaders = false, Byte[] givenBuffer = null) {
 
-			// Checking if we have a custom response.
-			if (!customFields_)
-				return 0;
+            // Checking if we have a custom response.
+            if (!customFields_)
+                return 0;
 
-			if (null == uriString_)
-				throw new ArgumentException("Relative URI should be set when creating custom Request.");
+            if (null == uriString_)
+                throw new ArgumentException("Relative URI should be set when creating custom Request.");
 
             if (null == hostNameString_)
                 hostNameString_ = "SC";
 
-			if (null == methodString_)
-				methodString_ = "GET";
+            if (null == methodString_)
+                methodString_ = "GET";
 
             Utf8Writer writer;
 
             byte[] buf;
-            Int32 estimatedRequestSizeBytes = EstimateNeededSize();
+            Int32 estimatedNumBytes = EstimateNeededSize();
 
             // Checking if we can use given buffer.
-            if ((null != givenBuffer) && (estimatedRequestSizeBytes <= givenBuffer.Length)) {
+            if ((null != givenBuffer) && (estimatedNumBytes <= givenBuffer.Length)) {
                 buf = givenBuffer;
             } else {
-                buf = new byte[estimatedRequestSizeBytes];
+                buf = new byte[estimatedNumBytes];
             }
-            			
-			unsafe {
-				fixed (byte* p = buf) {
-					writer = new Utf8Writer(p);
 
-					writer.Write(methodString_);
-					writer.Write(' ');
-					writer.Write(uriString_);
+            unsafe {
+                fixed (byte* p = buf) {
+                    writer = new Utf8Writer(p);
+
+                    writer.Write(methodString_);
+                    writer.Write(' ');
+                    writer.Write(uriString_);
                     writer.Write(' ');
                     writer.Write(HttpHeadersUtf8.Http11NoSpace);
-					writer.Write(HttpHeadersUtf8.CRLF);
+                    writer.Write(HttpHeadersUtf8.CRLF);
 
-                    if (!dontModifyHeaders)
-                    {
+                    if (!dontModifyHeaders) {
                         writer.Write(HttpHeadersUtf8.HostStart);
                         writer.Write(hostNameString_);
                         writer.Write(HttpHeadersUtf8.CRLF);
@@ -898,31 +905,33 @@ namespace Starcounter {
                         }
                     }
 
-					if (null != bodyString_) {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(writer.GetByteCount(bodyString_));
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-						writer.Write(bodyString_);
-					} else if (null != bodyBytes_) {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(bodyBytes_.Length);
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-						writer.Write(bodyBytes_);
-					} else {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write('0');
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-					}
+                    if (null != bodyString_) {
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write(writer.GetByteCount(bodyString_));
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+                        writer.Write(bodyString_);
+                    } else if (null != bodyBytes_) {
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write(bodyBytes_.Length);
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+                        writer.Write(bodyBytes_);
+                    } else {
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write('0');
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+                    }
 
-					// Finally setting the request bytes.
-					requestBytes_ = buf;
+                    // Finally setting the request bytes.
+                    requestBytes_ = buf;
                     requestBytesLen_ = writer.Written;
-				}
-			}
 
-			customFields_ = false;
+                    System.Diagnostics.Debug.Assert(requestBytesLen_ <= estimatedNumBytes);
+                }
+            }
+
+            customFields_ = false;
             return requestBytesLen_;
-		}
+        }
 
         /// <summary>
         /// Gets the content raw pointer.

@@ -760,18 +760,18 @@ namespace Starcounter
 		/// <summary>
 		/// Constructs response buffer from fields that are set.
 		/// </summary>
-		internal void ConstructFromFields(Request req, Byte[] givenBuffer) {
+        internal void ConstructFromFields(Request req, Byte[] givenBuffer) {
 
-			// Checking if we have a custom response.
-			if (!customFields_)
-				return;
+            // Checking if we have a custom response.
+            if (!customFields_)
+                return;
 
             byte[] buf;
             Utf8Writer writer;
 
-			byte[] bytes = bodyBytes_;
+            byte[] bytes = bodyBytes_;
 
-			if (resource_ != null) {
+            if (resource_ != null) {
 
                 Profiler.Current.Start(ProfilerNames.GetPreferredMimeType);
 
@@ -782,18 +782,18 @@ namespace Starcounter
 
                 Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
 
-				try {
-					bytes = resource_.AsMimeType(mimetype, out mimetype);
-					this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
-				} catch (UnsupportedMimeTypeException exc) {
-					throw new Exception(
-						String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", mimetype.ToString(), exc.ToString()));
-				}
+                try {
+                    bytes = resource_.AsMimeType(mimetype, out mimetype);
+                    this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
+                } catch (UnsupportedMimeTypeException exc) {
+                    throw new Exception(
+                        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", mimetype.ToString(), exc.ToString()));
+                }
 
-				if (bytes == null) {
-					// The preferred requested mime type was not supported, try to see if there are
-					// other options.
-					IEnumerator<MimeType> secondaryChoices = null;
+                if (bytes == null) {
+                    // The preferred requested mime type was not supported, try to see if there are
+                    // other options.
+                    IEnumerator<MimeType> secondaryChoices = null;
                     if (req != null) {
                         secondaryChoices = req.PreferredMimeTypes;
                     } else {
@@ -802,72 +802,73 @@ namespace Starcounter
                         secondaryChoices = l.GetEnumerator();
                     }
 
-					secondaryChoices.MoveNext(); // The first one is already accounted for
+                    secondaryChoices.MoveNext(); // The first one is already accounted for
 
-					while (bytes == null && secondaryChoices.MoveNext()) {
-						mimetype = secondaryChoices.Current;
-						bytes = resource_.AsMimeType(mimetype, out mimetype);
-					}
-					if (bytes == null) {
-						// None of the requested mime types were supported.
-						// We will have to respond with a "Not Acceptable" message.
-						statusCode_ = 406;
-					} else {
-						this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
-					}
-				}
-				// We have our precious bytes. Let's wrap them up in a response.
-			}
+                    while (bytes == null && secondaryChoices.MoveNext()) {
+                        mimetype = secondaryChoices.Current;
+                        bytes = resource_.AsMimeType(mimetype, out mimetype);
+                    }
+                    if (bytes == null) {
+                        // None of the requested mime types were supported.
+                        // We will have to respond with a "Not Acceptable" message.
+                        statusCode_ = 406;
+                    } else {
+                        this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
+                    }
+                }
+                // We have our precious bytes. Let's wrap them up in a response.
+            }
 
-            Int32 numBytes = EstimateNeededSize(bytes);
+            Int32 estimatedNumBytes = EstimateNeededSize(bytes);
 
             // Checking if we have a given buffer.
             if (givenBuffer != null) {
 
-                if (numBytes > givenBuffer.Length) {
-                    buf = new Byte[numBytes];
+                if (estimatedNumBytes > givenBuffer.Length) {
+                    buf = new Byte[estimatedNumBytes];
                 } else {
                     buf = givenBuffer;
                 }
             } else {
 
-                buf = new Byte[numBytes];
+                buf = new Byte[estimatedNumBytes];
             }
 
-			unsafe {
-				fixed (byte* p = buf) {
+            unsafe {
+                fixed (byte* p = buf) {
                     writer = new Utf8Writer(p);
 
                     if (wsHandshakeResp_ == null) {
 
-					    writer.Write(HttpHeadersUtf8.Http11);
+                        writer.Write(HttpHeadersUtf8.Http11);
 
-					    if (statusCode_ > 0) {
-						    writer.Write(statusCode_);
-						    writer.Write(' ');
-						
-						    // Checking if Status Description is set.
-						    if (null != statusDescription_)
-							    writer.Write(statusDescription_);
-						    else 
-							    writer.Write("OK");
+                        if (statusCode_ > 0) {
+                            writer.Write(statusCode_);
+                            writer.Write(' ');
 
-						    writer.Write(HttpHeadersUtf8.CRLF);
-					    } else {
-						    // Checking if Status Description is set.
-						    if (null != statusDescription_) {
-							    writer.Write(200);
-							    writer.Write(' ');
-							    writer.Write(statusDescription_);
-						    } else
-							    writer.Write("200 OK");
-						    writer.Write(HttpHeadersUtf8.CRLF);
-					    }
+                            // Checking if Status Description is set.
+                            if (null != statusDescription_)
+                                writer.Write(statusDescription_);
+                            else
+                                writer.Write("OK");
+
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        } else {
+                            // Checking if Status Description is set.
+                            if (null != statusDescription_) {
+                                writer.Write(200);
+                                writer.Write(' ');
+                                writer.Write(statusDescription_);
+                            } else {
+                                writer.Write("200 OK");
+                            }
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        }
                     } else {
                         writer.Write(wsHandshakeResp_);
                     }
 
-					writer.Write(HttpHeadersUtf8.ServerSc);
+                    writer.Write(HttpHeadersUtf8.ServerSc);
 
                     Boolean addSetCookie = true;
                     Boolean cacheControl = false;
@@ -915,52 +916,54 @@ namespace Starcounter
                         }
                     }
 
-					if (null != bodyString_) {
-						if (null != bytes)
-							throw new ArgumentException("Either body string, body bytes or resource can be set for Response.");
+                    if (null != bodyString_) {
+                        if (null != bytes)
+                            throw new ArgumentException("Either body string, body bytes or resource can be set for Response.");
 
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(writer.GetByteCount(bodyString_));
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);	
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write(writer.GetByteCount(bodyString_));
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
 
-						writer.Write(bodyString_);
-					} else if (null != bytes) {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write(bytes.Length);
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-						writer.Write(bytes);
-					} else {
-						writer.Write(HttpHeadersUtf8.ContentLengthStart);
-						writer.Write('0');
-						writer.Write(HttpHeadersUtf8.CRLFCRLF);
-					}
-				}
-			}
+                        writer.Write(bodyString_);
+                    } else if (null != bytes) {
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write(bytes.Length);
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+                        writer.Write(bytes);
+                    } else {
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write('0');
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+                    }
+                }
+            }
 
             // Finally setting the response bytes.
             responseBytes_ = buf;
             responseSizeBytes_ = writer.Written;
 
-			customFields_ = false;
-		}
+            System.Diagnostics.Debug.Assert(responseSizeBytes_ <= estimatedNumBytes);
+
+            customFields_ = false;
+        }
 
         /// <summary>
         /// Estimates the amount of bytes needed to represent this resource.
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-		private int EstimateNeededSize(byte[] bytes) {
+        private int EstimateNeededSize(byte[] bytes) {
 
-			// The sizes of the strings here is not accurate. We are mainly interested in making sure
-			// that we will never have a buffer overrun so we take the length of the strings * 2.
-			int size = HttpHeadersUtf8.TotalByteSize;
+            // The sizes of the strings here is not accurate. We are mainly interested in making sure
+            // that we will never have a buffer overrun so we take the length of the strings * 2.
+            int size = HttpHeadersUtf8.TotalByteSize;
 
             if (wsHandshakeResp_ != null) {
                 size += wsHandshakeResp_.Length;
             }
 
-			if (statusDescription_ != null)
-				size += statusDescription_.Length;
+            if (statusDescription_ != null)
+                size += statusDescription_.Length;
 
             if (null != customHeaderFields_) {
                 foreach (KeyValuePair<string, string> h in customHeaderFields_) {
@@ -968,18 +971,27 @@ namespace Starcounter
                 }
             }
 
-			if (null != ScSessionClass.GetCurrent()) {
-				size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
-				size += ScSessionClass.GetCurrent().ToAsciiString().Length;
-			}
+            if (null != ScSessionClass.GetCurrent()) {
+                size += ScSessionClass.DataLocationUriPrefixEscaped.Length;
+                size += ScSessionClass.GetCurrent().ToAsciiString().Length;
+            }
 
-			if (null != bodyString_)
-				size += (bodyString_.Length << 1); // Multiplying by 2 for possible UTF8.
-			else if (null != bytes)
-				size += bytes.Length;
+            if (null != cookies_) {
+                foreach (String c in cookies_) {
+                    size += HttpHeadersUtf8.SetCookieStart.Length;
+                    size += c.Length;
+                    size += HttpHeadersUtf8.CRLF.Length;
+                }
+            }
 
-			return size;
-		}
+            if (null != bodyString_) {
+                size += (bodyString_.Length << 1); // Multiplying by 2 for possible UTF8.
+            } else if (null != bytes) {
+                size += bytes.Length;
+            }
+
+            return size;
+        }
 
         /// <summary>
         /// Checks if status code is resembling success.
