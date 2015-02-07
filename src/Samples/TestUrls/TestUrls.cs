@@ -163,16 +163,34 @@ namespace NodeTest {
 
             //Debugger.Launch();
 
-            String urlsFileName = "input.txt";
+            Console.WriteLine("Usage: TestUrls.exe --ServerIp=127.0.0.1 --ServerPort=8080 --UrlsFile=urls.txt");
+            Console.WriteLine();
+
+            String urlsFileName = "urls.txt";
+
+            // Parsing parameters.
+            foreach (String arg in args) {
+                if (arg.StartsWith("--ServerIp=")) {
+                    ServerIp = arg.Substring("--ServerIp=".Length);
+                } else if (arg.StartsWith("--ServerPort=")) {
+                    ServerPort = UInt16.Parse(arg.Substring("--ServerPort=".Length));
+                } else if (arg.StartsWith("--UrlsFile=")) {
+                    urlsFileName = arg.Substring("--UrlsFile=".Length);
+                }
+            }
 
             // Checking if we have an input file.
-            if (File.Exists(urlsFileName))
+            if (File.Exists(urlsFileName)) {
+                Console.WriteLine("Using input URLs file: " + urlsFileName);
                 ReadGETUrlsFromFile(urlsFileName);
+            }
 
+            // Running with async node.
             Int32 errCode = RunTest(false);
             if (0 != errCode)
                 return errCode;
 
+            // Running with aggregation.
             RunTest(true);
             if (0 != errCode)
                 return errCode;
