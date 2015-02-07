@@ -8,7 +8,7 @@ using System.Threading;
 namespace NodeTest {
     class NodeTest {
 
-        static Int32 NumRepetitionsForEachRequest = 100000;
+        static Int32 NumRequestsPerUrl = 100000;
 
         static String ServerIp = "127.0.0.1";
 
@@ -51,7 +51,7 @@ namespace NodeTest {
             for (Int32 i = 0; i < urls.Length; i++) {
 
                 if ((urls[i].Length < 1) || (!urls[i].StartsWith("/"))) {
-                    throw new ArgumentException("Wrong input URL: " + urls[i]);
+                    throw new ArgumentException("Wrong input URL string: " + urls[i]);
                 }
 
                 RequestsToTest[i] = new Request {
@@ -62,8 +62,8 @@ namespace NodeTest {
 
         static Int32 RunTest(Boolean useAggregation) {
 
-            Console.WriteLine(String.Format("Starting test on {0}:{1} with aggregation flag {2}.",
-                ServerIp, ServerPort, useAggregation));
+            Console.WriteLine(String.Format("Starting test on {0}:{1} with aggregation flag {2} and NumRequestsPerUrl {3}.",
+                ServerIp, ServerPort, useAggregation, NumRequestsPerUrl));
 
             Int32 numOk = 0, numFailed = 0, numProcessed = 0, counter = 0;
 
@@ -76,7 +76,7 @@ namespace NodeTest {
                 sw.Start();
 
                 // Repeating needed amount of times.
-                for (Int32 i = 0; i < NumRepetitionsForEachRequest; i++) {
+                for (Int32 i = 0; i < NumRequestsPerUrl; i++) {
 
                     // Going through all requests.
                     for (Int32 n = 0; n < RequestsToTest.Length; n++) {
@@ -105,7 +105,7 @@ namespace NodeTest {
 
                             lock (RequestsToTest) {
 
-                                Console.WriteLine(String.Format("Responses OK: {0}, Failed: {1}, RPS: {2}.",
+                                Console.WriteLine(String.Format("Responses HTTP 2XX: {0}, NOT 2XX: {1}, RPS: {2}.",
                                     numOk, numFailed, (Int32)(numProcessed * 1000.0 / sw.ElapsedMilliseconds)));
                             }
                             counter = 0;
@@ -122,7 +122,7 @@ namespace NodeTest {
 
                     lock (RequestsToTest) {
 
-                        if (numProcessed >= NumRepetitionsForEachRequest * RequestsToTest.Length) {
+                        if (numProcessed >= NumRequestsPerUrl * RequestsToTest.Length) {
                             allProcessed = true;
                             break;
                         }
@@ -133,13 +133,15 @@ namespace NodeTest {
 
                     sw.Stop();
 
-                    Console.WriteLine(String.Format("Test finished successfully! OK: {0}, Failed: {1}, RPS: {2}.",
+                    Console.WriteLine("Test finished!");
+
+                    Console.WriteLine(String.Format("Responses HTTP 2XX: {0}, NOT 2XX: {1}, RPS: {2}.",
                         numOk, numFailed, (Int32)(numProcessed * 1000.0 / sw.ElapsedMilliseconds)));
 
                 } else {
 
                     Console.WriteLine("Failed to wait for correct number of responses: received {0} out of {1}.",
-                        numProcessed, NumRepetitionsForEachRequest * RequestsToTest.Length);
+                        numProcessed, NumRequestsPerUrl * RequestsToTest.Length);
 
                     return 1;
                 }
@@ -164,7 +166,7 @@ namespace NodeTest {
 
             //Debugger.Launch();
 
-            Console.WriteLine("Usage: TestUrls.exe --ServerIp=127.0.0.1 --ServerPort=8080 --UrlsFile=urls.txt");
+            Console.WriteLine("Usage: TestUrls.exe --ServerIp=127.0.0.1 --ServerPort=8080 --UrlsFile=urls.txt --NumRequestsPerUrl=100000");
             Console.WriteLine();
 
             String urlsFileName = "urls.txt";
@@ -177,6 +179,8 @@ namespace NodeTest {
                     ServerPort = UInt16.Parse(arg.Substring("--ServerPort=".Length));
                 } else if (arg.StartsWith("--UrlsFile=")) {
                     urlsFileName = arg.Substring("--UrlsFile=".Length);
+                } else if (arg.StartsWith("--NumRequestsPerUrl=")) {
+                    NumRequestsPerUrl = Int32.Parse(arg.Substring("--NumRequestsPerUrl=".Length));
                 }
             }
 
