@@ -7,12 +7,18 @@ using System.Threading;
 
 namespace NodeTest {
     class NodeTest {
-        static Int32 NumRequests = 100000;
+
+        static Int32 NumRepetitionsForEachRequest = 100000;
+
+        static String ServerIp = "127.0.0.1";
+
+        static UInt16 ServerPort = 8181;
 
         static Request[] RequestsToTest = new Request[] {
+
             /*new Request {
                 Uri =
-                  "/sf2.gif?/api/tracker?url=http://www.hemnet.se/bostad/fritidshus-3rum-ramshyttan-borlange-kommun-sangenvagen-353-6133672&time=0",
+                  "/sf2.gif?/api/tracker?url=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 HeadersDictionary = new Dictionary<String, String>
                 {
                   {"Cookie", "X-Mapping-fjhppofk=41F28B624CBF9949D80949A214991F1C"},
@@ -36,7 +42,7 @@ namespace NodeTest {
             new Request { Uri = "/app/partials/applications.html" }
         };
 
-        static void CreateRequestsFromFile(String filePath) {
+        static void ReadGETUrlsFromFile(String filePath) {
 
             String[] urls = File.ReadAllLines(filePath);
 
@@ -56,23 +62,23 @@ namespace NodeTest {
 
         static Int32 RunTest(Boolean useAggregation) {
 
-            Console.WriteLine("Starting test with aggregation flag: " + useAggregation);
+            Console.WriteLine(String.Format("Starting test on {0}:{1} with aggregation flag {2}.",
+                ServerIp, ServerPort, useAggregation));
 
-            Int32 numProcessed = 0;
+            Int32 numOk = 0, numFailed = 0, numProcessed = 0, counter = 0;
+
             Stopwatch sw = new Stopwatch();
 
-            Node node = new Node("127.0.0.1", 8181, 0, useAggregation);
+            Node node = new Node(ServerIp, ServerPort, 0, useAggregation);
 
             try {
-
-                Console.WriteLine("Starting the test!");
 
                 sw.Start();
 
                 // Repeating needed amount of times.
-                for (Int32 i = 0; i < NumRequests; i++) {
+                for (Int32 i = 0; i < NumRepetitionsForEachRequest; i++) {
 
-                    // Going through all URLs.
+                    // Going through all requests.
                     for (Int32 n = 0; n < RequestsToTest.Length; n++) {
 
                         Int32 m = n;
@@ -80,20 +86,29 @@ namespace NodeTest {
                         // Doing asynchronous node call.
                         node.CustomRESTRequest(RequestsToTest[n], null, (Response resp, Object userObject) => {
 
-                            // Checking response status code.
-                            if (resp.IsSuccessStatusCode) {
+                            lock (RequestsToTest) {
 
-                                lock (RequestsToTest) {
-                                    numProcessed++;
+                                // Checking response status code.
+                                if (resp.IsSuccessStatusCode) {
+                                    numOk++;
+                                } else {
+                                    numFailed++;
                                 }
 
-                            } else {
-
-                                Console.WriteLine("Wrong HTTP response: " + RequestsToTest[m].Uri + ":" + resp.Body);
-
-                                Environment.Exit(1);
+                                numProcessed++;
                             }
                         });
+
+                        // Printing some info.
+                        counter++;
+                        if (10000 == counter) {
+
+                            lock (RequestsToTest) {
+
+                                Console.WriteLine("RPS: " + (Int32)(numProcessed * 1000.0 / sw.ElapsedMilliseconds));
+                            }
+                            counter = 0;
+                        }
                     }
                 }
 
@@ -105,7 +120,8 @@ namespace NodeTest {
                     Thread.Sleep(1000);
 
                     lock (RequestsToTest) {
-                        if (numProcessed >= NumRequests * RequestsToTest.Length) {
+
+                        if (numProcessed >= NumRepetitionsForEachRequest * RequestsToTest.Length) {
                             allProcessed = true;
                             break;
                         }
@@ -113,11 +129,17 @@ namespace NodeTest {
                 }
 
                 if (allProcessed) {
+
                     sw.Stop();
-                    Console.WriteLine("TestUrls finished successfully! Processed: " + numProcessed + ". RPS: " +
-                        numProcessed * 1000.0 / sw.ElapsedMilliseconds);
+
+                    Console.WriteLine(String.Format("Test finished successfully! OK: {0}, Failed: {1}, RPS: {2}.",
+                        numOk, numFailed, (Int32)(numProcessed * 1000.0 / sw.ElapsedMilliseconds)));
+
                 } else {
-                    Console.WriteLine("TestUrls failed with incorrect number of responses: " + numProcessed);
+
+                    Console.WriteLine("Failed to wait for correct number of responses: received {0} out of {1}.",
+                        numProcessed, NumRepetitionsForEachRequest * RequestsToTest.Length);
+
                     return 1;
                 }
 
@@ -141,7 +163,11 @@ namespace NodeTest {
 
             //Debugger.Launch();
 
-            //CreateRequestsFromFile("input.txt");
+            String urlsFileName = "input.txt";
+
+            // Checking if we have an input file.
+            if (File.Exists(urlsFileName))
+                ReadGETUrlsFromFile(urlsFileName);
 
             Int32 errCode = RunTest(false);
             if (0 != errCode)
