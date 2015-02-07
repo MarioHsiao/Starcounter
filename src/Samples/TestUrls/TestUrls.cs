@@ -105,7 +105,8 @@ namespace NodeTest {
 
                             lock (RequestsToTest) {
 
-                                Console.WriteLine("RPS: " + (Int32)(numProcessed * 1000.0 / sw.ElapsedMilliseconds));
+                                Console.WriteLine(String.Format("Responses OK: {0}, Failed: {1}, RPS: {2}.",
+                                    numOk, numFailed, (Int32)(numProcessed * 1000.0 / sw.ElapsedMilliseconds)));
                             }
                             counter = 0;
                         }
