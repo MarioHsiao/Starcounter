@@ -147,6 +147,10 @@ uint32_t PortAggregator(
 
                 // Checking if we have already created socket.
                 if (true != gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
+
+                    // Payload size has been checked, so we can add payload as processed.
+                    num_processed_bytes += static_cast<uint32_t>(ags->size_bytes_);
+
                     // NOTE: If wrong unique index, breaking the whole aggregated receive.
                     break;
                 }
