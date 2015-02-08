@@ -333,7 +333,7 @@ namespace Starcounter
             if (useAggregation)
             {
                 // When aggregating we need more NodeTasks for better network utilization.
-                maxNumAsyncConnections_ = 1024;
+                maxNumAsyncConnections_ = 2048;
 
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
