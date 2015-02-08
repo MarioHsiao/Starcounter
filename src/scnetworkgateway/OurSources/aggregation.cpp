@@ -244,6 +244,8 @@ uint32_t GatewayWorker::SendAggregatedChunks()
         err_code = Send(aggr_sd);
         if (err_code)
             return err_code;
+
+        GW_ASSERT(NULL == aggr_sd);
     }
 
     return 0;
@@ -359,7 +361,7 @@ WRITE_TO_AGGR_SD:
                 if (err_code)
                     return err_code;
 
-                GW_ASSERT(aggr_sd->CompareUniqueSocketId());
+                GW_ASSERT(NULL == aggr_sd);
             }
 
             return 0;
@@ -376,8 +378,6 @@ WRITE_TO_AGGR_SD:
             err_code = Send(aggr_sd);
             if (err_code)
                 return err_code;
-
-            GW_ASSERT(aggr_sd->CompareUniqueSocketId());
 
             GW_ASSERT(NULL == aggr_sd);
 
