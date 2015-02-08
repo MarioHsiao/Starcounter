@@ -147,6 +147,10 @@ uint32_t PortAggregator(
 
                 // Checking if we have already created socket.
                 if (true != gw->CompareUniqueSocketId(ags->socket_info_index_, ags->unique_socket_id_)) {
+
+                    // Payload size has been checked, so we can add payload as processed.
+                    num_processed_bytes += static_cast<uint32_t>(ags->size_bytes_);
+
                     // NOTE: If wrong unique index, breaking the whole aggregated receive.
                     break;
                 }
@@ -244,6 +248,8 @@ uint32_t GatewayWorker::SendAggregatedChunks()
         err_code = Send(aggr_sd);
         if (err_code)
             return err_code;
+
+        GW_ASSERT(NULL == aggr_sd);
     }
 
     return 0;
@@ -359,7 +365,7 @@ WRITE_TO_AGGR_SD:
                 if (err_code)
                     return err_code;
 
-                GW_ASSERT(aggr_sd->CompareUniqueSocketId());
+                GW_ASSERT(NULL == aggr_sd);
             }
 
             return 0;
@@ -376,8 +382,6 @@ WRITE_TO_AGGR_SD:
             err_code = Send(aggr_sd);
             if (err_code)
                 return err_code;
-
-            GW_ASSERT(aggr_sd->CompareUniqueSocketId());
 
             GW_ASSERT(NULL == aggr_sd);
 

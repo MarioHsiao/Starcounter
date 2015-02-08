@@ -30,7 +30,8 @@ namespace NodeTest {
                 }
             }*/
 
-            //new Request { Uri = "/gwtest" },
+            new Request { Uri = "/gwtest" },
+            new Request { Uri = "/test" },
             new Request { Uri = "/index.html" },
             new Request { Uri = "/" },
             new Request { Uri = "/app/services/ServerService.js" },

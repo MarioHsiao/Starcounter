@@ -332,6 +332,9 @@ namespace Starcounter
             // Initializing aggregation struct.
             if (useAggregation)
             {
+                // When aggregating we need more NodeTasks for better network utilization.
+                maxNumAsyncConnections_ = 1024;
+
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
