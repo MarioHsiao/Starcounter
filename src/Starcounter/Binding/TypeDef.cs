@@ -171,6 +171,17 @@ namespace Starcounter.Binding
             RefreshHostedColumns();
         }
 
+        /// <summary>
+        /// Gets the (dynamic) type object that is considered the
+        /// default for the current type definition (established at
+        /// bind time).
+        /// </summary>
+        /// <returns>The type object of the current type.</returns>
+        public IObjectProxy GetTypeObject() {
+            Trace.Assert(RuntimeDefaultTypeRef.ObjectID != 0);
+            return (IObjectProxy) DbHelper.FromID(RuntimeDefaultTypeRef.ObjectID);
+        }
+
         void RefreshProperties() {
             // Iterate the set of properties that reference a column
             // by name and set their index (based on the column index
