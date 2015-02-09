@@ -347,8 +347,9 @@ namespace Starcounter.Hosting {
                         InitTypeSpecifications();
                         OnTypeSpecificationsInitialized();
                     }
-
-                    DynamicTypesBinding.DiscoverNewTypes(unregisteredTypeDefs);
+					else {
+						DynamicTypesBinding.DiscoverNewTypes(unregisteredTypeDefs);
+					}
 
                     MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
                     OnPopulateClrMetadata();
