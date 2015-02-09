@@ -225,6 +225,21 @@ namespace Starcounter.Internal
                 );
         }
 
+        // List of processes to be killed.
+        public static String[] ScProcessesList = new String[]
+        {
+            StarcounterConstants.ProgramNames.ScService,
+            StarcounterConstants.ProgramNames.ScIpcMonitor,
+            StarcounterConstants.ProgramNames.ScNetworkGateway,
+            StarcounterConstants.ProgramNames.ScAdminServer,
+            StarcounterConstants.ProgramNames.ScCode,
+            StarcounterConstants.ProgramNames.ScData,
+            StarcounterConstants.ProgramNames.ScDbLog,
+            StarcounterConstants.ProgramNames.ScWeaver,
+            StarcounterConstants.ProgramNames.ScSqlParser,
+            StarcounterConstants.ProgramNames.ScTrayIcon
+        };
+
         /// <summary>
         /// Default network ports that are used by different Starcounter components.
         /// </summary>

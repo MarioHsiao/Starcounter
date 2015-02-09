@@ -424,22 +424,6 @@ namespace Starcounter.InstallerEngine
             set { finalSetupMessage = value; }
         }
 
-        // List of processes to be killed.
-        public static String[] ScProcessesList = new String[]
-        {
-            StarcounterConstants.ProgramNames.ScService,
-            StarcounterConstants.ProgramNames.ScAdminServer,
-            StarcounterConstants.ProgramNames.ScCode,
-            StarcounterConstants.ProgramNames.ScData,
-            StarcounterConstants.ProgramNames.ScDbLog,
-            StarcounterConstants.ProgramNames.ScIpcMonitor,
-            StarcounterConstants.ProgramNames.ScNetworkGateway,
-            StarcounterConstants.ProgramNames.ScWeaver,
-            StarcounterConstants.ProgramNames.ScSqlParser,
-            StarcounterConstants.ProgramNames.ScTrayIcon,
-            "ServerLogTail"
-        };
-
         /// <summary>
         /// Indicates the progress of the
         /// tasks being done, in percents.
@@ -641,7 +625,7 @@ namespace Starcounter.InstallerEngine
                     throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "Several modes can not be activated simultaneously. Supply only one of those.");
 
                 // Killing all disturbing processes.
-                if (!Utilities.KillDisturbingProcesses(ScProcessesList, false))
+                if (!Utilities.KillDisturbingProcesses(StarcounterEnvironment.ScProcessesList, false))
                 {
                     // User has rejected the choice to kill processes.
                     throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED, "User has rejected the choice to kill running Starcounter processes.");

@@ -1,3 +1,4 @@
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -168,7 +169,7 @@ namespace Starcounter.InstallerEngine
             rollbackSetting = true;
 
             // Killing processes that can remain after installation.
-            Utilities.KillDisturbingProcesses(InstallerMain.ScProcessesList, true);
+            Utilities.KillDisturbingProcesses(StarcounterEnvironment.ScProcessesList, true);
 
             // Reseting progress.
             InstallerMain.ResetProgressStep();
