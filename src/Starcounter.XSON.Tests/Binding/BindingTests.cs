@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using Starcounter.Advanced;
+using Starcounter.Internal.XSON.Tests.CompiledJson;
 using Starcounter.Templates;
 using TJson = Starcounter.Templates.TObject;
 
@@ -10,6 +11,31 @@ using TJson = Starcounter.Templates.TObject;
 namespace Starcounter.Internal.XSON.Tests {
 
     public class BindingTests {
+        private static string oldAppName;
+
+        /// <summary>
+        /// Sets up the test.
+        /// </summary>
+        [TestFixtureSetUp]
+        public static void Setup() {
+            // Initializing global sessions.
+            GlobalSessions.InitGlobalSessions(1);
+            Json.DirtyCheckEnabled = true;
+        }
+
+        [SetUp]
+        public static void SetupEachTest() {
+            oldAppName = StarcounterEnvironment.AppName;
+            StarcounterEnvironment.AppName = "Test";
+        }
+
+        [TearDown]
+        public static void AfterEachTest() {
+            // Making sure that we are ending the session even if the test failed.
+            Session.End();
+            StarcounterEnvironment.AppName = oldAppName;
+        }
+
 		[Test]
 		public static void TestPathBindings() {
 			Person person = new Person() { FirstName = "Arne", LastName = "Anka" };
@@ -219,6 +245,22 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Helper.ConsoleWriteLine(ex.Message);
 
+        }
+
+        [Test]
+        public static void TestBoundToCodeBehindWithData() {
+            // Unittest for reproducing issue #2542
+            // The second call to session.GenerateChangeLog will call the bound property
+            // before the Data-property is set, resulting in Data being null when it should
+            // not be.
+
+            Session session = new Session();
+            simplewithcodebehind simple = new simplewithcodebehind();
+            simple.Data = new TestData() { Name = "Apapapa" };
+            simple.Session = session;
+
+            session.GenerateChangeLog();
+            session.GenerateChangeLog();
         }
     }
 }
