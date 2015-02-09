@@ -56,6 +56,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FakeX.cs" />
+    <Compile Include="Json\simplewithcodebehind.json.cs">
+      <DependentUpon>simplewithcodebehind.json</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -104,6 +107,11 @@
   </ItemGroup>
   <ItemGroup>
     <TypedJSON Include="Json\TestOfOT.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Json\simplewithcodebehind.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>
