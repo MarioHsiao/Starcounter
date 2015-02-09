@@ -11,8 +11,12 @@ namespace Starcounter.Binding {
     /// are in use.
     /// </summary>
     internal static class DynamicTypesBinding {
+        static TypeBinding defaultTypeBinding;
         
         public static void DiscoverNewTypes(TypeDef[] unregisteredTypes) {
+            if (defaultTypeBinding == null) {
+                defaultTypeBinding = Bindings.GetTypeBinding(typeof(Entity).FullName);
+            }
             Db.Transact(() => {
                 DiscoverTypesAndAssureThem(unregisteredTypes);
             });
@@ -48,13 +52,8 @@ namespace Starcounter.Binding {
                 // of the type tree.
                 // When that is implemented, we can remove the
                 // below asserts
-                // TODO:
-
-                if (existingType is RawView) {
-                    Trace.Assert(!userDeclaredType);
-                } else {
-                    Trace.Assert(declaredType != null && existingType.TypeBinding == declaredType);
-                }
+                // TODO:    
+                Trace.Assert(declaredType == null || existingType.TypeBinding == declaredType);
                 
                 typeDef.RuntimeDefaultTypeRef.ObjectID = existingType.Identity;
                 typeDef.RuntimeDefaultTypeRef.Address = existingType.ThisHandle;
@@ -67,41 +66,21 @@ namespace Starcounter.Binding {
             // system.
 
             ulong oid = 0, addr = 0;
+            var binding = defaultTypeBinding;
             if (userDeclaredType) {
                 Trace.Assert(declaredType != null);
-
-                // Check if the type is abstract. If so, what should we
-                // do? Have this being an error?
-                // See issue #2482
-                // TODO:
-
-                // We must enforce in the weaver that hierarchies of
-                // types are correct. If there is an "explicit type", such
-                // as in our "Car/CarModel" sample, then "CarModel" can
-                // not derive just anything.
-                // TODO:
-                
-                DbState.SystemInsert(declaredType.TableId, ref oid, ref addr);
-                var proxy = declaredType.NewInstance(addr, oid);
-                var tuple = TupleHelper.ToTuple(proxy);
-                tuple.Name = typeDef.Name;
-                tuple.IsType = true;
-                if (typeDef.BaseName != null) {
-                    var baseDef = Bindings.GetTypeDef(typeDef.BaseName);
-                    ulong baseID = baseDef.RuntimeDefaultTypeRef.ObjectID;
-                    Trace.Assert(baseID != 0);
-                    var baseType = DbHelper.FromID(baseID);
-                    if (baseType.GetType().IsAssignableFrom(proxy.GetType())) {
-                        TupleHelper.SetInherits(tuple, baseType);
-                    }
-                }
-
+                binding = declaredType;
             } else {
                 var rawViewProxy = (IObjectProxy)rawView;
                 oid = rawViewProxy.Identity;
                 addr = rawViewProxy.ThisHandle;
             }
 
+            DbState.SystemInsert(binding.TableId, ref oid, ref addr);
+            var proxy = binding.NewInstance(addr, oid);
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Name = typeDef.Name;
+            tuple.IsType = true;
             rawView.AutoTypeInstance = oid;
             typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
             typeDef.RuntimeDefaultTypeRef.Address = addr;
