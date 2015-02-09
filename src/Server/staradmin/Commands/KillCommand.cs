@@ -46,21 +46,6 @@ namespace staradmin.Commands {
             }
         }
 
-        static string[] knownStarcounterProcessNames = new string[] {
-            StarcounterConstants.ProgramNames.ScService,
-            StarcounterConstants.ProgramNames.ScIpcMonitor,
-            StarcounterConstants.ProgramNames.ScNetworkGateway,
-            StarcounterConstants.ProgramNames.ScAdminServer,
-            StarcounterConstants.ProgramNames.ScCode,
-            StarcounterConstants.ProgramNames.ScData,
-            StarcounterConstants.ProgramNames.ScDbLog,
-            "scnetworkgatewayloopedtest",
-            StarcounterConstants.ProgramNames.ScWeaver,
-            StarcounterConstants.ProgramNames.ScSqlParser,
-            StarcounterConstants.ProgramNames.ScTrayIcon,
-            "ServerLogTail"
-        };
-
         readonly UserCommand userCommand;
         readonly int TimeoutInMilliseconds;
         readonly string Target;
@@ -86,18 +71,19 @@ namespace staradmin.Commands {
         void KillAll() {
             var timeout = TimeoutInMilliseconds;
 
-            foreach (var name in knownStarcounterProcessNames) {
+            foreach (var name in StarcounterEnvironment.ScProcessesList) {
                 foreach (var proc in Process.GetProcessesByName(name)) {
                     try {
+
                         proc.Kill();
-                        proc.WaitForExit(timeout);
 
-                        // Shape this up - at least don't just throw an exception.
-                        // TODO:
+                        Boolean exited = proc.WaitForExit(timeout);
 
-                        if (!proc.HasExited) {
+                        if (!exited) {
+
                             var processCantBeKilled = "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
                                 "Please shutdown the corresponding application explicitly.";
+
                             throw new Exception(processCantBeKilled);
 
                         } else {
