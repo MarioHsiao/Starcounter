@@ -1,5 +1,6 @@
 ﻿ ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Starcounter.Advanced.XSON {
     /// <summary>
@@ -28,7 +29,19 @@ namespace Starcounter.Advanced.XSON {
         }
 
         public static IEnumerable<Json> GetStepSiblings(this Json json) {
-            return json._stepSiblings;
+            if (json._stepSiblings != null)
+                return json._stepSiblings;
+            return Enumerable.Empty<Json>();
+        }
+
+        public static void RemoveAllStepSiblings(this Json json) {
+            if (json._stepSiblings != null) {
+                for (int i = json._stepSiblings.Count - 1; i >= 0; i--) {
+                    var sibling = json._stepSiblings[i];
+                    json._stepSiblings.RemoveAt(i);
+                    sibling._stepParent = null;
+                }
+            }
         }
 
         public static string GetAppName(this Json json) {

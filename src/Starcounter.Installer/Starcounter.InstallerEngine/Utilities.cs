@@ -731,10 +731,10 @@ namespace Starcounter.InstallerEngine
                         
                         Boolean exited = proc.WaitForExit(30000);
 
-                        if (!exited)
-                        {
+                        if (!exited) {
+
                             String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
-                                                         "Please shutdown the corresponding application explicitly.";
+                                "Please shutdown the corresponding application explicitly.";
 
                             if (InstallerMain.SilentFlag)
                             {

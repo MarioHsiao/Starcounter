@@ -196,6 +196,15 @@ namespace Starcounter
         Socket aggrSocket_;
 
         /// <summary>
+        /// Disconnecting aggregation socket.
+        /// </summary>
+        public void StopAggregation() {
+            if (UsesAggregation()) {
+                aggrSocket_.Disconnect(false);
+            }
+        }
+
+        /// <summary>
         /// Returns True if this node uses aggregation.
         /// </summary>
         /// <returns></returns>
@@ -323,6 +332,9 @@ namespace Starcounter
             // Initializing aggregation struct.
             if (useAggregation)
             {
+                // When aggregating we need more NodeTasks for better network utilization.
+                maxNumAsyncConnections_ = 1024;
+
                 aggrSocket_ = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 // Trying to set a SIO_LOOPBACK_FAST_PATH on a TCP socket.
@@ -979,6 +991,11 @@ DO_CALL_ON_GIVEN_LEVEL:
                         {
                             Thread.Sleep(1);
 
+                            // Checking if socket is not connected.
+                            if (!aggrSocket_.Connected) {
+                                return;
+                            }
+
                             // Receiving from scratch.
                             num_received_bytes = 0;
 
@@ -1073,6 +1090,11 @@ START_RECEIVING:
                         {
                             // Sleeping some time.
                             Thread.Sleep(1);
+
+                            // Checking if socket is not connected.
+                            if (!aggrSocket_.Connected) {
+                                return;
+                            }
 
                             // Checking if we have anything to send.
                             Int32 send_bytes_offset = 0;

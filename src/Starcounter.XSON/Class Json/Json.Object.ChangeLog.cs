@@ -294,15 +294,15 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    ((IList)this).Add(newJson);
                     newJson.Data = value;
+                    ((IList)this).Add(newJson);
                     hasChanged = true;
                 } else {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        ((IList)this)[index] = newJson;
                         newJson.Data = value;
+                        ((IList)this)[index] = newJson;
                         oldJson.SetParent(null);
                         hasChanged = true;
                     }

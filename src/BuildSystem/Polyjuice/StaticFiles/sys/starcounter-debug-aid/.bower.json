@@ -16,11 +16,11 @@
     "juicy-jsoneditor": "~0.0.5"
   },
   "homepage": "https://github.com/Polyjuice/starcounter-debug-aid",
-  "_release": "2d21a9dfb9",
+  "_release": "32a3b7b7b4",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "2d21a9dfb9d94f3345be02dbef52def2702d095d"
+    "commit": "32a3b7b7b4652cb3e638a68ff363247b104937d8"
   },
   "_source": "git://github.com/Polyjuice/starcounter-debug-aid.git",
   "_target": "master",

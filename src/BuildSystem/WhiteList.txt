@@ -35,6 +35,10 @@ scadmin\index.html
 scadmin\Starcounter.MsBuild.targets
 scadmin\PickFileDialog.exe
 
+# Test URLs utility.
+TestUrls.exe
+TestUrls.pdb
+
 # Other files
 behemoth.dll
 behemoth.exp
