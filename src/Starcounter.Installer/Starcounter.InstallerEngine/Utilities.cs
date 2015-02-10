@@ -728,29 +728,25 @@ namespace Starcounter.InstallerEngine
                     try
                     {
                         proc.Kill();
-                        
-                        Boolean exited = proc.WaitForExit(30000);
 
-                        if (!exited) {
+                    } catch (Exception exc) {
 
-                            String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
-                                "Please shutdown the corresponding application explicitly.";
+                        String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed:" + Environment.NewLine +
+                            exc.ToString() + Environment.NewLine +
+                            "Please shutdown the corresponding application explicitly.";
 
-                            if (InstallerMain.SilentFlag)
-                            {
-                                // Printing a console message.
-                                Utilities.ConsoleMessage(processCantBeKilled);
-                            }
-                            else
-                            {
-                                MessageBoxInfo(processCantBeKilled, "Process can not be killed...");
-                            }
-
-                            return false;
+                        if (InstallerMain.SilentFlag) {
+                            // Printing a console message.
+                            Utilities.ConsoleMessage(processCantBeKilled);
+                        } else {
+                            MessageBoxInfo(processCantBeKilled, "Process can not be killed...");
                         }
+
+                        return false;
+
+                    } finally {
+                        proc.Close();
                     }
-                    catch {}
-                    finally { proc.Close(); }
                 }
             }
             return true;

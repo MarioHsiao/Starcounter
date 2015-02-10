@@ -29,6 +29,7 @@ namespace Starcounter.Internal {
 
         internal const String SetCookieHeader = "Set-Cookie";
         internal const String SetCookieStartString = "Set-Cookie: ";
+        internal const String DateMaxString = "Date: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
         internal const String GetCookieHeader = "Cookie";
         internal const String GetCookieStartString = "Cookie: ";
         internal const String GetAcceptHeader = "Accept";
@@ -68,7 +69,8 @@ namespace Starcounter.Internal {
 							+ ContentLengthStart.Length 
 							+ SetCookieStart.Length
 							+ SetCookieLocationStart.Length 
-							+ SetCookiePathEnd.Length 
+							+ SetCookiePathEnd.Length
+                            + DateMaxString.Length
 							+ CRLF.Length 
 							+ CRLFCRLF.Length;
 

@@ -25,7 +25,8 @@ namespace Starcounter.Internal {
         }
 
         // NOTE: Timer should be static, otherwise its garbage collected.
-        private static Timer sessionCleanupTimer;
+        static Timer sessionCleanupTimer_;
+        static Timer dateUpdateTimer_;
 
         // Node error log source.
         static LogSource NodeErrorLogSource = new LogSource("Node");
@@ -92,7 +93,7 @@ namespace Starcounter.Internal {
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
             int interval = 1000 * 60;
-            sessionCleanupTimer = new Timer((state) => {
+            sessionCleanupTimer_ = new Timer((state) => {
                     // Schedule a job to check once for inactive sessions on each scheduler.
                     for (Byte i = 0; i < numSchedulers; i++)
                     {
@@ -102,6 +103,9 @@ namespace Starcounter.Internal {
                     }                                
                 }, 
                 null, interval, interval);
+            
+            // Starting procedure to update current date header for every response.
+            dateUpdateTimer_ = new Timer(Response.HttpDateUpdateProcedure, null, 1000, 1000);
         }
 
         /// <summary>
