@@ -247,13 +247,13 @@ namespace star {
         }
 
         static void ShowVersionInfo() {
-            Console.WriteLine("Version=", CurrentVersion.Version);
+            Console.WriteLine("Version={0}", CurrentVersion.Version);
         }
 
         static void ShowInfoAboutStarcounter() {
             Console.WriteLine("Installation directory={0}", StarcounterEnvironment.InstallationDirectory);
             Console.WriteLine("Default server={0}", StarcounterEnvironment.ServerNames.PersonalServer.ToLower());
-            Console.WriteLine("Version=", CurrentVersion.Version);
+            Console.WriteLine("Version={0}", CurrentVersion.Version);
         }
 
         static void Usage(IApplicationSyntax syntax, bool extended = false, bool unofficial = false, uint? exitCode = null) {
