@@ -82,6 +82,7 @@
     <Compile Include="Binding\DoublePropertyBinding.cs" />
     <Compile Include="Binding\RealPropertyBinding.cs" />
     <Compile Include="Binding\TableUpgrade.cs" />
+    <Compile Include="Binding\TypeDefExtensions.cs" />
     <Compile Include="Binding\UInt16PropertyBinding.cs" />
     <Compile Include="Binding\UInt32PropertyBinding.cs" />
     <Compile Include="Binding\UInt64PropertyBinding.cs" />
