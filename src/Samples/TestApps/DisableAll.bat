@@ -5,6 +5,7 @@ set SC_RUN_INDEXEDCOLUMNDROP=False
 set SC_RUN_NOTALLLOADED=False
 set SC_RUN_SELECTONNULL2362=False
 set SC_RUN_TESTCLASSSCHEMACHANGE=False
+set SC_RUN_DROPTABLE=False
 
 ECHO All regression test apps successfully disabled
 EXIT /b 0
