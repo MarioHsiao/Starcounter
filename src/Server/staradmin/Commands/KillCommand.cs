@@ -72,25 +72,18 @@ namespace staradmin.Commands {
             var timeout = TimeoutInMilliseconds;
 
             foreach (var name in StarcounterEnvironment.ScProcessesList) {
+
                 foreach (var proc in Process.GetProcessesByName(name)) {
+
                     try {
 
                         proc.Kill();
 
-                        Boolean exited = proc.WaitForExit(timeout);
+                        Console.WriteLine(DateTime.Now.TimeOfDay + ": process '" + name + "' successfully killed!");
 
-                        if (!exited) {
-
-                            var processCantBeKilled = "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
-                                "Please shutdown the corresponding application explicitly.";
-
-                            throw new Exception(processCantBeKilled);
-
-                        } else {
-                            Console.WriteLine(DateTime.Now.TimeOfDay + ": process '" + name + "' successfully killed!");
-                        }
-
-                    } finally { proc.Close(); }
+                    } finally {
+                        proc.Close();
+                    }
                 }
             }
         }
