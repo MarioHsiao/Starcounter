@@ -13,9 +13,9 @@ namespace Starcounter {
     /// <summary>
     /// Represents a longrunning transaction.
     /// </summary>
-    public class Transaction : ITransaction, IDisposable {
+    public class Transaction : Finalizing, ITransaction, IDisposable {
         private TransactionHandle _handle;
-        private readonly TransactionScrap _scrap;
+        private TransactionScrap _scrap;
 
         /// <summary>
         /// Current longrunning user transaction.
@@ -26,7 +26,8 @@ namespace Starcounter {
         [ThreadStatic]
         private static Transaction _current;
 
-        public Transaction() : this(false) {
+        public Transaction()
+            : this(false) {
         }
 
         /// <summary>
@@ -35,18 +36,14 @@ namespace Starcounter {
         /// <param name="readOnly">Transaction read-only flag.</param>
         /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
         public Transaction(bool readOnly, bool detectConflicts = true) {
-            _handle = TransactionManager.CreateClaimed(readOnly, detectConflicts);
-            _scrap = new TransactionScrap(_handle.handle, _handle.verify);
+            _handle = StarcounterBase.TransactionManager.Create(readOnly, detectConflicts);
         }
 
-        private Transaction(TransactionHandle handle) {
+        internal Transaction(TransactionHandle handle) {
             _handle = handle;
-            _scrap = new TransactionScrap(_handle.handle, _handle.verify);
         }
 
-        /// <summary>
-        /// </summary>
-        ~Transaction() {
+        internal override void DestroyByFinalizer() {
             if (_handle.verify == TransactionHandle.INVALID_VERIFY) return;
 
             // Add transaction scrap to scrap heap, a job will be scheduled on
@@ -73,23 +70,32 @@ namespace Starcounter {
             // If disposed context is the current context then the current
             // context is always set to null before the context is disposed.
 
-            if (_handle == TransactionManager.CurrentTransaction) {
+            if (_handle == StarcounterBase.TransactionManager.CurrentTransaction) {
                 TransactionManager.SetCurrentTransaction(TransactionHandle.Invalid);
                 _current = null;
             }
 
-            // We dispose the handle directly here instead of calling TransactionManager.Dispose since
-            // this transaction have already claimed ownership of the kerneltransaction (and is removed 
-            // from the transaction refs).
-            r = TransactionManager.Dispose(_handle);
-            if (r == 0) {
-                _handle.verify = TransactionHandle.INVALID_VERIFY;
-                GC.SuppressFinalize(this);
-                return;
+            if (_scrap == null) {
+                // No finalizer, the transactionmanager still is in charge.
+                r = TransactionManager.DisposeNoException(_handle);
+                if (r == 0) {
+                    _handle.verify = TransactionHandle.INVALID_VERIFY;
+                    return;
+                }
+            } else {
+                // Finalizer and the ownership have been claimed by this transaction.
+                r = TransactionManager.DisposeNoException(_handle);
+                if (r == 0) {
+                    _handle.verify = TransactionHandle.INVALID_VERIFY;
+                    UnLinkFinalizer();
+                    return;
+                }
+
+                if (r == Error.SCERRTRANSACTIONNOTOWNED && _handle.verify == TransactionHandle.INVALID_VERIFY) {
+                    return;
+                }
             }
-            if (r == Error.SCERRTRANSACTIONNOTOWNED && _handle.verify == TransactionHandle.INVALID_VERIFY) {
-                return;
-            }
+
             throw ErrorCode.ToException(r);
         }
 
@@ -113,24 +119,17 @@ namespace Starcounter {
                 Transaction t = null;
                 TransactionHandle h;
 
-                h = TransactionManager.CurrentTransaction;
+                h = StarcounterBase.TransactionManager.CurrentTransaction;
                 if (h != TransactionHandle.Invalid) {
                     t = _current;
                     if (t == null) {
                         t = new Transaction(h);
-                        TransactionManager.ClaimOwnership(h);
-                    } else {
-                        if (t._handle != h) {
-                            t = new Transaction(h);
-                            if (h.index == -1) {
-                                GC.SuppressFinalize(t);
-                            } else {
-                                TransactionManager.ClaimOwnership(h);
-                            }
-                        }
+                        _current = t;
+                    } else if (t._handle != h) {
+                        t = new Transaction(h);
+                        _current = t;
                     }
-
-                    _current = t;
+                    
                 }
                 return t;
             }
@@ -206,18 +205,18 @@ namespace Starcounter {
             Transaction old = _current;
             try {
                 _current = this;
-                TransactionManager.Scope(_handle, action);
+                StarcounterBase.TransactionManager.Scope(_handle, action);
             } finally {
                 _current = old;
             }
         }
 
         public void Scope<T>(Action<T> action, T arg) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-            TransactionManager.Scope<T>(_handle, action, arg);
-                } finally {
+                StarcounterBase.TransactionManager.Scope<T>(_handle, action, arg);
+            } finally {
                 _current = old;
             }
         }
@@ -226,68 +225,68 @@ namespace Starcounter {
             Transaction old = _current;
             try {
                 _current = this;
-                TransactionManager.Scope<T1, T2>(_handle, action, arg1, arg2);
-                } finally {
+                StarcounterBase.TransactionManager.Scope<T1, T2>(_handle, action, arg1, arg2);
+            } finally {
                 _current = old;
             }
         }
 
         public void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-                TransactionManager.Scope<T1, T2, T3>(_handle, action, arg1, arg2, arg3);
-                } finally {
+                StarcounterBase.TransactionManager.Scope<T1, T2, T3>(_handle, action, arg1, arg2, arg3);
+            } finally {
                 _current = old;
             }
         }
 
         public void Scope<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-                TransactionManager.Scope<T1, T2, T3, T4>(_handle, action, arg1, arg2, arg3, arg4);
-                } finally {
+                StarcounterBase.TransactionManager.Scope<T1, T2, T3, T4>(_handle, action, arg1, arg2, arg3, arg4);
+            } finally {
                 _current = old;
             }
         }
 
         public TResult Scope<TResult>(Func<TResult> func) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-                return TransactionManager.Scope<TResult>(_handle, func);
-                } finally {
+                return StarcounterBase.TransactionManager.Scope<TResult>(_handle, func);
+            } finally {
                 _current = old;
             }
         }
 
         public TResult Scope<T, TResult>(Func<T, TResult> func, T arg) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-                return TransactionManager.Scope<T, TResult>(_handle, func, arg);
-                } finally {
+                return StarcounterBase.TransactionManager.Scope<T, TResult>(_handle, func, arg);
+            } finally {
                 _current = old;
             }
         }
 
         public TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-                return TransactionManager.Scope<T1, T2, TResult>(_handle, func, arg1, arg2);
-                } finally {
+                return StarcounterBase.TransactionManager.Scope<T1, T2, TResult>(_handle, func, arg1, arg2);
+            } finally {
                 _current = old;
             }
         }
 
         public TResult Scope<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
-             Transaction old = _current;
+            Transaction old = _current;
             try {
                 _current = this;
-                return TransactionManager.Scope<T1, T2, T3, TResult>(_handle, func, arg1, arg2, arg3);
-                } finally {
+                return StarcounterBase.TransactionManager.Scope<T1, T2, T3, TResult>(_handle, func, arg1, arg2, arg3);
+            } finally {
                 _current = old;
             }
         }
@@ -296,33 +295,33 @@ namespace Starcounter {
             Transaction old = _current;
             try {
                 _current = this;
-                return TransactionManager.Scope<T1, T2, T3, T4, TResult>(_handle, func, arg1, arg2, arg3, arg4);
+                return StarcounterBase.TransactionManager.Scope<T1, T2, T3, T4, TResult>(_handle, func, arg1, arg2, arg3, arg4);
             } finally {
                 _current = old;
             }
         }
 
-        void ITransaction.MergeTransaction(ITransaction toMerge) {
-            Transaction trans = (Transaction)toMerge;
-            TransactionManager.MergeTransaction(_handle, trans._handle);
+        //void ITransaction.MergeTransaction(ITransaction toMerge) {
+        //    Transaction trans = (Transaction)toMerge;
+        //    TransactionManager.MergeTransaction(_handle, trans._handle);
 
-            // The TransactionManager have already released the kerneltransaction.
-            GC.SuppressFinalize(this);
-            _handle.verify = TransactionHandle.INVALID_VERIFY;
-        }
+        //    // The TransactionManager have already released the kerneltransaction.
+        //    GC.SuppressFinalize(this);
+        //    _handle.verify = TransactionHandle.INVALID_VERIFY;
+        //}
 
         /// <summary>
         /// Commits changes made on transaction.
         /// </summary>
         public void Commit() {
-            TransactionManager.Commit(_handle);
+            StarcounterBase.TransactionManager.Commit(_handle);
         }
 
         /// <summary>
         /// Rollbacks uncommitted changes on transaction.
         /// </summary>
         public void Rollback() {
-            TransactionManager.Rollback(_handle);
+            StarcounterBase.TransactionManager.Rollback(_handle);
         }
 
         /// <summary>
@@ -330,9 +329,22 @@ namespace Starcounter {
         /// </summary>
         public Boolean IsDirty {
             get {
-                return _handle.IsDirty;
+                return StarcounterBase.TransactionManager.IsDirty(_handle);
             }
         }
+
+        public void KeepAlive () {
+            // TODO:
+            // How do we handle more than one call to this function? 
+            // The same transaction can be wrapped in more than one objectinstance
+            // and then we will have multiple finalizers for the same object.
+
+            if (_scrap == null) {
+                _scrap = new TransactionScrap(_handle.handle, _handle.verify);
+                CreateFinalizer();
+            }
+        }
+
     }
 
     internal sealed class TransactionScrap {

@@ -37,8 +37,8 @@ namespace Starcounter.Internal {
             Db.Scope(action);
         }
 
-        ITransaction IDb.CurrentTransaction {
-            get { return Transaction.Current; }
-        }
+        //ITransaction IDb.CurrentTransaction {
+        //    get { return Transaction.Current; }
+        //}
     }
 }

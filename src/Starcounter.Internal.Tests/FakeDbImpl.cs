@@ -35,7 +35,7 @@ namespace Starcounter.XSON.Tests {
 
         }
 
-        ITransaction IDb.CurrentTransaction { get { return null; } }
+//        ITransaction IDb.CurrentTransaction { get { return null; } }
     }
 
     internal class FakeTransaction : ITransaction {
@@ -51,8 +51,11 @@ namespace Starcounter.XSON.Tests {
         
         }
 
-        public Boolean IsDirty
-        {
+        public Boolean IsDirty {
+            get { return false; }
+        }
+
+        public Boolean IsReadOnly {
             get { return false; }
         }
 

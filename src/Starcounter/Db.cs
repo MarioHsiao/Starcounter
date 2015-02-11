@@ -241,14 +241,14 @@ namespace Starcounter
             }
 
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -259,14 +259,14 @@ namespace Starcounter
             }
 
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -277,14 +277,14 @@ namespace Starcounter
             }
 
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -295,14 +295,14 @@ namespace Starcounter
             }
 
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2, arg3);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -311,14 +311,14 @@ namespace Starcounter
                 return func();
 
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 return func();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -327,14 +327,14 @@ namespace Starcounter
                 return func(arg);
 
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
                 return func(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 
@@ -343,14 +343,14 @@ namespace Starcounter
                 return func(arg1, arg2);
 
            TransactionHandle transactionHandle = TransactionHandle.Invalid;
-            TransactionHandle old = TransactionManager.CurrentTransaction;
+           TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
             try {
                 transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
                 return func(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!TransactionManager.HasTemporaryRef(transactionHandle))
-                    TransactionManager.Dispose(transactionHandle);
+                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
+                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
             }
         }
 

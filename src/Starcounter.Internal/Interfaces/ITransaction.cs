@@ -14,7 +14,7 @@ namespace Starcounter.Advanced {
         TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2);
         TResult Scope<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3);
         TResult Scope<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4);
-        Boolean IsDirty { get; }
-        void MergeTransaction(ITransaction toMerge);
+        bool IsDirty { get; }
+        bool IsReadOnly { get; }
     }
 }

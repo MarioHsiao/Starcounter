@@ -94,7 +94,8 @@ namespace Starcounter {
         public Json()
             : base() {
             _cacheIndexInArr = -1;
-//            AttachCurrentTransaction();
+            _transaction = TransactionHandle.Invalid;
+            AttachCurrentTransaction();
             _dirtyCheckEnabled = DirtyCheckEnabled;
             if (_Template == null) {
                 Template = GetDefaultTemplate();
@@ -307,6 +308,14 @@ namespace Starcounter {
             // Do upgrade of dirtychecks instead of static field.
 
             this.addedInVersion = this.Session.ServerVersion;
+            if (this._transaction != TransactionHandle.Invalid) {
+                // We have a transaction attached on this json. We need to claim it from the transactionmanager so
+                // the transaction does not get cleaned up in the end of the task and we need to register it on the 
+                // session so we can keep track of it instead.
+
+                // TODO
+                this._transaction = StarcounterBase.TransactionManager.ClaimOwnership(this._transaction);
+            }
 
             if (this.IsArray) {
                 foreach (Json item in _list) {

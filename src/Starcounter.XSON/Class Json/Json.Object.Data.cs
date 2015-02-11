@@ -10,6 +10,8 @@ using Starcounter.Advanced;
 using Starcounter.Advanced.XSON;
 using System.Collections;
 using Starcounter.Internal.XSON;
+using Starcounter.Internal;
+using Starcounter.XSON;
 
 namespace Starcounter {
     partial class Json {
@@ -149,33 +151,34 @@ namespace Starcounter {
         /// </summary>
         public ITransaction Transaction {
             get {
-                // Returning first available transaction climbing up the tree starting from this node.
-                if (_transaction != null)
-                    return _transaction;
-
-                if (_parent != null)
-                    return _parent.Transaction;
-
+                var handle = TransactionHandle;
+                if (handle != TransactionHandle.Invalid)
+                    return TransactionManager.WrapHandle(handle);
                 return null;
             }
         }
 
-        public void AttachCurrentTransaction() {
-            ITransaction transaction = null;
-            if (_DB != null)
-                transaction = _DB.CurrentTransaction;
-            
-            if (transaction != null && transaction != Transaction)
-                _transaction = transaction; 
+        internal TransactionHandle TransactionHandle {
+            get {
+                // Returning first available transaction climbing up the tree starting from this node.
+                if (_transaction != TransactionHandle.Invalid)
+                    return _transaction;
+
+                if (_parent != null)
+                    return _parent.TransactionHandle;
+
+                return TransactionHandle.Invalid;
+            }
         }
 
-        /// <summary>
-        /// Returns the transaction that is set on this app. Does NOT
-        /// look in parents.
-        /// </summary>
-        internal ITransaction ThisTransaction {
-            get { return _transaction; }
-            set { _transaction = value; }
+        public void AttachCurrentTransaction() {
+            if (StarcounterBase.TransactionManager != null) {
+                var current = StarcounterBase.TransactionManager.CurrentTransaction;
+                if (current != TransactionHandle.Invalid && current != TransactionHandle) {
+                    _transaction = current;
+                    StarcounterBase.TransactionManager.SetTemporaryRef(current);
+                }
+            }
         }
     }
 }
