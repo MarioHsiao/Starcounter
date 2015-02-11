@@ -226,5 +226,57 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Changed", tvalue2.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Changed""}]", patch);
         }
+
+        [Test]
+        public static void TestCancellingInputChange() {
+            TObject schema;
+
+            schema = TObject.CreateFromMarkup<Json, TObject>("json", File.ReadAllText("json\\simple.json"), "Simple");
+            dynamic json = schema.CreateInstance();
+            var session = new Session();
+            session.Data = json;
+
+            TString tvalue1 = ((TString)schema.Properties[0]);
+            tvalue1.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    Helper.ConsoleWriteLine("Handler for VirtualValue called.");
+                    input.Cancel();
+                }
+            );
+
+            TString tvalue2 = ((TString)schema.Properties[1]);
+            tvalue2.AddHandler(
+                Helper.CreateInput<string>,
+                (Json pup, Starcounter.Input<string> input) => {
+                    Helper.ConsoleWriteLine("Handler for AbstractValue called.");
+                    input.Cancel();
+                }
+            );
+
+            // Set initial values and flush all current changes.
+            tvalue1.Setter(json, "Value1");
+            tvalue2.Setter(json, "Value2");
+            session.GenerateChangeLog();
+            jsonPatch.CreateJsonPatch(session, true);
+
+            // Call handler with different incoming value as on the server, value should be sent back to client.
+            tvalue1.ProcessInput(json, "Incoming");
+
+            session.GenerateChangeLog();
+            string patch = jsonPatch.CreateJsonPatch(session, true);
+
+            Assert.AreEqual("Value1", tvalue1.Getter(json));
+            Assert.AreEqual(@"[{""op"":""replace"",""path"":""/VirtualValue$"",""value"":""Value1""}]", patch);
+
+            // Call handler with same input-value as on the server, value still should be sent back.
+            tvalue2.ProcessInput(json, "Value2");
+
+            session.GenerateChangeLog();
+            patch = jsonPatch.CreateJsonPatch(session, true);
+
+            Assert.AreEqual("Value2", tvalue2.Getter(json));
+            Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Value2""}]", patch);
+        }
     }
 }
