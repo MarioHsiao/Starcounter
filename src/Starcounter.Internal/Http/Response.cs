@@ -107,6 +107,18 @@ namespace Starcounter
     public sealed partial class Response : Finalizing
     {
         /// <summary>
+        /// Current time bytes.
+        /// </summary>
+        static Byte[] CurrentDateHeaderBytes = null;
+
+        /// <summary>
+        /// Update current time.
+        /// </summary>
+        internal static void HttpDateUpdateProcedure(Object state) {
+            CurrentDateHeaderBytes = Encoding.ASCII.GetBytes("Date: " + DateTime.Now.ToUniversalTime().ToString("r") + StarcounterConstants.NetworkConstants.CRLF);
+        }
+
+        /// <summary>
         /// Parses internal HTTP response.
         /// </summary>
         [DllImport("schttpparser.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
@@ -886,6 +898,11 @@ namespace Starcounter
                             writer.Write(h.Value);
                             writer.Write(HttpHeadersUtf8.CRLF);
                         }
+                    }
+
+                    Byte[] date = CurrentDateHeaderBytes;
+                    if (date != null) {
+                        writer.Write(date);
                     }
 
                     if (!cacheControl) {

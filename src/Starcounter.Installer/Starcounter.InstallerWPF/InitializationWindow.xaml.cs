@@ -151,20 +151,19 @@ namespace Starcounter.InstallerWPF {
                     try {
                         proc.Kill();
 
-                        Boolean exited = proc.WaitForExit(30000);
+                    } catch (Exception exc) {
 
-                        if (!exited) {
+                        String processCantBeKilled = "Process " + proc.ProcessName + " can not be killed:" + Environment.NewLine +
+                            exc.ToString() + Environment.NewLine +
+                            "Please shutdown the corresponding application explicitly.";
 
-                            String processCantBeKilled = 
-                                "Process " + proc.ProcessName + " can not be killed." + Environment.NewLine +
-                                "Please shutdown the corresponding application explicitly.";
+                        WpfMessageBox.Show(processCantBeKilled, "Process can not be killed...");
 
-                            WpfMessageBox.Show(processCantBeKilled, "Process can not be killed...");
+                        return false;
 
-                            return false;
-                        }
-
-                    } catch { } finally { proc.Close(); }
+                    } finally {
+                        proc.Close();
+                    }
                 }
             }
 

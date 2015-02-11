@@ -23,9 +23,6 @@ SET DB_NAME=default
 "%StarcounterBin%/staradmin.exe" kill all
 IF EXIST "%SC_CHECKOUT_DIR%/RetailDemo" rd /q /s "%SC_CHECKOUT_DIR%/RetailDemo"
 
-ECHO Deleting database %DB_NAME%
-staradmin --database=%DB_NAME% delete --force db
-
 :: Pulling repository.
 
 ECHO Cloning RetailDemo repository.
@@ -39,9 +36,21 @@ ECHO Building RetailDemo solution.
 "%MsbuildExe%" "RetailDemo/RetailDemo.sln" /p:Configuration=%Configuration%
 IF ERRORLEVEL 1 GOTO FAILED
 
+:: Starting the host to be able to delete database.
+ECHO Deleting existing database %DB_NAME%
+
+star.exe -database=%DB_NAME% %RetailServerExe%
+IF ERRORLEVEL 1 GOTO FAILED
+
+staradmin --database=%DB_NAME% stop db
+IF ERRORLEVEL 1 GOTO FAILED
+
+staradmin --database=%DB_NAME% delete --force db
+IF ERRORLEVEL 1 GOTO FAILED
+
 :: Starting server application.
 
-star.exe %RetailServerExe%
+star.exe -database=%DB_NAME% %RetailServerExe%
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Using aggregation.

@@ -1070,11 +1070,12 @@ namespace Starcounter {
         /// </summary>
         public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
-            // Simply returning if its a looping chunk.
-            if (IsLoopingHostChunk()) 
-                return;
-
             try {
+
+                // Simply returning if its a looping chunk.
+                if (IsLoopingHostChunk())
+                    return;
+
                 unsafe {
                     dataStream_.SendResponse(buffer, offset, length, connFlags);
                 }
