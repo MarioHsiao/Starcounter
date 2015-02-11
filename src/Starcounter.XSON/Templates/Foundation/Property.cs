@@ -244,6 +244,8 @@ namespace Starcounter.Templates {
                         this.Checkpoint(parent);
                 } else {
                     Debug.WriteLine("Handler cancelled: " + value);
+                    // Incoming value was cancelled. Mark as dirty so client gets the correct value.
+                    parent.MarkAsReplaced(this);
                 }
             } else {
                 if (BasedOn == null) {
