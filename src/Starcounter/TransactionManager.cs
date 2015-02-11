@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Starcounter.Binding;
-using Starcounter.Internal;
 
-namespace Starcounter {
+namespace Starcounter.Internal {
     /// <summary>
     /// Class that keeps track of created (kernel) transactions during a task. All transactions 
     /// that have not been explicitly claimed will be released in the end of the task, the others
     /// is up to the claimee to properly release them when finished.
     /// </summary>
     /// <remarks>
-    /// The transactions created using <c>Db.Transact</c> is not handled by this class. The transactions here
+    /// 1) The transactions created using <c>Db.Transact</c> is not handled by this class. The transactions here
     /// are created using <c>Db.Scope</c> or <c>Transaction</c> object directly.
+    /// 2) Since parts of this class needs to be exposed to other projects it needs to use an interface that is
+    /// injected with this instance during startup. The implementation is threadsafe however. No state is kept on 
+    /// the instance.
     /// </remarks>
-    internal static class TransactionManager {
+    internal class TransactionManager : ITransactionManager {
         public const int ShortListCount = 5;
 
         /// <summary>
@@ -52,7 +51,7 @@ namespace Starcounter {
         /// <param name="readOnly"></param>
         /// <param name="detectConflicts"></param>
         /// <returns></returns>
-        internal static TransactionHandle Create(bool readOnly, bool detectConflicts) {
+        public TransactionHandle Create(bool readOnly, bool detectConflicts) {
             var tr = transactionRefs;
             int index = tr.used;
 
@@ -93,6 +92,10 @@ namespace Starcounter {
             }
 
             throw ErrorCode.ToException(ec);
+        }
+
+        public Starcounter.Advanced.ITransaction WrapHandle(TransactionHandle handle) {
+            return new Transaction(handle);
         }
 
         internal static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts) {
@@ -139,34 +142,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Creates a new kerneltransaction and returns a handle to it. Does not add a reference to 
-        /// it (i.e making sure that the transactions is released is up to the caller).
-        /// </summary>
-        /// <param name="readOnly"></param>
-        /// <param name="detecConflicts"></param>
-        /// <returns></returns>
-        internal static TransactionHandle CreateClaimed(bool readOnly, bool detectConflicts) {
-            ulong handle;
-            ulong verify;
-            uint ec;
-            
-            uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
-            if (readOnly)
-                flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
-
-            ec = sccoredb.sccoredb_create_transaction(flags, out handle, out verify);
-            if (ec == 0)
-                return new TransactionHandle(handle, verify, flags, -1);
-
-            throw ErrorCode.ToException(ec);
-        }
-
-        /// <summary>
         /// Releases the kerneltransaction and removes the handle from the references.
         /// </summary>
         /// <param name="handle"></param>
         /// <param name="index"></param>
-        internal static uint Dispose(TransactionHandle handle) {
+        internal static uint DisposeNoException(TransactionHandle handle) {
             uint ec = 0;
             if (currentHandle == handle)
                 SetCurrentTransaction(TransactionHandle.Invalid);
@@ -204,6 +184,13 @@ namespace Starcounter {
             return 0;
         }
 
+        public void Dispose(TransactionHandle handle) {
+            uint ec = DisposeNoException(handle);
+            if (ec == 0)
+                return;
+            throw ErrorCode.ToException(ec);
+        }
+
         /// <summary>
         /// Marks the transaction with the specified index as temporary in use. This means
         /// the transaction cannot be cleaned up in the end of the scope, but will be cleaned
@@ -211,7 +198,7 @@ namespace Starcounter {
         /// </summary>
         /// <param name="index"></param>
         /// <returns></returns>
-        internal static void TemporaryRef(TransactionHandle handle) {
+        public void SetTemporaryRef(TransactionHandle handle) {
             if (handle.index == -1)
                 return;
             VerifyHandle(handle);
@@ -225,7 +212,7 @@ namespace Starcounter {
             }
         }
 
-        internal static bool HasTemporaryRef(TransactionHandle handle) {
+        public bool HasTemporaryRef(TransactionHandle handle) {
             if (handle.index == -1)
                 return true;
 
@@ -238,7 +225,7 @@ namespace Starcounter {
             }
         }
 
-        internal static TransactionHandle ClaimOwnership(TransactionHandle handle) {
+        public TransactionHandle ClaimOwnership(TransactionHandle handle) {
             VerifyHandle(handle);
 
             TransactionHandle keptHandle;
@@ -258,7 +245,7 @@ namespace Starcounter {
             return keptHandle;
         }
 
-        internal static TransactionHandle CurrentTransaction {
+        public TransactionHandle CurrentTransaction {
             get { return currentHandle; }
         }
 
@@ -283,7 +270,7 @@ namespace Starcounter {
             throw ErrorCode.ToException(ec);
         }
 
-        internal static TransactionHandle Get(int index) {
+        internal TransactionHandle Get(int index) {
             if (index < 0)
                 return TransactionHandle.Invalid;
 
@@ -383,7 +370,7 @@ namespace Starcounter {
         /// Executes some code within this transaction scope.
         /// </summary>
         /// <param name="action">Delegate that is called on transaction.</param>
-        internal static void Scope(TransactionHandle handle, Action action) {
+        public void Scope(TransactionHandle handle, Action action) {
             var old = currentHandle;
 
             try {
@@ -394,7 +381,7 @@ namespace Starcounter {
             }
         }
 
-        internal static void Scope<T>(TransactionHandle handle, Action<T> action, T arg) {
+        public void Scope<T>(TransactionHandle handle, Action<T> action, T arg) {
             var old = currentHandle;
 
             try {
@@ -405,7 +392,7 @@ namespace Starcounter {
             }
         }
 
-        internal static void Scope<T1, T2>(TransactionHandle handle, Action<T1, T2> action, T1 arg1, T2 arg2) {
+        public void Scope<T1, T2>(TransactionHandle handle, Action<T1, T2> action, T1 arg1, T2 arg2) {
             var old = currentHandle;
 
             try {
@@ -416,7 +403,7 @@ namespace Starcounter {
             }
         }
 
-        internal static void Scope<T1, T2, T3>(TransactionHandle handle, Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+        public void Scope<T1, T2, T3>(TransactionHandle handle, Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
             var old = currentHandle;
 
             try {
@@ -427,7 +414,7 @@ namespace Starcounter {
             }
         }
 
-        internal static void Scope<T1, T2, T3, T4>(TransactionHandle handle, Action<T1, T2, T3, T4> action, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public void Scope<T1, T2, T3, T4>(TransactionHandle handle, Action<T1, T2, T3, T4> action, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             var old = currentHandle;
 
             try {
@@ -438,7 +425,7 @@ namespace Starcounter {
             }
         }
 
-        internal static TResult Scope<TResult>(TransactionHandle handle, Func<TResult> func) {
+        public TResult Scope<TResult>(TransactionHandle handle, Func<TResult> func) {
             var old = currentHandle;
 
             try {
@@ -449,7 +436,7 @@ namespace Starcounter {
             }
         }
 
-        internal static TResult Scope<T, TResult>(TransactionHandle handle, Func<T, TResult> func, T arg) {
+        public TResult Scope<T, TResult>(TransactionHandle handle, Func<T, TResult> func, T arg) {
             var old = currentHandle;
 
             try {
@@ -460,7 +447,7 @@ namespace Starcounter {
             }
         }
 
-        internal static TResult Scope<T1, T2, TResult>(TransactionHandle handle, Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+        public TResult Scope<T1, T2, TResult>(TransactionHandle handle, Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
             var old = currentHandle;
 
             try {
@@ -471,7 +458,7 @@ namespace Starcounter {
             }
         }
 
-        internal static TResult Scope<T1, T2, T3, TResult>(TransactionHandle handle, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+        public TResult Scope<T1, T2, T3, TResult>(TransactionHandle handle, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
             var old = currentHandle;
 
             try {
@@ -482,7 +469,7 @@ namespace Starcounter {
             }
         }
 
-        internal static TResult Scope<T1, T2, T3, T4, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public TResult Scope<T1, T2, T3, T4, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             var old = currentHandle;
 
             try {
@@ -493,27 +480,49 @@ namespace Starcounter {
             }
         }
 
-        internal static void MergeTransaction(TransactionHandle mainHandle, TransactionHandle toMergeHandle) {
-            var old = currentHandle;
-            uint ec;
+        //public void MergeTransaction(TransactionHandle mainHandle, TransactionHandle toMergeHandle) {
+        //    var old = currentHandle;
+        //    uint ec;
             
-            try {
-                SetCurrentTransaction(mainHandle);
-                ec = sccoredb.star_transaction_merge_into_current(toMergeHandle.handle, toMergeHandle.verify);
-                if (ec == 0) {
-                    // TODO: 
-                    // Do we need to dispose the merged transaction or is that done when merging?
-                    Dispose(toMergeHandle);
-                    return;
-                }
+        //    try {
+        //        SetCurrentTransaction(mainHandle);
+        //        ec = sccoredb.star_transaction_merge_into_current(toMergeHandle.handle, toMergeHandle.verify);
+        //        if (ec == 0) {
+        //            // TODO: 
+        //            // Do we need to dispose the merged transaction or is that done when merging?
+        //            Dispose(toMergeHandle);
+        //            return;
+        //        }
 
-                throw ErrorCode.ToException(ec);
-            } finally {
-                SetCurrentTransaction(old);
+        //        throw ErrorCode.ToException(ec);
+        //    } finally {
+        //        SetCurrentTransaction(old);
+        //    }
+        //}
+
+        public bool IsDirty(TransactionHandle handle) {
+            Int32 isDirty;
+            uint ec;
+
+            if (handle.handle == 0)
+                return false;
+
+            unsafe {
+                ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
             }
+
+            if (ec == 0) return (isDirty != 0);
+
+            // TODO:
+            // Original implementation checked for ObjectDisposedException. See Transaction.ToException().
+            throw ErrorCode.ToException(ec);
         }
 
-        internal static void Commit(TransactionHandle handle) {
+        public bool IsReadOnly(TransactionHandle handle) {
+            return handle.IsReadOnly;
+        }
+
+        public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
                 Commit(0, 0);
             });
@@ -556,7 +565,7 @@ namespace Starcounter {
         /// <summary>
         /// Rollbacks uncommitted changes on transaction.
         /// </summary>
-        internal static void Rollback(TransactionHandle handle) {
+        public void Rollback(TransactionHandle handle) {
             Scope(handle, () => {
                 uint ec = sccoredb.sccoredb_rollback();
                 if (ec == 0) return;
@@ -569,96 +578,13 @@ namespace Starcounter {
         }
 
         [Conditional("DEBUG")]
-        private static void VerifyHandle(TransactionHandle handle) {
+        private void VerifyHandle(TransactionHandle handle) {
             if (handle.index == -1)
                 return;
 
-            TransactionHandle keptHandle = TransactionManager.Get(handle.index);
+            TransactionHandle keptHandle = Get(handle.index);
             if (!keptHandle.Equals(handle))
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
-        }
-    }
-
-    public struct TransactionHandle {
-        internal const uint INVALID_VERIFY = 0xFF;
-        internal const uint FLAG_TEMPORARY_REF = 0x8000;
-
-        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF, -1);
-
-        internal readonly ulong handle; // 16
-        internal ulong verify;          // 16
-        internal uint flags;            // 8
-        internal int index;             // 8
-        
-        internal TransactionHandle(ulong handle, ulong verify, uint flags, int index) {
-            this.handle = handle;
-            this.verify = (uint)verify;
-            this.flags = flags;
-            this.index = index;
-        }
-
-        internal void SetTemporaryRef() {
-            flags |= FLAG_TEMPORARY_REF;
-        }
-
-        internal bool HasTemporaryRef() {
-            return ((flags & FLAG_TEMPORARY_REF) != 0);
-        }
-
-        internal Byte OwnerCpu {
-            get { return (byte)verify; }
-        }
-
-        internal bool IsAlive {
-            get { return (verify != INVALID_VERIFY); }
-        }
-
-        internal bool IsReadOnly {
-            get { return ((flags & sccoredb.MDB_TRANSCREATE_READ_ONLY) != 0); }
-        }
-
-        internal bool IsDirty {
-            get {
-                Int32 isDirty;
-                uint ec;
-
-                if (handle == 0)
-                    return false;
-
-                unsafe {
-                    ec = sccoredb.Mdb_TransactionIsReadWrite(handle, verify, &isDirty);
-                }
-
-                if (ec == 0) return (isDirty != 0);
-
-                // TODO:
-                // Original implementation checked for ObjectDisposedException. See Transaction.ToException().
-                throw ErrorCode.ToException(ec);
-            }
-        }
-
-        public override int GetHashCode() {
-            return handle.GetHashCode();
-        }
-
-        public override bool Equals(object obj) {
-            return TransactionHandle.Equals(this, (TransactionHandle)obj);
-        }
-
-        public bool Equals(TransactionHandle handle) {
-            return TransactionHandle.Equals(this, handle);
-        }
-
-        public static bool Equals(TransactionHandle t1, TransactionHandle t2) {
-            return (t1.handle == t2.handle); // && t1.verify == t2.verify);
-        }
-
-        public static bool operator ==(TransactionHandle th1, TransactionHandle th2) {
-            return TransactionHandle.Equals(th1, th2);
-        }
-
-        public static bool operator !=(TransactionHandle th1, TransactionHandle th2) {
-            return !TransactionHandle.Equals(th1, th2);
         }
     }
 }
