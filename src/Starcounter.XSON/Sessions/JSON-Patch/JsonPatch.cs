@@ -97,7 +97,7 @@ namespace Starcounter.XSON {
 
             patchSize = CreatePatches(session, changes, out patches);
             if (flushLog)
-                session.Clear();
+                session.ClearChangeLog();
         
             return patchSize;
         }

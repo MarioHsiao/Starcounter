@@ -31,6 +31,11 @@ namespace Starcounter {
             internal Json Data;
         }
 
+        private class TransactionRef {
+            internal int Refs;
+            internal TransactionHandle Handle;
+        }
+
         [ThreadStatic]
         private static Session _current;
 
@@ -44,6 +49,13 @@ namespace Starcounter {
         private List<Change> _changes; // The log of Json tree changes pertaining to the session data
         private List<DataAndCache> _stateList;
         private SessionOptions sessionOptions;
+
+        /// <summary>
+        /// Array of transactions that is managed by this session. All transaction here 
+        /// will be cleaned up when either a json with transaction attached is removed 
+        /// or when the session is cleaned up.
+        /// </summary>
+        private List<TransactionRef> transactions;
 
         /// <summary>
         /// Array of queued patches in order from the current clientversion.
@@ -71,6 +83,7 @@ namespace Starcounter {
             _stateList = new List<DataAndCache>();
             sessionOptions = options;
             clientServerVersion = serverVersion;
+            transactions = new List<TransactionRef>();
             
             UInt32 errCode = 0;
             if (_request != null) {
@@ -429,11 +442,9 @@ namespace Starcounter {
         /// Finish usage of current session.
         /// </summary>
         internal static void End() {
-
             if (_current != null) {
-
-                _current.Clear();
-
+                _current.DisposeUnreferencedTransactions();
+                _current.ClearChangeLog();
                 Session._current = null;
             }
         }
@@ -477,7 +488,7 @@ namespace Starcounter {
         /// <summary>
         /// Clears all changes.
         /// </summary>
-        internal void Clear() {
+        internal void ClearChangeLog() {
             _changes.Clear();
         }
 
@@ -492,14 +503,10 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         public void GenerateChangeLog() {
-            //            if (_changes.Count != 0) { // New version of the viewmodel. 
             serverVersion++;
-            //            }
-
             if (_brandNew) {
                 // TODO: 
                 // might be array.
-
                 foreach (var dac in _stateList) {
                     if (dac.Data != null) {
                         _changes.Add(Change.Add(dac.Data));
@@ -551,57 +558,88 @@ namespace Starcounter {
             }
         }
 
-        /// <summary>
-        /// Destroys Json tree recursively, including session.
-        /// </summary>
-        /// <param name="json"></param>
-        private void DisposeJsonRecursively(Json json) {
-            if (json == null)
-                return;
-
-            // Disposing transaction if it exists on this node.
-            if (json.ThisTransaction != null) {
-                json.ThisTransaction.Dispose();
-            }
-
-            if (json.Template == null || json.Template.IsPrimitive)
-                return;
-
-            foreach (Template child in ((TContainer)json.Template).Children) {
-                if (child is TObject) {
-                    DisposeJsonRecursively(((TObject)child).Getter(json));
-                } else if (child is TObjArr) {
-                    Json listing = ((TObjArr)child).Getter(json);
-                    foreach (Json listApp in listing) {
-                        DisposeJsonRecursively(listApp);
-                    }
-                }
-            }
-        }
-
         internal void CleanupOldVersionLogs() {
             var root = this.GetFirstData();
             if (root != null)
                 root.CleanupOldVersionLogs(ClientServerVersion);
         }
 
+        internal void RegisterTransaction(TransactionHandle handle) {
+            TransactionRef tref = null;
+
+            for (int i = 0; i < transactions.Count; i++) {
+                tref = transactions[i];
+                if (tref.Handle == handle) {
+                    tref.Refs++;
+                    break;
+                }
+            }
+
+            if (tref == null) {
+                // transaction not registered before. 
+                tref = new TransactionRef();
+                tref.Handle = StarcounterBase.TransactionManager.ClaimOwnership(handle);
+                tref.Refs = 1;
+            }
+        }
+
+        internal void DeregisterTransaction(TransactionHandle handle) {
+            TransactionRef tref = null;
+
+            for (int i = 0; i < transactions.Count; i++) {
+                tref = transactions[i];
+                if (tref.Handle == handle) {
+                    tref.Refs--;
+                    break;
+                }
+            }
+
+            Debug.Assert(tref != null);
+        }
+
+        private void DisposeUnreferencedTransactions() {
+            TransactionRef tref;
+
+            for (int i = (transactions.Count - 1); i >= 0; i--) {
+                tref = transactions[i];
+                Debug.Assert(tref.Refs >= 0);
+
+                if (transactions[i].Refs == 0) {
+                    // TODO:
+                    // How do we handle exception here?
+                    try {
+                        StarcounterBase.TransactionManager.Dispose(tref.Handle);
+                    } catch (Exception) {
+                        throw;
+                    }
+                    transactions.RemoveAt(i);
+                }
+            }
+        }
+
+        private void DisposeAllTransactions() {
+            for (int i = 0; i < transactions.Count; i++) {
+                // TODO:
+                // How do we handle exception here?
+                try {
+                    StarcounterBase.TransactionManager.Dispose(transactions[i].Handle);
+                } catch (Exception) {
+                    throw;
+                }
+            }
+            transactions.Clear();
+        }
+
         /// <summary>
         /// Destroys the session.
         /// </summary>
         public void Destroy() {
-
-            foreach (var dac in _stateList) {
-                if (dac.Data != null)
-                    DisposeJsonRecursively(dac.Data);
-            }
-
             _indexPerApplication.Clear();
+            DisposeAllTransactions();
 
             if (InternalSession != null) {
-
                 // NOTE: Preventing recursive destroy call.
                 InternalSession.apps_session_int_ = null;
-
                 InternalSession.Destroy();
                 InternalSession = null;
             }

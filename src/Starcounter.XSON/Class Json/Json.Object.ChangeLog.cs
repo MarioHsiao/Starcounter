@@ -2,9 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Advanced;
+using Starcounter.Advanced.XSON;
+using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
-using Starcounter.Advanced.XSON;
 
 namespace Starcounter {
     internal struct ArrayVersionLog {
@@ -373,6 +374,68 @@ namespace Starcounter {
                         var json = (Json)tcontainer.GetUnboundValueAsObject(this);
                         if (json != null)
                             json.CleanupOldVersionLogs(toVersion);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Called when this object is added to a stateful viewmodel. 
+        /// This methid will called on each childjson as well.
+        /// </summary>
+        private void OnAddedToViewmodel() {
+            // TODO:
+            // Do upgrade of dirtychecks instead of static field.
+
+            this.addedInVersion = this.Session.ServerVersion;
+            if (this._transaction != TransactionHandle.Invalid) {
+                // We have a transaction attached on this json. We register the transaction 
+                // on the session to keep track of it. This will also mean that the session
+                // is responsible for releasing it when noone uses it anymore.
+                Session.RegisterTransaction(_transaction);
+            }
+
+            if (this.IsArray) {
+                foreach (Json item in _list) {
+                    item.OnAddedToViewmodel();
+                }
+            } else {
+                if (Template != null) {
+                    foreach (Template tChild in ((TObject)Template).Properties) {
+                        var container = tChild as TContainer;
+                        if (container != null) {
+                            var childJson = (Json)container.GetUnboundValueAsObject(this);
+                            if (childJson != null)
+                                childJson.OnAddedToViewmodel();
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Called when this object have been detached from a stateful viewmodel. Will call all
+        /// children as well.
+        /// </summary>
+        private void OnRemovedFromViewmodel() {
+            addedInVersion = -1;
+            if (_transaction != TransactionHandle.Invalid) {
+                Session.DeregisterTransaction(_transaction);
+            }
+
+            if (this.IsArray) {
+                foreach (Json item in _list) {
+                    item.OnRemovedFromViewmodel();
+                }
+            } else {
+                if (Template != null) {
+                    foreach (Template tChild in ((TObject)Template).Properties) {
+                        var container = tChild as TContainer;
+                        if (container != null) {
+                            var childJson = (Json)container.GetUnboundValueAsObject(this);
+                            if (childJson != null)
+                                childJson.OnRemovedFromViewmodel();
+                        }
                     }
                 }
             }
