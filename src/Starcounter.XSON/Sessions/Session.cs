@@ -568,8 +568,8 @@ namespace Starcounter {
             TransactionRef tref = null;
 
             for (int i = 0; i < transactions.Count; i++) {
-                tref = transactions[i];
-                if (tref.Handle == handle) {
+                if (transactions[i].Handle == handle) {
+                    tref = transactions[i];
                     tref.Refs++;
                     break;
                 }
@@ -580,6 +580,7 @@ namespace Starcounter {
                 tref = new TransactionRef();
                 tref.Handle = StarcounterBase.TransactionManager.ClaimOwnership(handle);
                 tref.Refs = 1;
+                transactions.Add(tref);
             }
         }
 
@@ -587,8 +588,8 @@ namespace Starcounter {
             TransactionRef tref = null;
 
             for (int i = 0; i < transactions.Count; i++) {
-                tref = transactions[i];
-                if (tref.Handle == handle) {
+                if (transactions[i].Handle == handle) {
+                    tref = transactions[i];
                     tref.Refs--;
                     break;
                 }
