@@ -29,18 +29,19 @@ namespace Starcounter.Internal {
         TResult Scope<T1, T2, T3, T4, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4);
     }
 
-     public struct TransactionHandle {
+    public struct TransactionHandle {
         public const uint INVALID_VERIFY = 0xFF;
+        private const uint FLAG_CLAIMED = 0x4000;
         private const uint FLAG_TEMPORARY_REF = 0x8000;
         private const uint FLAG_TRANSCREATE_READ_ONLY = 0x0008;
 
         internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF, -1);
 
-        internal readonly ulong handle; 
+        internal readonly ulong handle;
         internal ulong verify;
-        internal uint flags;           
+        internal uint flags;
         internal int index;
-        
+
         internal TransactionHandle(ulong handle, ulong verify, uint flags, int index) {
             this.handle = handle;
             this.verify = verify;
@@ -54,6 +55,14 @@ namespace Starcounter.Internal {
 
         internal bool HasTemporaryRef() {
             return ((flags & FLAG_TEMPORARY_REF) != 0);
+        }
+
+        internal void SetClaimed() {
+            flags |= FLAG_CLAIMED;
+        }
+
+        internal bool HasTransferedOwnership() {
+            return ((flags & FLAG_CLAIMED) != 0);
         }
 
         internal bool IsAlive {

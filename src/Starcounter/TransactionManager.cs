@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Binding;
+using Starcounter.Logging;
 
 namespace Starcounter.Internal {
     /// <summary>
@@ -18,6 +19,8 @@ namespace Starcounter.Internal {
     /// </remarks>
     internal class TransactionManager : ITransactionManager {
         public const int ShortListCount = 5;
+
+        private static LogSource log = new LogSource("TransactionManager");
 
         /// <summary>
         /// Struct containing references to the fast short list
@@ -73,6 +76,8 @@ namespace Starcounter.Internal {
                             tr.refs[index] = th;
                         }
                     } else {
+                        log.LogWarning("Slow list used, count: " + index);
+
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
                         if (SlowList == null)
                             SlowList = new List<TransactionHandle>();
@@ -130,6 +135,7 @@ namespace Starcounter.Internal {
                     }
 
                     transactionRefs.used++;
+                    currentHandle = th;
 
                     return th;
                 } catch {
@@ -177,7 +183,7 @@ namespace Starcounter.Internal {
                 }
 
                 // If the last one added is the one disposed we decrease 
-                // the used count and allo the position to be reused.
+                // the used count and allow the position to be reused.
                 if (handle.index == (tr.used - 1))
                     transactionRefs.used--;
             }
@@ -226,7 +232,11 @@ namespace Starcounter.Internal {
         }
 
         public TransactionHandle ClaimOwnership(TransactionHandle handle) {
-            VerifyHandle(handle);
+//            VerifyHandle(handle);
+
+            if (handle.index == -1) {
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+            }
 
             TransactionHandle keptHandle;
             var tr = transactionRefs;
@@ -234,12 +244,18 @@ namespace Starcounter.Internal {
             if (handle.index < ShortListCount) {
                 unsafe {        
                     keptHandle = tr.refs[handle.index];
-                    tr.refs[handle.index] = TransactionHandle.Invalid;
+                    if (keptHandle.HasTransferedOwnership())
+                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                    keptHandle.SetClaimed();
+                    tr.refs[handle.index] = keptHandle;
                 }
             } else {
                 int calcIndex = handle.index - ShortListCount;
                 keptHandle = SlowList[calcIndex];
-                SlowList[calcIndex] = TransactionHandle.Invalid;
+                if (keptHandle.HasTransferedOwnership())
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                keptHandle.SetClaimed();
+                SlowList[calcIndex] = keptHandle;
             }
             keptHandle.index = -1;
             return keptHandle;
@@ -299,7 +315,7 @@ namespace Starcounter.Internal {
                 // dispose the kerneltransaction.
 
                 th = tr.refs[i];
-                if (th.IsAlive) {
+                if (th.IsAlive && !th.HasTransferedOwnership()) {
                     ec = sccoredb.sccoredb_free_transaction(th.handle, th.verify);
                     if (ec == 0)
                         continue;
@@ -313,7 +329,7 @@ namespace Starcounter.Internal {
                 List<TransactionHandle> slowList = SlowList;
                 for (int i = 0; i < slowList.Count; i++) {
                     th = slowList[i];
-                    if (th.IsAlive) {
+                    if (th.IsAlive && !th.HasTransferedOwnership()) {
                         ec = ec  = sccoredb.sccoredb_free_transaction(th.handle, th.verify);
                         if (ec == 0)
                             continue;
