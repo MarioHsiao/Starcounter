@@ -388,6 +388,17 @@ namespace Starcounter {
             // Do upgrade of dirtychecks instead of static field.
 
             this.addedInVersion = this.Session.ServerVersion;
+
+            // If the transaction attached to this json is the same transaction set higher 
+            // up in the tree we set it back to invalid. This will be useful later when
+            // json will be stored in blobs.
+            Json parentOrStepParent = _parent;
+            if (parentOrStepParent == null)
+                parentOrStepParent = _stepParent;
+
+            if (parentOrStepParent != null && this._transaction == parentOrStepParent.TransactionHandle)
+                this._transaction = TransactionHandle.Invalid;
+            
             if (this._transaction != TransactionHandle.Invalid) {
                 // We have a transaction attached on this json. We register the transaction 
                 // on the session to keep track of it. This will also mean that the session
@@ -409,6 +420,12 @@ namespace Starcounter {
                                 childJson.OnAddedToViewmodel();
                         }
                     }
+                }
+            }
+
+            if (this._stepSiblings != null) {
+                foreach (var sibling in this._stepSiblings) {
+                    sibling.OnAddedToViewmodel();
                 }
             }
         }

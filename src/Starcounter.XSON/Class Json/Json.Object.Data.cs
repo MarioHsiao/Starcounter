@@ -167,6 +167,9 @@ namespace Starcounter {
                 if (_parent != null)
                     return _parent.TransactionHandle;
 
+                if (_stepParent != null)
+                    return _stepParent.TransactionHandle;
+
                 return TransactionHandle.Invalid;
             }
         }
@@ -174,7 +177,7 @@ namespace Starcounter {
         public void AttachCurrentTransaction() {
             if (StarcounterBase.TransactionManager != null) {
                 var current = StarcounterBase.TransactionManager.CurrentTransaction;
-                if (current != TransactionHandle.Invalid && current != TransactionHandle) {
+                if (current != TransactionHandle.Invalid) {
                     _transaction = current;
                     StarcounterBase.TransactionManager.SetTemporaryRef(current);
                 }
