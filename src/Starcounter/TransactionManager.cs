@@ -53,10 +53,10 @@ namespace Starcounter.Internal {
             ulong handle;
             ulong verify;
             uint ec;
-            
-            byte flags = detectConflicts ? (byte)0 : (byte)sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+
+            ushort flags = detectConflicts ? (ushort)0 : TransactionHandle.FLAG_MERGING_WRITES;
             if (readOnly)
-                flags |= (byte)sccoredb.MDB_TRANSCREATE_READ_ONLY;
+                flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
             ec = sccoredb.sccoredb_create_transaction(flags, out handle, out verify);
             if (ec == 0) {
@@ -102,9 +102,9 @@ namespace Starcounter.Internal {
             ulong verify;
             uint ec;
 
-            byte flags = detectConflicts ? (byte)0 : (byte)sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
+            ushort flags = detectConflicts ? (ushort)0 : TransactionHandle.FLAG_MERGING_WRITES;
             if (readOnly)
-                flags |= (byte)sccoredb.MDB_TRANSCREATE_READ_ONLY;
+                flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
             ec = sccoredb.sccoredb_create_transaction_and_set_current(flags, 0, out handle, out verify);
             if (ec == 0) {

@@ -31,20 +31,21 @@ namespace Starcounter.Internal {
 
     public struct TransactionHandle {
         public const byte INVALID_VERIFY = 0xFF;
-        private const byte FLAG_CLAIMED = 0x40;
-        private const byte FLAG_TEMPORARY_REF = 0x80;
-        private const byte FLAG_TRANSCREATE_READ_ONLY = 0x08;
+        internal const ushort FLAG_MERGING_WRITES = 0x0004;
+        internal const ushort FLAG_TRANSCREATE_READ_ONLY = 0x0008;
+        private const ushort FLAG_CLAIMED = 0x4000;
+        private const ushort FLAG_TEMPORARY_REF = 0x8000;
 
         internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED, -1);
 
-        internal readonly ulong handle;
-        internal byte verify;
-        internal byte flags;
-        internal int index;
+        internal readonly ulong handle; // 16
+        internal ushort verify;         // 4
+        internal ushort flags;          // 4
+        internal int index;             // 8
 
-        internal TransactionHandle(ulong handle, ulong verify, byte flags, int index) {
+        internal TransactionHandle(ulong handle, ulong verify, ushort flags, int index) {
             this.handle = handle;
-            this.verify = (byte)verify;
+            this.verify = (ushort)verify;
             this.flags = flags;
             this.index = index;
         }
