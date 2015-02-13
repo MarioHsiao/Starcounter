@@ -2206,10 +2206,12 @@ public:
     void CloseStarcounterLog();
 
     // Write critical into log.
+    void LogWriteCritical(const char* msg);
     void LogWriteCritical(const wchar_t* msg);
     void LogWriteError(const wchar_t* msg);
     void LogWriteWarning(const wchar_t* msg);
     void LogWriteNotice(const wchar_t* msg);
+    void LogWriteGeneral(const char* msg, uint32_t log_type);
     void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
 };
 
