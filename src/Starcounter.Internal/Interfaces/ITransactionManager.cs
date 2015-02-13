@@ -35,7 +35,7 @@ namespace Starcounter.Internal {
         private const uint FLAG_TEMPORARY_REF = 0x8000;
         private const uint FLAG_TRANSCREATE_READ_ONLY = 0x0008;
 
-        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF, -1);
+        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED, -1);
 
         internal readonly ulong handle;
         internal ulong verify;

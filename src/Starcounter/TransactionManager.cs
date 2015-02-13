@@ -22,29 +22,22 @@ namespace Starcounter.Internal {
 
         private static LogSource log = new LogSource("TransactionManager");
 
-        /// <summary>
-        /// Struct containing references to the fast short list
-        /// </summary>
-        private unsafe struct TransactionRefs {
-            internal TransactionHandle* refs;
-            internal int used;
-        }
+        [ThreadStatic]
+        private unsafe static TransactionHandle* Refs;
 
         [ThreadStatic]
-        private static TransactionRefs transactionRefs;
+        private static int Used;
 
         [ThreadStatic]
         private static List<TransactionHandle> SlowList;
 
         [ThreadStatic]
-        private static TransactionHandle currentHandle;
+        private static TransactionHandle CurrentHandle;
 
         internal unsafe static void Init(TransactionHandle* shortListPtr) {
-            TransactionRefs refs;
-            refs.refs = shortListPtr;
-            refs.used = 0;
-            transactionRefs = refs;
-            currentHandle = TransactionHandle.Invalid;
+            Refs = shortListPtr;
+            Used = 0;
+            CurrentHandle = TransactionHandle.Invalid;
         }
 
         /// <summary>
@@ -55,8 +48,7 @@ namespace Starcounter.Internal {
         /// <param name="detectConflicts"></param>
         /// <returns></returns>
         public TransactionHandle Create(bool readOnly, bool detectConflicts) {
-            var tr = transactionRefs;
-            int index = tr.used;
+            int index = Used;
 
             ulong handle;
             ulong verify;
@@ -73,7 +65,7 @@ namespace Starcounter.Internal {
 
                     if (index < ShortListCount) {
                         unsafe {
-                            tr.refs[index] = th;
+                            Refs[index] = th;
                         }
                     } else {
                         log.LogWarning("Slow list used, count: " + index);
@@ -87,7 +79,7 @@ namespace Starcounter.Internal {
                         SlowList.Add(th);
                     }
 
-                    transactionRefs.used++;
+                    Used++;
 
                     return th;
                 } catch {
@@ -104,8 +96,7 @@ namespace Starcounter.Internal {
         }
 
         internal static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts) {
-            var tr = transactionRefs;
-            int index = tr.used;
+            int index = Used;
 
             ulong handle;
             ulong verify;
@@ -122,7 +113,7 @@ namespace Starcounter.Internal {
 
                     if (index < ShortListCount) {
                         unsafe {
-                            tr.refs[index] = th;
+                            Refs[index] = th;
                         }
                     } else {
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
@@ -134,8 +125,8 @@ namespace Starcounter.Internal {
                         SlowList.Add(th);
                     }
 
-                    transactionRefs.used++;
-                    currentHandle = th;
+                    Used++;
+                    CurrentHandle = th;
 
                     return th;
                 } catch {
@@ -154,7 +145,7 @@ namespace Starcounter.Internal {
         /// <param name="index"></param>
         internal static uint DisposeNoException(TransactionHandle handle) {
             uint ec = 0;
-            if (currentHandle == handle)
+            if (CurrentHandle == handle)
                 SetCurrentTransaction(TransactionHandle.Invalid);
 
             if (handle.IsAlive) {
@@ -166,13 +157,12 @@ namespace Starcounter.Internal {
             }
 
             if (handle.index >= 0) {
-                TransactionRefs tr = transactionRefs;
                 TransactionHandle keptHandle;
                 if (handle.index < ShortListCount) {
                     unsafe {
-                        keptHandle = tr.refs[handle.index];
+                        keptHandle = Refs[handle.index];
                         if (keptHandle == handle)
-                            tr.refs[handle.index] = TransactionHandle.Invalid;
+                            Refs[handle.index] = TransactionHandle.Invalid;
                     }
                 } else {
                     int calcIndex = handle.index - ShortListCount;
@@ -182,10 +172,9 @@ namespace Starcounter.Internal {
                         SlowList[calcIndex] = TransactionHandle.Invalid;
                 }
 
-                // If the last one added is the one disposed we decrease 
-                // the used count and allow the position to be reused.
-                if (handle.index == (tr.used - 1))
-                    transactionRefs.used--;
+                // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
+                if (handle.index == (Used - 1))
+                    Used--;
             }
             return 0;
         }
@@ -207,11 +196,10 @@ namespace Starcounter.Internal {
         public void SetTemporaryRef(TransactionHandle handle) {
             if (handle.index == -1)
                 return;
-            VerifyHandle(handle);
-
+            
             if (handle.index < ShortListCount) {
                 unsafe {
-                    transactionRefs.refs[handle.index].SetTemporaryRef();
+                    Refs[handle.index].SetTemporaryRef();
                 }
             } else {
                 SlowList[handle.index - ShortListCount].SetTemporaryRef();
@@ -224,7 +212,7 @@ namespace Starcounter.Internal {
 
             if (handle.index < ShortListCount) {
                 unsafe {
-                    return transactionRefs.refs[handle.index].HasTemporaryRef();
+                    return Refs[handle.index].HasTemporaryRef();
                 }
             } else {
                 return SlowList[handle.index - ShortListCount].HasTemporaryRef();
@@ -239,15 +227,14 @@ namespace Starcounter.Internal {
             }
 
             TransactionHandle keptHandle;
-            var tr = transactionRefs;
-
+            
             if (handle.index < ShortListCount) {
                 unsafe {        
-                    keptHandle = tr.refs[handle.index];
+                    keptHandle = Refs[handle.index];
                     if (keptHandle.HasTransferedOwnership())
                         throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                     keptHandle.SetClaimed();
-                    tr.refs[handle.index] = keptHandle;
+                    Refs[handle.index] = keptHandle;
                 }
             } else {
                 int calcIndex = handle.index - ShortListCount;
@@ -262,22 +249,22 @@ namespace Starcounter.Internal {
         }
 
         public TransactionHandle CurrentTransaction {
-            get { return currentHandle; }
+            get { return CurrentHandle; }
         }
 
         internal static TransactionHandle GetCurrentAndSetToNoneManagedOnly() {
-            var handle = currentHandle;
-            currentHandle = TransactionHandle.Invalid;
+            var handle = CurrentHandle;
+            CurrentHandle = TransactionHandle.Invalid;
             return handle;
         }
 
         internal static void SetCurrentTransaction(TransactionHandle handle) {
-            if (currentHandle == handle)
+            if (CurrentHandle == handle)
                 return;
 
             uint ec = sccoredb.sccoredb_set_current_transaction(0, handle.handle, handle.verify);
             if (ec == 0) {
-                currentHandle = handle;
+                CurrentHandle = handle;
                 return;
             }
 
@@ -292,7 +279,7 @@ namespace Starcounter.Internal {
 
             if (index < ShortListCount) {
                 unsafe {
-                    return transactionRefs.refs[index];
+                    return Refs[index];
                 }
             }
             return SlowList[index - ShortListCount];
@@ -300,22 +287,22 @@ namespace Starcounter.Internal {
 
         internal static unsafe void Cleanup() {
             TransactionHandle th;
-            TransactionRefs tr = transactionRefs;
             uint ec;
 
             SetCurrentTransaction(TransactionHandle.Invalid);
 
-            int fastCount = (tr.used >= ShortListCount) ? ShortListCount : tr.used;
+            int used = Used;
+            int fastCount = used;
+            if (fastCount >= ShortListCount)
+                fastCount = ShortListCount;
 
             for (int i = 0; i < fastCount; i++) {
                 // All handles that have been created will be cleaned up.
-                // If noone have taken ownership (i.e. the session/viewmodel)
-                // the kerneltransaction will be released.
-                // If someone have taken ownership it is up to them to properly 
-                // dispose the kerneltransaction.
+                // If noone have taken ownership (i.e. the session/viewmodel) the kerneltransaction will be released.
+                // If someone have taken ownership it is up to them to properly dispose the kerneltransaction.
 
-                th = tr.refs[i];
-                if (th.IsAlive && !th.HasTransferedOwnership()) {
+                th = Refs[i];
+                if (!th.HasTransferedOwnership()) {
                     ec = sccoredb.sccoredb_free_transaction(th.handle, th.verify);
                     if (ec == 0)
                         continue;
@@ -325,11 +312,11 @@ namespace Starcounter.Internal {
                 }
             }
 
-            if (tr.used > ShortListCount){
+            if (used > ShortListCount){
                 List<TransactionHandle> slowList = SlowList;
                 for (int i = 0; i < slowList.Count; i++) {
                     th = slowList[i];
-                    if (th.IsAlive && !th.HasTransferedOwnership()) {
+                    if (!th.HasTransferedOwnership()) {
                         ec = ec  = sccoredb.sccoredb_free_transaction(th.handle, th.verify);
                         if (ec == 0)
                             continue;
@@ -342,8 +329,8 @@ namespace Starcounter.Internal {
                 SlowList = null;
             }
 
-            transactionRefs.refs = null;
-            transactionRefs.used = 0;
+            Refs = null;
+            Used = 0;
         }
 
         /// <summary>
@@ -387,7 +374,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="action">Delegate that is called on transaction.</param>
         public void Scope(TransactionHandle handle, Action action) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -398,7 +385,7 @@ namespace Starcounter.Internal {
         }
 
         public void Scope<T>(TransactionHandle handle, Action<T> action, T arg) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -409,7 +396,7 @@ namespace Starcounter.Internal {
         }
 
         public void Scope<T1, T2>(TransactionHandle handle, Action<T1, T2> action, T1 arg1, T2 arg2) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -420,7 +407,7 @@ namespace Starcounter.Internal {
         }
 
         public void Scope<T1, T2, T3>(TransactionHandle handle, Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -431,7 +418,7 @@ namespace Starcounter.Internal {
         }
 
         public void Scope<T1, T2, T3, T4>(TransactionHandle handle, Action<T1, T2, T3, T4> action, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -442,7 +429,7 @@ namespace Starcounter.Internal {
         }
 
         public TResult Scope<TResult>(TransactionHandle handle, Func<TResult> func) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -453,7 +440,7 @@ namespace Starcounter.Internal {
         }
 
         public TResult Scope<T, TResult>(TransactionHandle handle, Func<T, TResult> func, T arg) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -464,7 +451,7 @@ namespace Starcounter.Internal {
         }
 
         public TResult Scope<T1, T2, TResult>(TransactionHandle handle, Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -475,7 +462,7 @@ namespace Starcounter.Internal {
         }
 
         public TResult Scope<T1, T2, T3, TResult>(TransactionHandle handle, Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -486,7 +473,7 @@ namespace Starcounter.Internal {
         }
 
         public TResult Scope<T1, T2, T3, T4, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
-            var old = currentHandle;
+            var old = CurrentHandle;
 
             try {
                 SetCurrentTransaction(handle);
@@ -589,18 +576,7 @@ namespace Starcounter.Internal {
                 // TODO:
                 // Original implementation checked for ObjectDisposedException. See Transaction.ToException().
                 throw ErrorCode.ToException(ec);
-
             });
-        }
-
-        [Conditional("DEBUG")]
-        private void VerifyHandle(TransactionHandle handle) {
-            if (handle.index == -1)
-                return;
-
-            TransactionHandle keptHandle = Get(handle.index);
-            if (!keptHandle.Equals(handle))
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
         }
     }
 }
