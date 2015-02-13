@@ -53,11 +53,13 @@ set(scnetworkgateway_HEADER_FILES
 )
 
 add_executable(scnetworkgateway ${scnetworkgateway_SOURCE_FILES} ${scnetworkgateway_HEADER_FILES})
-OrganizeVisualStudio(scnetworkgateway) # "level1/scnetworkgateway"
+set_property(TARGET scnetworkgateway PROPERTY FOLDER "level1/scnetworkgateway")
 TARGET_LINK_LIBRARIES(scnetworkgateway
 	coalmine
 	sccoredbg
+	sccorelib
 	sccorelog
+	scerrres
 	urihelp
 	bmx
 )

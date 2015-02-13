@@ -79,6 +79,7 @@ typedef uint32_t ws_channel_id_type;
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
 #define LEAST_USED_SCHEDULING
+#define CASE_INSENSITIVE_URI_MATCHER
 
 #ifdef GW_DEV_DEBUG
 #define GW_SC_BEGIN_FUNC
@@ -125,7 +126,8 @@ enum GatewayErrorCodes
     SCERRGWNULLCODEHOST,
     SCERRGWCANTOBTAINFREESOCKETINDEX,
     SCERRGWWRONGUDPFROMPORT,
-    SCERRGWWRONGPORTINDEX
+    SCERRGWWRONGPORTINDEX,
+    SCERRGWREGISTERERINGINCORRECTURI
 };
 
 // Maximum number of ports the gateway operates with.
@@ -2204,12 +2206,10 @@ public:
     void CloseStarcounterLog();
 
     // Write critical into log.
-    void LogWriteCritical(const char* msg);
     void LogWriteCritical(const wchar_t* msg);
     void LogWriteError(const wchar_t* msg);
     void LogWriteWarning(const wchar_t* msg);
     void LogWriteNotice(const wchar_t* msg);
-    void LogWriteGeneral(const char* msg, uint32_t log_type);
     void LogWriteGeneral(const wchar_t* msg, uint32_t log_type);
 };
 

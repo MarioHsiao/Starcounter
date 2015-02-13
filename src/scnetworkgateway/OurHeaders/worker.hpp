@@ -152,7 +152,7 @@ class GatewayWorker
     volatile bool worker_suspended_unsafe_;
 
     // Some worker temporary data.
-    char uri_lower_case_[MixedCodeConstants::MAX_URI_STRING_LEN];
+    char method_space_uri_space_worker_buf_[MixedCodeConstants::MAX_URI_STRING_LEN];
 
     // Random generator.
     random_generator* rand_gen_;
@@ -338,9 +338,9 @@ public:
     }
 
     // Getting worker temporary URI.
-    char* get_uri_lower_case()
+    char* get_method_space_uri_space_worker_buf()
     {
-        return uri_lower_case_;
+        return method_space_uri_space_worker_buf_;
     }
 
     // Adds new active database.

@@ -299,7 +299,7 @@ public:
 
         std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = "<< ((uint8_t*)&(sock_addr->sin_addr.s_addr) - sd) << std::endl;
         std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = "<< ((uint8_t*)&(sock_addr->sin_port) - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = "<< ((uint8_t*)sock_addr + sizeof(sockaddr_in)) << std::endl;
+        std::cout << "SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = "<< ((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) << std::endl;
 
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
