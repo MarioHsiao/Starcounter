@@ -255,14 +255,11 @@ namespace Starcounter.Hosting {
         /// Updates the database schema and register types.
         /// </summary>
         private void UpdateDatabaseSchemaAndRegisterTypes(TypeDef[] unregisteredTypeDefs) {
-
-            if (unregisteredTypeDefs.Length != 0)
-            {
-                if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
-
-                    // Using transaction directly here instead of Db.Scope and scope it two times because of 
-                    // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
-                    using (var transaction = new Transaction(true)) {
+            if (unregisteredTypeDefs.Length != 0) {
+                // Using transaction directly here instead of Db.Scope and scope it several times because of 
+                // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
+                using (var transaction = new Transaction(true)) {
+                    if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
                         transaction.Scope(() => {
                             Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
 
@@ -278,71 +275,72 @@ namespace Starcounter.Hosting {
                             OnPopulateMetadataDefs();
                         });
                     }
-                }
-                List<TypeDef> updateColumns = new List<TypeDef>();
 
-                for (int i = 0; i < unregisteredTypeDefs.Length; i++)
-                {
-                    var typeDef = unregisteredTypeDefs[i];
-                    var tableDef = typeDef.TableDef;
+                    List<TypeDef> updateColumns = new List<TypeDef>();
 
-                    if (CreateOrUpdateDatabaseTable(typeDef))
-                        updateColumns.Add(typeDef);
+                    transaction.Scope(() => {
+                        for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
+                            var typeDef = unregisteredTypeDefs[i];
+                            var tableDef = typeDef.TableDef;
 
-                    // Remap properties representing columns in case the column
-                    // order has changed.
+                            if (CreateOrUpdateDatabaseTable(typeDef))
+                                updateColumns.Add(typeDef);
 
-                    LoaderHelper.MapPropertyDefsToColumnDefs(
-                        tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
-                        );
-                }
+                            // Remap properties representing columns in case the column
+                            // order has changed.
 
-                OnTypesCheckedAndUpdated();
-
-                Bindings.RegisterTypeDefs(unregisteredTypeDefs);
-
-                OnTypeDefsRegistered();
-
-                foreach (TypeDef typeDef in updateColumns)
-                    Db.SystemTransaction(delegate {
-                        MetadataPopulation.CreateColumnInstances(typeDef);
-                        //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
+                            LoaderHelper.MapPropertyDefsToColumnDefs(
+                                tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
+                                );
+                        }
                     });
+                    OnTypesCheckedAndUpdated();
+
+                    Bindings.RegisterTypeDefs(unregisteredTypeDefs);
+
+                    OnTypeDefsRegistered();
+
+                    foreach (TypeDef typeDef in updateColumns)
+                        Db.SystemTransaction(delegate {
+                            MetadataPopulation.CreateColumnInstances(typeDef);
+                            //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
+                        });
 
 #if DEBUG   // Assure that parents were set.
-                Db.Scope(() => {
-                    foreach (TypeDef typeDef in updateColumns) {
-                        RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
-                    typeDef.TableDef.Name).First;
-                        Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
-                            "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
-                        Debug.Assert(thisView.MaterializedTable.Equals(matTab));
-                        Debug.Assert(matTab != null);
-                        RawView parentTab = Db.SQL<RawView>(
-                            "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-                        Debug.Assert(matTab.BaseTable == null && parentTab == null ||
-                            matTab.BaseTable != null && parentTab != null &&
-                            matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
-                    }
-                });
+                    transaction.Scope(() => {
+                        foreach (TypeDef typeDef in updateColumns) {
+                            RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
+                        typeDef.TableDef.Name).First;
+                            Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
+                                "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+                            Debug.Assert(thisView.MaterializedTable.Equals(matTab));
+                            Debug.Assert(matTab != null);
+                            RawView parentTab = Db.SQL<RawView>(
+                                "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
+                            Debug.Assert(matTab.BaseTable == null && parentTab == null ||
+                                matTab.BaseTable != null && parentTab != null &&
+                                matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
+                        }
+                    });
 #endif
-                OnColumnsCheckedAndUpdated();
+                    OnColumnsCheckedAndUpdated();
 
-                QueryModule.UpdateSchemaInfo(unregisteredTypeDefs);
+                    QueryModule.UpdateSchemaInfo(unregisteredTypeDefs);
 
-                OnQueryModuleSchemaInfoUpdated();
+                    OnQueryModuleSchemaInfoUpdated();
 
-                // User-level classes are self registering and report in to
-                // the installed host manager on first use (via an emitted call
-                // in the static class constructor). For system classes, we
-                // have to do this by hand.
-                if (unregisteredTypeDefs[0].TableDef.Name == "materialized_table") {
-                    InitTypeSpecifications();
-                    OnTypeSpecificationsInitialized();
+                    // User-level classes are self registering and report in to
+                    // the installed host manager on first use (via an emitted call
+                    // in the static class constructor). For system classes, we
+                    // have to do this by hand.
+                    if (unregisteredTypeDefs[0].TableDef.Name == "materialized_table") {
+                        InitTypeSpecifications();
+                        OnTypeSpecificationsInitialized();
+                    }
+
+                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
+                    OnPopulateClrMetadata();
                 }
-
-                MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
-                OnPopulateClrMetadata();
             }
         }
 
