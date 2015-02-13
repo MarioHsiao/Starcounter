@@ -285,13 +285,18 @@ namespace Starcounter {
             // to the tree for the first time or that it have been moved.
             // If session is set we need to call the remove and add methods to make sure
             // all stateful info is correct.
-            var session = Session;
-            if (_parent != null && session != null)    
-                OnRemovedFromViewmodel();
+
+            // Since we change parents we need to retrieve session twice.
+            if (_parent != null) {
+                if (Session != null)
+                    OnRemovedFromViewmodel();
+            }
 
             _parent = value;
-            if (_parent != null && session != null)    
-                OnAddedToViewmodel();
+            if (_parent != null) {
+                if (Session != null)
+                    OnAddedToViewmodel();
+            }
         }
 
         /// <summary>
