@@ -33,6 +33,11 @@ CALL NotAllLoaded.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+PUSHD CodePropIndex2533
+CALL CodePropIndex2533.bat
+POPD
+IF ERRORLEVEL 1 GOTO err
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 
