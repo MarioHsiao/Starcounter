@@ -230,6 +230,8 @@ internal static class SqlProcessor
             propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
             if (propBind == null)
                 throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Column " + propertyList[i] + " is not found in table " + typeBind.Name);
+            if (propBind._dataIndex == -1)
+                throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Property " + propertyList[i] + " in table " + typeBind.Name + " is not a stored property.");
             attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
         }
 
