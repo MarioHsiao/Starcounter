@@ -409,12 +409,9 @@ namespace Starcounter {
             string appName;
 
             appName = StarcounterEnvironment.AppName;
-            if (appName == null) {
-                // TODO: 
-                // Should appname always be set and we treat this as an error?
+            if (appName == null) 
                 return null;
-            }
-
+        
             if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
                 dac = new DataAndCache();
                 stateIndex = _stateList.Count;
@@ -578,7 +575,8 @@ namespace Starcounter {
             if (tref == null) {
                 // transaction not registered before. 
                 tref = new TransactionRef();
-                tref.Handle = StarcounterBase.TransactionManager.ClaimOwnership(handle);
+                StarcounterBase.TransactionManager.ClaimOwnership(handle);
+                tref.Handle = handle;
                 tref.Refs = 1;
                 transactions.Add(tref);
             }

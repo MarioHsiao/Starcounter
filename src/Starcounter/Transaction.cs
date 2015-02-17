@@ -75,27 +75,17 @@ namespace Starcounter {
                 _current = null;
             }
 
-            if (_scrap == null) {
-                // No finalizer, the transactionmanager still is in charge.
-                r = TransactionManager.DisposeNoException(_handle);
-                if (r == 0) {
-                    _handle.verify = TransactionHandle.INVALID_VERIFY;
-                    return;
-                }
-            } else {
-                // Finalizer and the ownership have been claimed by this transaction.
-                r = TransactionManager.DisposeNoException(_handle);
-                if (r == 0) {
-                    _handle.verify = TransactionHandle.INVALID_VERIFY;
-                    UnLinkFinalizer();
-                    return;
-                }
-
-                if (r == Error.SCERRTRANSACTIONNOTOWNED && _handle.verify == TransactionHandle.INVALID_VERIFY) {
-                    return;
-                }
+            r = TransactionManager.DisposeNoException(_handle);
+            if (r == 0) {
+                _handle.verify = TransactionHandle.INVALID_VERIFY;
+                UnLinkFinalizer();
+                return;
             }
 
+            if (r == Error.SCERRTRANSACTIONNOTOWNED && _handle.verify == TransactionHandle.INVALID_VERIFY) {
+                return;
+            }
+            
             throw ErrorCode.ToException(r);
         }
 
@@ -162,13 +152,13 @@ namespace Starcounter {
         //    // If the error indicates that the object isn't owned we check if
         //    // verification is set to 0. If so the object has been disposed.
 
-        //    //if (
-        //    //    r == Error.SCERRTRANSACTIONNOTOWNED &&
-        //    //    transaction != null &&
-        //    //    transaction._verify == _INVALID_VERIFY
-        //    //    ) {
-        //    //    return new ObjectDisposedException(null);
-        //    //}
+        //    if (
+        //        r == Error.SCERRTRANSACTIONNOTOWNED &&
+        //        transaction != null &&
+        //        transaction._handle.verify == 0xFF //_INVALID_VERIFY
+        //        ) {
+        //        return new ObjectDisposedException(null);
+        //    }
 
         //    return ErrorCode.ToException(r);
         //}
@@ -334,17 +324,14 @@ namespace Starcounter {
         }
 
         public void KeepAlive () {
-            // TODO:
-            // How do we handle more than one call to this function? 
-            // The same transaction can be wrapped in more than one objectinstance
-            // and then we will have multiple finalizers for the same object.
+            if (_handle.HasTransferedOwnership())
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: errorcode
 
-            if (_scrap == null) {
-                _scrap = new TransactionScrap(_handle.handle, _handle.verify);
-                CreateFinalizer();
-            }
+            StarcounterBase.TransactionManager.ClaimOwnership(_handle);
+            _handle.SetClaimed();
+            _scrap = new TransactionScrap(_handle.handle, _handle.verify);
+            CreateFinalizer();
         }
-
     }
 
     internal sealed class TransactionScrap {

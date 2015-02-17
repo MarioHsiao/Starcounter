@@ -166,85 +166,80 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session to report to</param>
 		private void LogObjectValueChangesWithDatabase(Session session) {
-            this.Scope<Session>((s) => {
-                var template = (TObject)Template;
+            this.Scope<Session, Json>((s, json) => {
+                var template = (TObject)json.Template;
                 if (template == null)
                     return;
 
                 var exposed = template.Properties.ExposedProperties;
 
-                if (_Dirty) {
+                if (json._Dirty) {
                     for (int t = 0; t < exposed.Count; t++) {
-                        if (WasReplacedAt(exposed[t].TemplateIndex)) {
+                        if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
                             if (s != null) {
-                                if (IsArray) {
+                                if (json.IsArray) {
                                     throw new NotImplementedException();
                                 } else {
                                     var childTemplate = (TValue)exposed[t];
-                                    s.UpdateValue(this, childTemplate);
+                                    s.UpdateValue(json, childTemplate);
 
-                                    // TODO:
-                                    // Added this code to make current implementation work.
-                                    // Probably not the correct place to do it though, both
-                                    // for readability and speed.
-                                    Json childJson = null;
-                                    if (childTemplate is TObjArr)
-                                        childJson = this.Get((TObjArr)childTemplate);
-                                    else if (childTemplate is TObject)
-                                        childJson = this.Get((TObject)childTemplate);
-
-                                    if (childJson != null) {
-                                        childJson.SetBoundValuesInTuple();
-                                        childJson.CheckpointChangeLog();
+                                    TContainer container = childTemplate as TContainer;
+                                    if (container != null) {
+                                        var childJson = container.GetValue(json);
+                                        if (childJson != null) {
+                                            childJson.SetBoundValuesInTuple();
+                                            childJson.CheckpointChangeLog();
+                                        }
                                     }
                                 }
                             }
-                            CheckpointAt(exposed[t].TemplateIndex);
+                            json.CheckpointAt(exposed[t].TemplateIndex);
                         } else {
                             var p = exposed[t];
                             if (p is TContainer) {
-                                var c = ((TContainer)p).GetValue(this);
+                                var c = ((TContainer)p).GetValue(json);
                                 if (c != null)
                                     c.LogValueChangesWithDatabase(s);
                             } else {
-                                if (IsArray)
+                                if (json.IsArray)
                                     throw new NotImplementedException();
                                 else
-                                    ((TValue)p).CheckAndSetBoundValue(this, true);
+                                    ((TValue)p).CheckAndSetBoundValue(json, true);
                             }
                         }
                     }
-                    _Dirty = false;
+                    json._Dirty = false;
                 } else if (template.HasAtLeastOneBoundProperty) {
                     for (int t = 0; t < exposed.Count; t++) {
                         if (exposed[t] is TContainer) {
-                            var c = ((TContainer)exposed[t]).GetValue(this);
+                            var c = ((TContainer)exposed[t]).GetValue(json);
                             if (c != null)
                                 c.LogValueChangesWithDatabase(s);
                         } else {
-                            if (IsArray) {
+                            if (json.IsArray) {
                                 throw new NotImplementedException();
                             } else {
                                 var p = exposed[t] as TValue;
-                                p.CheckAndSetBoundValue(this, true);
+                                p.CheckAndSetBoundValue(json, true);
                             }
                         }
                     }
                 } else {
-                    foreach (var e in list) {
+                    foreach (var e in json.list) {
                         if (e is Json) {
                             ((Json)e).LogValueChangesWithDatabase(s);
                         }
                     }
                 }
 
-                if (_stepSiblings != null) {
-                    foreach (var stepSibling in _stepSiblings) {
-                        stepSibling.LogValueChangesWithDatabase(session);
+                if (json._stepSiblings != null) {
+                    foreach (var stepSibling in json._stepSiblings) {
+                        stepSibling.LogValueChangesWithDatabase(s);
                     }
                 }
             },
-            session);
+            session, 
+            this);
 		}
 
 		internal void SetBoundValuesInTuple() {
@@ -253,30 +248,31 @@ namespace Starcounter {
 					item.SetBoundValuesInTuple();
 				}
 			} else {
-                this.Scope(() => {
-                    TObject tobj = (TObject)Template;
+                this.Scope<Json>((json) => {
+                    TObject tobj = (TObject)json.Template;
                     if (tobj != null) {
                         for (int i = 0; i < tobj.Properties.Count; i++) {
                             var t = tobj.Properties[i];
 
                             if (t is TContainer) {
-                                var childJson = ((TContainer)t).GetValue(this);
+                                var childJson = ((TContainer)t).GetValue(json);
                                 if (childJson != null)
                                     childJson.SetBoundValuesInTuple();
                             } else {
                                 var vt = t as TValue;
                                 if (vt != null)
-                                    vt.CheckAndSetBoundValue(this, false);
+                                    vt.CheckAndSetBoundValue(json, false);
                             }
                         }
                     }
 
-                    if (_stepSiblings != null) {
-                        foreach (var stepSibling in _stepSiblings) {
+                    if (json._stepSiblings != null) {
+                        foreach (var stepSibling in json._stepSiblings) {
                             stepSibling.SetBoundValuesInTuple();
                         }
-                    }
-                });
+                    }            
+                }, 
+                this);
 			}
 		}
 

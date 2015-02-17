@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
         void Dispose(TransactionHandle handle);
         void SetTemporaryRef(TransactionHandle handle);
         bool HasTemporaryRef(TransactionHandle handle);
-        TransactionHandle ClaimOwnership(TransactionHandle handle);
+        void ClaimOwnership(TransactionHandle handle);
         TransactionHandle CurrentTransaction { get; }
         void Scope(TransactionHandle handle, Action action);
         void Scope<T>(TransactionHandle handle, Action<T> action, T arg);
@@ -31,19 +31,19 @@ namespace Starcounter.Internal {
 
     public struct TransactionHandle {
         public const byte INVALID_VERIFY = 0xFF;
-        internal const ushort FLAG_MERGING_WRITES = 0x0004;
-        internal const ushort FLAG_TRANSCREATE_READ_ONLY = 0x0008;
-        private const ushort FLAG_CLAIMED = 0x4000;
-        private const ushort FLAG_TEMPORARY_REF = 0x8000;
+        internal const uint FLAG_MERGING_WRITES = 0x0004;
+        internal const uint FLAG_TRANSCREATE_READ_ONLY = 0x0008;
+        private const uint FLAG_CLAIMED = 0x4000;
+        private const uint FLAG_TEMPORARY_REF = 0x8000;
 
         internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED, -1);
 
-        internal readonly ulong handle; // 16
-        internal ushort verify;         // 4
-        internal ushort flags;          // 4
-        internal int index;             // 8
-
-        internal TransactionHandle(ulong handle, ulong verify, ushort flags, int index) {
+        internal ulong handle;        // 8
+        internal ulong verify;        // 8
+        internal uint flags;          // 4
+        internal int index;           // 4
+                                      // 24
+        internal TransactionHandle(ulong handle, ulong verify, uint flags, int index) {
             this.handle = handle;
             this.verify = (ushort)verify;
             this.flags = flags;
@@ -59,7 +59,7 @@ namespace Starcounter.Internal {
         }
 
         internal void SetClaimed() {
-            flags |= FLAG_CLAIMED;
+            flags |= FLAG_CLAIMED | FLAG_TEMPORARY_REF;
         }
 
         internal bool HasTransferedOwnership() {

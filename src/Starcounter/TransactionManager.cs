@@ -54,7 +54,7 @@ namespace Starcounter.Internal {
             ulong verify;
             uint ec;
 
-            ushort flags = detectConflicts ? (ushort)0 : TransactionHandle.FLAG_MERGING_WRITES;
+            uint flags = detectConflicts ? 0 : TransactionHandle.FLAG_MERGING_WRITES;
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
@@ -68,11 +68,11 @@ namespace Starcounter.Internal {
                             Refs[index] = th;
                         }
                     } else {
-                        log.LogWarning("Slow list used, count: " + index);
-
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
-                        if (SlowList == null)
+                        if (SlowList == null) {
                             SlowList = new List<TransactionHandle>();
+                            log.LogWarning("TransactionManager: Slow list used.");
+                        }
 
                         // The index will be recalculated based on the shortlist when used.
                         Debug.Assert(SlowList.Count == (index - ShortListCount));
@@ -102,7 +102,7 @@ namespace Starcounter.Internal {
             ulong verify;
             uint ec;
 
-            ushort flags = detectConflicts ? (ushort)0 : TransactionHandle.FLAG_MERGING_WRITES;
+            uint flags = detectConflicts ? 0 : TransactionHandle.FLAG_MERGING_WRITES;
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
@@ -117,8 +117,10 @@ namespace Starcounter.Internal {
                         }
                     } else {
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
-                        if (SlowList == null)
+                        if (SlowList == null) {
                             SlowList = new List<TransactionHandle>();
+                            log.LogWarning("TransactionManager: Slow list used.");
+                        }
 
                         // The index will be recalculated based on the shortlist when used.
                         Debug.Assert(SlowList.Count == (index - ShortListCount));
@@ -149,8 +151,6 @@ namespace Starcounter.Internal {
                 SetCurrentTransaction(TransactionHandle.Invalid);
 
             if (handle.IsAlive) {
-                // TODO:
-                // Throw error if already disposed?
                 ec  = sccoredb.sccoredb_free_transaction(handle.handle, handle.verify);
                 if (ec != 0)
                     return ec;
@@ -187,6 +187,65 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Checks if the specified transaction has any temporary references or is managed by another.
+        /// If not it will be disposed.
+        /// </summary>
+        /// <param name="handle"></param>
+        internal unsafe static void CheckForRefOrDisposeTransaction(TransactionHandle handle) {
+            uint ec;
+            int isDirty = 0;
+            TransactionHandle keptHandle;
+
+            // There is no need to check if transaction already have been disposed since if it have 
+            // been temporary ref will be set anyways.
+
+            if (handle.index < ShortListCount) {
+                unsafe {
+                    keptHandle = Refs[handle.index];
+                    if (!keptHandle.HasTemporaryRef()) {
+                        ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
+                        if (ec == 0)
+                            ec = sccoredb.sccoredb_free_transaction(handle.handle, handle.verify);
+
+                        if (ec == 0) {
+                            Refs[handle.index] = TransactionHandle.Invalid;
+
+                            if (isDirty != 0)
+                                throw ErrorCode.ToException(Error.SCERRREADONLYTRANSACTION); // SCERRTRANSACTIONMODIFIED
+
+                            // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
+                            if (handle.index == (Used - 1))
+                                Used--;
+                            return;
+                        }
+                        throw ErrorCode.ToException(ec);
+                    }
+                }
+            } else {
+                int calcIndex = handle.index - ShortListCount;
+                keptHandle = SlowList[calcIndex];
+                if (!keptHandle.HasTemporaryRef()) {
+                    ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
+                    if (ec == 0)
+                        ec = sccoredb.sccoredb_free_transaction(handle.handle, handle.verify);
+
+                    if (ec == 0) {
+                        SlowList[calcIndex] = TransactionHandle.Invalid;
+
+                        if (isDirty != 0)
+                            throw ErrorCode.ToException(Error.SCERRREADONLYTRANSACTION); // SCERRTRANSACTIONMODIFIED
+
+                        // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
+                        if (handle.index == (Used - 1))
+                            Used--;
+                        return;
+                    }
+                    throw ErrorCode.ToException(ec);
+                }
+            }
+        }
+
+        /// <summary>
         /// Marks the transaction with the specified index as temporary in use. This means
         /// the transaction cannot be cleaned up in the end of the scope, but will be cleaned
         /// up in the end of the request, unless the ownership of the transaction is claimed.
@@ -202,7 +261,9 @@ namespace Starcounter.Internal {
                     Refs[handle.index].SetTemporaryRef();
                 }
             } else {
-                SlowList[handle.index - ShortListCount].SetTemporaryRef();
+                var keptHandle = SlowList[handle.index - ShortListCount];
+                keptHandle.SetTemporaryRef();
+                SlowList[handle.index - ShortListCount] = keptHandle;
             }
         }
 
@@ -219,10 +280,8 @@ namespace Starcounter.Internal {
             }
         }
 
-        public TransactionHandle ClaimOwnership(TransactionHandle handle) {
-//            VerifyHandle(handle);
-
-            if (handle.index == -1) {
+        public void ClaimOwnership(TransactionHandle handle) {
+            if (handle.index == -1 ) {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
             }
 
@@ -245,7 +304,10 @@ namespace Starcounter.Internal {
                 SlowList[calcIndex] = keptHandle;
             }
             keptHandle.index = -1;
-            return keptHandle;
+
+            // Update the current struct if it points to the same transaction.
+            if (CurrentHandle == keptHandle)
+                CurrentHandle = keptHandle;
         }
 
         public TransactionHandle CurrentTransaction {
@@ -267,9 +329,6 @@ namespace Starcounter.Internal {
                 CurrentHandle = handle;
                 return;
             }
-
-            // TODO: 
-            // old solution checked for ObjectDisposedException. See Transaction.ToException.
             throw ErrorCode.ToException(ec);
         }
 
@@ -516,8 +575,6 @@ namespace Starcounter.Internal {
 
             if (ec == 0) return (isDirty != 0);
 
-            // TODO:
-            // Original implementation checked for ObjectDisposedException. See Transaction.ToException().
             throw ErrorCode.ToException(ec);
         }
 
@@ -573,8 +630,6 @@ namespace Starcounter.Internal {
                 uint ec = sccoredb.sccoredb_rollback();
                 if (ec == 0) return;
 
-                // TODO:
-                // Original implementation checked for ObjectDisposedException. See Transaction.ToException().
                 throw ErrorCode.ToException(ec);
             });
         }

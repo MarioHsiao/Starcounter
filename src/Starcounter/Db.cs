@@ -247,8 +247,7 @@ namespace Starcounter
                 action();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
@@ -265,8 +264,7 @@ namespace Starcounter
                 action(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
@@ -283,8 +281,7 @@ namespace Starcounter
                 action(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
@@ -301,8 +298,7 @@ namespace Starcounter
                 action(arg1, arg2, arg3);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
@@ -317,8 +313,7 @@ namespace Starcounter
                 return func();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
@@ -333,8 +328,7 @@ namespace Starcounter
                 return func(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
@@ -349,8 +343,7 @@ namespace Starcounter
                 return func(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                if (!StarcounterBase.TransactionManager.HasTemporaryRef(transactionHandle))
-                    StarcounterBase.TransactionManager.Dispose(transactionHandle);
+                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
