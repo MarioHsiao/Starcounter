@@ -51,7 +51,7 @@
                         <!-- MainInstallation -->
                         <StackPanel Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding MainInstallation}">
 
-                            <CheckBox Content="_Confirm uninstallation" Background="#FFBF0E1E" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=IsConfirmed}" Style="{DynamicResource BigCheckBoxStyle}" />
+                            <CheckBox x:Name="confirmUninstallationCheckBox" Content="_Confirm uninstallation" Background="#FFBF0E1E" IsChecked="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=IsConfirmed}" Style="{DynamicResource BigCheckBoxStyle}" />
 
                         </StackPanel>
 
@@ -69,7 +69,7 @@
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
-                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.GoToPage" CommandParameter="UninstallProgressPage"  IsDefault="True"  Content="_Uninstall" Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button x:Name="uninstallButton" Margin="2.5,0,0,0" Command="NavigationCommands.GoToPage" CommandParameter="UninstallProgressPage"  IsDefault="True"  Content="_Uninstall" Background="{DynamicResource GreenButtonBackground}"/>
                     </StackPanel>
 
                 </GroupBox>
