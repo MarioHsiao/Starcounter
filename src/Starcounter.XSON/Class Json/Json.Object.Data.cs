@@ -177,7 +177,7 @@ namespace Starcounter {
         public void AttachCurrentTransaction() {
             if (StarcounterBase.TransactionManager != null) {
                 var current = StarcounterBase.TransactionManager.CurrentTransaction;
-                if (current != TransactionHandle.Invalid) {
+                if (current != TransactionHandle.Invalid && !current.IsImplicit) {
                     _transaction = current;
                     StarcounterBase.TransactionManager.SetTemporaryRef(current);
                 }

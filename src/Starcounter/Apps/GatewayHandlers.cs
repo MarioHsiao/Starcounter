@@ -119,7 +119,10 @@ namespace Starcounter
                 // Obtaining client's port.
                 UInt16 clientPort = *(UInt16*) (rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
 
-                Db.Scope<IPAddress, ushort, byte[]>(userCallback, clientIp, clientPort, dataBytes, true);
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
+
+                userCallback(clientIp, clientPort, dataBytes);
                 *isHandled = true;
 
             } finally {
@@ -227,8 +230,11 @@ namespace Starcounter
                     rawSocket.Destroy();
                 }
 
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
+
                 // Calling user callback.
-                Db.Scope<TcpSocket, byte[]>(userCallback, rawSocket, dataBytes, true);
+                userCallback(rawSocket, dataBytes);
                 
                 // Destroying original chunk etc.
                 rawSocket.DestroyDataStream();
@@ -367,8 +373,10 @@ namespace Starcounter
                         isAggregated);
                 }
 
-                *isHandled  = Db.Scope<Request, bool>(UriInjectMethods.OnHttpMessageRoot_, req, true); 
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
 
+                *isHandled = UriInjectMethods.OnHttpMessageRoot_(req); 
             } catch (Exception exc) {
 
                 LogSources.Hosting.LogException(exc);
@@ -608,9 +616,11 @@ namespace Starcounter
 
                 Debug.Assert(null != wsInternal.SocketContainer);
 
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
+
                 // Adding session reference.
-                *isHandled = Db.Scope<ushort, WebSocket, bool>(AllWsChannels.WsManager.RunHandler, managedHandlerId, ws, true);
-               
+                *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
                 // Destroying original chunk etc.
                 ws.WsInternal.DestroyDataStream();
             } catch (Exception exc) {

@@ -33,10 +33,12 @@ namespace Starcounter.Internal {
         public const byte INVALID_VERIFY = 0xFF;
         internal const uint FLAG_MERGING_WRITES = 0x0004;
         internal const uint FLAG_TRANSCREATE_READ_ONLY = 0x0008;
+        internal const uint FLAG_IMPLICIT = 0x2000;
         private const uint FLAG_CLAIMED = 0x4000;
         private const uint FLAG_TEMPORARY_REF = 0x8000;
+        
 
-        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED, -1);
+        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED | FLAG_IMPLICIT, -1);
 
         internal ulong handle;        // 8
         internal ulong verify;        // 8
@@ -72,6 +74,10 @@ namespace Starcounter.Internal {
 
         internal bool IsReadOnly {
             get { return ((flags & FLAG_TRANSCREATE_READ_ONLY) != 0); }
+        }
+
+        internal bool IsImplicit {
+            get { return ((flags & FLAG_IMPLICIT) != 0); }
         }
 
         public override int GetHashCode() {

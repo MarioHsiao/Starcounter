@@ -420,29 +420,30 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
-            Db.Scope(() => {
-                var entrypoint = assembly_.EntryPoint;
+            // No need to keep track of this transaction. It will be cleaned up later.
+            if (Db.Environment.HasDatabase)
+                TransactionManager.CreateImplicitAndSetCurrent(true);
 
-                try {
-                    if (entrypoint.GetParameters().Length == 0) {
-                        entrypoint.Invoke(null, null);
-                    } else {
-                        var arguments = application.Arguments ?? new string[0];
-                        entrypoint.Invoke(null, new object[] { arguments });
-                    }
-                } catch (TargetInvocationException te) {
-                    var entrypointException = te.InnerException;
-                    if (entrypointException == null) throw;
+            var entrypoint = assembly_.EntryPoint;
 
-                    var detail = entrypointException.Message;
-                    if (!ErrorCode.IsFromErrorCode(entrypointException)) {
-                        detail = entrypointException.ToString();
-                    }
-
-                    throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
+            try {
+                if (entrypoint.GetParameters().Length == 0) {
+                    entrypoint.Invoke(null, null);
+                } else {
+                    var arguments = application.Arguments ?? new string[0];
+                    entrypoint.Invoke(null, new object[] { arguments });
                 }
-            });
+            } catch (TargetInvocationException te) {
+                var entrypointException = te.InnerException;
+                if (entrypointException == null) throw;
 
+                var detail = entrypointException.Message;
+                if (!ErrorCode.IsFromErrorCode(entrypointException)) {
+                    detail = entrypointException.ToString();
+                }
+
+                throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
+            }
             OnEntryPointExecuted();
         }
 

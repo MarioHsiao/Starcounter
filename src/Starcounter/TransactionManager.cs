@@ -20,8 +20,6 @@ namespace Starcounter.Internal {
     internal class TransactionManager : ITransactionManager {
         public const int ShortListCount = 5;
 
-        private static LogSource log = new LogSource("TransactionManager");
-
         [ThreadStatic]
         private unsafe static TransactionHandle* Refs;
 
@@ -69,11 +67,9 @@ namespace Starcounter.Internal {
                         }
                     } else {
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
-                        if (SlowList == null) {
+                        if (SlowList == null)
                             SlowList = new List<TransactionHandle>();
-                            log.LogWarning("TransactionManager: Slow list used.");
-                        }
-
+                        
                         // The index will be recalculated based on the shortlist when used.
                         Debug.Assert(SlowList.Count == (index - ShortListCount));
                         SlowList.Add(th);
@@ -91,11 +87,24 @@ namespace Starcounter.Internal {
             throw ErrorCode.ToException(ec);
         }
 
+        /// <summary>
+        /// Wraps a transaction handle in a managed transaction object.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <returns></returns>
         public Starcounter.Advanced.ITransaction WrapHandle(TransactionHandle handle) {
             return new Transaction(handle);
         }
 
+        internal static TransactionHandle CreateImplicitAndSetCurrent(bool readOnly) {
+            return CreateAndSetCurrent(readOnly, false, true);
+        }
+
         internal static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts) {
+            return CreateAndSetCurrent(readOnly, detectConflicts, false);
+        }
+
+        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit) {
             int index = Used;
 
             ulong handle;
@@ -110,6 +119,8 @@ namespace Starcounter.Internal {
             if (ec == 0) {
                 try {
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
+                    if (isImplicit)
+                        th.flags |= TransactionHandle.FLAG_IMPLICIT;
 
                     if (index < ShortListCount) {
                         unsafe {
@@ -117,11 +128,9 @@ namespace Starcounter.Internal {
                         }
                     } else {
                         // The ShortList is filled. We need to switch over to slower list that can manage more transactions.
-                        if (SlowList == null) {
+                        if (SlowList == null)
                             SlowList = new List<TransactionHandle>();
-                            log.LogWarning("TransactionManager: Slow list used.");
-                        }
-
+                        
                         // The index will be recalculated based on the shortlist when used.
                         Debug.Assert(SlowList.Count == (index - ShortListCount));
                         SlowList.Add(th);
@@ -211,7 +220,7 @@ namespace Starcounter.Internal {
                             Refs[handle.index] = TransactionHandle.Invalid;
 
                             if (isDirty != 0)
-                                throw ErrorCode.ToException(Error.SCERRREADONLYTRANSACTION); // SCERRTRANSACTIONMODIFIED
+                                throw ErrorCode.ToException(Error.SCERRTRANSACTIONMODIFIEDBUTNOTREFERENCED); 
 
                             // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
                             if (handle.index == (Used - 1))
@@ -233,7 +242,7 @@ namespace Starcounter.Internal {
                         SlowList[calcIndex] = TransactionHandle.Invalid;
 
                         if (isDirty != 0)
-                            throw ErrorCode.ToException(Error.SCERRREADONLYTRANSACTION); // SCERRTRANSACTIONMODIFIED
+                            throw ErrorCode.ToException(Error.SCERRTRANSACTIONMODIFIEDBUTNOTREFERENCED);
 
                         // If the last one added is the one disposed we decrease the used count and allow the position to be reused.
                         if (handle.index == (Used - 1))
@@ -282,7 +291,7 @@ namespace Starcounter.Internal {
 
         public void ClaimOwnership(TransactionHandle handle) {
             if (handle.index == -1 ) {
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                throw ErrorCode.ToException(Error.SCERRTRANSACTIONALREADYOWNED);
             }
 
             TransactionHandle keptHandle;
@@ -291,7 +300,7 @@ namespace Starcounter.Internal {
                 unsafe {        
                     keptHandle = Refs[handle.index];
                     if (keptHandle.HasTransferedOwnership())
-                        throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                        throw ErrorCode.ToException(Error.SCERRTRANSACTIONALREADYOWNED);
                     keptHandle.SetClaimed();
                     Refs[handle.index] = keptHandle;
                 }
@@ -299,7 +308,7 @@ namespace Starcounter.Internal {
                 int calcIndex = handle.index - ShortListCount;
                 keptHandle = SlowList[calcIndex];
                 if (keptHandle.HasTransferedOwnership())
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+                    throw ErrorCode.ToException(Error.SCERRTRANSACTIONALREADYOWNED);
                 keptHandle.SetClaimed();
                 SlowList[calcIndex] = keptHandle;
             }

@@ -114,12 +114,13 @@ namespace Starcounter {
                     t = _current;
                     if (t == null) {
                         t = new Transaction(h);
+                        StarcounterBase.TransactionManager.SetTemporaryRef(h);
                         _current = t;
                     } else if (t._handle != h) {
+                        StarcounterBase.TransactionManager.SetTemporaryRef(h);
                         t = new Transaction(h);
                         _current = t;
                     }
-                    
                 }
                 return t;
             }
@@ -323,10 +324,7 @@ namespace Starcounter {
             }
         }
 
-        public void KeepAlive () {
-            if (_handle.HasTransferedOwnership())
-                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED); // TODO: errorcode
-
+        public void ClaimOwnership() {
             StarcounterBase.TransactionManager.ClaimOwnership(_handle);
             _handle.SetClaimed();
             _scrap = new TransactionScrap(_handle.handle, _handle.verify);

@@ -235,115 +235,107 @@ namespace Starcounter
         }
 
         public static void Scope(Action action, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase) {
-                action();
-                return;
-            }
-
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
         public static void Scope<T>(Action<T> action, T arg, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase) {
-                action(arg);
-                return;
-            }
-
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
         public static void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase) {
-                action(arg1, arg2);
-                return;
-            }
-
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                if (create) 
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
         public static void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase) {
-                action(arg1, arg2, arg3);
-                return;
-            }
-
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 action(arg1, arg2, arg3);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create) 
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
         public static TResult Scope<TResult>(Func<TResult> func, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase)
-                return func();
-
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
                 return func();
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
         public static TResult Scope<T, TResult>(Func<T, TResult> func, T arg, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase)
-                return func(arg);
-
             TransactionHandle transactionHandle = TransactionHandle.Invalid;
             TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
             try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
                 return func(arg);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
         public static TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
-            if (!Db.Environment.HasDatabase)
-                return func(arg1, arg2);
-
            TransactionHandle transactionHandle = TransactionHandle.Invalid;
            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
-            try {
-                transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
+           bool create = (old.handle == 0 || old.IsImplicit);
+           try {
+               if (create) 
+                   transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
                 return func(arg1, arg2);
             } finally {
                 TransactionManager.SetCurrentTransaction(old);
-                TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+                if (create) 
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 
