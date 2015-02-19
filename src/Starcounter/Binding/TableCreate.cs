@@ -38,7 +38,7 @@ namespace Starcounter.Binding
 
             if (tableDef.BaseName != null)
             {
-                Db.Transaction(() =>
+                Db.Transact(() =>
                 {
                     inheritedTableDef = Db.LookupTable(tableDef.BaseName);
                 });
@@ -58,7 +58,7 @@ namespace Starcounter.Binding
 
             TableDef newTableDef = null;
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newTableDef = Db.LookupTable(tableDef.Name);
             });

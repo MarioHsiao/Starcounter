@@ -55,7 +55,7 @@ namespace SQLTest.InheritedDb {
 
         internal static void Populate() {
             // Create persons, employees, teachers, professors, students and managers
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 for (int i = 0; i < nrPersons; i++)
                     new Person { Name = "Person" + i, Birthday = new DateTime(1950 + i * 5, i % 12 + 1, i + 1), Gender = i % 2 };
                 Employer employer = new Employer { Address = "Here" };

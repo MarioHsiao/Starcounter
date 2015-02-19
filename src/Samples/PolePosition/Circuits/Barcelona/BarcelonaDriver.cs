@@ -27,7 +27,7 @@ public class BarcelonaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 // NOTE:
                 //
                 // If we were to DeleteAllOfType<Barcelona0>(), we get a DbException
@@ -52,7 +52,7 @@ public class BarcelonaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 int objectCount = Setup.ObjectCount;
                 for (int i = 1; i <= objectCount; ++i) {
                     Barcelona4 b4 = new Barcelona4();
@@ -68,7 +68,7 @@ public class BarcelonaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllBarcelona4).GetEnumerator()) {
                     int read = AddResultChecksums(sqlResult);
                 }
@@ -81,7 +81,7 @@ public class BarcelonaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 int selectCount = Setup.SelectCount;
                 for (int i = 1; i <= selectCount; ++i) {
                     using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectBarcelona4ByField2, i).GetEnumerator()) {
@@ -97,7 +97,7 @@ public class BarcelonaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllBarcelona4).GetEnumerator()) {
                     int deleted = 0;
                     while (sqlResult.MoveNext()) {

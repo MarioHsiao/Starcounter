@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 namespace Starcounter.SqlProcessor {
     public static class MetadataPopulation {
         internal static void PopulateClrMetadata(TypeDef[] typeDefs) {
-            Db.SystemTransaction(delegate {
+            Db.SystemTransact(delegate {
                 ClrClass[] createdViews = new ClrClass[typeDefs.Length];
                 // Insert meta-data about types
                 for (int j = 0; j < typeDefs.Length; j++) {

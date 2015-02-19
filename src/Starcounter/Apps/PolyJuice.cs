@@ -368,7 +368,7 @@ namespace PolyjuiceNamespace {
             } else {
 
                 // Adding handler id to the type.
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     x.TheType = soType;
                     x.HandlerId = handlerId;
                     x.HandlerProcessedUri = handlerProcessedUri;

@@ -9,192 +9,25 @@ using System;
 using Starcounter.Advanced;
 using Starcounter.Binding;
 
-namespace Starcounter
-{
+namespace Starcounter {
     /// <summary>
+    /// Represents a longrunning transaction.
     /// </summary>
-    public partial class Transaction
-    {
-        /// <summary>
-        /// Commits current transaction.
-        /// </summary>
-        /// <param name="tran_locked_on_thread"></param>
-        /// <param name="detach_and_free"></param>
-        internal static void Commit(int tran_locked_on_thread, int detach_and_free) {
-            uint r;
-            ulong hiter;
-            ulong viter;
-
-            for (; ; ) {
-                r = sccoredb.sccoredb_begin_commit(tran_locked_on_thread, out hiter, out viter);
-                if (r == 0) {
-                    // TODO: Handle triggers. Call abort commit on failure.
-                    // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
-
-                    r = sccoredb.sccoredb_complete_commit(
-                            tran_locked_on_thread, detach_and_free
-                            );
-                    if (r == 0) break;
-                }
-
-#if true
-                String additionalErrorInfo = null;
-                unsafe {
-                    char* unsafeAdditionalErrorInfo;
-                    r = sccoredb.star_get_last_error(&unsafeAdditionalErrorInfo);
-                    if (unsafeAdditionalErrorInfo != null) {
-                        additionalErrorInfo = string.Concat(new string(unsafeAdditionalErrorInfo), ".");
-                    }
-                }
-                throw ErrorCode.ToException(r, additionalErrorInfo);
-#else
-                throw ErrorCode.ToException(r);
-#endif
-            }
-        }
-    }
-
-    /// <summary>
-    /// Represents a long running transaction.
-    /// </summary>
-    public partial class Transaction : ITransaction, IDisposable {
-        private const ulong _INVALID_VERIFY = 0xFF;
+    public class Transaction : Finalizing, ITransaction, IDisposable {
+        private TransactionHandle _handle;
+        private TransactionScrap _scrap;
 
         /// <summary>
-        /// Current long running transaction.
+        /// Current longrunning user transaction.
         /// </summary>
         /// <remarks>
-        /// <para>
-        /// Note that in the case of a short running transaction (a transaction
-        /// scope) this value will be null (motivation for not supporting
-        /// fetching current transaction).
-        /// </para>
+        /// This instance will be used together with TransactionManager.current
         /// </remarks>
         [ThreadStatic]
         private static Transaction _current;
 
-        /// <summary>
-        /// Method that bypasses the call to kernel and just sets the managed field _current
-        /// to null. Also does not set the implicit transaction. This should be used carefully since
-        /// it might break implicit transaction functionality. 
-        /// Currently used by Db.Transaction(...) and in the end of each task.
-        /// </summary>
-        internal static void SetManagedCurrentToNull() {
-            _current = null;
-        }
-
-        /// <summary>
-        /// Sets given transaction as current.
-        /// </summary>
-        /// <param name="value">Transaction to set as current.</param>
-        public static void SetCurrent(Transaction value) {
-            // Checking if current transaction is the same.
-            if (value == _current)
-                return;
-
-            ulong handle;
-            ulong verify;
-
-            if (value != null) {
-                handle = value._handle;
-                verify = value._verify;
-
-                uint r = sccoredb.sccoredb_set_current_transaction(0, handle, verify);
-                if (r == 0) {
-                    _current = value;
-                    return;
-                }
-                throw ToException(value, r);
-            }
-            else {
-                handle = 0;
-                verify = _INVALID_VERIFY;
-                _current = null;
-                ImplicitTransaction.CreateOrSetCurrent();
-            }
-        }
-
-        /// <summary>
-        /// Returns current transaction if any.
-        /// </summary>
-        /// <returns></returns>
-        public static Transaction GetCurrent() {
-            return _current;
-        }
-
-        /// <summary>
-        /// Adds <paramref name="obj"/> to the write list of the
-        /// currently attached transaction.
-        /// </summary>
-        /// </exception>
-        /// <param name="obj">The object to be added to the transaction
-        /// write list. If the object is not an instance of a database
-        /// class, an exception will be raised.</param>
-        public static void Touch(object obj) {
-            var proxy = obj as IObjectProxy;
-            if (proxy == null) {
-                if (obj == null) {
-                    throw new ArgumentNullException("obj");
-                } else {
-                    throw ErrorCode.ToException(
-                        Error.SCERRCODENOTENHANCED,
-                        string.Format("The type {0} is not a database class.", obj.GetType()),
-                        (msg, inner) => { return new InvalidCastException(msg, inner); });
-                }
-            }
-
-            Touch(proxy);
-        }
-
-        /// <summary>
-        /// Adds <paramref name="proxy"/> to the write list of the
-        /// currently attached transaction.
-        /// </summary>
-        /// </exception>
-        /// <param name="proxy">The proxy referencing the kernel
-        /// object to be added to the transaction write list.</param>
-        public static void Touch(IObjectProxy proxy) {
-            var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
-            if (dr != 0) throw ErrorCode.ToException(dr);
-        }
-
-        private static Exception ToException(Transaction transaction, uint r) {
-            // If the error indicates that the object isn't owned we check if
-            // verification is set to 0. If so the object has been disposed.
-
-            if (
-                r == Error.SCERRTRANSACTIONNOTOWNED &&
-                transaction != null &&
-                transaction._verify == _INVALID_VERIFY
-                ) {
-                return new ObjectDisposedException(null);
-            }
-
-            return ErrorCode.ToException(r);
-        }
-
-        private readonly ulong _handle;
-        private ulong _verify;
-
-        private readonly TransactionScrap _scrap;
-
-        /// <summary>
-        /// Gets a value indicating if the current transaction is a
-        /// read-only transaction, i.e. a transaction where commits
-        /// are not allowed.
-        /// </summary>
-        public bool IsReadOnly { get; private set; }
-
-        /// <summary>
-        /// Default constructor to create read-write transaction.
-        /// </summary>
-        public Transaction() : this(false) { }
-
-        /// <summary>
-        /// Constructor that creates and runs a new transaction.
-        /// </summary>
-        public Transaction(Action action) : this(false) {
-            this.Add(action);
+        public Transaction()
+            : this(false) {
         }
 
         /// <summary>
@@ -203,48 +36,22 @@ namespace Starcounter
         /// <param name="readOnly">Transaction read-only flag.</param>
         /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
         public Transaction(bool readOnly, bool detectConflicts = true) {
-            ulong handle;
-            ulong verify;
-            uint flags = detectConflicts ? 0 : sccoredb.MDB_TRANSCREATE_MERGING_WRITES;
-
-            this.IsReadOnly = readOnly;
-            if (readOnly)
-                flags |= sccoredb.MDB_TRANSCREATE_READ_ONLY;
-
-            uint r = sccoredb.sccoredb_create_transaction(
-                flags,
-                out handle,
-                out verify
-                );
-            if (r == 0) {
-                try {
-                    _scrap = new TransactionScrap(handle, verify);
-                    _handle = handle;
-                    _verify = verify;
-                    return;
-                }
-                catch (Exception) {
-                    _verify = _INVALID_VERIFY;
-                    r = sccoredb.sccoredb_free_transaction(handle, verify);
-                    if (r != 0) ExceptionManager.HandleInternalFatalError(r);
-                    throw;
-                }
-            }
-            _verify = _INVALID_VERIFY;
-            throw ErrorCode.ToException(r);
+            _handle = StarcounterBase.TransactionManager.Create(readOnly, detectConflicts);
         }
 
-        /// <summary>
-        /// </summary>
-        ~Transaction() {
-            if (_verify == _INVALID_VERIFY) return;
+        internal Transaction(TransactionHandle handle) {
+            _handle = handle;
+        }
+
+        internal override void DestroyByFinalizer() {
+            if (_handle.verify == TransactionHandle.INVALID_VERIFY) return;
 
             // Add transaction scrap to scrap heap, a job will be scheduled on
             // the owning thread to release the transaction (the finalizer
             // thread is not the owner of the transaction so it's not allowed
             // to).
 
-            _verify = _INVALID_VERIFY;
+            _handle.verify = TransactionHandle.INVALID_VERIFY;
             ScrapHeap.ThrowAway(_scrap);
         }
 
@@ -263,182 +70,249 @@ namespace Starcounter
             // If disposed context is the current context then the current
             // context is always set to null before the context is disposed.
 
-            if (_current == this) SetCurrent(null);
-            r = sccoredb.sccoredb_free_transaction(_handle, _verify);
+            if (_handle == StarcounterBase.TransactionManager.CurrentTransaction) {
+                TransactionManager.SetCurrentTransaction(TransactionHandle.Invalid);
+                _current = null;
+            }
+
+            r = TransactionManager.DisposeNoException(_handle);
             if (r == 0) {
-                _verify = _INVALID_VERIFY;
-                GC.SuppressFinalize(this);
+                _handle.verify = TransactionHandle.INVALID_VERIFY;
+                UnLinkFinalizer();
                 return;
             }
-            if (r == Error.SCERRTRANSACTIONNOTOWNED && _verify == _INVALID_VERIFY) {
+
+            if (r == Error.SCERRTRANSACTIONNOTOWNED && _handle.verify == TransactionHandle.INVALID_VERIFY) {
                 return;
             }
+            
             throw ErrorCode.ToException(r);
         }
+
+        /// <summary>
+        /// Gets a value indicating if the current transaction is a
+        /// read-only transaction, i.e. a transaction where commits
+        /// are not allowed.
+        /// </summary>
+        public bool IsReadOnly {
+            get {
+                return _handle.IsReadOnly;
+            }
+        }
+
+        /// <summary>
+        /// Returns current transaction if any.
+        /// </summary>
+        /// <returns></returns>
+        public static Transaction Current {
+            get {
+                Transaction t = null;
+                TransactionHandle h;
+
+                h = StarcounterBase.TransactionManager.CurrentTransaction;
+                if (h != TransactionHandle.Invalid) {
+                    t = _current;
+                    if (t == null) {
+                        t = new Transaction(h);
+                        StarcounterBase.TransactionManager.SetTemporaryRef(h);
+                        _current = t;
+                    } else if (t._handle != h) {
+                        StarcounterBase.TransactionManager.SetTemporaryRef(h);
+                        t = new Transaction(h);
+                        _current = t;
+                    }
+                }
+                return t;
+            }
+        }
+
+        /// <summary>
+        /// Adds <paramref name="obj"/> to the write list of the
+        /// currently attached transaction.
+        /// </summary>
+        /// </exception>
+        /// <param name="obj">The object to be added to the transaction
+        /// write list. If the object is not an instance of a database
+        /// class, an exception will be raised.</param>
+        public static void Touch(object obj) {
+            TransactionManager.Touch(obj);
+        }
+
+        /// <summary>
+        /// Adds <paramref name="proxy"/> to the write list of the
+        /// currently attached transaction.
+        /// </summary>
+        /// </exception>
+        /// <param name="proxy">The proxy referencing the kernel
+        /// object to be added to the transaction write list.</param>
+        public static void Touch(IObjectProxy proxy) {
+            TransactionManager.Touch(proxy);
+        }
+
+        //private static Exception ToException(Transaction transaction, uint r) {
+        //    // If the error indicates that the object isn't owned we check if
+        //    // verification is set to 0. If so the object has been disposed.
+
+        //    if (
+        //        r == Error.SCERRTRANSACTIONNOTOWNED &&
+        //        transaction != null &&
+        //        transaction._handle.verify == 0xFF //_INVALID_VERIFY
+        //        ) {
+        //        return new ObjectDisposedException(null);
+        //    }
+
+        //    return ErrorCode.ToException(r);
+        //}
+
+        //internal void Release() {
+        //    //uint r;
+
+        //    //// If another thread attempts to dispose the context at the same
+        //    //// time as the current thread attempts to dispose it then it will
+        //    //// fail since it doesn't own the object (assuming that this does). 
+        //    //// Therefore it's thread safe regardless of if the verification
+        //    //// used by the other thread is 0 or the original value.
+        //    ////
+        //    //// If disposed context is the current context then the current
+        //    //// context is always set to null before the context is disposed.
+
+        //    //if (_current == this) SetCurrent(null);
+        //    //r = sccoredb.sccoredb_free_transaction(_handle, _verify);
+        //    //if (r == 0) {
+        //    //    _verify = _INVALID_VERIFY;
+        //    //    return;
+        //    //}
+        //    //if (r == Error.SCERRTRANSACTIONNOTOWNED && _verify == _INVALID_VERIFY) {
+        //    //    return;
+        //    //}
+        //    //throw ErrorCode.ToException(r);
+        //}
 
         /// <summary>
         /// Executes some code within this transaction scope.
         /// </summary>
         /// <param name="action">Delegate that is called on transaction.</param>
-        public void Add(Action action) {
+        public void Scope(Action action) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                action.Invoke();
+                _current = this;
+                StarcounterBase.TransactionManager.Scope(_handle, action);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        void ITransaction.Add<T>(Action<T> action, T arg) {
+        public void Scope<T>(Action<T> action, T arg) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                action(arg);
+                _current = this;
+                StarcounterBase.TransactionManager.Scope<T>(_handle, action, arg);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        void ITransaction.Add<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+        public void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                action(arg1, arg2);
+                _current = this;
+                StarcounterBase.TransactionManager.Scope<T1, T2>(_handle, action, arg1, arg2);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        void ITransaction.Add<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+        public void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                action(arg1, arg2, arg3);
+                _current = this;
+                StarcounterBase.TransactionManager.Scope<T1, T2, T3>(_handle, action, arg1, arg2, arg3);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        TResult ITransaction.AddAndReturn<TResult>(Func<TResult> func) {
+        public void Scope<T1, T2, T3, T4>(Action<T1, T2, T3, T4> action, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                return func();
+                _current = this;
+                StarcounterBase.TransactionManager.Scope<T1, T2, T3, T4>(_handle, action, arg1, arg2, arg3, arg4);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        TResult ITransaction.AddAndReturn<T, TResult>(Func<T, TResult> func, T arg) {
+        public TResult Scope<TResult>(Func<TResult> func) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                return func(arg);
+                _current = this;
+                return StarcounterBase.TransactionManager.Scope<TResult>(_handle, func);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        TResult ITransaction.AddAndReturn<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+        public TResult Scope<T, TResult>(Func<T, TResult> func, T arg) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                return func(arg1, arg2);
+                _current = this;
+                return StarcounterBase.TransactionManager.Scope<T, TResult>(_handle, func, arg);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        TResult ITransaction.AddAndReturn<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+        public TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                return func(arg1, arg2, arg3);
+                _current = this;
+                return StarcounterBase.TransactionManager.Scope<T1, T2, TResult>(_handle, func, arg1, arg2);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
 
-        TResult ITransaction.AddAndReturn<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public TResult Scope<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
             Transaction old = _current;
             try {
-                SetCurrent(this);
-                return func(arg1, arg2, arg3, arg4);
+                _current = this;
+                return StarcounterBase.TransactionManager.Scope<T1, T2, T3, TResult>(_handle, func, arg1, arg2, arg3);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
-		
 
-        void ITransaction.MergeTransaction(ITransaction toMerge) {
+        public TResult Scope<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             Transaction old = _current;
-            Transaction trans = (Transaction)toMerge;
-            uint ec;
-
             try {
-                SetCurrent(this);
-                ec  = sccoredb.star_transaction_merge_into_current(trans._handle, trans._verify);
-                if (ec != 0) 
-                    throw ErrorCode.ToException(ec);
-
-                trans.Dispose();
+                _current = this;
+                return StarcounterBase.TransactionManager.Scope<T1, T2, T3, T4, TResult>(_handle, func, arg1, arg2, arg3, arg4);
             } finally {
-                SetCurrent(old);
+                _current = old;
             }
         }
+
+        //void ITransaction.MergeTransaction(ITransaction toMerge) {
+        //    Transaction trans = (Transaction)toMerge;
+        //    TransactionManager.MergeTransaction(_handle, trans._handle);
+
+        //    // The TransactionManager have already released the kerneltransaction.
+        //    GC.SuppressFinalize(this);
+        //    _handle.verify = TransactionHandle.INVALID_VERIFY;
+        //}
 
         /// <summary>
         /// Commits changes made on transaction.
         /// </summary>
         public void Commit() {
-            Transaction current = _current;
-            if (current == this) {
-                Transaction.Commit(0, 0);
-            }
-            else {
-                Transaction.SetCurrent(this);
-                try {
-                    Transaction.Commit(0, 0);
-                }
-                finally {
-                    // We can't guarantee that old transaction is restored here
-                    // since in theory the transaction or current context can
-                    // have been manipulated by user code preventing this from
-                    // happening. But if this is so there will be an exception
-                    // at least.
-                    //
-                    // NOTE:
-                    // It should be possible to make restore fail-safe if
-                    // transaction is still bound while executing the commit
-                    // within the context of the other transaction.
-
-                    Transaction.SetCurrent(current);
-                }
-            }
+            StarcounterBase.TransactionManager.Commit(_handle);
         }
 
         /// <summary>
         /// Rollbacks uncommitted changes on transaction.
         /// </summary>
         public void Rollback() {
-            Transaction current = _current;
-            if (current == this) {
-                uint r = sccoredb.sccoredb_rollback();
-                if (r == 0) return;
-                throw ToException(this, r);
-            }
-            else {
-                Transaction.SetCurrent(this);
-                try {
-                    uint r = sccoredb.sccoredb_rollback();
-                    if (r == 0) return;
-                    throw ToException(this, r);
-                }
-                finally {
-                    Transaction.SetCurrent(current);
-                }
-            }
+            StarcounterBase.TransactionManager.Rollback(_handle);
         }
 
         /// <summary>
@@ -446,18 +320,15 @@ namespace Starcounter
         /// </summary>
         public Boolean IsDirty {
             get {
-                Int32 isDirty;
-                uint r;
-
-                unsafe {
-                    r = sccoredb.Mdb_TransactionIsReadWrite(_handle, _verify, &isDirty);
-                }
-
-                if (r == 0)
-                    return (isDirty != 0);
-
-                throw ToException(this, r);
+                return StarcounterBase.TransactionManager.IsDirty(_handle);
             }
+        }
+
+        public void ClaimOwnership() {
+            StarcounterBase.TransactionManager.ClaimOwnership(_handle);
+            _handle.SetClaimed();
+            _scrap = new TransactionScrap(_handle.handle, _handle.verify);
+            CreateFinalizer();
         }
     }
 
@@ -469,7 +340,6 @@ namespace Starcounter
         private readonly ulong _verify;
 
         internal TransactionScrap(ulong handle, ulong verify) {
-            //Next = null;
             _handle = handle;
             _verify = verify;
         }
@@ -482,7 +352,7 @@ namespace Starcounter
             throw ErrorCode.ToException(r);
         }
     }
-    
+
     /// <summary>
     /// Used to clean up garbage collected objects that could not be freed by
     /// garbage collector directly because the associated memory is associated
@@ -530,7 +400,7 @@ namespace Starcounter
             // burst activity. Motivation for not doing a better solution is
             // that the problem with finit input queue should be solved in the
             // future so no point making a big effort on the workaround.
-            
+
             lock (instance._syncRoot) {
                 next = instance._firstScrap;
                 scrap.Next = next;
@@ -539,7 +409,7 @@ namespace Starcounter
                 scheduleRecycle = instance._scheduleOnNextAdd;
                 instance._scheduleOnNextAdd = false;
             }
-            
+
             if (!scheduleRecycle) return;
 
             unsafe {
@@ -561,7 +431,7 @@ namespace Starcounter
                     instance._scheduleOnNextAdd = true;
                 }
             }
-            
+
             throw ErrorCode.ToException(r);
         }
 
@@ -573,8 +443,7 @@ namespace Starcounter
                 var schedulerNumber = sccorelib.GetCpuNumber();
                 var instance = _instances[schedulerNumber];
                 instance.CleanupAll();
-            }
-            finally {
+            } finally {
                 ThreadHelper.ReleaseYieldBlock();
             }
         }

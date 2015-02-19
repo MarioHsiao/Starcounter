@@ -171,7 +171,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 byte[] fileBytes = File.ReadAllBytes(versionBuild.File);
 
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     versionBuild.DownloadDate = DateTime.UtcNow;
                     versionBuild.IPAdress = ipAddress;
                 });

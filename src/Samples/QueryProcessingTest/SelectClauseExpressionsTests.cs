@@ -8,7 +8,7 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Test expressions in select clause");
             int nrs = 0;
             // Arithmetic in select without variables
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 foreach (Decimal a in Db.SQL("select amount / (accountid+?) from account where accountid < ?", 1, 3)) {
                     Trace.Assert(a >= nrs);
                     nrs++;

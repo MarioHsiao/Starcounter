@@ -82,12 +82,28 @@ namespace StarcounterInternal.Hosting
         }
 
         static void RunTask(IntPtr hTask) {
-            var gcHandle = (GCHandle)hTask;
-            var task = (ITask)gcHandle.Target;
-            gcHandle.Free();
-            
-            ImplicitTransaction.CreateOrSetCurrent();
-            task.Run();
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
+
+            try {
+                var gcHandle = (GCHandle)hTask;
+                var task = (ITask)gcHandle.Target;
+                gcHandle.Free();
+
+                // No need to keep track of this since it will be cleaned up anyways in the end.
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
+
+                task.Run();
+            } finally {
+                TransactionManager.Cleanup();
+            }
         }
     }
 }

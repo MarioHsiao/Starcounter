@@ -19,7 +19,7 @@ namespace QueryProcessingTest {
         public static void PopulateAccounts(Int64 nrUsers, Int64 nrAccountPerUser) {
             DeleteAccounts();
             Random rnd = new Random(1);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 for (int i = 0; i < nrUsers; i++) {
                     User newUser = new User {
                         UserId = FakeUserId(i),
@@ -46,7 +46,7 @@ namespace QueryProcessingTest {
             DeleteAccounts();
             Random rnd = new Random(1);
             for (int i = 0; i < nrUsers; i++)
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     User newUser = new User {
                         UserId = FakeUserId(i),
                         UserIdNr = i,
@@ -68,7 +68,7 @@ namespace QueryProcessingTest {
         }
 
         public static void DeleteAccounts() {
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SlowSQL("DELETE FROM Account where Accountid >= 0");
                 Db.SlowSQL("DELETE FROM QueryProcessingTest.User");
             });

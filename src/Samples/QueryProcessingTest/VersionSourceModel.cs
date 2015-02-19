@@ -78,7 +78,7 @@ namespace QueryProcessingTest {
             VersionSource.DeleteSource(versionSource);
             VersionSource.DeletePackageFile(versionSource);
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 versionSource.Delete();
             });
 
@@ -101,7 +101,7 @@ namespace QueryProcessingTest {
                         //LogWriter.WriteLine(string.Format("NOTICE: Documentation folder {0} was deleted.", versionSource.DocumentationFolder));
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionSource.DocumentationFolder = null;
                     });
 
@@ -131,7 +131,7 @@ namespace QueryProcessingTest {
                         //LogWriter.WriteLine(string.Format("NOTICE: Source folder {0} was deleted.", versionSource.SourceFolder));
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionSource.SourceFolder = null;
                     });
 
@@ -158,7 +158,7 @@ namespace QueryProcessingTest {
                         File.Delete(versionSource.PackageFile);
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionSource.PackageFile = null;
                     });
 

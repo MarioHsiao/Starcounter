@@ -97,7 +97,7 @@ namespace Starcounter.Binding
 
             RenameNewTable();
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newTableDef_ = Db.LookupTable(tableName_);
             });
@@ -159,7 +159,7 @@ namespace Starcounter.Binding
 
             RenameNewTable();
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newTableDef_ = Db.LookupTable(tableName_);
             });
@@ -220,7 +220,7 @@ namespace Starcounter.Binding
             var tableName = oldInheritingTableDef.Name;
             TableDef newInheritingTableDef = null;
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newInheritingTableDef = Db.LookupTable(CreatePendingUpdateTableName(tableName));
             });
@@ -439,7 +439,7 @@ namespace Starcounter.Binding
             ulong c = 0;
             do
             {
-                Db.Transaction(() =>
+                Db.Transact(() =>
                 {
                     c = ScanDo(indexInfo.Handle, lk, hk, 1000, recordHandler);
                 });
@@ -453,7 +453,7 @@ namespace Starcounter.Binding
         {
             TableDef[] output = null;
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 sccoredb.SCCOREDB_TABLE_INFO tableInfo;
                 sccoredb.sccoredb_get_table_info(baseTableId, out tableInfo);
