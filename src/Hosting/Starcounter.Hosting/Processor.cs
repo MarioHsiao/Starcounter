@@ -95,6 +95,11 @@ namespace StarcounterInternal.Hosting
                 var gcHandle = (GCHandle)hTask;
                 var task = (ITask)gcHandle.Target;
                 gcHandle.Free();
+
+                // No need to keep track of this since it will be cleaned up anyways in the end.
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
+
                 task.Run();
             } finally {
                 TransactionManager.Cleanup();
