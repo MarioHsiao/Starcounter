@@ -106,7 +106,7 @@ namespace Starcounter.Server {
         }
 
         /// <inheritdoc />
-        public CommandInfo Execute(ServerCommand command) {
+        public CommandInfo Execute(ServerCommand command, Predicate<ServerCommand> cancellationPredicate = null) {
             command.GetReadyToEnqueue();
             return this.engine.Dispatcher.Enqueue(command);
         }

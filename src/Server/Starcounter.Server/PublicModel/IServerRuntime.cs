@@ -40,9 +40,12 @@ namespace Starcounter.Server.PublicModel {
         /// </remarks>
         /// <param name="command">The <see cref="ServerCommand"/>
         /// to execute.</param>
+        /// <param name="cancellationPredicate">Optional predicate that can be used to
+        /// pass in a method that have the right to authorize cancellation of
+        /// the executing command during processing.</param>
         /// <returns>A <see cref="CommandInfo"/> representing the state of
         /// the command.</returns>
-        CommandInfo Execute(ServerCommand command);
+        CommandInfo Execute(ServerCommand command, Predicate<ServerCommand> cancellationPredicate = null);
 
         /// <summary>
         /// Waits for the server command represented by the given
