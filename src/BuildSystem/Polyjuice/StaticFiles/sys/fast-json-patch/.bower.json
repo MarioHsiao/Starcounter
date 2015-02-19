@@ -1,9 +1,8 @@
 {
   "name": "fast-json-patch",
-  "version": "0.5.0",
-  "homepage": "https://github.com/Starcounter-Jack/Fast-JSON-Patch",
+  "homepage": "https://github.com/Starcounter-Jack/JSON-Patch",
   "description": "Fast implementation of JSON-Patch (RFC-6902) with duplex (observe changes) capabilities",
-  "main": "src/json-patch.js",
+  "main": "src/json-patch-duplex.js",
   "keywords": [
     "json",
     "patch",
@@ -19,13 +18,13 @@
     "node_modules",
     "package.json"
   ],
-  "_release": "0.5.0",
+  "_release": "7f61fa6d13",
   "_resolution": {
-    "type": "version",
-    "tag": "0.5.0",
-    "commit": "b6973413030ae5fad97e44fe7aef044d381b972c"
+    "type": "branch",
+    "branch": "master",
+    "commit": "7f61fa6d139bb691caebb81c551bee4e854414a3"
   },
-  "_source": "git://github.com/Starcounter-Jack/Fast-JSON-Patch.git",
-  "_target": "~0.5.0",
-  "_originalSource": "fast-json-patch"
+  "_source": "git://github.com/Starcounter-Jack/JSON-Patch.git",
+  "_target": "master",
+  "_originalSource": "Starcounter-Jack/JSON-Patch"
 }
