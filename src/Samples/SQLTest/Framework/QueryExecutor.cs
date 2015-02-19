@@ -12,7 +12,7 @@ namespace SQLTest
 
         public static void ResultExecuteQueries(List<TestQuery> queryList, Boolean firstExecution)
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 List<String> resultList = null;
                 SqlEnumerator<dynamic> sqlEnum = null;

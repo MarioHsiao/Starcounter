@@ -62,7 +62,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
         /// </summary>
         private static void RemoveInvalidSourceItems() {
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
 
                 var result = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o");
                 foreach (VersionSource source in result) {
@@ -199,7 +199,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         VersionSource source = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.Version=?", versionInfo_edition, versionInfo_channel, versionInfo_version).First;
                         if (source == null) {
 
-                            Db.Transaction(() => {
+                            Db.Transact(() => {
                                 DirectoryInfo channelFolder = new DirectoryInfo(channel);
                                 VersionSource versionSource = new VersionSource();
                                 versionSource.SourceFolder = versionSourceFolder;
@@ -241,7 +241,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     continue;
                 }
 
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     versionBuild.Source = versionSource;
                 });
 
@@ -313,7 +313,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                             }
                             else {
 
-                                Db.Transaction(() => {
+                                Db.Transact(() => {
                                     versionSource.DocumentationFolder = versionFolder;
                                     LogWriter.WriteLine(string.Format("NOTICE: Missing documentation folder {0} was added to database.", versionFolder));
                                 });
@@ -473,7 +473,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
 
             // Remove all builds that dosent have a source and has not been downloaded
             // TODO: o.Source is always null
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 var result = Db.SlowSQL("SELECT o FROM VersionBuild o WHERE o.Source is null AND o.HasBeenDownloaded=?", false);
                 foreach (VersionBuild build in result) {
                     string file = build.File;
@@ -482,7 +482,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
             });
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
 
                 var result = Db.SlowSQL("SELECT o FROM VersionBuild o");
                 foreach (VersionBuild build in result) {
@@ -510,7 +510,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
             // TODO: Have a build retry counter. 
 
             var result = Db.SlowSQL("SELECT o FROM VersionSource o WHERE o.BuildError=?", true);
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 foreach (VersionSource source in result) {
                     source.BuildError = false;
                     LogWriter.WriteLine(string.Format("NOTICE: Resetted source {0}-{1}-{2} build error flag.", source.Edition, source.Channel, source.Version));

@@ -66,7 +66,7 @@ namespace QueryProcessingTest {
         static void PopulateData() {
             if (Db.SQL("select w from webpage w").First != null)
                 return;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 var web1 = new WebPage() {
                     Title = "About us"
                 };
@@ -94,7 +94,7 @@ namespace QueryProcessingTest {
                 }
             });
             if (Db.SQL("select a from agent a").First == null)
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     new Agent();
                 });
         }

@@ -86,6 +86,7 @@
     <Compile Include="Http\WsManager.cs" />
     <Compile Include="Interfaces\ILogSource.cs" />
     <Compile Include="Interfaces\IReadOnlyITree.cs" />
+    <Compile Include="Interfaces\ITransactionManager.cs" />
     <Compile Include="Interfaces\XSON\IBindableRetriever.cs" />
     <Compile Include="LockFreeStack.cs" />
     <Compile Include="Profiler\Profiler.cs" />

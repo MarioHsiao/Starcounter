@@ -39,20 +39,20 @@ namespace QueryProcessingTest {
         public static void GetObjectTest() {
             HelpMethods.LogEvent("Test obtaining object id.");
             ulong accountId = 0;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 accountId = new Account().GetObjectNo();
             });
             Trace.Assert(accountId > 0);
             IObjectView a = null;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 a = DbHelper.FromID(accountId);
             });
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 a.Delete();
             });
             Trace.Assert(a != null);
             Trace.Assert(a.GetObjectNo() == accountId);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 a = DbHelper.FromID(accountId);
             });
             Trace.Assert(a == null);
@@ -322,7 +322,7 @@ namespace QueryProcessingTest {
             string dailyChannel = "DailyBuilds";
             string nightlyChannel = "NightlyBuilds";
             if (Db.SQL("select vs from versionsource vs").First == null)
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     new VersionSource {
                         BuildError = false,
                         Channel = nightlyChannel,

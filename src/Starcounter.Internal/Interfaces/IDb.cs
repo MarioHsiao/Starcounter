@@ -11,8 +11,7 @@ namespace Starcounter.Advanced {
         Rows<dynamic> SlowSQL(string query, params object[] args);
         Rows<T> SlowSQL<T>(string query, params object[] args);
         void Transaction(Action action);
-
-        // Quick hack to test syntax.
-        ITransaction Current { get; }
+        void Scope(Action action);
+//        ITransaction CurrentTransaction { get; }
     }
 }

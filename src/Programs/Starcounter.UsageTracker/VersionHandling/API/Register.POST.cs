@@ -27,7 +27,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                     LogWriter.WriteLine(string.Format("NOTICE: User registration [{0}] from ({1})", incomingJson.useremail, clientIP.ToString()));
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         RegisteredUser user = new RegisteredUser();
                         user.RegistredDate = DateTime.UtcNow;
                         user.IPAdress = clientIP.ToString();

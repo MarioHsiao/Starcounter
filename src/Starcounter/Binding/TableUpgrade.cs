@@ -97,7 +97,7 @@ namespace Starcounter.Binding
 
             RenameNewTable();
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newTableDef_ = Db.LookupTable(tableName_);
             });
@@ -144,7 +144,7 @@ namespace Starcounter.Binding
                     if (inheritedTableName.StartsWith(PendingUpdateTableNamePrefix))
                     {
                         inheritedTableName = inheritedTableName.Substring(PendingUpdateTableNamePrefix.Length);
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
                             Db.RenameTable(directlyInheritedTableDef.TableId, inheritedTableName);
                         });
                     }
@@ -159,11 +159,11 @@ namespace Starcounter.Binding
                 DropOldTable();
             }
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 RenameNewTable();
             });
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newTableDef_ = Db.LookupTable(tableName_);
             });
@@ -224,7 +224,7 @@ namespace Starcounter.Binding
             var tableName = oldInheritingTableDef.Name;
             TableDef newInheritingTableDef = null;
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newInheritingTableDef = Db.LookupTable(CreatePendingUpdateTableName(tableName));
             });
@@ -414,7 +414,7 @@ namespace Starcounter.Binding
                     } // End for attributeCount.
 
                     if (createIndex) {
-                        Db.Transaction(delegate {
+                        Db.Transact(delegate {
                             fixed (Int16* paii = &(attrIndexArr[0])) {
                                 ec = systables.star_create_index(newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
                             }
@@ -442,7 +442,7 @@ namespace Starcounter.Binding
             ulong c = 0;
             do
             {
-                Db.Transaction(() =>
+                Db.Transact(() =>
                 {
                     c = ScanDo(indexInfo.Handle, lk, hk, 1000, recordHandler);
                 });
@@ -456,7 +456,7 @@ namespace Starcounter.Binding
         {
             TableDef[] output = null;
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 systables.STAR_TABLE_INFO tableInfo;
                 systables.star_get_table_info(baseTableId, out tableInfo);
@@ -489,7 +489,7 @@ namespace Starcounter.Binding
         /// </summary>
         private void DropOldTable()
         {
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.DropTable(oldTableDef_.Name);
             });
         }
@@ -499,7 +499,7 @@ namespace Starcounter.Binding
         /// </summary>
         private void RenameNewTable()
         {
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.RenameTable(newTableDef_.TableId, tableName_);
             });
         }

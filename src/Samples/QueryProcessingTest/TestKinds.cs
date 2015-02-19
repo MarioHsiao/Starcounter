@@ -6,7 +6,7 @@ namespace QueryProcessingTest {
     public static class TestKinds {
         public static void RunKindsTest() {
             HelpMethods.LogEvent("Test kinds like behavior");
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 var porsche911 = new CarModel() { Brand = "Porsche", ModelName = "911" };
                 var porsche911turbo = new CarModel() {
                     Brand = "Porsche",

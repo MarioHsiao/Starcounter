@@ -99,7 +99,7 @@ namespace Starcounter {
             var hookType = HookConfiguration.ToHookType(hookConfiguration);
             var key = HookKey.FromTable(tableInfo.table_id, hookType);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     var hookConfigMask = HookConfiguration.GetConfiguration(key);
                     hookConfigMask |= hookConfiguration;
 

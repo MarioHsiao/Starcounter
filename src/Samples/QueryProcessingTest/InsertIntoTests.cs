@@ -14,11 +14,11 @@ namespace QueryProcessingTest {
             // be used by a deleted but not yet purged record.
  
             UInt64 vId = 1000000;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 while (DbHelper.FromID(vId) != null) vId += 1000000;
             });
 #endif
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 if (Db.SQL("select c from company c").First != null) {
                     WebPage w1 = Db.SQL<WebPage>("select w from webpage w where title = ?", "MyCompany, AboutUs").First;
                     w1.Delete();
@@ -36,7 +36,7 @@ namespace QueryProcessingTest {
                         c1.Delete();
                 }
             });
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 String query = "INSERT INTO WebPage (Title, uRL, PageValue, PersonalPageValue, TrackingCode, Located, deleted)" +
                     "Values ('MyCompany, AboutUs', '168.12.147.2/AboutUs', 100, -90, '', false, false)";
                 Db.SQL(query);
@@ -50,7 +50,7 @@ namespace QueryProcessingTest {
             Trace.Assert(w.TrackingCode == "");
             Trace.Assert(w.Located == false);
             Trace.Assert(w.Deleted == false);
-            Db.Transaction(delegate { Db.SQL("insert into country(name) values ('Sweden'), ('Germany'), ('France')"); });
+            Db.Transact(delegate { Db.SQL("insert into country(name) values ('Sweden'), ('Germany'), ('France')"); });
             
             var counEnum = Db.SQL<Country>("select c from country c").GetEnumerator();
             Trace.Assert(counEnum.MoveNext());
@@ -64,7 +64,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.Name == "France");
             Trace.Assert(!counEnum.MoveNext());
             counEnum.Dispose();
-            Db.Transaction(delegate { Db.SQL("insert into company (name,country) values ('Canal+',object " + c.GetObjectNo()+")"); });
+            Db.Transact(delegate { Db.SQL("insert into company (name,country) values ('Canal+',object " + c.GetObjectNo()+")"); });
             var compEnum = Db.SQL<Company>("select c from company c").GetEnumerator();
             Trace.Assert(compEnum.MoveNext());
             Company co = compEnum.Current;
@@ -74,11 +74,11 @@ namespace QueryProcessingTest {
             compEnum.Dispose();
             DateTime startV = Convert.ToDateTime("2006-11-01 00:08:40");
             DateTime endV = Convert.ToDateTime("2006-11-01 00:08:59");
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, start, end, UserAgent, ipbytes) values (" +
                     UInt64.MaxValue + ", object " + co.GetObjectNo() + "," + startV.Ticks + "," + endV.Ticks + ",'Opera',binary '01010101')");
             });
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (id, company, UserAgent, ipbytes) values (2, object " +
                     co.GetObjectNo() + ",'Opera',BINARY 'D91FA24E19FB065Ad')");
             });
@@ -114,8 +114,8 @@ namespace QueryProcessingTest {
             Trace.Assert(!visits.MoveNext());
             visits.Dispose();
             // Test insert __id value
-            Db.Transaction(delegate { v.Delete(); });
-            Db.SystemTransaction(delegate {
+            Db.Transact(delegate { v.Delete(); });
+            Db.SystemTransact(delegate {
                 Db.SQL("insert into starcounter.raw.QueryProcessingTest.visit (__id, id, company, UserAgent) values (object " +
                     vId + ",1, object " +
                     co.GetObjectNo() + ",'Opera')");
@@ -130,7 +130,7 @@ namespace QueryProcessingTest {
             Trace.Assert(v.GetObjectNo() == vId);
             Trace.Assert(!visits.MoveNext());
             visits.Dispose();
-            Db.Transaction(delegate { Db.SQL("insert into impression(visit) values (object " + vId + ")"); });
+            Db.Transact(delegate { Db.SQL("insert into impression(visit) values (object " + vId + ")"); });
             var impressions = Db.SQL<Impression>("select i from impression i where visit = ?", v).GetEnumerator();
             Trace.Assert(impressions.MoveNext());
             Impression impr = impressions.Current;
@@ -138,7 +138,7 @@ namespace QueryProcessingTest {
             Trace.Assert(impr.Visit.Equals(v));
             Trace.Assert(!impressions.MoveNext());
             impressions.Dispose();
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL("insert into QueryProcessingTest.user(userid,useridnr,birthday,firstname,lastname,nickname)" +
                     "values('SpecUser',1000000," + startV.Ticks + ",'Carl','Olofsson','')");
                 var users = Db.SQL<User>("select u from user u where userid = ?", "SpecUser").GetEnumerator();
@@ -191,7 +191,7 @@ namespace QueryProcessingTest {
             int nrUnknCOmp = 0;
             foreach (Company cc in Db.SQL<Company>("select c from company c where c.Country.name = ?", "Unknown"))
                 nrUnknCOmp++;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Company comp = new Company { Country = new Country { Name = "Unknown" }, Name = "Single\'quoted\'name" };
                 comp = new Company { Country = new Country { Name = "Unknown" }, Name = "Double\"quoted\"\nname" };
             });

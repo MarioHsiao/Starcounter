@@ -16,7 +16,7 @@ namespace Starcounter.Binding {
         static Dictionary<string, ulong> typesDiscovered = new Dictionary<string, ulong>();
 
         public static void DiscoverNewTypes(TypeDef[] unregisteredTypes) {
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 DiscoverTypesAndAssureThem(unregisteredTypes);
             });
         }

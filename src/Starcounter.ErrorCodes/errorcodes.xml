@@ -3290,6 +3290,17 @@
         understand the storage manager.
       </message>
     </code>
+    <code hex="0122" severity="Error" name="ScErrTransactionAlreadyOwned">
+      <message>
+        The transaction is already owned by someone else and cannot be claimed.
+      </message>
+    </code>
+    <code hex="0123" severity="Error" name="ScErrTransactionModifiedButNotReferenced">
+      <message>
+        Data in the transaction is created or updated, but the transaction is not 
+        referenced and will be discarded. 
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

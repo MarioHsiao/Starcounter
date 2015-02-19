@@ -193,7 +193,7 @@ namespace SqlCacheTrasher
             {
                 using (Transaction transaction = new Transaction())
                 {
-                    transaction.Add(() => {
+                    transaction.Scope(() => {
                         for (Int32 i = startIndex; i < endIndex; i++) {
                             hitCount = 0;
                             foreach (SimpleObject s in Db.SQL(queryCapCombs[i], i)) {
@@ -226,7 +226,7 @@ namespace SqlCacheTrasher
 
             using (Transaction transaction = new Transaction())
             {
-                transaction.Add(() => {
+                transaction.Scope(() => {
                     using (var sqlResult = Db.SQL("SELECT s FROM SimpleObject s").GetEnumerator()) {
                         while (sqlResult.MoveNext()) {
                             // Deleting the object.
@@ -264,7 +264,7 @@ namespace SqlCacheTrasher
             // Populating database using number of given transactions.
             using (Transaction transaction = new Transaction())
             {
-                transaction.Add(() => {
+                transaction.Scope(() => {
                     for (Int32 i = 0; i < numQueries; i++) {
                         SimpleObject testClassInstance = new SimpleObject(i);
                         created++;

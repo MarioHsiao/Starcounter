@@ -38,7 +38,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Pilot>();
                 transaction.Commit();
             });
@@ -56,7 +56,7 @@ public class BahrainDriver : Driver
         int commitInterval = Setup.CommitInterval;
         using(Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 for (int i = 1; i <= objectCount; ++i) {
                     Pilot p = new Pilot();
                     p.Id = i;
@@ -79,7 +79,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 int selectCount = Setup.SelectCount;
                 for (int i = 1; i <= selectCount; ++i) {
                     int taken = 0;
@@ -107,7 +107,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 int selectCount = Setup.SelectCount;
                 for (int i = 1; i <= selectCount; ++i) {
                     int taken = 0;
@@ -136,7 +136,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 int selectCount = Setup.SelectCount;
                 for (int i = 1; i <= selectCount; ++i) {
                     int taken = 0;
@@ -165,7 +165,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 int selectCount = Setup.SelectCount;
 
                 for (int i = 1; i <= selectCount; ++i) {
@@ -195,7 +195,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
                     int remainingUpdates = Setup.UpdateCount;
                     while (sqlResult.MoveNext() && remainingUpdates-- > 0) {
@@ -214,7 +214,7 @@ public class BahrainDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
                     while (sqlResult.MoveNext()) {
                         (sqlResult.Current as Pilot).Delete();

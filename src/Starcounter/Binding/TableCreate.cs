@@ -38,7 +38,7 @@ namespace Starcounter.Binding
 
             if (tableDef.BaseName != null)
             {
-                Db.Transaction(() =>
+                Db.Transact(() =>
                 {
                     inheritedTableDef = Db.LookupTable(tableDef.BaseName);
                 });
@@ -54,13 +54,13 @@ namespace Starcounter.Binding
             // Check that the first columns of the table definition matches
             // that of the inherited table. Do this in Db.CreateTable?
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 Db.CreateTable(tableDef, inheritedTableDef);
             });
 
             TableDef newTableDef = null;
 
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 newTableDef = Db.LookupTable(tableDef.Name);
             });

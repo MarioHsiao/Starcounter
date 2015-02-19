@@ -17,7 +17,7 @@ namespace SQLTest.PointDb
 
         public static void CreateData()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 // Control that data is not already created.
                 if (Db.SQL("select p from IntegerPoint p").First != null)
@@ -92,7 +92,7 @@ namespace SQLTest.PointDb
 
         public static void DeleteData()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (IObjectView obj in objectList)
                 {
