@@ -502,7 +502,7 @@ namespace LoadAndLatency
 
             for (Int32 i = 0; i < TotalNumOfObjectsInDB; i++)
             {
-                Db.Transaction(delegate
+                Db.Transact(delegate
                 {
                     TestClass o = (TestClass)Db.SQL("SELECT c FROM TestClass c WHERE c.prop_int64 = ?", g_shuffledArrayInt64[0, i]).First;
                     if (o != null)
@@ -521,7 +521,7 @@ namespace LoadAndLatency
             numFound = 0;
             for (Int32 i = 0; i < TotalNumOfObjectsInDB; i++)
             {
-                Db.Transaction(delegate
+                Db.Transact(delegate
                 {
                     foreach (TestClass o in Db.SQL("SELECT c FROM TestClass c WHERE c.prop_int64 = ?", g_shuffledArrayInt64[0, i]))
                     {

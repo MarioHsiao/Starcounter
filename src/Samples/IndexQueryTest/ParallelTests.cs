@@ -13,7 +13,7 @@ namespace IndexQueryTest
         static bool indexCreated = false;
         static void QueryTheIndexSync()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 queryStarted = true;
                 while (!indexCreated) ;
@@ -23,7 +23,7 @@ namespace IndexQueryTest
         }
         static void QueryTheIndex()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 accounttest.User user = (accounttest.User)Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").First;
                 Console.WriteLine(Db.SQL("SELECT u FROM User u WHERE UserId = ?", "KalLar01").GetEnumerator().ToString());

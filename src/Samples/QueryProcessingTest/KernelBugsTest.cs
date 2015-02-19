@@ -26,7 +26,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(ex.ErrorCode == Starcounter.Error.SCERRNAMEDINDEXALREADYEXISTS);
             }
 
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SlowSQL("DELETE FROM Label");
             });
 
@@ -99,7 +99,7 @@ namespace QueryProcessingTest {
                 });
             }
 
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SlowSQL("DELETE FROM Label");
             });
         }

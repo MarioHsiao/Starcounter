@@ -301,7 +301,7 @@ namespace Starcounter.Hosting {
                     OnTypeDefsRegistered();
 
                     foreach (TypeDef typeDef in updateColumns)
-                        Db.SystemTransaction(delegate {
+                        Db.SystemTransact(delegate {
                             MetadataPopulation.CreateColumnInstances(typeDef);
                             //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
                         });
@@ -382,7 +382,7 @@ namespace Starcounter.Hosting {
             TableDef pendingUpgradeTableDef = null;
             bool updated = false;
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 storedTableDef = Db.LookupTable(tableName);
                 pendingUpgradeTableDef = Db.LookupTable(TableUpgrade.CreatePendingUpdateTableName(tableName));
             });
@@ -390,7 +390,7 @@ namespace Starcounter.Hosting {
             if (pendingUpgradeTableDef != null) {
                 var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
                 storedTableDef = continueTableUpgrade.ContinueEval();
-                Db.SystemTransaction(delegate {
+                Db.SystemTransact(delegate {
                     MetadataPopulation.UpgradeRawTableInstance(typeDef);
                     updated = true;
                 });
@@ -399,14 +399,14 @@ namespace Starcounter.Hosting {
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
-                Db.SystemTransaction(delegate {
+                Db.SystemTransact(delegate {
                     MetadataPopulation.CreateRawTableInstance(typeDef);
                     updated = true;
                 });
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
-                Db.SystemTransaction(delegate {
+                Db.SystemTransact(delegate {
                     MetadataPopulation.UpgradeRawTableInstance(typeDef);
                     updated = true;
                 });

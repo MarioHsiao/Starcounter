@@ -22,7 +22,7 @@ namespace IndexQueryTest
             CountAllObjects();
             //PrintAllObjects();
             // See a query plan
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 IEnumerator sqlEnum = (IEnumerator)Db.SQL("select u from accounttest.user u").GetEnumerator();
                 Trace.Assert(sqlEnum.ToString() != "");

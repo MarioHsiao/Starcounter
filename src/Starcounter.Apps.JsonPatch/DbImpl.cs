@@ -30,7 +30,7 @@ namespace Starcounter.Internal {
         }
 
         void IDb.Transaction(Action action) {
-            Db.Transaction(action);
+            Db.Transact(action);
         }
 
         void IDb.Scope(Action action) {

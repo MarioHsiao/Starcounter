@@ -9,7 +9,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API {
     internal static class ErrorReportHandler {
         public static void Setup_PUT(ushort port) {
             Handle.PUT(port, "/api/usage/errorreport", (Report report, Request request) => {
-				Db.Transaction(() => {
+				Db.Transact(() => {
 
 					var sr = new ErrorReport();
 					sr.Installation = Db.SQL<Installation>("SELECT i FROM Installation i WHERE i.InstallationNo=?", report.InstallationNo).First;

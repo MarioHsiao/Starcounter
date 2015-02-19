@@ -161,11 +161,11 @@ namespace Starcounter
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transaction(action, 0, forceSnapshot, maxRetries);
+        public static void Transact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transact(action, 0, forceSnapshot, maxRetries);
         }
 
-        internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100) {
+        internal static void Transact(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100) {
             int retries;
             uint r;
             ulong handle;
@@ -230,8 +230,8 @@ namespace Starcounter
             }
         }
 
-        internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transaction(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
+        internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transact(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
         }
 
         public static void Scope(Action action, bool isReadOnly = false) {

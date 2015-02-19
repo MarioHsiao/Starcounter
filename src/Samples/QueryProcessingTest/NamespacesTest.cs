@@ -6,7 +6,7 @@ namespace QueryProcessingTest {
     public class NamespacesTest {
         public static void TestClassesNamespaces() {
             HelpMethods.LogEvent("Test queries with classes in different namespaces");
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 commonclass c = new commonclass { NoNamespaceProperty = 1 };
                 CamelNameSpace.CommonClass Cc = new CamelNameSpace.CommonClass { CamelIntProperty = 2 };
                 lowercasenamespace.commonclass cc = new lowercasenamespace.commonclass { lowercaseintproperty = 3 };

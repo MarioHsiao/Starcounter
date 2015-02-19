@@ -31,7 +31,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
 
                         dynamic data = incomingJson.usage;
 
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
 
                             string serial = data.downloadId;
                             Int64 installationNo = (Int64)data.installationNo;
