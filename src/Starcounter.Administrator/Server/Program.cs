@@ -153,7 +153,12 @@ namespace Starcounter.Administrator.Server {
             });
 
             Handle.GET("/test", () => {
-                return "hello";
+
+                Response resp = new Response();
+                resp.Body = "hello";
+                resp.ContentType = "text/plain";
+
+                return resp;
             });
 
             Handle.GET("/native-allocs", () => {
