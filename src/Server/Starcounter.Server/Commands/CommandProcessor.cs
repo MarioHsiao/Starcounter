@@ -34,6 +34,7 @@ namespace Starcounter.Server.Commands {
         private int? exitCode;
         private object result;
         private readonly int typeIdentity;
+        private bool isCancelledByHost;
 
         private NotifyCommandStatusChangedCallback _notifyStatusChangedCallback;
 
@@ -137,6 +138,16 @@ namespace Starcounter.Server.Commands {
         public CommandStatus Status {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// Gets or sets an optional predicate that are to be
+        /// queried periodically by the current processor to see if
+        /// command processing should be cancelled.
+        /// </summary>
+        public Predicate<ServerCommand> CancellationPredicate {
+            get;
+            set;
         }
 
         /// <summary>
