@@ -266,7 +266,12 @@ namespace Starcounter.Server.Commands {
 
         internal void ProcessCommand(NotifyCommandStatusChangedCallback notifyStatusChangedCallback) // Must not throw exception!
         {
-            if (this.Status == CommandStatus.Cancelled) {
+            if (ShouldCancel()) {
+                if (this.Status != CommandStatus.Cancelled) {
+                    this.Status = CommandStatus.Cancelled;
+                    NotifyStatusChanged();
+                }
+
                 return;
             }
 
