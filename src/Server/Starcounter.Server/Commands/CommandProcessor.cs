@@ -472,17 +472,10 @@ namespace Starcounter.Server.Commands {
         /// progressing while the given action executes.</param>
         /// <param name="action">The code to execute.</param>
         protected void WithinTask(CommandTask task, Action<CommandTask> action) {
-            bool cancel = false;
-
-            BeginTask(task);
-            try {
-                action(task);
-            } catch {
-                cancel = true;
-                throw;
-            } finally {
-                EndTask(task, cancel);
-            }
+            WithinTask(task, (t) => {
+                action(t);
+                return true;
+            });
         }
 
         /// <summary>
