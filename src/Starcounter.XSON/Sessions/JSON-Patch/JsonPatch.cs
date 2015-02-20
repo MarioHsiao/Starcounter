@@ -97,7 +97,7 @@ namespace Starcounter.XSON {
 
             patchSize = CreatePatches(session, changes, out patches);
             if (flushLog)
-                session.Clear();
+                session.ClearChangeLog();
         
             return patchSize;
         }
@@ -160,7 +160,7 @@ namespace Starcounter.XSON {
 
                         if (change.Property != null) {
                             Json parent = change.Parent;
-                            parent.AddInScope<Json, TValue>((p, t) => {
+                            parent.Scope<Json, TValue>((p, t) => {
                                 t.Checkpoint(p);
                             }, parent, change.Property);
                         }
@@ -224,7 +224,7 @@ namespace Starcounter.XSON {
                     // Should write value directly to buffer.
                     Json parent = change.Parent;
                     string value = 
-                        parent.AddAndReturnInScope<Json, TValue, string>(
+                        parent.Scope<Json, TValue, string>(
                             (p, t) => { return t.ValueToJsonString(p); },
                             parent,
                             change.Property
@@ -294,7 +294,7 @@ namespace Starcounter.XSON {
 
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 size += 9;
-                size += change.Parent.AddAndReturnInScope<Change, int>(
+                size += change.Parent.Scope<Change, int>(
                             (Change c) => {
                                 return EstimatePropertyValueSizeInBytes(c.Property, c.Parent, c.Index, c.Item);
                             },

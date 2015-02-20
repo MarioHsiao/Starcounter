@@ -14,34 +14,34 @@ namespace QueryProcessingTest {
             SomeTests(client);
             // Simple query
             TestDataModification("select a from account a where accountid > ?", client);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestDataModification("select a from account a where accountid > ?", client);
             });
             // Join with index scan only
             TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = a2.client", client);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = a2.client", client);
             });
             // Join with index scan and full table scan
             TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount", client);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.Client = a2.client and a1.Amount = a2.Amount", client);
             });
             // Reference look up
             TestDataModification("select a1 from account a1, Account a2, User u where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client", client);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestDataModification("select a1 from account a1, Account a2, User u where a1.accountid > ? and a1.AccountId = a2.accountid and a1.Client = u and u = a2.client", client);
             });
             // Multiple joins
             TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
                 "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.AccountId = a3.accountid and a2.client.userid = a3.client.userid and a1.Client = u and u = a2.client and a1.amount = a3.amount", client);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestDataModification("select a1 from account a1, Account a2, Account a3, User u " +
                     "where a1.accountid > ? and a1.AccountId = a2.accountid and a1.AccountId = a3.accountid and a2.client.userid = a3.client.userid and a1.Client = u and u = a2.client and a1.amount = a3.amount", client);
             });
             // Involving object identity lookup
             TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.ObjectNo = a2.ObjectNo", client);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestDataModification("select a1 from account a1, Account a2 where a1.accountid > ? and a1.ObjectNo = a2.ObjectNo", client);
             });
             // With operators
@@ -409,7 +409,7 @@ namespace QueryProcessingTest {
             DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) }); // offsetkey does not move forward
             // Drop inside fetched
             key = DoFetch(query);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 var o = Db.SQL("select a from account a where accountid = ?", GetAccountId(1)).First;
                 o.Delete();
             });
@@ -419,40 +419,40 @@ namespace QueryProcessingTest {
             key = DoFetch(query);
             InsertAccount(GetAccountId(1) + 1, client);
             DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) }); // offsetkey does not move forward
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(1) + 1).First.Delete();
             });
             // Insert later after offsetkey
             key = DoFetch(query);
             InsertAccount(GetAccountId(3) + 1, client);
             DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(3) + 1, GetAccountId(4), GetAccountId(5) });
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3) + 1).First.Delete();
             });
             // Insert after offsetkey
             key = DoFetch(query);
             InsertAccount(GetAccountId(2) + 1, client);
             DoOffsetkey(query, key, new int[] { GetAccountId(2) + 1, GetAccountId(3), GetAccountId(4), GetAccountId(5) });
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2) + 1).First.Delete();
             });
             // Delete after offsetkey
             key = DoFetch(query);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(3)).First.Delete();
             });
             DoOffsetkey(query, key, new int[] { GetAccountId(4), GetAccountId(5) });
             InsertAccount(GetAccountId(3), client);
             // Delete the offset key
             key = DoFetch(query);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
             });
             DoOffsetkey(query, key, new int[] { GetAccountId(3), GetAccountId(4), GetAccountId(5) });
             InsertAccount(GetAccountId(2), client);
             // Delete and insert the offset key
             key = DoFetch(query);
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Db.SQL<Account>("select a from account a where accountid = ?", GetAccountId(2)).First.Delete();
             });
             InsertAccount(GetAccountId(2), client);
@@ -462,7 +462,7 @@ namespace QueryProcessingTest {
         static byte[] DoFetch(String query) {
             int nrs = 0;
             byte[] key = null;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 using (IRowEnumerator<Account> res = Db.SQL<Account>(query + " fetch ?", AccountIdLast, 3).GetEnumerator())
                     while (res.MoveNext()) {
                         Trace.Assert(res.Current.AccountId == GetAccountId(nrs));
@@ -482,7 +482,7 @@ namespace QueryProcessingTest {
 
         static void DoOffsetkey(String query, byte[] key, int[] expectedResult, bool firstCanIgnored) {
             int nrs = 0;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 foreach (Account a in Db.SQL<Account>(query + " fetch ? offsetkey ?", AccountIdLast, expectedResult.Length, key)) {
                     if (nrs == 0 && firstCanIgnored && a.AccountId > expectedResult[nrs])
                         nrs++;
@@ -495,7 +495,7 @@ namespace QueryProcessingTest {
 
         static User PopulateForTest() {
             User client = null;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 Trace.Assert(Db.SQL<Account>("select a from account a order by accountid desc").First.AccountId == AccountIdLast);
                 Trace.Assert(Db.SlowSQL<long>("select count(u) from user u").First == 10000);
                 client = new User {
@@ -513,7 +513,7 @@ namespace QueryProcessingTest {
 
         static void DropAfterTest() {
             User client = null;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 int nrs = 0;
                 foreach (Account a in Db.SQL<Account>("select a from account a where accountid > ?", AccountIdLast)) {
                     client = a.Client;
@@ -538,7 +538,7 @@ namespace QueryProcessingTest {
 
         static Account InsertAccount(int accountId, User client) {
             Account a = null;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 a = new Account { AccountId = accountId, Amount = 100.0m - (accountId - AccountIdLast) * 3, Client = client, When = DateTime.Now };
             });
             return a;

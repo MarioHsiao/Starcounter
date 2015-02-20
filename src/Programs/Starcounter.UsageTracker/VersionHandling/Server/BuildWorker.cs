@@ -152,7 +152,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     }
 
                     if (bSourceHasError) {
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
                             // Mark build as a faild to build
                             source.BuildError = true;
                         });
@@ -177,7 +177,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     // Check that the folder dosent exits
                     if (Directory.Exists(destinationFolder)) {
                         LogWriter.WriteLine(string.Format("ERROR: Failed to generate a new unique destination folder {0}.", destinationFolder));
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
                             // Mark build as a faild to build
                             source.BuildError = true;
                         });
@@ -190,7 +190,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     string serialId = GetUniqueSerialId();
                     if (serialId == null) {
                         LogWriter.WriteLine("ERROR: Failed to generate a unique serial id.");
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
                             // Mark build as a faild to build
                             source.BuildError = true;
                         });
@@ -202,7 +202,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     if (result == false) {
 
                         // Build failed, mark the source as a fail to build
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
                             source.BuildError = true;
                         });
 
@@ -220,7 +220,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                     else {
 
                         // Successfull build
-                        Db.Transaction(() => {
+                        Db.Transact(() => {
 
                             // Create VersionBuild instance
                             VersionBuild build = new VersionBuild();

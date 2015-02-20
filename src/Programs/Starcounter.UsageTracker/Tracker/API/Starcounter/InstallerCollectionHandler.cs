@@ -16,7 +16,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
             Installation installation = Db.SlowSQL<Installation>("SELECT o FROM Installation o WHERE o.InstallationNo=? AND o.Serial=?", installationNo, serial).First;
             if (installation == null) {
                 // Create installation
-                Db.Transaction(() => {
+                Db.Transact(() => {
 //                    installation = new Installation(serial, installationNo);
                     installation = new Installation();
 

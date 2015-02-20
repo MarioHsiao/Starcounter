@@ -115,7 +115,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Internal\ExceptionManager.cs" />
-    <Compile Include="Internal\ImplicitTransaction.cs" />
     <Compile Include="Internal\Initialized.cs" />
     <Compile Include="Internal\HostedThread.cs" />
     <Compile Include="Internal\StarcounterAssemblyAttribute.cs" />
@@ -150,6 +149,7 @@
     <Compile Include="Page.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
+    <Compile Include="TransactionManager.cs" />
     <Compile Include="TransientAttribute.cs" />
     <Compile Include="ObjectRef.cs" />
     <Compile Include="Internal\DbState.cs" />

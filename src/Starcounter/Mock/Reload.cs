@@ -157,7 +157,7 @@ namespace Starcounter {
                         stmt += nextStmt;
                         nextStmt = file.ReadLine();
                     }
-                    Db.SystemTransaction(delegate {
+                    Db.SystemTransact(delegate {
                         nrObjs += Db.Update(stmt);
                     });
                     stmt = nextStmt;
@@ -168,7 +168,7 @@ namespace Starcounter {
 
         internal static void DeleteAll() {
             foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     Db.SlowSQL("DELETE FROM " + QuotePath(tbl.FullName));
                 });
             }

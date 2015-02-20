@@ -13,7 +13,7 @@ namespace IndexQueryTest
         static bool Populate()
         {
             bool populated = false;
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 if (Db.SQL("select u from Accounttest.User u").First == null)
                 {
@@ -46,7 +46,7 @@ namespace IndexQueryTest
         {
             int nrPrintedObjs = 0;
             String line = "";
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.User u in Db.SQL("select u from User u"))
                 {
@@ -55,7 +55,7 @@ namespace IndexQueryTest
                 }
             });
             Trace.Assert(nrPrintedObjs == 2);
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.account a in Db.SQL("select a from Account a"))
                 {
@@ -70,7 +70,7 @@ namespace IndexQueryTest
         static int PrintAllObjects()
         {
             int nrPrintedObjs = 0;
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.User u in Db.SQL("select u from User u"))
                 {
@@ -78,7 +78,7 @@ namespace IndexQueryTest
                     nrPrintedObjs++;
                 }
             });
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.account a in Db.SQL("select a from Account a"))
                 {
@@ -92,7 +92,7 @@ namespace IndexQueryTest
         static int CountUserByLastName(String LastName)
         {
             int nrPrintedObjs = 0;
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.User u in Db.SQL("select u from User u where LastName = ?", LastName))
                 {
@@ -107,7 +107,7 @@ namespace IndexQueryTest
         static int PrintUserByLastName(String LastName)
         {
             int nrPrintedObjs = 0;
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.User u in Db.SQL("select u from User u where LastName = ?", LastName))
                 {
@@ -120,7 +120,7 @@ namespace IndexQueryTest
 
         static int CountUsersOrderByLastName() {
             int nrPrintedObjs = 0;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 foreach (accounttest.User u in Db.SQL("select u from User u order by LastName")) {
                     Trace.Assert("User " + u.FirstName + " " + u.LastName + " with ID " + u.UserId != "User  with ID ");
                     nrPrintedObjs++;
@@ -132,7 +132,7 @@ namespace IndexQueryTest
         static int PrintUsersOrderByLastName()
         {
             int nrPrintedObjs = 0;
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.User u in Db.SQL("select u from User u order by LastName"))
                 {

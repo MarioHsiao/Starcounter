@@ -22,7 +22,7 @@ namespace IndexQueryTest
             CountAllObjects();
             //PrintAllObjects();
             // See a query plan
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 IEnumerator sqlEnum = (IEnumerator)Db.SQL("select u from accounttest.user u").GetEnumerator();
                 Trace.Assert(sqlEnum.ToString() != "");
@@ -46,7 +46,7 @@ namespace IndexQueryTest
 #endif
 
             using (Transaction t = new Transaction()) {
-                t.Add(() => {
+                t.Scope(() => {
                     HelpMethods.LogEvent("Test of CREATE/DROP INDEX and DROP TABLE completed.");
                     HelpMethods.LogEvent("Test inherited indexes");
                     InheritedIndex.InheritedIndexTest.RunInheritedIndexTest();
