@@ -156,23 +156,22 @@ namespace Starcounter.Server.Commands {
         /// Enqueues a command for immediate execution.
         /// </summary>
         /// <param name="command">The <see cref="ServerCommand"/> to enqueue.</param>
+        /// <param name="cancellationPredicate">An optional cancellation predicate in
+        /// the host that will periodically be queried to see if a command are to be
+        /// processed.
+        /// </param>
+        /// <param name="correlatingTo">An optional command, represented by a
+        /// <see cref="CommandProcessor"/>, the given command correlates to.</param>
         /// <returns>The <see cref="CommandProcessor"/> instance that was created to process this <paramref name="command"/>.</returns>
-        internal CommandInfo Enqueue(ServerCommand command) {
-            return this.Enqueue(command, null);
-        }
-
-        /// <summary>
-        /// Enqueues a command for immediate execution.
-        /// </summary>
-        /// <param name="command">The <see cref="ServerCommand"/> to enqueue.</param>
-        /// <param name="correlatingTo">A command, represented by a <see cref="CommandProcessor"/>,
-        /// the given command correlates to.</param>
-        /// <returns>The <see cref="CommandProcessor"/> instance that was created to process this <paramref name="command"/>.</returns>
-        internal CommandInfo Enqueue(ServerCommand command, CommandProcessor correlatingTo) {
+        internal CommandInfo Enqueue(
+            ServerCommand command,
+            Predicate<ServerCommand> cancellationPredicate = null,
+            CommandProcessor correlatingTo = null) {
             CommandProcessor cp;
             CommandInfo ci;
 
             cp = GetCommandProcessor(command);
+            cp.CancellationPredicate = cancellationPredicate;
             cp.OnEnqueued(correlatingTo);
 
             if (cp.IsPublic) ci = cp.ToPublicModel();
