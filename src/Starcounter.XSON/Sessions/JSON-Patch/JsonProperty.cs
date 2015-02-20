@@ -67,7 +67,7 @@ namespace Starcounter.XSON {
                 // TODO: 
                 // Check if this can be improved. Searching for transaction and execute every
                 // step in a new action is not the most efficient way.
-                nextIsIndex = json.AddAndReturnInScope<JsonProperty, JsonPointer, bool, bool, bool>(
+                nextIsIndex = json.Scope<JsonProperty, JsonPointer, bool, bool, bool>(
                     (prop, ptr, ot, isIndex) => {
                         prop.EvalutateCurrent(ptr, ot, ref isIndex);
                         return isIndex;

@@ -215,36 +215,11 @@ namespace Starcounter
         /// transaction. Specify <c>int.MaxValue</c> to instruct Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
-        public static void Transaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transaction(action, 0, forceSnapshot, maxRetries);
+        public static void Transact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transact(action, 0, forceSnapshot, maxRetries);
         }
 
-        /// <summary>
-        /// System transactions is used to insert data with OIDs, e.g., for upgrade.
-        /// </summary>
-        /// <param name="action"></param>
-        /// <param name="forceSnapshot"></param>
-        /// <param name="maxRetries"></param>
-        internal static void SystemTransaction(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transaction(action, sccoredb.MDB_TRANSCREATE_SUPPRESS_HOOKS, forceSnapshot, maxRetries);
-        }
-
-        public static void Scope(Action action, bool forceNew = false) {
-            ITransaction t = Starcounter.Transaction.GetCurrent();
-            if (forceNew || t == null)
-                t = new Starcounter.Transaction(false, false);
-            t.Add(action);
-        }
-
-        public static T Scope<T>(Func<T> func, bool forceNew = false) {
-            ITransaction t = Starcounter.Transaction.GetCurrent();
-            if (forceNew || t == null)
-                t = new Starcounter.Transaction(false, false);
-            return t.AddAndReturn<T>(func);
-        }
-
-        internal static void Transaction(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100)
-        {
+        internal static void Transact(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100) {
             int retries;
             uint r;
             ulong handle;
@@ -260,20 +235,17 @@ namespace Starcounter
 
             retries = 0;
 
-            for (; ; )
-            {
+            for (; ; ) {
                 r = sccoredb.star_create_transaction_and_set_current(flags, 1, out handle, out verify);
-                if (r == 0)
-                {
-                    var currentTransaction = Starcounter.Transaction.GetCurrent();
-                    Starcounter.Transaction.SetManagedCurrentToNull();
+                if (r == 0) {
+                    // We only set the handle to none here, since Transaction.Current will follow this value.
+                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
                     try {
                         action();
-                        Starcounter.Transaction.Commit(1, 1);
+                        TransactionManager.Commit(1, 1);
                         return;
-                    }
-                    catch (Exception ex) {
+                    } catch (Exception ex) {
                         r = sccoredb.star_set_current_transaction(1, 0, 0);
                         if (r == 0) {
                             r = sccoredb.star_free_transaction(handle, verify);
@@ -286,19 +258,8 @@ namespace Starcounter
                             }
                         }
                         HandleFatalErrorInTransactionScope(r);
-                    }
-                    finally {
-                        if (currentTransaction != null) {
-                            // There should be no current transaction and so
-                            // there should be no reason setting the current
-                            // transaction to the replaced one (other then the
-                            // current transcation being bound to another
-                            // thread).
-
-                            Starcounter.Transaction.SetCurrent(currentTransaction);
-                        } else {
-                            ImplicitTransaction.CreateOrSetCurrent();
-                        }
+                    } finally {
+                        TransactionManager.SetCurrentTransaction(currentTransaction);
                     }
                 }
 
@@ -310,8 +271,7 @@ namespace Starcounter
 
                     try {
                         action();
-                    }
-                    catch {
+                    } catch {
                         // Operation will fail only if transaction is already
                         // aborted (in which case we need not abort it).
 
@@ -322,6 +282,121 @@ namespace Starcounter
                 }
 
                 throw ErrorCode.ToException(r);
+            }
+        }
+        
+        /// <summary>
+        /// System transactions is used to insert data with OIDs, e.g., for upgrade.
+        /// </summary>
+        /// <param name="action"></param>
+        /// <param name="forceSnapshot"></param>
+        /// <param name="maxRetries"></param>
+        internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
+            Transact(action, sccoredb.MDB_TRANSCREATE_SUPPRESS_HOOKS, forceSnapshot, maxRetries);
+        }
+
+        public static void Scope(Action action, bool isReadOnly = false) {
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                action();
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+            }
+        }
+
+        public static void Scope<T>(Action<T> action, T arg, bool isReadOnly = false) {
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                action(arg);
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+            }
+        }
+
+        public static void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2, bool isReadOnly = false) {
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create) 
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                action(arg1, arg2);
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+            }
+        }
+
+        public static void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3, bool isReadOnly = false) {
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                action(arg1, arg2, arg3);
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create) 
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+            }
+        }
+
+        public static TResult Scope<TResult>(Func<TResult> func, bool isReadOnly = false) {
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false);
+                return func();
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+            }
+        }
+
+        public static TResult Scope<T, TResult>(Func<T, TResult> func, T arg, bool isReadOnly = false) {
+            TransactionHandle transactionHandle = TransactionHandle.Invalid;
+            TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+            bool create = (old.handle == 0 || old.IsImplicit);
+            try {
+                if (create)
+                    transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
+                return func(arg);
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create)
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
+            }
+        }
+
+        public static TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2, bool isReadOnly = false) {
+           TransactionHandle transactionHandle = TransactionHandle.Invalid;
+           TransactionHandle old = StarcounterBase.TransactionManager.CurrentTransaction;
+           bool create = (old.handle == 0 || old.IsImplicit);
+           try {
+               if (create) 
+                   transactionHandle = TransactionManager.CreateAndSetCurrent(isReadOnly, false); 
+                return func(arg1, arg2);
+            } finally {
+                TransactionManager.SetCurrentTransaction(old);
+                if (create) 
+                    TransactionManager.CheckForRefOrDisposeTransaction(transactionHandle);
             }
         }
 

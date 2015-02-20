@@ -217,6 +217,8 @@ namespace StarcounterInternal.Bootstrap {
                     OnQueryModuleInitiated();
                 }
 
+                StarcounterBase.TransactionManager = new TransactionManager();
+
                 return true;
 
             }

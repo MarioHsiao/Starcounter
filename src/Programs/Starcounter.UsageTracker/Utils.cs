@@ -312,7 +312,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
                 dynamic incomingJson = DynamicJson.Parse(response.Body);
 
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     IPLocation locaction = new IPLocation();
                     if (incomingJson.IsDefined("ip")) {
                         locaction.IPAdress = incomingJson.ip;

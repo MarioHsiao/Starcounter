@@ -10,7 +10,7 @@ namespace SQLTest.EmployeeDb
 
         public static void CreateData()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
 
                 // Control that data is not already created.
@@ -322,7 +322,7 @@ namespace SQLTest.EmployeeDb
 
         public static void DeleteData()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (IObjectView obj in objectList)
                 {

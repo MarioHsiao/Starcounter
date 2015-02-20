@@ -242,7 +242,7 @@ internal static class SqlProcessor
         ushort tableId = typeBind.TableId;
         unsafe
         {
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0])) {
                     errorCode = systables.star_create_index(tableId, indexName, sortMask, attributeIndexesPointer, flags);
                 }
@@ -369,7 +369,7 @@ internal static class SqlProcessor
         UInt32 errorCode = 0;
         unsafe
         {
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 errorCode = systables.star_drop_index(typeBind.Name, indexName);
             });
         }
@@ -406,7 +406,7 @@ internal static class SqlProcessor
         UInt32 errorCode = 0;
         unsafe
         {
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 errorCode = systables.star_drop_table(typePath);
             });
         }
@@ -420,7 +420,7 @@ internal static class SqlProcessor
     }
 
     internal static void AddMetadataIndex(string tableName, string indexName) {
-        Db.SystemTransaction(delegate {
+        Db.SystemTransact(delegate {
             MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
                 "select i from materializedindex i where i.table.name = ? and name = ?",
                 tableName, indexName).First;
@@ -430,7 +430,7 @@ internal static class SqlProcessor
     }
 
     internal static void DeleteMetadataIndex(string tableName, string indexName) {
-        Db.SystemTransaction(delegate {
+        Db.SystemTransact(delegate {
             Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
                 "select i from starcounter.metadata.\"index\" i where i.table.fullname = ? and name = ?",
                 tableName, indexName).First;
@@ -443,7 +443,7 @@ internal static class SqlProcessor
     }
 
     internal static void DeleteMetadataDroppedTable(string tableName) {
-        Db.SystemTransaction(delegate {
+        Db.SystemTransact(delegate {
             var tbl = Db.SQL<Starcounter.Metadata.RawView>(
                 "select v from starcounter.metadata.RawView v where fullname = ?", 
                 tableName).First;

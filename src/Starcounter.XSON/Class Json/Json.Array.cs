@@ -7,6 +7,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
@@ -28,6 +29,8 @@ namespace Starcounter {
         internal Json(Json parent, TObjArr templ) {
             _dirtyCheckEnabled = DirtyCheckEnabled;
             _cacheIndexInArr = -1;
+            _transaction = TransactionHandle.Invalid;
+            AttachCurrentTransaction();
             this.Template = templ;
             Parent = parent;
         }
@@ -40,6 +43,8 @@ namespace Starcounter {
         protected Json(IEnumerable result) {
             _dirtyCheckEnabled = DirtyCheckEnabled;
             _cacheIndexInArr = -1;
+            _transaction = TransactionHandle.Invalid;
+            AttachCurrentTransaction();
             _data = result;
             _PendingEnumeration = true;
         }

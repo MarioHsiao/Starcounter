@@ -99,7 +99,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
             VersionSource.DeleteSource(versionSource);
             VersionSource.DeletePackageFile(versionSource);
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 versionSource.Delete();
             });
 
@@ -122,7 +122,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                         //LogWriter.WriteLine(string.Format("NOTICE: Documentation folder {0} was deleted.", versionSource.DocumentationFolder));
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionSource.DocumentationFolder = null;
                     });
 
@@ -153,7 +153,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                         //LogWriter.WriteLine(string.Format("NOTICE: Source folder {0} was deleted.", versionSource.SourceFolder));
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionSource.SourceFolder = null;
                     });
 
@@ -181,7 +181,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                         File.Delete(versionSource.PackageFile);
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionSource.PackageFile = null;
                     });
 

@@ -151,7 +151,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                         LogWriter.WriteLine(string.Format("ERROR: Failed to delete the uploaded package file {0}, {1}.", item.PackageFile, e.Message));
                     }
 
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         // Clear packagefile
                         item.PackageFile = null;
                         item.SourceFolder = destination;
@@ -219,7 +219,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 Int64 numDelete = numVersion - sourceCount;
 
                 // Start deleting versions and syncdata
-                Db.Transaction(() => {
+                Db.Transact(() => {
 
                     // Retrive versions to delete
                     QueryResultRows<VersionSource> versionSources = Db.SlowSQL<VersionSource>("SELECT o FROM VersionSource o WHERE o.Edition=? AND o.Channel=? AND o.IsAvailable=? ORDER BY o.VersionDate FETCH FIRST ? ROWS ONLY", edition, channel, true, numDelete);

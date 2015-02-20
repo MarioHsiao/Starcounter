@@ -52,8 +52,6 @@ namespace Starcounter.Hosting {
             GCHandle gcHandle = (GCHandle)hPackage;
             Package p = (Package)gcHandle.Target;
             gcHandle.Free();
-            
-            ImplicitTransaction.CreateOrSetCurrent();
             p.Process();
         }
 
@@ -121,11 +119,21 @@ namespace Starcounter.Hosting {
         /// </summary>
         internal void Process()
         {
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
+
             Application.CurrentAssigned = application_;
             try {
                 ProcessWithinCurrentApplication(application_);
             } finally {
                 Application.CurrentAssigned = null;
+                TransactionManager.Cleanup();
             }
         }
 
@@ -251,88 +259,94 @@ namespace Starcounter.Hosting {
 
             if (unregisteredTypeDefs.Length != 0)
             {
-                if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.Token") {
-                    uint e = systables.star_prepare_system_tables();
-                    if (e != 0) throw ErrorCode.ToException(e);
+                // Using transaction directly here instead of Db.Scope and scope it several times because of 
+                // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
+                using (var transaction = new Transaction(true)) {
+                    if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.Token") {
+                        uint e = systables.star_prepare_system_tables();
+                        if (e != 0) throw ErrorCode.ToException(e);
+                        transaction.Scope(() => {
+                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                            OnRuntimeMetadataPopulated();
+                            // Call CLR class clean up
+                            Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
+                            OnCleanClrMetadata();
+                        });
 
-                    ImplicitTransaction.CreateOrSetCurrent();
+                        transaction.Scope(() => {
+                            // Populate properties and columns .NET metadata
+                            unregisteredTypeDefs = MetadataBindingHelper.BuildFinalMetadataTypeDefs(unregisteredTypeDefs);
+                            OnPopulateMetadataDefs();
+                        });
+                    }
 
-                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
-                    OnRuntimeMetadataPopulated();
-                    // Call CLR class clean up
-                    Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
-                    OnCleanClrMetadata();
+                    List<TypeDef> updateColumns = new List<TypeDef>();
 
-                    ImplicitTransaction.CreateOrSetCurrent();
+                    transaction.Scope(() => {
+                        for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
+                            var typeDef = unregisteredTypeDefs[i];
+                            var tableDef = typeDef.TableDef;
 
-                    // Populate properties and columns .NET metadata
-                    unregisteredTypeDefs = MetadataBindingHelper.BuildFinalMetadataTypeDefs(unregisteredTypeDefs);
-                    OnPopulateMetadataDefs();
-                }
-                
-                List<TypeDef> updateColumns = new List<TypeDef>();
+                            if (CreateOrUpdateDatabaseTable(typeDef))
+                                updateColumns.Add(typeDef);
 
-                for (int i = 0; i < unregisteredTypeDefs.Length; i++)
-                {
-                    var typeDef = unregisteredTypeDefs[i];
-                    var tableDef = typeDef.TableDef;
+                            // Remap properties representing columns in case the column
+                            // order has changed.
 
-                    if (CreateOrUpdateDatabaseTable(typeDef))
-                        updateColumns.Add(typeDef);
-
-                    // Remap properties representing columns in case the column
-                    // order has changed.
-
-                    typeDef.Refresh();
-                }
-
-                OnTypesCheckedAndUpdated();
-
-                Bindings.RegisterTypeDefs(unregisteredTypeDefs);
-
-                OnTypeDefsRegistered();
-
-                foreach (TypeDef typeDef in updateColumns)
-                    Db.Transaction(delegate {
-                        MetadataPopulation.CreateColumnInstances(typeDef);
-                        //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
+                            typeDef.Refresh();
+                        }
                     });
 
+                    OnTypesCheckedAndUpdated();
+
+                    Bindings.RegisterTypeDefs(unregisteredTypeDefs);
+
+                    OnTypeDefsRegistered();
+
+                    foreach (TypeDef typeDef in updateColumns)
+                        Db.Transact(delegate {
+                            MetadataPopulation.CreateColumnInstances(typeDef);
+                            //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
+                        });
+
 #if DEBUG   // Assure that parents were set.
-                foreach (TypeDef typeDef in updateColumns) {
-                    RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
-                typeDef.TableDef.Name).First;
-                    Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
-                        "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
-                    Debug.Assert(thisView.MaterializedTable.Equals(matTab));
-                    Debug.Assert(matTab != null);
-                    RawView parentTab = Db.SQL<RawView>(
-                        "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-                    Debug.Assert(matTab.BaseTable == null && parentTab == null ||
-                        matTab.BaseTable != null && parentTab != null &&
-                        matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
-                }
+                    transaction.Scope(() => {
+                        foreach (TypeDef typeDef in updateColumns) {
+                            RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
+                                typeDef.TableDef.Name).First;
+                            Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
+                                "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
+                            Debug.Assert(thisView.MaterializedTable.Equals(matTab));
+                            Debug.Assert(matTab != null);
+                            RawView parentTab = Db.SQL<RawView>(
+                                "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
+                            Debug.Assert(matTab.BaseTable == null && parentTab == null ||
+                                matTab.BaseTable != null && parentTab != null &&
+                                matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
+                        }
+                    });
 #endif
-                OnColumnsCheckedAndUpdated();
+                    OnColumnsCheckedAndUpdated();
 
-                QueryModule.UpdateSchemaInfo(unregisteredTypeDefs);
+                    QueryModule.UpdateSchemaInfo(unregisteredTypeDefs);
 
-                OnQueryModuleSchemaInfoUpdated();
+                    OnQueryModuleSchemaInfoUpdated();
 
-                // User-level classes are self registering and report in to
-                // the installed host manager on first use (via an emitted call
-                // in the static class constructor). For system classes, we
-                // have to do this by hand.
-                
-                if (unregisteredTypeDefs[0].TableDef.Name == "Starcounter.Internal.Metadata.Token") {
-                    InitTypeSpecifications();
-                    OnTypeSpecificationsInitialized();
+                    // User-level classes are self registering and report in to
+                    // the installed host manager on first use (via an emitted call
+                    // in the static class constructor). For system classes, we
+                    // have to do this by hand.
+
+                    if (unregisteredTypeDefs[0].TableDef.Name == "Starcounter.Internal.Metadata.Token") {
+                        InitTypeSpecifications();
+                        OnTypeSpecificationsInitialized();
+                    }
+
+                    DynamicTypesBinding.DiscoverNewTypes(unregisteredTypeDefs);
+
+                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
+                    OnPopulateClrMetadata();
                 }
-
-                DynamicTypesBinding.DiscoverNewTypes(unregisteredTypeDefs);
-
-                MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
-                OnPopulateClrMetadata();
             }
         }
 
@@ -375,7 +389,7 @@ namespace Starcounter.Hosting {
             TableDef pendingUpgradeTableDef = null;
             bool updated = false;
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 storedTableDef = Db.LookupTable(tableName);
                 pendingUpgradeTableDef = Db.LookupTable(TableUpgrade.CreatePendingUpdateTableName(tableName));
             });
@@ -383,7 +397,7 @@ namespace Starcounter.Hosting {
             if (pendingUpgradeTableDef != null) {
                 var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
                 storedTableDef = continueTableUpgrade.ContinueEval();
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     MetadataPopulation.UpgradeRawTableInstance(typeDef);
                     updated = true;
                 });
@@ -392,14 +406,14 @@ namespace Starcounter.Hosting {
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     MetadataPopulation.CreateRawTableInstance(typeDef);
                     updated = true;
                 });
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     MetadataPopulation.UpgradeRawTableInstance(typeDef);
                     updated = true;
                 });
@@ -413,7 +427,12 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
+            // No need to keep track of this transaction. It will be cleaned up later.
+            if (Db.Environment.HasDatabase)
+                TransactionManager.CreateImplicitAndSetCurrent(true);
+
             var entrypoint = assembly_.EntryPoint;
+
 
             try {
                 if (entrypoint.GetParameters().Length == 0) {

@@ -66,8 +66,16 @@ namespace Starcounter
             UInt32 errorCode;
             UInt32 chunkIndex = taskInfo->chunk_index;
 
-            try {
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
 
+            try {
                 *isHandled = false;
 
                 // Fetching the callback.
@@ -111,22 +119,23 @@ namespace Starcounter
                 // Obtaining client's port.
                 UInt16 clientPort = *(UInt16*) (rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
 
-                ImplicitTransaction.CreateOrSetCurrent();
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
 
-                // Calling user callback.
                 userCallback(clientIp, clientPort, dataBytes);
-
                 *isHandled = true;
-
-                // Reset managed task state before exiting managed task entry point.
-                TaskHelper.Reset();
 
             } finally {
 
                 // Need to return all chunks here.
                 UInt32 err = bmx.sc_bmx_release_linked_chunks(chunkIndex);
                 Debug.Assert(0 == err);
-                
+
+                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                TransactionManager.Cleanup();
+
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
             }
 
             return 0;
@@ -144,8 +153,16 @@ namespace Starcounter
             Boolean isSingleChunk = false;
             IntPtr plainChunksData = IntPtr.Zero;
 
-            try {
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
 
+            try {
                 *isHandled = false;
 
                 UInt32 chunkIndex = taskInfo->chunk_index;
@@ -213,7 +230,8 @@ namespace Starcounter
                     rawSocket.Destroy();
                 }
 
-                ImplicitTransaction.CreateOrSetCurrent();
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
 
                 // Calling user callback.
                 userCallback(rawSocket, dataBytes);
@@ -222,9 +240,6 @@ namespace Starcounter
                 rawSocket.DestroyDataStream();
 
                 *isHandled = true;
-
-                // Reset managed task state before exiting managed task entry point.
-                TaskHelper.Reset();
 
             } finally {
 
@@ -235,6 +250,12 @@ namespace Starcounter
                     plainChunksData = IntPtr.Zero;
                     rawChunk = null;
                 }
+
+                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                TransactionManager.Cleanup();
+
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
             }
 
 			return 0;
@@ -251,6 +272,15 @@ namespace Starcounter
             Boolean* isHandled)
         {
             Boolean isSingleChunk = false;
+
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
 
             try
             {
@@ -343,14 +373,10 @@ namespace Starcounter
                         isAggregated);
                 }
 
-                ImplicitTransaction.CreateOrSetCurrent();
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
 
-                // Calling user callback.
-                *isHandled = UriInjectMethods.OnHttpMessageRoot_(req);
-
-                // Reset managed task state before exiting managed task entry point.
-                TaskHelper.Reset();
-
+                *isHandled = UriInjectMethods.OnHttpMessageRoot_(req); 
             } catch (Exception exc) {
 
                 LogSources.Hosting.LogException(exc);
@@ -360,6 +386,12 @@ namespace Starcounter
 
                 // Clearing current session.
                 Session.End();
+
+                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                TransactionManager.Cleanup();
+
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
             }
 
             return 0;
@@ -459,6 +491,15 @@ namespace Starcounter
         {
             Boolean isSingleChunk = false;
             IntPtr plainChunksData = IntPtr.Zero;
+
+            // Allocate memory on the stack that can hold a few number of transactions that are fast 
+            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+            // be invalid after.
+            unsafe {
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+            }
 
             try
             {
@@ -575,17 +616,13 @@ namespace Starcounter
 
                 Debug.Assert(null != wsInternal.SocketContainer);
 
-                ImplicitTransaction.CreateOrSetCurrent();
+                if (Db.Environment.HasDatabase)
+                    TransactionManager.CreateImplicitAndSetCurrent(true);
 
                 // Adding session reference.
                 *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
-               
                 // Destroying original chunk etc.
                 ws.WsInternal.DestroyDataStream();
-            
-                // Reset managed task state before exiting managed task entry point.
-                TaskHelper.Reset();
-
             } catch (Exception exc) {
 
                 LogSources.Hosting.LogException(exc);
@@ -603,6 +640,12 @@ namespace Starcounter
 
                 // Clearing current session.
                 Session.End();
+
+                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                TransactionManager.Cleanup();                
+
+                // Reset managed task state before exiting managed task entry point.
+                TaskHelper.Reset();
             }
 
             return 0;
