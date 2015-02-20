@@ -29,7 +29,7 @@ namespace Starcounter.Internal {
             return Db.SlowSQL<T>(query, args);
         }
 
-        void IDb.Transaction(Action action) {
+        void IDb.Transact(Action action) {
             Db.Transact(action);
         }
 

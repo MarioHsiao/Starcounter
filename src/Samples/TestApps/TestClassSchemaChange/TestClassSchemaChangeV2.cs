@@ -7,7 +7,7 @@ namespace TestClassSchemaChange {
         static void Main() {
             var personBD = new DateTime(1942, 5, 4);
             if (Db.SQL("select p from person p").First == null) {
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     Person person = new Person { BirthDate = personBD, FirstName = "Sven", LastName = "Persson" };
                     Account account1 = new Account { AccountId = 1, Amount = 100m, Client = person };
                     Animal animal = new Animal { BirthDate = new DateTime(1984, 9, 23) };
