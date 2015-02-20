@@ -250,6 +250,17 @@ namespace Starcounter.Server.Commands {
             this.Status = CommandStatus.Queued;
         }
 
+        internal bool ShouldCancel() {
+            var cancel = (this.Status == CommandStatus.Cancelled) || isCancelledByHost;
+            if (!cancel && CancellationPredicate != null) {
+                cancel = CancellationPredicate(this.command);
+                if (cancel) {
+                    isCancelledByHost = true;
+                }
+            }
+            return cancel;
+        }
+
         internal void ProcessCommand(NotifyCommandStatusChangedCallback notifyStatusChangedCallback) // Must not throw exception!
         {
             if (this.Status == CommandStatus.Cancelled) {
