@@ -34,6 +34,7 @@ namespace Starcounter.Server.Commands {
         private int? exitCode;
         private object result;
         private readonly int typeIdentity;
+        private bool isCancelledByHost;
 
         private NotifyCommandStatusChangedCallback _notifyStatusChangedCallback;
 
@@ -140,6 +141,16 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Gets or sets an optional predicate that are to be
+        /// queried periodically by the current processor to see if
+        /// command processing should be cancelled.
+        /// </summary>
+        public Predicate<ServerCommand> CancellationPredicate {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Provides a way for processors to attach an optional exit
         /// code and a result to the ending of their processing.
         /// The code/result will be published with the latest/final
@@ -177,11 +188,14 @@ namespace Starcounter.Server.Commands {
         /// Updates the status of the current command to <see cref="CommandStatus.Completed"/>.
         /// </summary>
         private void SetCompleted() {
-            this.EndTime = DateTime.Now;
-            this.Status = CommandStatus.Completed;
+            var wasCancelled = isCancelledByHost;
 
-            EndAllProgress();
+            this.EndTime = DateTime.Now;
+            this.Status = wasCancelled ? CommandStatus.Cancelled : CommandStatus.Completed;
+
+            EndAllProgress(wasCancelled);
             NotifyStatusChanged();
+
             SignalCompletion();
         }
 
@@ -239,9 +253,25 @@ namespace Starcounter.Server.Commands {
             this.Status = CommandStatus.Queued;
         }
 
+        internal bool ShouldCancel() {
+            var cancel = (this.Status == CommandStatus.Cancelled) || isCancelledByHost;
+            if (!cancel && CancellationPredicate != null) {
+                cancel = CancellationPredicate(this.command);
+                if (cancel) {
+                    isCancelledByHost = true;
+                }
+            }
+            return cancel;
+        }
+
         internal void ProcessCommand(NotifyCommandStatusChangedCallback notifyStatusChangedCallback) // Must not throw exception!
         {
-            if (this.Status == CommandStatus.Cancelled) {
+            if (ShouldCancel()) {
+                if (this.Status != CommandStatus.Cancelled) {
+                    this.Status = CommandStatus.Cancelled;
+                    NotifyStatusChanged();
+                }
+
                 return;
             }
 
@@ -431,31 +461,6 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Begins a task with no defined max value, i.e. used by 
-        /// all tasks that are indeterminate.
-        /// </summary>
-        /// <param name="task">The <see cref="CommandTask"/> that is
-        /// about to begin.</param>
-        protected void BeginTask(CommandTask task) {
-            ProgressInfo progressInfo;
-
-            if (task.Duration.IsDeterminate())
-                throw new InvalidOperationException();
-
-            Trace("Begin task '{0}'", false, task.ShortText);
-
-            progressInfo = new ProgressInfo(task.ID, 0, -1, null);
-
-            if (this.progress == null) {
-                this.progress = new Dictionary<int, ProgressInfo>();
-            }
-
-            this.progress.Add(task.ID, progressInfo);
-
-            NotifyStatusChanged();
-        }
-
-        /// <summary>
         /// Executes <paramref name="action"/> in between a begin and
         /// end of the <see cref="CommandTask"/> <paramref name="task"/>.
         /// </summary>
@@ -467,17 +472,10 @@ namespace Starcounter.Server.Commands {
         /// progressing while the given action executes.</param>
         /// <param name="action">The code to execute.</param>
         protected void WithinTask(CommandTask task, Action<CommandTask> action) {
-            bool cancel = false;
-
-            BeginTask(task);
-            try {
-                action(task);
-            } catch {
-                cancel = true;
-                throw;
-            } finally {
-                EndTask(task, cancel);
-            }
+            WithinTask(task, (t) => {
+                action(t);
+                return true;
+            });
         }
 
         /// <summary>
@@ -493,11 +491,13 @@ namespace Starcounter.Server.Commands {
         /// <param name="func">The code to execute. The ending of the task
         /// can be marked as cancelled by returning false from the func.</param>
         protected void WithinTask(CommandTask task, Func<CommandTask, bool> func) {
-            bool cancel = false;
+            bool cancel = ShouldCancel();
             
             BeginTask(task);
             try {
-                cancel = !func(task);
+                if (!cancel) {
+                    cancel = !func(task);
+                }
             } catch {
                 cancel = true;
                 throw;
@@ -605,10 +605,35 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Begins a task with no defined max value, i.e. used by 
+        /// all tasks that are indeterminate.
+        /// </summary>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// about to begin.</param>
+        void BeginTask(CommandTask task) {
+            ProgressInfo progressInfo;
+
+            if (task.Duration.IsDeterminate())
+                throw new InvalidOperationException();
+
+            Trace("Begin task '{0}'", false, task.ShortText);
+
+            progressInfo = new ProgressInfo(task.ID, 0, -1, null);
+
+            if (this.progress == null) {
+                this.progress = new Dictionary<int, ProgressInfo>();
+            }
+
+            this.progress.Add(task.ID, progressInfo);
+
+            NotifyStatusChanged();
+        }
+
+        /// <summary>
         /// Cancel a task.
         /// </summary>
         /// <param name="task">The <see cref="CommandTask"/> to cancel.
-        protected void CancelTask(CommandTask task) {
+        void CancelTask(CommandTask task) {
             EndTask(task, true);
         }
 
@@ -618,7 +643,7 @@ namespace Starcounter.Server.Commands {
         /// <param name="task">The task to end.</param>
         /// <param name="cancel">Indicates if the task should
         /// be marked as cancelled or fulfilled.</param>
-        protected void EndTask(CommandTask task, bool cancel = false) {
+        void EndTask(CommandTask task, bool cancel = false) {
             ProgressInfo info;
 
             Trace("End task (cancelled={0})", false, cancel);
@@ -633,7 +658,7 @@ namespace Starcounter.Server.Commands {
         /// Ends a set of tasks.
         /// </summary>
         /// <param name="tasks">The tasks to end.</param>
-        protected void EndTasks(params CommandTask[] tasks) {
+        void EndTasks(params CommandTask[] tasks) {
             ProgressInfo info;
 
             foreach (var task in tasks) {
