@@ -461,31 +461,6 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Begins a task with no defined max value, i.e. used by 
-        /// all tasks that are indeterminate.
-        /// </summary>
-        /// <param name="task">The <see cref="CommandTask"/> that is
-        /// about to begin.</param>
-        protected void BeginTask(CommandTask task) {
-            ProgressInfo progressInfo;
-
-            if (task.Duration.IsDeterminate())
-                throw new InvalidOperationException();
-
-            Trace("Begin task '{0}'", false, task.ShortText);
-
-            progressInfo = new ProgressInfo(task.ID, 0, -1, null);
-
-            if (this.progress == null) {
-                this.progress = new Dictionary<int, ProgressInfo>();
-            }
-
-            this.progress.Add(task.ID, progressInfo);
-
-            NotifyStatusChanged();
-        }
-
-        /// <summary>
         /// Executes <paramref name="action"/> in between a begin and
         /// end of the <see cref="CommandTask"/> <paramref name="task"/>.
         /// </summary>
@@ -635,10 +610,35 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Begins a task with no defined max value, i.e. used by 
+        /// all tasks that are indeterminate.
+        /// </summary>
+        /// <param name="task">The <see cref="CommandTask"/> that is
+        /// about to begin.</param>
+        void BeginTask(CommandTask task) {
+            ProgressInfo progressInfo;
+
+            if (task.Duration.IsDeterminate())
+                throw new InvalidOperationException();
+
+            Trace("Begin task '{0}'", false, task.ShortText);
+
+            progressInfo = new ProgressInfo(task.ID, 0, -1, null);
+
+            if (this.progress == null) {
+                this.progress = new Dictionary<int, ProgressInfo>();
+            }
+
+            this.progress.Add(task.ID, progressInfo);
+
+            NotifyStatusChanged();
+        }
+
+        /// <summary>
         /// Cancel a task.
         /// </summary>
         /// <param name="task">The <see cref="CommandTask"/> to cancel.
-        protected void CancelTask(CommandTask task) {
+        void CancelTask(CommandTask task) {
             EndTask(task, true);
         }
 
@@ -648,7 +648,7 @@ namespace Starcounter.Server.Commands {
         /// <param name="task">The task to end.</param>
         /// <param name="cancel">Indicates if the task should
         /// be marked as cancelled or fulfilled.</param>
-        protected void EndTask(CommandTask task, bool cancel = false) {
+        void EndTask(CommandTask task, bool cancel = false) {
             ProgressInfo info;
 
             Trace("End task (cancelled={0})", false, cancel);
@@ -663,7 +663,7 @@ namespace Starcounter.Server.Commands {
         /// Ends a set of tasks.
         /// </summary>
         /// <param name="tasks">The tasks to end.</param>
-        protected void EndTasks(params CommandTask[] tasks) {
+        void EndTasks(params CommandTask[] tasks) {
             ProgressInfo info;
 
             foreach (var task in tasks) {
