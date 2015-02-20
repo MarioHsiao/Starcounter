@@ -73,7 +73,7 @@ namespace Starcounter.Internal.Test
         {
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.GET("/response10", (Request req) =>
             {
@@ -230,7 +230,7 @@ namespace Starcounter.Internal.Test
         {
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.POST("/response1", (Request req) =>
             {

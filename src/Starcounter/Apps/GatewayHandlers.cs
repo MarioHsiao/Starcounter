@@ -652,7 +652,8 @@ namespace Starcounter
 
                 Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
+                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0,
+                    new HandlerOptions() { CallExternalOnly = true });
 
                 if (!r.IsSuccessStatusCode) {
 

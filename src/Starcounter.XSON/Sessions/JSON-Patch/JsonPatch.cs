@@ -386,17 +386,17 @@ namespace Starcounter.XSON {
             } else {
                 size = 0;
                 parent = json.Parent;
-                if (parent != null) {
-//                    if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
-                    if (!fromStepParent &&  json._appName != null) {
-                        size = json.GetAppName().Length + 1;
-                        writer.Skip(-(size + prevSize));
-                        writer.Write('/');
-                        writer.Write(json._appName);
-                        prevSize = size;
-                    }
-                    fromStepParent = false;
 
+                if (!fromStepParent && json._appName != null) {
+                    size = json.GetAppName().Length + 1;
+                    writer.Skip(-(size + prevSize));
+                    writer.Write('/');
+                    writer.Write(json._appName);
+                    prevSize = size;
+                }
+                fromStepParent = false;
+
+                if (parent != null) {
                     if (parent.IsArray) {
                         if (json._cacheIndexInArr == -1)
                             json.UpdateCachedIndex();

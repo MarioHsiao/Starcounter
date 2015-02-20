@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Linq.Expressions;
+using System.Web.UI.WebControls;
 using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Rest
@@ -207,11 +208,6 @@ namespace Starcounter.Rest
 
                 if (useProxyHandler) {
 
-                    // Setting current application name.
-                    if (handlerOptions.AppName != null) {
-                        StarcounterEnvironment.AppName = handlerOptions.AppName;
-                    }
-
                     // Calling proxy user delegate.
                     resp = proxyDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
 
@@ -220,20 +216,69 @@ namespace Starcounter.Rest
 
                         return null;
 
-                    } else {
-
-                        // Setting to which application the response belongs.
-                        Debug.Assert(null != resp.AppName);
                     }
 
                 } else {
 
+                    // Checking if we are not in proxy handler.
+                    if ((!dontMerge) && (!handlerOptions.ProxyDelegateTrigger)) {
+
+                        // Checking if there is a substitute handler.
+                        if (req.HandlerOpts.SubstituteHandler != null) {
+
+                            resp = req.HandlerOpts.SubstituteHandler();
+
+                            // Setting the response application name.
+                            resp.AppName = req.HandlerOpts.CallingAppName;
+
+                            // Checking if we wanted to call the same application.
+                            if (req.HandlerOpts.CallingAppName == appNames_[0]) {
+
+                                if (Response.ResponsesMergerRoutine_ != null)
+                                    return Response.ResponsesMergerRoutine_(req, resp, null);
+                            }
+                        }
+
+                        if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+
+                            // Checking if we call another application.
+                            if ((!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) &&
+                                (req.HandlerOpts.CallingAppName != appNames_[0])) {
+
+                                if (resp != null) {
+
+                                    List<Response> resps = new List<Response>();
+                                    resps.Add(resp);
+
+                                    // Setting current application name.
+                                    StarcounterEnvironment.AppName = appNames_[0];
+
+                                    // Calling intermediate user delegate.
+                                    resp = userDelegates_[0](req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
+
+                                    // Checking if we have any response.
+                                    if (null == resp) {
+
+                                        return null;
+
+                                    } else {
+
+                                        // Setting to which application the response belongs.
+                                        resp.AppName = appNames_[0];
+
+                                        resps.Add(resp);
+                                    }
+
+                                    return Response.ResponsesMergerRoutine_(req, null, resps);
+                                }
+
+                                return null;
+                            }
+                        }
+                    }
+
                     // Setting current application name.
                     StarcounterEnvironment.AppName = appNames_[0];
-
-                    if (handlerOptions.AppName != null) {
-                        StarcounterEnvironment.AppName = handlerOptions.AppName;
-                    }
 
                     // Calling intermediate user delegate.
                     resp = userDelegates_[0](req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
@@ -250,11 +295,11 @@ namespace Starcounter.Rest
                     }
 
                     // Checking if we need to merge.
-                    if ((UriInjectMethods.ResponsesMergerRoutine_ != null) && (!dontMerge)) {
+                    if ((!handlerOptions.ProxyDelegateTrigger) &&
+                        (!dontMerge) &&
+                        (Response.ResponsesMergerRoutine_ != null)) {
 
-                        responses = new List<Response>();
-                        responses.Add(resp);
-                        return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
+                        return Response.ResponsesMergerRoutine_(req, resp, null);
                     }
                 }
 
@@ -288,11 +333,8 @@ namespace Starcounter.Rest
                 responses.Add(resp);
             }
 
-            // Checking if we have a response merging function defined.
-            Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
-
             // Creating merged response.
-            return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
+            return Response.ResponsesMergerRoutine_(req, null, responses);
         }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();
@@ -440,8 +482,6 @@ namespace Starcounter.Rest
             out UInt64 handlerInfo);
 
         internal static RegisterUriHandlerNativeDelegate RegisterUriHandlerNative_;
-
-        public static Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
 
         // Checking if this Node supports local resting.
         internal static Boolean IsSupportingLocalNodeResting() {

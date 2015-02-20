@@ -162,12 +162,15 @@ namespace Starcounter
         /// <summary>
         /// Indicates the local node.
         /// </summary>
-        Boolean localNode_ = false;
+        Boolean isLocalNode_ = false;
 
-        internal Boolean LocalNode
+        /// <summary>
+        /// Indicates that this node is restricted to this codehost.
+        /// </summary>
+        internal Boolean IsLocalNode
         {
-            get { return localNode_; }
-            set { localNode_ = value; }
+            get { return isLocalNode_; }
+            set { isLocalNode_ = value; }
         }
 
         /// <summary>
@@ -297,12 +300,13 @@ namespace Starcounter
             Boolean useAggregation = false,
             UInt16 aggrPortNumber = 0)
         {
-            if (hostName.ToLower().Contains("localhost") ||
-                hostName.ToLower().Contains("127.0.0.1"))
-            {
+            if (hostName == null) {
+
                 // Checking if we are running inside Starcounter hosting process.
                 if (StarcounterEnvironment.IsCodeHosted)
-                    localNode_ = true;
+                    isLocalNode_ = true;
+
+                hostName = "localhost";
             }
 
             if (0 == portNumber) {
@@ -762,7 +766,7 @@ namespace Starcounter
                 methodSpaceUriSpaceLower,
                 req,
                 req.PortNumber,
-                HandlerOptions.FilteringLevel,
+                new HandlerOptions(HandlerOptions.HandlerLevels.FilteringLevel),
                 out resp);
 
             return resp;
@@ -786,9 +790,14 @@ namespace Starcounter
 
             // Checking if handler options is defined.
             if (handlerOptions == null) {
-                handlerOptions = HandlerOptions.DefaultLevel;
+
+                handlerOptions = new HandlerOptions();
+
                 callOnlySpecificHandlerLevel = false;
             }
+
+            // Setting application name.
+            handlerOptions.CallingAppName = StarcounterEnvironment.AppName;
 
             // Creating the request object if it does not exist.
             if (req == null) {
@@ -799,12 +808,13 @@ namespace Starcounter
                     Uri = relativeUri,
                     BodyBytes = bodyBytes,
                     HeadersDictionary = headersDictionary,
-                    Host = Endpoint
+                    Host = Endpoint,
+                    HandlerOpts = handlerOptions
                 };
             }
 
             // Checking if we are on local node.
-            if ((localNode_) && (!handlerOptions.CallExternalOnly)) {
+            if ((isLocalNode_) && (!handlerOptions.CallExternalOnly)) {
 
                 String methodSpaceUriSpace = method + " " + relativeUri + " ";
                 String methodSpaceUriSpaceLower = methodSpaceUriSpace;
@@ -819,13 +829,16 @@ namespace Starcounter
                 Response resp = null;
 
                 // Trying to do local node REST.
-                if (runUriMatcherAndCallHandler_(
+                runUriMatcherAndCallHandler_(
                     methodSpaceUriSpace,
                     methodSpaceUriSpaceLower,
                     req,
                     portNumber_,
-                    HandlerOptions.FilteringLevel,
-                    out resp)) {
+                    new HandlerOptions(HandlerOptions.HandlerLevels.FilteringLevel),
+                    out resp);
+
+                // Checking if there is some response.
+                if (resp != null) {
 
                     // Checking if user has supplied a delegate to be called.
                     if (null != userDelegate) {
@@ -839,21 +852,19 @@ namespace Starcounter
                     return resp;
                 }
 
-                // Checking if we have a response or if its not a gateway level handler.
-                if (resp != null) {
-                    return resp;
-                }
-
 DO_CALL_ON_GIVEN_LEVEL:
 
                 // Running URI matcher and call handler.
-                if (runUriMatcherAndCallHandler_(
+                Boolean handlerFound = runUriMatcherAndCallHandler_(
                     methodSpaceUriSpace,
                     methodSpaceUriSpaceLower,
                     req,
                     portNumber_,
                     handlerOptions,
-                    out resp)) {
+                    out resp);
+
+                // Checking if there is some response.
+                if (resp != null) {
 
                     // Checking if user has supplied a delegate to be called.
                     if (null != userDelegate) {
@@ -867,40 +878,55 @@ DO_CALL_ON_GIVEN_LEVEL:
                     return resp;
                 }
             
-                // Checking if we have a response or if its not a gateway level handler.
-                if (resp != null) {
+                // Going level by level up.
+                if (!handlerFound) {
 
-                    return resp;
-
-                } else {
-
-                    // Going level by level up.
                     if (false == callOnlySpecificHandlerLevel) {
 
                         switch (handlerOptions.HandlerLevel) {
 
                             case HandlerOptions.HandlerLevels.DefaultLevel: {
-                                handlerOptions = HandlerOptions.ApplicationLevel;
+                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel);
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationLevel: {
-                                handlerOptions = HandlerOptions.ApplicationExtraLevel;
+                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel);
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
-                                handlerOptions = HandlerOptions.CodeHostStaticFileServer;
+                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
                         };
+                    }
 
-                    } else {
+                    // Checking if there is a substitute handler.
+                    if (req.HandlerOpts.SubstituteHandler != null) {
+
+                        resp = req.HandlerOpts.SubstituteHandler();
+
+                        if (resp != null) {
+
+                            // Setting the response application name.
+                            resp.AppName = req.HandlerOpts.CallingAppName;
+
+                            if (Response.ResponsesMergerRoutine_ != null)
+                                return Response.ResponsesMergerRoutine_(req, resp, null);
+                        }
+
+                        return resp;
+                    }
+
+                    if (true == callOnlySpecificHandlerLevel) {
 
                         // NOTE: We tried a specific handler level but didn't get any response, so returning.
                         return null;
                     }
                 }
+
+                return null;
             }
 
             // Setting the receive timeout.

@@ -4,6 +4,7 @@ using Starcounter.Metadata;
 using Starcounter.Rest;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Starcounter.Advanced.XSON;
 
 namespace PolyjuiceNamespace {
@@ -19,6 +20,11 @@ namespace PolyjuiceNamespace {
         /// Global tree.
         /// </summary>
         static Tree tree_;
+
+        /// <summary>
+        /// Custom maps.
+        /// </summary>
+        static Dictionary<String, List<HandlerForSoType>> customMaps_;
 
         /// <summary>
         /// Handler information for mapped SO type.
@@ -176,12 +182,182 @@ namespace PolyjuiceNamespace {
             // Until first slash.
             Int32 slashOffset = 0;
 
-            while(soSubUri[slashOffset] != '/') {
+            while (soSubUri[slashOffset] != '/') {
                 slashOffset++;
             }
 
             // Skipping "/so/" in the beginning and "/@s" at the end.
             return soSubUri.Substring(0, slashOffset);
+        }
+
+        /// <summary>
+        /// Maps an existing application processed URI to another URI.
+        /// </summary>
+        public static void CustomMap(
+            String appProcessedUri,
+            String mapProcessedUri) {
+
+            lock (tree_) {
+
+                // There is always a space at the end of processed URI.
+                String appProcessedMethodUriSpace = "GET " + appProcessedUri.ToLowerInvariant() + " ";
+
+                // Searching the handler by processed URI.
+                UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
+                    new HandlerOptions());
+
+                // Checking how many Apps have registered the same URI.
+                if (handlerInfo.AppNamesList.Count > 1) {
+                    throw new ArgumentException("More than one App registered the same handler: " + appProcessedUri);
+                }
+
+                UInt16 handlerId = handlerInfo.HandlerId;
+
+                if (handlerId == HandlerOptions.InvalidUriHandlerId) {
+                    throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
+                }
+
+                // Adding handler to SO type.
+                HandlerForSoType handler = AddHandlerToSoType(
+                    null,
+                    handlerId,
+                    appProcessedUri,
+                    appProcessedMethodUriSpace,
+                    handlerInfo.AppNamesList[0],
+                    null,
+                    null);
+
+                // Searching for the mapped handler.
+                String mapProcessedMethodUriSpace = "GET " + mapProcessedUri.ToLowerInvariant() + " ";
+                UserHandlerInfo mapHandlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(mapProcessedMethodUriSpace,
+                    new HandlerOptions());
+
+                // Registering the map handler if needed.
+                if (null == mapHandlerInfo) {
+
+                    Debug.Assert(false == customMaps_.ContainsKey(mapProcessedUri));
+
+                    // Creating a new mapping list and adding URI to it.
+                    List<HandlerForSoType> mappedHandlersList = new List<HandlerForSoType>();
+                    mappedHandlersList.Add(handler);
+                    customMaps_.Add(mapProcessedUri, mappedHandlersList);
+
+                    String savedAppName = StarcounterEnvironment.AppName;
+                    StarcounterEnvironment.AppName = null;
+
+                    // Registering mapped URI.
+                    Handle.GET(mapProcessedUri, (Request req) => {
+
+                        // Setting calling application name.
+                        HandlerOptions callingHandlerOptions = req.HandlerOpts;
+
+                        // Checking if there is a substitutional handler.
+                        Boolean substituteHandler = false;
+
+                        if (callingHandlerOptions.SubstituteHandler != null) {
+                            substituteHandler = true;
+                        }
+
+                        // Collecting all responses in the list.
+                        List<Response> resps = new List<Response>();
+
+                        // Checking if there is a substitutional handler and calling it immediately.
+                        if (substituteHandler) {
+
+                            Response resp = new Response();
+
+                            resp = callingHandlerOptions.SubstituteHandler();
+                            resp.AppName = callingHandlerOptions.CallingAppName;
+
+                            resps.Add(resp);
+
+                        } else if (!String.IsNullOrEmpty(callingHandlerOptions.CallingAppName)) {
+
+                            Boolean currentAppHasHandler = false;
+
+                            // Checking if application handler is presented.
+                            foreach (HandlerForSoType x in mappedHandlersList) {
+
+                                if (x.AppName == callingHandlerOptions.CallingAppName) {
+
+                                    currentAppHasHandler = true;
+                                    break;
+                                }
+                            }
+
+                            // Checking if application is not found.
+                            if (!currentAppHasHandler) {
+                                return null;
+                            }
+                        }
+
+                        // Going through a mapped handlers list.
+                        foreach (HandlerForSoType x in mappedHandlersList) {
+
+                            // Checking if we already called the substitute handler.
+                            if (substituteHandler) {
+                                if (x.AppName == callingHandlerOptions.CallingAppName) {
+                                    continue;
+                                }
+                            }
+
+                            HandlerOptions ho = new HandlerOptions();
+                            ho.ProxyDelegateTrigger = true;
+
+                            // Setting handler level.
+                            ho.HandlerId = x.HandlerId;
+
+                            // Setting calling string.
+                            String uri = x.HandlerProcessedUri;
+
+                            // Calling handler.
+                            Response resp;
+                            X.GET(uri, out resp, null, 0, ho);
+                            resps.Add(resp);
+                        }
+
+                        if (resps.Count > 0) {
+
+                            // Creating merged response.
+                            return Response.ResponsesMergerRoutine_(req, null, resps);
+
+                        } else {
+
+                            // If there is no merged response - return null.
+                            return null;
+                        }
+
+                    }, new HandlerOptions() {
+                        AllowNonPolyjuiceHandler = true,
+                        DontMerge = true
+                    });
+
+                    StarcounterEnvironment.AppName = savedAppName;
+
+                } else {
+
+                    // Just adding this mapped handler to the existing list.
+
+                    List<HandlerForSoType> mappedList;
+                    Boolean found = customMaps_.TryGetValue(mapProcessedUri, out mappedList);
+                    Debug.Assert(true == found);
+
+                    mappedList.Add(handler);
+                }
+
+                // Registering the proxy handler as a map to corresponding application URI.
+                Handle.GET(appProcessedUri, (Request req) => {
+
+                    // Calling the mapped handler.
+                    Response resp;
+                    X.GET(mapProcessedUri, out resp, null, 0, req.HandlerOpts);
+
+                    return resp;
+
+                }, new HandlerOptions() {
+                    ProxyDelegateTrigger = true
+                });
+            }
         }
 
         /// <summary>
@@ -193,94 +369,93 @@ namespace PolyjuiceNamespace {
             Func<String, String> converterToSo,
             Func<String, String> converterFromSo) {
 
-            // Checking that we have only long parameter.
-            Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
-                numParams2 = soProcessedUri.Split('@').Length - 1;
+            lock (tree_) {
 
-            if ((numParams1 != 1) || (numParams2 != 1)) {
-                throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type long.");
-            }
+                // Checking that we have only long parameter.
+                Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
+                    numParams2 = soProcessedUri.Split('@').Length - 1;
 
-            numParams1 = appProcessedUri.Split(new String[] { "@w" }, StringSplitOptions.None).Length - 1;
-            numParams2 = soProcessedUri.Split(new String[] { "@w" }, StringSplitOptions.None).Length - 1;
-
-            if ((numParams1 != 1) || (numParams2 != 1)) {
-                throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type long.");
-            }
-
-            // There is always a space at the end of processed URI.
-            String appProcessedMethodUriSpace = "GET " + appProcessedUri.ToLowerInvariant() + " ";
-
-            // Searching the handler by processed URI.
-            UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace, HandlerOptions.DefaultHandlerOptions);
-
-            // Checking how many Apps have registered the same URI.
-            if (handlerInfo.AppNamesList.Count > 1) {
-                throw new ArgumentException("More than one App registered the same handler: " + appProcessedUri);
-            }
-
-            UInt16 handlerId = handlerInfo.HandlerId;
-
-            if (handlerId == HandlerOptions.InvalidUriHandlerId) {
-                throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
-            }
-
-            // Getting string representation for the SO type.
-            String typeName = GetTypeNameFromSoUri(soProcessedUri.Substring("/so/".Length));
-
-            SoType soType = null;
-
-            // Checking if we emulate the database with SO.
-            if (EmulateSoDatabase) {
-
-                soType = tree_.Find(typeName);
-
-            } else {
-                soType = (SoType) Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
-            }
-
-            if (null == soType) {
-                throw new ArgumentException("Can not find Society Objects type in hierarchy: " + typeName);
-            }
-
-            // Checking that App has not registered any mappers on the same path.
-            if (SameApplicationInTypeHierarchy(soType, handlerInfo.AppNamesList[0])) {
-                throw new ArgumentException("Application has already registered a mapping handler on the same SO tree path!");
-            }
-
-            // Adding handler to SO type.
-            HandlerForSoType handler = AddHandlerToSoType(
-                soType,
-                handlerId,
-                appProcessedUri,
-                appProcessedMethodUriSpace,
-                handlerInfo.AppNamesList[0],
-                converterToSo,
-                converterFromSo);
-
-            // Registering the SO handler as a map to corresponding application URI.
-            Handle.GET(appProcessedUri.Replace("@w", "{?}"), (Request req, String appObjectId) => {
-
-                String soObjectId = appObjectId;
-
-                // Calling the conversion delegate.
-                if (handler.ConverterToSo != null) {
-                    soObjectId = handler.ConverterToSo(appObjectId);
+                if ((numParams1 != 1) || (numParams2 != 1)) {
+                    throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type long.");
                 }
 
-                // Setting calling application name.
-                HandlerOptions ho = new HandlerOptions() {
-                    AppName = StarcounterEnvironment.AppName
-                };
+                numParams1 = appProcessedUri.Split(new String[] { "@w" }, StringSplitOptions.None).Length - 1;
+                numParams2 = soProcessedUri.Split(new String[] { "@w" }, StringSplitOptions.None).Length - 1;
 
-                Response resp;
-                X.GET("/so/" + typeName + "/" + soObjectId, out resp, null, 0, ho);
+                if ((numParams1 != 1) || (numParams2 != 1)) {
+                    throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type long.");
+                }
 
-                return resp;
+                // There is always a space at the end of processed URI.
+                String appProcessedMethodUriSpace = "GET " + appProcessedUri.ToLowerInvariant() + " ";
 
-            }, new HandlerOptions() {
-                ProxyDelegateTrigger = true
-            });
+                // Searching the handler by processed URI.
+                UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
+                    new HandlerOptions());
+
+                // Checking how many Apps have registered the same URI.
+                if (handlerInfo.AppNamesList.Count > 1) {
+                    throw new ArgumentException("More than one App registered the same handler: " + appProcessedUri);
+                }
+
+                UInt16 handlerId = handlerInfo.HandlerId;
+
+                if (handlerId == HandlerOptions.InvalidUriHandlerId) {
+                    throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
+                }
+
+                // Getting string representation for the SO type.
+                String typeName = GetTypeNameFromSoUri(soProcessedUri.Substring("/so/".Length));
+
+                SoType soType = null;
+
+                // Checking if we emulate the database with SO.
+                if (EmulateSoDatabase) {
+
+                    soType = tree_.Find(typeName);
+
+                } else {
+                    soType = (SoType)Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
+                }
+
+                if (null == soType) {
+                    throw new ArgumentException("Can not find Society Objects type in hierarchy: " + typeName);
+                }
+
+                // Checking that App has not registered any mappers on the same path.
+                if (SameApplicationInTypeHierarchy(soType, handlerInfo.AppNamesList[0])) {
+                    throw new ArgumentException("Application has already registered a mapping handler on the same SO tree path!");
+                }
+
+                // Adding handler to SO type.
+                HandlerForSoType handler = AddHandlerToSoType(
+                    soType,
+                    handlerId,
+                    appProcessedUri,
+                    appProcessedMethodUriSpace,
+                    handlerInfo.AppNamesList[0],
+                    converterToSo,
+                    converterFromSo);
+
+                // Registering the SO handler as a map to corresponding application URI.
+                Handle.GET(appProcessedUri.Replace("@w", "{?}"), (Request req, String appObjectId) => {
+
+                    String soObjectId = appObjectId;
+
+                    // Calling the conversion delegate.
+                    if (handler.ConverterToSo != null) {
+                        soObjectId = handler.ConverterToSo(appObjectId);
+                    }
+
+                    Response resp;
+                    X.GET("/so/" + typeName + "/" + soObjectId, out resp, null, 0, req.HandlerOpts);
+
+                    return resp;
+
+                }, new HandlerOptions() {
+                    ProxyDelegateTrigger = true
+                });
+            }
         }
 
         /// <summary>
@@ -328,6 +503,44 @@ namespace PolyjuiceNamespace {
 
             List<Response> resps = new List<Response>();
 
+            // Checking if we have a substitutional handler.
+            if (req.HandlerOpts.SubstituteHandler != null) {
+
+                Response resp = new Response();
+
+                resp = req.HandlerOpts.SubstituteHandler();
+                resp.AppName = req.HandlerOpts.CallingAppName;
+
+                resps.Add(resp);
+
+            } else if (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) {
+
+                Boolean currentAppHasHandler = false;
+
+                SoType soTypeTemp = soType;
+
+                // Until we reach the root of the SO tree.
+                while ((soTypeTemp != null) && (false == currentAppHasHandler)) {
+
+                    // Checking if application handler is presented in the hierarchy.
+                    foreach (HandlerForSoType x in soTypeTemp.Handlers) {
+
+                        if (x.AppName == req.HandlerOpts.CallingAppName) {
+
+                            currentAppHasHandler = true;
+                            break;
+                        }
+                    }
+
+                    soTypeTemp = soTypeTemp.Inherits;
+                }
+
+                // Checking if application is not found.
+                if (!currentAppHasHandler) {
+                    return resps;
+                }
+            }
+
             // Until we reach the root of the SO tree.
             while (soType != null) {
 
@@ -358,12 +571,13 @@ namespace PolyjuiceNamespace {
                 x.TheType = soType;
                 x.HandlerId = handlerId;
                 x.HandlerProcessedUri = handlerProcessedUri;
-                x.ParamOffset = (UInt16) appProcessedMethodUriSpace.IndexOf('@');
+                x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
                 x.AppName = appName;
                 x.ConverterToSo = converterToSo;
                 x.ConverterFromSo = converterFromSo;
 
-                soType.Handlers.Add(x);
+                if (soType != null)
+                    soType.Handlers.Add(x);
 
             } else {
 
@@ -372,7 +586,7 @@ namespace PolyjuiceNamespace {
                     x.TheType = soType;
                     x.HandlerId = handlerId;
                     x.HandlerProcessedUri = handlerProcessedUri;
-                    x.ParamOffset = (UInt16) appProcessedMethodUriSpace.IndexOf('@');
+                    x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
                     x.AppName = appName;
                     x.ConverterToSo = converterToSo;
                     x.ConverterFromSo = converterFromSo;
@@ -386,12 +600,12 @@ namespace PolyjuiceNamespace {
         /// Calling all handlers associated with a given type.
         /// </summary>
         static void CallAllHandlersForSingleType(List<Response> resps, Request req, SoType type, String paramStr) {
-        
-            HandlerOptions ho = new HandlerOptions();
-            ho.ProxyDelegateTrigger = true;
 
             // Processing specific handler.
             Action<HandlerForSoType> processHandler = (HandlerForSoType x) => {
+
+                HandlerOptions ho = new HandlerOptions();
+                ho.ProxyDelegateTrigger = true;
 
                 // Calling the conversion delegate.
                 if (x.ConverterFromSo != null) {
@@ -420,11 +634,28 @@ namespace PolyjuiceNamespace {
 
             // Checking if we emulate the database with SO.
             if (EmulateSoDatabase) {
+
                 foreach (HandlerForSoType x in type.Handlers) {
+
+                    if (req.HandlerOpts.SubstituteHandler != null) {
+                        if ((x.AppName == req.HandlerOpts.CallingAppName) &&
+                            (x.HandlerId == req.ManagedHandlerId)) {
+                            continue;
+                        }
+                    }
+
                     processHandler(x);
                 }
             } else {
                 foreach (HandlerForSoType x in Db.SQL("SELECT X FROM HandlerForType X WHERE X.TheType = ?", type)) {
+
+                    if (req.HandlerOpts.SubstituteHandler != null) {
+                        if ((x.AppName == req.HandlerOpts.CallingAppName) &&
+                            (x.HandlerId == req.ManagedHandlerId)) {
+                            continue;
+                        }
+                    }
+
                     processHandler(x);
                 }
             }
@@ -584,40 +815,55 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Default merger function for PolyJuice.
         /// </summary>
-        public static Response DefaultMerger(Request req, List<Response> responses) {
+        public static Response DefaultMerger(Request req, Response resp, List<Response> responses) {
 
-                var mainResponse = responses[0];
-                Int32 mainResponseId = 0;
+            Json mainJson;
 
-                // Searching for the current application in responses.
+            // Checking if there is only one response, which becomes the main response.
+            if (resp != null) {
+
+                mainJson = resp.Resource as Json;
+
+                if (mainJson != null) {
+                    mainJson.SetAppName(resp.AppName);
+                }
+
+                return resp;
+            }
+
+            var mainResponse = responses[0];
+            Int32 mainResponseId = 0;
+
+            // Searching for the current application in responses.
+            for (Int32 i = 0; i < responses.Count; i++) {
+
+                if (responses[i].AppName == req.HandlerOpts.CallingAppName) {
+
+                    mainResponse = responses[i];
+                    mainResponseId = i;
+                    break;
+                }
+            }
+
+            // Checking if its a Json response.
+            mainJson = mainResponse.Resource as Json;
+
+            if (mainJson != null) {
+
+                mainJson.SetAppName(mainResponse.AppName);
+
                 for (Int32 i = 0; i < responses.Count; i++) {
 
-                    if (responses[i].AppName == StarcounterEnvironment.AppName) {
+                    if (mainResponseId != i) {
 
-                        mainResponse = responses[i];
-                        mainResponseId = i;
-                        break;
+                        ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
+                        mainJson.AddStepSibling((Json)responses[i].Resource);
                     }
                 }
-
-                Json mainJson = mainResponse.Resource as Json;
-
-                if ((mainJson != null) && (mainResponse.AppName != StarcounterConstants.LauncherAppName)) {
-
-                    mainJson.SetAppName(mainResponse.AppName);
-
-                    for (Int32 i = 0; i < responses.Count; i++) {
-
-                        if (mainResponseId != i) {
-
-                            ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
-                            mainJson.AddStepSibling((Json)responses[i].Resource);
-                        }
-                    }
-                }
-
-                return mainResponse;
             }
+
+            return mainResponse;
+        }
 
         /// <summary>
         /// Initializes everything needed for Polyjuice.
@@ -628,6 +874,13 @@ namespace PolyjuiceNamespace {
             ho.DontMerge = true;
 
             PopulateSoTree();
+
+            customMaps_ = new Dictionary<string, List<HandlerForSoType>>();
+
+            Response.ResponsesMergerRoutine_ = DefaultMerger;
+
+            String savedAppName = StarcounterEnvironment.AppName;
+            StarcounterEnvironment.AppName = null;
 
             // Registering ubiquitous SocietyObjects handler.
             Handle.GET("/so/{?}/{?}", (Request req, String typeName, String paramStr) => {
@@ -641,7 +894,7 @@ namespace PolyjuiceNamespace {
 
                 } else {
 
-                    soType = (SoType) Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
+                    soType = (SoType)Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
                 }
 
                 if (null == soType) {
@@ -651,15 +904,23 @@ namespace PolyjuiceNamespace {
                 // Collecting all responses in the tree.
                 List<Response> resps = CallAllHandlersInTypeHierarchy(req, soType, paramStr);
 
-                // Creating merged response.
                 if (resps.Count > 0) {
-                    return UriInjectMethods.ResponsesMergerRoutine_(req, resps);
+
+                    // Creating merged response.
+                    return Response.ResponsesMergerRoutine_(req, null, resps);
+
                 } else {
-                    // If there are no responses - return an empty JSON.
-                    return new Json();
+
+                    // If there is no merged response - return null.
+                    return null;
                 }
 
             }, ho);
+
+            StarcounterEnvironment.AppName = savedAppName;
+
+            // Now all applications are treated as Polyjuice applications.
+            StarcounterEnvironment.PolyjuiceAppsFlag = true;
         }
     }
 }

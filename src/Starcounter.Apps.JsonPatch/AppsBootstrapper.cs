@@ -215,7 +215,8 @@ namespace Starcounter.Internal {
                 // Checking if there are any registered handlers.
                 if (uhm.NumRegisteredHandlers > 0) {
 
-                    req.PortNumber = UriHandlersManager.GetPortNumber(req, HandlerOptions.DefaultLevel);
+                    req.PortNumber = UriHandlersManager.GetPortNumber(req,
+                        new HandlerOptions());
 
                     resp = Node.FilterRequest(req);
                 }
@@ -228,7 +229,7 @@ namespace Starcounter.Internal {
                         req.GetRawMethodAndUri(),
                         req.GetRawParametersInfo(),
                         req,
-                        HandlerOptions.DefaultLevel);
+                        new HandlerOptions());
                 }
 
             } catch (ResponseException exc) {

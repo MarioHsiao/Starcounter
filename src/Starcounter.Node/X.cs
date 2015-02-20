@@ -131,7 +131,7 @@ namespace Starcounter
 
                     // Getting Node dictionary from array by current scheduler index.
                     if (null == StaticThisNodeArray[curSchedulerId])
-                        StaticThisNodeArray[curSchedulerId] = new Node("127.0.0.1");
+                        StaticThisNodeArray[curSchedulerId] = new Node(null);
 
                     node = StaticThisNodeArray[curSchedulerId];
                 }
@@ -140,8 +140,8 @@ namespace Starcounter
                     // Checking if static object is initialized.
                     if (null == ThreadStaticThisNode)
                     {
-                        ThreadStaticThisNode = new Node("127.0.0.1");
-                        ThreadStaticThisNode.LocalNode = LocalNode;
+                        ThreadStaticThisNode = new Node(null);
+                        ThreadStaticThisNode.IsLocalNode = LocalNode;
                     }
 
                     // Getting thread static instance.
@@ -211,7 +211,7 @@ namespace Starcounter
         }
         
         /// <summary>
-        /// Performs asynchronous HTTP GET.
+        /// Performs HTTP GET.
         /// </summary>
         public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
 
@@ -222,6 +222,43 @@ namespace Starcounter
                 return resp.GetContent<T>();
 
             return default(T);
+        }
+
+        /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static T GET<T>(String uri, Func<Response> substituteHandler) {
+
+            Response resp = GET(uri, substituteHandler);
+
+            if (null != resp)
+                return resp.GetContent<T>();
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static Response GET(String uri) {
+
+            Response resp;
+            X.GET(uri, out resp, null, 0, null);
+            return resp;
+        }
+
+        /// <summary>
+        /// Performs HTTP GET and provides substitute handler.
+        /// </summary>
+        public static Response GET(String uri, Func<Response> substituteHandler) {
+
+            HandlerOptions ho = new HandlerOptions() {
+                SubstituteHandler = substituteHandler
+            };
+
+            Response resp;
+            X.GET(uri, out resp, null, 0, ho);
+            return resp;
         }
 
         /// <summary>

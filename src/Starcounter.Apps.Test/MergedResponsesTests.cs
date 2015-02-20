@@ -17,13 +17,13 @@ namespace Starcounter.Internal.Test
         [TestFixtureTearDown]
         public static void AfterTest(){
             UriHandlersManager.ResetUriHandlersManagers();
-            UriInjectMethods.ResponsesMergerRoutine_ = null;
+            Response.ResponsesMergerRoutine_ = null;
         }
 
         [Test]
         public void Test1()
         {
-            Handle.MergeResponses((Request req, List<Response> responses) => {
+            Response.ResponsesMergerRoutine_ = (Request req, Response resp, List<Response> responses) => {
 
                 StringBuilder sb = new StringBuilder();
 
@@ -92,7 +92,7 @@ namespace Starcounter.Internal.Test
                 };
 
                 return mergedResp;
-            });
+            };
 
             StarcounterEnvironment.AppName = "App1";
 
