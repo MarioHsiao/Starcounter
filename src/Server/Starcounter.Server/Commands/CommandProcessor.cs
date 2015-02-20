@@ -188,11 +188,14 @@ namespace Starcounter.Server.Commands {
         /// Updates the status of the current command to <see cref="CommandStatus.Completed"/>.
         /// </summary>
         private void SetCompleted() {
-            this.EndTime = DateTime.Now;
-            this.Status = CommandStatus.Completed;
+            var wasCancelled = isCancelledByHost;
 
-            EndAllProgress();
+            this.EndTime = DateTime.Now;
+            this.Status = wasCancelled ? CommandStatus.Cancelled : CommandStatus.Completed;
+
+            EndAllProgress(wasCancelled);
             NotifyStatusChanged();
+
             SignalCompletion();
         }
 
