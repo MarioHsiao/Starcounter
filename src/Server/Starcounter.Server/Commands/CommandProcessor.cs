@@ -491,11 +491,13 @@ namespace Starcounter.Server.Commands {
         /// <param name="func">The code to execute. The ending of the task
         /// can be marked as cancelled by returning false from the func.</param>
         protected void WithinTask(CommandTask task, Func<CommandTask, bool> func) {
-            bool cancel = false;
+            bool cancel = ShouldCancel();
             
             BeginTask(task);
             try {
-                cancel = !func(task);
+                if (!cancel) {
+                    cancel = !func(task);
+                }
             } catch {
                 cancel = true;
                 throw;
