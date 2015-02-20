@@ -108,7 +108,7 @@ namespace hello
 
 #if true
 #if false
-            Db.Transaction(() =>
+            Db.Transact(() =>
             {
                 Object o;
                 o = Db.SQL("SELECT m FROM MyMusic.Mucho m WHERE m.Number = ? AND m.Name = ?", 7, "Nisse").First;

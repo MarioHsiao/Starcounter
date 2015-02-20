@@ -27,7 +27,7 @@ namespace Starcounter.XSON.Tests {
             return null;
         }
 
-        void IDb.Transaction(Action action) {
+        void IDb.Transact(Action action) {
 
         }
 
