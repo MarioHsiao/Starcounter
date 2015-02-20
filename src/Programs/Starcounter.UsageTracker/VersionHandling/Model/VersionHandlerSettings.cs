@@ -76,7 +76,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
 
             VersionHandlerSettings settings = Db.SlowSQL<VersionHandlerSettings>("SELECT o FROM VersionHandlerSettings o").First;
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 if (settings == null) {
                     // Create default settings
                     settings = new VersionHandlerSettings();

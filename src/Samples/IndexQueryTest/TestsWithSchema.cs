@@ -12,7 +12,7 @@ namespace IndexQueryTest
 #if ACCOUNTTEST_MODEL
         static void TestDelete()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
 #if false
                 if (Db.SQL("select u from Accounttest.user u").First == null)
@@ -29,7 +29,7 @@ namespace IndexQueryTest
         static void QueryIndexUserLN()
         {
             CountUserByLastName("Popov");
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 Trace.Assert(((IEnumerator)Db.SQL("select u from User u where LastName = ?", "Popov").GetEnumerator()).ToString() != "");
             });
@@ -77,7 +77,7 @@ namespace IndexQueryTest
         static void OrderByQueryIndexUserLN()
         {
             CountUsersOrderByLastName();
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 Trace.Assert(((IEnumerator)Db.SQL("select u from User u order by LastName").GetEnumerator()).ToString() != "");
             });
@@ -96,7 +96,7 @@ namespace IndexQueryTest
 
         static void HintQueryIndexUserLN()
         {
-            Db.Transaction(delegate
+            Db.Transact(delegate
             {
                 foreach (accounttest.User u in Db.SQL("select u from user u where userid = ? option index (u userLN)", "KalLar01"))
                     Trace.Assert(u.UserId == "KalLar01");
@@ -119,7 +119,7 @@ namespace IndexQueryTest
             HelpMethods.LogEvent("Test path expression as join with index");
             CreateIndexUserLN();
             int nrs = 0;
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 foreach (accounttest.account a in Db.SQL("select a from account a where a.Client.lastname = ?", "Popov")) {
                     Trace.Assert(a.Client.LastName == "Popov");
                     nrs++;
@@ -155,11 +155,11 @@ namespace IndexQueryTest
 
         static void TestAggregate() {
             HelpMethods.LogEvent("Test Aggregate");
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestSumTransaction();
             });
             TestSumTransaction();
-            Db.Transaction(delegate {
+            Db.Transact(delegate {
                 TestSumTransaction("Oleg");
             });
             TestSumTransaction("Oleg");

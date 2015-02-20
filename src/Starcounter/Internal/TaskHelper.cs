@@ -10,13 +10,7 @@ namespace Starcounter.Internal {
         /// resources attached to the task.
         /// </summary>
         public static void Reset() {
-            ResetCurrentTransaction();
-        }
-
-        private static void ResetCurrentTransaction() {
-            uint r = sccoredb.sccoredb_set_current_transaction(0, 0, 0);
-            ImplicitTransaction.Release();
-            Transaction.SetManagedCurrentToNull();
+            
         }
     }
 }

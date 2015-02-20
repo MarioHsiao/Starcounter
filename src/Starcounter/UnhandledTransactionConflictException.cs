@@ -14,7 +14,7 @@ namespace Starcounter {
     /// conflict at transaction boundary (error code 4090, ScErrUnhandledTransactConflict).
     /// </summary>
     /// <seealso cref="Starcounter.TransactionConflictException"/>
-    /// <seealso cref="Starcounter.Db.Transaction(System.Action)"/>
+    /// <seealso cref="Starcounter.Db.Transact(System.Action)"/>
     public class UnhandledTransactionConflictException : DbException {
 
         /// <summary>
