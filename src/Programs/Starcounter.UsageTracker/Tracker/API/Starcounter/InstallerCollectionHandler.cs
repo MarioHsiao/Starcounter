@@ -44,7 +44,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Starcounter {
         //public static Int64 GetNextSequenceNo(string tableId) {
 
         //    int no = 0;
-        //    Db.Transaction(() => {
+        //    Db.Transact(() => {
         //        // Generate new sequence number for the new installation
         //        Sequence sequence = Db.SlowSQL("SELECT o FROM Sequence o WHERE o.TableName=?", tableId).First;
         //        if (sequence == null) {

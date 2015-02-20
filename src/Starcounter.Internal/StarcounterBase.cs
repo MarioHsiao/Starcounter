@@ -27,14 +27,6 @@ namespace Starcounter.Advanced {
         internal static ITransactionManager TransactionManager;
 
         /// <summary>
-        /// Runs code as an ACID database transaction in the embedding database.
-        /// </summary>
-        /// <param name="action"></param>
-        public static void TransactionRun(Action action) {
-            _DB.Transaction(action);
-        }
-
-        /// <summary>
         /// Executes a query on the embedding database.
         /// </summary>
         /// <param name="query">The SQL query string excluding parameters. Parameters are supplied as ? marks.</param>
