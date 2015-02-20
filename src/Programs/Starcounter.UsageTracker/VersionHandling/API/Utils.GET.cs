@@ -14,7 +14,7 @@ namespace StarcounterApplicationWebSocket.API.Versions {
 
             //Handle.GET(port, "/reset", (Request request) => {
 
-            //    Db.Transaction(() => {
+            //    Db.Transact(() => {
 
             //        LogWriter.WriteLine(string.Format("Resetting database."));
 

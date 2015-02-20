@@ -5,7 +5,7 @@ class Program {
 		Person p = null;
 		Account a = null;
 		DailyAccount d = null;
-		Db.Transaction(delegate {
+		Db.Transact(delegate {
 			p = new Person { FirstName = "Fname" };
 			a = new Account { AccountId = 1 };
 			d = new DailyAccount { AccountId = 2, Amount = 100.0m };
@@ -26,7 +26,7 @@ class Program {
 		foreach(Account account in Db.SQL<Account>("select a from Account a where a.Client=?", null))
 			count++;
 		ScAssertion.Assert(count == 2, "Two account with Client = null should be found.");
-		Db.Transaction(delegate {
+		Db.Transact(delegate {
 			d.Delete();
 			a.Delete();
 			p.Delete();
