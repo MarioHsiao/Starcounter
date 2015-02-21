@@ -32,6 +32,11 @@ namespace PolyjuiceNamespace {
         const String EndsWithStringParam = "@w";
 
         /// <summary>
+        /// Suggested Polyjuice mapping URI.
+        /// </summary>
+        const String PolyjuiceMappingUri = "/polyjuice/";
+
+        /// <summary>
         /// Handler information for mapped SO type.
         /// </summary>
         public class HandlerForSoType {
@@ -208,7 +213,7 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Mapping  handler that calls registered handlers.
         /// </summary>
-        static Response MapHandler(Request req, List<HandlerForSoType> mappedHandlersList, String stringParam) {
+        static Response MappingHandler(Request req, List<HandlerForSoType> mappedHandlersList, String stringParam) {
 
             HandlerOptions callingHandlerOptions = req.HandlerOpts;
 
@@ -322,6 +327,13 @@ namespace PolyjuiceNamespace {
 
             lock (tree_) {
 
+                // Checking that map URI is "/" or starts with "/polyjuice/".
+                if (!mapProcessedUri.StartsWith(PolyjuiceMappingUri, StringComparison.InvariantCultureIgnoreCase)) {
+                    if (mapProcessedUri != "/") {
+                        throw new ArgumentException("Application can only map to handlers starting with \"/polyjuice/\" or a root handler.");
+                    }
+                }
+
                 // Checking that we have only long parameter.
                 Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
                     numParams2 = mapProcessedUri.Split('@').Length - 1;
@@ -348,19 +360,19 @@ namespace PolyjuiceNamespace {
                 String appProcessedMethodUriSpace = "GET " + appProcessedUri.ToLowerInvariant() + " ";
 
                 // Searching the handler by processed URI.
-                UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
+                UserHandlerInfo appHandlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
                     new HandlerOptions());
 
-                if (handlerInfo == null) {
+                if (appHandlerInfo == null) {
                     throw new ArgumentException("Application handler is not registered: " + appProcessedUri);
                 }
 
                 // Checking how many Apps have registered the same URI.
-                if (handlerInfo.AppNamesList.Count > 1) {
+                if (appHandlerInfo.AppNamesList.Count > 1) {
                     throw new ArgumentException("More than one App registered the same handler: " + appProcessedUri);
                 }
 
-                UInt16 handlerId = handlerInfo.HandlerId;
+                UInt16 handlerId = appHandlerInfo.HandlerId;
 
                 if (handlerId == HandlerOptions.InvalidUriHandlerId) {
                     throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
@@ -372,7 +384,7 @@ namespace PolyjuiceNamespace {
                     handlerId,
                     appProcessedUri,
                     appProcessedMethodUriSpace,
-                    handlerInfo.AppNamesList[0],
+                    appHandlerInfo.AppNamesList[0],
                     converterToSo,
                     converterFromSo);
 
@@ -400,7 +412,7 @@ namespace PolyjuiceNamespace {
 
                         // Registering mapped URI with parameter.
                         Handle.GET(hs, (Request req, String p) => {
-                            return MapHandler(req, mappedHandlersList, p);
+                            return MappingHandler(req, mappedHandlersList, p);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
                             DontMerge = true
@@ -410,7 +422,7 @@ namespace PolyjuiceNamespace {
 
                         // Registering mapped URI.
                         Handle.GET(mapProcessedUri, (Request req) => {
-                            return MapHandler(req, mappedHandlersList, null);
+                            return MappingHandler(req, mappedHandlersList, null);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
                             DontMerge = true
