@@ -70,7 +70,7 @@ namespace Starcounter.Internal.Tests
             Node node;
             X.GetNodeFromUri("/someuri", out node, out relativeUri);
             Assert.IsTrue("/someuri" == relativeUri);
-            Assert.IsTrue("127.0.0.1" == node.HostName);
+            Assert.IsTrue("localhost" == node.HostName);
             Assert.IsTrue(StarcounterEnvironment.Default.UserHttpPort == node.PortNumber);
 
             X.GetNodeFromUri("somehost:1234/someuri/", out node, out relativeUri);

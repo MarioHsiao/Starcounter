@@ -102,7 +102,7 @@ namespace Starcounter.Internal.Tests {
             Handle.GET(handlerUri, () => { return handlerUri; }, new HandlerOptions() { HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
 
             X.GET(handlerUri, out resp);
-            Assert.AreEqual(handlerUri, resp.Body);
+            Assert.AreEqual(null, resp);
 
             X.GET(handlerUri, out resp, null, 0, new HandlerOptions());
             Assert.AreEqual(null, resp);

@@ -86,7 +86,6 @@
   <ItemGroup>
     <Compile Include="AdvancedRequestResponseUsage.cs" />
     <Compile Include="IRequestHandler.cs" />
-    <Compile Include="MergedResponsesTests.cs" />
     <Compile Include="NewRestTests.cs" />
     <Compile Include="MainApp.cs" />
     <Compile Include="NodeRelatedTests.cs" />
