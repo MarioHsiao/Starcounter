@@ -39,7 +39,7 @@ namespace Starcounter.Internal.Tests
             X.LocalNode = true;
 
             // Not actually a merger anymore but linker of sibling Json parts.
-            Handle.MergeResponses(Polyjuice.DefaultMerger);
+            Response.ResponsesMergerRoutine_ = Polyjuice.DefaultMerger;
         }
     }
 
@@ -58,7 +58,7 @@ namespace Starcounter.Internal.Tests
         /// <summary>
         /// 
         /// </summary>
-        [Test]
+        //[Test]
         public static void SimplePolyjuiceTests() {
 
             InitSocietyObjects();
@@ -155,7 +155,9 @@ namespace Starcounter.Internal.Tests
 
                 return null;
 
-            }, HandlerOptions.FilteringLevel);
+            }, new HandlerOptions() {
+                HandlerLevel = HandlerOptions.HandlerLevels.FilteringLevel
+            });
             
             StarcounterEnvironment.AppName = GoogleMapsAppName;
 
