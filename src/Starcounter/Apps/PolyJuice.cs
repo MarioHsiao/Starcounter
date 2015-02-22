@@ -203,11 +203,11 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Maps an existing application processed URI to another URI.
         /// </summary>
-        public static void CustomMap(
+        public static void Map(
             String appProcessedUri,
             String mapProcessedUri) {
 
-                CustomMap(appProcessedUri, mapProcessedUri, null, null);
+                Map(appProcessedUri, mapProcessedUri, null, null);
         }
 
         /// <summary>
@@ -319,7 +319,7 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Maps an existing application processed URI to another URI.
         /// </summary>
-        public static void CustomMap(
+        public static void Map(
             String appProcessedUri,
             String mapProcessedUri,
             Func<String, String> converterToSo,
@@ -367,11 +367,6 @@ namespace PolyjuiceNamespace {
                     throw new ArgumentException("Application handler is not registered: " + appProcessedUri);
                 }
 
-                // Checking how many Apps have registered the same URI.
-                if (appHandlerInfo.AppNamesList.Count > 1) {
-                    throw new ArgumentException("More than one App registered the same handler: " + appProcessedUri);
-                }
-
                 UInt16 handlerId = appHandlerInfo.HandlerId;
 
                 if (handlerId == HandlerOptions.InvalidUriHandlerId) {
@@ -384,7 +379,7 @@ namespace PolyjuiceNamespace {
                     handlerId,
                     appProcessedUri,
                     appProcessedMethodUriSpace,
-                    appHandlerInfo.AppNamesList[0],
+                    appHandlerInfo.AppName,
                     converterToSo,
                     converterFromSo);
 
@@ -495,7 +490,7 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Maps an existing application processed URI to Society Objects URI.
         /// </summary>
-        public static void Map(
+        public static void OntologyMap(
             String appProcessedUri,
             String soProcessedUri,
             Func<String, String> converterToSo,
@@ -524,11 +519,6 @@ namespace PolyjuiceNamespace {
                 // Searching the handler by processed URI.
                 UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
                     new HandlerOptions());
-
-                // Checking how many Apps have registered the same URI.
-                if (handlerInfo.AppNamesList.Count > 1) {
-                    throw new ArgumentException("More than one App registered the same handler: " + appProcessedUri);
-                }
 
                 UInt16 handlerId = handlerInfo.HandlerId;
 
@@ -560,7 +550,7 @@ namespace PolyjuiceNamespace {
                     handlerId,
                     appProcessedUri,
                     appProcessedMethodUriSpace,
-                    handlerInfo.AppNamesList[0],
+                    handlerInfo.AppName,
                     converterToSo,
                     converterFromSo);
 

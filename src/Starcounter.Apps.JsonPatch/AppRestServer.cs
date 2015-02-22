@@ -136,7 +136,7 @@ namespace Starcounter.Internal.Web {
                 try {
 
                     // Calling user delegate.
-                    resp = uhi.RunUserDelegates(
+                    resp = uhi.RunUserDelegate(
                         req,
                         methodSpaceUriSpaceOnStack,
                         parametersInfoOnStack,
