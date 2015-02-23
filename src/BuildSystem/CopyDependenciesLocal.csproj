@@ -18,8 +18,8 @@
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
-	  <Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(BUILD_BLUE_CONFIGURATION)</Level0Configuration>
-	  <Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
+	<Level0Configuration>$(LEVEL0_CONFIGURATION)</Level0Configuration>
+	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
     <ServiceConfigFile>Personal.xml</ServiceConfigFile>
 	<ServiceConfigTargetFile>$(OutputPathConfig)\$(ServiceConfigFile)</ServiceConfigTargetFile>
   </PropertyGroup>
