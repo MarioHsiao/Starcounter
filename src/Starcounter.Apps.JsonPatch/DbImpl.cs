@@ -29,12 +29,16 @@ namespace Starcounter.Internal {
             return Db.SlowSQL<T>(query, args);
         }
 
-        void IDb.Transaction(Action action) {
-            Db.Transaction(action);
+        void IDb.Transact(Action action) {
+            Db.Transact(action);
         }
 
-        ITransaction IDb.Current {
-            get { return Transaction.GetCurrent(); }
+        void IDb.Scope(Action action) {
+            Db.Scope(action);
         }
+
+        //ITransaction IDb.CurrentTransaction {
+        //    get { return Transaction.Current; }
+        //}
     }
 }

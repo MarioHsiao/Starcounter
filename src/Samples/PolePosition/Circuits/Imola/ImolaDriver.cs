@@ -22,7 +22,7 @@ public class ImolaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 objectIds = null;
                 Starcounter.Poleposition.Util.TypeDeleter.DeleteAllOfType<Pilot>();
                 transaction.Commit();
@@ -35,7 +35,7 @@ public class ImolaDriver : Driver
     {
         using(Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 objectIds = new ulong[Setup.SelectCount];
                 for (int i = 1; i <= Setup.ObjectCount; ++i) {
                     Pilot p = new Pilot();
@@ -60,7 +60,7 @@ public class ImolaDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 foreach (ulong oid in objectIds) {
                     Pilot p = (Pilot)DbHelper.FromID(oid);
                     AddToCheckSum(p);

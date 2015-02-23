@@ -4,7 +4,7 @@ using Starcounter.Metadata;
 
 class Program {
     static void Main() {
-        Db.Transaction(delegate {
+        Db.Transact(delegate {
             new Account {
                 Client = new User { FirstName = "Peter", LastName = "Svensson" },
                 Amount = 100m

@@ -94,7 +94,7 @@
           <GroupBox Style="{DynamicResource PageButtonBar}">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
               <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
-              <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Next" Background="{DynamicResource GreenButtonBackground}"/>
+              <Button x:Name="visualStudioNextButton" Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Next" Background="{DynamicResource GreenButtonBackground}"/>
             </StackPanel>
 
           </GroupBox>

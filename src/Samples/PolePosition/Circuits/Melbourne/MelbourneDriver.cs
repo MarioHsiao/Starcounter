@@ -22,7 +22,7 @@ public class MelbourneDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 TypeDeleter.DeleteAllOfType<Pilot>();
                 transaction.Commit();
             });
@@ -34,7 +34,7 @@ public class MelbourneDriver : Driver
     {
         using(Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 for (int i = 1; i <= Setup.ObjectCount; ++i) {
                     Pilot p = new Pilot();
                     p.Name = "Pilot_" + i;
@@ -56,7 +56,7 @@ public class MelbourneDriver : Driver
     {
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 using (var se = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
                     AddResultChecksums(se);
                 }
@@ -89,7 +89,7 @@ public class MelbourneDriver : Driver
 
         using (Transaction transaction = new Transaction())
         {
-            transaction.Add(() => {
+            transaction.Scope(() => {
                 try {
                     using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectAllPilots).GetEnumerator()) {
                         int i = 1;

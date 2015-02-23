@@ -22,7 +22,7 @@ namespace Starcounter.XSON {
                 );
             }
 
-            aat.Json.AddInScope(() => {
+            aat.Json.Scope(() => {
                 if (aat.Property is TBool) {
                     ParseAndProcess((TBool)aat.Property, aat.Json, valuePtr, valueSize);
                 } else if (aat.Property is TDecimal) {

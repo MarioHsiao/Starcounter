@@ -3,7 +3,7 @@ using System;
 
 class Program {
 	static void Main() {
-		Db.Transaction(delegate {
+		Db.Transact(delegate {
 			new Person { Name = "JustPerson" };
 			new User { Name = "AUser", UserId = 1 };
 		});

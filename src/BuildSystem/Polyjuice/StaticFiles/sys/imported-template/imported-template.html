@@ -1,5 +1,5 @@
 <!--
-imported-template.html v0.0.6
+imported-template.html v0.0.8
 (c) 2013 Joachim Wester
 MIT license
 https://github.com/Juicy/imported-template
@@ -7,9 +7,9 @@ https://github.com/Juicy/imported-template
 <link rel="import" href="../polymer/polymer.html">
 <script>
   (function () {
-    var XHTMLPrototype = Object.create( (HTMLTemplateElement || HTMLElement ).prototype);
+    var ImportedTemplatePrototype = Object.create( (HTMLTemplateElement || HTMLElement ).prototype);
 
-    XHTMLPrototype.loadTemplate_ = function() {
+    ImportedTemplatePrototype.loadTemplate_ = function() {
       var val = this.getAttribute('content');
       var asIframe = this.getAttribute("iframe") || this.getAttribute("iframe")==="";
       if (val && (val.indexOf('/') === 0 || val.indexOf('./') === 0)) {
@@ -35,7 +35,7 @@ https://github.com/Juicy/imported-template
      * @param  {String} srcdoc HTML source code
      * @return {imported-template}        self
      */
-    XHTMLPrototype._importIframe = function(src, srcdoc){
+    ImportedTemplatePrototype._importIframe = function(src, srcdoc){
       this.clear();
       var iframe = this.subTemplate = document.createElement('iframe');
       iframe.src = src;
@@ -49,7 +49,7 @@ https://github.com/Juicy/imported-template
      * @param  {String} html html source code
      * @return {imported-template}      self
      */
-    XHTMLPrototype._importInline = function(html) {
+    ImportedTemplatePrototype._importInline = function(html) {
       if( this.subTemplate ){
         // IDEA: or maybe just this.subTempalte.clear()? - to leave lightDOM template untouched (tomalec)
         this.clear();
@@ -67,7 +67,7 @@ https://github.com/Juicy/imported-template
      * @param  {String} href partial URL
      * @return {imported-template}      self
      */
-    XHTMLPrototype._importHTMLImport = function(href){
+    ImportedTemplatePrototype._importHTMLImport = function(href){
       //href is a URL, load the partial from the HTTP server/cache
       var link = document.createElement('link');
       link.rel = "import";
@@ -80,23 +80,38 @@ https://github.com/Juicy/imported-template
       // Polymer.import([href], function processImportedDocument(){
         xhtml.clear();
         // TODO: clear previous template (tomalec)
-        var templates = this.import.querySelectorAll("template");
+        // find only root templates
+        var templates = this.import.querySelectorAll("head>template,body>template,imported-template-scope>template");
         var template;
         // debugger
         // many teamplates (merged partial), wrap them with one.
-        if( templates.length > 1 ){
+        if(templates.length === 1 && templates[0].hasAttribute("processed")) {
+          //IDEA (tomalec): consider caching references to templates url->processed instance
+          template = templates[0];
+        } else if( templates.length >= 1 ){
+          // IDEA: create it in main document, attach reference to imported-template instance, and keep imported untouched. (tomalec)
           var template = this.import.createElement("template");
           template.setAttribute("bind","");
           // move entire content to tempalte
           // TODO: check if moving by text is faster, 
           //      as we assume those are templates => document fragments (tomalec)
           for( var nodeNo=0; nodeNo < templates.length; nodeNo++){
-            template.content.appendChild(templates[nodeNo]);
+            var singleTemplate = templates[nodeNo];
+            var hasBind = singleTemplate.hasAttribute("bind");
+
+            if(singleTemplate.parentElement.tagName === "IMPORTED-TEMPLATE-SCOPE"){
+              if(hasBind){
+                console.warn("Your template ", singleTemplate, " already has `bind` attribute, it will be replaced");
+              }
+              singleTemplate.setAttribute("bind", singleTemplate.parentElement.getAttribute("scope"));
+            } else if ( !hasBind ){
+              singleTemplate.setAttribute("bind","");
+            }
+            template.content.appendChild(singleTemplate);
           }
+          template.setAttribute("processed", "");
           this.import.body.appendChild(template);
 
-        } else if(templates.length == 1) {
-          template = templates[0];
         } else { //there is no template in the response. 
           // it could be a stack trace, or HTML document with imports, etc. which could be hard to handle
           console.error("DON'T misbehave! At least one <template> tag is expected in content body", this.import.body.innerHTML);
@@ -121,12 +136,18 @@ https://github.com/Juicy/imported-template
      * @param  {String} href partial URL
      * @return {imported-template}      self
      */
-    XHTMLPrototype._insertTemplate = function(){
+    ImportedTemplatePrototype._insertTemplate = function(){
       var that = this;
+      var subTemplate = this.subTemplate;
+      subTemplate.setAttribute("bind", this.getAttribute("bind") || "");
+      subTemplate.setAttribute("repeat", this.getAttribute("repeat") );
+      subTemplate.setAttribute("if", this.getAttribute("if") );
+
       if(window.PolymerExpressions) {
-        this.subTemplate.bindingDelegate = new PolymerExpressions; //use PolymerExpressions if available. This allows <template if="{{val == 1}}">, etc
+        subTemplate.bindingDelegate = new PolymerExpressions(); //use PolymerExpressions if available. This allows <template if="{{val == 1}}">, etc
       }
-      this.parentNode.insertBefore(this.subTemplate, this.nextSibling);
+      // insert after
+      this.parentNode.insertBefore(subTemplate, this.nextSibling);
       // attach model once all Polymer Elements are ready
       Polymer.whenReady(function(){
         that.subTemplate.model = that.model;
@@ -135,40 +156,36 @@ https://github.com/Juicy/imported-template
     };
 
     /**
-     * Empty xhml content.
+     * Empty template content.
      * @requires HTMLTemplateElement#clear (https://github.com/Polymer/TemplateBinding/blob/51df59c16e0922dec041cfe604016aac00918d5d/src/TemplateBinding.js#L595)
      * @extends HTMLTemplateElement.prototype.clear
      * @return  see HTMLTemplateElement.prototype.clear
      */
-    XHTMLPrototype.clear = function(){
+    ImportedTemplatePrototype.clear = function(){
       // return false;
       return this.subTemplate
             && ( !this.subTemplate.clear || this.subTemplate.clear() || true)
             && this.subTemplate.parentNode.removeChild(this.subTemplate);
       // IDEA: clear also content? (tomalec)        
       //      && HTMLTemplateElement.prototype.clear.call(this);
-    }
+    };
 
-
-    XHTMLPrototype.attachedCallback = function () {
-      var that = this;
+    ImportedTemplatePrototype.isAttached =  false;
+    ImportedTemplatePrototype.attachedCallback = function () {
+      this.isAttached = true;
       this.loadTemplate_();
-
-      var observer = new MutationObserver(function (mutations) {
-        mutations.forEach(function (mutation) {
-          if (mutation.type === "attributes" && 
-                (mutation.attributeName === "content" || mutation.attributeName === "iframe") ) {
-            that.loadTemplate_();
-          }
-        });
-      });
-      observer.observe(this, {
-        attributes: true
-      });
+    };
+    ImportedTemplatePrototype.detachedCallback = function(){
+      this.isAttached = false;
+    };
+    ImportedTemplatePrototype.attributeChangedCallback = function(name, oldVal, newVal){
+      if(this.isAttached && (name === "content" || name === "iframe")) {
+        this.loadTemplate_();
+      }
     };
 
     document.registerElement('imported-template', {
-      prototype: XHTMLPrototype,
+      prototype: ImportedTemplatePrototype,
       extends: "template"
     });
 

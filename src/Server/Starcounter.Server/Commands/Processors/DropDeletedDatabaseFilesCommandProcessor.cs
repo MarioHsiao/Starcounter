@@ -165,7 +165,7 @@ namespace Starcounter.Server.Commands {
                 retry.EnableWaiting = command.EnableWaiting;
                 retry.LastAttempt = DateTime.Now;
                 retry.RetryCount = command.RetryCount + 1;
-                this.Engine.Dispatcher.Enqueue(retry, this);
+                this.Engine.Dispatcher.Enqueue(retry, null, this);
             }
         }
 

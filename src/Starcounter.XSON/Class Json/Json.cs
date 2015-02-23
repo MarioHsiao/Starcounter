@@ -4,16 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
-using Starcounter.Advanced;
-using Starcounter.Templates;
 using System;
+using Starcounter.Advanced;
 using Starcounter.Internal;
-using Starcounter.Templates.Interfaces;
-using System.Runtime.CompilerServices;
-using System.Collections;
-using System.Collections.Generic;
-using Starcounter.Internal.XSON;
-using System.Diagnostics;
+using Starcounter.Templates;
 
 namespace Starcounter {
     /// <summary>
@@ -94,7 +88,8 @@ namespace Starcounter {
         public Json()
             : base() {
             _cacheIndexInArr = -1;
-            _transaction = null;
+            _transaction = TransactionHandle.Invalid;
+            AttachCurrentTransaction();
             _dirtyCheckEnabled = DirtyCheckEnabled;
             if (_Template == null) {
                 Template = GetDefaultTemplate();
@@ -146,7 +141,7 @@ namespace Starcounter {
         }
 
         internal void OnSessionSet() {
-            UpgradeToStateful();
+            OnAddedToViewmodel();
         }
 
         /// <summary>
@@ -286,43 +281,21 @@ namespace Starcounter {
         /// </summary>
         /// <param name="value"></param>
         internal void SetParent(Json value) {
-            if (value == this) {
-                throw new Exception("Cannot set parent as itself");
+            // When parent is set it means that either the json have been attached
+            // to the tree for the first time or that it have been moved.
+            // If session is set we need to call the remove and add methods to make sure
+            // all stateful info is correct.
+
+            // Since we change parents we need to retrieve session twice.
+            if (_parent != null) {
+                if (Session != null)
+                    OnRemovedFromViewmodel();
             }
 
             _parent = value;
-
-            // When this json is connected to a jsontree we check if the tree is a stateful viewmodel.
-            // If so we need to upgrade it to enable keeping track of changes.
-            if (this.Session != null) {
-                this.UpgradeToStateful();
-            }
-        }
-
-        /// <summary>
-        /// Upgrades this json to a stateful puppet that keeps track of changes done.
-        /// </summary>
-        private void UpgradeToStateful() {
-            // TODO:
-            // Do upgrade of dirtychecks instead of static field.
-
-            this.addedInVersion = this.Session.ServerVersion;
-
-            if (this.IsArray) {
-                foreach (Json item in _list) {
-                    item.UpgradeToStateful();
-                }
-            } else {
-                if (Template != null) {
-                    foreach (Template tChild in ((TObject)Template).Properties) {
-                        var container = tChild as TContainer;
-                        if (container != null) {
-                            var childJson = (Json)container.GetUnboundValueAsObject(this);
-                            if (childJson != null) 
-                                childJson.UpgradeToStateful();
-                        }
-                    }
-                }
+            if (_parent != null) {
+                if (Session != null)
+                    OnAddedToViewmodel();
             }
         }
 

@@ -72,7 +72,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
         static void GenerateStatistics(string channel) {
 
             // Clear all statistics
-            Db.Transaction(() => {
+            Db.Transact(() => {
                 QueryResultRows<StatisticDay> result = Db.SlowSQL<StatisticDay>("SELECT o FROM StatisticDay o");
 
                 foreach (StatisticDay statisticDay in result) {
@@ -105,7 +105,7 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
 
                 StatisticDay statisticDay = Db.SlowSQL<StatisticDay>("SELECT o FROM StatisticDay o WHERE \"Date\"=?", currentDate).First;
                 if (statisticDay == null) {
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         statisticDay = new StatisticDay();
                         statisticDay.Date = currentDate;
                         statisticDay.Downloads = downloads;

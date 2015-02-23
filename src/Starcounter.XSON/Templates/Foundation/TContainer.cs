@@ -143,9 +143,11 @@ namespace Starcounter.Templates {
 			codeGenStarted = false;
 		}
 
+
         internal void UpdateParentAndIndex(Json parent, Json newValue) {
             if (newValue != null) {
-                newValue.Parent = parent;
+                if (newValue.Parent != parent)
+                    newValue.Parent = parent;
                 newValue._cacheIndexInArr = TemplateIndex;
             }
 

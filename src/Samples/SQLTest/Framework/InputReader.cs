@@ -23,7 +23,7 @@ namespace SQLTest
 
             try
             {
-                Db.Transaction(delegate
+                Db.Transact(delegate
                 {
                     reader = new StreamReader(filePath, Encoding.Unicode);
 

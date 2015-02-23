@@ -27,11 +27,15 @@ namespace Starcounter.XSON.Tests {
             return null;
         }
 
-        void IDb.Transaction(Action action) {
+        void IDb.Transact(Action action) {
 
         }
 
-        ITransaction IDb.Current { get { return null; } }
+        void IDb.Scope(Action action) {
+
+        }
+
+//        ITransaction IDb.CurrentTransaction { get { return null; } }
     }
 
     internal class FakeTransaction : ITransaction {
@@ -47,44 +51,47 @@ namespace Starcounter.XSON.Tests {
         
         }
 
-        public Boolean IsDirty
-        {
+        public Boolean IsDirty {
             get { return false; }
         }
 
-        public void Add(Action action) {
+        public Boolean IsReadOnly {
+            get { return false; }
+        }
+
+        public void Scope(Action action) {
 
         }
 
-        public TResult AddAndReturn<TResult>(Func<TResult> func) {
+        public TResult Scope<TResult>(Func<TResult> func) {
             return func();
         }
 
-        public TResult AddAndReturn<T, TResult>(Func<T, TResult> func, T arg) {
+        public TResult Scope<T, TResult>(Func<T, TResult> func, T arg) {
             return func(arg);
         }
 
-        public TResult AddAndReturn<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
+        public TResult Scope<T1, T2, TResult>(Func<T1, T2, TResult> func, T1 arg1, T2 arg2) {
             return func(arg1, arg2);
         }
 
-        public TResult AddAndReturn<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
+        public TResult Scope<T1, T2, T3, TResult>(Func<T1, T2, T3, TResult> func, T1 arg1, T2 arg2, T3 arg3) {
             return func(arg1, arg2, arg3);
         }
 
-        public TResult AddAndReturn<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
+        public TResult Scope<T1, T2, T3, T4, TResult>(Func<T1, T2, T3, T4, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4) {
             return func(arg1, arg2, arg3, arg4);
         }
 
-        public void Add<T>(Action<T> action, T arg) {
+        public void Scope<T>(Action<T> action, T arg) {
             action(arg);
         }
 
-        public void Add<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+        public void Scope<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
             action(arg1, arg2);
         }
 
-        public void Add<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+        public void Scope<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
             action(arg1, arg2, arg3);
         }
 

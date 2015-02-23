@@ -63,10 +63,10 @@
                 <GroupBox Style="{DynamicResource PageButtonBar}">
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <Button Margin="2.5,0,2.5,0" Command="ApplicationCommands.Print" Content="_Print"/>
-                        <Button Margin="2.5,0,2.5,0" Command="ApplicationCommands.Close" IsCancel="True" Content="_Reject" Background="{DynamicResource RedButtonBackground}"/>
+                        <Button x:Name="printButton" Margin="2.5,0,2.5,0" Command="ApplicationCommands.Print" Content="_Print"/>
+                        <Button x:Name="rejectButton" Margin="2.5,0,2.5,0" Command="ApplicationCommands.Close" IsCancel="True" Content="_Reject" Background="{DynamicResource RedButtonBackground}"/>
                         <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
-                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Accept" Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button x:Name="acceptButton" Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Accept" Background="{DynamicResource GreenButtonBackground}"/>
                     </StackPanel>
 
                 </GroupBox>

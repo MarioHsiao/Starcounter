@@ -122,7 +122,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
         /// <param name="version"></param>
         internal static void DeleteVersionBuild(string edition, string channel, string version) {
 
-            Db.Transaction(() => {
+            Db.Transact(() => {
 
                 // A downloaded version build should not be deleted
                 QueryResultRows<VersionBuild> versionBuilds = Db.SlowSQL<VersionBuild>("SELECT o FROM VersionBuild o WHERE o.Edition=? AND o.Channel=? AND o.Version=?", edition, channel, version);
@@ -179,7 +179,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler.Model {
                     if (Directory.Exists(folder)) {
                         Directory.Delete(folder, true);
                     }
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         versionBuild.File = null;
                     });
 

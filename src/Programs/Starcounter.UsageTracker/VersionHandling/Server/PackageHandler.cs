@@ -214,7 +214,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 }
 
                 // Save info to database
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     VersionSource versionSource = new VersionSource();
                     versionSource.SourceFolder = null;
                     versionSource.PackageFile = file;
@@ -300,7 +300,7 @@ namespace Starcounter.Applications.UsageTrackerApp.VersionHandler {
                 // Move documentation folder
                 Directory.Move(sourceDocsFolder, outputDocumentationFolder);
 
-                Db.Transaction(() => {
+                Db.Transact(() => {
                     versionSource.DocumentationFolder = outputDocumentationFolder;
                 });
 

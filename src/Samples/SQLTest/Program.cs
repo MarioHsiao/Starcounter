@@ -15,7 +15,7 @@ namespace SQLTest
                     outputPath = args[0];
 
             using (Transaction t = new Transaction()) {
-                t.Add(() => {
+                t.Scope(() => {
                     Console.WriteLine("Started SQLTest.");
                     nrFailedQueries += Test1and2(outputPath);
                     nrFailedQueries += Test3(outputPath);

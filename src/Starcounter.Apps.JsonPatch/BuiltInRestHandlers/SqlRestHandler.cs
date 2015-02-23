@@ -43,7 +43,7 @@ namespace Starcounter.Internal {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseNameLower);
                 Handle.POST(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sql", (Request req) => {
                     SqlQueryResult result = null;
-                    Db.Transaction(() => {
+                    Db.Transact(() => {
                         result = ExecuteQuery(req.Body);
                     }, false, 0);
                     return result;

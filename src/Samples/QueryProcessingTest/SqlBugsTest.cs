@@ -296,7 +296,7 @@ namespace QueryProcessingTest {
             string dailyChannel = "DailyBuilds";
             string nightlyChannel = "NightlyBuilds";
             if (Db.SQL("select vs from versionsource vs").First == null)
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     new VersionSource {
                         BuildError = false,
                         Channel = nightlyChannel,

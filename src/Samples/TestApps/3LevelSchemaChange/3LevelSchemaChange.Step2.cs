@@ -7,7 +7,7 @@ class Program {
 	static void Main() {
 		Employee e = null;
 		Company c = null;
-		Db.Transaction(delegate {
+		Db.Transact(delegate {
 			c = new Company { OrganizationId = 0 };
 			e = new Employee { FirstName = "The", LastName = "First",
 				UserName = "TheF", Company = c };

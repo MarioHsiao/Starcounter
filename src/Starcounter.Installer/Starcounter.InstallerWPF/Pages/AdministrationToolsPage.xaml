@@ -61,7 +61,7 @@
                         <!-- Starcounter Administrator -->
                         <StackPanel Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[StarcounterAdministrator]}">
 
-                            <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+                            <CheckBox x:Name="starcounterAdministratorCheckBox" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
 
                                 <CheckBox.IsChecked>
                                     <MultiBinding Converter="{StaticResource isCheckedConverter}">
@@ -100,7 +100,7 @@
 
                                         <!--<CheckBox  Content="Start when installed" IsChecked="{Binding StartWhenInstalled}" />-->
 
-                                        <CheckBox  Content="Create Shortcuts" IsChecked="{Binding CreatePersonalServerShortcuts}" />
+                                        <CheckBox x:Name="createShortcutsCheckBox"  Content="Create Shortcuts" IsChecked="{Binding CreatePersonalServerShortcuts}" />
 
                                     </StackPanel>
 
@@ -124,7 +124,7 @@
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
-                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Next" Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button x:Name="administrationToolsNextButton" Margin="2.5,0,0,0" Command="NavigationCommands.NextPage"  IsDefault="True"  Content="_Next" Background="{DynamicResource GreenButtonBackground}"/>
                     </StackPanel>
 
                 </GroupBox>

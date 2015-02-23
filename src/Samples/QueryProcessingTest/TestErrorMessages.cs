@@ -54,7 +54,7 @@ namespace QueryProcessingTest {
             Trace.Assert(wasException);
             wasException = false;
             try {
-                Db.Transaction(delegate {
+                Db.Transact(delegate {
                     Db.SQL("create index indx on account (accountid)");
                 });
             } catch (DbException ex) {

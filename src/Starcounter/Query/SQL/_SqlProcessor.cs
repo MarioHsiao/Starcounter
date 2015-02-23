@@ -415,7 +415,7 @@ internal static class SqlProcessor
     }
 
     internal static void AddMetadataIndex(string tableName, string indexName) {
-        Db.SystemTransaction(delegate {
+        Db.SystemTransact(delegate {
             MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
                 "select i from materializedindex i where i.table.name = ? and name = ?",
                 tableName, indexName).First;
@@ -425,7 +425,7 @@ internal static class SqlProcessor
     }
 
     internal static void DeleteMetadataIndex(string tableName, string indexName) {
-        Db.SystemTransaction(delegate {
+        Db.SystemTransact(delegate {
             Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
                 "select i from starcounter.metadata.\"index\" i where i.table.fullname = ? and name = ?",
                 tableName, indexName).First;
@@ -438,7 +438,7 @@ internal static class SqlProcessor
     }
 
     internal static void DeleteMetadataDroppedTable(string tableName) {
-        Db.SystemTransaction(delegate {
+        Db.SystemTransact(delegate {
             var tbl = Db.SQL<Starcounter.Metadata.RawView>(
                 "select v from starcounter.metadata.RawView v where fullname = ?", 
                 tableName).First;

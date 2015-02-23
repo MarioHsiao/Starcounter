@@ -72,7 +72,7 @@
                         <!-- Personal Server -->
                         <StackPanel Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[PersonalServer]}">
 
-                            <CheckBox IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
+                            <CheckBox x:Name="serverCheckBox" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}" HorizontalAlignment="Right" Margin="0,1,1128,1">
 
                                 <CheckBox.IsChecked>
                                     <MultiBinding Converter="{StaticResource isCheckedConverter}">
@@ -194,7 +194,7 @@
                                             <Border Margin="0,7.5,0,7.5" Grid.Row="3" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />
 
 
-                                            <CheckBox Grid.Row="4"  Content="Send usage statistics and crash reports" IsChecked="{Binding Path=SendUsageAndCrashReports}" />
+                                            <CheckBox x:Name="sendStatisticsCheckBox" Grid.Row="4"  Content="Send usage statistics and crash reports" IsChecked="{Binding Path=SendUsageAndCrashReports}" />
 
 
                                         </Grid>
@@ -356,7 +356,7 @@
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
-                        <Button Margin="2.5,0,0,0" Command="NavigationCommands.NextPage" IsDefault="True" Content="{Binding Path=MainWindow.NextButtonTitle,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button x:Name="databaseEnginesNextButton" Margin="2.5,0,0,0" Command="NavigationCommands.NextPage" IsDefault="True" Content="{Binding Path=MainWindow.NextButtonTitle,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
                     </StackPanel>
 
                 </GroupBox>
