@@ -12,7 +12,7 @@ namespace Starcounter.Internal.Weaver {
     /// <summary>
     /// Provides weaver helper methods for dynamic types.
     /// </summary>
-    internal static class DynamicTypesHelper {
+    internal static class DynamicTypesWeaveTimeHelper {
         /// <summary>
         /// Validates the given attribute to see if custom attributes are
         /// correctly used.
