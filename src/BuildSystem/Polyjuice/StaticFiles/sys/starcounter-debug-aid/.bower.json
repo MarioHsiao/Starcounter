@@ -13,14 +13,15 @@
   ],
   "dependencies": {
     "webcomponentsjs": "^0.5.1",
-    "juicy-jsoneditor": "~0.0.5"
+    "juicy-jsoneditor": "~0.0.5",
+    "polymer": "^0.5.1"
   },
   "homepage": "https://github.com/Polyjuice/starcounter-debug-aid",
-  "_release": "194f668eac",
+  "_release": "7e249c846d",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "194f668eaca27e39a74f591ff06f338235cdc66a"
+    "commit": "7e249c846d3a4fdbb21cb6511818518fb60bea73"
   },
   "_source": "git://github.com/Polyjuice/starcounter-debug-aid.git",
   "_target": "master",
