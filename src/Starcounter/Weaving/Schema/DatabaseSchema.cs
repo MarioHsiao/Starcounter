@@ -4,6 +4,7 @@ using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Sc.Server.Weaver.Schema
 {
@@ -35,6 +36,16 @@ public class DatabaseSchema
         get
         {
             return assemblies;
+        }
+    }
+
+    /// <summary>
+    /// Gets a flat list of all databases classes comprising the
+    /// current schema.
+    /// </summary>
+    public IEnumerable<DatabaseClass> IndexedDatabaseClasses {
+        get {
+            return this.databaseClassesByName.Values;
         }
     }
 
