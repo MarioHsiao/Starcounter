@@ -54,12 +54,12 @@
                                 <LineBreak/>
                                 <LineBreak/>
                                 Please check the  
-                                <Hyperlink CommandParameter="https://github.com/Starcounter/Starcounter/wiki/Installing-Starcounter#system-requirements" Command="NavigationCommands.GoToPage"  >system requirements.</Hyperlink>
+                                <Hyperlink x:Name="systemRequirementsHyperlink" CommandParameter="https://github.com/Starcounter/Starcounter/wiki/Installing-Starcounter#system-requirements" Command="NavigationCommands.GoToPage"  >system requirements.</Hyperlink>
                                 <LineBreak/>
                                 <LineBreak/>
                                 <LineBreak/>
                                 <LineBreak/>
-                                Click Install to accept the <Hyperlink Command="{x:Static local:MainWindow.OpenLicenseAgreementRoutedCommand}" >license agreement</Hyperlink>
+                                Click Install to accept the <Hyperlink x:Name="licenseAgreementHyperlink" Command="{x:Static local:MainWindow.OpenLicenseAgreementRoutedCommand}" >license agreement</Hyperlink>
                                 and install Starcounter.
 
                             </TextBlock>
@@ -78,8 +78,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
-                        <CheckBox  Margin="2.5,0,2.5,0" IsChecked="{Binding Path=MainWindow.ChangeAdditionalSettings,Source={x:Static Application.Current}}"  Content="Change additional settings"/>
-                        <Button Margin="2.5,0,0,0" Grid.Column="1" Command="NavigationCommands.NextPage" IsDefault="True" Content="{Binding Path=MainWindow.NextButtonTitle,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
+                        <CheckBox x:Name="changeAdditionalSettingsCheckBox"  Margin="2.5,0,2.5,0" IsChecked="{Binding Path=MainWindow.ChangeAdditionalSettings,Source={x:Static Application.Current}}"  Content="Change additional settings"/>
+                        <Button x:Name="installNextButton" Margin="2.5,0,0,0" Grid.Column="1" Command="NavigationCommands.NextPage" IsDefault="True" Content="{Binding Path=MainWindow.NextButtonTitle,Source={x:Static Application.Current}}" Background="{DynamicResource GreenButtonBackground}"/>
                     </Grid>
                 </GroupBox>
             </Grid>

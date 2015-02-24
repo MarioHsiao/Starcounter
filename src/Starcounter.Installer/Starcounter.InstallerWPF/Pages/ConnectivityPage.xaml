@@ -82,7 +82,7 @@
                 <!-- ODBC Driver -->
                 <StackPanel Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[ODBCDriver]}">
 
-                  <CheckBox IsChecked="{Binding ExecuteCommand}"
+                  <CheckBox x:Name="oDBCDriverCheckBox" IsChecked="{Binding ExecuteCommand}"
                             IsEnabled="{Binding IsExecuteCommandEnabled}"
                             Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}"
                             Style="{DynamicResource BigCheckBoxStyle}">
@@ -127,7 +127,7 @@
                 <!-- ADO.NET Driver -->
                 <StackPanel Margin="0,7.5,0,7.5" Grid.Row="2" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[ADONETDriver]}">
 
-                  <CheckBox IsChecked="{Binding ExecuteCommand}"
+                  <CheckBox x:Name="aDONETDriverCheckBox" IsChecked="{Binding ExecuteCommand}"
                             IsEnabled="{Binding IsExecuteCommandEnabled}"
                             Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}"
                             Style="{DynamicResource BigCheckBoxStyle}">
@@ -176,7 +176,7 @@
                 <!-- Live Objects -->
                 <StackPanel Margin="0,7.5,0,7.5" Grid.Row="4" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[LiveObjects]}">
 
-                  <CheckBox IsChecked="{Binding ExecuteCommand}"
+                  <CheckBox x:Name="liveObjectsCheckBox" IsChecked="{Binding ExecuteCommand}"
                             IsEnabled="{Binding IsExecuteCommandEnabled}"
                             Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}"
                             Style="{DynamicResource BigCheckBoxStyle}">

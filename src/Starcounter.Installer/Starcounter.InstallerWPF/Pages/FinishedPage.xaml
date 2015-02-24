@@ -248,7 +248,7 @@
                         <TextBlock TextWrapping="Wrap" Style="{DynamicResource PageWelcomeHeaderStyle}">
                             To continue visit our wiki.
                             <LineBreak/>
-                            <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki" Command="NavigationCommands.GoToPage">Getting Started</Hyperlink>
+                            <Hyperlink x:Name="GettingStartedHyperlink" CommandParameter="https://github.com/starcounter/starcounter/wiki" Command="NavigationCommands.GoToPage">Getting Started</Hyperlink>
                             
                         </TextBlock>
 
@@ -268,7 +268,7 @@
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Margin="2.5,0,2.5,0" Command="NavigationCommands.PreviousPage" Content="_Back" />
                         <!--<Button Margin="2.5,0,2.5,0" Command="ApplicationCommands.Close" Content="_Finish (close)"  Background="{DynamicResource GreenButtonBackground}"/>-->
-                        <Button Margin="2.5,0,2.5,0" Command="{x:Static local:MainWindow.StartRoutedCommand}" IsDefault="True"  Content="_Finish"  Background="{DynamicResource GreenButtonBackground}"/>
+                        <Button x:Name="finishButton" Margin="2.5,0,2.5,0" Command="{x:Static local:MainWindow.StartRoutedCommand}" IsDefault="True"  Content="_Finish"  Background="{DynamicResource GreenButtonBackground}"/>
                     </StackPanel>
 
                 </GroupBox>
