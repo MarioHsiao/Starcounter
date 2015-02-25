@@ -13,7 +13,10 @@ namespace Sc.Server.Weaver.Schema {
             foreach (var dbc in schema.IndexedDatabaseClasses) {
                 var typeRef = dbc.Attributes.FirstOrDefault(a => a.IsTypeReference);
                 if (typeRef != null) {
-                    result.Add(typeRef, typeRef.AttributeType as DatabaseEntityClass);
+                    var target = typeRef.AttributeType as DatabaseEntityClass;
+                    if (target != null && !target.IsEntityClass) {
+                        result.Add(typeRef, typeRef.AttributeType as DatabaseEntityClass);
+                    }
                 }
             }
             return result;
