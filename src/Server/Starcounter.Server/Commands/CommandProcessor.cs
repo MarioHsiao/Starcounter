@@ -725,6 +725,10 @@ namespace Starcounter.Server.Commands {
             if (this.completedEvent != null) {
                 this.completedEvent.Set();
             }
+
+            if (CompletionCallback != null) {
+                CompletionCallback(this.command);
+            }
         }
 
         private void NotifyStatusChanged() {
