@@ -162,16 +162,21 @@ namespace Starcounter.Server.Commands {
         /// </param>
         /// <param name="correlatingTo">An optional command, represented by a
         /// <see cref="CommandProcessor"/>, the given command correlates to.</param>
+        /// <param name="completionCallback">Optional callback that will be invoked
+        /// when the executed command completes.
+        /// </param>
         /// <returns>The <see cref="CommandProcessor"/> instance that was created to process this <paramref name="command"/>.</returns>
         internal CommandInfo Enqueue(
             ServerCommand command,
             Predicate<ServerCommand> cancellationPredicate = null,
-            CommandProcessor correlatingTo = null) {
+            CommandProcessor correlatingTo = null,
+            Action<ServerCommand> completionCallback = null) {
             CommandProcessor cp;
             CommandInfo ci;
 
             cp = GetCommandProcessor(command);
             cp.CancellationPredicate = cancellationPredicate;
+            cp.CompletionCallback = completionCallback;
             cp.OnEnqueued(correlatingTo);
 
             if (cp.IsPublic) ci = cp.ToPublicModel();

@@ -106,9 +106,12 @@ namespace Starcounter.Server {
         }
 
         /// <inheritdoc />
-        public CommandInfo Execute(ServerCommand command, Predicate<ServerCommand> cancellationPredicate = null) {
+        public CommandInfo Execute(
+            ServerCommand command, 
+            Predicate<ServerCommand> cancellationPredicate = null,
+            Action<ServerCommand> completionCallback = null) {
             command.GetReadyToEnqueue();
-            return this.engine.Dispatcher.Enqueue(command, cancellationPredicate);
+            return this.engine.Dispatcher.Enqueue(command, cancellationPredicate, null, completionCallback);
         }
 
         /// <inheritdoc />

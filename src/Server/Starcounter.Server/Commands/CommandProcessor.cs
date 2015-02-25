@@ -151,6 +151,15 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
+        /// Gets or sets an optional callback that are to be invoked
+        /// when the current processor completes.
+        /// </summary>
+        public Action<ServerCommand> CompletionCallback {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Provides a way for processors to attach an optional exit
         /// code and a result to the ending of their processing.
         /// The code/result will be published with the latest/final
@@ -715,6 +724,10 @@ namespace Starcounter.Server.Commands {
             // (See CommandDispatcher.RemoveProcessedCommand)
             if (this.completedEvent != null) {
                 this.completedEvent.Set();
+            }
+
+            if (CompletionCallback != null) {
+                CompletionCallback(this.command);
             }
         }
 
