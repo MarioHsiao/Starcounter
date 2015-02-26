@@ -145,7 +145,7 @@ namespace Starcounter.Server.Commands {
         /// queried periodically by the current processor to see if
         /// command processing should be cancelled.
         /// </summary>
-        public Predicate<ServerCommand> CancellationPredicate {
+        public Predicate<CommandId> CancellationPredicate {
             get;
             set;
         }
@@ -154,7 +154,7 @@ namespace Starcounter.Server.Commands {
         /// Gets or sets an optional callback that are to be invoked
         /// when the current processor completes.
         /// </summary>
-        public Action<ServerCommand> CompletionCallback {
+        public Action<CommandId> CompletionCallback {
             get;
             set;
         }
@@ -265,7 +265,7 @@ namespace Starcounter.Server.Commands {
         internal bool ShouldCancel() {
             var cancel = (this.Status == CommandStatus.Cancelled) || isCancelledByHost;
             if (!cancel && CancellationPredicate != null) {
-                cancel = CancellationPredicate(this.command);
+                cancel = CancellationPredicate(this.Id);
                 if (cancel) {
                     isCancelledByHost = true;
                 }
@@ -727,7 +727,7 @@ namespace Starcounter.Server.Commands {
             }
 
             if (CompletionCallback != null) {
-                CompletionCallback(this.command);
+                CompletionCallback(this.Id);
             }
         }
 

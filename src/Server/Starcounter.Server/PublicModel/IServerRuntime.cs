@@ -50,8 +50,8 @@ namespace Starcounter.Server.PublicModel {
         /// the command.</returns>
         CommandInfo Execute(
             ServerCommand command, 
-            Predicate<ServerCommand> cancellationPredicate = null,
-            Action<ServerCommand> completionCallback = null
+            Predicate<CommandId> cancellationPredicate = null,
+            Action<CommandId> completionCallback = null
             );
 
         /// <summary>
