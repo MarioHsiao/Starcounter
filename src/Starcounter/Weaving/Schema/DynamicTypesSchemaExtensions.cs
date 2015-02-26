@@ -23,10 +23,28 @@ namespace Sc.Server.Weaver.Schema {
         }
 
         public static List<DatabaseEntityClass> GetCompileTimeTypes(this DatabaseSchema schema) {
-            var result = new List<DatabaseEntityClass>();
+            var explicitTypes = new List<DatabaseEntityClass>();
             var refs = GetCompileTimeTypeReferences(schema);
-            result.AddRange(refs.Values.Distinct());
-            return result;
+            explicitTypes.AddRange(refs.Values.Distinct());
+
+            var implicitTypes = new List<DatabaseEntityClass>();
+            foreach (var c in schema.IndexedDatabaseClasses) {
+                // if c is either the parent of a type, or a subclass
+                // of a type, it must be a type itself
+                if (explicitTypes.Contains(c) || c.IsEntityClass || c.IsImplicitEntityClass) {
+                    continue;
+                }
+
+                var typeInHierarchy = explicitTypes.FirstOrDefault((candidate) => {
+                    return candidate.Inherit(c) || c.Inherit(candidate);
+                });
+                if (typeInHierarchy != null) {
+                    implicitTypes.Add(c as DatabaseEntityClass);
+                }
+            }
+
+            explicitTypes.AddRange(implicitTypes);
+            return explicitTypes;
         }
     }
 }
