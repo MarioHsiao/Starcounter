@@ -156,6 +156,23 @@ public abstract partial class DatabaseClass : DatabaseSchemaElement, IDatabaseAt
         return result;
     }
 
+    /// <summary>
+    /// Return true if <see cref="other"/> is a base class
+    /// of the current class.
+    /// </summary>
+    /// <param name="other">Class to check</param>
+    /// <returns>True if the other class is a base class.</returns>
+    public bool Inherit(DatabaseClass other) {
+        var parent = BaseClass;
+        while (parent != null) {
+            if (parent.Equals(other)) {
+                return true;
+            }
+            parent = parent.BaseClass;
+        }
+        return false;
+    }
+
     //PI110503
     //// Added to support case insensitivity.
     //public DatabaseAttribute FindAttributeInAncestors_CaseInsensitive(string name)
