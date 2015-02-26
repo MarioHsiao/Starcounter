@@ -168,9 +168,9 @@ namespace Starcounter.Server.Commands {
         /// <returns>The <see cref="CommandProcessor"/> instance that was created to process this <paramref name="command"/>.</returns>
         internal CommandInfo Enqueue(
             ServerCommand command,
-            Predicate<ServerCommand> cancellationPredicate = null,
+            Predicate<CommandId> cancellationPredicate = null,
             CommandProcessor correlatingTo = null,
-            Action<ServerCommand> completionCallback = null) {
+            Action<CommandId> completionCallback = null) {
             CommandProcessor cp;
             CommandInfo ci;
 
