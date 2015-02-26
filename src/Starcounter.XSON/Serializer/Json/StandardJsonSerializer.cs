@@ -28,7 +28,10 @@ namespace Starcounter.Advanced.XSON {
             string htmlPartialUrl;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = (obj._stepParent == null) && (!string.IsNullOrEmpty(obj._appName));
+            bool wrapInAppName =
+                (obj._stepParent == null) &&
+                (!string.IsNullOrEmpty(obj._appName)) &&
+                (StarcounterEnvironment.AppName != obj._appName);
 
             if (obj.IsArray) {
 
@@ -184,7 +187,10 @@ namespace Starcounter.Advanced.XSON {
             String htmlUriMerged = null;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = (obj._stepParent == null) && (!string.IsNullOrEmpty(obj._appName));
+            bool wrapInAppName =
+                (obj._stepParent == null) &&
+                (!string.IsNullOrEmpty(obj._appName)) &&
+                (StarcounterEnvironment.AppName != obj._appName);
 
             unsafe {
                 // Starting from the last written position

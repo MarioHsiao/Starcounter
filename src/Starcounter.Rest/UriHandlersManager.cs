@@ -130,11 +130,6 @@ namespace Starcounter.Rest
         String appName_ = null;
 
         /// <summary>
-        /// Don't merge on this handler.
-        /// </summary>
-        Boolean dontMerge_ = false;
-
-        /// <summary>
         /// Handler ID.
         /// </summary>
         public UInt16 HandlerId {
@@ -182,9 +177,6 @@ namespace Starcounter.Rest
             // Determining if proxy handler should be used.
             Boolean useProxyDelegate = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
 
-            // Don't merge handler.
-            Boolean dontMerge = dontMerge_ || handlerOptions.DontMerge;
-
             // Starting the session that came with request.
             StartSessionThatCameWithRequest(req);
 
@@ -204,60 +196,41 @@ namespace Starcounter.Rest
 
             } else {
 
-                // Checking if we are not in proxy handler.
-                if ((!dontMerge) && (!handlerOptions.ProxyDelegateTrigger)) {
+                Response subsResp = null;
 
-                    // Checking if there is a substitute handler.
-                    if (req.HandlerOpts.SubstituteHandler != null) {
+                // Checking if there is a substitute handler.
+                if (req.HandlerOpts.SubstituteHandler != null) {
 
-                        resp = req.HandlerOpts.SubstituteHandler();
+                    // Calling substitute handler.
+                    subsResp = req.HandlerOpts.SubstituteHandler();
 
-                        // Setting the response application name.
-                        resp.AppName = req.HandlerOpts.CallingAppName;
+                    // Checking if there is a substitute response.
+                    if (subsResp == null)
+                        return null;
 
-                        // Checking if we wanted to call the same application.
+                    // Setting the response application name.
+                    subsResp.AppName = req.HandlerOpts.CallingAppName;
+
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                        (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName))) {
+
+                        // Checking if we wanted to call the same application, then there is just substitution.
                         if (req.HandlerOpts.CallingAppName == appName_) {
-
-                            if (Response.ResponsesMergerRoutine_ != null)
-                                return Response.ResponsesMergerRoutine_(req, resp, null);
+                            return Response.ResponsesMergerRoutine_(req, subsResp, null);
                         }
+
+                    } else {
+
+                        return subsResp;
                     }
+                } else {
 
-                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
-
-                        // Checking if we call another application.
-                        if ((!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) &&
-                            (req.HandlerOpts.CallingAppName != appName_)) {
-
-                            if (resp != null) {
-
-                                List<Response> resps = new List<Response>();
-                                resps.Add(resp);
-
-                                // Setting current application name.
-                                StarcounterEnvironment.AppName = appName_;
-
-                                // Calling intermediate user delegate.
-                                resp = userDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
-
-                                // Checking if we have any response.
-                                if (null == resp) {
-
-                                    return null;
-
-                                } else {
-
-                                    // Setting to which application the response belongs.
-                                    resp.AppName = appName_;
-
-                                    resps.Add(resp);
-                                }
-
-                                return Response.ResponsesMergerRoutine_(req, null, resps);
-                            }
-
+                    // Checking that its not an outside call.
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                        (!handlerOptions.ProxyDelegateTrigger) &&
+                        (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) &&
+                        (req.HandlerOpts.CallingAppName != appName_)) {
                             return null;
-                        }
                     }
                 }
 
@@ -270,6 +243,13 @@ namespace Starcounter.Rest
                 // Checking if we have any response.
                 if (null == resp) {
 
+                    if (subsResp != null) {
+                        if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                            return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                        }
+                        return subsResp;
+                    }
+
                     return null;
 
                 } else {
@@ -280,8 +260,15 @@ namespace Starcounter.Rest
 
                 // Checking if we need to merge.
                 if ((!handlerOptions.ProxyDelegateTrigger) &&
-                    (!dontMerge) &&
-                    (Response.ResponsesMergerRoutine_ != null)) {
+                    (StarcounterEnvironment.PolyjuiceAppsFlag)) {
+
+                    // Checking if we have a substitute handler response.
+                    if (subsResp != null) {
+                        List<Response> respList = new List<Response>();
+                        respList.Add(subsResp);
+                        respList.Add(resp);
+                        return Response.ResponsesMergerRoutine_(req, null, respList);
+                    }
 
                     return Response.ResponsesMergerRoutine_(req, resp, null);
                 }
@@ -382,15 +369,20 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
 
-            dontMerge_ = ho.DontMerge;
-
             if (param_message_type != null)
                 uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
 
             Debug.Assert(userDelegate_ == null);
 
-            userDelegate_ = user_delegate;
+            if (ho.ProxyDelegateTrigger) {
 
+                proxyDelegate_ = user_delegate;
+
+            } else {
+
+                userDelegate_ = user_delegate;
+            }
+            
             appName_ = StarcounterEnvironment.AppName;
 
             uri_info_.InitUriPointers();

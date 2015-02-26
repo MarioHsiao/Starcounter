@@ -410,7 +410,7 @@ namespace PolyjuiceNamespace {
                             return MappingHandler(req, mappedHandlersList, p);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
-                            DontMerge = true
+                            ProxyDelegateTrigger = true
                         });
 
                     } else {
@@ -420,7 +420,7 @@ namespace PolyjuiceNamespace {
                             return MappingHandler(req, mappedHandlersList, null);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
-                            DontMerge = true
+                            ProxyDelegateTrigger = true
                         });
                     }
 
@@ -970,9 +970,6 @@ namespace PolyjuiceNamespace {
         /// </summary>
         public static void Init() {
 
-            HandlerOptions ho = new HandlerOptions();
-            ho.DontMerge = true;
-
             PopulateSoTree();
 
             customMaps_ = new Dictionary<string, List<HandlerForSoType>>();
@@ -1015,7 +1012,9 @@ namespace PolyjuiceNamespace {
                     return null;
                 }
 
-            }, ho);
+            }, new HandlerOptions() {
+                ProxyDelegateTrigger = true
+            });
 
             StarcounterEnvironment.AppName = savedAppName;
 

@@ -825,34 +825,10 @@ namespace Starcounter
                 methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
 #endif
 
+DO_CALL_ON_GIVEN_LEVEL:
+
                 // No response initially.
                 Response resp = null;
-
-                // Trying to do local node REST.
-                runUriMatcherAndCallHandler_(
-                    methodSpaceUriSpace,
-                    methodSpaceUriSpaceLower,
-                    req,
-                    portNumber_,
-                    new HandlerOptions(HandlerOptions.HandlerLevels.FilteringLevel),
-                    out resp);
-
-                // Checking if there is some response.
-                if (resp != null) {
-
-                    // Checking if user has supplied a delegate to be called.
-                    if (null != userDelegate) {
-
-                        // Invoking user delegate.
-                        userDelegate.Invoke(resp, userObject);
-
-                        return null;
-                    }
-
-                    return resp;
-                }
-
-DO_CALL_ON_GIVEN_LEVEL:
 
                 // Running URI matcher and call handler.
                 Boolean handlerFound = runUriMatcherAndCallHandler_(
@@ -912,7 +888,7 @@ DO_CALL_ON_GIVEN_LEVEL:
                             // Setting the response application name.
                             resp.AppName = req.HandlerOpts.CallingAppName;
 
-                            if (Response.ResponsesMergerRoutine_ != null)
+                            if (StarcounterEnvironment.PolyjuiceAppsFlag)
                                 return Response.ResponsesMergerRoutine_(req, resp, null);
                         }
 

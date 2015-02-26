@@ -36,14 +36,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Don't merge on this handler.
-        /// </summary>
-        internal Boolean DontMerge {
-            get;
-            set;
-        }
-
-        /// <summary>
         /// Proxy delegate trigger.
         /// </summary>
         internal Boolean ProxyDelegateTrigger {
