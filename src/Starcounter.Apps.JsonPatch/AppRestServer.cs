@@ -136,7 +136,7 @@ namespace Starcounter.Internal.Web {
                 try {
 
                     // Calling user delegate.
-                    resp = uhi.RunUserDelegates(
+                    resp = uhi.RunUserDelegate(
                         req,
                         methodSpaceUriSpaceOnStack,
                         parametersInfoOnStack,
@@ -211,9 +211,12 @@ namespace Starcounter.Internal.Web {
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
 
                     // Determining if its an Administrator application.
-                    HandlerOptions ho = HandlerOptions.DefaultLevel;
+                    HandlerOptions ho = null;
+
                     if (!StarcounterEnvironment.IsAdministratorApp) {
-                        ho = HandlerOptions.CodeHostStaticFileServer;
+                        ho = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
+                    } else {
+                        ho = new HandlerOptions();
                     }
 
                     // Registering static handler on given port.

@@ -33,6 +33,7 @@ namespace Starcounter {
         /// Request constructor.
         /// </summary>
         public Request() {
+            HandlerOpts = new HandlerOptions();
         }
 
         /// <summary>
@@ -154,6 +155,14 @@ namespace Starcounter {
         /// Indicates if came with session originally.
         /// </summary>
         Boolean came_with_correct_session_ = false;
+
+        /// <summary>
+        /// Handler options.
+        /// </summary>
+        internal HandlerOptions HandlerOpts {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Network port number.

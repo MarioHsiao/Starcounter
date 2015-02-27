@@ -16,6 +16,9 @@ ItemTemplates\
 Json\
 ProjectTemplates\
 
+# Special edition libraries
+EditionLibraries\
+
 # Public assemblies
 Public Assemblies\Starcounter.ClientResolver.dll
 Public Assemblies\Starcounter.dll

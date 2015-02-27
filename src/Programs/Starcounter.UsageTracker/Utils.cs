@@ -239,7 +239,7 @@ namespace Starcounter.Applications.UsageTrackerApp {
 
             #region VersionSource
             if (Starcounter.Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name=?", "VersionSourceEditionChannelIsAvailableIndex").First == null) {
-                Starcounter.Db.SQL("CREATE INDEX VersionSourceEditionChannelIsAvailableIndex ON VersionSource (Edition,Channel,IsAvailable)");
+                Starcounter.Db.SQL("CREATE INDEX VersionSourceEditionChannelIsAvailableIndex ON VersionSource (Edition,Channel)");
             }
 
             if (Starcounter.Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {

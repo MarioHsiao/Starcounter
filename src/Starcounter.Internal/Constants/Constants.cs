@@ -24,11 +24,6 @@ namespace Starcounter.Internal
         /// <summary>
         /// Launcher application name.
         /// </summary>
-        public const string LauncherAppName = "Launcher";
-
-        /// <summary>
-        /// Launcher application name.
-        /// </summary>
         public const string SocietyObjectsPrefix = "SocietyObjects";
 
         /// <summary>

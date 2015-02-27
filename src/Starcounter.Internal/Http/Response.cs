@@ -107,6 +107,11 @@ namespace Starcounter
     public sealed partial class Response : Finalizing
     {
         /// <summary>
+        /// Pointer to the merging routine.
+        /// </summary>
+        internal static Func<Request, Response, List<Response>, Response> ResponsesMergerRoutine_ = null;
+
+        /// <summary>
         /// Current time bytes.
         /// </summary>
         static Byte[] CurrentDateHeaderBytes = null;

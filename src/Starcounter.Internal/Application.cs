@@ -23,11 +23,11 @@ namespace Starcounter {
 
         internal static Application CurrentAssigned {
             get {
-                var app = ((StarcounterEnvironment.AppName != null) && (StarcounterEnvironment.AppName.Length > 0)) ? indexName[StarcounterEnvironment.AppName] : null;
+                var app = (StarcounterEnvironment.AppName != null) ? indexName[StarcounterEnvironment.AppName] : null;
                 return app;
             }
             set {
-                StarcounterEnvironment.AppName = ((value == null) ? "" : value.Name);
+                StarcounterEnvironment.AppName = ((value == null) ? null : value.Name);
             }
         }
 

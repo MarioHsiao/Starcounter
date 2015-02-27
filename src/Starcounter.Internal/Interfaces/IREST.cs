@@ -34,12 +34,7 @@ namespace Starcounter.Advanced {
         void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler);
 
         /// <summary>
-        /// Registers responses merging routine.
-        /// </summary>
         /// <param name="mergerRoutine"></param>
-        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine);
-
-        /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /test</param>

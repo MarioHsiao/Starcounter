@@ -21,6 +21,8 @@
     <RootNamespace>CopyDependenciesRemote</RootNamespace>
     <AssemblyName>CopyDependenciesRemote</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Level0Configuration>$(LEVEL0_CONFIGURATION)</Level0Configuration>
+	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -37,7 +39,7 @@
 		   
     <!-- Creating copied files lists. -->
     <ItemGroup>
-      <RemoteLevel0BinFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Configuration)\*" />
+      <RemoteLevel0BinFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Level0Configuration)\*" />
       <RemoteLevel0IncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />

@@ -290,7 +290,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.GET("/CaseInsensitive", (Request req) => {
 
@@ -322,7 +322,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.GET("/response1", (Request req) =>
             {
@@ -425,7 +425,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.CUSTOM("{?} /prefix/{?}", (String method, String p1) =>
             {
@@ -566,7 +566,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             TestInfo testInfos1  = new TestInfo("GET /@w", "/a", "/{?}");
             TestInfo testInfos2  = new TestInfo("GET /",  "/", "/");

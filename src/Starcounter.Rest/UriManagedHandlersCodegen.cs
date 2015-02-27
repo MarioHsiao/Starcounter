@@ -402,7 +402,7 @@ namespace Starcounter.Rest
 
             // Checking if handler options is defined.
             if (ho == null) {
-                ho = HandlerOptions.DefaultHandlerOptions;
+                ho = new HandlerOptions();
             }
 
             return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByProcessedUri(processedUriInfo);
@@ -442,8 +442,6 @@ namespace Starcounter.Rest
 
                         // Handler name should start with application name or launcher name.
                         if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/" + StarcounterConstants.LauncherAppName, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/" + StarcounterConstants.SocietyObjectsPrefix, StringComparison.InvariantCultureIgnoreCase) &&
                             !s[1].StartsWith("/__db/", StringComparison.InvariantCultureIgnoreCase)) {
                             throw new ArgumentOutOfRangeException(polyjuiceMsg);
                         }
@@ -474,7 +472,7 @@ namespace Starcounter.Rest
 
             // Checking if handler options is defined.
             if (ho == null) {
-                ho = HandlerOptions.DefaultHandlerOptions;
+                ho = new HandlerOptions();
             }
 
             // Mutually excluding handler registrations.
@@ -1020,11 +1018,7 @@ namespace Starcounter.Rest
                         req,
                         handlerOptions);
 
-                    // Checking if handled the response.
-                    if (resp == null)
-                        return false;
-
-                    // Request successfully handled.
+                    // Handler was successfully found.
                     return true;
                 }
             }

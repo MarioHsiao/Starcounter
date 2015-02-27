@@ -27,15 +27,7 @@ namespace Starcounter.Rest
     public class RestRegistrationProxy : IREST
     {
         /// <summary>
-        /// Registers responses merging routine.
-        /// </summary>
         /// <param name="mergerRoutine"></param>
-        public void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine)
-        {
-            UriInjectMethods.ResponsesMergerRoutine_ = mergerRoutine;
-        }
-
-        /// <summary>
         /// Registers a handler for a WebSocket.
         /// </summary>
         /// <param name="channel">The WebSocket channel, for example "chat"</param>

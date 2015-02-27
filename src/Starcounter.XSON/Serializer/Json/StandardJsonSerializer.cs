@@ -28,30 +28,10 @@ namespace Starcounter.Advanced.XSON {
             string htmlPartialUrl;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = (obj._stepParent == null) &&
+            bool wrapInAppName =
+                (obj._stepParent == null) &&
                 (!string.IsNullOrEmpty(obj._appName)) &&
                 (StarcounterEnvironment.AppName != obj._appName);
-
-            Boolean skipSiblings = false;
-
-            // Checking if application output is in siblings.
-            if (wrapInAppName) {
-
-                if (obj._stepSiblings != null) {
-
-                    foreach (Json pp in obj._stepSiblings) {
-
-                        if (StarcounterEnvironment.AppName == pp._appName) {
-
-                            obj = pp;
-                            skipSiblings = true;
-                            wrapInAppName = false;
-
-                            break;
-                        }
-                    }
-                }
-            }
 
             if (obj.IsArray) {
 
@@ -147,8 +127,7 @@ namespace Starcounter.Advanced.XSON {
                 sizeBytes += 9; // 1 for comma, 6 for "Html", 1 for ':' and 1 for '}'
             }
 
-            if (!skipSiblings &&
-                wrapInAppName &&
+            if (wrapInAppName &&
                 obj._stepSiblings != null &&
                 obj._stepSiblings.Count != 0) {
 
@@ -156,8 +135,15 @@ namespace Starcounter.Advanced.XSON {
                     sizeBytes++;
                 }
 
-                foreach (Json pp in obj._stepSiblings) {
+                // Creating linear list of all step siblings.
+                List<Json> allStepSiblings = new List<Json>();
+                GetAllStepSiblings(obj, ref allStepSiblings);
+
+                // Calculating the size for each step sibling.
+                foreach (Json pp in allStepSiblings) {
+
                     htmlPartialUrl = pp.GetHtmlPartialUrl();
+
                     if (null != htmlPartialUrl) {
                         if (htmlUriMerged != null)
                             htmlUriMerged += "&";
@@ -171,7 +157,7 @@ namespace Starcounter.Advanced.XSON {
             }
 
             if (htmlUriMerged != null) {
-                htmlUriMerged = "/polyjuice-merger?" + htmlUriMerged;
+                htmlUriMerged = "/launcher/polyjuice-merger?" + htmlUriMerged;
                 sizeBytes += htmlUriMerged.Length + 9;
 
                 string setupStr = null;
@@ -201,30 +187,10 @@ namespace Starcounter.Advanced.XSON {
             String htmlUriMerged = null;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = (obj._stepParent == null) &&
+            bool wrapInAppName =
+                (obj._stepParent == null) &&
                 (!string.IsNullOrEmpty(obj._appName)) &&
                 (StarcounterEnvironment.AppName != obj._appName);
-
-            Boolean skipSiblings = false;
-
-            // Checking if application output is in siblings.
-            if (wrapInAppName) {
-
-                if (obj._stepSiblings != null) {
-
-                    foreach (Json pp in obj._stepSiblings) {
-
-                        if (StarcounterEnvironment.AppName == pp._appName) {
-
-                            obj = pp;
-                            skipSiblings = true;
-                            wrapInAppName = false;
-
-                            break;
-                        }
-                    }
-                }
-            }
 
             unsafe {
                 // Starting from the last written position
@@ -251,30 +217,12 @@ namespace Starcounter.Advanced.XSON {
                         *pfrag++ = (byte)']';
                         offset++;
 
-                        return offset - origOffset; ;
+                        return offset - origOffset;
                     }
 
                     // If its not an array, its an object.
                     *pfrag++ = (byte)'{';
                     offset++;
-
-                    if (wrapInAppName) {
-
-                        if (null != obj.GetHtmlPartialUrl()) {
-                            htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
-                        }
-
-                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
-                        offset += valueSize;
-                        pfrag += valueSize;
-
-                        *pfrag++ = (byte)':';
-                        offset++;
-
-                        *pfrag++ = (byte)'{';
-                        offset++;
-                    }
-
 
                     tObj = (TObject)obj.Template;
                     exposedProperties = tObj.Properties.ExposedProperties;
@@ -305,6 +253,23 @@ namespace Starcounter.Advanced.XSON {
                             *pfrag++ = (byte)',';
                             offset++;
                         }
+                    }
+
+                    if (wrapInAppName) {
+
+                        if (null != obj.GetHtmlPartialUrl()) {
+                            htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
+                        }
+
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
+                        offset += valueSize;
+                        pfrag += valueSize;
+
+                        *pfrag++ = (byte)':';
+                        offset++;
+
+                        *pfrag++ = (byte)'{';
+                        offset++;
                     }
 
                     for (int i = 0; i < exposedProperties.Count; i++) {
@@ -387,8 +352,7 @@ namespace Starcounter.Advanced.XSON {
                     }
 
                     // Checking if we have Json siblings on this level.
-                    if (!skipSiblings &&
-                        wrapInAppName &&
+                    if (wrapInAppName &&
                         obj._stepSiblings != null &&
                         obj._stepSiblings.Count != 0) {
 
@@ -397,10 +361,14 @@ namespace Starcounter.Advanced.XSON {
                             offset++;
                         }
 
-                        // Serializing every sibling first.
-                        for (int kk = 0; kk < obj._stepSiblings.Count; kk++) {
+                        // Creating linear list of all step siblings.
+                        List<Json> allStepSiblings = new List<Json>();
+                        GetAllStepSiblings(obj, ref allStepSiblings);
 
-                            var pp = obj._stepSiblings[kk];
+                        // Serializing every sibling first.
+                        for (int s = 0; s < allStepSiblings.Count; s++) {
+
+                            var pp = allStepSiblings[s];
 
                             if (null != pp.GetHtmlPartialUrl()) {
 
@@ -421,7 +389,7 @@ namespace Starcounter.Advanced.XSON {
                             pfrag += valueSize;
                             offset += valueSize;
 
-                            if ((kk + 1) < obj._stepSiblings.Count) {
+                            if ((s + 1) < allStepSiblings.Count) {
                                 *pfrag++ = (byte)',';
                                 offset++;
                             }
@@ -429,7 +397,7 @@ namespace Starcounter.Advanced.XSON {
                     }
 
                     if (null != htmlUriMerged) {
-                        htmlUriMerged = "/polyjuice-merger?" + htmlUriMerged;
+                        htmlUriMerged = "/launcher/polyjuice-merger?" + htmlUriMerged;
 
                         *pfrag++ = (byte)',';
                         offset++;
@@ -474,6 +442,21 @@ namespace Starcounter.Advanced.XSON {
             }
 
             return offset - origOffset;
+        }
+
+        /// <summary>
+        /// Getting recursively all sibling for the given Json.
+        /// </summary>
+        static void GetAllStepSiblings(Json obj, ref List<Json> stepSiblingsList) {
+
+            if (obj._stepSiblings != null) {
+
+                foreach (Json s in obj._stepSiblings) {
+
+                    GetAllStepSiblings(s, ref stepSiblingsList);
+                    stepSiblingsList.Add(s);
+                }
+            }
         }
 	}
 
