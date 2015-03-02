@@ -133,14 +133,6 @@ namespace FasterThanJson.Tests
           root.SealTuple();
       }
 
-#if false // Excluded due to use of Newtonsoft.Json
-       [Test]
-      public static void BenchmarkJson() {
-          Test test = new Test() { FirstName = "Hello" };
-          Console.WriteLine(JsonConvert.SerializeObject(test));
-      }
-#endif
-
       [Test]
       public static unsafe void TestBinaryTuple() {
           // similar to offsetkey with one node
