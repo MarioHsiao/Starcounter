@@ -145,6 +145,10 @@ namespace Starcounter.Internal {
             String webResourcesDir,
             UInt16 port) {
 
+            // Checking if there is no network gateway, then just returning.
+            if (StarcounterEnvironment.NoNetworkGatewayFlag)
+                return;
+
             // Checking if there is a given web resource path.
             if (webResourcesDir != null) {
 
