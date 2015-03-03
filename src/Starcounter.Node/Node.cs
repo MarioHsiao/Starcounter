@@ -295,10 +295,10 @@ namespace Starcounter
         /// </summary>
         public Node(
             String hostName,
-            UInt16 portNumber = 0,
+            UInt16 portNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             Int32 defaultReceiveTimeoutMs = 0,
             Boolean useAggregation = false,
-            UInt16 aggrPortNumber = 0)
+            UInt16 aggrPortNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
         {
             if (hostName == null) {
 
@@ -309,13 +309,18 @@ namespace Starcounter
                 hostName = "localhost";
             }
 
-            if (0 == portNumber) {
-                portNumber = StarcounterEnvironment.Default.UserHttpPort;
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == portNumber) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    portNumber = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    portNumber = StarcounterEnvironment.Default.UserHttpPort;
+                }
             }
 
             aggrPortNumber_ = aggrPortNumber;
 
-            if (0 == aggrPortNumber_) {
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == aggrPortNumber_) {
                 aggrPortNumber_ = StarcounterEnvironment.Default.AggregationPort;
             }
 

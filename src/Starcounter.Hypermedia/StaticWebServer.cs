@@ -47,8 +47,7 @@ namespace Starcounter.Internal.Web {
         /// root directories, the first match is used. For this reason, directories should
         /// be added in priority order with the most prioritized path first.
         /// </summary>
-        /// <param name="path">The file path for the directory to add</param>
-        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path) {
+        public void UserAddedLocalFileDirectoryWithStaticContent(String appName, UInt16 port, String path) {
 
             path = Path.GetFullPath(path);
 
@@ -59,7 +58,7 @@ namespace Starcounter.Internal.Web {
                     path));
             }
 
-            Debug("Adding path to static web server \"" + path + "\"");
+            Debug("Adding path to static web server \"" + path + "\" and clearing cache.");
 
             // Always clearing cache when adding new directory on this port.
             ClearCache();
@@ -67,6 +66,7 @@ namespace Starcounter.Internal.Web {
             // Adding only if does not contain this path already.
             if (!fileDirectories_.Contains(path)) {
                 fileDirectories_.Add(path);
+                appNames_.Add(appName); ;
             }
         }
 

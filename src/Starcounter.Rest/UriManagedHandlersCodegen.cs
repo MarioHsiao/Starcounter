@@ -419,6 +419,15 @@ namespace Starcounter.Rest
             MixedCodeConstants.NetworkProtocolType protoType,
             HandlerOptions ho)
         {
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
+
             String[] s = methodAndUriInfo.Split(null);
             String originalUriInfo = null;
             String polyjuiceMsg = "Error registering handler: " + methodAndUriInfo + ". Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
@@ -707,9 +716,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<Response>> delegExpr = () => userDelegate();
@@ -728,9 +734,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, Response>> delegExpr = (p1) => userDelegate(p1);
@@ -749,9 +752,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, Response>> delegExpr = (p1, p2) => userDelegate(p1, p2);
@@ -770,9 +770,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, Response>> delegExpr = (p1, p2, p3) => userDelegate(p1, p2, p3);
@@ -791,9 +788,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, Response>> delegExpr = (p1, p2, p3, p4) => userDelegate(p1, p2, p3, p4);
@@ -812,9 +806,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, Response>> delegExpr = (p1, p2, p3, p4, p5) => userDelegate(p1, p2, p3, p4, p5);
@@ -833,9 +824,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, Response>> delegExpr = (p1, p2, p3, p4, p5, p6) => userDelegate(p1, p2, p3, p4, p5, p6);
@@ -854,9 +842,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7) => userDelegate(p1, p2, p3, p4, p5, p6, p7);
@@ -875,9 +860,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7, p8) => userDelegate(p1, p2, p3, p4, p5, p6, p7, p8);

@@ -297,8 +297,7 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_APPS_URIS:
                 {
-                    AppsBootstrapper.Bootstrap(
-                        "c:\\pics", StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort);
+                    AppsBootstrapper.Bootstrap(StarcounterEnvironment.AppName, "c:\\pics", StarcounterEnvironment.Default.UserHttpPort);
 
                     AppsClass.InitAppHandlers();
 

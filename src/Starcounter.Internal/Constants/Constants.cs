@@ -27,6 +27,11 @@ namespace Starcounter.Internal
         public const string SocietyObjectsPrefix = "SocietyObjects";
 
         /// <summary>
+        /// Launcher application name.
+        /// </summary>
+        public const string PolyjuiceEditionName = "Polyjuice";
+
+        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants
