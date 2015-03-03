@@ -162,7 +162,6 @@
     <Compile Include="PublicModel\IServerRuntime.cs" />
     <Compile Include="PublicModel\ProgressInfo.cs" />
     <Compile Include="PublicModelProvider.cs" />
-    <Compile Include="PublicModel\Serialization.cs" />
     <Compile Include="PublicModel\ServerInfo.cs" />
     <Compile Include="PublicModel\TaskDuration.cs" />
     <Compile Include="ServerHost.cs" />
@@ -205,10 +204,6 @@
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ThirdParty\Newtonsoft.Json\Newtonsoft.Json.csproj">
-      <Project>{a9ae40ff-1a21-414a-9fe7-3be13644cc6d}</Project>
-      <Name>Newtonsoft.Json</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
