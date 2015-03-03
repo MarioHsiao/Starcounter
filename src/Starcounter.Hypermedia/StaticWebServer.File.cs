@@ -230,7 +230,7 @@ namespace Starcounter.Internal.Web {
                 if (relativeUri.StartsWith("/" + appNames_[i] + "/", StringComparison.InvariantCultureIgnoreCase)) {
 
                     if (ReadFileInDirectory(
-                        relativeUri.Substring(appNames_[i].Length + 2),
+                        relativeUri.Substring(appNames_[i].Length + 1),
                         fileDirectories_[i],
                         out dir,
                         out fileName,
