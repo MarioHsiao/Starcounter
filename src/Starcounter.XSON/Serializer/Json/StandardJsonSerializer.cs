@@ -133,7 +133,7 @@ namespace Starcounter.Advanced.XSON {
 
                     // Creating linear list of all step siblings.
                     List<Json> allStepSiblings = new List<Json>();
-                    GetAllStepSiblings(obj, ref allStepSiblings);
+                    JsonExtension.GetAllStepSiblings(obj, ref allStepSiblings);
 
                     // Calculating the size for each step sibling.
                     foreach (Json pp in allStepSiblings) {
@@ -368,7 +368,7 @@ namespace Starcounter.Advanced.XSON {
 
                             // Creating linear list of all step siblings.
                             List<Json> allStepSiblings = new List<Json>();
-                            GetAllStepSiblings(obj, ref allStepSiblings);
+                            JsonExtension.GetAllStepSiblings(obj, ref allStepSiblings);
 
                             // Serializing every sibling first.
                             for (int s = 0; s < allStepSiblings.Count; s++) {
@@ -461,21 +461,6 @@ namespace Starcounter.Advanced.XSON {
             }
 
             return offset - origOffset;
-        }
-
-        /// <summary>
-        /// Getting recursively all sibling for the given Json.
-        /// </summary>
-        static void GetAllStepSiblings(Json obj, ref List<Json> stepSiblingsList) {
-
-            if (obj._stepSiblings != null) {
-
-                foreach (Json s in obj._stepSiblings) {
-
-                    GetAllStepSiblings(s, ref stepSiblingsList);
-                    stepSiblingsList.Add(s);
-                }
-            }
         }
 	}
 

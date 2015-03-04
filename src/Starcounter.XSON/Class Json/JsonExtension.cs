@@ -28,6 +28,21 @@ namespace Starcounter.Advanced.XSON {
             return (json._stepSiblings != null && json._stepSiblings.Count > 0);
         }
 
+        /// <summary>
+        /// Getting recursively all sibling for the given Json.
+        /// </summary>
+        public static void GetAllStepSiblings(Json obj, ref List<Json> stepSiblingsList) {
+
+            if (obj._stepSiblings != null) {
+
+                foreach (Json s in obj.GetStepSiblings()) {
+
+                    GetAllStepSiblings(s, ref stepSiblingsList);
+                    stepSiblingsList.Add(s);
+                }
+            }
+        }
+
         public static IEnumerable<Json> GetStepSiblings(this Json json) {
             if (json._stepSiblings != null)
                 return json._stepSiblings;

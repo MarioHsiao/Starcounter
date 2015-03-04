@@ -1,6 +1,7 @@
 ﻿using Starcounter.Templates;
 using Starcounter.Advanced.XSON;
 using System;
+using System.Collections.Generic;
 
 namespace Starcounter.XSON {
     public class JsonProperty {
@@ -119,8 +120,14 @@ namespace Starcounter.XSON {
                 Template t = ((TObject)json.Template).Properties.GetExposedTemplateByName(ptr.Current);
                 if (t == null) {
                     bool found = false;
+
                     if (json.HasStepSiblings()) {
-                        foreach (Json j in json.GetStepSiblings()) {
+
+                        // Creating linear list of all step siblings.
+                        List<Json> allStepSiblings = new List<Json>();
+                        JsonExtension.GetAllStepSiblings(json, ref allStepSiblings);
+
+                        foreach (Json j in allStepSiblings) {
                             if (j.GetAppName() == ptr.Current) {
                                 current = j;
                                 found = true;
