@@ -83,7 +83,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Obj" /> class.
+        /// Initializes a new instance of the <see cref="Json" /> class.
         /// </summary>
         public Json()
             : base() {
@@ -94,6 +94,15 @@ namespace Starcounter {
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }
+        }
+
+        /// <summary>
+        /// Creates an instance <see cref="Json" /> class using the specified string to build a <see cref="Template" /> 
+        /// and set values.
+        /// </summary>
+        /// <param name="jsonStr">The string containing proper JSON</param>
+        public Json(string jsonStr) : this() {
+            Template = TObject.CreateFromJson(jsonStr);
         }
 
         /// <summary>
