@@ -325,6 +325,10 @@ namespace PolyjuiceNamespace {
             Func<String, String> converterToSo,
             Func<String, String> converterFromSo) {
 
+            if (!StarcounterEnvironment.PolyjuiceAppsFlag) {
+                throw new InvalidOperationException("Polyjuice is not initialized!");
+            }
+
             lock (tree_) {
 
                 // Checking that map URI is "/" or starts with "/polyjuice/".
@@ -495,6 +499,10 @@ namespace PolyjuiceNamespace {
             String soProcessedUri,
             Func<String, String> converterToSo,
             Func<String, String> converterFromSo) {
+
+            if (!StarcounterEnvironment.PolyjuiceAppsFlag) {
+                throw new InvalidOperationException("Polyjuice is not initialized!");
+            }
 
             lock (tree_) {
 

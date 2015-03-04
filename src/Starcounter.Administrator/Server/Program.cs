@@ -43,15 +43,12 @@ namespace Starcounter.Administrator.Server {
             UInt16 adminPort = StarcounterEnvironment.Default.SystemHttpPort;
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
-
 #if ANDWAH
             string resourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
 #else
             string resourceFolder = "scadmin";
 #endif
-
-            AppsBootstrapper.Bootstrap(resourceFolder, adminPort);
-
+            
             // Create a Server Engine
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Program.ServerEngine.Setup();
@@ -65,19 +62,22 @@ namespace Starcounter.Administrator.Server {
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
 
-            // Boostrap Admin API handlers
-            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, resourceFolder);
-
             // Registering Default handlers.
             RegisterHandlers();
+
+            // Bootstraping the application.
+            AppsBootstrapper.Bootstrap(
+                StarcounterEnvironment.AppName,
+                resourceFolder,
+                StarcounterEnvironment.Default.SystemHttpPort);
+
+            // Boostrap Admin API handlers
+            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, resourceFolder);
 
             // Start User Tracking (Send data to tracking server each hour and crash reports)
             if (serverInfo.Configuration.SendUsageAndCrashReports) {
                 Tracking.Client.Instance.StartTrackUsage(Program.ServerInterface, Program.ServerEngine.HostLog);
             }
-
-            // TODO: alemoi check if needed.
-            //Package.SendStartupFinished();
         }
 
         static Int32 WsEchoesCounter = 0;
@@ -105,11 +105,20 @@ namespace Starcounter.Administrator.Server {
                 // Splitting contents.
                 String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
 
+                // Application name.
+                String appName = settings[0];
+
+                // Is Polyjuice app directory.
+                Boolean isPolyjuiceApp = Boolean.Parse(settings[1]);
+
                 // Getting port of the resource.
-                UInt16 port = UInt16.Parse(settings[0]);
+                UInt16 port = UInt16.Parse(settings[2]);
+
+                // Static file path.
+                String path = settings[3];
 
                 // Adding static files serving directory.
-                AppsBootstrapper.AddFileServingDirectory(port, settings[1]);
+                AppsBootstrapper.AddFileServingDirectory(appName, port, path);
 
                 return "Success!";
             });

@@ -112,6 +112,7 @@ namespace StarcounterInternal.Bootstrap {
 
                 withdb_ = !configuration.NoDb;
                 StarcounterEnvironment.Gateway.NumberOfWorkers = configuration.GatewayNumberOfWorkers;
+                StarcounterEnvironment.NoNetworkGatewayFlag = configuration.NoNetworkGateway;
 
                 AssureNoOtherProcessWithTheSameName(configuration);
                 OnAssuredNoOtherProcessWithTheSameName();

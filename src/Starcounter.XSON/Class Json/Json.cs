@@ -202,6 +202,18 @@ namespace Starcounter {
             return false;
         }
 
+        /// <summary>
+        /// Returns the Json root.
+        /// </summary>
+        public Json Root {
+            get {
+                Json r = this;
+                while (r.Parent != null)
+                    r = r.Parent;
+                return r;
+            }
+        }
+
         protected virtual Template GetDefaultTemplate() {
             return null;
         }

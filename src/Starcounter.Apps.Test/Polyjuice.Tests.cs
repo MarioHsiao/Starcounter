@@ -51,7 +51,7 @@ namespace Starcounter.Internal.Tests
         /// <summary>
         /// 
         /// </summary>
-        [Test]
+        //[Test]
         public static void SimplePolyjuiceTests() {
 
             const String FacebookAppName = "FacebookApp";

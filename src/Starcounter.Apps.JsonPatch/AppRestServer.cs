@@ -193,7 +193,7 @@ namespace Starcounter.Internal.Web {
         /// <remarks>There is no need to add the directory to the static resolver as the static resolver
         /// will already be bootstrapped as a lower priority handler for stuff that this
         /// AppServer does not handle.</remarks>
-        public void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path) {
+        public void UserAddedLocalFileDirectoryWithStaticContent(String appName, UInt16 port, String path) {
 
             lock (fileServerPerPort_) {
 
@@ -202,13 +202,13 @@ namespace Starcounter.Internal.Web {
                 // Try to fetch static web server.
                 if (fileServerPerPort_.TryGetValue(port, out staticWebServer)) {
 
-                    staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+                    staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
 
                 } else {
 
                     staticWebServer = new StaticWebServer();
                     fileServerPerPort_.Add(port, staticWebServer);
-                    staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(port, path);
+                    staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
 
                     // Determining if its an Administrator application.
                     HandlerOptions ho = null;

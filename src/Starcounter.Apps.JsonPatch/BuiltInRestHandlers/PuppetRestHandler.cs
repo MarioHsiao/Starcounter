@@ -82,7 +82,7 @@ namespace Starcounter.Internal {
                 try {
                     if (session == null)
                         return CreateErrorResponse(404, "No session found for the specified uri.");
-//                    root = session.Data;
+                    //                    root = session.Data;
                     root = session.GetFirstData();
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
@@ -103,7 +103,7 @@ namespace Starcounter.Internal {
                 } catch (JsonPatchException nex) {
                     return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
                 }
-            });
+            }, new HandlerOptions() { ProxyDelegateTrigger = true });
 
             Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session) => {
                 Json root = null;
