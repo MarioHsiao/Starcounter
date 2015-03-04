@@ -210,19 +210,32 @@ namespace Starcounter.Internal.Web {
                     fileServerPerPort_.Add(port, staticWebServer);
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
 
-                    // Determining if its an Administrator application.
-                    HandlerOptions ho = null;
-
                     if (!StarcounterEnvironment.IsAdministratorApp) {
-                        ho = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
+
+                        // Registering handler on special static file resource level.
+                        HandlerOptions ho = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
+
+                        // Setting as a proxy delegate.
+                        ho.ProxyDelegateTrigger = true;
+
+                        String savedAppName = StarcounterEnvironment.AppName;
+                        StarcounterEnvironment.AppName = null;
+
+                        // Registering static handler on given port.
+                        Handle.GET(port, "/{?}", (string res) => {
+                            return HandlerStatus.ResolveStaticContent;
+                        }, ho);
+
+                        StarcounterEnvironment.AppName = savedAppName;
+
                     } else {
-                        ho = new HandlerOptions();
+
+                        // Registering static handler on given port.
+                        Handle.GET(port, "/{?}", (string res) => {
+                            return HandlerStatus.ResolveStaticContent;
+                        });
                     }
 
-                    // Registering static handler on given port.
-                    Handle.GET(port, "/{?}", (string res) => {
-                        return HandlerStatus.ResolveStaticContent;
-                    }, ho);
                 }
             }
         }
