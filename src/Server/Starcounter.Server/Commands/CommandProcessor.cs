@@ -194,7 +194,8 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Updates the status of the current command to <see cref="CommandStatus.Completed"/>.
+        /// Updates the status of the current command to <see cref="CommandStatus.Completed"/>,
+        /// or <see cref="CommandStatus.Cancelled"/> if the command was cancelled.
         /// </summary>
         private void SetCompleted() {
             var wasCancelled = isCancelledByHost;
@@ -276,11 +277,7 @@ namespace Starcounter.Server.Commands {
         internal void ProcessCommand(NotifyCommandStatusChangedCallback notifyStatusChangedCallback) // Must not throw exception!
         {
             if (ShouldCancel()) {
-                if (this.Status != CommandStatus.Cancelled) {
-                    this.Status = CommandStatus.Cancelled;
-                    NotifyStatusChanged();
-                }
-
+                SetCompleted();
                 return;
             }
 
