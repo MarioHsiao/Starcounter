@@ -276,11 +276,6 @@ namespace Starcounter.Server.Commands {
 
         internal void ProcessCommand(NotifyCommandStatusChangedCallback notifyStatusChangedCallback) // Must not throw exception!
         {
-            if (ShouldCancel()) {
-                SetCompleted();
-                return;
-            }
-
             // Check we are in a valid state.
             if (this.Status != CommandStatus.Queued && this.Status != CommandStatus.Delayed) {
                 throw new InvalidOperationException();
@@ -288,6 +283,12 @@ namespace Starcounter.Server.Commands {
 
             if (IsPublic) _notifyStatusChangedCallback = notifyStatusChangedCallback;
             try {
+
+                if (ShouldCancel()) {
+                    SetCompleted();
+                    return;
+                }
+
                 this.Status = CommandStatus.Executing;
 
                 NotifyStatusChanged();
