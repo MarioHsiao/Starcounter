@@ -68,25 +68,47 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue("/" == relativeUri);
 
             Node node;
-            X.GetNodeFromUri("/someuri", out node, out relativeUri);
+            X.GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "/someuri", out node, out relativeUri);
             Assert.IsTrue("/someuri" == relativeUri);
             Assert.IsTrue("localhost" == node.HostName);
             Assert.IsTrue(StarcounterEnvironment.Default.UserHttpPort == node.PortNumber);
 
-            X.GetNodeFromUri("somehost:1234/someuri/", out node, out relativeUri);
+            X.GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "somehost:1234/someuri/", out node, out relativeUri);
             Assert.IsTrue("/someuri/" == relativeUri);
             Assert.IsTrue("somehost" == node.HostName);
             Assert.IsTrue(1234 == node.PortNumber);
 
-            X.GetNodeFromUri("www.starcounter.com:8081", out node, out relativeUri);
+            X.GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "www.starcounter.com:8081", out node, out relativeUri);
             Assert.IsTrue("/" == relativeUri);
             Assert.IsTrue("www.starcounter.com" == node.HostName);
             Assert.IsTrue(8081 == node.PortNumber);
 
-            X.GetNodeFromUri("http://192.168.8.183:8585/upload", out node, out relativeUri);
+            X.GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, "http://192.168.8.183:8585/upload", out node, out relativeUri);
             Assert.IsTrue("/upload" == relativeUri);
             Assert.IsTrue("192.168.8.183" == node.HostName);
             Assert.IsTrue(8585 == node.PortNumber);
+        }
+
+        [Test]
+        public static void TestDifferentPorts() {
+
+            Handle.GET(123, "/test123", () => {
+                return "test123";
+            });
+
+            Handle.GET("/test8080", () => {
+                return "test8080";
+            });
+
+            String s = null;
+            s = X.GET<String>("/test8080");
+            Assert.IsTrue(s == "test8080");
+
+            s = X.GET<String>(123, "/test123");
+            Assert.IsTrue(s == "test123");
+
+            s = X.GET<String>(123, "/test123");
+            Assert.IsTrue(s == "test123");
         }
     }
 }
