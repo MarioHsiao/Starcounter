@@ -106,6 +106,9 @@ namespace Starcounter.Internal.Tests
 
             s = X.GET<String>(123, "/test123");
             Assert.IsTrue(s == "test123");
+
+            s = X.GET<String>(123, "/test123");
+            Assert.IsTrue(s == "test123");
         }
     }
 }
