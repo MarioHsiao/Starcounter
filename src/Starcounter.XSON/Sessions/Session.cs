@@ -27,10 +27,6 @@ namespace Starcounter {
     /// 
     /// </summary>
     public sealed class Session : IAppsSession, IDisposable {
-        private class DataAndCache {
-            internal Json Data;
-        }
-
         private class TransactionRef {
             internal int Refs;
             internal TransactionHandle Handle;
@@ -47,7 +43,7 @@ namespace Starcounter {
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
         private List<Change> _changes; // The log of Json tree changes pertaining to the session data
-        private List<DataAndCache> _stateList;
+        private List<Json> _stateList;
         private SessionOptions sessionOptions;
 
         /// <summary>
@@ -80,7 +76,7 @@ namespace Starcounter {
             _brandNew = true;
             _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
-            _stateList = new List<DataAndCache>();
+            _stateList = new List<Json>();
             sessionOptions = options;
             clientServerVersion = serverVersion;
             transactions = new List<TransactionRef>();
@@ -252,28 +248,46 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
-                var dac = GetStateObject();
-                if (dac != null)
-                    return dac.Data;
-                return null;
+                int stateIndex;
+                string appName;
+
+                appName = StarcounterEnvironment.AppName;
+                if (appName == null)
+                    return null;
+
+                if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
+                    return null;
+
+                return _stateList[stateIndex];
             }
             set {
+                int stateIndex;
+                string appName;
+
                 if (value != null && value.Parent != null)
                     throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
 
-                DataAndCache dac = AssureStateObject();
-                dac.Data = value;
-                if (value != null) {
-                    if (value._Session != null)
-                        value._Session.Data = null;
+                appName = StarcounterEnvironment.AppName;
+                if (appName != null) {
+                    if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
+                        stateIndex = _stateList.Count;
+                        _stateList.Add(value);
+                        _indexPerApplication.Add(appName, stateIndex);
+                    } else {
+                        _stateList[stateIndex] = value;
+                    }
 
-                    value._Session = this;
-                    value.OnSessionSet();
+                    if (value != null) {
+                        if (value._Session != null)
+                            value._Session.Data = null;
+
+                        value._Session = this;
+                        value.OnSessionSet();
+                    }
+
+                    // Setting current session.
+                    Current = this;
                 }
-
-                // Setting current session.
-                Current = this;
-
             }
         }
 
@@ -385,43 +399,8 @@ namespace Starcounter {
         /// <returns></returns>
         internal Json GetFirstData() {
             if (_stateList.Count > 0)
-                return _stateList[0].Data;
+                return _stateList[0];
             return null;
-        }
-
-        private DataAndCache GetStateObject() {
-            int stateIndex;
-            string appName;
-
-            appName = StarcounterEnvironment.AppName;
-            if (appName == null)
-                return null;
-
-            if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
-                return null;
-
-            return _stateList[stateIndex];
-        }
-
-        private DataAndCache AssureStateObject() {
-            DataAndCache dac;
-            int stateIndex;
-            string appName;
-
-            appName = StarcounterEnvironment.AppName;
-            if (appName == null) 
-                return null;
-        
-            if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
-                dac = new DataAndCache();
-                stateIndex = _stateList.Count;
-                _stateList.Add(dac);
-                _indexPerApplication.Add(appName, stateIndex);
-            } else {
-                dac = _stateList[stateIndex];
-            }
-
-            return dac;
         }
 
         /// <summary>
@@ -504,20 +483,20 @@ namespace Starcounter {
             if (_brandNew) {
                 // TODO: 
                 // might be array.
-                foreach (var dac in _stateList) {
-                    if (dac.Data != null) {
-                        _changes.Add(Change.Add(dac.Data));
-                        dac.Data.CheckpointChangeLog();
+                foreach (var json in _stateList) {
+                    if (json != null) {
+                        _changes.Add(Change.Add(json));
+                        json.CheckpointChangeLog();
                     }
                 }
                 _brandNew = false;
             } else {
-                foreach (var dac in _stateList) {
-                    if (dac.Data != null) {
+                foreach (var json in _stateList) {
+                    if (json != null) {
                         if (DatabaseHasBeenUpdatedInCurrentTask) {
-                            dac.Data.LogValueChangesWithDatabase(this);
+                            json.LogValueChangesWithDatabase(this);
                         } else {
-                            dac.Data.LogValueChangesWithoutDatabase(this);
+                            json.LogValueChangesWithoutDatabase(this);
                         }
                     }
                 }
@@ -542,9 +521,9 @@ namespace Starcounter {
         /// 
         /// </summary>
         public void CheckpointChangeLog() {
-            foreach (var dac in _stateList) {
-                if (dac.Data != null)
-                    dac.Data.CheckpointChangeLog();
+            foreach (var json in _stateList) {
+                if (json != null)
+                    json.CheckpointChangeLog();
             }
             _brandNew = false;
         }
