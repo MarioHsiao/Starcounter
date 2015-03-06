@@ -158,7 +158,7 @@ namespace Starcounter.Advanced.XSON {
                 // Checking if merging Html URI was constructed.
                 if (htmlUriMerged != null) {
 
-                    htmlUriMerged = "/launcher/polyjuice-merger?" + htmlUriMerged;
+                    htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
 
                     sizeBytes += htmlUriMerged.Length;
 
@@ -417,7 +417,7 @@ namespace Starcounter.Advanced.XSON {
                         // Checking if merging Html URI was constructed.
                         if (null != htmlUriMerged) {
 
-                            htmlUriMerged = "/launcher/polyjuice-merger?" + htmlUriMerged;
+                            htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
 
                             valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlUriMerged);
                             offset += valueSize;
