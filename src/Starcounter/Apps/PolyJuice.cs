@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.Advanced.XSON;
+using System.Text;
 
 namespace PolyjuiceNamespace {
 
@@ -1020,6 +1021,30 @@ namespace PolyjuiceNamespace {
                     return null;
                 }
 
+            }, new HandlerOptions() {
+                ProxyDelegateTrigger = true
+            });
+
+            // Merges HTML partials according to provided URLs.
+            Handle.GET(StarcounterConstants.PolyjuiceHtmlMergerPrefix + "{?}", (String s) => {
+
+                StringBuilder sb = new StringBuilder();
+
+                String[] allPartialInfos = s.Split(new char[] { '&' });
+
+                foreach (String appNamePlusPartialUrl in allPartialInfos) {
+
+                    String[] a = appNamePlusPartialUrl.Split(new char[] { '=' });
+                    if (String.IsNullOrEmpty(a[1]))
+                        continue;
+
+                    Response resp = X.GET(a[1]);
+                    sb.Append("<imported-template-scope scope=\"{{" + a[0] + "}}\">");
+                    sb.Append(resp.Body);
+                    sb.Append("</imported-template-scope>");
+                }
+
+                return sb.ToString();
             }, new HandlerOptions() {
                 ProxyDelegateTrigger = true
             });

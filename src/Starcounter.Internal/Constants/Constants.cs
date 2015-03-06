@@ -32,6 +32,11 @@ namespace Starcounter.Internal
         public const string PolyjuiceEditionName = "Polyjuice";
 
         /// <summary>
+        /// Launcher application name.
+        /// </summary>
+        public const string PolyjuiceHtmlMergerPrefix = "/polyjuice/htmlmerger?";
+
+        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants
