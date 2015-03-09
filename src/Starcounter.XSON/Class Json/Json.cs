@@ -103,6 +103,7 @@ namespace Starcounter {
         /// <param name="jsonStr">The string containing proper JSON</param>
         public Json(string jsonStr) : this() {
             Template = TObject.CreateFromJson(jsonStr);
+            this.PopulateFromJson(jsonStr);
         }
 
         /// <summary>
