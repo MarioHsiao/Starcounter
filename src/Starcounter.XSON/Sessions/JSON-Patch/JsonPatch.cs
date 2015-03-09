@@ -328,27 +328,28 @@ namespace Starcounter.XSON {
                 totalSize += size;
                 if (includeNamespace && json._appName != null) {
                     totalSize += json._appName.Length + 1;
-                }
-
-                if (parent.IsArray) {
-                    if (json._cacheIndexInArr == -1)
-                        json.UpdateCachedIndex();
-                    totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
                 } else {
-                    // We use the cacheIndexInArr to keep track of obj that is set
-                    // in the parent as an untyped object since the template here is not
-                    // the template in the parent (which we want).
-                    if (json._cacheIndexInArr != -1) {
-                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    totalSize++;
+                    if (parent.IsArray) {
+                        if (json._cacheIndexInArr == -1)
+                            json.UpdateCachedIndex();
+                        totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
                     } else {
-                        template = json.Template;
+                        // We use the cacheIndexInArr to keep track of obj that is set
+                        // in the parent as an untyped object since the template here is not
+                        // the template in the parent (which we want).
+                        if (json._cacheIndexInArr != -1) {
+                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                        } else {
+                            template = json.Template;
+                        }
+                        totalSize += template.TemplateName.Length;
                     }
-                    totalSize += template.TemplateName.Length;
                 }
-            } else if (json == Session.Current.PublicViewModel) {
-                return 0;
+            } else if (json != Session.Current.PublicViewModel) {
+                return -1;
             }
-            return -1;
+            return totalSize;
         }
 
         private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace) {
