@@ -131,10 +131,6 @@ namespace Starcounter {
             return ret;
         }
 
-        internal bool HasSeveralJsonRoots() {
-            return _stateList.Count > 1;
-        }
-
         /// <summary>
         /// Gets the versionnumber for the remote version of the viewmodel.
         /// </summary>
@@ -496,25 +492,23 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         public void GenerateChangeLog() {
+            Json root = PublicViewModel;
+
             serverVersion++;
             if (_brandNew) {
                 // TODO: 
                 // might be array.
-                foreach (var json in _stateList) {
-                    if (json != null) {
-                        _changes.Add(Change.Add(json));
-                        json.CheckpointChangeLog();
-                    }
+                if (root != null) {
+                    _changes.Add(Change.Add(root));
+                    root.CheckpointChangeLog();
                 }
                 _brandNew = false;
             } else {
-                foreach (var json in _stateList) {
-                    if (json != null) {
-                        if (DatabaseHasBeenUpdatedInCurrentTask) {
-                            json.LogValueChangesWithDatabase(this);
-                        } else {
-                            json.LogValueChangesWithoutDatabase(this);
-                        }
+                if (root != null) {
+                    if (DatabaseHasBeenUpdatedInCurrentTask) {
+                        root.LogValueChangesWithDatabase(this);
+                    } else {
+                        root.LogValueChangesWithoutDatabase(this);
                     }
                 }
             }
@@ -538,10 +532,9 @@ namespace Starcounter {
         /// 
         /// </summary>
         public void CheckpointChangeLog() {
-            foreach (var json in _stateList) {
-                if (json != null)
-                    json.CheckpointChangeLog();
-            }
+            Json root = PublicViewModel;
+            if (root != null)
+                root.CheckpointChangeLog();
             _brandNew = false;
         }
 
