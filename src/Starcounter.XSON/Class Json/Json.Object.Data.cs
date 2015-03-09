@@ -160,15 +160,23 @@ namespace Starcounter {
 
         internal TransactionHandle TransactionHandle {
             get {
+                TransactionHandle handle;
+
                 // Returning first available transaction climbing up the tree starting from this node.
                 if (_transaction != TransactionHandle.Invalid)
                     return _transaction;
 
+                if (_refFromStepSiblings != null) {
+                    foreach (Json stepSibling in _refFromStepSiblings) {
+                        handle = stepSibling.TransactionHandle;
+                        if (handle != TransactionHandle.Invalid) {
+                            return handle;
+                        }
+                    }
+                }
+
                 if (_parent != null)
                     return _parent.TransactionHandle;
-
-                if (_stepParent != null)
-                    return _stepParent.TransactionHandle;
 
                 return TransactionHandle.Invalid;
             }

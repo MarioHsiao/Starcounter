@@ -85,9 +85,15 @@ namespace Starcounter {
         /// </summary>
         internal object _data;
 
+        /// <summary>
+        /// List containing all stepsiblings for this json.
+        /// </summary>
         internal List<Json> _stepSiblings;
 
-        internal Json _stepParent;
+        /// <summary>
+        /// List containing all other json that have this json as a stepsibling
+        /// </summary>
+        internal List<Json> _refFromStepSiblings;
 
         internal String _appName;
 
@@ -109,5 +115,13 @@ namespace Starcounter {
         /// the version the json was added to the viewmodel.
         /// </summary>
         private long addedInVersion;
+
+        //TODO:
+        // Needed when creating patches and serializing and namespaces are used. Sometimes the namespace (= appname)
+        // should not be written.
+        // See if there are better ways of solving this problem.
+        internal bool suppressNamespace;
+
+        private bool isAddedToViewmodel;
     }
 }

@@ -11,15 +11,19 @@ namespace Starcounter.Advanced.XSON {
         public static void AddStepSibling(this Json json, Json stepSibling) {
             if (json._stepSiblings == null)
                 json._stepSiblings = new List<Json>();
+            if (stepSibling._refFromStepSiblings == null)
+                stepSibling._refFromStepSiblings = new List<Json>();
+            
             json._stepSiblings.Add(stepSibling);
-            stepSibling._stepParent = json;
+            stepSibling._refFromStepSiblings.Add(json);
         }
 
         public static bool RemoveStepSibling(this Json json, Json stepSibling) {
             bool b = false;
             if (json._stepSiblings != null) {
                 b = json._stepSiblings.Remove(stepSibling);
-                stepSibling._stepParent = null;
+                if (b)
+                    b = stepSibling._refFromStepSiblings.Remove(json);
             }
             return b;
         }
@@ -32,11 +36,8 @@ namespace Starcounter.Advanced.XSON {
         /// Getting recursively all sibling for the given Json.
         /// </summary>
         public static void GetAllStepSiblings(Json obj, ref List<Json> stepSiblingsList) {
-
             if (obj._stepSiblings != null) {
-
                 foreach (Json s in obj.GetStepSiblings()) {
-
                     GetAllStepSiblings(s, ref stepSiblingsList);
                     stepSiblingsList.Add(s);
                 }
@@ -51,11 +52,10 @@ namespace Starcounter.Advanced.XSON {
 
         public static void RemoveAllStepSiblings(this Json json) {
             if (json._stepSiblings != null) {
-                for (int i = json._stepSiblings.Count - 1; i >= 0; i--) {
-                    var sibling = json._stepSiblings[i];
-                    json._stepSiblings.RemoveAt(i);
-                    sibling._stepParent = null;
+                foreach (var sibling in json._stepSiblings) {
+                    sibling._refFromStepSiblings.Remove(json);
                 }
+                json._stepSiblings.Clear();
             }
         }
 

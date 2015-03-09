@@ -30,8 +30,11 @@ namespace Starcounter {
 			if (Parent != null)
 				Parent.Dirtyfy();
 
-            if (_stepParent != null)
-                _stepParent.Dirtyfy();
+            if (_refFromStepSiblings != null) {
+                foreach (Json stepSibling in _refFromStepSiblings) {
+                    stepSibling.Dirtyfy();
+                }
+            }
 		}
 
 		/// <summary>
@@ -383,16 +386,17 @@ namespace Starcounter {
             // TODO:
             // Do upgrade of dirtychecks instead of static field.
 
+            if (this.isAddedToViewmodel == true)
+                return;
+
             this.addedInVersion = this.Session.ServerVersion;
+            this.isAddedToViewmodel = true;
 
             // If the transaction attached to this json is the same transaction set higher 
             // up in the tree we set it back to invalid. This will be useful later when
             // json will be stored in blobs.
-            Json parentOrStepParent = _parent;
-            if (parentOrStepParent == null)
-                parentOrStepParent = _stepParent;
-
-            if (parentOrStepParent != null && this._transaction == parentOrStepParent.TransactionHandle)
+            
+            if (_parent != null && this._transaction == _parent.TransactionHandle)
                 this._transaction = TransactionHandle.Invalid;
             
             if (this._transaction != TransactionHandle.Invalid) {
@@ -400,6 +404,12 @@ namespace Starcounter {
                 // on the session to keep track of it. This will also mean that the session
                 // is responsible for releasing it when noone uses it anymore.
                 Session.RegisterTransaction(_transaction);
+            }
+
+            if (this._stepSiblings != null) {
+                foreach (var stepSibling in this._stepSiblings) {
+                    stepSibling.OnAddedToViewmodel();
+                }
             }
 
             if (this.IsArray) {
@@ -418,12 +428,6 @@ namespace Starcounter {
                     }
                 }
             }
-
-            if (this._stepSiblings != null) {
-                foreach (var sibling in this._stepSiblings) {
-                    sibling.OnAddedToViewmodel();
-                }
-            }
         }
 
         /// <summary>
@@ -431,6 +435,7 @@ namespace Starcounter {
         /// children as well.
         /// </summary>
         private void OnRemovedFromViewmodel() {
+            isAddedToViewmodel = false;
             addedInVersion = -1;
             if (_transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(_transaction);
@@ -450,6 +455,16 @@ namespace Starcounter {
                                 childJson.OnRemovedFromViewmodel();
                         }
                     }
+                }
+            }
+
+            if (this._stepSiblings != null) {
+                foreach (var stepSibling in _stepSiblings) {
+                    // Check for stepsiblings that might be a part of a stateful viewmodel,
+                    // and still be a sibling to another. In that case we don't do the call.
+                    if (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel)
+                        continue;
+                    stepSibling.OnRemovedFromViewmodel();
                 }
             }
         }
