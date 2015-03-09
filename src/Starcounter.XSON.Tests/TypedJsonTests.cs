@@ -135,6 +135,32 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestDynamicJsonFromString() {
+            string jsonStr = @"{""Key"":""Value"", ""Number"":99}";
+
+            dynamic json = new Json(jsonStr);
+            Assert.AreEqual("Value", json.Key);
+            Assert.AreEqual(99, json.Number);
+
+            jsonStr = @"{""Items"":[{""Key"":""Item1""},{""Key"":""Item2""}]}";
+            json = new Json(jsonStr);
+            Assert.AreEqual(2, json.Items.Count);
+            Assert.AreEqual("Item1", json.Items[0].Key);
+            Assert.AreEqual("Item2", json.Items[1].Key);
+
+            // TODO:
+            // Disabled this path as currently it does not work to have two different objects in an array.
+            // This should be solvable however.
+
+            //jsonStr = @"{""Items"":[{""Key"":""Item1""},{""AnotherKey"":""Item2""}]}";
+            //json = new Json(jsonStr);
+            //Assert.AreEqual(2, json.Items.Count);
+            //Assert.AreEqual("Item1", json.Items[0].Key);
+            //Assert.AreEqual("Item2", json.Items[1].AnotherKey);
+        }
+
+
+        [Test]
         public static void TestDynamicJson() {
             dynamic json = new Json();
             json["foo"] = "bar";
