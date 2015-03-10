@@ -97,7 +97,7 @@ namespace Starcounter.Administrator.Server {
             });
 
             // Register a static resource folder
-            Handle.POST("/addstaticcontentdir", (Request req) => {
+            Handle.POST(StarcounterConstants.StaticFilesDirRegistrationUri, (Request req) => {
 
                 // Getting POST contents.
                 String content = req.Body;
