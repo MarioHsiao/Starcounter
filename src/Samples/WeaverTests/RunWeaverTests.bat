@@ -7,6 +7,11 @@ CALL TestTestProtocol.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+PUSHD 2-TestSchemaProduction
+CALL TestSchemaProduction.bat
+POPD
+IF ERRORLEVEL 1 GOTO err
+
 ECHO Weaver regression tests succeeded.
 EXIT /b 0
 
