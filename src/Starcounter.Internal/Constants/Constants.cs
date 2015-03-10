@@ -22,19 +22,29 @@ namespace Starcounter.Internal
         public const Byte MaximumSchedulersNumber = 128;
 
         /// <summary>
-        /// Launcher application name.
+        /// Society objects name.
         /// </summary>
         public const string SocietyObjectsPrefix = "SocietyObjects";
 
         /// <summary>
-        /// Launcher application name.
+        /// Polyjuice edition name.
         /// </summary>
         public const string PolyjuiceEditionName = "Polyjuice";
 
         /// <summary>
-        /// Launcher application name.
+        /// Polyjuice HTML merger URI prefix.
         /// </summary>
         public const string PolyjuiceHtmlMergerPrefix = "/polyjuice/htmlmerger?";
+
+        /// <summary>
+        /// Name of the Web-root directory for Polyjuice.
+        /// </summary>
+        public const string PolyjuiceWebRootName = "wwwroot";
+
+        /// <summary>
+        /// Static files directories registration URI.
+        /// </summary>
+        public const String StaticFilesDirRegistrationUri = "/addstaticcontentdir";
 
         /// <summary>
         /// Network related constants.
