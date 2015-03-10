@@ -218,6 +218,26 @@ namespace Starcounter.Internal {
         static Byte[] responseSerializationBuffer_;
 
         /// <summary>
+        /// Start the session that came with request.
+        /// </summary>
+        static void StartSessionThatCameWithRequest(Request req) {
+
+            // Checking if we are in session already.
+            if (req.CameWithCorrectSession) {
+
+                // Obtaining session.
+                Session s = (Session) req.GetAppsSessionInterface();
+
+                // Checking if correct session was obtained.
+                if (null != s) {
+
+                    // Starting session.
+                    Session.Start(s);
+                }
+            }
+        }
+
+        /// <summary>
         /// Entry-point for all external HTTP requests from the Network Gateway.
         /// </summary>
         private static Boolean ProcessExternalRequest(Request req) {
@@ -240,6 +260,9 @@ namespace Starcounter.Internal {
 
                 // Checking if filter level did allow this request.
                 if (null == resp) {
+
+                    // Starting the session that came with request.
+                    StartSessionThatCameWithRequest(req);
 
                     // Handling request on initial level.
                     resp = AppServer_.RunDelegateAndProcessResponse(

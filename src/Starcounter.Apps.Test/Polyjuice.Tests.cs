@@ -49,7 +49,7 @@ namespace Starcounter.Internal.Tests
     public class PolyjuiceTests
     {
         /// <summary>
-        /// 
+        /// Testing ontology maps.
         /// </summary>
         //[Test]
         public static void SimplePolyjuiceTests() {
@@ -353,6 +353,206 @@ namespace Starcounter.Internal.Tests
             Assert.IsTrue(json3.ToJson() == json1.ToJson());
             Assert.IsTrue(json4.ToJson() == json1.ToJson());
             Assert.IsTrue(json.ToJson() == json1.ToJson());
+        }
+
+        /// <summary>
+        /// Testing ordinary maps.
+        /// </summary>
+        [Test]
+        public static void OrdinaryMapsTests() {
+
+            Polyjuice.Init();
+
+            StarcounterEnvironment.AppName = "SomeApp";
+
+            //////////////////////////////////////
+            // Testing with GET.
+            //////////////////////////////////////
+
+            Handle.GET("/SomeApp/map1", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map1" == req.Uri);
+                Assert.IsTrue("GET" == req.Method);
+
+                return "/map1";
+            });
+
+            Handle.GET("/SomeApp/map2", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map2" == req.Uri);
+                Assert.IsTrue("GET" == req.Method);
+
+                return "/map2";
+            });
+
+            Handle.GET("/SomeApp/map3", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map3" == req.Uri);
+                Assert.IsTrue("GET" == req.Method);
+
+                return "/map3";
+            });
+
+            Polyjuice.Map("/SomeApp/map1", "/polyjuice/mapped");
+            Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped");
+            Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped");
+
+            String r = X.GET<String>("/SomeApp/map1");
+            Assert.IsTrue("/map1" == r);
+
+            r = X.GET<String>("/SomeApp/map2");
+            Assert.IsTrue("/map1" == r);
+
+            r = X.GET<String>("/SomeApp/map3");
+            Assert.IsTrue("/map1" == r);
+
+            r = X.GET<String>("/polyjuice/mapped");
+            Assert.IsTrue("/map1" == r);
+
+            //////////////////////////////////////
+            // Testing with POST.
+            //////////////////////////////////////
+
+            String body = "Here is my cool body!!!";
+
+            Handle.POST("/SomeApp/map1", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map1" == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map1";
+            });
+
+            Handle.POST("/SomeApp/map2", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map2" == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map2";
+            });
+
+            Handle.POST("/SomeApp/map3", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map3" == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map3";
+            });
+
+            Polyjuice.Map("/SomeApp/map1", "/polyjuice/mapped", "POST");
+            Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped", "POST");
+            Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped", "POST");
+
+            Response resp = X.POST("/SomeApp/map1", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            resp = X.POST("/SomeApp/map2", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            resp = X.POST("/SomeApp/map3", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            resp = X.POST("/polyjuice/mapped", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            //////////////////////////////////////
+            // Testing with last parameter.
+            //////////////////////////////////////
+            
+            String param = "12345";
+
+            Handle.GET("/SomeApp/map1/{?}", (Request req, String p) => {
+
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("/SomeApp/map1/" + param == req.Uri);
+
+                return "/map1/" + p;
+            });
+
+            Handle.GET("/SomeApp/map2/{?}", (Request req, String p) => {
+
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("/SomeApp/map2/" + param == req.Uri);
+
+                return "/map2/" + p;
+            });
+
+            Handle.GET("/SomeApp/map3/{?}", (Request req, String p) => {
+
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("/SomeApp/map3/" + param == req.Uri);
+                
+                return "/map3/" + p;
+            });
+
+            Polyjuice.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w");
+            Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w");
+            Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w");
+
+            r = X.GET<String>("/SomeApp/map1/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            r = X.GET<String>("/SomeApp/map2/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            r = X.GET<String>("/SomeApp/map3/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            r = X.GET<String>("/polyjuice/mapped/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            //////////////////////////////////////
+            // Testing with POST and parameter.
+            //////////////////////////////////////
+
+            Handle.POST("/SomeApp/map1/{?}", (Request req, String p) => {
+                
+                Assert.IsTrue("/SomeApp/map1/" + param == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("POST" == req.Method);
+                
+                return "/map1/" + p;
+            });
+
+            Handle.POST("/SomeApp/map2/{?}", (Request req, String p) => {
+
+                Assert.IsTrue("/SomeApp/map2/" + param == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map2/" + p;
+            });
+
+            Handle.POST("/SomeApp/map3/{?}", (Request req, String p) => {
+
+                Assert.IsTrue("/SomeApp/map3/" + param == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map3/" + p;
+            });
+
+            Polyjuice.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w", "POST");
+            Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w", "POST");
+            Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w", "POST");
+
+            resp = X.POST("/SomeApp/map1/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
+
+            resp = X.POST("/SomeApp/map2/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
+
+            resp = X.POST("/SomeApp/map3/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
+
+            resp = X.POST("/polyjuice/mapped/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
         }
     }
 }
