@@ -617,8 +617,8 @@ namespace Starcounter
             DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                req.HeadersDictionary,
-                req.BodyBytes,
+                null,
+                null,
                 userDelegate,
                 userObject,
                 receiveTimeoutMs,
@@ -634,8 +634,8 @@ namespace Starcounter
             return DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                req.HeadersDictionary,
-                req.BodyBytes,
+                null,
+                null,
                 null,
                 null,
                 receiveTimeoutMs,
