@@ -13,6 +13,7 @@ using System.Linq;
 namespace Starcounter.Weaver {
     using Sc.Server.Weaver.Schema;
     using System.CodeDom.Compiler;
+    using System.Reflection;
     using Error = Starcounter.Error;
 
     class Program {
@@ -158,6 +159,9 @@ namespace Starcounter.Weaver {
             } else if (cmd.Equals(ProgramCommands.ShowSchema, caseInsensitive)) {
                 ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
+            } else if (cmd.Equals(ProgramCommands.Test, caseInsensitive)) {
+                ExecuteTestCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
+
             } else {
                 error = Error.SCERRBADCOMMANDLINESYNTAX;
                 ReportProgramError(
@@ -235,6 +239,9 @@ namespace Starcounter.Weaver {
             string fileName,
             ApplicationArguments arguments) {
 
+            // Change this to use newly introduced DatabaseSchema.DeserializeFrom(DirectoryInfo);
+            // TODO:
+
             var schemaFiles = new DirectoryInfo(outputDirectory).GetFiles("*.schema");
             if (schemaFiles.Length == 0) {
                 Console.WriteLine("No schema found (looked in '{0}')", outputDirectory);
@@ -254,6 +261,28 @@ namespace Starcounter.Weaver {
             schema.AfterDeserialization();
 
             schema.DebugOutput(new IndentedTextWriter(Console.Out));
+        }
+
+        static void ExecuteTestCommand(
+            string inputDirectory,
+            string outputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+            
+            var exe = Path.Combine(inputDirectory, fileName);
+            var loaded = Assembly.LoadFrom(exe);
+            var ep = loaded.EntryPoint;
+            if (ep == null) {
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, string.Format("{0} cant be used as a test - it defines no entrypoint", exe));
+            }
+
+            if (ep.GetParameters().Length == 0) {
+                ep.Invoke(null, null);
+            } else {
+                var args = new string[] { "WEAVERTEST", inputDirectory, fileName, outputDirectory };
+                ep.Invoke(null, new object[] { args });
+            }
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
