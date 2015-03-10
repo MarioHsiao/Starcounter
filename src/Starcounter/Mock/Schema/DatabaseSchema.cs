@@ -8,6 +8,7 @@ using Starcounter;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Sc.Server.Weaver.Schema
 {
@@ -318,6 +319,29 @@ public class DatabaseSchema
             orderedClasses.Add(databaseClass);
             index.Add(databaseClass, null);
         }
+    }
+
+    /// <summary>
+    /// Produces a <see cref="DatabaseSchema"/> from a directory that
+    /// is presumed to store a weaved application.
+    /// </summary>
+    /// <param name="directory">The directory to look for an application
+    /// schema in.</param>
+    /// <returns>Materialized schema based on the given directory.</returns>
+    public static DatabaseSchema DeserializeFrom(DirectoryInfo directory) {
+        var schemaFiles = directory.GetFiles("*.schema");
+
+        var schema = new DatabaseSchema();
+        schema.AddStarcounterAssembly();
+
+        for (int i = 0; i < schemaFiles.Length; i++) {
+            var databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
+            schema.Assemblies.Add(databaseAssembly);
+        }
+
+        schema.AfterDeserialization();
+
+        return schema;
     }
 
     private static void RecursivePopulateOrderedEntityClasses(
