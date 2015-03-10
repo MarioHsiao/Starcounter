@@ -109,17 +109,25 @@ namespace Starcounter.XSON {
             Utf8Writer writer;
             bool versioning = session.CheckOption(SessionOptions.PatchVersioning);
 
-            size = 2;
-            for (int i = 0; i < changes.Count; i++) {
-                size += EstimateSizeOfPatch(changes[i], includeNamespace);
-            }
+            size = 2; // [ ]
 
             if (versioning) {
                 // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
-                size += testClientVersionPatch.Length + GetSizeOfIntAsUtf8(session.ClientVersion) + 2;
-                size += replaceServerVersionPatch.Length + GetSizeOfIntAsUtf8(session.ServerVersion) + 2;
-                
-            }    
+                size += testClientVersionPatch.Length + GetSizeOfIntAsUtf8(session.ClientVersion) + 2; // +2 for "},"
+                size += replaceServerVersionPatch.Length + GetSizeOfIntAsUtf8(session.ServerVersion) + 2; // +2 for "},"
+            }
+
+            int patchSize;
+            for (int i = 0; i < changes.Count; i++) {
+                patchSize = EstimateSizeOfPatch(changes[i], includeNamespace);
+                if (patchSize == -1)
+                    continue;
+                size += patchSize;
+            }
+
+            size += changes.Count - 1; // Adding one ',' per change over zero.
+            if (size < 2) size = 2;
+
             buffer = new byte[size];
             
             unsafe {
@@ -175,8 +183,9 @@ namespace Starcounter.XSON {
         /// <param name="from">From.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        private void WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace) {
+        private bool WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace) {
 			Json childJson = null;
+            int writerStart = writer.Written;
 
             // TODO:
             // dont write static strings as strings. convert them once and copy arrays.
@@ -185,7 +194,10 @@ namespace Starcounter.XSON {
             writer.Write("\",\"path\":\"");
 
             if (change.Property != null) {
-                WritePath(ref writer, change, includeNamespace);
+                if (!WritePath(ref writer, change, includeNamespace)) {
+                    writer.Skip(writer.Written - writerStart);
+                    return false;
+                }
             } else {
                 childJson = change.Parent;
             }
@@ -221,6 +233,7 @@ namespace Starcounter.XSON {
                 }
             }
             writer.Write('}');
+            return true;
         }
 
         private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index, Json item) {
@@ -260,6 +273,7 @@ namespace Starcounter.XSON {
 
         internal static int EstimateSizeOfPatch(Change change, bool includeNamespace) {
             int size;
+            int pathSize;
 
             // {"op":"???","path":"???","value":???}
             // size = 7 + op + 10 + path + 10 + value + 1 => 28 + var
@@ -270,9 +284,13 @@ namespace Starcounter.XSON {
             size = 19;
             size += _patchOpUtf8Arr[change.ChangeType].Length;
 
-            // TODO:
-            // Include names.
-            size += EstimateSizeOfPath(change.Parent, includeNamespace);
+            pathSize = EstimateSizeOfPath(change.Parent, includeNamespace, false);
+            if (pathSize == -1) {
+                // No valid path found.
+                return -1;
+            }
+
+            size += pathSize;
             if (change.Property != null)
                 size += change.Property.TemplateName.Length + 1;
             else
@@ -292,139 +310,141 @@ namespace Starcounter.XSON {
             return size;
         }
 
-        private static int EstimateSizeOfPath(Json json, bool includeNamespace) {
+        private static int EstimateSizeOfPath(Json json, bool includeNamespace, bool calledFromStepSibling) {
             int size;
             int totalSize;
             Json parent;
             Template template;
-            
+
             // TODO:
             // Evaluate all possible paths and create patches for all valid ones. 
 
+            if (json == null)
+                return -1;
+
+            if (json == json.Session.PublicViewModel) // Valid path.
+                return 0;
+
+            size = -1;
             totalSize = 0;
-            if (json._refFromStepSiblings != null) {
-                // We have stepsiblings. Lets traverse each path and determine if it is a 
-                // correct root, i. e. the root is the same as the public viewmodel.
-                foreach (var stepSibling in json._refFromStepSiblings) {
-                    // TODO:
-                    // Quick hack, the reference list might include old references that are no longer valid.
-                    // Needs to be handled somehow.
-                    if (stepSibling.Parent != null) {
-                        size = EstimateSizeOfPath(stepSibling.Parent, includeNamespace);
-                        if (size != -1) {
-                            totalSize += size;
-                            break;
-                        }
-                    }
+            if (!calledFromStepSibling && json._stepSiblings != null) {
+                foreach (Json stepSibling in json._stepSiblings) {
+                    if (stepSibling == json)
+                        continue;
+                    size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
+                    if (size != -1) 
+                        break;
                 }
             }
 
             parent = json.Parent;
-            if (parent != null) {
-                size = EstimateSizeOfPath(parent, includeNamespace);
-                if (size == -1)
-                    return -1;
+            if (size == -1)
+                size = EstimateSizeOfPath(parent, includeNamespace, false);
 
-                totalSize += size;
-                if (includeNamespace && json._appName != null) {
-                    totalSize += json._appName.Length + 1;
-                } else {
-                    totalSize++;
-                    if (parent.IsArray) {
-                        if (json._cacheIndexInArr == -1)
-                            json.UpdateCachedIndex();
-                        totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
-                    } else {
-                        // We use the cacheIndexInArr to keep track of obj that is set
-                        // in the parent as an untyped object since the template here is not
-                        // the template in the parent (which we want).
-                        if (json._cacheIndexInArr != -1) {
-                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-                        } else {
-                            template = json.Template;
-                        }
-                        totalSize += template.TemplateName.Length;
-                    }
-                }
-            } else if (json != Session.Current.PublicViewModel) {
+            if (size == -1)
                 return -1;
+
+            totalSize += size;
+
+            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
+                totalSize += json._appName.Length + 1;
+            } else {
+                totalSize++;
+                if (parent.IsArray) {
+                    if (json._cacheIndexInArr == -1)
+                        json.UpdateCachedIndex();
+                    totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
+                } else {
+                    // We use the cacheIndexInArr to keep track of obj that is set
+                    // in the parent as an untyped object since the template here is not
+                    // the template in the parent (which we want).
+                    if (json._cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    } else {
+                        template = json.Template;
+                    }
+
+//                    if (template.TemplateName != null) {
+                        totalSize += template.TemplateName.Length;
+//                    }
+                }
             }
             return totalSize;
         }
 
-        private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace) {
+        private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace, bool calledFromStepSibling) {
+            bool pathWritten;
             Json parent;
             Template template;
-            bool pathFound = false;
-           
+
             // TODO:
             // Evaluate all possible paths and create patches for all valid ones. 
-            parent = null;
-            if (json._refFromStepSiblings != null) {
-                // We have stepsiblings. Lets traverse each path and determine if it is a 
-                // correct root, i. e. the root is the same as the public viewmodel.
-                foreach (var stepSibling in json._refFromStepSiblings) {
-                    stepSibling.suppressNamespace = true;
-                    try {
-                        if (WritePath(ref writer, stepSibling, includeNamespace)) {
-                            parent = stepSibling.Parent;
-                            pathFound = true;
-                            break;
-                        }
-                    } finally {
-                        stepSibling.suppressNamespace = false;
-                    }
+
+            if (json == null)
+                return false;
+
+            if (json == json.Session.PublicViewModel) // Valid path.
+                return true;
+
+            pathWritten = false;
+            if (!calledFromStepSibling && json._stepSiblings != null) {
+                foreach (Json stepSibling in json._stepSiblings) {
+                    if (stepSibling == json)
+                        continue;
+
+                    pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true);
+                    if (pathWritten)
+                        break;
                 }
             }
 
-            if (!pathFound)
-                parent = json.Parent;
+            parent = json.Parent;
+            if (!pathWritten)
+                pathWritten = WritePath(ref writer, parent, includeNamespace, false);
 
-            if (parent != null) {
-                if (!pathFound && !WritePath(ref writer, parent, includeNamespace))
-                    return false;
-
-                if (includeNamespace && json._appName != null && !json.suppressNamespace) {
-                    writer.Write('/');
-                    writer.Write(json._appName);
-                } else {
-                    if (parent.IsArray) {
-                        if (json._cacheIndexInArr == -1)
-                            json.UpdateCachedIndex();
-                        writer.Write('/');
-                        writer.Write(json._cacheIndexInArr);
-                    } else {
-                        // We use the cacheIndexInArr to keep track of obj that is set
-                        // in the parent as an untyped object since the template here is not
-                        // the template in the parent (which we want).
-                        if (json._cacheIndexInArr != -1) {
-                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-                        } else {
-                            template = json.Template;
-                        }
-
-                        writer.Write('/');
-                        writer.Write(template.TemplateName);
-                    }
-                }
-            } else if (json != Session.Current.PublicViewModel) {
+            if (!pathWritten)
                 return false;
+
+            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
+                writer.Write('/');
+                writer.Write(json._appName);
+            } else {
+                if (parent.IsArray) {
+                    if (json._cacheIndexInArr == -1)
+                        json.UpdateCachedIndex();
+                    writer.Write('/');
+                    writer.Write(json._cacheIndexInArr);
+                } else {
+                    // We use the cacheIndexInArr to keep track of obj that is set
+                    // in the parent as an untyped object since the template here is not
+                    // the template in the parent (which we want).
+                    if (json._cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
+                    } else {
+                        template = json.Template;
+                    }
+
+                    //                    if (template.TemplateName != null) {
+                    writer.Write('/');
+                    writer.Write(template.TemplateName);
+                    //                    }
+                }
             }
             return true;
         }
 
-        private void WritePath(ref Utf8Writer writer, Change change, bool includeNamespace) {
-            // TODO:
-            // Include names
-            WritePath(ref writer, change.Parent, includeNamespace);
-
-            writer.Write('/');
-            writer.Write(change.Property.TemplateName);
-
-            if (change.Index != -1) {
+        private bool WritePath(ref Utf8Writer writer, Change change, bool includeNamespace) {
+            if (WritePath(ref writer, change.Parent, includeNamespace, false)) {
                 writer.Write('/');
-                writer.Write(change.Index);
+                writer.Write(change.Property.TemplateName);
+
+                if (change.Index != -1) {
+                    writer.Write('/');
+                    writer.Write(change.Index);
+                }
+                return true;
             }
+            return false;
         }
 
         //        private static int CalculateSizeOfPath(Json json, bool fromStepParent) {
