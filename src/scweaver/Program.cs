@@ -423,6 +423,12 @@ namespace Starcounter.Weaver {
             // Display schema command
             syntaxDefinition.DefineCommand(ProgramCommands.ShowSchema, "Displays the schema of the given application", 1);
 
+            // Treats the given application as an application that are to be
+            // tested against a weaved version of itself; invokes the entrypoint
+            // with a certain set of arguments
+            syntaxDefinition.DefineCommand(
+                ProgramCommands.Test, "Runs the given application as a test application", 1);
+
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();
 
