@@ -126,26 +126,7 @@ namespace Starcounter {
         /// </summary>
         public Session Session {
             get {
-                Session session = _Session;
-
-                if (session != null)
-                    return session;
-
-                if (Parent != null)
-                    session = Parent.Session;
-
-                if (session != null)
-                    return session;
-
-                if (_refFromStepSiblings != null) {
-                    foreach (var stepSibling in _refFromStepSiblings) {
-                        session = stepSibling.Session;
-                        if (session != null)
-                            break;
-                    }
-                }
-
-                return session;
+                return GetSession(true);
             }
             set {
                 if (Parent != null)
@@ -163,8 +144,29 @@ namespace Starcounter {
             }
         }
 
+        private Session GetSession(bool lookInStepSiblings) {
+            Session session = _Session;
+
+            if (session != null)
+                return session;
+
+            if (Parent != null)
+                session = Parent.GetSession(true);
+
+            if (session == null && lookInStepSiblings && _stepSiblings != null) {
+                foreach (var stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    session = stepSibling.GetSession(false);
+                    if (session != null)
+                        break;
+                }
+            }
+            return session;
+        }
+
         internal void OnSessionSet() {
-            OnAddedToViewmodel();
+            OnAddedToViewmodel(true);
         }
 
         /// <summary>
@@ -324,13 +326,13 @@ namespace Starcounter {
             // Since we change parents we need to retrieve session twice.
             if (_parent != null) {
                 if (Session != null)
-                    OnRemovedFromViewmodel();
+                    OnRemovedFromViewmodel(true);
             }
 
             _parent = value;
             if (_parent != null) {
                 if (Session != null)
-                    OnAddedToViewmodel();
+                    OnAddedToViewmodel(true);
             }
         }
 

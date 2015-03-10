@@ -941,10 +941,12 @@ namespace PolyjuiceNamespace {
         /// Default merger function for PolyJuice.
         /// </summary>
         public static Response DefaultMerger(Request req, Response resp, List<Response> responses) {
-
+            Json siblingJson;
             Json mainJson;
+            List<Json> stepSiblings;
 
             // Checking if there is only one response, which becomes the main response.
+            
             if (resp != null) {
 
                 mainJson = resp.Resource as Json;
@@ -974,17 +976,25 @@ namespace PolyjuiceNamespace {
             mainJson = mainResponse.Resource as Json;
 
             if (mainJson != null) {
-
                 mainJson.SetAppName(mainResponse.AppName);
+
+                if (responses.Count == 1)
+                    return mainResponse;
+
+                stepSiblings = new List<Json>();
+                mainJson._stepSiblings = stepSiblings;
+                stepSiblings.Add(mainJson);
 
                 for (Int32 i = 0; i < responses.Count; i++) {
 
                     if (mainResponseId != i) {
-
-                        ((Json)responses[i].Resource).SetAppName(responses[i].AppName);
-                        mainJson.AddStepSibling((Json)responses[i].Resource);
+                        siblingJson = (Json)responses[i].Resource;
+                        siblingJson.SetAppName(responses[i].AppName);
+                        siblingJson._stepSiblings = stepSiblings;
+                        stepSiblings.Add(siblingJson);
                     }
                 }
+
             }
 
             return mainResponse;

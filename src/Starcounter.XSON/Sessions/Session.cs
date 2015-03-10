@@ -506,9 +506,9 @@ namespace Starcounter {
             } else {
                 if (root != null) {
                     if (DatabaseHasBeenUpdatedInCurrentTask) {
-                        root.LogValueChangesWithDatabase(this);
+                        root.LogValueChangesWithDatabase(this, true);
                     } else {
-                        root.LogValueChangesWithoutDatabase(this);
+                        root.LogValueChangesWithoutDatabase(this, true);
                     }
                 }
             }

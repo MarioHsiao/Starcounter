@@ -23,7 +23,7 @@ namespace Starcounter.Advanced.XSON {
                 && session != null
                 && session.CheckOption(SessionOptions.IncludeNamespaces)
                 && (session.PublicViewModel != obj)
-                && !obj.suppressNamespace)
+                && !obj.calledFromStepSibling)
                 return true;
             return false;
         }
@@ -131,28 +131,31 @@ namespace Starcounter.Advanced.XSON {
             // Wrapping in application name.
             if (wrapInAppName) {
                 // Checking if we have any siblings.
-                if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                if (!obj.calledFromStepSibling && obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
                     // For comma.
                     sizeBytes++;
 
-                    // Creating linear list of all step siblings.
-                    List<Json> allStepSiblings = new List<Json>();
-                    JsonExtension.GetAllStepSiblings(obj, ref allStepSiblings);
-
                     // Calculating the size for each step sibling.
-                    foreach (Json pp in allStepSiblings) {
+                    foreach (Json pp in obj._stepSiblings) {
+                        if (pp == obj)
+                            continue;
 
-                        // Checking if there is any partial Html provided.
-                        if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
+                        pp.calledFromStepSibling = true;
+                        try {
+                            // Checking if there is any partial Html provided.
+                            if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
 
-                            if (htmlUriMerged != null)
-                                htmlUriMerged += "&";
+                                if (htmlUriMerged != null)
+                                    htmlUriMerged += "&";
 
-                            htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                                htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                            }
+
+                            sizeBytes += pp._appName.Length + 1; // 1 for ":".
+                            sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
+                        } finally {
+                            pp.calledFromStepSibling = false;
                         }
-
-                        sizeBytes += pp._appName.Length + 1; // 1 for ":".
-                        sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
                     }
                 }
 
@@ -352,22 +355,18 @@ namespace Starcounter.Advanced.XSON {
                         offset++;
 
                         // Checking if we have any siblings.
-                        if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
-
-                            // Creating linear list of all step siblings.
-                            List<Json> allStepSiblings = new List<Json>();
-                            JsonExtension.GetAllStepSiblings(obj, ref allStepSiblings);
-
-                            if (allStepSiblings.Count > 0) {
-                                // Separating by comma.
-                                *pfrag++ = (byte)',';
-                                offset++;
-                            }
+                        if (!obj.calledFromStepSibling && obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                            *pfrag++ = (byte)',';
+                            offset++;
                             
                             // Serializing every sibling first.
-                            for (int s = 0; s < allStepSiblings.Count; s++) {
-                                var pp = allStepSiblings[s];
-                                pp.suppressNamespace = true;
+                            for (int s = 0; s < obj._stepSiblings.Count; s++) {
+                                var pp = obj._stepSiblings[s];
+
+                                if (pp == obj)
+                                    continue;
+
+                                pp.calledFromStepSibling = true;
                                 try {
                                     // Checking if there is any partial Html provided.
                                     if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
@@ -389,12 +388,12 @@ namespace Starcounter.Advanced.XSON {
                                     pfrag += valueSize;
                                     offset += valueSize;
 
-                                    if ((s + 1) < allStepSiblings.Count) {
+                                    if ((s + 1) < obj._stepSiblings.Count) {
                                         *pfrag++ = (byte)',';
                                         offset++;
                                     }
                                 } finally {
-                                    pp.suppressNamespace = false;
+                                    pp.calledFromStepSibling = false;
                                 }
                             }
                         }
