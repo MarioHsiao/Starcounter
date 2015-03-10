@@ -50,116 +50,139 @@ namespace Starcounter.Internal.XSON.Tests {
             string patch;
             string path;
             Session session = new Session();
+            Session.Start(session);
+            try {
+                List<Change> changeList = new List<Change>(1);
+                changeList.Add(new Change());
 
-            List<Change> changeList = new List<Change>(1);
-            changeList.Add(new Change());
+                // ["op":"replace","path":"","value":"ApaPapa"]
+                path = "";
+                patch = string.Format(Helper.PATCH_REPLACE, path, @"{""FirstName"":""ApaPapa""}");
+                schema = new TObject();
+                property = schema.Add<TString>("FirstName");
+                json = new Json() { Template = schema };
+                Session.Current.Data = json;
+                json.FirstName = "ApaPapa";
+                change = Change.Update(json, null);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+                changeList[0] = change;
+                patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
+                expectedSize = patch.Length + 2;
+                Assert.AreEqual(expectedSize, patchSize);
 
-            // ["op":"replace","path":"","value":"ApaPapa"]
-            path = "";
-            patch = string.Format(Helper.PATCH_REPLACE, path, @"{""FirstName"":""ApaPapa""}");
-            schema = new TObject();
-            property = schema.Add<TString>("FirstName");
-            json = new Json() { Template = schema };
-            json.FirstName = "ApaPapa";
-            change = Change.Update(json, null);
-            patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
-            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
-            changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
-            expectedSize = patch.Length + 2;
-            Assert.AreEqual(expectedSize, patchSize);
+                // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
+                path = "/FirstName";
+                patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
+                schema = new TObject();
+                property = schema.Add<TString>("FirstName");
+                json = new Json() { Template = schema };
+                Session.Current.Data = json;
+                json.FirstName = "ApaPapa";
+                change = Change.Update(json, property);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+                changeList[0] = change;
+                patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
+                expectedSize = patch.Length + 2;
+                Assert.AreEqual(expectedSize, patchSize);
 
-            // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
-            path = "/FirstName";
-            patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
-            schema = new TObject();
-            property = schema.Add<TString>("FirstName");
-            json = new Json() { Template = schema };
-            json.FirstName = "ApaPapa";
-            change = Change.Update(json, property);
-            patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
-            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
-            changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
-            expectedSize = patch.Length + 2;
-            Assert.AreEqual(expectedSize, patchSize);
+                // ["op":"replace","path":"/Focused/Age","value":19]
+                path = "/Focused/Age";
+                patch = string.Format(Helper.PATCH_REPLACE, path, 19);
+                schema = new TObject();
+                property = schema.Add<TObject>("Focused");
+                property = ((TObject)property).Add<TLong>("Age");
+                json = new Json() { Template = schema };
+                Session.Current.Data = json;
+                json.Focused.Age = 19;
+                change = Change.Update(json.Focused, property);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+                changeList[0] = change;
+                patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
+                expectedSize = patch.Length + 2;
+                Assert.AreEqual(expectedSize, patchSize);
 
-            // ["op":"replace","path":"/Focused/Age","value":19]
-            path = "/Focused/Age";
-            patch = string.Format(Helper.PATCH_REPLACE, path, 19);
-            schema = new TObject();
-            property = schema.Add<TObject>("Focused");
-            property = ((TObject)property).Add<TLong>("Age");
-            json = new Json() { Template = schema };
-            json.Focused.Age = 19;
-            change = Change.Update(json.Focused, property);
-            patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
-            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
-            changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
-            expectedSize = patch.Length + 2;
-            Assert.AreEqual(expectedSize, patchSize);
+                // ["op":"replace","path":"/Items/0/Stats","value":23.5]
+                path = "/Items/0/Stats";
+                patch = string.Format(Helper.PATCH_REPLACE, path, 23.5d);
+                schema = new TObject();
+                var tarr = schema.Add<TArray<Json>>("Items");
+                tarr.ElementType = new TObject();
+                property = tarr.ElementType.Add<TDouble>("Stats");
+                json = new Json() { Template = schema };
+                Session.Current.Data = json;
+                json = json.Items.Add();
+                json.Stats = 23.5d;
+                change = Change.Update(json, property);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
+                Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+                changeList[0] = change;
+                patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
+                expectedSize = patch.Length + 2;
+                Assert.AreEqual(expectedSize, patchSize);
 
-            // ["op":"replace","path":"/Items/0/Stats","value":23.5]
-            path = "/Items/0/Stats";
-            patch = string.Format(Helper.PATCH_REPLACE, path, 23.5d);
-            schema = new TObject();
-            var tarr = schema.Add<TArray<Json>>("Items");
-            tarr.ElementType = new TObject();
-            property = tarr.ElementType.Add<TDouble>("Stats");
-            json = new Json() { Template = schema };
-            json = json.Items.Add();
-            json.Stats = 23.5d;
-            change = Change.Update(json, property);
-            patchSize = JsonPatch.EstimateSizeOfPatch(change, false);
-            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
-            changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(session, changeList, false, out patchArr);
-            expectedSize = patch.Length + 2;
-            Assert.AreEqual(expectedSize, patchSize);
+                // ["op":"replace","path":"/OtherApp/FirstName","value":"ApaPapa"]
+                path = "/Page/OtherApp/FirstName";
+                patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
+                schema = new TObject();
+                schema.Add<TLong>("Age");
+                schema.Add<TObject>("Page");
+                json = new Json() { Template = schema };
+                Session.Current.Data = json;
+                json.Age = 19;
+                var schema2 = new TObject();
+                property = schema2.Add<TString>("FirstName");
+                dynamic json2 = new Json() { Template = schema2 };
+                json2.FirstName = "ApaPapa";
+                JsonExtension.SetAppName(json2, "OtherApp");
+                List<Json> stepSiblings = new List<Json>();
+                stepSiblings.Add(json.Page);
+                stepSiblings.Add(json2);
+                Json real = json.Page;
+                real._stepSiblings = stepSiblings;
+                real = json2;
+                real._stepSiblings = stepSiblings;
+                change = Change.Update(json2, property);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
+                Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+                changeList[0] = change;
+                patchSize = jsonPatch.CreatePatches(session, changeList, true, out patchArr);
+                expectedSize = patch.Length + 2;
+                Assert.AreEqual(expectedSize, patchSize);
 
-            // ["op":"replace","path":"/OtherApp/FirstName","value":"ApaPapa"]
-            path = "/OtherApp/FirstName";
-            patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
-            schema = new TObject();
-            schema.Add<TLong>("Age");
-            json = new Json() { Template = schema };
-            json.Age = 19;
-            var schema2 = new TObject();
-            property = schema2.Add<TString>("FirstName");
-            dynamic json2 = new Json() { Template = schema2 };
-            json2.FirstName = "ApaPapa";
-            JsonExtension.SetAppName(json2, "OtherApp");
-            JsonExtension.AddStepSibling(json, json2);
-            change = Change.Update(json2, property);
-            patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
-            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
-            changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(session, changeList, true, out patchArr);
-            expectedSize = patch.Length + 2;
-            Assert.AreEqual(expectedSize, patchSize);
-
-            // ["op":"replace","path":"/Focused/OtherApp/FirstName","value":"ApaPapa"]
-            path = "/Focused/OtherApp/FirstName";
-            patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
-            schema = new TObject();
-            var focSchema = schema.Add<TObject>("Focused");
-            focSchema.Add<TLong>("Age");
-            json = new Json() { Template = schema };
-            json.Focused.Age = 19;
-            schema2 = new TObject();
-            property = schema2.Add<TString>("FirstName");
-            json2 = new Json() { Template = schema2 };
-            json2.FirstName = "ApaPapa";
-            JsonExtension.SetAppName(json2, "OtherApp");
-            JsonExtension.AddStepSibling(json.Focused, json2);
-            change = Change.Update(json2, property);
-            patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
-            Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
-            changeList[0] = change;
-            patchSize = jsonPatch.CreatePatches(session, changeList, true, out patchArr);
-            expectedSize = patch.Length + 2;
-            Assert.AreEqual(expectedSize, patchSize);
+                // ["op":"replace","path":"/Focused/OtherApp/FirstName","value":"ApaPapa"]
+                path = "/Focused/OtherApp/FirstName";
+                patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
+                schema = new TObject();
+                var focSchema = schema.Add<TObject>("Focused");
+                focSchema.Add<TLong>("Age");
+                json = new Json() { Template = schema };
+                Session.Current.Data = json;
+                json.Focused.Age = 19;
+                schema2 = new TObject();
+                property = schema2.Add<TString>("FirstName");
+                json2 = new Json() { Template = schema2 };
+                json2.FirstName = "ApaPapa";
+                JsonExtension.SetAppName(json2, "OtherApp");
+                stepSiblings = new List<Json>();
+                stepSiblings.Add(json.Focused);
+                stepSiblings.Add(json2);
+                real = json.Focused;
+                real._stepSiblings = stepSiblings;
+                real = json2;
+                real._stepSiblings = stepSiblings;
+                change = Change.Update(json2, property);
+                patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
+                Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
+                changeList[0] = change;
+                patchSize = jsonPatch.CreatePatches(session, changeList, true, out patchArr);
+                expectedSize = patch.Length + 2;
+                Assert.AreEqual(expectedSize, patchSize);
+            } finally {
+                Session.End();
+            }
 
         }
 
