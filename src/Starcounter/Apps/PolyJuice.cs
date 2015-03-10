@@ -206,9 +206,10 @@ namespace PolyjuiceNamespace {
         /// </summary>
         public static void Map(
             String appProcessedUri,
-            String mapProcessedUri) {
+            String mapProcessedUri,
+            String method = "GET") {
 
-                Map(appProcessedUri, mapProcessedUri, null, null);
+            Map(appProcessedUri, mapProcessedUri, null, null, method);
         }
 
         /// <summary>
@@ -300,8 +301,8 @@ namespace PolyjuiceNamespace {
                 }
 
                 // Calling handler.
-                Response resp;
-                X.GET(uri, out resp, null, 0, ho);
+                req.Uri = uri;
+                Response resp = X.CustomRESTRequest(req, 0, ho);
                 resps.Add(resp);
             }
 
@@ -324,7 +325,18 @@ namespace PolyjuiceNamespace {
             String appProcessedUri,
             String mapProcessedUri,
             Func<String, String> converterToSo,
-            Func<String, String> converterFromSo) {
+            Func<String, String> converterFromSo,
+            String method) {
+
+            // Checking if method is allowed.
+            if (method != "GET" &&
+                method != "PUT" &&
+                method != "POST" &&
+                method != "PATCH" &&
+                method != "DELETE") {
+
+                throw new InvalidOperationException("HTTP method should be either GET, POST, PUT, DELETE or PATCH.");
+            }
 
             if (!StarcounterEnvironment.PolyjuiceAppsFlag) {
                 throw new InvalidOperationException("Polyjuice is not initialized!");
@@ -362,7 +374,7 @@ namespace PolyjuiceNamespace {
                 }
 
                 // There is always a space at the end of processed URI.
-                String appProcessedMethodUriSpace = "GET " + appProcessedUri.ToLowerInvariant() + " ";
+                String appProcessedMethodUriSpace = method + " " + appProcessedUri.ToLowerInvariant() + " ";
 
                 // Searching the handler by processed URI.
                 UserHandlerInfo appHandlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
@@ -389,19 +401,19 @@ namespace PolyjuiceNamespace {
                     converterFromSo);
 
                 // Searching for the mapped handler.
-                String mapProcessedMethodUriSpace = "GET " + mapProcessedUri.ToLowerInvariant() + " ";
+                String mapProcessedMethodUriSpace = method + " " + mapProcessedUri.ToLowerInvariant() + " ";
                 UserHandlerInfo mapHandlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(mapProcessedMethodUriSpace,
                     new HandlerOptions());
 
                 // Registering the map handler if needed.
                 if (null == mapHandlerInfo) {
 
-                    Debug.Assert(false == customMaps_.ContainsKey(mapProcessedUri));
+                    Debug.Assert(false == customMaps_.ContainsKey(mapProcessedMethodUriSpace));
 
                     // Creating a new mapping list and adding URI to it.
                     List<HandlerForSoType> mappedHandlersList = new List<HandlerForSoType>();
                     mappedHandlersList.Add(handler);
-                    customMaps_.Add(mapProcessedUri, mappedHandlersList);
+                    customMaps_.Add(mapProcessedMethodUriSpace, mappedHandlersList);
 
                     String savedAppName = StarcounterEnvironment.AppName;
                     StarcounterEnvironment.AppName = null;
@@ -411,7 +423,7 @@ namespace PolyjuiceNamespace {
                         String hs = mapProcessedUri.Replace(EndsWithStringParam, "{?}");
 
                         // Registering mapped URI with parameter.
-                        Handle.GET(hs, (Request req, String p) => {
+                        Handle.CUSTOM(method + " " + hs, (Request req, String p) => {
                             return MappingHandler(req, mappedHandlersList, p);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
@@ -421,7 +433,7 @@ namespace PolyjuiceNamespace {
                     } else {
 
                         // Registering mapped URI.
-                        Handle.GET(mapProcessedUri, (Request req) => {
+                        Handle.CUSTOM(method + " " + mapProcessedUri, (Request req) => {
                             return MappingHandler(req, mappedHandlersList, null);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
@@ -436,7 +448,7 @@ namespace PolyjuiceNamespace {
                     // Just adding this mapped handler to the existing list.
 
                     List<HandlerForSoType> mappedList;
-                    Boolean found = customMaps_.TryGetValue(mapProcessedUri, out mappedList);
+                    Boolean found = customMaps_.TryGetValue(mapProcessedMethodUriSpace, out mappedList);
                     Debug.Assert(true == found);
 
                     mappedList.Add(handler);
@@ -447,7 +459,8 @@ namespace PolyjuiceNamespace {
 
                     // Registering the SO handler as a map to corresponding application URI.
                     String hs = appProcessedUri.Replace(EndsWithStringParam, "{?}");
-                    Handle.GET(hs, (Request req, String stringParam) => {
+
+                    Handle.CUSTOM(method + " " + hs, (Request req, String stringParam) => {
 
                         Response resp;
 
@@ -458,13 +471,15 @@ namespace PolyjuiceNamespace {
 
                             // Calling the mapped handler.
                             hs = mapProcessedUri.Replace(EndsWithStringParam, convertedParam);
-                            X.GET(hs, out resp, null, 0, req.HandlerOpts);
+                            req.Uri = hs;
+                            resp = X.CustomRESTRequest(req, 0, req.HandlerOpts);
 
                         } else {
 
                             // Calling the mapped handler.
                             hs = mapProcessedUri.Replace(EndsWithStringParam, stringParam);
-                            X.GET(hs, out resp, null, 0, req.HandlerOpts);
+                            req.Uri = hs;
+                            resp = X.CustomRESTRequest(req, 0, req.HandlerOpts);
                         }
 
                         return resp;
@@ -476,12 +491,13 @@ namespace PolyjuiceNamespace {
                 } else {
 
                     // Registering the proxy handler as a map to corresponding application URI.
-                    Handle.GET(appProcessedUri, (Request req) => {
+                    Handle.CUSTOM(method + " " + appProcessedUri, (Request req) => {
 
                         Response resp;
 
                         // Calling the mapped handler.
-                        X.GET(mapProcessedUri, out resp, null, 0, req.HandlerOpts);
+                        req.Uri = mapProcessedUri;
+                        resp = X.CustomRESTRequest(req, 0, req.HandlerOpts);
 
                         return resp;
 

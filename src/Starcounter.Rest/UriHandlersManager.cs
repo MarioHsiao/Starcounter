@@ -146,26 +146,6 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
-        /// Start the session that came with request.
-        /// </summary>
-        void StartSessionThatCameWithRequest(Request req) {
-
-            // Checking if we are in session already.
-            if (req.IsExternal && req.CameWithCorrectSession) {
-
-                // Obtaining session.
-                Session s = (Session) req.GetAppsSessionInterface();
-
-                // Checking if correct session was obtained.
-                if (null != s) {
-
-                    // Starting session.
-                    Session.Start(s);
-                }
-            }
-        }
-
-        /// <summary>
         /// Runs user/proxy delegate.
         /// </summary>
         public Response RunUserDelegate(
@@ -176,9 +156,6 @@ namespace Starcounter.Rest
 
             // Determining if proxy handler should be used.
             Boolean useProxyDelegate = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
-
-            // Starting the session that came with request.
-            StartSessionThatCameWithRequest(req);
 
             Response resp = null;
 
