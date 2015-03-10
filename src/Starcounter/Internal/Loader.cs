@@ -100,6 +100,9 @@ namespace Starcounter.Internal
         {
             errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
 
+            // Replace with call to new method DatabaseSchema.DeserializeFrom(DirectoryInfo)
+            // TODO:
+
             var schemaFiles = inputDir.GetFiles("*.schema");
 
             var databaseSchema = new DatabaseSchema();
