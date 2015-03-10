@@ -61,5 +61,10 @@ src/Samples/NetworkIoTest/image.png
 #nCover
 *.sln.DotSettings
 
+# Weaver test artifacts
+src/Samples/WeaverTests/**/.starcounter
+src/Samples/WeaverTests/**/*.exe
+src/Samples/WeaverTests/**/*.pdb
+
 # Deleted
 src/Starcounter/Query/prologbeans/*
