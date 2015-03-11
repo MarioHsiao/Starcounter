@@ -185,6 +185,16 @@ namespace Starcounter {
             if (StarcounterBase.TransactionManager != null) {
                 var current = StarcounterBase.TransactionManager.CurrentTransaction;
                 if (current != TransactionHandle.Invalid && !current.IsImplicit) {
+                    if (this.isAddedToViewmodel) {
+                        // Attach a transaction to a jsonobject already added to a Viewmodel (Session).
+                        // Need to register a reference directly here and properly deregister any existing 
+                        // transaction.
+                        var session = Session;
+                        if (_transaction != TransactionHandle.Invalid)
+                            session.DeregisterTransaction(_transaction);
+                        session.RegisterTransaction(current);
+                    }
+
                     _transaction = current;
                     StarcounterBase.TransactionManager.SetTemporaryRef(current);
                 }
