@@ -18,6 +18,16 @@ namespace Starcounter.Advanced.XSON {
             return obj.Scope<Json, byte[], int, int>(_Serialize, obj, buf, origOffset);
         }
 
+        private bool WrapInAppName(Session session, Json obj) {
+            if (!string.IsNullOrEmpty(obj._appName)
+                && session != null
+                && session.CheckOption(SessionOptions.IncludeNamespaces)
+                && (session.PublicViewModel != obj)
+                && !obj.calledFromStepSibling)
+                return true;
+            return false;
+        }
+
         /// <summary>
         /// Estimates the size of serialization in bytes.
         /// </summary>
@@ -25,15 +35,12 @@ namespace Starcounter.Advanced.XSON {
 
             int sizeBytes = 0;
             string htmlUriMerged = null;
+            Session session = obj.Session;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName =
-                (obj._stepParent == null) &&
-                (!string.IsNullOrEmpty(obj._appName)) &&
-                (StarcounterEnvironment.AppName != obj._appName);
-
+            bool wrapInAppName = WrapInAppName(session, obj);
+               
             if (obj.IsArray) {
-
                 sizeBytes = 2; // 2 for "[]".
 
                 for (int arrPos = 0; arrPos < ((IList)obj).Count; arrPos++) {
@@ -54,20 +61,19 @@ namespace Starcounter.Advanced.XSON {
             Json childObj;
             Template tProperty;
 
-            if (obj._Session != null && obj._Session.CheckOption(SessionOptions.PatchVersioning)) {
-                // add serverversion and clientversion to the serialized json if we have a root.
-                sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
-                sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
-            }
-
             if (wrapInAppName) {
-
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
 
                 // Checking if there is any partial Html provided.
                 if (!String.IsNullOrEmpty(obj.GetHtmlPartialUrl())) {
                     htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
                 }
+            }
+
+            if (session != null && obj == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
+                // add serverversion and clientversion to the serialized json if we have a root.
+                sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
+                sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
             }
 
             exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
@@ -124,31 +130,32 @@ namespace Starcounter.Advanced.XSON {
 
             // Wrapping in application name.
             if (wrapInAppName) {
-
                 // Checking if we have any siblings.
-                if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
-
+                if (!obj.calledFromStepSibling && obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
                     // For comma.
                     sizeBytes++;
 
-                    // Creating linear list of all step siblings.
-                    List<Json> allStepSiblings = new List<Json>();
-                    JsonExtension.GetAllStepSiblings(obj, ref allStepSiblings);
-
                     // Calculating the size for each step sibling.
-                    foreach (Json pp in allStepSiblings) {
+                    foreach (Json pp in obj._stepSiblings) {
+                        if (pp == obj)
+                            continue;
 
-                        // Checking if there is any partial Html provided.
-                        if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
+                        pp.calledFromStepSibling = true;
+                        try {
+                            // Checking if there is any partial Html provided.
+                            if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
 
-                            if (htmlUriMerged != null)
-                                htmlUriMerged += "&";
+                                if (htmlUriMerged != null)
+                                    htmlUriMerged += "&";
 
-                            htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                                htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                            }
+
+                            sizeBytes += pp._appName.Length + 1; // 1 for ":".
+                            sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
+                        } finally {
+                            pp.calledFromStepSibling = false;
                         }
-
-                        sizeBytes += pp._appName.Length + 1; // 1 for ":".
-                        sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
                     }
                 }
 
@@ -157,9 +164,7 @@ namespace Starcounter.Advanced.XSON {
 
                 // Checking if merging Html URI was constructed.
                 if (htmlUriMerged != null) {
-
                     htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
-
                     sizeBytes += htmlUriMerged.Length;
 
                     string setupStr = null;
@@ -188,12 +193,10 @@ namespace Starcounter.Advanced.XSON {
             TObject tObj;
             int offset = origOffset;
             String htmlUriMerged = null;
+            Session session = obj.Session;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName =
-                (obj._stepParent == null) &&
-                (!string.IsNullOrEmpty(obj._appName)) &&
-                (StarcounterEnvironment.AppName != obj._appName);
+            bool wrapInAppName = WrapInAppName(session, obj);
 
             unsafe {
                 // Starting from the last written position
@@ -227,40 +230,7 @@ namespace Starcounter.Advanced.XSON {
                     *pfrag++ = (byte)'{';
                     offset++;
 
-                    tObj = (TObject)obj.Template;
-                    exposedProperties = tObj.Properties.ExposedProperties;
-
-                    if (obj._Session != null && obj._Session.CheckOption(SessionOptions.PatchVersioning)) {
-
-                        // add serverversion and clientversion to the serialized json if we have a root.
-                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
-                        offset += valueSize;
-                        pfrag += valueSize;
-                        *pfrag++ = (byte)':';
-                        offset++;
-                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, obj._Session.ClientVersion);
-                        offset += valueSize;
-                        pfrag += valueSize;
-                        *pfrag++ = (byte)',';
-                        offset++;
-
-                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ServerVersionPropertyName);
-                        offset += valueSize;
-                        pfrag += valueSize;
-                        *pfrag++ = (byte)':';
-                        offset++;
-                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, obj._Session.ServerVersion);
-                        offset += valueSize;
-                        pfrag += valueSize;
-
-                        if (exposedProperties.Count > 0) {
-                            *pfrag++ = (byte)',';
-                            offset++;
-                        }
-                    }
-
                     if (wrapInAppName) {
-
                         // Checking if there is any partial Html provided.
                         if (!String.IsNullOrEmpty(obj.GetHtmlPartialUrl())) {
                             htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
@@ -277,11 +247,39 @@ namespace Starcounter.Advanced.XSON {
                         offset++;
                     }
 
+                    tObj = (TObject)obj.Template;
+                    exposedProperties = tObj.Properties.ExposedProperties;
+
+                    if (session != null && obj == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
+                        // add serverversion and clientversion to the serialized json if we have a root.
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
+                        offset += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)':';
+                        offset++;
+                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, session.ClientVersion);
+                        offset += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)',';
+                        offset++;
+
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ServerVersionPropertyName);
+                        offset += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)':';
+                        offset++;
+                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, session.ServerVersion);
+                        offset += valueSize;
+                        pfrag += valueSize;
+
+                        if (exposedProperties.Count > 0) {
+                            *pfrag++ = (byte)',';
+                            offset++;
+                        }
+                    }
+
                     for (int i = 0; i < exposedProperties.Count; i++) {
                         Template tProperty = exposedProperties[i];
-
-                        // Property name.
-                        //                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
                         valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
 
                         offset += valueSize;
@@ -351,53 +349,51 @@ namespace Starcounter.Advanced.XSON {
                         }
                     }
 
+                    // Wrapping in application name.
                     if (wrapInAppName) {
                         *pfrag++ = (byte)'}';
                         offset++;
-                    }
-
-                    // Wrapping in application name.
-                    if (wrapInAppName) {
 
                         // Checking if we have any siblings.
-                        if (obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
-
-                            // Separating by comma.
+                        if (!obj.calledFromStepSibling && obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
                             *pfrag++ = (byte)',';
                             offset++;
-
-                            // Creating linear list of all step siblings.
-                            List<Json> allStepSiblings = new List<Json>();
-                            JsonExtension.GetAllStepSiblings(obj, ref allStepSiblings);
-
+                            
                             // Serializing every sibling first.
-                            for (int s = 0; s < allStepSiblings.Count; s++) {
+                            for (int s = 0; s < obj._stepSiblings.Count; s++) {
+                                var pp = obj._stepSiblings[s];
 
-                                var pp = allStepSiblings[s];
+                                if (pp == obj)
+                                    continue;
 
-                                // Checking if there is any partial Html provided.
-                                if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
+                                pp.calledFromStepSibling = true;
+                                try {
+                                    // Checking if there is any partial Html provided.
+                                    if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
 
-                                    if (htmlUriMerged != null)
-                                        htmlUriMerged += "&";
+                                        if (htmlUriMerged != null)
+                                            htmlUriMerged += "&";
 
-                                    htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
-                                }
+                                        htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                                    }
 
-                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp._appName);
-                                offset += valueSize;
-                                pfrag += valueSize;
+                                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp._appName);
+                                    offset += valueSize;
+                                    pfrag += valueSize;
 
-                                *pfrag++ = (byte)':';
-                                offset++;
-
-                                valueSize = pp.ToJsonUtf8(buf, offset);
-                                pfrag += valueSize;
-                                offset += valueSize;
-
-                                if ((s + 1) < allStepSiblings.Count) {
-                                    *pfrag++ = (byte)',';
+                                    *pfrag++ = (byte)':';
                                     offset++;
+
+                                    valueSize = pp.ToJsonUtf8(buf, offset);
+                                    pfrag += valueSize;
+                                    offset += valueSize;
+
+                                    if ((s + 1) < obj._stepSiblings.Count) {
+                                        *pfrag++ = (byte)',';
+                                        offset++;
+                                    }
+                                } finally {
+                                    pp.calledFromStepSibling = false;
                                 }
                             }
                         }
@@ -416,7 +412,6 @@ namespace Starcounter.Advanced.XSON {
 
                         // Checking if merging Html URI was constructed.
                         if (null != htmlUriMerged) {
-
                             htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
 
                             valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlUriMerged);

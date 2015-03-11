@@ -22,7 +22,7 @@ namespace Starcounter {
 		/// <summary>
 		/// 
 		/// </summary>
-		internal void Dirtyfy() {
+		internal void Dirtyfy(bool callStepSiblings = true) {
             if (!_dirtyCheckEnabled)
                 return;
 
@@ -30,14 +30,19 @@ namespace Starcounter {
 			if (Parent != null)
 				Parent.Dirtyfy();
 
-            if (_stepParent != null)
-                _stepParent.Dirtyfy();
+            if (callStepSiblings == true && _stepSiblings != null) {
+                foreach (Json stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    stepSibling.Dirtyfy(false);
+                }
+            }
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		internal void CheckpointChangeLog() {
+		internal void CheckpointChangeLog(bool callStepSiblings = true) {
             if (!_dirtyCheckEnabled)
                 return;
 
@@ -60,9 +65,11 @@ namespace Starcounter {
                         },
                         (TObject)Template);
 
-                    if (this._stepSiblings != null) {
+                    if (callStepSiblings == true && this._stepSiblings != null) {
                         foreach (Json stepSibling in _stepSiblings) {
-                            stepSibling.CheckpointChangeLog();
+                            if (stepSibling == this)
+                                continue;
+                            stepSibling.CheckpointChangeLog(false);
                         }
                     }
 				}
@@ -88,14 +95,14 @@ namespace Starcounter {
 		/// Logs all property changes made to this object or its bound data object
 		/// </summary>
 		/// <param name="session">The session (for faster access)</param>
-		internal void LogValueChangesWithDatabase(Session session) {
+		internal void LogValueChangesWithDatabase(Session session, bool callStepSiblings) {
             if (!_dirtyCheckEnabled)
                 return;
 
 			if (this.IsArray) {
-				LogArrayChangesWithDatabase(session);
+				LogArrayChangesWithDatabase(session, callStepSiblings);
 			} else {
-				LogObjectValueChangesWithDatabase(session);
+				LogObjectValueChangesWithDatabase(session, callStepSiblings);
 			}
 		}
 
@@ -103,7 +110,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		/// <param name="session"></param>
-		private void LogArrayChangesWithDatabase(Session session) {
+		private void LogArrayChangesWithDatabase(Session session, bool callStepSiblings = true) {
             bool logChanges;
             Json item;
 
@@ -132,7 +139,7 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)_list[i]).LogValueChangesWithDatabase(session);
+                        ((Json)_list[i]).LogValueChangesWithDatabase(session, callStepSiblings);
                      }
                 }
 
@@ -144,7 +151,7 @@ namespace Starcounter {
                 ArrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < _list.Count; t++) {
-                    ((Json)_list[t]).LogValueChangesWithDatabase(session);
+                    ((Json)_list[t]).LogValueChangesWithDatabase(session, callStepSiblings);
                 }
             }
 		}
@@ -156,7 +163,7 @@ namespace Starcounter {
 		/// th database.
 		/// </summary>
 		/// <param name="session">The session (for faster access)</param>
-		internal void LogValueChangesWithoutDatabase(Session s) {
+		internal void LogValueChangesWithoutDatabase(Session s, bool callStepSiblings = true) {
 			throw new NotImplementedException();
 		}
 
@@ -165,8 +172,8 @@ namespace Starcounter {
 		/// to the session changelog.
 		/// </summary>
 		/// <param name="session">The session to report to</param>
-		private void LogObjectValueChangesWithDatabase(Session session) {
-            this.Scope<Session, Json>((s, json) => {
+		private void LogObjectValueChangesWithDatabase(Session session, bool callStepSiblings = true) {
+            this.Scope<Session, Json, bool>((s, json, css) => {
                 var template = (TObject)json.Template;
                 if (template == null)
                     return;
@@ -199,7 +206,7 @@ namespace Starcounter {
                             if (p is TContainer) {
                                 var c = ((TContainer)p).GetValue(json);
                                 if (c != null)
-                                    c.LogValueChangesWithDatabase(s);
+                                    c.LogValueChangesWithDatabase(s, css);
                             } else {
                                 if (json.IsArray)
                                     throw new NotImplementedException();
@@ -214,7 +221,7 @@ namespace Starcounter {
                         if (exposed[t] is TContainer) {
                             var c = ((TContainer)exposed[t]).GetValue(json);
                             if (c != null)
-                                c.LogValueChangesWithDatabase(s);
+                                c.LogValueChangesWithDatabase(s, css);
                         } else {
                             if (json.IsArray) {
                                 throw new NotImplementedException();
@@ -227,22 +234,25 @@ namespace Starcounter {
                 } else {
                     foreach (var e in json.list) {
                         if (e is Json) {
-                            ((Json)e).LogValueChangesWithDatabase(s);
+                            ((Json)e).LogValueChangesWithDatabase(s, css);
                         }
                     }
                 }
 
-                if (json._stepSiblings != null) {
+                if (css == true && json._stepSiblings != null) {
                     foreach (var stepSibling in json._stepSiblings) {
-                        stepSibling.LogValueChangesWithDatabase(s);
+                        if (stepSibling == json)
+                            continue;
+                        stepSibling.LogValueChangesWithDatabase(s, false);
                     }
                 }
             },
             session, 
-            this);
+            this,
+            callStepSiblings);
 		}
 
-		internal void SetBoundValuesInTuple() {
+		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
 			if (IsArray) {
 				foreach (Json item in _list) {
 					item.SetBoundValuesInTuple();
@@ -266,9 +276,11 @@ namespace Starcounter {
                         }
                     }
 
-                    if (json._stepSiblings != null) {
+                    if (callStepSiblings == true && json._stepSiblings != null) {
                         foreach (var stepSibling in json._stepSiblings) {
-                            stepSibling.SetBoundValuesInTuple();
+                            if (stepSibling == this)
+                                continue;
+                            stepSibling.SetBoundValuesInTuple(false);
                         }
                     }            
                 }, 
@@ -347,7 +359,7 @@ namespace Starcounter {
             return (serverVersion >= addedInVersion);
         }
 
-        internal void CleanupOldVersionLogs(long toVersion) {
+        internal void CleanupOldVersionLogs(long toVersion, bool callStepSiblings = true) {
             if (versionLog != null) {
                 Session session = Session;
                 for (int i = 0; i < versionLog.Count; i++) {
@@ -373,26 +385,35 @@ namespace Starcounter {
                     }
                 }
             }
+
+            if (callStepSiblings && _stepSiblings != null) {
+                foreach (Json stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    CleanupOldVersionLogs(toVersion, false);
+                }
+            }
         }
 
         /// <summary>
         /// Called when this object is added to a stateful viewmodel. 
-        /// This methid will called on each childjson as well.
+        /// This method will be called on each childjson as well.
         /// </summary>
-        private void OnAddedToViewmodel() {
+        private void OnAddedToViewmodel(bool callStepSiblings) {
             // TODO:
             // Do upgrade of dirtychecks instead of static field.
 
+            if (this.isAddedToViewmodel == true)
+                return;
+
             this.addedInVersion = this.Session.ServerVersion;
+            this.isAddedToViewmodel = true;
 
             // If the transaction attached to this json is the same transaction set higher 
             // up in the tree we set it back to invalid. This will be useful later when
             // json will be stored in blobs.
-            Json parentOrStepParent = _parent;
-            if (parentOrStepParent == null)
-                parentOrStepParent = _stepParent;
-
-            if (parentOrStepParent != null && this._transaction == parentOrStepParent.TransactionHandle)
+            
+            if (_parent != null && this._transaction == _parent.GetTransactionHandle(true))
                 this._transaction = TransactionHandle.Invalid;
             
             if (this._transaction != TransactionHandle.Invalid) {
@@ -402,9 +423,17 @@ namespace Starcounter {
                 Session.RegisterTransaction(_transaction);
             }
 
+            if (callStepSiblings == true && this._stepSiblings != null) {
+                foreach (var stepSibling in this._stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    stepSibling.OnAddedToViewmodel(false);
+                }
+            }
+
             if (this.IsArray) {
                 foreach (Json item in _list) {
-                    item.OnAddedToViewmodel();
+                    item.OnAddedToViewmodel(true);
                 }
             } else {
                 if (Template != null) {
@@ -413,15 +442,9 @@ namespace Starcounter {
                         if (container != null) {
                             var childJson = (Json)container.GetUnboundValueAsObject(this);
                             if (childJson != null)
-                                childJson.OnAddedToViewmodel();
+                                childJson.OnAddedToViewmodel(true);
                         }
                     }
-                }
-            }
-
-            if (this._stepSiblings != null) {
-                foreach (var sibling in this._stepSiblings) {
-                    sibling.OnAddedToViewmodel();
                 }
             }
         }
@@ -430,7 +453,8 @@ namespace Starcounter {
         /// Called when this object have been detached from a stateful viewmodel. Will call all
         /// children as well.
         /// </summary>
-        private void OnRemovedFromViewmodel() {
+        private void OnRemovedFromViewmodel(bool callStepSiblings) {
+            isAddedToViewmodel = false;
             addedInVersion = -1;
             if (_transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(_transaction);
@@ -438,7 +462,7 @@ namespace Starcounter {
 
             if (this.IsArray) {
                 foreach (Json item in _list) {
-                    item.OnRemovedFromViewmodel();
+                    item.OnRemovedFromViewmodel(true);
                 }
             } else {
                 if (Template != null) {
@@ -447,9 +471,22 @@ namespace Starcounter {
                         if (container != null) {
                             var childJson = (Json)container.GetUnboundValueAsObject(this);
                             if (childJson != null)
-                                childJson.OnRemovedFromViewmodel();
+                                childJson.OnRemovedFromViewmodel(true);
                         }
                     }
+                }
+            }
+
+            if (callStepSiblings == true && this._stepSiblings != null) {
+                foreach (var stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+
+                    // Check for stepsiblings that might be a part of a stateful viewmodel,
+                    // and still be a sibling to another. In that case we don't do the call.
+                    if (stepSibling.Parent != null && stepSibling.Parent.isAddedToViewmodel)
+                        continue;
+                    stepSibling.OnRemovedFromViewmodel(false);
                 }
             }
         }

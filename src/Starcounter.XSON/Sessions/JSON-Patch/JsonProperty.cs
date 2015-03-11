@@ -121,13 +121,8 @@ namespace Starcounter.XSON {
                 if (t == null) {
                     bool found = false;
 
-                    if (json.HasStepSiblings()) {
-
-                        // Creating linear list of all step siblings.
-                        List<Json> allStepSiblings = new List<Json>();
-                        JsonExtension.GetAllStepSiblings(json, ref allStepSiblings);
-
-                        foreach (Json j in allStepSiblings) {
+                    if (json._stepSiblings != null) {
+                        foreach (Json j in json._stepSiblings) {
                             if (j.GetAppName() == ptr.Current) {
                                 current = j;
                                 found = true;
