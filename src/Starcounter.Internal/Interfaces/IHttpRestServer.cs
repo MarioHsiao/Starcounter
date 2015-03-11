@@ -27,18 +27,15 @@ namespace Starcounter.Advanced {
         /// </summary>
         void UserAddedLocalFileDirectoryWithStaticContent(String appName, UInt16 port, String path);
 
-
         /// <summary>
         /// Get a list with all folders where static file resources such as .html files or images are kept.
         /// </summary>
         /// <returns></returns>
         List<string> GetWorkingDirectories(UInt16 port);
 
-
         /// <summary>
         /// Housekeeps this instance.
         /// </summary>
-        /// <returns>System.Int32.</returns>
-        int Housekeep();
+        void Housekeep();
     }
 }

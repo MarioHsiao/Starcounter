@@ -8,6 +8,7 @@ using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
 using Starcounter.Rest;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal {
 
@@ -111,10 +112,12 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
-        /// 
+        /// Initializing the codehost apps.
         /// </summary>
         static AppsBootstrapper() {
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
+
+            // Constructing file server for all ports.
+            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppServer_ = new AppRestServer(fileServer);
         }
 
@@ -127,7 +130,7 @@ namespace Starcounter.Internal {
 
             AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
         }
-
+        
         /// <summary>
         /// Gets a list of directories used by the web server to
         /// resolve GET requests for static content.
