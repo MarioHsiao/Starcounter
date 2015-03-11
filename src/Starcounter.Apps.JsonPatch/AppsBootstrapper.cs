@@ -149,10 +149,27 @@ namespace Starcounter.Internal {
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
                 return;
 
+            Boolean initPolyjuiceFlag = false;
+            if ((!StarcounterEnvironment.PolyjuiceAppsFlag) &&
+                (CurrentVersion.EditionName == StarcounterConstants.PolyjuiceEditionName)) {
+
+                initPolyjuiceFlag = true;
+            }
+
             // Checking if there is a given web resource path.
             if (webResourcesDir != null) {
 
                 String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
+
+                // Checking if we have wwwroot folder for Polyjuice edition.
+                if (StarcounterEnvironment.PolyjuiceAppsFlag || initPolyjuiceFlag) {
+
+                    String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
+
+                    if (Directory.Exists(extendedResourceDirPath)) {
+                        fullPathToResourcesDir = extendedResourceDirPath;
+                    }
+                }
 
                 // Registering files directory.
                 AddFileServingDirectory(appName, port, fullPathToResourcesDir);
@@ -168,7 +185,7 @@ namespace Starcounter.Internal {
                         fullPathToResourcesDir;
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Response resp = Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null);
+                    Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
 
                     if ("Success!" != resp.Body) {
                         throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
@@ -180,8 +197,7 @@ namespace Starcounter.Internal {
             if (!StarcounterEnvironment.IsAdministratorApp) {
 
                 // Checking if we have a Polyjuice edition.
-                if ((!StarcounterEnvironment.PolyjuiceAppsFlag) &&
-                    (CurrentVersion.EditionName == StarcounterConstants.PolyjuiceEditionName)) {
+                if (initPolyjuiceFlag) {
 
                     Polyjuice.Init();
                 }
@@ -200,7 +216,7 @@ namespace Starcounter.Internal {
                         StarcounterEnvironment.Default.UserHttpPort + StarcounterConstants.NetworkConstants.CRLF +
                         polyjuiceStatic;
 
-                    Response resp = Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null);
+                    Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
 
                     if ("Success!" != resp.Body) {
                         throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
