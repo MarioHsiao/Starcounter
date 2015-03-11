@@ -16,6 +16,7 @@ using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 using Starcounter.Templates;
 using Starcounter.Rest;
 using System.IO;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal.Test
 {
@@ -34,7 +35,7 @@ namespace Starcounter.Internal.Test
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
             StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
 
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
+            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
             UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);

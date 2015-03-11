@@ -9,6 +9,7 @@ using Starcounter.Rest;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
 using PolyjuiceNamespace;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal.Tests
 {
@@ -27,7 +28,7 @@ namespace Starcounter.Internal.Tests
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
             StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
 
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
+            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
             UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
