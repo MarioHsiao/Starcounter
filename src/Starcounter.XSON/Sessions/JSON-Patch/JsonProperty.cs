@@ -117,14 +117,22 @@ namespace Starcounter.XSON {
                 if (json.IsArray) {
                     throw new NotImplementedException();
                 }
-                Template t = ((TObject)json.Template).Properties.GetExposedTemplateByName(ptr.Current);
-                if (t == null) {
-                    bool found = false;
 
-                    if (json._stepSiblings != null) {
-                        foreach (Json j in json._stepSiblings) {
-                            if (j.GetAppName() == ptr.Current) {
-                                current = j;
+                if (!string.IsNullOrEmpty(json._appName) && Session.Current.PublicViewModel != json) {
+                    // We have a possible attachpoint. The current token in pointer points to a stepsibling.
+                    // If no stepsiblings exists (or only one) it is the current json. Otherwise we need to 
+                    // find the correct sibling.
+                    bool found = false;
+                    if (json._stepSiblings == null) {
+                        if (json._appName == ptr.Current) {
+                            ptr.MoveNext();
+                            found = true;
+                        }
+                    } else {
+                        foreach (Json stepSibling in json._stepSiblings) {
+                            if (stepSibling.GetAppName() == ptr.Current) {
+                                json = stepSibling;
+                                ptr.MoveNext();
                                 found = true;
                                 break;
                             }
@@ -132,17 +140,23 @@ namespace Starcounter.XSON {
                     }
 
                     if (!found) {
-                        if (json.GetAppName() == ptr.Current) {
-                            current = json;
-                        } else {
-                            throw new JsonPatchException(
-                                String.Format("Unknown property '{0}' in path.", ptr.Current),
-                                null
-                            );
-                        }
+                        throw new JsonPatchException(
+                            String.Format("Unknown namespace '{0}' in path.", ptr.Current),
+                            null
+                        );
                     }
-                } else {
+                } 
+
+                // Here we have moved to a stepsibling or no stepsiblings exists and the current token 
+                // in the pointer points to a property.
+                Template t = ((TObject)json.Template).Properties.GetExposedTemplateByName(ptr.Current);
+                if (t != null) {
                     current = t;
+                } else {
+                    throw new JsonPatchException(
+                            String.Format("Unknown property '{0}' in path.", ptr.Current),
+                            null
+                        );
                 }
             }
 
