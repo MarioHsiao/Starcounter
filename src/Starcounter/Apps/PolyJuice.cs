@@ -990,11 +990,23 @@ namespace PolyjuiceNamespace {
                     if (mainResponseId != i) {
                         siblingJson = (Json)responses[i].Resource;
                         siblingJson.SetAppName(responses[i].AppName);
+
+                        if (siblingJson._stepSiblings != null) {
+                            // We have another set of stepsiblings. Merge them into one list.
+                            foreach (var existingSibling in siblingJson._stepSiblings) {
+                                if (!stepSiblings.Contains(existingSibling)) {
+                                    stepSiblings.Add(existingSibling);
+                                    existingSibling._stepSiblings = stepSiblings;
+                                }
+                            }
+                        }
                         siblingJson._stepSiblings = stepSiblings;
-                        stepSiblings.Add(siblingJson);
+
+                        if (!stepSiblings.Contains(siblingJson)) {
+                            stepSiblings.Add(siblingJson);
+                        }
                     }
                 }
-
             }
 
             return mainResponse;
