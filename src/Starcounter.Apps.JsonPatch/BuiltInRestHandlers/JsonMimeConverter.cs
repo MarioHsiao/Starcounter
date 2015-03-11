@@ -47,7 +47,8 @@ namespace Starcounter.Internal {
                         throw new UnsupportedMimeTypeException(
                             String.Format("Cannot supply mime-type {0} for the JSON resource. There is no session, so no JSON-Patch message can be generated.", mimeType.ToString()));
                     }
-                    int size = jsonPatch.CreateJsonPatchBytes(s, true, out ret);
+
+                    int size = jsonPatch.CreateJsonPatchBytes(s, true, s.CheckOption(SessionOptions.IncludeNamespaces), out ret);
                     if (ret.Length != size) {
                         byte[] tmp = new byte[size];
                         Buffer.BlockCopy(ret, 0, tmp, 0, size);
