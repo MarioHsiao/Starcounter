@@ -151,27 +151,34 @@ namespace Starcounter {
         /// </summary>
         public ITransaction Transaction {
             get {
-                var handle = TransactionHandle;
+                var handle = GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
                     return TransactionManager.WrapHandle(handle);
                 return null;
             }
         }
 
-        internal TransactionHandle TransactionHandle {
-            get {
-                // Returning first available transaction climbing up the tree starting from this node.
-                if (_transaction != TransactionHandle.Invalid)
-                    return _transaction;
+        internal TransactionHandle GetTransactionHandle(bool lookInStepSiblings) {
+            TransactionHandle handle;
 
-                if (_parent != null)
-                    return _parent.TransactionHandle;
+            // Returning first available transaction climbing up the tree starting from this node.
+            if (_transaction != TransactionHandle.Invalid)
+                return _transaction;
 
-                if (_stepParent != null)
-                    return _stepParent.TransactionHandle;
-
-                return TransactionHandle.Invalid;
+            if (lookInStepSiblings == true && _stepSiblings != null) {
+                foreach (Json stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    handle = stepSibling.GetTransactionHandle(false);
+                    if (handle != TransactionHandle.Invalid)
+                        return handle;
+                }
             }
+
+            if (_parent != null)
+                return _parent.GetTransactionHandle(true);
+
+            return TransactionHandle.Invalid;
         }
 
         public void AttachCurrentTransaction() {

@@ -72,9 +72,9 @@ namespace Starcounter.XSON {
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public string CreateJsonPatch(Session session, bool flushLog) {
+        public string CreateJsonPatch(Session session, bool flushLog, bool includeNamespace) {
             byte[] patchArr;
-            int size = CreateJsonPatchBytes(session, flushLog, out patchArr);
+            int size = CreateJsonPatchBytes(session, flushLog, includeNamespace, out patchArr);
             return Encoding.UTF8.GetString(patchArr, 0, size);
         }
 
@@ -83,19 +83,14 @@ namespace Starcounter.XSON {
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public int CreateJsonPatchBytes(Session session, bool flushLog, out byte[] patches) {
+        public int CreateJsonPatchBytes(Session session, bool flushLog, bool includeNamespace, out byte[] patches) {
             int patchSize;
             List<Change> changes;
 
             session.GenerateChangeLog();
             changes = session.GetChanges();
 
-            //if (changes.Count == 0) {
-            //    patches = _emptyPatchArr;
-            //    return _emptyPatchArr.Length;
-            //}
-
-            patchSize = CreatePatches(session, changes, out patches);
+            patchSize = CreatePatches(session, changes, includeNamespace, out patches);
             if (flushLog)
                 session.ClearChangeLog();
         
@@ -108,30 +103,31 @@ namespace Starcounter.XSON {
         /// <param name="changeLog"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        internal int CreatePatches(Session session, List<Change> changes, out byte[] patches) {
+        internal int CreatePatches(Session session, List<Change> changes, bool includeNamespace, out byte[] patches) {
             byte[] buffer;
             int size;
-            int[] pathSizes;
             Utf8Writer writer;
             bool versioning = session.CheckOption(SessionOptions.PatchVersioning);
 
-            // TODO:
-            // We dont want to create a new array here...
-            pathSizes = new int[changes.Count];
-
-            size = 2;
-            size += pathSizes.Length;
-
-            for (int i = 0; i < changes.Count; i++) {
-                size += CalculateSize(changes[i], out pathSizes[i]);
-            }
+            size = 2; // [ ]
 
             if (versioning) {
                 // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
-                size += testClientVersionPatch.Length + GetSizeOfIntAsUtf8(session.ClientVersion) + 2;
-                size += replaceServerVersionPatch.Length + GetSizeOfIntAsUtf8(session.ServerVersion) + 2;
-                
-            }    
+                size += testClientVersionPatch.Length + GetSizeOfIntAsUtf8(session.ClientVersion) + 2; // +2 for "},"
+                size += replaceServerVersionPatch.Length + GetSizeOfIntAsUtf8(session.ServerVersion) + 2; // +2 for "},"
+            }
+
+            int patchSize;
+            for (int i = 0; i < changes.Count; i++) {
+                patchSize = EstimateSizeOfPatch(changes[i], includeNamespace);
+                if (patchSize == -1)
+                    continue;
+                size += patchSize;
+            }
+
+            size += changes.Count - 1; // Adding one ',' per change over zero.
+            if (size < 2) size = 2;
+
             buffer = new byte[size];
             
             unsafe {
@@ -156,7 +152,7 @@ namespace Starcounter.XSON {
 
                     for (int i = 0; i < changes.Count; i++) {
                         var change = changes[i];
-                        WritePatch(change, ref writer, pathSizes[i]);
+                        WritePatch(change, ref writer, includeNamespace);
 
                         if (change.Property != null) {
                             Json parent = change.Parent;
@@ -187,8 +183,9 @@ namespace Starcounter.XSON {
         /// <param name="from">From.</param>
         /// <param name="index">The index.</param>
         /// <returns>String.</returns>
-        private void WritePatch(Change change, ref Utf8Writer writer, int pathSize) {
+        private bool WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace) {
 			Json childJson = null;
+            int writerStart = writer.Written;
 
             // TODO:
             // dont write static strings as strings. convert them once and copy arrays.
@@ -197,7 +194,10 @@ namespace Starcounter.XSON {
             writer.Write("\",\"path\":\"");
 
             if (change.Property != null) {
-                WritePath(ref writer, change, pathSize);
+                if (!WritePath(ref writer, change, includeNamespace)) {
+                    writer.Skip(writer.Written - writerStart);
+                    return false;
+                }
             } else {
                 childJson = change.Parent;
             }
@@ -233,6 +233,7 @@ namespace Starcounter.XSON {
                 }
             }
             writer.Write('}');
+            return true;
         }
 
         private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index, Json item) {
@@ -270,8 +271,9 @@ namespace Starcounter.XSON {
             return sizeBytes;
         }
 
-        internal static int CalculateSize(Change change, out int pathSize) {
+        internal static int EstimateSizeOfPatch(Change change, bool includeNamespace) {
             int size;
+            int pathSize;
 
             // {"op":"???","path":"???","value":???}
             // size = 7 + op + 10 + path + 10 + value + 1 => 28 + var
@@ -282,16 +284,21 @@ namespace Starcounter.XSON {
             size = 19;
             size += _patchOpUtf8Arr[change.ChangeType].Length;
 
-            pathSize = CalculateSizeOfPath(change.Parent, false);
+            pathSize = EstimateSizeOfPath(change.Parent, includeNamespace, false);
+            if (pathSize == -1) {
+                // No valid path found.
+                return -1;
+            }
+
+            size += pathSize;
             if (change.Property != null)
-                pathSize += change.Property.TemplateName.Length;
+                size += change.Property.TemplateName.Length + 1;
             else
-                pathSize--; // Path for root is empty, ""
+                size--; // Path for root is empty, ""
 
             if (change.Index != -1)
-                pathSize += GetSizeOfIntAsUtf8(change.Index) + 1;
-            size += pathSize;
-
+                size += GetSizeOfIntAsUtf8(change.Index) + 1;
+            
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 size += 9;
                 size += change.Parent.Scope<Change, int>(
@@ -303,128 +310,144 @@ namespace Starcounter.XSON {
             return size;
         }
 
-        private static int CalculateSizeOfPath(Json json, bool fromStepParent) {
+        private static int EstimateSizeOfPath(Json json, bool includeNamespace, bool calledFromStepSibling) {
             int size;
+            int totalSize;
             Json parent;
             Template template;
 
-            size = 0;
-            if (json._stepParent != null) {
-                fromStepParent = true;
-                parent = json._stepParent;
-                size += json.GetAppName().Length + 1;
-            } else {
-                parent = json.Parent;
+            // TODO:
+            // Evaluate all possible paths and create patches for all valid ones. 
 
-//                if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
-                if (!fromStepParent && json._appName != null) {
-                    size += json._appName.Length + 1;
+            if (json == null)
+                return -1;
+
+            if (json == json.Session.PublicViewModel) // Valid path.
+                return 0;
+
+            size = -1;
+            totalSize = 0;
+            if (!calledFromStepSibling && json._stepSiblings != null) {
+                foreach (Json stepSibling in json._stepSiblings) {
+                    if (stepSibling == json)
+                        continue;
+                    size = EstimateSizeOfPath(stepSibling, includeNamespace, true);
+                    if (size != -1) 
+                        break;
                 }
-                fromStepParent = false;
+            }
 
-                size += 1;
-                if (parent != null) {
-                    if (parent.IsArray) {
-                        if (json._cacheIndexInArr == -1)
-                            json.UpdateCachedIndex();
-                        size += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
+            parent = null;
+            if (size == -1) {
+                parent = json.Parent;
+                size = EstimateSizeOfPath(parent, includeNamespace, false);
+            }
+
+            if (size == -1)
+                return -1;
+
+            totalSize += size;
+
+            if (parent != null) {
+                totalSize++;
+                if (parent.IsArray) {
+                    if (json._cacheIndexInArr == -1)
+                        json.UpdateCachedIndex();
+                    totalSize += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
+                } else {
+                    // We use the cacheIndexInArr to keep track of obj that is set
+                    // in the parent as an untyped object since the template here is not
+                    // the template in the parent (which we want).
+                    if (json._cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
                     } else {
-                        // We use the cacheIndexInArr to keep track of obj that is set
-                        // in the parent as an untyped object since the template here is not
-                        // the template in the parent (which we want).
-                        if (json._cacheIndexInArr != -1) {
-                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-                        } else {
-                            template = json.Template;
-                        }
-                        size += template.TemplateName.Length;
+                        template = json.Template;
                     }
-                }   
+                    totalSize += template.TemplateName.Length;
+                }
             }
 
-            if (parent != null)
-                size += CalculateSizeOfPath(parent, fromStepParent);
+            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
+                totalSize += json._appName.Length + 1;
+            } 
 
-            return size;
+            return totalSize;
         }
 
-        private void WritePath(ref Utf8Writer writer, Change change, int pathSize) {
-            int sizeToWrite = change.Property.TemplateName.Length + 1;
-            
-            if (change.Index != -1) {
-                sizeToWrite += GetSizeOfIntAsUtf8(change.Index) + 1;
-            }
-
-            writer.Skip(pathSize - sizeToWrite);
-            writer.Write('/');
-            writer.Write(change.Property.TemplateName);
-
-            if (change.Index != -1) {
-                writer.Write('/');
-                writer.Write(change.Index);
-            }
-
-            int positionAfter = writer.Written;
-            WritePath_2(ref writer, change.Parent, sizeToWrite, false);
-            if (positionAfter != writer.Written) {
-                writer.Skip(positionAfter - writer.Written);
-            }
-        }
-
-        private void WritePath_2(ref Utf8Writer writer, Json json, int prevSize, bool fromStepParent) {
-            int size;
+        private bool WritePath(ref Utf8Writer writer, Json json, bool includeNamespace, bool calledFromStepSibling) {
+            bool pathWritten;
             Json parent;
             Template template;
 
-            if (json._stepParent != null) {
-                parent = json._stepParent;
-                size = json.GetAppName().Length + 1;
-                writer.Skip(-(size + prevSize));
-                writer.Write('/');
-                writer.Write(json.GetAppName());
-                fromStepParent = true;
-            } else {
-                size = 0;
-                parent = json.Parent;
+            // TODO:
+            // Evaluate all possible paths and create patches for all valid ones. 
 
-                if (!fromStepParent && json._appName != null) {
-                    size = json.GetAppName().Length + 1;
-                    writer.Skip(-(size + prevSize));
+            if (json == null)
+                return false;
+
+            if (json == json.Session.PublicViewModel) // Valid path.
+                return true;
+
+            pathWritten = false;
+            if (!calledFromStepSibling && json._stepSiblings != null) {
+                foreach (Json stepSibling in json._stepSiblings) {
+                    if (stepSibling == json)
+                        continue;
+
+                    pathWritten = WritePath(ref writer, stepSibling, includeNamespace, true);
+                    if (pathWritten)
+                        break;
+                }
+            }
+
+            parent = null;
+            if (!pathWritten) {
+                parent = json.Parent;
+                pathWritten = WritePath(ref writer, parent, includeNamespace, false);
+            }
+
+            if (!pathWritten)
+                return false;
+
+            if (parent != null) {
+                if (parent.IsArray) {
+                    if (json._cacheIndexInArr == -1)
+                        json.UpdateCachedIndex();
                     writer.Write('/');
-                    writer.Write(json._appName);
-                    prevSize = size;
-                }
-                fromStepParent = false;
-
-                if (parent != null) {
-                    if (parent.IsArray) {
-                        if (json._cacheIndexInArr == -1)
-                            json.UpdateCachedIndex();
-
-                        size = GetSizeOfIntAsUtf8(json._cacheIndexInArr) + 1;
-                        writer.Skip(-(size + prevSize));
-                        writer.Write('/');
-                        writer.Write(json._cacheIndexInArr);
+                    writer.Write(json._cacheIndexInArr);
+                } else {
+                    // We use the cacheIndexInArr to keep track of obj that is set
+                    // in the parent as an untyped object since the template here is not
+                    // the template in the parent (which we want).
+                    if (json._cacheIndexInArr != -1) {
+                        template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
                     } else {
-                        // We use the cacheIndexInArr to keep track of obj that is set
-                        // in the parent as an untyped object since the template here is not
-                        // the template in the parent (which we want).
-                        if (json._cacheIndexInArr != -1) {
-                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-                        } else {
-                            template = json.Template;
-                        }
-
-                        size = template.TemplateName.Length + 1;
-                        writer.Skip(-(size + prevSize));
-                        writer.Write('/');
-                        writer.Write(template.TemplateName);
+                        template = json.Template;
                     }
+                    writer.Write('/');
+                    writer.Write(template.TemplateName);
                 }
             }
 
-            if (parent != null)
-                WritePath_2(ref writer, parent, size, fromStepParent);
+            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
+                writer.Write('/');
+                writer.Write(json._appName);
+            }
+            return true;
+        }
+
+        private bool WritePath(ref Utf8Writer writer, Change change, bool includeNamespace) {
+            if (WritePath(ref writer, change.Parent, includeNamespace, false)) {
+                writer.Write('/');
+                writer.Write(change.Property.TemplateName);
+
+                if (change.Index != -1) {
+                    writer.Write('/');
+                    writer.Write(change.Index);
+                }
+                return true;
+            }
+            return false;
         }
 
         private static int GetSizeOfIntAsUtf8(long value) {
