@@ -337,18 +337,18 @@ namespace Starcounter.XSON {
                 }
             }
 
-            parent = json.Parent;
-            if (size == -1)
+            parent = null;
+            if (size == -1) {
+                parent = json.Parent;
                 size = EstimateSizeOfPath(parent, includeNamespace, false);
+            }
 
             if (size == -1)
                 return -1;
 
             totalSize += size;
 
-            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
-                totalSize += json._appName.Length + 1;
-            } else {
+            if (parent != null) {
                 totalSize++;
                 if (parent.IsArray) {
                     if (json._cacheIndexInArr == -1)
@@ -363,12 +363,14 @@ namespace Starcounter.XSON {
                     } else {
                         template = json.Template;
                     }
-
-//                    if (template.TemplateName != null) {
-                        totalSize += template.TemplateName.Length;
-//                    }
+                    totalSize += template.TemplateName.Length;
                 }
             }
+
+            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
+                totalSize += json._appName.Length + 1;
+            } 
+
             return totalSize;
         }
 
@@ -398,17 +400,16 @@ namespace Starcounter.XSON {
                 }
             }
 
-            parent = json.Parent;
-            if (!pathWritten)
+            parent = null;
+            if (!pathWritten) {
+                parent = json.Parent;
                 pathWritten = WritePath(ref writer, parent, includeNamespace, false);
+            }
 
             if (!pathWritten)
                 return false;
 
-            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
-                writer.Write('/');
-                writer.Write(json._appName);
-            } else {
+            if (parent != null) {
                 if (parent.IsArray) {
                     if (json._cacheIndexInArr == -1)
                         json.UpdateCachedIndex();
@@ -423,12 +424,14 @@ namespace Starcounter.XSON {
                     } else {
                         template = json.Template;
                     }
-
-                    //                    if (template.TemplateName != null) {
                     writer.Write('/');
                     writer.Write(template.TemplateName);
-                    //                    }
                 }
+            }
+
+            if (includeNamespace && !calledFromStepSibling && json._appName != null) {
+                writer.Write('/');
+                writer.Write(json._appName);
             }
             return true;
         }
@@ -446,107 +449,6 @@ namespace Starcounter.XSON {
             }
             return false;
         }
-
-        //        private static int CalculateSizeOfPath(Json json, bool fromStepParent) {
-        //            int size;
-        //            Json parent;
-        //            Template template;
-
-        //            size = 0;
-        //            if (json._stepParent != null) {
-        //                fromStepParent = true;
-        //                parent = json._stepParent;
-        //                size += json.GetAppName().Length + 1;
-        //            } else {
-        //                parent = json.Parent;
-
-        ////                if (!fromStepParent && json._stepSiblings != null && json._stepSiblings.Count > 0) {
-        //                if (!fromStepParent && json._appName != null) {
-        //                    size += json._appName.Length + 1;
-        //                }
-        //                fromStepParent = false;
-
-        //                size += 1;
-        //                if (parent != null) {
-        //                    if (parent.IsArray) {
-        //                        if (json._cacheIndexInArr == -1)
-        //                            json.UpdateCachedIndex();
-        //                        size += GetSizeOfIntAsUtf8(json._cacheIndexInArr);
-        //                    } else {
-        //                        // We use the cacheIndexInArr to keep track of obj that is set
-        //                        // in the parent as an untyped object since the template here is not
-        //                        // the template in the parent (which we want).
-        //                        if (json._cacheIndexInArr != -1) {
-        //                            template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-        //                        } else {
-        //                            template = json.Template;
-        //                        }
-        //                        size += template.TemplateName.Length;
-        //                    }
-        //                }   
-        //            }
-
-        //            if (parent != null)
-        //                size += CalculateSizeOfPath(parent, fromStepParent);
-
-        //            return size;
-        //        }
-
-        //private void WritePath_2(ref Utf8Writer writer, Json json, int prevSize, bool fromStepParent) {
-        //    int size;
-        //    Json parent;
-        //    Template template;
-
-        //    if (json._stepParent != null) {
-        //        parent = json._stepParent;
-        //        size = json.GetAppName().Length + 1;
-        //        writer.Skip(-(size + prevSize));
-        //        writer.Write('/');
-        //        writer.Write(json.GetAppName());
-        //        fromStepParent = true;
-        //    } else {
-        //        size = 0;
-        //        parent = json.Parent;
-
-        //        if (!fromStepParent && json._appName != null) {
-        //            size = json.GetAppName().Length + 1;
-        //            writer.Skip(-(size + prevSize));
-        //            writer.Write('/');
-        //            writer.Write(json._appName);
-        //            prevSize = size;
-        //        }
-        //        fromStepParent = false;
-
-        //        if (parent != null) {
-        //            if (parent.IsArray) {
-        //                if (json._cacheIndexInArr == -1)
-        //                    json.UpdateCachedIndex();
-
-        //                size = GetSizeOfIntAsUtf8(json._cacheIndexInArr) + 1;
-        //                writer.Skip(-(size + prevSize));
-        //                writer.Write('/');
-        //                writer.Write(json._cacheIndexInArr);
-        //            } else {
-        //                // We use the cacheIndexInArr to keep track of obj that is set
-        //                // in the parent as an untyped object since the template here is not
-        //                // the template in the parent (which we want).
-        //                if (json._cacheIndexInArr != -1) {
-        //                    template = ((TObject)parent.Template).Properties[json._cacheIndexInArr];
-        //                } else {
-        //                    template = json.Template;
-        //                }
-
-        //                size = template.TemplateName.Length + 1;
-        //                writer.Skip(-(size + prevSize));
-        //                writer.Write('/');
-        //                writer.Write(template.TemplateName);
-        //            }
-        //        }
-        //    }
-
-        //    if (parent != null)
-        //        WritePath_2(ref writer, parent, size, fromStepParent);
-        //}
 
         private static int GetSizeOfIntAsUtf8(long value) {
             int size = 0;
