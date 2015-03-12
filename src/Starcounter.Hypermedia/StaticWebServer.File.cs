@@ -299,6 +299,7 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="fsw"></param>
         private void ClearWatchedChange(FileSystemWatcher fsw) {
+
             fsw.EnableRaisingEvents = false;
             fsw.Changed -= new FileSystemEventHandler(FileHasChanged);
             fsw.Deleted += new FileSystemEventHandler(FileHasChanged);
@@ -326,6 +327,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void FileIsRenamed(object sender, RenamedEventArgs e) {
+
             string fileSignature = e.OldFullPath.ToUpper();
             DecacheByFilePath(fileSignature);
         }
@@ -336,6 +338,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void FileHasChanged(object sender, FileSystemEventArgs e) {
+
             string fileSignature = e.FullPath.ToUpper();
             DecacheByFilePath(fileSignature);
         }
@@ -346,10 +349,10 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileSignature">The file to remove</param>
         private void DecacheByFilePath(string fileSignature) {
 
-            Response cachedResponse;
-
             // Locking because execution is done in separate thread.
             lock (fileDirectories_) {
+
+                Response cachedResponse;
 
                 if (cacheOnFilePath_.TryGetValue(fileSignature, out cachedResponse)) {
 
@@ -378,6 +381,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileExtension">The file extension.</param>
         /// <returns></returns>
         private FileStream FileOpenAlternative(string dir, string fileName, ref string fileExtension) {
+
             bool hasExtension = !string.IsNullOrEmpty(fileExtension);
             string filePathWOExt = Path.Combine(dir, fileName);
             string filePath;
