@@ -76,29 +76,5 @@ namespace Starcounter.Advanced {
                 return _REST;
             }
         }
-
-
-        /// <summary>
-        /// Gets the specified URI.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="uri">The URI.</param>
-        /// <returns>``0.</returns>
-        public static T Get<T>(string uri) {
-            return (T)Get(uri);
-        }
-
-
-        /// <summary>
-        /// Gets the specified URI.
-        /// </summary>
-        /// <param name="uri">The URI.</param>
-        /// <param name="pars">The pars.</param>
-        /// <returns>System.Object.</returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public static object Get(string uri, params object[] pars) {
-            throw new NotImplementedException();
-        }
-
     }
 }
