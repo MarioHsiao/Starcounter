@@ -20,15 +20,7 @@ ProjectTemplates\
 EditionLibraries\
 
 # Public assemblies
-Public Assemblies\Starcounter.ClientResolver.dll
-Public Assemblies\Starcounter.dll
-Public Assemblies\Starcounter.Apps.JsonPatch.dll
-Public Assemblies\Starcounter.Bootstrap.dll
-Public Assemblies\Starcounter.HyperMedia.dll
-Public Assemblies\Starcounter.Internal.dll
-Public Assemblies\Starcounter.Logging.dll
-Public Assemblies\Starcounter.Node.dll
-Public Assemblies\Starcounter.XSON.dll
+Public Assemblies\
 
 # Starcounter Administrator
 scadmin\app\

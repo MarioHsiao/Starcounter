@@ -22,7 +22,7 @@ namespace Starcounter.Internal.Web {
     public partial class StaticWebServer : IRestServer {
 
         /// <summary>
-        /// Http response cache keyed on URI
+        /// Http response cache keyed on URI.
         /// </summary>
         /// <remarks>
         /// Http responses are cached in memory. The cache can store both compressed and
@@ -32,7 +32,7 @@ namespace Starcounter.Internal.Web {
         private ConcurrentDictionary<string, Response> cacheOnUri_;
 
         /// <summary>
-        /// Http response cache keyed on file path on disk
+        /// Http response cache keyed on file path on disk.
         /// </summary>
         /// <remarks>
         /// Http responses are cached in memory. The cache can store both compressed and
@@ -49,7 +49,11 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         public void UserAddedLocalFileDirectoryWithStaticContent(String appName, UInt16 port, String path) {
 
+            // Getting full path for the directory.
             path = Path.GetFullPath(path);
+
+            // Making sure that we don't add an existing directory.
+            path = path.ToLowerInvariant();
 
             // Checking if directory exists.
             if (!Directory.Exists(path)) {
@@ -58,15 +62,19 @@ namespace Starcounter.Internal.Web {
                     path));
             }
 
-            Debug("Adding path to static web server \"" + path + "\" and clearing cache.");
-
             // Always clearing cache when adding new directory on this port.
             ClearCache();
 
             // Adding only if does not contain this path already.
             if (!fileDirectories_.Contains(path)) {
+
+                Debug("Adding directory \"" + path + "\" to static web server.");
                 fileDirectories_.Add(path);
-                appNames_.Add(appName); ;
+                appNames_.Add(appName);
+
+            } else {
+
+                Debug("Directory \"" + path + "\" already exists in static web server.");
             }
         }
 
@@ -76,7 +84,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="port"></param>
         /// <returns>List with folders</returns>
         public List<string> GetWorkingDirectories(UInt16 port) {
-            return this.fileDirectories_;
+            return fileDirectories_;
         }
 
         /// <summary>
@@ -90,13 +98,16 @@ namespace Starcounter.Internal.Web {
         /// Empties the cache.
         /// </summary>
         public void ClearCache() {
+
+            Debug("Clearing static web server cache.");
+
             cacheOnUri_ = new ConcurrentDictionary<string, Response>();
             cacheOnFilePath_ = new ConcurrentDictionary<string, Response>();
             ClearWatchedParts();
         }
 
         /// <summary>
-        /// Handling the http GET method (verb).
+        /// Handling the static file response clone.
         /// </summary>
         /// <param name="relativeUri">The URI of the resource</param>
         /// <param name="request">The http request as defined by Starcounter</param>
@@ -150,26 +161,27 @@ namespace Starcounter.Internal.Web {
         /// <summary>
         /// House-keeps this instance.
         /// </summary>
-        public int Housekeep() {
+        public void Housekeep() {
 
-            var invalidated = new List<Response>(cacheOnFilePath_.Count);
+            List<Response> invalidatedCachedResponses = new List<Response>(cacheOnFilePath_.Count);
 
-            foreach (var cached in this.cacheOnFilePath_) {
+            foreach (KeyValuePair<String, Response> cached in cacheOnFilePath_) {
+
                 var path = cached.Value.FilePath;
                 bool was = cached.Value.FileExists;
                 bool exists = File.Exists(path);
+
                 if (was != exists || exists && File.GetLastWriteTime(path) != cached.Value.FileModified) {
-                    invalidated.Add(cached.Value);
+                    invalidatedCachedResponses.Add(cached.Value);
                 }
             }
 
-            foreach (var cached in invalidated) {
-                var path = cached.FilePath;
-                FileSystemEventArgs e = new FileSystemEventArgs(WatcherChangeTypes.Changed, cached.FileDirectory, cached.FileName);
+            foreach (Response cachedResp in invalidatedCachedResponses) {
+
+                var path = cachedResp.FilePath;
+                FileSystemEventArgs e = new FileSystemEventArgs(WatcherChangeTypes.Changed, cachedResp.FileDirectory, cachedResp.FileName);
                 FileHasChanged(null, e);
             }
-
-            return 1000;
         }
     }
 }

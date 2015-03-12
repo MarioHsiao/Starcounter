@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using Starcounter.Rest;
 using Starcounter.Logging;
 using System.Diagnostics;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -32,13 +33,13 @@ namespace Starcounter.Internal.Web {
         /// If the URI does not point to a App view model or a user implemented
         /// handler, this is where the request will go.
         /// </summary>
-        private Dictionary<UInt16, StaticWebServer> fileServerPerPort_;
+        private ConcurrentDictionary<UInt16, StaticWebServer> fileServerPerPort_;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppRestServer" /> class.
         /// </summary>
         /// <param name="staticFileServer">The static file server.</param>
-        public AppRestServer(Dictionary<UInt16, StaticWebServer> staticFileServer) {
+        public AppRestServer(ConcurrentDictionary<UInt16, StaticWebServer> staticFileServer) {
             fileServerPerPort_ = staticFileServer;
         }
 
@@ -61,29 +62,29 @@ namespace Starcounter.Internal.Web {
             Debug.Assert(resp != null);
 
             try {
+
                 // Checking if we need to resolve static resource.
                 if (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent) {
+
                     resp = ResolveAndPrepareFile(req.Uri, req);
                     resp.HandlingStatus = HandlerStatusInternal.Done;
+
                 } else {
+
                     // NOTE: Checking if its internal request then just returning response without modification.
                     if (!req.IsExternal)
                         return resp;
 
-                    // Checking if JSON object is attached.
+                    // Checking if JSON object is attached, then returning root.
                     if (resp.Resource is Json) {
-                        Json r = (Json) resp.Resource;
-
-                        while (r.Parent != null)
-                            r = r.Parent;
-
-                        resp.Resource = (Json)r;
+                        resp.Resource = ((Json) resp.Resource).Root;
                     }
                 }
 
                 return resp;
-            }
-            catch (Exception ex) {
+
+            } catch (Exception ex) {
+
                 // Logging the exception to server log.
                 LogSources.Hosting.LogException(ex);
                 var errResp = Response.FromStatusCode(500);
@@ -174,6 +175,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The http request</param>
         /// <returns>The http response</returns>
         private Response ResolveAndPrepareFile(string relativeUri, Request request) {
+
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
@@ -207,9 +209,10 @@ namespace Starcounter.Internal.Web {
                 } else {
 
                     staticWebServer = new StaticWebServer();
-                    fileServerPerPort_.Add(port, staticWebServer);
+                    fileServerPerPort_[port] = staticWebServer;
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
 
+                    // Checking if its not an Administrator application.
                     if (!StarcounterEnvironment.IsAdministratorApp) {
 
                         // Registering handler on special static file resource level.
@@ -239,7 +242,7 @@ namespace Starcounter.Internal.Web {
                 }
             }
         }
-
+        
         /// <summary>
         /// Get a list with all folders where static file resources such as .html files or images are kept.
         /// </summary>
@@ -269,7 +272,6 @@ namespace Starcounter.Internal.Web {
             return list;
         }
 
-
         /// <summary>
         /// Get a list with all folders where static file resources such as .html files or images are kept.
         /// </summary>
@@ -290,7 +292,7 @@ namespace Starcounter.Internal.Web {
         /// Housekeeps this instance.
         /// </summary>
         /// <returns>System.Int32.</returns>
-        public int Housekeep() {
+        public void Housekeep() {
 
             lock (fileServerPerPort_) {
 
@@ -298,8 +300,6 @@ namespace Starcounter.Internal.Web {
                 foreach (KeyValuePair<UInt16, StaticWebServer> s in fileServerPerPort_) {
                     s.Value.Housekeep();
                 }
-
-                return 0;
             }
         }
     }
