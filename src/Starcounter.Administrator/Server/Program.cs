@@ -170,6 +170,13 @@ namespace Starcounter.Administrator.Server {
                 return resp;
             });
 
+            Handle.GET("/delay", () => {
+
+                Thread.Sleep(250);
+
+                return 204;
+            });
+
             Handle.GET("/native-allocs", () => {
                 return "Number of native allocations: " + BitsAndBytes.NumNativeAllocations;
             });
