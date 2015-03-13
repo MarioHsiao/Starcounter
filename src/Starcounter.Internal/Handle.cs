@@ -38,11 +38,22 @@ namespace Starcounter {
         /// <summary>
         /// Proxy delegate trigger.
         /// </summary>
-        internal Boolean ProxyDelegateTrigger {
+        public Boolean ProxyDelegateTrigger {
             get;
             set;
         }
 
+        /// <summary>
+        /// Replace existing delegate.
+        /// </summary>
+        public Boolean ReplaceExistingDelegate {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Handler level.
+        /// </summary>
         HandlerLevels handlerLevel_ = HandlerLevels.DefaultLevel;
 
         /// <summary>

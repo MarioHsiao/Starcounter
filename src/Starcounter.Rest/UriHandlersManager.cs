@@ -304,23 +304,36 @@ namespace Starcounter.Rest
             userDelegate_ = null;
         }
 
-        public void TryAddProxyDelegate(
+        public void TryAddProxyOrReplaceDelegate(
             Func<Request, IntPtr, IntPtr, Response> userDelegate,
             HandlerOptions ho)
         {
-            // Checking if already have a proxy delegate.
-            if (proxyDelegate_ != null) {
-                throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate!");
-            }
+            // Checking if we are replacing the delegate.
+            if (ho.ReplaceExistingDelegate) {
 
-            // Checking if its a special delegate.
-            if (ho.ProxyDelegateTrigger) {
+                // Checking if its a proxy trigger we are trying to replace.
+                if (ho.ProxyDelegateTrigger) {
 
-                proxyDelegate_ = userDelegate;
+                    proxyDelegate_ = userDelegate;
 
+                } else {
+
+                    userDelegate_ = userDelegate;
+                }
             } else {
 
-                throw new ArgumentException("Trying to add a delegate to an already existing handler!");
+                // Checking if already have a proxy delegate.
+                if (ho.ProxyDelegateTrigger) {
+
+                    if (proxyDelegate_ != null) {
+                        throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate!");
+                    } else {
+                        proxyDelegate_ = userDelegate;
+                    }
+
+                } else {
+                    throw new ArgumentException("Trying to add a delegate to an already existing handler!");
+                }
             }
         }
 
@@ -538,7 +551,7 @@ namespace Starcounter.Rest
                     if ((0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
                         (port == allUriHandlers_[i].Port))
                     {
-                        allUriHandlers_[i].TryAddProxyDelegate(wrappedDelegate, ho);
+                        allUriHandlers_[i].TryAddProxyOrReplaceDelegate(wrappedDelegate, ho);
                         return;
                     }
                 }
