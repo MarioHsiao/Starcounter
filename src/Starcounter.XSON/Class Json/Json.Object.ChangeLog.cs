@@ -206,7 +206,7 @@ namespace Starcounter {
                             if (p is TContainer) {
                                 var c = ((TContainer)p).GetValue(json);
                                 if (c != null)
-                                    c.LogValueChangesWithDatabase(s, css);
+                                    c.LogValueChangesWithDatabase(s, true);
                             } else {
                                 if (json.IsArray)
                                     throw new NotImplementedException();
@@ -221,7 +221,7 @@ namespace Starcounter {
                         if (exposed[t] is TContainer) {
                             var c = ((TContainer)exposed[t]).GetValue(json);
                             if (c != null)
-                                c.LogValueChangesWithDatabase(s, css);
+                                c.LogValueChangesWithDatabase(s, true);
                         } else {
                             if (json.IsArray) {
                                 throw new NotImplementedException();
@@ -234,7 +234,7 @@ namespace Starcounter {
                 } else {
                     foreach (var e in json.list) {
                         if (e is Json) {
-                            ((Json)e).LogValueChangesWithDatabase(s, css);
+                            ((Json)e).LogValueChangesWithDatabase(s, true);
                         }
                     }
                 }
