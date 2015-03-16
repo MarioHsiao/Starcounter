@@ -280,29 +280,31 @@ namespace PolyjuiceNamespace {
                 // Setting calling string.
                 String uri = x.HandlerProcessedUri;
 
+                String stringParamCopy = stringParam;
+
                 // Checking if we had a parameter in handler.
-                if (stringParam != null) {
+                if (stringParamCopy != null) {
 
                     // Calling the conversion delegate.
                     if (x.ConverterFromSo != null) {
 
-                        stringParam = x.ConverterFromSo(stringParam);
+                        stringParamCopy = x.ConverterFromSo(stringParamCopy);
 
                         // Checking if string parameter is found after conversion.
-                        if (null == stringParam)
+                        if (null == stringParamCopy)
                             continue;
                     }
 
                     // Setting parameters info.
                     MixedCodeConstants.UserDelegateParamInfo paramInfo;
                     paramInfo.offset_ = x.ParamOffset;
-                    paramInfo.len_ = (UInt16) stringParam.Length;
+                    paramInfo.len_ = (UInt16) stringParamCopy.Length;
 
                     // Setting parameters info.
                     ho.ParametersInfo = paramInfo;
 
                     // Setting calling string.
-                    uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, stringParam);
+                    uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, stringParamCopy);
                 }
 
                 // Calling handler.
@@ -728,7 +730,7 @@ namespace PolyjuiceNamespace {
         static void CallAllHandlersForSingleType(
             List<Response> resps,
             SoType type,
-            String paramStr,
+            String stringParam,
             List<UInt16> alreadyCalledHandlers) {
 
             // Processing specific handler.
@@ -739,13 +741,15 @@ namespace PolyjuiceNamespace {
                 // Indicating that we are calling as a proxy.
                 ho.ProxyDelegateTrigger = true;
 
+                String stringParamCopy = stringParam;
+
                 // Calling the conversion delegate.
                 if (x.ConverterFromSo != null) {
 
-                    paramStr = x.ConverterFromSo(paramStr);
+                    stringParamCopy = x.ConverterFromSo(stringParamCopy);
 
                     // Checking if string parameter is found after conversion.
-                    if (null == paramStr)
+                    if (null == stringParamCopy)
                         return;
                 }
 
@@ -755,12 +759,12 @@ namespace PolyjuiceNamespace {
                 // Setting parameters info.
                 MixedCodeConstants.UserDelegateParamInfo paramInfo;
                 paramInfo.offset_ = x.ParamOffset;
-                paramInfo.len_ = (UInt16)paramStr.Length;
+                paramInfo.len_ = (UInt16) stringParamCopy.Length;
 
                 ho.ParametersInfo = paramInfo;
 
                 // Setting calling string.
-                String uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, paramStr);
+                String uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, stringParamCopy);
 
                 // Calling handler.
                 Response resp;
