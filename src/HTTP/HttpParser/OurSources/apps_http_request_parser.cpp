@@ -13,6 +13,9 @@ struct HttpRequestParserStruct
     // Structure that holds HTTP request.
     HttpRequest* http_request_;
 
+    // Pointer to request buffer.
+    uint8_t* request_buf_;
+
     // HTTP/WebSockets fields.
     HttpWsFields last_field_;
 
@@ -21,9 +24,6 @@ struct HttpRequestParserStruct
 
     // Checks if X-Referer field is read.
     bool is_xhreferer_read_;
-
-    // Pointer to request buffer.
-    uint8_t* request_buf_;
 
     // Resets the parser related fields.
     void Reset(uint8_t* request_buf, HttpRequest* http_request)
