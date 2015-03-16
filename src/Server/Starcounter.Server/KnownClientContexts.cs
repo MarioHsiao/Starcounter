@@ -99,7 +99,7 @@ namespace Starcounter.Server {
                 int index = clientContextInfo.IndexOf(",");
                 if (index != -1) {
                     var hostInfo = clientContextInfo.Substring(0, index);
-                    var tokens = clientContextInfo.Split(new [] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                    var tokens = hostInfo.Split(new [] {'/'}, StringSplitOptions.RemoveEmptyEntries);
                     id = tokens[0];
                     pid = int.Parse(tokens[1]);
                 }
