@@ -285,7 +285,12 @@ namespace PolyjuiceNamespace {
 
                     // Calling the conversion delegate.
                     if (x.ConverterFromSo != null) {
+
                         stringParam = x.ConverterFromSo(stringParam);
+
+                        // Checking if string parameter is found after conversion.
+                        if (null == stringParam)
+                            continue;
                     }
 
                     // Setting parameters info.
@@ -324,8 +329,8 @@ namespace PolyjuiceNamespace {
         public static void Map(
             String appProcessedUri,
             String mapProcessedUri,
-            Func<String, String> converterToSo,
-            Func<String, String> converterFromSo,
+            Func<String, String> converterTo,
+            Func<String, String> converterFrom,
             String method) {
 
             // Checking if method is allowed.
@@ -397,8 +402,8 @@ namespace PolyjuiceNamespace {
                     appProcessedUri,
                     appProcessedMethodUriSpace,
                     appHandlerInfo.AppName,
-                    converterToSo,
-                    converterFromSo);
+                    converterTo,
+                    converterFrom);
 
                 // Searching for the mapped handler.
                 String mapProcessedMethodUriSpace = method + " " + mapProcessedUri.ToLowerInvariant() + " ";
@@ -468,6 +473,10 @@ namespace PolyjuiceNamespace {
                         if (handler.ConverterToSo != null) {
 
                             String convertedParam = handler.ConverterToSo(stringParam);
+
+                            // Checking if string parameter is found after conversion.
+                            if (null == convertedParam)
+                                return null;
 
                             // Calling the mapped handler.
                             hs = mapProcessedUri.Replace(EndsWithStringParam, convertedParam);
@@ -587,7 +596,12 @@ namespace PolyjuiceNamespace {
 
                     // Calling the conversion delegate.
                     if (handler.ConverterToSo != null) {
+
                         soObjectId = handler.ConverterToSo(appObjectId);
+
+                        // Checking if string parameter is found after conversion.
+                        if (null == soObjectId)
+                            return null;
                     }
 
                     Response resp;
@@ -727,7 +741,12 @@ namespace PolyjuiceNamespace {
 
                 // Calling the conversion delegate.
                 if (x.ConverterFromSo != null) {
+
                     paramStr = x.ConverterFromSo(paramStr);
+
+                    // Checking if string parameter is found after conversion.
+                    if (null == paramStr)
+                        return;
                 }
 
                 // Setting handler id.
