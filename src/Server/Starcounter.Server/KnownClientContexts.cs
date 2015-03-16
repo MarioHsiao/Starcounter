@@ -77,10 +77,10 @@ namespace Starcounter.Server {
             // Don't change this format unless also changing the parser
             // method KnownClientContext.FromContextInfo() in Starcounter.Server.
             // Example contexts:
-            //  * "star.exe, per@per-asus (via star.exe)"
-            //  * "VS, per@per-asus (via devenv.exe)"
+            //  * "star.exe/123, per@per-asus (via star.exe)"
+            //  * "VS/999, per@per-asus (via devenv.exe)"
             var c = ClientContext.Current;
-            return string.Format("{0}, {1}@{2} (via {3})", c.Id, c.User, c.Machine, c.Program);
+            return string.Format("{0}/{1}, {2}@{3} (via {4})", c.Id, c.PID, c.User, c.Machine, c.Program);
         }
 
         /// <summary>
@@ -93,7 +93,17 @@ namespace Starcounter.Server {
         /// <param name="id">The logical host identity.</param>
         /// <param name="pid">The host process id.</param>
         public static void ParseHostInfo(string clientContextInfo, out string id, out int pid) {
-            throw new NotImplementedException();
+            id = KnownClientContexts.UnknownContext;
+            pid = 0;
+            if (!string.IsNullOrWhiteSpace(clientContextInfo)) {
+                int index = clientContextInfo.IndexOf(",");
+                if (index != -1) {
+                    var hostInfo = clientContextInfo.Substring(0, index);
+                    var tokens = clientContextInfo.Split(new [] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                    id = tokens[0];
+                    pid = int.Parse(tokens[1]);
+                }
+            }
         }
 
         static void GatherSafe(out int pid, out string program, out string user, out string machine) {
@@ -143,10 +153,10 @@ namespace Starcounter.Server {
         /// <param name="contextInfo">The context info string to parse.</param>
         /// <returns>The context identifier</returns>
         public static string ParseFromContextInfo(string contextInfo) {
-            if (string.IsNullOrWhiteSpace(contextInfo)) return KnownClientContexts.UnknownContext;
-            int index = contextInfo.IndexOf(",");
-            if (index == -1) return KnownClientContexts.UnknownContext;
-            return contextInfo.Substring(0, index);
+            string id;
+            int pid;
+            ClientContext.ParseHostInfo(contextInfo, out id, out pid);
+            return id;
         }
     }
 }
