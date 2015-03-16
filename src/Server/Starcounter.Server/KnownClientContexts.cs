@@ -83,6 +83,19 @@ namespace Starcounter.Server {
             return string.Format("{0}, {1}@{2} (via {3})", c.Id, c.User, c.Machine, c.Program);
         }
 
+        /// <summary>
+        /// Parses the given client context information string (previously
+        /// created with <see cref="ClientContext.GetCurrentContextInfo"/>
+        /// and extracts the information it contains about the host, i.e.
+        /// the logical identity and the process ID.
+        /// </summary>
+        /// <param name="clientContextInfo">The context info to parse.</param>
+        /// <param name="id">The logical host identity.</param>
+        /// <param name="pid">The host process id.</param>
+        public static void ParseHostInfo(string clientContextInfo, out string id, out int pid) {
+            throw new NotImplementedException();
+        }
+
         static void GatherSafe(out int pid, out string program, out string user, out string machine) {
             pid = 0;
             program = user = machine = "unknown";
