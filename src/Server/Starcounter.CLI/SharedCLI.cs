@@ -58,7 +58,7 @@ namespace Starcounter.CLI {
         /// CLI client process).
         /// </summary>
         public static void InitCLIContext(string client = KnownClientContexts.UnknownContext) {
-            SharedCLI.ClientContext.Current = client;
+            ClientContext.InitCurrent(client);
 
             // Install custom assembly resolver to be able to resolve
             // third-party web socket library
@@ -166,42 +166,6 @@ namespace Starcounter.CLI {
             /// spawned by the admin server.
             /// </summary>
             public const string CodeHostCommandLineOptions = "sc-codehostargs";
-        }
-
-        /// <summary>
-        /// Provides information about the calling client context.
-        /// </summary>
-        public static class ClientContext {
-            /// <summary>
-            /// The current context. Set by client applications.
-            /// </summary>
-            public static string Current = KnownClientContexts.UnknownContext;
-
-            /// <summary>
-            /// Creates a string containing the current client context
-            /// information, including information about the current client
-            /// and the user.
-            /// </summary>
-            /// <returns>A string representing the current context.</returns>
-            public static string GetCurrentContextInfo() {
-                return Make(Current);
-            }
-
-            static string Make(string context) {
-                // Note:
-                // Don't change this format unless also changing the parser
-                // method KnownClientContext.FromContextInfo() in Starcounter.Server.
-                var program = Process.GetCurrentProcess().MainModule.ModuleName;
-                try {
-                    return string.Format("{0}, {1}@{2} (via {3})",
-                        context,
-                        Environment.UserName.ToLowerInvariant(),
-                        Environment.MachineName.ToLowerInvariant(), program
-                        );
-                } catch {
-                    return string.Format("{0}, {1}", context, program);
-                }
-            }
         }
 
         static string[] StandardHints = new string[] {
