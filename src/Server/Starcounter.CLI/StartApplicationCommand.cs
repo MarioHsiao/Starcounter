@@ -293,7 +293,7 @@ namespace Starcounter.CLI {
             exe.ApplicationFilePath = app.FilePath;
             exe.Name = app.Name;
             exe.WorkingDirectory = app.WorkingDirectory;
-            exe.StartedBy = SharedCLI.ClientContext.GetCurrentContextInfo();
+            exe.StartedBy = ClientContext.GetCurrentContextInfo();
             exe.IsTool = !args.ContainsFlag(Option.Async);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
