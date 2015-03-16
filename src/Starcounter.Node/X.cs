@@ -250,6 +250,11 @@ namespace Starcounter
                         endpointWithoutPort = endpoint.Substring(0, colonPos);
                     }
 
+                    // Checking if port is defined.
+                    if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == destPort) {
+                        destPort = 80;
+                    }
+
                     node = new Node(endpointWithoutPort, destPort);
 
                     // Adding node to dictionary.
