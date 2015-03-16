@@ -1008,6 +1008,16 @@ namespace PolyjuiceNamespace {
 
                     if (mainResponseId != i) {
                         siblingJson = (Json)responses[i].Resource;
+
+                        // TODO:
+                        // Do we need to check the response in case of error and handle it or
+                        // just ignore like we do now?
+
+                        // No json in partial response. Probably because a registered handler didn't want to 
+                        // add anything for this uri and data.
+                        if (siblingJson == null) 
+                            continue;
+
                         siblingJson.SetAppName(responses[i].AppName);
 
                         if (siblingJson._stepSiblings != null) {
