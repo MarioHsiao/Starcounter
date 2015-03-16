@@ -58,7 +58,7 @@ namespace Starcounter.CLI {
         /// CLI client process).
         /// </summary>
         public static void InitCLIContext(string client = KnownClientContexts.UnknownContext) {
-            ClientContext.Current = client;
+            ClientContext.InitCurrent(client);
 
             // Install custom assembly resolver to be able to resolve
             // third-party web socket library

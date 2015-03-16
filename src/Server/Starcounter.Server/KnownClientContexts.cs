@@ -7,11 +7,64 @@ namespace Starcounter.Server {
     /// <summary>
     /// Provides information about the calling client context.
     /// </summary>
-    public static class ClientContext {
+    public sealed class ClientContext {
+        static ClientContext() {
+            InitCurrent(KnownClientContexts.UnknownContext);
+        }
+
         /// <summary>
-        /// The current context. Set by client applications.
+        /// The well-known identity of the current context.
         /// </summary>
-        public static string Current = KnownClientContexts.UnknownContext;
+        public readonly string Id;
+
+        /// <summary>
+        /// The process ID of the current context.
+        /// </summary>
+        public readonly int PID;
+
+        /// <summary>
+        /// The logical application the current context runs under.
+        /// </summary>
+        public readonly string Program;
+
+        /// <summary>
+        /// The user the current context runs under.
+        /// </summary>
+        public readonly string User;
+
+        /// <summary>
+        /// The machine the current context runs under.
+        /// </summary>
+        public readonly string Machine;
+
+        /// <summary>
+        /// The current context. Set by client applications, via
+        /// <see cref="InitCurrent(string)"/>.
+        /// </summary>
+        public static ClientContext Current { get; private set; }
+
+        private ClientContext(
+            string id, int pid, string program, string user = null, string machine = null) {
+            Id = id;
+            PID = pid;
+            Program = program;
+            User = user;
+            Machine = machine;
+        }
+
+        /// <summary>
+        /// Initialize the current <see cref="ClientContext"/> and return
+        /// a reference to it.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public static ClientContext InitCurrent(string id) {
+            int pid;
+            string program, user, machine;
+            GatherSafe(out pid, out program, out user, out machine);
+            Current = new ClientContext(id, pid, program, user, machine);
+            return Current;
+        }
 
         /// <summary>
         /// Creates a string containing the current client context
@@ -20,26 +73,26 @@ namespace Starcounter.Server {
         /// </summary>
         /// <returns>A string representing the current context.</returns>
         public static string GetCurrentContextInfo() {
-            return Make(Current);
-        }
-
-        static string Make(string context) {
             // Note:
             // Don't change this format unless also changing the parser
             // method KnownClientContext.FromContextInfo() in Starcounter.Server.
             // Example contexts:
             //  * "star.exe, per@per-asus (via star.exe)"
             //  * "VS, per@per-asus (via devenv.exe)"
-            var program = Process.GetCurrentProcess().MainModule.ModuleName;
+            var c = ClientContext.Current;
+            return string.Format("{0}, {1}@{2} (via {3})", c.Id, c.User, c.Machine, c.Program);
+        }
+
+        static void GatherSafe(out int pid, out string program, out string user, out string machine) {
+            pid = 0;
+            program = user = machine = "unknown";
             try {
-                return string.Format("{0}, {1}@{2} (via {3})",
-                    context,
-                    Environment.UserName.ToLowerInvariant(),
-                    Environment.MachineName.ToLowerInvariant(), program
-                    );
-            } catch {
-                return string.Format("{0}, (via {1})", context, program);
-            }
+                var p = Process.GetCurrentProcess();
+                pid = p.Id;
+                program = p.MainModule.ModuleName;
+                user = Environment.UserName.ToLowerInvariant();
+                machine = Environment.MachineName.ToLowerInvariant();
+            } catch { }
         }
     }
 
@@ -64,7 +117,7 @@ namespace Starcounter.Server {
         /// Context of the administration server.
         /// </summary>
         public const string Admin = "Admin";
-
+        /// <summary>
         /// Used when the context is unknown.
         /// </summary>
         public const string UnknownContext = "Unknown";
