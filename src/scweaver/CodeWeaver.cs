@@ -64,7 +64,7 @@ namespace Starcounter.Weaver {
         /// The directory where the weaver looks for edition
         /// libraries.
         /// </summary>
-        public readonly string EditionLibrariesDirectory;
+        public string EditionLibrariesDirectory { get; private set; }
 
         /// <summary>
         /// The cache directory used by the weaver.
@@ -106,6 +106,21 @@ namespace Starcounter.Weaver {
         /// transformed on every run.
         /// </summary>
         public bool DisableWeaverCache { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating if the current weaver should
+        /// exclude any possible edition libraries found when running.
+        /// </summary>
+        public bool DisableEditionLibraries {
+            get { return EditionLibrariesDirectory == string.Empty; }
+            set {
+                if (value) {
+                    EditionLibrariesDirectory = string.Empty;
+                } else {
+                    EditionLibrariesDirectory = Path.Combine(WeaverRuntimeDirectory, "EditionLibraries");
+                }
+            }
+        }
 
         /// <summary>
         /// Gets a value that indicates the weaver will only include those
@@ -177,14 +192,14 @@ namespace Starcounter.Weaver {
             this.RunWeaver = true;
             this.DisableWeaverCache = false;
             this.AssemblyFile = file;
-
+            
             try {
                 this.WeaverRuntimeDirectory = Path.GetDirectoryName(typeof(CodeWeaver).Assembly.Location);
             } catch {
                 this.WeaverRuntimeDirectory = Environment.CurrentDirectory;
             }
 
-            this.EditionLibrariesDirectory = Path.Combine(WeaverRuntimeDirectory, "EditionLibraries");
+            this.DisableEditionLibraries = false;
         }
 
         /// <summary>
