@@ -4574,6 +4574,13 @@
         A source code template with the specified name could not be found.
       </message>
     </code>
+    <code hex="0013" severity="Error" name="ScErrAppDeployedEditionLibrary">
+      <message>
+        At least one file considered a Starcounter edition library was found
+        locally deployed with an application, i.e. residing in the same directory
+        as the application file.
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->
