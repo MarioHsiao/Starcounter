@@ -196,6 +196,7 @@ namespace Starcounter.Weaver {
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
             weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
             weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
+            weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
 
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
@@ -433,6 +434,9 @@ namespace Starcounter.Weaver {
             commandDefinition.DefineFlag(
                 "tocache", 
                 "Instructs the weaver to leave the input intact and weave only to the weaver cache.");
+
+            commandDefinition.DefineFlag("DisableEditionLibraries".ToLower(),
+                "Instructs the weaver to ignore any edition libraries part of the installation.");
 
             // Define the "Verify" command, used to analyze and verify user code.
 
