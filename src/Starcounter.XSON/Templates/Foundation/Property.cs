@@ -70,13 +70,6 @@ namespace Starcounter.Templates {
                                        bool overwriteExisting = true) {
             bool overwrite = (overwriteExisting || !hasCustomAccessors);
 
-            if (BindingStrategy == BindingStrategy.Unbound) {
-                if (overwrite || Getter == null)
-                    Getter = getter;
-                if (overwrite || Setter == null)
-                    Setter = setter;
-            }
-
             if (overwrite || UnboundGetter == null) {
                 UnboundGetter = getter;
 #if DEBUG
