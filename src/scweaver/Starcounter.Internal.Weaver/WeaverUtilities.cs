@@ -164,9 +164,6 @@ namespace Starcounter.Internal.Weaver
                 case "SCPFV20":
                     errorCode = Error.SCERRSYNPRIVATETARGET;
                     break;
-                case "SCPFV21":
-                    errorCode = Error.SCERRFIELDREFMETHOD;
-                    break;
                 case "SCPPV02":
                     errorCode = Error.SCERRPERSPROPNOTARGET;
                     break;
