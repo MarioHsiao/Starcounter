@@ -224,9 +224,6 @@
   <data name="SCPFV16" xml:space="preserve">
     <value>The field {0} is decorated with the [SynonymousTo] custom attribute, but it is not a persistent field.</value>
   </data>
-  <data name="SCPFV21" xml:space="preserve">
-    <value>We suspect you try, in method {{{0}}} to pass the field(s) {1} by reference. Passing persistent fields by reference is not supported. Use intermediate local variables instead.</value>
-  </data>
   <data name="SCPFV22" xml:space="preserve">
     <value>Synonyms of field {0}.{1} form a cycle.</value>
   </data>
