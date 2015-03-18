@@ -1586,9 +1586,12 @@ namespace Starcounter.Internal.Weaver {
                         }
                         fields.Append(s);
                     }
-                    ScMessageSource.Write(
-                        SeverityType.Error, "SCPFV21", new object[] { methodDef.ToString(), fields.ToString() 
-                        });
+
+                    ScMessageSource.WriteError(
+                        MessageLocation.Unknown, 
+                        Error.SCERRFIELDREFMETHOD, 
+                        string.Format("Field(s) {0} in method {1}", fields.ToString(), methodDef.ToString()));
+
                 }
             }
         }
