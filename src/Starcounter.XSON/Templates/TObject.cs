@@ -178,14 +178,6 @@ namespace Starcounter.Templates {
             customSetter = setter;
 			bool overwrite = (overwriteExisting || !hasCustomAccessors);
 
-			if (BindingStrategy == BindingStrategy.Unbound) {
-				if (overwrite || Getter == null)
-					Getter = getter;
-				if (overwrite || Setter == null) {
-                    Setter = SetParentAndUseCustomSetter;
-                }
-			}
-
 			if (overwrite || UnboundGetter == null) {
 				UnboundGetter = getter;
 #if DEBUG
