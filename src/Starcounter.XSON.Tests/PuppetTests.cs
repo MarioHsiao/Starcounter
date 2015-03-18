@@ -128,6 +128,76 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestDirtyCheckForUnboundValues() {
+            var schema = new TObject();
+            var tname = schema.Add<TString>("Name", bind: null);
+            var tpage = schema.Add<TObject>("Page", bind: null);
+            var tarr = schema.Add<TArray<Json>>("Items", bind: null);
+
+            Json json = new Json() { 
+                Template = schema 
+            };
+            json.Session = new Session();
+            json.Set(tname, "Hans Brix");
+            
+            // Resetting dirtyflags.
+            json.Session.GenerateChangeLog();
+            json.Session.CheckpointChangeLog();
+            json.Session.ClearChangeLog();
+
+            json.Set(tname, "Apa Papa");
+            Assert.IsTrue(json.IsDirty(tname));
+
+            json.Set(tpage, new Json());
+            Assert.IsTrue(json.IsDirty(tpage));
+
+            json.Set(tarr, new Arr<Json>(json, tarr));
+            Assert.IsTrue(json.IsDirty(tarr));
+
+            json.Session.GenerateChangeLog();
+            Assert.AreEqual(3, json.Session.GetChanges().Count);
+        }
+       
+        [Test]
+        public static void TestDirtyCheckForUnboundValuesWithCustomAccessors() {
+            var schema = new TObject();
+            var tname = schema.Add<TString>("Name", bind: null);
+            var tpage = schema.Add<TObject>("Page", bind: null);
+            var tarr = schema.Add<TArray<Json>>("Items", bind: null);
+
+            Json bf_page = null;
+            string bf_name = null;
+            Arr<Json> bf_arr = null;
+
+            tname.SetCustomAccessors((p) => { return bf_name; }, (p, v) => { bf_name = v; });
+            tpage.SetCustomAccessors((p) => { return bf_page; }, (p, v) => { bf_page = v; });
+            tarr.SetCustomAccessors((p) => { return bf_arr; }, (p, v) => { bf_arr = v; });
+
+            Json json = new Json() {
+                Template = schema
+            };
+            json.Session = new Session();
+            json.Set(tname, "Hans Brix");
+
+            // Resetting dirtyflags.
+            json.Session.GenerateChangeLog();
+            json.Session.CheckpointChangeLog();
+            json.Session.ClearChangeLog();
+
+            json.Set(tname, "Apa Papa");
+            Assert.IsTrue(json.IsDirty(tname));
+
+            json.Set(tpage, new Json());
+            Assert.IsTrue(json.IsDirty(tpage));
+
+            json.Set(tarr, new Arr<Json>(json, tarr));
+            Assert.IsTrue(json.IsDirty(tarr));
+
+            json.Session.GenerateChangeLog();
+            Assert.AreEqual(3, json.Session.GetChanges().Count);
+        }
+
+        [Test]
         public static void TestDirtyCheckForArrays() {
             Recursive data = new Recursive() { Name = "Root" };
             Recursive item = new Recursive() { Name = "Item" };
