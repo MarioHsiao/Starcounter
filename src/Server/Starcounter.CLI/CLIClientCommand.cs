@@ -245,6 +245,9 @@ namespace Starcounter.CLI {
             var errors = LogSnapshot.Take(log, DatabaseName);
             var errorsToDisplay = errors.DatabaseLogs;
             if (errorsToDisplay.Length == 0) {
+                errorsToDisplay = errors.WeaverLogs;
+            }
+            if (errorsToDisplay.Length == 0) {
                 errorsToDisplay = errors.All;
             }
 

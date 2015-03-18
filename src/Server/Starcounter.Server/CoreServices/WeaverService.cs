@@ -24,6 +24,7 @@ namespace Starcounter.Server {
         const string WeaverErrorParcelId = "A4A7D6FA-EB34-442A-B579-DBB1DBB859E3";
         readonly ServerEngine engine;
         LogSource log;
+        LogSource weaverLog;
 
         /// <summary>
         /// Initializes a <see cref="WeaverService"/>.
@@ -33,6 +34,7 @@ namespace Starcounter.Server {
         internal WeaverService(ServerEngine engine) {
             this.engine = engine;
             this.log = ServerLogSources.Default;
+            this.weaverLog = ServerLogSources.Weaver;
         }
 
         /// <summary>
@@ -168,7 +170,9 @@ namespace Starcounter.Server {
             try {
                 ParcelledError.ExtractParcelledErrors(e.Result.GetErrorOutput(), WeaverErrorParcelId, errors, 1);
                 if (errors.Count == 1) {
-                    result = ErrorMessage.Parse(errors[0]).ToException();
+                    var err = ErrorMessage.Parse(errors[0]);
+                    weaverLog.LogError(err.ToString());
+                    result = err.ToException();
                 }
             } catch (Exception extractFailed) {
                 result = ErrorCode.ToException(Error.SCERRWEAVINGERROR, extractFailed, string.Format("Process exit code: {0}", e.ExitCode));
