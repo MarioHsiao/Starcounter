@@ -23,9 +23,9 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void Dirtyfy(bool callStepSiblings = true) {
-            if (!_dirtyCheckEnabled)
+            if (!_trackChanges)
                 return;
-
+            
 			_Dirty = true;
 			if (Parent != null)
 				Parent.Dirtyfy();
@@ -43,7 +43,7 @@ namespace Starcounter {
 		/// 
 		/// </summary>
 		internal void CheckpointChangeLog(bool callStepSiblings = true) {
-            if (!_dirtyCheckEnabled)
+            if (!_trackChanges)
                 return;
 
 			if (this.IsArray) {
@@ -86,7 +86,7 @@ namespace Starcounter {
 #if DEBUG
 			this.Template.VerifyProperty(prop);
 #endif
-            if (_dirtyCheckEnabled)
+            if (_trackChanges)
                 return (WasReplacedAt(prop.TemplateIndex));
             return false;
 		}
@@ -96,7 +96,7 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="session">The session (for faster access)</param>
 		internal void LogValueChangesWithDatabase(Session session, bool callStepSiblings) {
-            if (!_dirtyCheckEnabled)
+            if (!_trackChanges)
                 return;
 
 			if (this.IsArray) {
@@ -216,7 +216,7 @@ namespace Starcounter {
                         }
                     }
                     json._Dirty = false;
-                } else if (template.HasAtLeastOneBoundProperty) {
+                } else if (_checkBoundProperties && template.HasAtLeastOneBoundProperty) {
                     for (int t = 0; t < exposed.Count; t++) {
                         if (exposed[t] is TContainer) {
                             var c = ((TContainer)exposed[t]).GetValue(json);
@@ -253,6 +253,9 @@ namespace Starcounter {
 		}
 
 		internal void SetBoundValuesInTuple(bool callStepSiblings = true) {
+            if (!_checkBoundProperties)
+                return;
+
 			if (IsArray) {
 				foreach (Json item in _list) {
 					item.SetBoundValuesInTuple();
@@ -400,9 +403,6 @@ namespace Starcounter {
         /// This method will be called on each childjson as well.
         /// </summary>
         private void OnAddedToViewmodel(bool callStepSiblings) {
-            // TODO:
-            // Do upgrade of dirtychecks instead of static field.
-
             if (this.isAddedToViewmodel == true)
                 return;
 
@@ -430,14 +430,21 @@ namespace Starcounter {
                     stepSibling.OnAddedToViewmodel(false);
                 }
             }
+            
+            _trackChanges = true;
 
             if (this.IsArray) {
+                _SetFlag = new List<bool>(_list.Count);
                 foreach (Json item in _list) {
+                    _SetFlag.Add(false);
                     item.OnAddedToViewmodel(true);
                 }
             } else {
                 if (Template != null) {
-                    foreach (Template tChild in ((TObject)Template).Properties) {
+                    var tobj = (TObject)Template;
+                    _SetFlag = new List<bool>(tobj.Properties.Count);
+                    foreach (Template tChild in tobj.Properties) {
+                        _SetFlag.Add(false);
                         var container = tChild as TContainer;
                         if (container != null) {
                             var childJson = (Json)container.GetUnboundValueAsObject(this);
@@ -459,6 +466,8 @@ namespace Starcounter {
             if (_transaction != TransactionHandle.Invalid) {
                 Session.DeregisterTransaction(_transaction);
             }
+
+            _trackChanges = false;
 
             if (this.IsArray) {
                 foreach (Json item in _list) {

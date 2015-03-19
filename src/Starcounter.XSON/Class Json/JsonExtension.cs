@@ -16,8 +16,8 @@ namespace Starcounter.Advanced.XSON {
             json._appName = value;
         }
 
-        public static void SetEnableDirtyCheck(this Json json, bool value) {
-            json._dirtyCheckEnabled = value;
+        public static void SetAutoCheckBoundProperties(this Json json, bool enabled) {
+            json._checkBoundProperties = enabled;
         }
 
         /// <summary>
