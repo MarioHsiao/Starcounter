@@ -496,6 +496,7 @@ namespace QueryProcessingTest {
                 User u = new User { FirstName = "Left", LastName = "Join", UserId = "LefJoi" };
                 var res = Db.SQL("select * from user u left join account a on u = a.client where u.FirstName = ?", "Left").First;
                 Trace.Assert(res != null);
+                Console.WriteLine(res.ToString());
                 res = Db.SQL("select * from user u left join account a on u = a.client where u.FirstName = ?", "avadvfa").First;
                 Trace.Assert(res == null);
                 int count = 0;
@@ -507,7 +508,6 @@ namespace QueryProcessingTest {
                 count = 0;
                 foreach (Starcounter.Query.Execution.Row row in Db.SQL(
                     "select * from user u left join account a on u = a.client where accountid = ?", 10)) {
-                        Console.WriteLine(row.ToString());
                         count++;
                 }
                 Trace.Assert(count == 2);
