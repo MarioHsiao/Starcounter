@@ -340,8 +340,6 @@ namespace Starcounter.Internal {
             if ((null != Session.Current) && (req.IsExternal))
                 Session.End();
 
-            Session.InitialRequest = null;
-
             return true;
         }
     }
