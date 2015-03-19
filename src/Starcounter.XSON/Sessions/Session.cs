@@ -227,15 +227,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns the original request for session.
-        /// </summary>
-        /// <value></value>
-        public static Request InitialRequest {
-            get { return _request; }
-            set { _request = value; }
-        }
-
-        /// <summary>
         /// Getting internal session.
         /// </summary>
         public ScSessionClass InternalSession { get; set; }
