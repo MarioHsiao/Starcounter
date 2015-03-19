@@ -123,11 +123,20 @@ namespace staradmin.Commands {
                 cmdLine.Add(string.Format("--{0}={1}", SharedCLI.Option.Db, Context.Database));
             }
 
-            string file;
+            var file = "@";
             if (Context.TryGetCommandProperty("file", out file)) {
                 file = Path.GetFullPath(file);
-                cmdLine.Add(string.Format("{0}", file));
             }
+            cmdLine.Add(string.Format("{0}", file));
+
+            var allowPartial = Context.ContainsCommandFlag("allowPartial");
+            cmdLine.Add(allowPartial.ToString());
+
+            string shiftKey;
+            if (!Context.TryGetCommandProperty("shiftKey", out shiftKey)) {
+                shiftKey = "0";
+            }
+            cmdLine.Add(shiftKey.ToString());
             
             ApplicationArguments args;
             SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
