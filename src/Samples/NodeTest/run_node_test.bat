@@ -5,7 +5,7 @@ IF "%SC_RUN_NODE_TEST%"=="False" GOTO :EOF
 staradmin kill all
 
 :: Starting NetworkIoTest in background.
-star.exe --nodb s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
+star.exe s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
 
 :: Starting the client part of the test.
 NodeTest.exe %*

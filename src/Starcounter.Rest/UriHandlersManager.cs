@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Linq.Expressions;
+using System.Web.UI.WebControls;
 using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Rest
@@ -114,9 +115,9 @@ namespace Starcounter.Rest
         readonly UInt16 handlerId_;
 
         /// <summary>
-        /// List of user delegates.
+        /// User delegate.
         /// </summary>
-        List<Func<Request, IntPtr, IntPtr, Response>> userDelegates_ = null;
+        Func<Request, IntPtr, IntPtr, Response> userDelegate_ = null;
 
         /// <summary>
         /// Proxy delegate.
@@ -124,14 +125,9 @@ namespace Starcounter.Rest
         Func<Request, IntPtr, IntPtr, Response> proxyDelegate_ = null;
 
         /// <summary>
-        /// List of application names.
+        /// Owner application name.
         /// </summary>
-        List<String> appNames_ = null;
-
-        /// <summary>
-        /// Don't merge on this handler.
-        /// </summary>
-        Boolean dontMerge_ = false;
+        String appName_ = null;
 
         /// <summary>
         /// Handler ID.
@@ -143,15 +139,6 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
-        /// Is proxy delegate?
-        /// </summary>
-        public Boolean IsProxyDelegate {
-            get {
-                return (proxyDelegate_ != null);
-            }
-        }
-
-        /// <summary>
         /// Constructor.
         /// </summary>
         public UserHandlerInfo(UInt16 handlerId) {
@@ -159,140 +146,112 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
-        /// Start the session that came with request.
+        /// Runs user/proxy delegate.
         /// </summary>
-        void StartSessionThatCameWithRequest(Request req) {
-
-            // Checking if we are in session already.
-            if (req.IsExternal && req.CameWithCorrectSession) {
-
-                // Obtaining session.
-                Session s = (Session) req.GetAppsSessionInterface();
-
-                // Checking if correct session was obtained.
-                if (null != s) {
-
-                    // Starting session.
-                    Session.Start(s);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Runs all user delegates.
-        /// </summary>
-        public Response RunUserDelegates(
+        public Response RunUserDelegate(
             Request req,
             IntPtr methodSpaceUriSpaceOnStack,
             IntPtr parametersInfoOnStack,
             HandlerOptions handlerOptions) {
 
-            List<Response> responses;
-
-            Debug.Assert(userDelegates_ != null);
-
             // Determining if proxy handler should be used.
-            Boolean useProxyHandler = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
+            Boolean useProxyDelegate = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
 
-            // Don't merge handler.
-            Boolean dontMerge = dontMerge_ || handlerOptions.DontMerge;
+            Response resp = null;
 
-            // Starting the session that came with request.
-            StartSessionThatCameWithRequest(req);
+            if (useProxyDelegate) {
 
-            // Checking if there is only one delegate or merge function is not defined.
-            if (userDelegates_.Count == 1) {
-
-                Response resp = null;
-
-                if (useProxyHandler) {
-
-                    // Setting current application name.
-                    if (handlerOptions.AppName != null) {
-                        StarcounterEnvironment.AppName = handlerOptions.AppName;
-                    }
-
-                    // Calling proxy user delegate.
-                    resp = proxyDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
-
-                    // Checking if we have any response.
-                    if (null == resp) {
-
-                        return null;
-
-                    } else {
-
-                        // Setting to which application the response belongs.
-                        Debug.Assert(null != resp.AppName);
-                    }
-
-                } else {
-
-                    // Setting current application name.
-                    StarcounterEnvironment.AppName = appNames_[0];
-
-                    if (handlerOptions.AppName != null) {
-                        StarcounterEnvironment.AppName = handlerOptions.AppName;
-                    }
-
-                    // Calling intermediate user delegate.
-                    resp = userDelegates_[0](req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
-
-                    // Checking if we have any response.
-                    if (null == resp) {
-
-                        return null;
-
-                    } else {
-
-                        // Setting to which application the response belongs.
-                        resp.AppName = appNames_[0];
-                    }
-
-                    // Checking if we need to merge.
-                    if ((UriInjectMethods.ResponsesMergerRoutine_ != null) && (!dontMerge)) {
-
-                        responses = new List<Response>();
-                        responses.Add(resp);
-                        return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
-                    }
-                }
-
-                return resp;
-            }
-
-            Debug.Assert(false == useProxyHandler);
-
-            responses = new List<Response>();
-
-            // Running every delegate from the list.
-            for (Int32 i = 0; i < userDelegates_.Count; i++) {
-
-                var func = userDelegates_[i];
-
-                // Setting application name.
-                StarcounterEnvironment.AppName = appNames_[i];
-
-                // Calling intermediate user delegate.
-                Response resp = func(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
+                // Calling proxy user delegate.
+                resp = proxyDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
 
                 // Checking if we have any response.
                 if (null == resp) {
-                    continue;
+
+                    return null;
+
                 }
 
-                // Setting to which application the response belongs.
-                resp.AppName = appNames_[i];
+            } else {
 
-                // Adding responses to the list.
-                responses.Add(resp);
+                Response subsResp = null;
+
+                // Checking if there is a substitute handler.
+                if (req.HandlerOpts.SubstituteHandler != null) {
+
+                    // Calling substitute handler.
+                    subsResp = req.HandlerOpts.SubstituteHandler();
+
+                    // Checking if there is a substitute response.
+                    if (subsResp == null)
+                        return null;
+
+                    // Setting the response application name.
+                    subsResp.AppName = req.HandlerOpts.CallingAppName;
+
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                        (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName))) {
+
+                        // Checking if we wanted to call the same application, then there is just substitution.
+                        if (req.HandlerOpts.CallingAppName == appName_) {
+                            return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                        }
+
+                    } else {
+
+                        return subsResp;
+                    }
+                } else {
+
+                    // Checking that its not an outside call.
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                        (!handlerOptions.ProxyDelegateTrigger) &&
+                        (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) &&
+                        (req.HandlerOpts.CallingAppName != appName_)) {
+                            return null;
+                    }
+                }
+
+                // Setting current application name.
+                StarcounterEnvironment.AppName = appName_;
+
+                // Calling intermediate user delegate.
+                resp = userDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
+
+                // Checking if we have any response.
+                if (null == resp) {
+
+                    if (subsResp != null) {
+                        if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                            return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                        }
+                        return subsResp;
+                    }
+
+                    return null;
+
+                } else {
+
+                    // Setting to which application the response belongs.
+                    resp.AppName = appName_;
+                }
+
+                // Checking if we need to merge.
+                if ((!handlerOptions.ProxyDelegateTrigger) &&
+                    (StarcounterEnvironment.PolyjuiceAppsFlag)) {
+
+                    // Checking if we have a substitute handler response.
+                    if (subsResp != null) {
+                        List<Response> respList = new List<Response>();
+                        respList.Add(subsResp);
+                        respList.Add(resp);
+                        return Response.ResponsesMergerRoutine_(req, null, respList);
+                    }
+
+                    return Response.ResponsesMergerRoutine_(req, resp, null);
+                }
             }
 
-            // Checking if we have a response merging function defined.
-            Debug.Assert(UriInjectMethods.ResponsesMergerRoutine_ != null);
-
-            // Creating merged response.
-            return UriInjectMethods.ResponsesMergerRoutine_(req, responses);
+            return resp;
         }
 
         RegisteredUriInfo uri_info_ = new RegisteredUriInfo();
@@ -312,20 +271,10 @@ namespace Starcounter.Rest
             get { return uri_info_.param_message_create_; }
         }
 
-        public List<String> AppNamesList {
-            get {
-                return appNames_;
-            }
-        }
-
-        public String AppNames
+        public String AppName
         {
             get {
-                String combinedAppNames = "";
-                foreach (String a in appNames_)
-                    combinedAppNames += a + "-";
-
-                return combinedAppNames.TrimEnd(new Char[] { '-' });
+                return appName_;
             }
         }
 
@@ -352,37 +301,39 @@ namespace Starcounter.Rest
         public void Destroy()
         {
             uri_info_.Destroy();
-            userDelegates_ = null;
+            userDelegate_ = null;
         }
 
-        public void AddDelegateToList(
+        public void TryAddProxyOrReplaceDelegate(
             Func<Request, IntPtr, IntPtr, Response> userDelegate,
             HandlerOptions ho)
         {
-            if (proxyDelegate_ != null) {
-                throw new ArgumentOutOfRangeException("Can't add delegate to a handler that already contains a proxy delegate!");
-            }
+            // Checking if we are replacing the delegate.
+            if (ho.ReplaceExistingDelegate) {
 
-            // Checking if its a special delegate.
-            if (ho.ProxyDelegateTrigger) {
+                // Checking if its a proxy trigger we are trying to replace.
+                if (ho.ProxyDelegateTrigger) {
 
-                if (userDelegates_.Count > 1) {
-                    throw new ArgumentOutOfRangeException("Can't add a proxy delegate. Handler already contains more than one delegate!");
+                    proxyDelegate_ = userDelegate;
+
+                } else {
+
+                    userDelegate_ = userDelegate;
                 }
-
-                proxyDelegate_ = userDelegate;
-
             } else {
 
-                userDelegates_.Add(userDelegate);
+                // Checking if already have a proxy delegate.
+                if (ho.ProxyDelegateTrigger) {
 
-                // Checking if application is already on the list.
-                foreach (String a in appNames_) {
-                    if (a == StarcounterEnvironment.AppName) {
-                        throw new ArgumentException("This application has already registered handler: " + ProcessedUriInfo);
+                    if (proxyDelegate_ != null) {
+                        throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate!");
+                    } else {
+                        proxyDelegate_ = userDelegate;
                     }
+
+                } else {
+                    throw new ArgumentException("Trying to add a delegate to an already existing handler!");
                 }
-                appNames_.Add(StarcounterEnvironment.AppName);
             }
         }
 
@@ -408,19 +359,21 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(original_uri_info);
 
-            dontMerge_ = ho.DontMerge;
-
             if (param_message_type != null)
                 uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
 
-            Debug.Assert(userDelegates_ == null);
+            Debug.Assert(userDelegate_ == null);
 
-            userDelegates_ = new List<Func<Request,IntPtr,IntPtr,Response>>();
-            userDelegates_.Add(user_delegate);
+            if (ho.ProxyDelegateTrigger) {
 
-            appNames_ = new List<String>();
+                proxyDelegate_ = user_delegate;
 
-            appNames_.Add(StarcounterEnvironment.AppName);
+            } else {
+
+                userDelegate_ = user_delegate;
+            }
+            
+            appName_ = StarcounterEnvironment.AppName;
 
             uri_info_.InitUriPointers();
         }
@@ -440,8 +393,6 @@ namespace Starcounter.Rest
             out UInt64 handlerInfo);
 
         internal static RegisterUriHandlerNativeDelegate RegisterUriHandlerNative_;
-
-        public static Func<Request, List<Response>, Response> ResponsesMergerRoutine_;
 
         // Checking if this Node supports local resting.
         internal static Boolean IsSupportingLocalNodeResting() {
@@ -600,7 +551,7 @@ namespace Starcounter.Rest
                     if ((0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) &&
                         (port == allUriHandlers_[i].Port))
                     {
-                        allUriHandlers_[i].AddDelegateToList(wrappedDelegate, ho);
+                        allUriHandlers_[i].TryAddProxyOrReplaceDelegate(wrappedDelegate, ho);
                         return;
                     }
                 }
@@ -633,14 +584,14 @@ namespace Starcounter.Rest
                     // Checking if we are on default handler level so we register with gateway.
                     if (ho.HandlerLevel == HandlerOptions.HandlerLevels.DefaultLevel) {
 
-                        String appNames = allUriHandlers_[handlerId].AppNames;
-                        if (String.IsNullOrEmpty(appNames)) {
-                            appNames = MixedCodeConstants.EmptyAppName;
+                        String appName = allUriHandlers_[handlerId].AppName;
+                        if (String.IsNullOrEmpty(appName)) {
+                            appName = MixedCodeConstants.EmptyAppName;
                         }
 
                         UriInjectMethods.RegisterUriHandlerNative_(
                             port,
-                            appNames,
+                            appName,
                             originalUriInfo,
                             processedUriInfo,
                             nativeParamTypes,

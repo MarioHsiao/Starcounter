@@ -4,6 +4,7 @@ using Starcounter.Internal.Weaver;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 namespace Starcounter.Weaver {
     
@@ -105,10 +106,7 @@ namespace Starcounter.Weaver {
             var editionLibraries = CodeWeaver.Current.EditionLibrariesDirectory;
             if (Directory.Exists(editionLibraries)) {
                 var libs = Directory.GetFiles(editionLibraries, "*.dll");
-                if (libs.Length > 0) {
-                    editionLibriesIndex = sourceFiles.Count;
-                    sourceFiles.AddRange(libs);
-                }
+                AddEditionLibraries(libs, sourceFiles);
             }
             
             presentTargetFiles.AddRange(Directory.GetFiles(TargetDirectory, "*.dll"));
@@ -204,6 +202,31 @@ namespace Starcounter.Weaver {
                     File.Delete(targetFile);
                 }
             });
+        }
+
+        void AddEditionLibraries(string[] editionLibraries, List<string> sourceFiles) {
+            if (editionLibraries.Length > 0) {
+                // Detect any duplicate before adding
+                // TODO:
+
+                var duplicates = sourceFiles.FindAll((s) => {
+                    var duplicate = editionLibraries.FirstOrDefault(
+                        e => Path.GetFileName(e).Equals(Path.GetFileName(s), System.StringComparison.InvariantCultureIgnoreCase));
+                    return duplicate != null;
+                });
+
+                if (duplicates.Count > 0) {
+                    // We found at least one duplicate. Convert full path
+                    // names to simple file name and add them to the error
+                    // message.
+                    duplicates = duplicates.ConvertAll<string>(f => Path.GetFileName(f));
+                    var msg = string.Format("{0} duplicate(s): {1}", duplicates.Count, string.Join(";", duplicates));
+                    throw ErrorCode.ToException(Error.SCERRAPPDEPLOYEDEDITIONLIBRARY, msg);
+                }
+
+                editionLibriesIndex = sourceFiles.Count;
+                sourceFiles.AddRange(editionLibraries);
+            }
         }
 
         void WriteInfo(string message, params object[] parameters) {

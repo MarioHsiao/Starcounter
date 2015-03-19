@@ -96,7 +96,12 @@ namespace Starcounter.Server.Commands {
                     var node = Engine.LocalHostSystemNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
-                    var isIDEApplication = KnownClientContexts.ParseFromContextInfo(app.Info.StartedBy) == KnownClientContexts.VisualStudio;
+                    string clientContextId;
+                    int clientPID;
+
+                    ClientContext.ParseHostInfo(app.Info.StartedBy, out clientContextId, out clientPID);
+                    var isIDEApplication = clientContextId == KnownClientContexts.VisualStudio;
+
                     foreach (var fellow in fellowApplications) {
                         if (object.ReferenceEquals(fellow, app)) {
                             continue;
@@ -104,11 +109,14 @@ namespace Starcounter.Server.Commands {
 
                         // When stopping application from an IDE, we never restart
                         // fellow applications from the same context automatically.
-                        // This will be a smallish flaw when there are several IDEs
-                        // with apps targeting the same host, but lets live with
-                        // that.
+                        // The context in this case is defined as the same VS process.
+
                         if (isIDEApplication) {
-                            if (KnownClientContexts.ParseFromContextInfo(fellow.Info.StartedBy) == KnownClientContexts.VisualStudio) {
+                            string fellowClientId;
+                            int fellowPID;
+
+                            ClientContext.ParseHostInfo(fellow.Info.StartedBy, out fellowClientId, out fellowPID);
+                            if (fellowClientId == KnownClientContexts.VisualStudio && fellowPID == clientPID) {
                                 continue;
                             }
                         }

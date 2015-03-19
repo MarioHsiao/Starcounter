@@ -21,16 +21,13 @@ namespace Starcounter {
         PatchVersioning = 2,
         StrictPatchRejection = 4,
 //        DisableProtocolOT = 8,
+        IncludeNamespaces = 16,
     }
 
     /// <summary>
     /// 
     /// </summary>
     public sealed class Session : IAppsSession, IDisposable {
-        private class DataAndCache {
-            internal Json Data;
-        }
-
         private class TransactionRef {
             internal int Refs;
             internal TransactionHandle Handle;
@@ -47,8 +44,9 @@ namespace Starcounter {
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
         private List<Change> _changes; // The log of Json tree changes pertaining to the session data
-        private List<DataAndCache> _stateList;
+        private List<Json> _stateList;
         private SessionOptions sessionOptions;
+        private int publicViewModelIndex;
 
         /// <summary>
         /// Array of transactions that is managed by this session. All transaction here 
@@ -76,14 +74,22 @@ namespace Starcounter {
         public Session() : this(SessionOptions.Default) {
         }
 
-        public Session(SessionOptions options) {
+        public Session(SessionOptions options, bool? includeNamespaces = null) {
             _brandNew = true;
             _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
-            _stateList = new List<DataAndCache>();
+            _stateList = new List<Json>();
             sessionOptions = options;
             clientServerVersion = serverVersion;
             transactions = new List<TransactionRef>();
+            publicViewModelIndex = -1;
+
+            bool b = StarcounterEnvironment.PolyjuiceAppsFlag;
+            if (includeNamespaces.HasValue)
+                b = includeNamespaces.Value;
+
+            if (b)
+                sessionOptions |= SessionOptions.IncludeNamespaces;
             
             UInt32 errCode = 0;
             if (_request != null) {
@@ -252,28 +258,48 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
-                var dac = GetStateObject();
-                if (dac != null)
-                    return dac.Data;
-                return null;
+                int stateIndex;
+                string appName;
+
+                appName = StarcounterEnvironment.AppName;
+                if (appName == null)
+                    return null;
+
+                if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
+                    return null;
+
+                return _stateList[stateIndex];
             }
             set {
+                int stateIndex;
+                string appName;
+
                 if (value != null && value.Parent != null)
                     throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
 
-                DataAndCache dac = AssureStateObject();
-                dac.Data = value;
-                if (value != null) {
-                    if (value._Session != null)
-                        value._Session.Data = null;
+                appName = StarcounterEnvironment.AppName;
+                if (appName != null) {
+                    if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
+                        stateIndex = _stateList.Count;
+                        _stateList.Add(value);
+                        _indexPerApplication.Add(appName, stateIndex);
+                    } else {
+                        _stateList[stateIndex] = value;
+                    }
 
-                    value._Session = this;
-                    value.OnSessionSet();
+                    if (value != null) {
+                        if (value._Session != null)
+                            value._Session.Data = null;
+
+                        value._Session = this;
+                        value.OnSessionSet();
+
+                        if (publicViewModelIndex == -1)
+                            publicViewModelIndex = stateIndex;
+                    }
+                    // Setting current session.
+                    Current = this;
                 }
-
-                // Setting current session.
-                Current = this;
-
             }
         }
 
@@ -379,49 +405,15 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Return the stateobject for the first item in the statelist. Used internally when 
-        /// application is unknown or only single app is used.
+        /// Gets the public viewmodel
         /// </summary>
         /// <returns></returns>
-        internal Json GetFirstData() {
-            if (_stateList.Count > 0)
-                return _stateList[0].Data;
-            return null;
-        }
-
-        private DataAndCache GetStateObject() {
-            int stateIndex;
-            string appName;
-
-            appName = StarcounterEnvironment.AppName;
-            if (appName == null)
+        internal Json PublicViewModel {
+            get {
+                if (publicViewModelIndex != -1)
+                    return _stateList[publicViewModelIndex];
                 return null;
-
-            if (!_indexPerApplication.TryGetValue(appName, out stateIndex))
-                return null;
-
-            return _stateList[stateIndex];
-        }
-
-        private DataAndCache AssureStateObject() {
-            DataAndCache dac;
-            int stateIndex;
-            string appName;
-
-            appName = StarcounterEnvironment.AppName;
-            if (appName == null) 
-                return null;
-        
-            if (!_indexPerApplication.TryGetValue(appName, out stateIndex)) {
-                dac = new DataAndCache();
-                stateIndex = _stateList.Count;
-                _stateList.Add(dac);
-                _indexPerApplication.Add(appName, stateIndex);
-            } else {
-                dac = _stateList[stateIndex];
             }
-
-            return dac;
         }
 
         /// <summary>
@@ -500,25 +492,23 @@ namespace Starcounter {
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
         public void GenerateChangeLog() {
+            Json root = PublicViewModel;
+
             serverVersion++;
             if (_brandNew) {
                 // TODO: 
                 // might be array.
-                foreach (var dac in _stateList) {
-                    if (dac.Data != null) {
-                        _changes.Add(Change.Add(dac.Data));
-                        dac.Data.CheckpointChangeLog();
-                    }
+                if (root != null) {
+                    _changes.Add(Change.Add(root));
+                    root.CheckpointChangeLog();
                 }
                 _brandNew = false;
             } else {
-                foreach (var dac in _stateList) {
-                    if (dac.Data != null) {
-                        if (DatabaseHasBeenUpdatedInCurrentTask) {
-                            dac.Data.LogValueChangesWithDatabase(this);
-                        } else {
-                            dac.Data.LogValueChangesWithoutDatabase(this);
-                        }
+                if (root != null) {
+                    if (DatabaseHasBeenUpdatedInCurrentTask) {
+                        root.LogValueChangesWithDatabase(this, true);
+                    } else {
+                        root.LogValueChangesWithoutDatabase(this, true);
                     }
                 }
             }
@@ -542,10 +532,9 @@ namespace Starcounter {
         /// 
         /// </summary>
         public void CheckpointChangeLog() {
-            foreach (var dac in _stateList) {
-                if (dac.Data != null)
-                    dac.Data.CheckpointChangeLog();
-            }
+            Json root = PublicViewModel;
+            if (root != null)
+                root.CheckpointChangeLog();
             _brandNew = false;
         }
 
@@ -556,7 +545,7 @@ namespace Starcounter {
         }
 
         internal void CleanupOldVersionLogs() {
-            var root = this.GetFirstData();
+            var root = this.PublicViewModel;
             if (root != null)
                 root.CleanupOldVersionLogs(ClientServerVersion);
         }

@@ -204,6 +204,15 @@ namespace Starcounter.Internal
 
         WsChannelInfo RegisterHandlerInternal(UInt16 port, String channelName)
         {
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
+
             if (channelName.Length > 32)
                 throw new Exception("Registering too long channel name: " + channelName);
 
@@ -234,9 +243,6 @@ namespace Starcounter.Internal
             String channelName,
             Action<Byte[], WebSocket> userDelegate)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             lock (wsManager_)
             {
                 WsChannelInfo w = RegisterHandlerInternal(port, channelName);
@@ -250,9 +256,6 @@ namespace Starcounter.Internal
             String channelName,
             Action<String, WebSocket> userDelegate)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             lock (wsManager_)
             {
                 WsChannelInfo w = RegisterHandlerInternal(port, channelName);
@@ -266,9 +269,6 @@ namespace Starcounter.Internal
             String channelName,
             Action<UInt64, IAppsSession> userDelegate)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             lock (wsManager_)
             {
                 WsChannelInfo w = RegisterHandlerInternal(port, channelName); 

@@ -1,4 +1,5 @@
 ﻿using Sc.Tools.Logging;
+using Starcounter.Server;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +37,20 @@ namespace Starcounter.CLI {
                     });
                 }
 
+                return result == null ? new LogEntry[0] : result.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// Gets the set of entries that originates from the
+        /// weaver component.
+        /// </summary>
+        public LogEntry[] WeaverLogs {
+            get {
+                List<LogEntry> result = null;
+                result = entries.FindAll((candidate) => {
+                    return candidate.Source == ServerLogNames.Weaver;
+                });
                 return result == null ? new LogEntry[0] : result.ToArray();
             }
         }

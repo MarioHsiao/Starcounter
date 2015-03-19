@@ -9,6 +9,7 @@ using Starcounter.Rest;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
 using PolyjuiceNamespace;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal.Tests
 {
@@ -27,7 +28,7 @@ namespace Starcounter.Internal.Tests
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
             StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
 
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
+            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
             UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
@@ -39,7 +40,7 @@ namespace Starcounter.Internal.Tests
             X.LocalNode = true;
 
             // Not actually a merger anymore but linker of sibling Json parts.
-            Handle.MergeResponses(Polyjuice.DefaultMerger);
+            Response.ResponsesMergerRoutine_ = Polyjuice.DefaultMerger;
         }
     }
 
@@ -49,19 +50,10 @@ namespace Starcounter.Internal.Tests
     public class PolyjuiceTests
     {
         /// <summary>
-        /// Creates an emulated Society Objects tree.
+        /// Testing ontology maps.
         /// </summary>
-        static void InitSocietyObjects() {
-            PolyjuiceNamespace.Polyjuice.Init();
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Test]
+        //[Test]
         public static void SimplePolyjuiceTests() {
-
-            InitSocietyObjects();
 
             const String FacebookAppName = "FacebookApp";
             const String GoogleMapsAppName = "GoogleMapsApp";
@@ -146,16 +138,7 @@ namespace Starcounter.Internal.Tests
             allObjWrappedRef.FacebookApp = new Json() { Template = facebookProfileTemplate };
             allObjWrappedRef.GoogleMapsApp = new Json() { Template = googleMapsTemplate };
 
-            // Logging all handler calls.
-            Handle.GET("{?}", (Request req, String str) => {
-
-                Assert.IsTrue(str == req.Uri);
-
-                Console.WriteLine("Called handler " + str);
-
-                return null;
-
-            }, HandlerOptions.FilteringLevel);
+            PolyjuiceNamespace.Polyjuice.Init();
             
             StarcounterEnvironment.AppName = GoogleMapsAppName;
 
@@ -197,169 +180,380 @@ namespace Starcounter.Internal.Tests
                 return o;
             });
 
-            StarcounterEnvironment.AppName = SomeAppName;
+            Json json = null;
 
-            Response resp = null;
+            // Simulating external call.
+            StarcounterEnvironment.AppName = null;
+
+            json = X.GET<Json>("/GoogleMapsApp/object/12345"); // maps
+
+            Assert.IsTrue(json.ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(googleMapsTemplate == json.Template);
+
+            json = X.GET<Json>("/SkypeApp/skypeuser/12345"); // skype
+
+            Assert.IsTrue(json.ToJson() == skypeUserObjWrappedRef.ToJson());
+            Assert.IsTrue(skypeUserTemplate == json.Template);
+
+            json = X.GET<Json>("/SalaryApp/employee/12345"); // salary
+
+            Assert.IsTrue(json.ToJson() == salaryAppObjRefWrapped.ToJson());
+            Assert.IsTrue(salaryTemplate == json.Template);
+
+            json = X.GET<Json>("/FacebookApp/person/12345"); // facebook
+
+            Assert.IsTrue(json.ToJson() == facebookProfileObjWrappedRef.ToJson());
+            Assert.IsTrue(facebookProfileTemplate == json.Template);
+
+            Page page = new Page() {
+                Html = "/my.html"
+            };
+
+            json = X.GET<Json>("/GoogleMapsApp/object/12345", () => {
+                return page;
+            }); // page
+
+            Assert.IsTrue(json == page);
+            Assert.IsTrue(json.ToJson() == page.ToJson());
 
             // Testing wrapped application outputs.
+            StarcounterEnvironment.AppName = SkypeAppName;
 
-            X.GET("/GoogleMapsApp/object/12345", out resp); // maps wrapped
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(googleMapsTemplate == ((Json)resp.Resource).Template);
+            json = X.GET<Json>("/GoogleMapsApp/object/12345"); // null
+            Assert.IsTrue(json == null);
 
-            X.GET("/SkypeApp/skypeuser/12345", out resp); // skype wrapped
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjWrappedRef.ToJson());
-            Assert.IsTrue(skypeUserTemplate == ((Json)resp.Resource).Template);
+            json = X.GET<Json>("/GoogleMapsApp/object/12345", () => {
+                return page;
+            }); // page
 
-            X.GET("/SalaryApp/employee/12345", out resp); // salary wrapped
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == salaryAppObjRefWrapped.ToJson());
-            Assert.IsTrue(salaryTemplate == ((Json)resp.Resource).Template);
+            Assert.IsTrue(json == page);
+            Assert.IsTrue(json.ToJson() == page.ToJson());
 
-            X.GET("/FacebookApp/person/12345", out resp); // facebook wrapped
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjWrappedRef.ToJson());
-            Assert.IsTrue(facebookProfileTemplate == ((Json)resp.Resource).Template);
-            
+            json = X.GET<Json>("/SkypeApp/skypeuser/12345"); // skype
+
+            Assert.IsTrue(json.ToJson() == skypeUserObjRef.ToJson());
+            Assert.IsTrue(skypeUserTemplate == json.Template);
+
             // Hierarchy: something -> legalentity -> person.
 
-            Polyjuice.Map("/GoogleMapsApp/object/@w", "/so/something/@w",
+            // Setting no application just to be able to map.
+            StarcounterEnvironment.AppName = null;
+
+            Polyjuice.OntologyMap("/GoogleMapsApp/object/@w", "/so/something/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.Map("/SalaryApp/employee/@w", "/so/person/@w",
+            Polyjuice.OntologyMap("/SalaryApp/employee/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.Map("/SkypeApp/skypeuser/@w", "/so/person/@w",
+            Polyjuice.OntologyMap("/SkypeApp/skypeuser/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.Map("/FacebookApp/person/@w", "/so/person/@w",
+            Polyjuice.OntologyMap("/FacebookApp/person/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Response resp1 = null, resp2 = null, resp3 = null, resp4 = null;
+            Json json1 = X.GET("/so/something/123"); // maps
+            Assert.IsTrue(googleMapsTemplate == json1.Template);
+            Assert.IsTrue(json1.ToJson() == googleMapsWrappedRef.ToJson());
 
-            X.GET("/so/something/123", out resp1); // maps only
-            Assert.IsTrue(googleMapsTemplate == ((Json)resp1.Resource).Template);
-            Assert.IsTrue(((Json)resp1.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Json json3 = X.GET("/so/legalentity/123"); // maps
+            Assert.IsTrue(json3.ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(googleMapsTemplate == json3.Template);
 
-            X.GET("/so/legalentity/123", out resp3); // maps only
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(googleMapsTemplate == ((Json)resp3.Resource).Template);
+            json = X.GET<Json>("/GoogleMapsApp/object/12345", () => {
+                return page;
+            }); // page
 
-            X.GET("/so/person/123", out resp2); // all
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+            Assert.IsTrue(json == page);
+            Assert.IsTrue(json.ToJson() == page.ToJson());
 
-            Assert.IsTrue(resp1.Body.Equals(resp3.Body));
+            Json json2 = X.GET("/so/person/123"); // all
+            Assert.IsTrue(json2.ToJson() == allObjWrappedRef.ToJson());
 
-            X.GET("/GoogleMapsApp/object/123", out resp1); // maps only
-            Assert.IsTrue(((Json)resp1.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(googleMapsTemplate == ((Json)resp1.Resource).Template);
+            Assert.IsTrue(json1.Template == json3.Template);
 
-            X.GET("/SalaryApp/employee/123", out resp2); // all
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+            json1 = X.GET("/GoogleMapsApp/object/123"); // maps
+            Assert.IsTrue(json1.ToJson() == googleMapsWrappedRef.ToJson());
+            Assert.IsTrue(googleMapsTemplate == json1.Template);
 
-            X.GET("/SkypeApp/skypeuser/123", out resp3); // all
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == allObjWrappedRef.ToJson());
+            json2 = X.GET("/SalaryApp/employee/123"); // all
+            Assert.IsTrue(json2.ToJson() == allObjWrappedRef.ToJson());
 
-            X.GET("/FacebookApp/person/123", out resp4); // all
-            Assert.IsTrue(((Json)resp4.Resource).ToJson() == allObjWrappedRef.ToJson());
+            json3 = X.GET("/SkypeApp/skypeuser/123"); // all
+            Assert.IsTrue(json3.ToJson() == allObjWrappedRef.ToJson());
 
-            Assert.IsTrue(resp2.Body.Equals(resp3.Body));
-            Assert.IsTrue(resp3.Body.Equals(resp4.Body));
-            Assert.IsFalse(resp1.Body.Equals(resp2.Body));
+            Json json4 = X.GET("/FacebookApp/person/123"); // all
+            Assert.IsTrue(json4.ToJson() == allObjWrappedRef.ToJson());
+
+            Assert.IsTrue(json2.ToJson() == json3.ToJson());
+            Assert.IsTrue(json3.ToJson() == json4.ToJson());
+            Assert.IsTrue(json1.ToJson() != json2.ToJson());
 
             StarcounterEnvironment.AppName = FacebookAppName;
 
-            X.GET("/FacebookApp/person/123", out resp); // facebook
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjRef.ToJson());
-            Assert.IsTrue(facebookProfileTemplate == ((Json)resp.Resource).Template);
+            json = X.GET("/FacebookApp/person/123"); // facebook
+            Assert.IsTrue(json.ToJson() == facebookProfileObjRef.ToJson());
+            Assert.IsTrue(facebookProfileTemplate == json.Template);
+
+            StarcounterEnvironment.AppName = null;
+
+            json1 = X.GET<Json>("/FacebookApp/person/123"); // all
+            Assert.IsTrue(json1.ToJson() == allObjWrappedRef.ToJson());
+
+            json3 = X.GET<Json>("/FacebookApp/person/123", () => {
+                return page;
+            }); // page
+
+            Assert.IsTrue(json3 == page);
+
+            json2 = X.GET("/so/person/123"); // all
+            Assert.IsTrue(json2.ToJson() == allObjWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = SomeAppName;
 
-            X.GET("/FacebookApp/person/123", out resp); // all
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+            json = X.GET<Json>("/GoogleMapsApp/object/123"); // maps
+            json2 = X.GET<Json>("/so/something/123"); // maps
+            json3 = X.GET<Json>("/so/legalentity/123"); // maps
 
-            X.GET("/so/person/123", out resp2); // all
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+            Assert.IsTrue(null == json);
+            Assert.IsTrue(null == json2);
+            Assert.IsTrue(null == json3);
 
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == ((Json)resp4.Resource).ToJson());
+            json = X.GET<Json>("/GoogleMapsApp/object/123", () => {
+                return page;
+            }); // page
 
-            StarcounterEnvironment.AppName = FacebookAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == facebookProfileObjRef.ToJson());
+            json2 = X.GET<Json>("/so/something/123", () => {
+                return page;
+            }); // page
 
-            StarcounterEnvironment.AppName = SalaryAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == salaryAppObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == salaryAppObjRef.ToJson());
+            json3 = X.GET<Json>("/so/legalentity/123", () => {
+                return page;
+            }); // page
 
-            StarcounterEnvironment.AppName = SkypeAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == skypeUserObjRef.ToJson());
+            Assert.IsTrue(json == page);
+            Assert.IsTrue(json2 == page);
+            Assert.IsTrue(json3 == page);
+
+            Assert.IsTrue(json.ToJson() == page.ToJson());
+            Assert.IsTrue(json2.ToJson() == page.ToJson());
+            Assert.IsTrue(json3.ToJson() == page.ToJson());
 
             StarcounterEnvironment.AppName = GoogleMapsAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsObjRef.ToJson());
 
-            StarcounterEnvironment.AppName = SomeAppName;
+            json1 = X.GET<Json>("/GoogleMapsApp/object/123"); // maps
+            json2 = X.GET<Json>("/so/something/123"); // maps
+            json3 = X.GET<Json>("/so/legalentity/123"); // maps
+            json = X.GET<Json>("/FacebookApp/person/123"); // maps
+            json4 = X.GET<Json>("/so/person/123"); // maps
 
-            X.GET("/GoogleMapsApp/object/123", out resp); // maps only
-            X.GET("/so/something/123", out resp2); // maps only
-            X.GET("/so/legalentity/123", out resp3); // maps only
+            Assert.IsTrue(json2.ToJson() == json1.ToJson());
+            Assert.IsTrue(json3.ToJson() == json1.ToJson());
+            Assert.IsTrue(json4.ToJson() == json1.ToJson());
+            Assert.IsTrue(json.ToJson() == json1.ToJson());
+        }
 
-            Assert.IsTrue(resp.Body.Equals(resp2.Body));
-            Assert.IsTrue(resp3.Body.Equals(resp2.Body));
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+        /// <summary>
+        /// Testing ordinary maps.
+        /// </summary>
+        [Test]
+        public static void OrdinaryMapsTests() {
 
-            StarcounterEnvironment.AppName = FacebookAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            Polyjuice.Init();
 
-            StarcounterEnvironment.AppName = SalaryAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            StarcounterEnvironment.AppName = "SomeApp";
 
-            StarcounterEnvironment.AppName = SkypeAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+            //////////////////////////////////////
+            // Testing with GET.
+            //////////////////////////////////////
 
-            StarcounterEnvironment.AppName = GoogleMapsAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsObjRef.ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsObjRef.ToJson());
+            Handle.GET("/SomeApp/map1", (Request req) => {
 
-            StarcounterEnvironment.AppName = SomeAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp3.Resource).ToJson() == googleMapsWrappedRef.ToJson());
+                Assert.IsTrue("/SomeApp/map1" == req.Uri);
+                Assert.IsTrue("GET" == req.Method);
 
-            X.GET("/SalaryApp/employee/123", out resp); // all
-            X.GET("/so/person/123", out resp2); // all
+                return "/map1";
+            });
 
-            Assert.IsTrue(resp.Body.Equals(resp2.Body));
+            Handle.GET("/SomeApp/map2", (Request req) => {
 
-            StarcounterEnvironment.AppName = SomeAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == allObjWrappedRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == allObjWrappedRef.ToJson());
+                Assert.IsTrue("/SomeApp/map2" == req.Uri);
+                Assert.IsTrue("GET" == req.Method);
 
-            StarcounterEnvironment.AppName = FacebookAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == facebookProfileObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == facebookProfileObjRef.ToJson());
+                return "/map2";
+            });
 
-            StarcounterEnvironment.AppName = SalaryAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == salaryAppObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == salaryAppObjRef.ToJson());
+            Handle.GET("/SomeApp/map3", (Request req) => {
 
-            StarcounterEnvironment.AppName = SkypeAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == skypeUserObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == skypeUserObjRef.ToJson());
+                Assert.IsTrue("/SomeApp/map3" == req.Uri);
+                Assert.IsTrue("GET" == req.Method);
 
-            StarcounterEnvironment.AppName = GoogleMapsAppName;
-            Assert.IsTrue(((Json)resp.Resource).ToJson() == googleMapsObjRef.ToJson());
-            Assert.IsTrue(((Json)resp2.Resource).ToJson() == googleMapsObjRef.ToJson());
+                return "/map3";
+            });
+
+            Polyjuice.Map("/SomeApp/map1", "/polyjuice/mapped");
+            Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped");
+            Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped");
+
+            String r = X.GET<String>("/SomeApp/map1");
+            Assert.IsTrue("/map1" == r);
+
+            r = X.GET<String>("/SomeApp/map2");
+            Assert.IsTrue("/map1" == r);
+
+            r = X.GET<String>("/SomeApp/map3");
+            Assert.IsTrue("/map1" == r);
+
+            r = X.GET<String>("/polyjuice/mapped");
+            Assert.IsTrue("/map1" == r);
+
+            //////////////////////////////////////
+            // Testing with POST.
+            //////////////////////////////////////
+
+            String body = "Here is my cool body!!!";
+
+            Handle.POST("/SomeApp/map1", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map1" == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map1";
+            });
+
+            Handle.POST("/SomeApp/map2", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map2" == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map2";
+            });
+
+            Handle.POST("/SomeApp/map3", (Request req) => {
+
+                Assert.IsTrue("/SomeApp/map3" == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map3";
+            });
+
+            Polyjuice.Map("/SomeApp/map1", "/polyjuice/mapped", "POST");
+            Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped", "POST");
+            Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped", "POST");
+
+            Response resp = X.POST("/SomeApp/map1", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            resp = X.POST("/SomeApp/map2", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            resp = X.POST("/SomeApp/map3", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            resp = X.POST("/polyjuice/mapped", body, null);
+            Assert.IsTrue("/map1" == resp.Body);
+
+            //////////////////////////////////////
+            // Testing with last parameter.
+            //////////////////////////////////////
+            
+            String param = "12345";
+
+            Handle.GET("/SomeApp/map1/{?}", (Request req, String p) => {
+
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("/SomeApp/map1/" + param == req.Uri);
+
+                return "/map1/" + p;
+            });
+
+            Handle.GET("/SomeApp/map2/{?}", (Request req, String p) => {
+
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("/SomeApp/map2/" + param == req.Uri);
+
+                return "/map2/" + p;
+            });
+
+            Handle.GET("/SomeApp/map3/{?}", (Request req, String p) => {
+
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("/SomeApp/map3/" + param == req.Uri);
+                
+                return "/map3/" + p;
+            });
+
+            Polyjuice.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w");
+            Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w");
+            Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w");
+
+            r = X.GET<String>("/SomeApp/map1/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            r = X.GET<String>("/SomeApp/map2/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            r = X.GET<String>("/SomeApp/map3/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            r = X.GET<String>("/polyjuice/mapped/" + param);
+            Assert.IsTrue("/map1/" + param == r);
+
+            //////////////////////////////////////
+            // Testing with POST and parameter.
+            //////////////////////////////////////
+
+            Handle.POST("/SomeApp/map1/{?}", (Request req, String p) => {
+                
+                Assert.IsTrue("/SomeApp/map1/" + param == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("POST" == req.Method);
+                
+                return "/map1/" + p;
+            });
+
+            Handle.POST("/SomeApp/map2/{?}", (Request req, String p) => {
+
+                Assert.IsTrue("/SomeApp/map2/" + param == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map2/" + p;
+            });
+
+            Handle.POST("/SomeApp/map3/{?}", (Request req, String p) => {
+
+                Assert.IsTrue("/SomeApp/map3/" + param == req.Uri);
+                Assert.IsTrue(body == req.Body);
+                Assert.IsTrue(param == p);
+                Assert.IsTrue("POST" == req.Method);
+
+                return "/map3/" + p;
+            });
+
+            Polyjuice.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w", "POST");
+            Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w", "POST");
+            Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w", "POST");
+
+            resp = X.POST("/SomeApp/map1/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
+
+            resp = X.POST("/SomeApp/map2/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
+
+            resp = X.POST("/SomeApp/map3/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
+
+            resp = X.POST("/polyjuice/mapped/" + param, body, null);
+            Assert.IsTrue("/map1/" + param == resp.Body);
         }
     }
 }

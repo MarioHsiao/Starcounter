@@ -83,12 +83,19 @@ namespace Starcounter
         [ThreadStatic]
         static Dictionary<String, Node> ThreadStaticNodeDict;
 
+        // Nodes cache when used for Starcounter client.
+        [ThreadStatic]
+        static Dictionary<UInt16, Node> ThreadStaticNodeDictByPort;
+
         // Default node for 127.0.0.1 and default user port.
         [ThreadStatic]
         static Node ThreadStaticThisNode;
 
         // Nodes cache when used for Starcounter hosted code.
         static Dictionary<String, Node>[] StaticNodeDictArray = new Dictionary<String, Node>[StarcounterConstants.MaximumSchedulersNumber];
+
+        // Nodes cache when used for Starcounter hosted code.
+        static Dictionary<UInt16, Node>[] StaticNodeDictArrayByPort = new Dictionary<UInt16, Node>[StarcounterConstants.MaximumSchedulersNumber];
 
         // Default node for 127.0.0.1 and default user port.
         static Node[] StaticThisNodeArray = new Node[StarcounterConstants.MaximumSchedulersNumber];
@@ -111,107 +118,153 @@ namespace Starcounter
         /// <summary>
         /// Gets node instance from given URI.
         /// </summary>
-        /// <param name="uri">Absolute or relative resource URI.</param>
-        /// <param name="node">Obtained node instance.</param>
-        /// <param name="relativeUri">Calculated relative URI.</param>
-        internal static void GetNodeFromUri(String uri, out Node node, out String relativeUri)
+        internal static void GetNodeFromUri(UInt16 port, String uri, out Node node, out String relativeUri)
         {
-            if (uri == null || uri.Length < 1)
+            // Checking for URI contents.
+            if ((uri == null) || (uri.Length < 1))
                 throw new ArgumentOutOfRangeException("URI should contain at least one character.");
 
             // NOTE: Checking specifically for default localhost endpoint.
             // Just a performance optimization.
-            if ('/' == uri[0])
-            {
+            if ('/' == uri[0]) {
+
                 relativeUri = uri;
 
-                if (IsInSccode)
-                {
+                // Checking if there is no port specified.
+                if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+
+                    if (IsInSccode) {
+
+                        Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
+
+                        // Getting Node dictionary from array by current scheduler index.
+                        if (null == StaticThisNodeArray[curSchedulerId]) {
+                            StaticThisNodeArray[curSchedulerId] = new Node(null);
+                        }
+
+                        node = StaticThisNodeArray[curSchedulerId];
+
+                    } else {
+
+                        // Checking if static object is initialized.
+                        if (null == ThreadStaticThisNode) {
+                            ThreadStaticThisNode = new Node(null, port);
+                            ThreadStaticThisNode.IsLocalNode = LocalNode;
+                        }
+
+                        // Getting thread static instance.
+                        node = ThreadStaticThisNode;
+                    }
+
+                } else {
+
+                    Dictionary<UInt16, Node> nodesDict = null;
+
+                    if (IsInSccode) {
+
+                        Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
+
+                        // Checking if node dictionary is already created.
+                        if (null == StaticNodeDictArrayByPort[curSchedulerId]) {
+                            StaticNodeDictArrayByPort[curSchedulerId] = new Dictionary<UInt16, Node>();
+                        }
+
+                        // Getting Node dictionary from array by current scheduler index.
+                        nodesDict = StaticNodeDictArrayByPort[curSchedulerId];
+
+                    } else {
+
+                        // Checking if static object is initialized.
+                        if (null == ThreadStaticNodeDictByPort) {
+                            ThreadStaticNodeDictByPort = new Dictionary<UInt16, Node>();
+                        }
+
+                        // Getting thread static instance.
+                        nodesDict = ThreadStaticNodeDictByPort;
+                    }
+
+                    // Trying to get node instance from node cache.
+                    if (!nodesDict.TryGetValue(port, out node)) {
+
+                        // Creating new node on localhost.
+                        node = new Node(null, port);
+
+                        // Setting the LocalNode flag for unit tests.
+                        if (!IsInSccode)
+                            node.IsLocalNode = LocalNode;
+
+                        // Adding node to dictionary.
+                        nodesDict.Add(port, node);
+                    }
+                }
+
+            } else {
+
+                Dictionary<String, Node> nodesDict = null;
+
+                if (IsInSccode) {
+
                     Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
 
-                    // Getting Node dictionary from array by current scheduler index.
-                    if (null == StaticThisNodeArray[curSchedulerId])
-                        StaticThisNodeArray[curSchedulerId] = new Node("127.0.0.1");
+                    // Checking if node dictionary is already created.
+                    if (null == StaticNodeDictArray[curSchedulerId])
+                        StaticNodeDictArray[curSchedulerId] = new Dictionary<String, Node>();
 
-                    node = StaticThisNodeArray[curSchedulerId];
-                }
-                else
-                {
+                    // Getting Node dictionary from array by current scheduler index.
+                    nodesDict = StaticNodeDictArray[curSchedulerId];
+
+                } else {
+
                     // Checking if static object is initialized.
-                    if (null == ThreadStaticThisNode)
-                    {
-                        ThreadStaticThisNode = new Node("127.0.0.1");
-                        ThreadStaticThisNode.LocalNode = LocalNode;
-                    }
+                    if (null == ThreadStaticNodeDict)
+                        ThreadStaticNodeDict = new Dictionary<String, Node>();
 
                     // Getting thread static instance.
-                    node = ThreadStaticThisNode;
+                    nodesDict = ThreadStaticNodeDict;
                 }
 
-                return;
-            }
+                // Calculating endpoint name from given URI.
+                String endpoint;
+                GetEndpointFromUri(uri, out endpoint, out relativeUri);
 
-            Dictionary<String, Node> nodesDict;
+                // Trying to get node instance from node cache.
+                if (!nodesDict.TryGetValue(endpoint, out node)) {
 
-            if (IsInSccode)
-            {
-                Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
+                    String endpointWithoutPort = endpoint;
+                    UInt16 destPort = port;
 
-                // Checking if node dictionary is already created.
-                if (null == StaticNodeDictArray[curSchedulerId])
-                    StaticNodeDictArray[curSchedulerId] = new Dictionary<String, Node>();
+                    Int32 i = endpoint.Length - 2, colonPos = -1;
 
-                // Getting Node dictionary from array by current scheduler index.
-                nodesDict = StaticNodeDictArray[curSchedulerId];
-            }
-            else
-            {
-                // Checking if static object is initialized.
-                if (null == ThreadStaticNodeDict)
-                    ThreadStaticNodeDict = new Dictionary<String, Node>();
-
-                // Getting thread static instance.
-                nodesDict = ThreadStaticNodeDict;
-            }
-
-            // Calculating endpoint name from given URI.
-            String endpoint;
-            GetEndpointFromUri(uri, out endpoint, out relativeUri);
-
-            // Trying to get node instance from node cache.
-            if (!nodesDict.TryGetValue(endpoint, out node))
-            {
-                String endpointWithoutPort = endpoint;
-                UInt16 port = 0;
-
-                Int32 i = endpoint.Length - 2, colonPos = -1;
-
-                // Checking if port is defined.
-                while (i >= 0)
-                {
-                    if (endpoint[i] == ':')
-                    {
-                        colonPos = i;
-                        break;
+                    // Checking if port is defined.
+                    while (i >= 0) {
+                        if (endpoint[i] == ':') {
+                            colonPos = i;
+                            break;
+                        }
+                        i--;
                     }
-                    i--;
+
+                    // Checking if port is specified within URI.
+                    if (colonPos > 0) {
+                        destPort = UInt16.Parse(endpoint.Substring(colonPos + 1));
+                        endpointWithoutPort = endpoint.Substring(0, colonPos);
+                    }
+
+                    // Checking if port is defined.
+                    if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == destPort) {
+                        destPort = 80;
+                    }
+
+                    node = new Node(endpointWithoutPort, destPort);
+
+                    // Adding node to dictionary.
+                    nodesDict.Add(endpoint, node);
                 }
-
-                // Checking if port is specified within URI.
-                if (colonPos > 0) {
-                    port = UInt16.Parse(endpoint.Substring(colonPos + 1));
-                    endpointWithoutPort = endpoint.Substring(0, colonPos);
-                }
-
-                node = new Node(endpointWithoutPort, port);
-
-                // Adding node to dictionary.
-                nodesDict.Add(endpoint, node);
             }
         }
         
         /// <summary>
-        /// Performs asynchronous HTTP GET.
+        /// Performs HTTP GET.
         /// </summary>
         public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
 
@@ -225,14 +278,107 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static T GET<T>(UInt16 port, String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
+
+            Response resp;
+            GET(port, uri, out resp, null, receiveTimeoutMs, ho);
+
+            if (null != resp)
+                return resp.GetContent<T>();
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static T GET<T>(String uri, Func<Response> substituteHandler) {
+
+            Response resp = GET(uri, substituteHandler);
+
+            if (null != resp)
+                return resp.GetContent<T>();
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static T GET<T>(UInt16 port, String uri, Func<Response> substituteHandler) {
+
+            Response resp = GET(port, uri, substituteHandler);
+
+            if (null != resp)
+                return resp.GetContent<T>();
+
+            return default(T);
+        }
+
+        /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static Response GET(String uri) {
+
+            Response resp;
+            X.GET(uri, out resp, null, 0, null);
+            return resp;
+        }
+
+        /// <summary>
+        /// Performs HTTP GET.
+        /// </summary>
+        public static Response GET(UInt16 port, String uri) {
+
+            Response resp;
+            X.GET(port, uri, out resp, null, 0, null);
+            return resp;
+        }
+
+        /// <summary>
+        /// Performs HTTP GET and provides substitute handler.
+        /// </summary>
+        public static Response GET(String uri, Func<Response> substituteHandler) {
+
+            HandlerOptions ho = new HandlerOptions() {
+                SubstituteHandler = substituteHandler
+            };
+
+            Response resp;
+            X.GET(uri, out resp, null, 0, ho);
+            return resp;
+        }
+
+        /// <summary>
+        /// Performs HTTP GET and provides substitute handler.
+        /// </summary>
+        public static Response GET(UInt16 port, String uri, Func<Response> substituteHandler) {
+
+            HandlerOptions ho = new HandlerOptions() {
+                SubstituteHandler = substituteHandler
+            };
+
+            Response resp;
+            X.GET(port, uri, out resp, null, 0, ho);
+            return resp;
+        }
+
+        /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        public static void GET(String uri, out Response response, Dictionary<String, String> headersDictionary = null, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
-        {
+        public static void GET(
+            String uri,
+            out Response response, 
+            Dictionary<String, String> headersDictionary = null,
+            Int32 receiveTimeoutMs = 0,
+            HandlerOptions ho = null) {
+
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             response = node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -240,12 +386,57 @@ namespace Starcounter
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        public static void GET(String uri, Dictionary<String, String> headersDictionary, Object userObject, Action<Response, Object> userDelegate, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null)
-        {
+        public static void GET(
+            UInt16 port,
+            String uri, 
+            out Response response, 
+            Dictionary<String, String> headersDictionary = null, 
+            Int32 receiveTimeoutMs = 0, 
+            HandlerOptions ho = null) {
+
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(port, uri, out node, out relativeUri);
+
+            response = node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
+        }
+
+        /// <summary>
+        /// Performs asynchronous HTTP GET.
+        /// </summary>
+        public static void GET(
+            String uri,
+            Dictionary<String, String> headersDictionary,
+            Object userObject,
+            Action<Response, Object> userDelegate, 
+            Int32 receiveTimeoutMs = 0,
+            HandlerOptions ho = null) {
+
+            Node node;
+            String relativeUri;
+
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
+
+            node.GET(relativeUri, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
+        }
+
+        /// <summary>
+        /// Performs asynchronous HTTP GET.
+        /// </summary>
+        public static void GET(
+            UInt16 port,
+            String uri,
+            Dictionary<String, String> headersDictionary,
+            Object userObject,
+            Action<Response, Object> userDelegate,
+            Int32 receiveTimeoutMs = 0,
+            HandlerOptions ho = null) {
+
+            Node node;
+            String relativeUri;
+
+            GetNodeFromUri(port, uri, out node, out relativeUri);
 
             node.GET(relativeUri, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -258,7 +449,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.POST(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -271,7 +462,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.POST(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -284,7 +475,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.POST(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -297,7 +488,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.POST(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -310,7 +501,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.PUT(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -323,7 +514,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.PUT(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -336,7 +527,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.PUT(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -349,7 +540,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.PUT(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -362,7 +553,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.PATCH(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -375,7 +566,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.PATCH(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -388,7 +579,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.PATCH(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -401,7 +592,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.PATCH(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -414,7 +605,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.DELETE(relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -427,7 +618,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.DELETE(relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -440,7 +631,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.DELETE(relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -453,7 +644,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.DELETE(relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -466,7 +657,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.CustomRESTRequest(method, relativeUri, body, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -479,7 +670,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             node.CustomRESTRequest(method, relativeUri, bodyBytes, headersDictionary, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -492,7 +683,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.CustomRESTRequest(method, relativeUri, body, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -505,7 +696,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
             return node.CustomRESTRequest(method, relativeUri, bodyBytes, headersDictionary, receiveTimeoutMs, ho);
         }
@@ -518,7 +709,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(req.Uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, req.Uri, out node, out relativeUri);
 
             node.CustomRESTRequest(req, userObject, userDelegate, receiveTimeoutMs, ho);
         }
@@ -531,7 +722,7 @@ namespace Starcounter
             Node node;
             String relativeUri;
 
-            GetNodeFromUri(req.Uri, out node, out relativeUri);
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, req.Uri, out node, out relativeUri);
 
             return node.CustomRESTRequest(req, receiveTimeoutMs, ho);
         }

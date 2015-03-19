@@ -151,33 +151,50 @@ namespace Starcounter {
         /// </summary>
         public ITransaction Transaction {
             get {
-                var handle = TransactionHandle;
+                var handle = GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
                     return TransactionManager.WrapHandle(handle);
                 return null;
             }
         }
 
-        internal TransactionHandle TransactionHandle {
-            get {
-                // Returning first available transaction climbing up the tree starting from this node.
-                if (_transaction != TransactionHandle.Invalid)
-                    return _transaction;
+        internal TransactionHandle GetTransactionHandle(bool lookInStepSiblings) {
+            TransactionHandle handle;
 
-                if (_parent != null)
-                    return _parent.TransactionHandle;
+            // Returning first available transaction climbing up the tree starting from this node.
+            if (_transaction != TransactionHandle.Invalid)
+                return _transaction;
 
-                if (_stepParent != null)
-                    return _stepParent.TransactionHandle;
-
-                return TransactionHandle.Invalid;
+            if (lookInStepSiblings == true && _stepSiblings != null) {
+                foreach (Json stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    handle = stepSibling.GetTransactionHandle(false);
+                    if (handle != TransactionHandle.Invalid)
+                        return handle;
+                }
             }
+
+            if (_parent != null)
+                return _parent.GetTransactionHandle(true);
+
+            return TransactionHandle.Invalid;
         }
 
         public void AttachCurrentTransaction() {
             if (StarcounterBase.TransactionManager != null) {
                 var current = StarcounterBase.TransactionManager.CurrentTransaction;
                 if (current != TransactionHandle.Invalid && !current.IsImplicit) {
+                    if (this.isAddedToViewmodel) {
+                        // Attach a transaction to a jsonobject already added to a Viewmodel (Session).
+                        // Need to register a reference directly here and properly deregister any existing 
+                        // transaction.
+                        var session = Session;
+                        if (_transaction != TransactionHandle.Invalid)
+                            session.DeregisterTransaction(_transaction);
+                        session.RegisterTransaction(current);
+                    }
+
                     _transaction = current;
                     StarcounterBase.TransactionManager.SetTemporaryRef(current);
                 }

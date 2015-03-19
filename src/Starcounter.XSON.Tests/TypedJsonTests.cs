@@ -135,6 +135,46 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestDynamicJsonFromString() {
+            string jsonStr = @"{""Key"":""Value"", ""Number"":99}";
+
+            dynamic json = new Json(jsonStr);
+            Assert.AreEqual("Value", json.Key);
+            Assert.AreEqual(99, json.Number);
+
+            jsonStr = @"{""Items"":[{""Key"":""Item1""},{""Key"":""Item2""}]}";
+            json = new Json(jsonStr);
+            Assert.AreEqual(2, json.Items.Count);
+            Assert.AreEqual("Item1", json.Items[0].Key);
+            Assert.AreEqual("Item2", json.Items[1].Key);
+
+            // TODO:
+            // Disabled this path as currently it does not work to have two different objects in an array.
+            // This should be solvable however.
+
+            //jsonStr = @"{""Items"":[{""Key"":""Item1""},{""AnotherKey"":""Item2""}]}";
+            //json = new Json(jsonStr);
+            //Assert.AreEqual(2, json.Items.Count);
+            //Assert.AreEqual("Item1", json.Items[0].Key);
+            //Assert.AreEqual("Item2", json.Items[1].AnotherKey);
+        }
+
+        [Test]
+        public static void TestNegativeNumberParsing() {
+            var jsonStr = @"{""NegInt"":-2,""PosInt"":13,""NegDbl"":-2e2,""PosDbl"":1e5,""NegDec"":-3.5,""PosDec"":3.456}";
+            var schema = TObject.CreateFromJson(jsonStr);
+
+            dynamic json = schema.CreateInstance();
+
+            Assert.AreEqual(-2L, json.NegInt);
+            Assert.AreEqual(13L, json.PosInt);
+            Assert.AreEqual(-2e2d, json.NegDbl);
+            Assert.AreEqual(1e5d, json.PosDbl);
+            Assert.AreEqual(-3.5m, json.NegDec);
+            Assert.AreEqual(3.456m, json.PosDec);
+        }
+
+        [Test]
         public static void TestDynamicJson() {
             dynamic json = new Json();
             json["foo"] = "bar";

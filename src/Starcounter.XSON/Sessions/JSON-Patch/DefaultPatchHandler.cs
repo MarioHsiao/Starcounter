@@ -13,7 +13,7 @@ namespace Starcounter.XSON {
             if (patchOp != JsonPatchOperation.Replace)
                 throw new JsonPatchException("Unsupported patch operation in patch.");
 
-            var aat = JsonProperty.Evaluate(pointer, session.GetFirstData());
+            var aat = JsonProperty.Evaluate(pointer, session.PublicViewModel);
 
             if (!aat.Property.Editable) {
                 throw new JsonPatchException(

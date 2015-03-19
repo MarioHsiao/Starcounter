@@ -10,5 +10,6 @@ namespace Starcounter.Weaver {
         internal const string Weave = "Weave";
         internal const string Verify = "Verify";
         internal const string ShowSchema = "Schema";
+        internal const string Test = "Test";
     }
 }

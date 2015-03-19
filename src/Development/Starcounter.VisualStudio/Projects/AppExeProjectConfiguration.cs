@@ -290,7 +290,7 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             exe.WorkingDirectory = debugConfig.WorkingDirectory;
-            exe.StartedBy = SharedCLI.ClientContext.GetCurrentContextInfo();
+            exe.StartedBy = ClientContext.GetCurrentContextInfo();
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;
             }

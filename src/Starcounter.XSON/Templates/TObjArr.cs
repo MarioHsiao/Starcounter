@@ -61,14 +61,7 @@ namespace Starcounter.Templates {
 									   bool overwriteExisting = true) {
             customSetter = setter;
 			bool overwrite = (overwriteExisting || !hasCustomAccessors);
-
-			if (BindingStrategy == BindingStrategy.Unbound) {
-				if (overwrite || Getter == null)
-					Getter = getter;
-				if (overwrite || Setter == null)
-					Setter = SetParentAndUseCustomSetter;
-			}
-
+	
 			if (overwrite || UnboundGetter == null) {
 				UnboundGetter = getter;
 #if DEBUG
@@ -246,6 +239,8 @@ namespace Starcounter.Templates {
             get { return single; }
         }
 
+        private object elementLockObject = new object();
+
         /// <summary>
         /// Gets or sets the type (the template) that should be the template for all elements
         /// in this array.
@@ -261,7 +256,12 @@ namespace Starcounter.Templates {
                 if (getElementType == null) 
                     return null;
 
-                ElementType = getElementType(this);
+                // Quick temporary hack for removing synchronization issue fopr one specific case.
+                // Needs to be solved properly. #2597
+                lock (elementLockObject) {
+                    if (single.Length == 0)
+                        ElementType = getElementType(this);
+                }
                 return single[0];
             }
             set {

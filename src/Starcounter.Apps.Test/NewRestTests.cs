@@ -16,6 +16,7 @@ using TArr = Starcounter.Templates.TArray<Starcounter.Json>;
 using Starcounter.Templates;
 using Starcounter.Rest;
 using System.IO;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal.Test
 {
@@ -34,7 +35,7 @@ namespace Starcounter.Internal.Test
             Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
             StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
 
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
+            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
             UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
@@ -290,7 +291,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.GET("/CaseInsensitive", (Request req) => {
 
@@ -322,7 +323,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.GET("/response1", (Request req) =>
             {
@@ -425,7 +426,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             Handle.CUSTOM("{?} /prefix/{?}", (String method, String p1) =>
             {
@@ -566,7 +567,7 @@ namespace Starcounter.Internal.Test
 
             // Node that is used for tests.
             Node localNode = new Node("127.0.0.1", 8080);
-            localNode.LocalNode = true;
+            localNode.IsLocalNode = true;
 
             TestInfo testInfos1  = new TestInfo("GET /@w", "/a", "/{?}");
             TestInfo testInfos2  = new TestInfo("GET /",  "/", "/");

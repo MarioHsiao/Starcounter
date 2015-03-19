@@ -13,6 +13,7 @@ using System.Linq;
 namespace Starcounter.Weaver {
     using Sc.Server.Weaver.Schema;
     using System.CodeDom.Compiler;
+    using System.Reflection;
     using Error = Starcounter.Error;
 
     class Program {
@@ -158,6 +159,9 @@ namespace Starcounter.Weaver {
             } else if (cmd.Equals(ProgramCommands.ShowSchema, caseInsensitive)) {
                 ExecuteSchemaCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
 
+            } else if (cmd.Equals(ProgramCommands.Test, caseInsensitive)) {
+                ExecuteTestCommand(inputDirectory, outputDirectory, cacheDirectory, fileName, arguments);
+
             } else {
                 error = Error.SCERRBADCOMMANDLINESYNTAX;
                 ReportProgramError(
@@ -192,6 +196,7 @@ namespace Starcounter.Weaver {
             weaver.DisableWeaverCache = arguments.ContainsFlag("nocache");
             weaver.WeaveToCacheOnly = arguments.ContainsFlag("tocache");
             weaver.UseStateRedirect = arguments.ContainsFlag("UseStateRedirect".ToLower());
+            weaver.DisableEditionLibraries = arguments.ContainsFlag("DisableEditionLibraries".ToLower());
 
             // Invoke the weaver subsystem. If it fails, it will report the
             // error itself.
@@ -235,6 +240,9 @@ namespace Starcounter.Weaver {
             string fileName,
             ApplicationArguments arguments) {
 
+            // Change this to use newly introduced DatabaseSchema.DeserializeFrom(DirectoryInfo);
+            // TODO:
+
             var schemaFiles = new DirectoryInfo(outputDirectory).GetFiles("*.schema");
             if (schemaFiles.Length == 0) {
                 Console.WriteLine("No schema found (looked in '{0}')", outputDirectory);
@@ -254,6 +262,28 @@ namespace Starcounter.Weaver {
             schema.AfterDeserialization();
 
             schema.DebugOutput(new IndentedTextWriter(Console.Out));
+        }
+
+        static void ExecuteTestCommand(
+            string inputDirectory,
+            string outputDirectory,
+            string cacheDirectory,
+            string fileName,
+            ApplicationArguments arguments) {
+            
+            var exe = Path.Combine(inputDirectory, fileName);
+            var loaded = Assembly.LoadFrom(exe);
+            var ep = loaded.EntryPoint;
+            if (ep == null) {
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, string.Format("{0} cant be used as a test - it defines no entrypoint", exe));
+            }
+
+            if (ep.GetParameters().Length == 0) {
+                ep.Invoke(null, null);
+            } else {
+                var args = new string[] { "WEAVERTEST", inputDirectory, fileName, outputDirectory };
+                ep.Invoke(null, new object[] { args });
+            }
         }
 
         static void ApplyGlobalProgramOptions(ApplicationArguments arguments) {
@@ -405,6 +435,9 @@ namespace Starcounter.Weaver {
                 "tocache", 
                 "Instructs the weaver to leave the input intact and weave only to the weaver cache.");
 
+            commandDefinition.DefineFlag("DisableEditionLibraries".ToLower(),
+                "Instructs the weaver to ignore any edition libraries part of the installation.");
+
             // Define the "Verify" command, used to analyze and verify user code.
 
             // Define the command. Exactly one parameter - the executable - is
@@ -422,6 +455,12 @@ namespace Starcounter.Weaver {
 
             // Display schema command
             syntaxDefinition.DefineCommand(ProgramCommands.ShowSchema, "Displays the schema of the given application", 1);
+
+            // Treats the given application as an application that are to be
+            // tested against a weaved version of itself; invokes the entrypoint
+            // with a certain set of arguments
+            syntaxDefinition.DefineCommand(
+                ProgramCommands.Test, "Runs the given application as a test application", 1);
 
             // Create the syntax, validating it
             syntax = syntaxDefinition.CreateSyntax();

@@ -28,17 +28,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Application name.
+        /// Calling application name.
         /// </summary>
-        internal String AppName {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Don't merge on this handler.
-        /// </summary>
-        internal Boolean DontMerge {
+        internal String CallingAppName {
             get;
             set;
         }
@@ -46,11 +38,22 @@ namespace Starcounter {
         /// <summary>
         /// Proxy delegate trigger.
         /// </summary>
-        internal Boolean ProxyDelegateTrigger {
+        public Boolean ProxyDelegateTrigger {
             get;
             set;
         }
 
+        /// <summary>
+        /// Replace existing delegate.
+        /// </summary>
+        public Boolean ReplaceExistingDelegate {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Handler level.
+        /// </summary>
         HandlerLevels handlerLevel_ = HandlerLevels.DefaultLevel;
 
         /// <summary>
@@ -70,6 +73,14 @@ namespace Starcounter {
         /// Forcing setting non-polyjuice handler flag.
         /// </summary>
         public Boolean AllowNonPolyjuiceHandler {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Substitute handler.
+        /// </summary>
+        public Func<Response> SubstituteHandler {
             get;
             set;
         }
@@ -108,46 +119,17 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Default handler options.
+        /// Constructor with handler level.
         /// </summary>
-        public static HandlerOptions DefaultHandlerOptions = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.DefaultLevel
-        };
+        public HandlerOptions(HandlerLevels handlerLevel) {
+            handlerLevel_ = handlerLevel;
+        }
 
         /// <summary>
-        /// Security level.
+        /// Constructor without handler level.
         /// </summary>
-        public readonly static HandlerOptions FilteringLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.FilteringLevel
-        };
-
-        /// <summary>
-        /// General level.
-        /// </summary>
-        public readonly static HandlerOptions DefaultLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.DefaultLevel
-        };
-
-        /// <summary>
-        /// Application level.
-        /// </summary>
-        public readonly static HandlerOptions ApplicationLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.ApplicationLevel
-        };
-
-        /// <summary>
-        /// Extra application level.
-        /// </summary>
-        public readonly static HandlerOptions ApplicationExtraLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-        };
-
-        /// <summary>
-        /// Code host static file server level.
-        /// </summary>
-        public readonly static HandlerOptions CodeHostStaticFileServer = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.CodeHostStaticFileServer
-        };
+        public HandlerOptions() {
+        }
     }
     
     /// <summary>
@@ -178,15 +160,6 @@ namespace Starcounter {
         /// Inject REST handler function provider here
         /// </summary>
         public static volatile IREST _REST;
-
-        /// <summary>
-        /// Registers a routine to merge several responses.
-        /// </summary>
-        /// <param name="mergerRoutine">Provided merging routine.</param>
-        public static void MergeResponses(Func<Request, List<Response>, Response> mergerRoutine)
-        {
-            _REST.RegisterResponsesMerger(mergerRoutine);
-        }
 
         public static void CUSTOM(String methodAndUriInfo, Func<Response> handler, HandlerOptions ho = null)
         {

@@ -28,11 +28,6 @@ namespace Starcounter.Advanced {
         void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler);
 
         /// <summary>
-        /// Registers responses merging routine.
-        /// </summary>
-        void RegisterResponsesMerger(Func<Request, List<Response>, Response> mergerRoutine);
-
-        /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
         void RegisterHandler(ushort port, String methodAndUriInfo, Func<Response> handler, HandlerOptions ho = null);

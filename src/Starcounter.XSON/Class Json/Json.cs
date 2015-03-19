@@ -83,7 +83,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Obj" /> class.
+        /// Initializes a new instance of the <see cref="Json" /> class.
         /// </summary>
         public Json()
             : base() {
@@ -94,6 +94,16 @@ namespace Starcounter {
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }
+        }
+
+        /// <summary>
+        /// Creates an instance <see cref="Json" /> class using the specified string to build a <see cref="Template" /> 
+        /// and set values.
+        /// </summary>
+        /// <param name="jsonStr">The string containing proper JSON</param>
+        public Json(string jsonStr) : this() {
+            Template = TObject.CreateFromJson(jsonStr);
+            this.PopulateFromJson(jsonStr);
         }
 
         /// <summary>
@@ -116,13 +126,7 @@ namespace Starcounter {
         /// </summary>
         public Session Session {
             get {
-                if (_stepParent != null) {
-                    return _stepParent.Session;
-                }
-                if (_Session == null && Parent != null) {
-                    return Parent.Session;
-                }
-                return _Session;
+                return GetSession(true);
             }
             set {
                 if (Parent != null)
@@ -140,8 +144,29 @@ namespace Starcounter {
             }
         }
 
+        private Session GetSession(bool lookInStepSiblings) {
+            Session session = _Session;
+
+            if (session != null)
+                return session;
+
+            if (Parent != null)
+                session = Parent.GetSession(true);
+
+            if (session == null && lookInStepSiblings && _stepSiblings != null) {
+                foreach (var stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    session = stepSibling.GetSession(false);
+                    if (session != null)
+                        break;
+                }
+            }
+            return session;
+        }
+
         internal void OnSessionSet() {
-            OnAddedToViewmodel();
+            OnAddedToViewmodel(true);
         }
 
         /// <summary>
@@ -200,6 +225,18 @@ namespace Starcounter {
                 return true;
 
             return false;
+        }
+
+        /// <summary>
+        /// Returns the Json root.
+        /// </summary>
+        public Json Root {
+            get {
+                Json r = this;
+                while (r.Parent != null)
+                    r = r.Parent;
+                return r;
+            }
         }
 
         protected virtual Template GetDefaultTemplate() {
@@ -289,13 +326,13 @@ namespace Starcounter {
             // Since we change parents we need to retrieve session twice.
             if (_parent != null) {
                 if (Session != null)
-                    OnRemovedFromViewmodel();
+                    OnRemovedFromViewmodel(true);
             }
 
             _parent = value;
             if (_parent != null) {
                 if (Session != null)
-                    OnAddedToViewmodel();
+                    OnAddedToViewmodel(true);
             }
         }
 

@@ -43,9 +43,16 @@ namespace Starcounter.Server.PublicModel {
         /// <param name="cancellationPredicate">Optional predicate that can be used to
         /// pass in a method that have the right to authorize cancellation of
         /// the executing command during processing.</param>
+        /// <param name="completionCallback">Optional callback that will be invoked
+        /// when the executed command completes.
+        /// </param>
         /// <returns>A <see cref="CommandInfo"/> representing the state of
         /// the command.</returns>
-        CommandInfo Execute(ServerCommand command, Predicate<ServerCommand> cancellationPredicate = null);
+        CommandInfo Execute(
+            ServerCommand command, 
+            Predicate<CommandId> cancellationPredicate = null,
+            Action<CommandId> completionCallback = null
+            );
 
         /// <summary>
         /// Waits for the server command represented by the given
