@@ -221,9 +221,12 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT a[Parent].[Name] FROM Person a WHERE a[Name] = 'Alice'");
             ProcessQuery(ParseOK, "SELECT a[MyNamespace.Father].Name FROM Person a WHERE a.Name = 'Alice';SELECT a[MyNamespace.Father].Name FROM Person a WHERE a.Name = 'Alice'");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT x FROM Person b, Person x WHERE { b Father+ x } AND b.Name = 'Bob'");
-            ProcessQuery(ParseOK, "SELECT b.Father+.Name FROM Person b WHERE b.Name = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b.(Father+).Name FROM Person b WHERE b.Name = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b.Father+Name FROM Person b WHERE b.Name = 'Bob'");
-            ProcessQuery(ParseOK, "SELECT b[Father]+.Name FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b[Father+].Name FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b.([Father]+)[Name] FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b.([Father]+).Name FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b.[Father+].Name FROM Person b WHERE b[Name] = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b[Father]+Name FROM Person b WHERE b[Name] = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b[Father]+Name FROM Person b WHERE b[Name] = 'Bob'+?");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT b[Father]+Name FROM Person b WHERE b+[Name] = 'Bob'");
