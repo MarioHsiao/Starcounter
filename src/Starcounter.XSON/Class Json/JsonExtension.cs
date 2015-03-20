@@ -8,18 +8,6 @@ namespace Starcounter.Advanced.XSON {
     /// Extension class for Json. Contains advanced features that can be excluded for normal use.
     /// </summary>
     public static class JsonExtension {
-        public static string GetAppName(this Json json) {
-            return json._appName;
-        }
-
-        public static void SetAppName(this Json json, string value) {
-            json._appName = value;
-        }
-
-        public static void SetEnableDirtyCheck(this Json json, bool value) {
-            json._dirtyCheckEnabled = value;
-        }
-
         /// <summary>
         /// Executes the specifed Action either in the scope of a transaction
         /// on the object or if no transaction is found, just executes the action.
