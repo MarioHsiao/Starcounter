@@ -231,13 +231,13 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasAddedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
-			if (_dirtyCheckEnabled && Session != null) {
+			if (_trackChanges) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
 				ArrayAddsAndDeletes.Add(Change.Add(this.Parent, tarr, index, item));
 				Dirtyfy();
-				item.SetBoundValuesInTuple();
+                item.SetBoundValuesInTuple();
 			}
 			Parent.ChildArrayHasAddedAnElement(tarr, index);
 		}
@@ -249,7 +249,7 @@ namespace Starcounter {
         /// <param name="item"></param>
         internal void CallHasReplacedElement(int index, Json item) {
             var tarr = (TObjArr)this.Template;
-            if (_dirtyCheckEnabled && Session != null) {
+            if (_trackChanges) {
                 if (ArrayAddsAndDeletes == null) {
                     ArrayAddsAndDeletes = new List<Change>();
                 }
@@ -267,7 +267,7 @@ namespace Starcounter {
 		/// <param name="item"></param>
 		internal void CallHasRemovedElement(int index, Json item) {
 			var tarr = (TObjArr)this.Template;
-			if (_dirtyCheckEnabled && Session != null) {
+            if (_trackChanges) {
 				if (ArrayAddsAndDeletes == null) {
 					ArrayAddsAndDeletes = new List<Change>();
 				}
@@ -282,9 +282,8 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="property"></param>
 		internal void CallHasChanged(TObjArr property, int index) {
-			if (HasBeenSent) {
+            if (_trackChanges)
                 this.Dirtyfy();
-			}
 			this.Parent.ChildArrayHasReplacedAnElement(property, index);
 		}
 
@@ -293,12 +292,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property"></param>
         internal void CallHasChanged(TValue property) {
-            if (_dirtyCheckEnabled &&  Session != null) {
-                if (HasBeenSent) {
-                    // _Values.SetReplacedFlagAt(property.TemplateIndex,true);
-                    this.Dirtyfy();
-                }
-            }
+            if (_trackChanges)
+                this.Dirtyfy();
             this.HasChanged(property);
         }
 
