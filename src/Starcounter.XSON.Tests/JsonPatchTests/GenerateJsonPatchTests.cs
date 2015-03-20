@@ -135,14 +135,17 @@ namespace Starcounter.Internal.XSON.Tests {
                 property = schema2.Add<TString>("FirstName");
                 dynamic json2 = new Json() { Template = schema2 };
                 json2.FirstName = "ApaPapa";
-                JsonExtension.SetAppName(json2, "OtherApp");
+
+                Json hack = json2;
+                hack._appName = "OtherApp";
+
                 List<Json> stepSiblings = new List<Json>();
                 stepSiblings.Add(json.Page);
                 stepSiblings.Add(json2);
                 Json real = json.Page;
-                real._stepSiblings = stepSiblings;
+                real.StepSiblings = stepSiblings;
                 real = json2;
-                real._stepSiblings = stepSiblings;
+                real.StepSiblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
@@ -164,14 +167,16 @@ namespace Starcounter.Internal.XSON.Tests {
                 property = schema2.Add<TString>("FirstName");
                 json2 = new Json() { Template = schema2 };
                 json2.FirstName = "ApaPapa";
-                JsonExtension.SetAppName(json2, "OtherApp");
+
+                hack = json2;
+                hack._appName = "OtherApp";
                 stepSiblings = new List<Json>();
                 stepSiblings.Add(json.Focused);
                 stepSiblings.Add(json2);
                 real = json.Focused;
-                real._stepSiblings = stepSiblings;
+                real.StepSiblings = stepSiblings;
                 real = json2;
-                real._stepSiblings = stepSiblings;
+                real.StepSiblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
                 Assert.IsTrue(patchSize >= patch.Length); // size is estimated, but needs to be atleast size of patch
