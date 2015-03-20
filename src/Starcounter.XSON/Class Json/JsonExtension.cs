@@ -8,14 +8,6 @@ namespace Starcounter.Advanced.XSON {
     /// Extension class for Json. Contains advanced features that can be excluded for normal use.
     /// </summary>
     public static class JsonExtension {
-        public static string GetAppName(this Json json) {
-            return json._appName;
-        }
-
-        public static void SetAppName(this Json json, string value) {
-            json._appName = value;
-        }
-
         public static void SetAutoCheckBoundProperties(this Json json, bool enabled) {
             json._checkBoundProperties = enabled;
         }

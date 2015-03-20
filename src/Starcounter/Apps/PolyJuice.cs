@@ -975,7 +975,7 @@ namespace PolyjuiceNamespace {
                 mainJson = resp.Resource as Json;
 
                 if (mainJson != null) {
-                    mainJson.SetAppName(resp.AppName);
+                    mainJson._appName = resp.AppName;
                 }
 
                 return resp;
@@ -999,13 +999,13 @@ namespace PolyjuiceNamespace {
             mainJson = mainResponse.Resource as Json;
 
             if (mainJson != null) {
-                mainJson.SetAppName(mainResponse.AppName);
+                mainJson._appName = mainResponse.AppName;
 
                 if (responses.Count == 1)
                     return mainResponse;
 
                 stepSiblings = new List<Json>();
-                mainJson._stepSiblings = stepSiblings;
+                mainJson.StepSiblings = stepSiblings;
                 stepSiblings.Add(mainJson);
 
                 for (Int32 i = 0; i < responses.Count; i++) {
@@ -1022,18 +1022,18 @@ namespace PolyjuiceNamespace {
                         if (siblingJson == null) 
                             continue;
 
-                        siblingJson.SetAppName(responses[i].AppName);
+                        siblingJson._appName = responses[i].AppName;
 
-                        if (siblingJson._stepSiblings != null) {
+                        if (siblingJson.StepSiblings != null) {
                             // We have another set of stepsiblings. Merge them into one list.
-                            foreach (var existingSibling in siblingJson._stepSiblings) {
+                            foreach (var existingSibling in siblingJson.StepSiblings) {
                                 if (!stepSiblings.Contains(existingSibling)) {
                                     stepSiblings.Add(existingSibling);
-                                    existingSibling._stepSiblings = stepSiblings;
+                                    existingSibling.StepSiblings = stepSiblings;
                                 }
                             }
                         }
-                        siblingJson._stepSiblings = stepSiblings;
+                        siblingJson.StepSiblings = stepSiblings;
 
                         if (!stepSiblings.Contains(siblingJson)) {
                             stepSiblings.Add(siblingJson);

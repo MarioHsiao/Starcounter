@@ -499,5 +499,18 @@ namespace Starcounter {
                 }
             }
         }
+
+        internal List<Json> StepSiblings {
+            get { return _stepSiblings; }
+            set {
+                _stepSiblings = value;
+                if (this.Session != null) {
+                    // We just call OnAdd for this sibling since the list will be set on each one.
+                    // If the sibling is already added the method will just return so no need to 
+                    // do additional checks here.
+                    this.OnAddedToViewmodel(false);
+                }
+            }
+        }
 	}
 }
