@@ -512,5 +512,10 @@ namespace Starcounter {
                 }
             }
         }
+
+        public bool AutoRefreshBoundProperties {
+            get { return _checkBoundProperties; }
+            set { _checkBoundProperties = value; } 
+        }
 	}
 }

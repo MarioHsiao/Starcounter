@@ -420,7 +420,7 @@ namespace Starcounter.Internal.XSON.Tests {
             session.ClearChangeLog();
 
             // Then disable it and change value again.
-            Starcounter.Advanced.XSON.JsonExtension.SetAutoCheckBoundProperties(json, false);
+            json.AutoRefreshBoundProperties = false;
             person.FirstName = "ChangedAgain";
             session.GenerateChangeLog();
             changes = session.GetChanges();
@@ -468,7 +468,7 @@ namespace Starcounter.Internal.XSON.Tests {
             session.CheckpointChangeLog();
             session.ClearChangeLog();
 
-            Starcounter.Advanced.XSON.JsonExtension.SetAutoCheckBoundProperties(json, false);
+            json.AutoRefreshBoundProperties = false;
             recursive.Recursives.Add(new Recursive() { Name = "R4" });
 
             Assert.AreNotEqual(recursive.Recursives.Count, json.Recursives.Count);
