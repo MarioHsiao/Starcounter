@@ -169,7 +169,7 @@ namespace Starcounter.Advanced.XSON {
 
                     string setupStr = null;
                     try {
-                        setupStr = Json._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
+                        setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
                     } catch { }
 
                     if (setupStr != null) {
@@ -420,7 +420,7 @@ namespace Starcounter.Advanced.XSON {
 
                             string setupStr = null;
                             try {
-                                setupStr = Json._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
+                                setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
                             } catch { }
 
                             if (setupStr != null) {
