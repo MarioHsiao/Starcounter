@@ -101,7 +101,7 @@ namespace Starcounter {
 				sb.Append('"');
 				sb.Append(prop.PropertyName);
 				sb.Append("\":");
-				if (_dirtyCheckEnabled && WasReplacedAt(prop.TemplateIndex)) {
+				if (_trackChanges && WasReplacedAt(prop.TemplateIndex)) {
 					sb.Append("(direct-set)");
 				}
 
