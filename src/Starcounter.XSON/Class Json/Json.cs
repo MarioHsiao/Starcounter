@@ -49,7 +49,7 @@ namespace Starcounter {
     /// A Json object can be data bound to a database object such as its bound properties
     /// merely reflect the values of the database objects.
     /// </remarks>
-    public partial class Json : StarcounterBase {
+    public partial class Json {
         /// <summary>
         /// Base classes to be derived by Json-by-example classes.
         /// </summary>
