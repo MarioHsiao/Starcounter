@@ -28,8 +28,8 @@ namespace Starcounter
         [Description("GetUriHandlersManager")]
         GetUriHandlersManager,
 
-        [Description("Profiler for handling and converting response and attached resource to bytes.")]
-        HandleResponse,
+        [Description("Profiler for handling static file resource.")]
+        HandleStaticFileResource,
 
         [Description("Profiler for retrieving preferred mimetype from the request.")]
         GetPreferredMimeType,

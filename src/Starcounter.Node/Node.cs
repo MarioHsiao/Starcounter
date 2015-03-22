@@ -747,37 +747,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Filters the request.
-        /// </summary>
-        public static Response FilterRequest(Request req) {
-
-            Debug.Assert(req != null);
-
-            String methodSpaceUriSpace = req.Method + " " + req.Uri + " ";
-            String methodSpaceUriSpaceLower = methodSpaceUriSpace;
-
-#if CASE_INSENSITIVE_URI_MATCHER
-
-            // Making incoming URI lower case.
-            methodSpaceUriSpaceLower = req.Method + " " + req.Uri.ToLowerInvariant() + " ";
-#endif
-
-            // No response initially.
-            Response resp = null;
-
-            // Running URI matcher and calling determined handler.
-            runUriMatcherAndCallHandler_(
-                methodSpaceUriSpace,
-                methodSpaceUriSpaceLower,
-                req,
-                req.PortNumber,
-                new HandlerOptions(HandlerOptions.HandlerLevels.FilteringLevel),
-                out resp);
-
-            return resp;
-        }
-
-        /// <summary>
         /// Core function to send REST requests and get the responses.
         /// </summary>
         public Response DoRESTRequestAndGetResponse(

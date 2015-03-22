@@ -20,7 +20,6 @@ namespace Starcounter {
         /// Specific handler levels.
         /// </summary>
         public enum HandlerLevels {
-            FilteringLevel,
             DefaultLevel,
             ApplicationLevel,
             ApplicationExtraLevel,
@@ -131,6 +130,38 @@ namespace Starcounter {
         public HandlerOptions() {
         }
     }
+
+    /// <summary>
+    /// Represents a middleware filter that is called for external
+    /// requests before the actual user handler.
+    /// </summary>
+    public class MiddlewareFilter {
+
+        /// <summary>
+        /// Application name that registered this handler.
+        /// </summary>
+        public string AppName {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The actual filter delegate.
+        /// </summary>
+        public Func<Request, Response> FilterRequest {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="filterRequest">Filter request parameter.</param>
+        public MiddlewareFilter(Func<Request, Response> filterRequest) {
+            AppName = StarcounterEnvironment.AppName;
+            FilterRequest = filterRequest;
+        }
+    }
     
     /// <summary>
     /// Allows you to register communication endpoints such as REST style handlers
@@ -150,6 +181,63 @@ namespace Starcounter {
         const String POST_METHOD = "POST";
         const String DELETE_METHOD = "DELETE";
         const String PATCH_METHOD = "PATCH";
+
+        /// <summary>
+        /// Checks if given URI is a part of 
+        /// </summary>
+        /// <param name="uri">Incomming URI.</param>
+        /// <returns>True if its a system handler.</returns>
+        public static Boolean IsSystemHandlerUri(String uri) {
+
+            if (uri.StartsWith("/polyjuice", StringComparison.InvariantCultureIgnoreCase) ||
+                uri.StartsWith("/codehost", StringComparison.InvariantCultureIgnoreCase) ||
+                uri.StartsWith("/_", StringComparison.InvariantCultureIgnoreCase)) {
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Filtering request.
+        /// </summary>
+        public static List<MiddlewareFilter> middlewareFilters_ = new List<MiddlewareFilter>();
+
+        /// <summary>
+        /// Adding new filter to middleware.
+        /// </summary>
+        public static void AddFilterToMiddleware(Func<Request, Response> filterRequest) {
+
+            MiddlewareFilter mf = new MiddlewareFilter(filterRequest);
+
+            middlewareFilters_.Add(mf);
+        }
+
+        /// <summary>
+        /// Runs all added middleware filters until one that returns non-null response.
+        /// </summary>
+        /// <returns>Filtered response or null.</returns>
+        internal static Response RunMiddlewareFilters(Request req) {
+
+            String curAppName = StarcounterEnvironment.AppName;
+
+            for (Int32 i = (middlewareFilters_.Count - 1); i >= 0; i--) {
+
+                MiddlewareFilter mf = middlewareFilters_[i];
+
+                StarcounterEnvironment.AppName = mf.AppName;
+
+                Response resp = mf.FilterRequest(req);
+
+                if (null != resp)
+                    return resp;
+            }
+
+            StarcounterEnvironment.AppName = curAppName;
+
+            return null;
+        }
 
         /// <summary>
         /// Indicator of parameter in URI.

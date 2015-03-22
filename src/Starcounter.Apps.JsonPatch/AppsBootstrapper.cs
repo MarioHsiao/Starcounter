@@ -34,8 +34,6 @@ namespace Starcounter.Internal {
         // Node error log source.
         static LogSource NodeErrorLogSource = new LogSource("Node");
 
-        // private static StaticWebServer fileServer;
-
         /// <summary>
         /// Initializes AppsBootstrapper.
         /// </summary>
@@ -265,23 +263,14 @@ namespace Starcounter.Internal {
 
             try {
 
-                // Getting appropriate handler level manager.
-                UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.FilteringLevel);
+                // Starting the session that came with request.
+                StartSessionThatCameWithRequest(req);
 
-                // Checking if there are any registered handlers.
-                if (uhm.NumRegisteredHandlers > 0) {
-
-                    req.PortNumber = UriHandlersManager.GetPortNumber(req,
-                        new HandlerOptions());
-
-                    resp = Node.FilterRequest(req);
-                }
+                // Checking if there is a filtering delegate.
+                resp = Handle.RunMiddlewareFilters(req);
 
                 // Checking if filter level did allow this request.
                 if (null == resp) {
-
-                    // Starting the session that came with request.
-                    StartSessionThatCameWithRequest(req);
 
                     // Handling request on initial level.
                     resp = AppServer_.RunDelegateAndProcessResponse(
