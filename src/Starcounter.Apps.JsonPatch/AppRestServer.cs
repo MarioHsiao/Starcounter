@@ -55,46 +55,6 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// Handles the response returned from the user handler.
-        /// </summary>
-        public Response ProcessHttpResponse(Request req, Response resp) {
-
-            Debug.Assert(resp != null);
-
-            try {
-
-                // Checking if we need to resolve static resource.
-                if (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent) {
-
-                    resp = ResolveAndPrepareFile(req.Uri, req);
-                    resp.HandlingStatus = HandlerStatusInternal.Done;
-
-                } else {
-
-                    // NOTE: Checking if its internal request then just returning response without modification.
-                    if (!req.IsExternal)
-                        return resp;
-
-                    // Checking if JSON object is attached, then returning root.
-                    if (resp.Resource is Json) {
-                        resp.Resource = ((Json) resp.Resource).Root;
-                    }
-                }
-
-                return resp;
-
-            } catch (Exception ex) {
-
-                // Logging the exception to server log.
-                LogSources.Hosting.LogException(ex);
-                var errResp = Response.FromStatusCode(500);
-                errResp.Body = GetExceptionString(ex);
-                errResp.ContentType = "text/plain";
-                return errResp;
-            }
-        }
-
-        /// <summary>
         /// Runs delegate and process response.
         /// </summary>
         public Response RunDelegateAndProcessResponse(
@@ -144,22 +104,21 @@ namespace Starcounter.Internal.Web {
 
                     // Setting back the application name.
                     StarcounterEnvironment.AppName = origAppName;
-
                 }
             }
 
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
-            // Checking if we still have no response.
-            if (resp == null)
-                return null;
+            // Checking if we need to resolve static resource.
+            if ((resp != null) && (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent)) {
 
-            // Handling and returning the HTTP response.
-            Profiler.Current.Start(ProfilerNames.HandleResponse);
+                Profiler.Current.Start(ProfilerNames.HandleStaticFileResource);
 
-            resp = ProcessHttpResponse(req, resp);
+                resp = ResolveAndPrepareFile(req.Uri, req);
+                resp.HandlingStatus = HandlerStatusInternal.Done;
 
-            Profiler.Current.Stop(ProfilerNames.HandleResponse);
+                Profiler.Current.Stop(ProfilerNames.HandleStaticFileResource);
+            }
 
             return resp;
         }
@@ -170,13 +129,13 @@ namespace Starcounter.Internal.Web {
         /// <param name="relativeUri">The uri to resolve</param>
         /// <param name="request">The http request</param>
         /// <returns>The http response</returns>
-        private Response ResolveAndPrepareFile(string relativeUri, Request request) {
+        internal Response ResolveAndPrepareFile(string relativeUri, Request req) {
 
             StaticWebServer staticWebServer;
 
             // Trying to fetch resource for this port.
-            if (fileServerPerPort_.TryGetValue(request.PortNumber, out staticWebServer)) {
-                return staticWebServer.GetStaticResponseClone(relativeUri, request);
+            if (fileServerPerPort_.TryGetValue(req.PortNumber, out staticWebServer)) {
+                return staticWebServer.GetStaticResponseClone(relativeUri, req);
             }
 
             var badReq = Response.FromStatusCode(400);
