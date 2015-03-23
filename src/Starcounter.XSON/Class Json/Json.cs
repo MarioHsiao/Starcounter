@@ -49,7 +49,7 @@ namespace Starcounter {
     /// A Json object can be data bound to a database object such as its bound properties
     /// merely reflect the values of the database objects.
     /// </remarks>
-    public partial class Json : StarcounterBase {
+    public partial class Json {
         /// <summary>
         /// Base classes to be derived by Json-by-example classes.
         /// </summary>
@@ -90,7 +90,8 @@ namespace Starcounter {
             _cacheIndexInArr = -1;
             _transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
-            _dirtyCheckEnabled = DirtyCheckEnabled;
+            _trackChanges = false;
+            _checkBoundProperties = true;
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }
@@ -248,23 +249,25 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property</param>
         public void Refresh(Template property) {
-			if (property is TObjArr) {
-				TObjArr tarr = (TObjArr)property;
-				if (tarr.UseBinding(this)) {
-					var jsonArr = tarr.UnboundGetter(this);
-					jsonArr.CheckBoundArray(tarr.BoundGetter(this));
-				}
-			} else if (property is TObject) {
-				var at = (TObject)property;
-				if (at.UseBinding(this)) {
-					CheckBoundObject(at.BoundGetter(this));
-				}
-			} else {
-				TValue p = property as TValue;
-				if (p != null) {
-					HasChanged(p);
-				}
-			}
+            if (property is TObjArr) {
+                TObjArr tarr = (TObjArr)property;
+                if (tarr.UseBinding(this)) {
+                    var jsonArr = tarr.UnboundGetter(this);
+                    jsonArr.CheckBoundArray(tarr.BoundGetter(this));
+                }
+            } else if (property is TObject) {
+                var at = (TObject)property;
+                if (at.UseBinding(this)) {
+                    CheckBoundObject(at.BoundGetter(this));
+                }
+            } else {
+                TValue p = property as TValue;
+                if (p != null) {
+                    HasChanged(p);
+                }
+            }
+            if (_trackChanges)
+                MarkAsReplaced(property);
         }
 
         /// <summary>

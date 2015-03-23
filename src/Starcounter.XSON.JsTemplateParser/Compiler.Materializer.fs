@@ -141,8 +141,16 @@ module public Materializer =
                                     legalName.Substring(0, legalName.Length - 1) 
                                  else 
                                     legalName
+
+                // Consume an eventual negative token before matching and creating a template.
+                let (realtree, valueIsMinus) = match ast with 
+                                               | Ast.Tree.Unary (op, tree) when op = Ast.UnaryOp.Minus ->
+                                                  tree, true
+                                               | _ ->
+                                                  ast, false
+
                 let ( newObj, debugInfo, considerEditable ) =
-                        match ast with
+                        match realtree with
                         | Ast.String (str,debugInfo) ->
                             ( factory.AddTString(parent,name,legalName,str,debugInfo), debugInfo, true )
                         | Ast.Boolean(b,debugInfo) ->
@@ -158,14 +166,20 @@ module public Materializer =
                         | Ast.Tree.Null (debugInfo) ->
                             ( factory.AddEventProperty(parent,name,legalName,null,debugInfo), debugInfo, true )
    //                         (factory.AddObjectProperty(parent,legalName,debugInfo), debugInfo, false )
+                        | Ast.Tree.Integer (i,debugInfo) when valueIsMinus ->
+                            (factory.AddIntegerProperty(parent,name,legalName,-i,debugInfo), debugInfo, true )
                         | Ast.Tree.Integer (i,debugInfo) ->
                             (factory.AddIntegerProperty(parent,name,legalName,i,debugInfo), debugInfo, true )
+                        | Ast.Tree.Decimal (d, debugInfo) when valueIsMinus ->
+                            (factory.AddTDecimal(parent,name,legalName,-d,debugInfo), debugInfo, true )
                         | Ast.Tree.Decimal (d, debugInfo) ->
                             (factory.AddTDecimal(parent,name,legalName,d,debugInfo), debugInfo, true )
+                        | Ast.Tree.Double (d, debugInfo) when valueIsMinus ->
+                            (factory.AddTDouble(parent,name,legalName,-d,debugInfo), debugInfo, true )
                         | Ast.Tree.Double (d, debugInfo) ->
                             (factory.AddTDouble(parent,name,legalName,d,debugInfo), debugInfo, true )
                         | _ ->
-                            failedExpectation1 "array, object, string, boolean, number, function or event" ast
+                            failedExpectation1 "array, object, string, boolean, number, function or event" realtree
                 if ( considerEditable && dollarSuffix ) then factory.SetEditableProperty( newObj, true, debugInfo );
                 newObj
 

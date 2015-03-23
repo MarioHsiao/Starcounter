@@ -27,7 +27,8 @@ namespace Starcounter {
         }
         
         internal Json(Json parent, TObjArr templ) {
-            _dirtyCheckEnabled = DirtyCheckEnabled;
+            _trackChanges = false;
+            _checkBoundProperties = true;
             _cacheIndexInArr = -1;
             _transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
@@ -41,7 +42,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="result">The data source</param>
         protected Json(IEnumerable result) {
-            _dirtyCheckEnabled = DirtyCheckEnabled;
+            _trackChanges = false;
+            _checkBoundProperties = true;
             _cacheIndexInArr = -1;
             _transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();

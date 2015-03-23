@@ -153,7 +153,7 @@ namespace Starcounter {
             get {
                 var handle = GetTransactionHandle(true);
                 if (handle != TransactionHandle.Invalid)
-                    return TransactionManager.WrapHandle(handle);
+                    return StarcounterBase.TransactionManager.WrapHandle(handle);
                 return null;
             }
         }
