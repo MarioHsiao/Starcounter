@@ -62,6 +62,15 @@ namespace Starcounter.CLI {
         public bool WriteErrorLogsToConsoleAfterRun { get; set; }
 
         /// <summary>
+        /// Gets the time the current command started executing.
+        /// </summary>
+        public DateTime StartTime {
+            get {
+                return executionStartTime;
+            }
+        }
+
+        /// <summary>
         /// Executes the logic of the given CLI arguments on the
         /// on the target database on the target server.
         /// </summary>
