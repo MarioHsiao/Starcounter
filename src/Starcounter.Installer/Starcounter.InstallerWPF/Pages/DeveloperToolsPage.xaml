@@ -110,7 +110,7 @@
 
                             <!--<CheckBox IsChecked="{Binding ExecuteCommand}" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">-->
 
-                            <CheckBox x:Name="vs2012CheckBox" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}" HorizontalAlignment="Right" Margin="0,1,653,1">
+                            <CheckBox x:Name="vs2012CheckBox" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}" >
 
                                 <CheckBox.IsChecked>
                                     <MultiBinding Converter="{StaticResource isCheckedConverter}">
