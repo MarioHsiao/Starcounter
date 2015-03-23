@@ -726,5 +726,23 @@ namespace Starcounter
 
             return node.CustomRESTRequest(req, receiveTimeoutMs, ho);
         }
+
+        /// <summary>
+        /// Performs synchronous HTTP request with given HTTP method.
+        /// </summary>
+        public static Response CustomRESTRequest(Request req, Func<Response> substituteHandler) {
+
+            HandlerOptions ho = new HandlerOptions() {
+                SubstituteHandler = substituteHandler,
+                HandlerId = req.ManagedHandlerId
+            };
+
+            Node node;
+            String relativeUri;
+
+            GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, req.Uri, out node, out relativeUri);
+
+            return node.CustomRESTRequest(req, 0, ho);
+        }
     }
 }

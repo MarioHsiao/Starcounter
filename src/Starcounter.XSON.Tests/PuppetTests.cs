@@ -348,5 +348,141 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Value2", tvalue2.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Value2""}]", patch);
         }
+
+        [Test]
+        public static void TestUpgradeToViewmodelAddToSession() {
+            dynamic json = new Json();
+            json.Value = "A";
+            var tobj = (TObject)json.Template;
+
+            // No dirtycheck enabled.
+            Assert.IsFalse(json.IsDirty(tobj.Properties[0]));
+
+            // Dirtycheck enabled when adding to session.
+            Session session = new Session();
+            session.Data = json;
+            session.CheckpointChangeLog();
+
+            json.Value = "B";
+            Assert.IsTrue(json.IsDirty(tobj.Properties[0]));
+        }
+
+        [Test]
+        public static void TestUpgradeToViewmodelAddChild() {
+            dynamic json = new Json();
+            dynamic page = new Json();
+            page.Value = "A";
+            var tobj = (TObject)page.Template;
+
+            // Dirtycheck enabled when adding to session.
+            Session session = new Session();
+            session.Data = json;
+            session.CheckpointChangeLog();
+
+            // No dirtycheck enabled for page.
+            Assert.IsFalse(page.IsDirty(tobj.Properties[0]));
+
+            json.Page = page;
+            session.CheckpointChangeLog();
+
+            json.Page.Value = "B";
+            Assert.IsTrue(page.IsDirty(tobj.Properties[0]));
+        }
+
+        [Test]
+        public static void TestSingleObjectDisableCheckBoundProperties() {
+            dynamic json = new Json();
+            
+            var person = new Person() {
+                FirstName = "A",
+                LastName = "B"
+            };
+
+            json.Data = person;
+            var tJson = (TObject)json.Template;
+           
+            Session session = new Session();
+            session.Data = json;
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+
+            Assert.AreEqual("A", json.FirstName);
+
+            // First test that the autocheck works.
+            person.FirstName = "Changed";
+            session.GenerateChangeLog();
+            var changes = session.GetChanges();
+           
+            Assert.AreEqual(1, changes.Count);
+            Assert.AreEqual(tJson.Properties[0], changes[0].Property);
+
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+
+            // Then disable it and change value again.
+            json.AutoRefreshBoundProperties = false;
+            person.FirstName = "ChangedAgain";
+            session.GenerateChangeLog();
+            changes = session.GetChanges();
+            
+            Assert.AreEqual(0, changes.Count);
+
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+
+            // Last, manual refresh
+            json.Refresh(tJson.Properties[0]);
+            session.GenerateChangeLog();
+            changes = session.GetChanges();
+            
+            Assert.AreEqual(1, changes.Count);
+            Assert.AreEqual(tJson.Properties[0], changes[0].Property);
+
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+        }
+
+        [Test]
+        public static void TestArrayDisableCheckBoundProperties() {
+            var schema = new TObject();
+            var tarr = schema.Add<TArray<Json>>("Recursives");
+            tarr.ElementType = new TObject();
+            tarr.ElementType.Add<TString>("Name");
+
+            dynamic json = new Json() { Template = schema };
+            
+            var recursive = new Recursive() { Name = "R1" };
+            recursive.Recursives.Add(new Recursive() { Name = "R2" });
+
+            json.Data = recursive;
+
+            Session session = new Session();
+            session.Data = json;
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+
+            Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
+            recursive.Recursives.Add(new Recursive() { Name = "R3" });
+            Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
+
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+
+            json.AutoRefreshBoundProperties = false;
+            recursive.Recursives.Add(new Recursive() { Name = "R4" });
+
+            Assert.AreNotEqual(recursive.Recursives.Count, json.Recursives.Count);
+
+            session.GenerateChangeLog();
+            var changes = session.GetChanges();
+
+            Assert.AreEqual(0, changes.Count);
+
+            session.CheckpointChangeLog();
+            session.ClearChangeLog();
+
+            json.Refresh(tarr);
+            Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
+        }
     }
 }

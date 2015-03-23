@@ -131,12 +131,12 @@ namespace Starcounter.Advanced.XSON {
             // Wrapping in application name.
             if (wrapInAppName) {
                 // Checking if we have any siblings.
-                if (!obj.calledFromStepSibling && obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 0) {
                     // For comma.
                     sizeBytes++;
 
                     // Calculating the size for each step sibling.
-                    foreach (Json pp in obj._stepSiblings) {
+                    foreach (Json pp in obj.StepSiblings) {
                         if (pp == obj)
                             continue;
 
@@ -169,7 +169,7 @@ namespace Starcounter.Advanced.XSON {
 
                     string setupStr = null;
                     try {
-                        setupStr = Json._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
+                        setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
                     } catch { }
 
                     if (setupStr != null) {
@@ -355,13 +355,13 @@ namespace Starcounter.Advanced.XSON {
                         offset++;
 
                         // Checking if we have any siblings.
-                        if (!obj.calledFromStepSibling && obj._stepSiblings != null && obj._stepSiblings.Count != 0) {
+                        if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 0) {
                             *pfrag++ = (byte)',';
                             offset++;
                             
                             // Serializing every sibling first.
-                            for (int s = 0; s < obj._stepSiblings.Count; s++) {
-                                var pp = obj._stepSiblings[s];
+                            for (int s = 0; s < obj.StepSiblings.Count; s++) {
+                                var pp = obj.StepSiblings[s];
 
                                 if (pp == obj)
                                     continue;
@@ -388,7 +388,7 @@ namespace Starcounter.Advanced.XSON {
                                     pfrag += valueSize;
                                     offset += valueSize;
 
-                                    if ((s + 1) < obj._stepSiblings.Count) {
+                                    if ((s + 1) < obj.StepSiblings.Count) {
                                         *pfrag++ = (byte)',';
                                         offset++;
                                     }
@@ -420,7 +420,7 @@ namespace Starcounter.Advanced.XSON {
 
                             string setupStr = null;
                             try {
-                                setupStr = Json._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
+                                setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
                             } catch { }
 
                             if (setupStr != null) {

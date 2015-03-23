@@ -36,9 +36,6 @@ namespace Starcounter {
         [ThreadStatic]
         private static Session _current;
 
-        [ThreadStatic]
-        private static Request _request;
-
         private Action<Session> _sessionDestroyUserDelegate;
         private bool _brandNew;
         private bool _isInUse;
@@ -92,14 +89,10 @@ namespace Starcounter {
                 sessionOptions |= SessionOptions.IncludeNamespaces;
             
             UInt32 errCode = 0;
-            if (_request != null) {
-                errCode = _request.GenerateNewSession(this);
-            } else {
-                // Simply generating new session.
-                ScSessionStruct sss = new ScSessionStruct(true);
-                errCode = GlobalSessions.AllGlobalSessions.CreateNewSession(ref sss, this);
-            }
-
+           
+            ScSessionStruct sss = new ScSessionStruct(true);
+            errCode = GlobalSessions.AllGlobalSessions.CreateNewSession(ref sss, this);
+           
             if (errCode != 0)
                 throw ErrorCode.ToException(errCode);
         }
@@ -224,15 +217,6 @@ namespace Starcounter {
         public Boolean UseSessionCookie {
             get { return InternalSession.use_session_cookie_; }
             set { InternalSession.use_session_cookie_ = value; }
-        }
-
-        /// <summary>
-        /// Returns the original request for session.
-        /// </summary>
-        /// <value></value>
-        public static Request InitialRequest {
-            get { return _request; }
-            set { _request = value; }
         }
 
         /// <summary>

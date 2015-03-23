@@ -159,6 +159,20 @@ namespace Starcounter.Internal.XSON.Tests {
             //Assert.AreEqual("Item2", json.Items[1].AnotherKey);
         }
 
+        [Test]
+        public static void TestNegativeNumberParsing() {
+            var jsonStr = @"{""NegInt"":-2,""PosInt"":13,""NegDbl"":-2e2,""PosDbl"":1e5,""NegDec"":-3.5,""PosDec"":3.456}";
+            var schema = TObject.CreateFromJson(jsonStr);
+
+            dynamic json = schema.CreateInstance();
+
+            Assert.AreEqual(-2L, json.NegInt);
+            Assert.AreEqual(13L, json.PosInt);
+            Assert.AreEqual(-2e2d, json.NegDbl);
+            Assert.AreEqual(1e5d, json.PosDbl);
+            Assert.AreEqual(-3.5m, json.NegDec);
+            Assert.AreEqual(3.456m, json.PosDec);
+        }
 
         [Test]
         public static void TestDynamicJson() {
