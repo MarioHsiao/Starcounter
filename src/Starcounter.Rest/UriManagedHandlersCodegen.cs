@@ -67,7 +67,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 16)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return (Int32)FastParseInt(dataBegin + p.offset_, p.len_);
             }
@@ -81,7 +81,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 16)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return FastParseInt(dataBegin + p.offset_, p.len_);
             }
@@ -105,7 +105,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 5)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 Byte b = *(((Byte*)dataBegin) + p.offset_);
                 if (b == 't' || b == 'T')
@@ -123,7 +123,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 32)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return Decimal.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -137,7 +137,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 32)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return Double.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -151,7 +151,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 32)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return DateTime.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -430,14 +430,14 @@ namespace Starcounter.Rest
 
             String[] s = methodAndUriInfo.Split(null);
             String originalUriInfo = null;
-            String polyjuiceMsg = "Error registering handler: " + methodAndUriInfo + ". Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
+            String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
 
             // Checking if consists of method and URI.
             if (s.Length > 1) {
 
                 // Checking that HTTP method is upper case.
                 if ((s[0] != s[0].ToUpperInvariant())) {
-                    throw new ArgumentOutOfRangeException("Handler HTTP method should be upper-case (HTTP 1.1 RFC).");
+                    throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
                 }
 
 #if CASE_INSENSITIVE_URI_MATCHER
@@ -450,9 +450,9 @@ namespace Starcounter.Rest
                     if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
                         // Handler name should start with application name or launcher name.
-                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/__db/", StringComparison.InvariantCultureIgnoreCase)) {
-                            throw new ArgumentOutOfRangeException(polyjuiceMsg);
+                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+
+                            throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                         }
                     }
                 }
@@ -468,7 +468,7 @@ namespace Starcounter.Rest
                     // Checking that its a Polyjuice handler.
                     if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
-                        throw new ArgumentOutOfRangeException(polyjuiceMsg);
+                        throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                     }
                 }
 
