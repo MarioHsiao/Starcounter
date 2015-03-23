@@ -14,15 +14,26 @@ namespace UnloadDatabase {
     /// database.
     /// </summary>
     class Program {
-        static void Main(string[] args) {
-            var fileName = Db.Environment.DatabaseNameLower + ".sql";
-            var filePath = Path.Combine(@"C:\Users\Public\Documents", fileName);
-            if (args.Length == 1)
-                filePath = args[0];
+        static int Main(string[] args) {
+            if (args.Length != 3) {
+                // Arguments expected: file, allowPartial, shiftID
+                // To use the default file, pass "@".
+                Console.WriteLine("Invalid arguments. Use 'file allowPartial shiftID'");
+                return -1;
+            }
+
+            var filePath = args[0];
+            if (filePath == "@") {
+                var fileName = Db.Environment.DatabaseNameLower + ".sql";
+                filePath = Path.Combine(@"C:\Users\Public\Documents", fileName);
+            }
+            var allowPartial = bool.Parse(args[1]);
+            var shiftID = ulong.Parse(args[2]);
 
             Console.WriteLine("Unload started at {0}", DateTime.Now.TimeOfDay);
-            int unloaded = Db.Unload(filePath);
+            int unloaded = Db.Unload(filePath, shiftID, !allowPartial);
             Console.WriteLine("Unloaded: {0} objects ({1})", unloaded, DateTime.Now.TimeOfDay);
+            return 0;
         }
     }
 }

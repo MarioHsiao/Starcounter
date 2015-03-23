@@ -69,7 +69,7 @@ namespace Starcounter {
                         throw ErrorCode.ToException(Error.SCERRUNLOADTABLENOCLASS, 
                             "Table "+tbl.FullName+" cannot be unloaded.");
                     else
-                        LogSources.Hosting.LogWarning("Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
+                        LogSources.Unload.LogWarning("Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
                     //Console.WriteLine("Warning: Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
                 } else {
                     int tblNrObj = 0;
