@@ -24,8 +24,10 @@ namespace staradmin.Commands {
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
                 var syntax = appSyntax.DefineCommand(unload.Name, unload.ShortText);
                 syntax.MinParameterCount = 0;
-                syntax.MaxParameterCount = 2;
+                syntax.MaxParameterCount = 4;
                 syntax.DefineProperty("file", "Specifies the file to unload into");
+                syntax.DefineFlag("allowPartial", "If specified, allows the unload to be partial");
+                syntax.DefineProperty("shiftKey", "Specifies a number that can be used to specifiy object key ranges");
                 return syntax;
             }
 
@@ -58,6 +60,8 @@ namespace staradmin.Commands {
                 rows.Add("staradmin --d=foo unload db", "Unloads the 'foo' database into the default unload file.");
                 rows.Add("staradmin --d=bar unload db --file=data.sql", "Unloads the 'bar' database into the 'data.sql' file, resolved to the same directory from which the command runs.");
                 rows.Add("staradmin unload", "Shorthand for 'staradmin unload db'");
+                rows.Add("staradmin unload db --allowPartial", "Unloads the default database, allowing the unload to be partial");
+                rows.Add("staradmin unload db --shiftKey=99999", "Makes every key being unloaded increase with the given number, i.e. 99999");
                 writer.WriteLine();
                 table.Write(rows);
             }
