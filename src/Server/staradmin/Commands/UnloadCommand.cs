@@ -1,4 +1,5 @@
 ﻿
+using Sc.Tools.Logging;
 using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
@@ -108,6 +109,7 @@ namespace staradmin.Commands {
             unload.ApplicationStartingDescription = "unloading";
 
             unload.Execute();
+            DisplayWarnings(unload.StartTime); 
         }
 
         ApplicationArguments CreateUnloadApplicationArguments() {
@@ -145,6 +147,21 @@ namespace staradmin.Commands {
             ApplicationArguments args;
             SharedCLI.TryParse(cmdLine.ToArray(), syntax, out args);
             return args;
+        }
+
+        void DisplayWarnings(DateTime since) {
+            var log = new FilterableLogReader() {
+                Count = int.MaxValue,
+                Since = since,
+                TypeOfLogs = Severity.Warning,
+                Source = "Starcounter.Host.Unload"
+            };
+            var logs = LogSnapshot.Take(log).All;
+
+            var console = new LogConsole();
+            foreach (var entry in logs) {
+                console.Write(entry);
+            }
         }
 
         void ReportUnrecognizedSource() {
