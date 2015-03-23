@@ -31,7 +31,7 @@ namespace QueryProcessingTest {
             TestShortClassNames();
             TestDDLStmts();
             TestSearchByObject();
-            TestNullComparison();
+            OuterJoinBugs();
             TestDelimitedIdentifier();
         }
 
@@ -490,7 +490,32 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Finished testing DDL statements");
         }
 
-        public static void TestNullComparison() {
+        public static void OuterJoinBugs() {
+            HelpMethods.LogEvent("Testing outer joins");
+            Db.Transact(delegate {
+                User u = new User { FirstName = "Left", LastName = "Join", UserId = "LefJoi" };
+                var res = Db.SQL("select * from user u left join account a on u = a.client where u.FirstName = ?", "Left").First;
+                Trace.Assert(res != null);
+                Console.WriteLine(res.ToString());
+                res = Db.SQL("select * from user u left join account a on u = a.client where u.FirstName = ?", "avadvfa").First;
+                Trace.Assert(res == null);
+                int count = 0;
+                foreach (Account a in Db.SQL<Account>("select a from account a where accountid = ?", 10)) {
+                    Trace.Assert(a.AccountId == 10);
+                    count++;
+                }
+                Trace.Assert(count == 1);
+#if false
+                count = 0;
+                foreach (Starcounter.Query.Execution.Row row in Db.SQL(
+                    "select * from user u left join account a on u = a.client where accountid = ?", 10)) {
+                        count++;
+                }
+                Trace.Assert(count == 2);
+#endif
+                u.Delete();
+            });
+            HelpMethods.LogEvent("Finished testing outer joins");
         }
 
         public static void TestSearchByObject() {
