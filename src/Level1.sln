@@ -266,6 +266,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.XSON", "Starcounter.XSON\Starcounter.XSON.csproj", "{3EC74B8E-3599-41FD-B336-384861C8971A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "scerrres32", "Starcounter.ErrorCodes\scerrres\scerrres32.vcxproj", "{AD78AE53-5B4C-4C20-B66E-78D42008DCE3}"
+	ProjectSection(ProjectDependencies) = postProject
+		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "urihelp", "libs\urihelp\urihelp.vcxproj", "{D5F60A3B-457B-4462-8CB2-F9B12188B311}"
 EndProject
