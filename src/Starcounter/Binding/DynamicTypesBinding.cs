@@ -24,7 +24,9 @@ namespace Starcounter.Binding {
 
         static void DiscoverTypesAndAssureThem(TypeDef[] unregisteredTypes) {
             foreach (var typeDef in unregisteredTypes) {
-                ProcessType(typeDef);
+                if (!IsImplicitType(typeDef)) {
+                    ProcessType(typeDef);
+                }
             }
         }
 
@@ -33,7 +35,7 @@ namespace Starcounter.Binding {
                 return;
             }
 
-            if (typeDef.BaseName != null) {
+            if (HasDeclaredBaseType(typeDef)) {
                 var parent = Bindings.GetTypeDef(typeDef.BaseName);
                 ProcessType(parent);
             }
@@ -84,6 +86,18 @@ namespace Starcounter.Binding {
             rawView.AutoTypeInstance = oid;
             typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
             typeDef.RuntimeDefaultTypeRef.Address = addr;
+        }
+
+        static bool IsImplicitType(TypeDef type) {
+            return IsImplicitType(type.Name);
+        }
+
+        static bool IsImplicitType(string name) {
+            return name == typeof(ImplicitEntity).FullName;
+        }
+
+        static bool HasDeclaredBaseType(TypeDef type) {
+            return type.BaseName != null && !IsImplicitType(type.BaseName);
         }
 
         static TypeBinding GetDeclaredTargetType(TypeDef typeDef, out bool userDefined) {
