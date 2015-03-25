@@ -744,7 +744,7 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
 
-            DynamicTypesHelper.ValidateDatabaseAttribute(databaseAttribute);
+            DynamicTypesWeaveTimeHelper.ValidateDatabaseAttribute(databaseAttribute);
         }
 
         /// <summary>

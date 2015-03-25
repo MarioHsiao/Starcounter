@@ -11,11 +11,12 @@ namespace Starcounter.Binding {
     /// are in use.
     /// </summary>
     internal static class DynamicTypesBinding {
-        // Code host level "cache" that indicates what defined
-        // types have already been processed.
-        static Dictionary<string, ulong> typesDiscovered = new Dictionary<string, ulong>();
-
+        static TypeBinding defaultTypeBinding;
+        
         public static void DiscoverNewTypes(TypeDef[] unregisteredTypes) {
+            if (defaultTypeBinding == null) {
+                defaultTypeBinding = Bindings.GetTypeBinding(typeof(Entity).FullName);
+            }
             Db.Transact(() => {
                 DiscoverTypesAndAssureThem(unregisteredTypes);
             });
@@ -23,21 +24,21 @@ namespace Starcounter.Binding {
 
         static void DiscoverTypesAndAssureThem(TypeDef[] unregisteredTypes) {
             foreach (var typeDef in unregisteredTypes) {
-                ProcessType(typeDef);
+                if (!IsImplicitType(typeDef)) {
+                    ProcessType(typeDef);
+                }
             }
         }
 
         static void ProcessType(TypeDef typeDef) {
-            if (typesDiscovered.ContainsKey(typeDef.Name)) {
+            if (typeDef.RuntimeDefaultTypeRef.ObjectID != 0) {
                 return;
             }
 
-            if (typeDef.BaseName != null) {
+            if (HasDeclaredBaseType(typeDef)) {
                 var parent = Bindings.GetTypeDef(typeDef.BaseName);
                 ProcessType(parent);
             }
-
-            typesDiscovered.Add(typeDef.Name, ulong.MaxValue);
 
             bool userDeclaredType;
             var declaredType = GetDeclaredTargetType(typeDef, out userDeclaredType);
@@ -53,15 +54,9 @@ namespace Starcounter.Binding {
                 // of the type tree.
                 // When that is implemented, we can remove the
                 // below asserts
-                // TODO:
-
-                if (existingType is RawView) {
-                    Trace.Assert(!userDeclaredType);
-                } else {
-                    Trace.Assert(declaredType != null && existingType.TypeBinding == declaredType);
-                }
+                // TODO:    
+                Trace.Assert(declaredType == null || existingType.TypeBinding == declaredType);
                 
-                typesDiscovered[typeDef.Name] = rawView.AutoTypeInstance;
                 typeDef.RuntimeDefaultTypeRef.ObjectID = existingType.Identity;
                 typeDef.RuntimeDefaultTypeRef.Address = existingType.ThisHandle;
                 return;
@@ -73,45 +68,36 @@ namespace Starcounter.Binding {
             // system.
 
             ulong oid = 0, addr = 0;
+            var binding = defaultTypeBinding;
             if (userDeclaredType) {
                 Trace.Assert(declaredType != null);
-
-                // Check if the type is abstract. If so, what should we
-                // do? Have this being an error?
-                // See issue #2482
-                // TODO:
-
-                // We must enforce in the weaver that hierarchies of
-                // types are correct. If there is an "explicit type", such
-                // as in our "Car/CarModel" sample, then "CarModel" can
-                // not derive just anything.
-                // TODO:
-                
-                DbState.SystemInsert(declaredType.TableId, ref oid, ref addr);
-                var proxy = declaredType.NewInstance(addr, oid);
-                var tuple = TupleHelper.ToTuple(proxy);
-                tuple.Name = typeDef.Name;
-                tuple.IsType = true;
-                if (typeDef.BaseName != null) {
-                    ulong baseID = typesDiscovered[typeDef.BaseName];
-                    if (baseID != ulong.MaxValue) {
-                        var baseType = DbHelper.FromID(baseID);
-                        if (baseType.GetType().IsAssignableFrom(proxy.GetType())) {
-                            TupleHelper.SetInherits(tuple, baseType);
-                        }
-                    }
-                }
-
+                binding = declaredType;
             } else {
                 var rawViewProxy = (IObjectProxy)rawView;
                 oid = rawViewProxy.Identity;
                 addr = rawViewProxy.ThisHandle;
             }
 
-            typesDiscovered[typeDef.Name] = oid;
+            DbState.SystemInsert(binding.TableId, ref oid, ref addr);
+            var proxy = binding.NewInstance(addr, oid);
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Name = typeDef.Name;
+            tuple.IsType = true;
             rawView.AutoTypeInstance = oid;
             typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
             typeDef.RuntimeDefaultTypeRef.Address = addr;
+        }
+
+        static bool IsImplicitType(TypeDef type) {
+            return IsImplicitType(type.Name);
+        }
+
+        static bool IsImplicitType(string name) {
+            return name == typeof(ImplicitEntity).FullName;
+        }
+
+        static bool HasDeclaredBaseType(TypeDef type) {
+            return type.BaseName != null && !IsImplicitType(type.BaseName);
         }
 
         static TypeBinding GetDeclaredTargetType(TypeDef typeDef, out bool userDefined) {
@@ -130,34 +116,11 @@ namespace Starcounter.Binding {
                 // does not extend Entity, it's always user defined.
 
                 var prop = typeDef.PropertyDefs[typeDef.TypePropertyIndex];
-                userDefined = IsUserDefinedProperty(typeDef.TypePropertyIndex, typeDef);
+                userDefined = typeDef.IsUserDefinedProperty(typeDef.TypePropertyIndex);
                 result = Bindings.GetTypeBinding(prop.TargetTypeName);
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Return <c>true</c> if <paramref name="property"/>, resolved
-        /// from <paramref name="resolvedFrom"/> is defined by the user, or
-        /// inherited from a Starcounter base type.
-        /// </summary>
-        static bool IsUserDefinedProperty(int property, TypeDef resolvedFrom) {
-            if (resolvedFrom.IsStarcounterType) {
-                return false;
-            }
-
-            if (resolvedFrom.BaseName == null) {
-                return true;
-            }
-
-            var prop = resolvedFrom.PropertyDefs[property];
-            var baseDef = Bindings.GetTypeDef(resolvedFrom.BaseName);
-            if (property < baseDef.PropertyDefs.Length) {
-                return IsUserDefinedProperty(property, baseDef);
-            }
-
-            return true;
         }
     }
 }

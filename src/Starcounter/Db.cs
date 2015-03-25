@@ -88,7 +88,17 @@ namespace Starcounter
         /// </returns>
         public static T TypeOf<T>(string name) {
             var td = Bindings.GetTypeDef(name);
-            return (T)DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+            var obj = DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+
+            // Convenient to be able to get IDbTuple from a
+            // given type. This should pose no runtime penalty I
+            // think, since the compiler should be able to resolve
+            // it compile time (being a generic method).
+            if (typeof(T) == typeof(IDbTuple)) {
+                return (T) TupleHelper.ToTuple(obj);
+            }
+            
+            return (T)obj;
         }
         
         /// <summary>

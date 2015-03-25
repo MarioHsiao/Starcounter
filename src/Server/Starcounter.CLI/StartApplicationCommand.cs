@@ -301,6 +301,14 @@ namespace Starcounter.CLI {
                 }
             }
 
+            if (args.ContainsFlag(SharedCLI.UnofficialOptions.Debug)) {
+                var pid = engine.CodeHostProcess.PID;
+                if (pid != 0) {
+                    Console.WriteLine("Press any key to run {0} in host {1}.", app.Name, pid);
+                    Console.ReadKey();
+                }
+            }
+
             var responded = new ManualResetEvent(false);
             node.POST(node.ToLocal(engine.Executables.Uri), exe.ToJson(), null, null, (resp, ignored) => {
                 response = resp;

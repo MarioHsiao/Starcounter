@@ -82,6 +82,7 @@
     <Compile Include="Binding\DoublePropertyBinding.cs" />
     <Compile Include="Binding\RealPropertyBinding.cs" />
     <Compile Include="Binding\TableUpgrade.cs" />
+    <Compile Include="Binding\TypeDefExtensions.cs" />
     <Compile Include="Binding\UInt16PropertyBinding.cs" />
     <Compile Include="Binding\UInt32PropertyBinding.cs" />
     <Compile Include="Binding\UInt64PropertyBinding.cs" />
@@ -399,6 +400,7 @@
     <Compile Include="Weaving\Schema\DatabaseSchema.cs" />
     <Compile Include="Weaving\Schema\DatabaseSchemaElement.cs" />
     <Compile Include="Weaving\Schema\DatabaseUnsupportedType.cs" />
+    <Compile Include="Weaving\Schema\DynamicTypesSchemaExtensions.cs" />
     <Compile Include="Weaving\Schema\IDatabasePropertyType.cs" />
     <Compile Include="DbSession.cs" />
     <Compile Include="SynonymousToAttribute.cs" />

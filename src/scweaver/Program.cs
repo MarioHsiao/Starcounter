@@ -252,10 +252,6 @@ namespace Starcounter.Weaver {
             var schema = new DatabaseSchema();
             schema.AddStarcounterAssembly();
 
-            //var databaseAssembly = new DatabaseAssembly("Starcounter", typeof(DatabaseAttribute).Assembly.FullName);
-            //databaseAssembly.SetSchema(schema);
-            //schema.Assemblies.Add(databaseAssembly);
-
             for (int i = 0; i < schemaFiles.Length; i++) {
                 var databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
                 schema.Assemblies.Add(databaseAssembly);
