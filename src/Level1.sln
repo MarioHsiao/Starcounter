@@ -424,6 +424,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Rest.32Bit", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUrls", "Samples\TestUrls\TestUrls.csproj", "{7A0B6CAC-C170-4F44-A07B-8671E63AB5FB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{AAC7ED24-61CF-454D-8109-B94F9F5B11DE}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -951,4 +956,3 @@ Global
 		{057D8278-0AC6-474B-B91C-E2A4574AFD12} = {CC5E0E7B-8022-4D50-BE75-F7287F0AFE0F}
 	EndGlobalSection
 EndGlobal
-
