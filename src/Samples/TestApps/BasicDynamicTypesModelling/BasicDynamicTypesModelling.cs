@@ -23,18 +23,21 @@ class Program {
 		Assert(ft != null);
 		var ftt = TupleHelper.ToTuple(ft);
 		Assert(ftt.Name == typeof(Model1.Foo).FullName);
+		Assert(ftt.IsType);
+		Assert(ftt.Type != null);
+		Assert(ftt.Type.IsType);
+		Assert(ftt.Type.Type == null);
 		
 		var bt = Db.TypeOf<Model1.Bar>();
 		Assert(bt != null);
 		var btt = TupleHelper.ToTuple(bt);
         Assert(btt.Name == typeof(Model1.Bar).FullName);
 		Assert(TupleHelper.TupleEquals(btt.Inherits,ftt));
-
-        Db.Transact(() => {
-            var f = new Model1.Foo();
-            var ft2 = TupleHelper.ToTuple(f);
-            Assert(TupleHelper.TupleEquals(ft2.Type, ftt));
-        });
+		Assert(btt.IsType);
+		Assert(btt.Type != null);
+		Assert(btt.Type.IsType);
+		Assert(TupleHelper.TupleEquals(btt.Type.Inherits, ftt.Type));
+		Assert(btt.Type.Type == null);
 	}
 	
 	static void TestModel2() {
