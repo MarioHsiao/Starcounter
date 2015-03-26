@@ -103,8 +103,10 @@ namespace Starcounter.Internal
         /// Loads the and convert schema.
         /// </summary>
         /// <param name="inputDir">The input dir.</param>
+        /// <param name="types">List of all type definitions in the result
+        /// that are determined to be custom dynamic type references.</param>
         /// <returns>List{TypeDef}.</returns>
-        public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
+        public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir, out List<TypeDef> types)
         {
             errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
 
@@ -128,6 +130,13 @@ namespace Starcounter.Internal
             if (errorsFoundWithCodeScErrNonPublicFieldNotExposed > 0) {
                 throw ErrorCode.ToException(Error.SCERRCANTBINDAPPWITHPRIVATEDATA,
                     string.Format("{0} illegal fields exist.", errorsFoundWithCodeScErrNonPublicFieldNotExposed));
+            }
+
+            var customTypes = databaseSchema.GetCompileTimeTypes();
+            types = new List<TypeDef>(customTypes.Count);
+            foreach (var customType in customTypes) {
+                var td = typeDefs.Find(t => t.Name.Equals(customType.Name));
+                types.Add(td);
             }
 
             return typeDefs;
