@@ -12,14 +12,30 @@ namespace Starcounter.Binding {
     /// </summary>
     internal static class DynamicTypesBinding {
         static TypeBinding defaultTypeBinding;
+        static Dictionary<string, TypeDef> customTypeClasses;
         
-        public static void DiscoverNewTypes(TypeDef[] unregisteredTypes) {
+        public static void DiscoverNewTypes(TypeDef[] unregisteredTypes, TypeDef[] customTypes) {
             if (defaultTypeBinding == null) {
                 defaultTypeBinding = Bindings.GetTypeBinding(typeof(Entity).FullName);
+                customTypeClasses = new Dictionary<string, TypeDef>();
             }
+
             Db.Transact(() => {
+                RegisterCustomTypeClasses(customTypes);
                 DiscoverTypesAndAssureThem(unregisteredTypes);
             });
+        }
+
+        static void RegisterCustomTypeClasses(TypeDef[] customTypes) {
+            foreach (var t in customTypes) {
+                if (!customTypeClasses.ContainsKey(t.Name)) {
+                    customTypeClasses.Add(t.Name, t);
+                }
+            }
+        }
+
+        static bool IsCustomTypeClass(TypeDef t) {
+            return customTypeClasses.ContainsKey(t.Name);
         }
 
         static void DiscoverTypesAndAssureThem(TypeDef[] unregisteredTypes) {
@@ -39,6 +55,12 @@ namespace Starcounter.Binding {
             if (HasDeclaredBaseType(typeDef)) {
                 parent = Bindings.GetTypeDef(typeDef.BaseName);
                 ProcessType(parent);
+            }
+
+            var isTypeClass = IsCustomTypeClass(typeDef);
+            if (isTypeClass) {
+                // Do whatever we need to do.
+                // TODO:
             }
 
             bool userDeclaredType;
@@ -74,20 +96,34 @@ namespace Starcounter.Binding {
                 binding = declaredType;
             }
 
-            
             var tuple = NewSystemAutoType(binding);
             tuple.Name = typeDef.Name;
             tuple.IsType = true;
+
+            IDbTuple baseTuple = null;
             if (parent != null) {
                 var baseRef = DbHelper.FromID(parent.RuntimeDefaultTypeRef.ObjectID);
                 Trace.Assert(baseRef != null);
-                var baseTuple = TupleHelper.ToTuple(baseRef);
+                baseTuple = TupleHelper.ToTuple(baseRef);
                 tuple.Inherits = baseTuple;
             }
 
             rawView.AutoTypeInstance = tuple.Proxy.Identity;
             typeDef.RuntimeDefaultTypeRef.ObjectID = tuple.Proxy.Identity;
             typeDef.RuntimeDefaultTypeRef.Address = tuple.Proxy.ThisHandle;
+
+            // We'll also create a "type type", always using the default
+            // auto system type binding as the template, and assigning it
+            // either no name, or the name of the declared custom type.
+
+            var typeTypetuple = NewSystemAutoType();
+            typeTypetuple.Name = userDeclaredType ? declaredType.Name : null;
+            typeTypetuple.IsType = true;
+            if (baseTuple != null) {
+                Trace.Assert(baseTuple.Type != null);
+                typeTypetuple.Inherits = baseTuple.Type;
+            }
+            tuple.Type = typeTypetuple;
         }
 
         static bool IsImplicitType(TypeDef type) {
