@@ -72,10 +72,6 @@ namespace Starcounter.Binding {
             if (userDeclaredType) {
                 Trace.Assert(declaredType != null);
                 binding = declaredType;
-            } else {
-                var rawViewProxy = (IObjectProxy)rawView;
-                oid = rawViewProxy.Identity;
-                addr = rawViewProxy.ThisHandle;
             }
 
             DbState.SystemInsert(binding.TableId, ref oid, ref addr);
