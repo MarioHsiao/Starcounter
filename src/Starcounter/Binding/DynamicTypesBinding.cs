@@ -68,16 +68,14 @@ namespace Starcounter.Binding {
             // or the raw view in case its not declared or inherited from the
             // system.
 
-            ulong oid = 0, addr = 0;
             var binding = defaultTypeBinding;
             if (userDeclaredType) {
                 Trace.Assert(declaredType != null);
                 binding = declaredType;
             }
 
-            DbState.SystemInsert(binding.TableId, ref oid, ref addr);
-            var proxy = binding.NewInstance(addr, oid);
-            var tuple = TupleHelper.ToTuple(proxy);
+            
+            var tuple = NewSystemAutoType(binding);
             tuple.Name = typeDef.Name;
             tuple.IsType = true;
             if (parent != null) {
@@ -87,9 +85,9 @@ namespace Starcounter.Binding {
                 tuple.Inherits = baseTuple;
             }
 
-            rawView.AutoTypeInstance = oid;
-            typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
-            typeDef.RuntimeDefaultTypeRef.Address = addr;
+            rawView.AutoTypeInstance = tuple.Proxy.Identity;
+            typeDef.RuntimeDefaultTypeRef.ObjectID = tuple.Proxy.Identity;
+            typeDef.RuntimeDefaultTypeRef.Address = tuple.Proxy.ThisHandle;
         }
 
         static bool IsImplicitType(TypeDef type) {
@@ -125,6 +123,14 @@ namespace Starcounter.Binding {
             }
 
             return result;
+        }
+
+        static IDbTuple NewSystemAutoType(TypeBinding binding = null) {
+            binding = binding ?? defaultTypeBinding;
+            ulong oid = 0, addr = 0;
+            DbState.SystemInsert(binding.TableId, ref oid, ref addr);
+            var proxy = binding.NewInstance(addr, oid);
+            return TupleHelper.ToTuple(proxy);
         }
     }
 }
