@@ -28,12 +28,12 @@ class Program {
 		Assert(bt != null);
 		var btt = TupleHelper.ToTuple(bt);
         Assert(btt.Name == typeof(Model1.Bar).FullName);
-		Assert(btt.Inherits == ftt);
+		Assert(TupleHelper.TupleEquals(btt.Inherits,ftt));
 
         Db.Transact(() => {
             var f = new Model1.Foo();
             var ft2 = TupleHelper.ToTuple(f);
-            Assert(ft2.Type == ftt);
+            Assert(TupleHelper.TupleEquals(ft2.Type, ftt));
         });
 	}
 	
