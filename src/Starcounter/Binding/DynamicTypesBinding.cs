@@ -35,8 +35,9 @@ namespace Starcounter.Binding {
                 return;
             }
 
+            TypeDef parent = null;
             if (HasDeclaredBaseType(typeDef)) {
-                var parent = Bindings.GetTypeDef(typeDef.BaseName);
+                parent = Bindings.GetTypeDef(typeDef.BaseName);
                 ProcessType(parent);
             }
 
@@ -79,6 +80,13 @@ namespace Starcounter.Binding {
             var tuple = TupleHelper.ToTuple(proxy);
             tuple.Name = typeDef.Name;
             tuple.IsType = true;
+            if (parent != null) {
+                var baseRef = DbHelper.FromID(parent.RuntimeDefaultTypeRef.ObjectID);
+                Trace.Assert(baseRef != null);
+                var baseTuple = TupleHelper.ToTuple(baseRef);
+                tuple.Inherits = baseTuple;
+            }
+
             rawView.AutoTypeInstance = oid;
             typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
             typeDef.RuntimeDefaultTypeRef.Address = addr;
