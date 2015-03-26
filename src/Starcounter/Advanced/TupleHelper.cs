@@ -95,5 +95,12 @@ namespace Starcounter.Advanced {
         public static IDbTuple Create(object obj) {
             return ToTuple(obj).Create();
         }
+
+        public static bool TupleEquals(IDbTuple t1, IDbTuple t2) {
+            if (t1 == null) return t2 == null;
+            else if (t2 == null) return false;
+
+            return t1.Proxy.Identity == t2.Proxy.Identity;
+        }
     }
 }
