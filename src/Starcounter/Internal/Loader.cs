@@ -108,25 +108,8 @@ namespace Starcounter.Internal
         {
             errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
 
-            // Replace with call to new method DatabaseSchema.DeserializeFrom(DirectoryInfo)
-            // TODO:
-
-            var schemaFiles = inputDir.GetFiles("*.schema");
-
-            var databaseSchema = new DatabaseSchema();
-            databaseSchema.AddStarcounterAssembly();
-
             var typeDefs = new List<TypeDef>();
-
-            DatabaseAssembly databaseAssembly;
-
-            for (int i = 0; i < schemaFiles.Length; i++)
-            {
-                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
-                databaseSchema.Assemblies.Add(databaseAssembly);
-            }
-
-            databaseSchema.AfterDeserialization();
+            var databaseSchema = DatabaseSchema.DeserializeFrom(inputDir);
 
             var databaseClasses = new List<DatabaseEntityClass>();
             databaseSchema.PopulateOrderedDatabaseEntityClasses2(databaseClasses);
@@ -136,7 +119,7 @@ namespace Starcounter.Internal
             {
                 var databaseClass = databaseClasses[i];
 
-                databaseAssembly = databaseClass.Assembly;
+                var databaseAssembly = databaseClass.Assembly;
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
                 typeDefs.Add(EntityClassToTypeDef(databaseClass, typeLoader));
