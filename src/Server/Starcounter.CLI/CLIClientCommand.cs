@@ -62,6 +62,15 @@ namespace Starcounter.CLI {
         public bool WriteErrorLogsToConsoleAfterRun { get; set; }
 
         /// <summary>
+        /// Gets the time the current command started executing.
+        /// </summary>
+        public DateTime StartTime {
+            get {
+                return executionStartTime;
+            }
+        }
+
+        /// <summary>
         /// Executes the logic of the given CLI arguments on the
         /// on the target database on the target server.
         /// </summary>
@@ -244,6 +253,9 @@ namespace Starcounter.CLI {
             };
             var errors = LogSnapshot.Take(log, DatabaseName);
             var errorsToDisplay = errors.DatabaseLogs;
+            if (errorsToDisplay.Length == 0) {
+                errorsToDisplay = errors.WeaverLogs;
+            }
             if (errorsToDisplay.Length == 0) {
                 errorsToDisplay = errors.All;
             }

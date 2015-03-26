@@ -249,7 +249,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Empty application name.
         /// </summary>
-        public const String EmptyAppName = "unknown";
+        public const String EmptyAppName = "NoApp";
 
         /// <summary>
         /// Server directory parent XML element name.

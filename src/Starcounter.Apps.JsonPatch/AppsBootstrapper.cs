@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using PolyjuiceNamespace;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
 using Starcounter.Rest;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Internal {
 
@@ -30,8 +33,6 @@ namespace Starcounter.Internal {
 
         // Node error log source.
         static LogSource NodeErrorLogSource = new LogSource("Node");
-
-        // private static StaticWebServer fileServer;
 
         /// <summary>
         /// Initializes AppsBootstrapper.
@@ -109,10 +110,12 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
-        /// 
+        /// Initializing the codehost apps.
         /// </summary>
         static AppsBootstrapper() {
-            Dictionary<UInt16, StaticWebServer> fileServer = new Dictionary<UInt16, StaticWebServer>();
+
+            // Constructing file server for all ports.
+            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppServer_ = new AppRestServer(fileServer);
         }
 
@@ -121,10 +124,11 @@ namespace Starcounter.Internal {
         /// resolve GET requests for static content.
         /// </summary>
         /// <param name="path">The directory to include</param>
-        internal static void AddFileServingDirectory(UInt16 port, String path) {
-            AppServer_.UserAddedLocalFileDirectoryWithStaticContent(port, path);
-        }
+        internal static void AddFileServingDirectory(String appName, UInt16 port, String path) {
 
+            AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
+        }
+        
         /// <summary>
         /// Gets a list of directories used by the web server to
         /// resolve GET requests for static content.
@@ -137,56 +141,86 @@ namespace Starcounter.Internal {
         /// Function that registers a default handler in the gateway and handles incoming requests
         /// and dispatch them to Apps. Also registers internal handlers for jsonpatch.
         /// </summary>
-        /// <param name="port">Listens for http traffic on the given port. </param>
-        /// <param name="resourceResolvePath">Adds a directory path to the list of paths used when resolving a request for a static REST (web) resource</param>
         public static void Bootstrap(
-            string resourceResolvePath = null,
-            UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort
-            )
-        {
-            // Checking for the port.
-            if (port == StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
-            {
-                port = StarcounterEnvironment.Default.UserHttpPort;
-            }
-            else
-            {
-                // Setting default user port.
-                StarcounterEnvironment.Default.UserHttpPort = port;
+            String appName,
+            String webResourcesDir,
+            UInt16 port) {
+
+            // Checking if there is no network gateway, then just returning.
+            if (StarcounterEnvironment.NoNetworkGatewayFlag)
+                return;
+
+            Boolean initPolyjuiceFlag = false;
+            if ((!StarcounterEnvironment.PolyjuiceAppsFlag) &&
+                (CurrentVersion.EditionName == StarcounterConstants.PolyjuiceEditionName)) {
+
+                initPolyjuiceFlag = true;
             }
 
-            if (resourceResolvePath != null)
-            {
-                // Administrator registers itself.
-                AddFileServingDirectory(port, Path.GetFullPath(resourceResolvePath));
+            // Checking if there is a given web resource path.
+            if (webResourcesDir != null) {
+
+                String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
+
+                // Checking if we have wwwroot folder for Polyjuice edition.
+                if (StarcounterEnvironment.PolyjuiceAppsFlag || initPolyjuiceFlag) {
+
+                    String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
+
+                    if (Directory.Exists(extendedResourceDirPath)) {
+                        fullPathToResourcesDir = extendedResourceDirPath;
+                    }
+                }
+
+                // Registering files directory.
+                AddFileServingDirectory(appName, port, fullPathToResourcesDir);
 
                 // Checking if this is not administrator.
-                if (!StarcounterEnvironment.IsAdministratorApp)
-                {
+                if (!StarcounterEnvironment.IsAdministratorApp) {
+
                     // Putting port and full path to resources directory.
-                    String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceResolvePath);
+                    String body = 
+                        appName + StarcounterConstants.NetworkConstants.CRLF +
+                        StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
+                        port + StarcounterConstants.NetworkConstants.CRLF +
+                        fullPathToResourcesDir;
 
                     // Sending REST POST request to Administrator to register static resources directory.
-                    Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
+                    Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
 
-                        if ("Success!" != resp.Body)
-                            throw new Exception("Could not register static resources directory with administrator!");
-                    });
+                    if ("Success!" != resp.Body) {
+                        throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
+                    }
+                }
+            }
 
-                    // Checking if its a Polyjuice edition and then adding Polyjuice specific static files directory.
-                    String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
+            // Initializing based on the edition and codehost type.
+            if (!StarcounterEnvironment.IsAdministratorApp) {
 
-                    // The following directory exists only in Polyjuice edition.
-                    if (Directory.Exists(polyjuiceStatic)) {
+                // Checking if we have a Polyjuice edition.
+                if (initPolyjuiceFlag) {
 
-                        body = port + "\r\n" + polyjuiceStatic;
+                    Polyjuice.Init();
+                }
 
-                        Node.LocalhostSystemPortNode.POST("/addstaticcontentdir", body, null, null, (Response resp, Object userObject) => {
+            } else {
 
-                            if ("Success!" != resp.Body) {
-                                throw new Exception(string.Format("Failed to register the static resources directory ({0}).", body));
-                            }
-                        });
+                // Checking if its a Polyjuice edition and then adding Polyjuice specific static files directory.
+                String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
+
+                // The following directory exists only in Polyjuice edition.
+                if (Directory.Exists(polyjuiceStatic)) {
+
+                    String body =
+                        appName + StarcounterConstants.NetworkConstants.CRLF +
+                        StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
+                        StarcounterEnvironment.Default.UserHttpPort + StarcounterConstants.NetworkConstants.CRLF +
+                        polyjuiceStatic;
+
+                    Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
+
+                    if ("Success!" != resp.Body) {
+                        throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
                     }
                 }
             }
@@ -201,6 +235,26 @@ namespace Starcounter.Internal {
         static Byte[] responseSerializationBuffer_;
 
         /// <summary>
+        /// Start the session that came with request.
+        /// </summary>
+        static void StartSessionThatCameWithRequest(Request req) {
+
+            // Checking if we are in session already.
+            if (req.CameWithCorrectSession) {
+
+                // Obtaining session.
+                Session s = (Session) req.GetAppsSessionInterface();
+
+                // Checking if correct session was obtained.
+                if (null != s) {
+
+                    // Starting session.
+                    Session.Start(s);
+                }
+            }
+        }
+
+        /// <summary>
         /// Entry-point for all external HTTP requests from the Network Gateway.
         /// </summary>
         private static Boolean ProcessExternalRequest(Request req) {
@@ -209,16 +263,11 @@ namespace Starcounter.Internal {
 
             try {
 
-                // Getting appropriate handler level manager.
-                UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.FilteringLevel);
+                // Starting the session that came with request.
+                StartSessionThatCameWithRequest(req);
 
-                // Checking if there are any registered handlers.
-                if (uhm.NumRegisteredHandlers > 0) {
-
-                    req.PortNumber = UriHandlersManager.GetPortNumber(req, HandlerOptions.DefaultLevel);
-
-                    resp = Node.FilterRequest(req);
-                }
+                // Checking if there is a filtering delegate.
+                resp = Handle.RunMiddlewareFilters(req);
 
                 // Checking if filter level did allow this request.
                 if (null == resp) {
@@ -228,7 +277,7 @@ namespace Starcounter.Internal {
                         req.GetRawMethodAndUri(),
                         req.GetRawParametersInfo(),
                         req,
-                        HandlerOptions.DefaultLevel);
+                        new HandlerOptions());
                 }
 
             } catch (ResponseException exc) {
@@ -279,8 +328,6 @@ namespace Starcounter.Internal {
             // Checking if a new session was created during handler call.
             if ((null != Session.Current) && (req.IsExternal))
                 Session.End();
-
-            Session.InitialRequest = null;
 
             return true;
         }

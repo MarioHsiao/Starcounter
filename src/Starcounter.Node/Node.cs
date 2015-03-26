@@ -162,12 +162,15 @@ namespace Starcounter
         /// <summary>
         /// Indicates the local node.
         /// </summary>
-        Boolean localNode_ = false;
+        Boolean isLocalNode_ = false;
 
-        internal Boolean LocalNode
+        /// <summary>
+        /// Indicates that this node is restricted to this codehost.
+        /// </summary>
+        internal Boolean IsLocalNode
         {
-            get { return localNode_; }
-            set { localNode_ = value; }
+            get { return isLocalNode_; }
+            set { isLocalNode_ = value; }
         }
 
         /// <summary>
@@ -292,26 +295,32 @@ namespace Starcounter
         /// </summary>
         public Node(
             String hostName,
-            UInt16 portNumber = 0,
+            UInt16 portNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             Int32 defaultReceiveTimeoutMs = 0,
             Boolean useAggregation = false,
-            UInt16 aggrPortNumber = 0)
+            UInt16 aggrPortNumber = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort)
         {
-            if (hostName.ToLower().Contains("localhost") ||
-                hostName.ToLower().Contains("127.0.0.1"))
-            {
+            if (hostName == null) {
+
                 // Checking if we are running inside Starcounter hosting process.
                 if (StarcounterEnvironment.IsCodeHosted)
-                    localNode_ = true;
+                    isLocalNode_ = true;
+
+                hostName = "localhost";
             }
 
-            if (0 == portNumber) {
-                portNumber = StarcounterEnvironment.Default.UserHttpPort;
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == portNumber) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    portNumber = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    portNumber = StarcounterEnvironment.Default.UserHttpPort;
+                }
             }
 
             aggrPortNumber_ = aggrPortNumber;
 
-            if (0 == aggrPortNumber_) {
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == aggrPortNumber_) {
                 aggrPortNumber_ = StarcounterEnvironment.Default.AggregationPort;
             }
 
@@ -608,8 +617,8 @@ namespace Starcounter
             DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                req.HeadersDictionary,
-                req.BodyBytes,
+                null,
+                null,
                 userDelegate,
                 userObject,
                 receiveTimeoutMs,
@@ -625,8 +634,8 @@ namespace Starcounter
             return DoRESTRequestAndGetResponse(
                 req.Method,
                 req.Uri,
-                req.HeadersDictionary,
-                req.BodyBytes,
+                null,
+                null,
                 null,
                 null,
                 receiveTimeoutMs,
@@ -738,37 +747,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Filters the request.
-        /// </summary>
-        public static Response FilterRequest(Request req) {
-
-            Debug.Assert(req != null);
-
-            String methodSpaceUriSpace = req.Method + " " + req.Uri + " ";
-            String methodSpaceUriSpaceLower = methodSpaceUriSpace;
-
-#if CASE_INSENSITIVE_URI_MATCHER
-
-            // Making incoming URI lower case.
-            methodSpaceUriSpaceLower = req.Method + " " + req.Uri.ToLowerInvariant() + " ";
-#endif
-
-            // No response initially.
-            Response resp = null;
-
-            // Running URI matcher and calling determined handler.
-            runUriMatcherAndCallHandler_(
-                methodSpaceUriSpace,
-                methodSpaceUriSpaceLower,
-                req,
-                req.PortNumber,
-                HandlerOptions.FilteringLevel,
-                out resp);
-
-            return resp;
-        }
-
-        /// <summary>
         /// Core function to send REST requests and get the responses.
         /// </summary>
         public Response DoRESTRequestAndGetResponse(
@@ -786,9 +764,14 @@ namespace Starcounter
 
             // Checking if handler options is defined.
             if (handlerOptions == null) {
-                handlerOptions = HandlerOptions.DefaultLevel;
+
+                handlerOptions = new HandlerOptions();
+
                 callOnlySpecificHandlerLevel = false;
             }
+
+            // Setting application name.
+            handlerOptions.CallingAppName = StarcounterEnvironment.AppName;
 
             // Creating the request object if it does not exist.
             if (req == null) {
@@ -799,12 +782,13 @@ namespace Starcounter
                     Uri = relativeUri,
                     BodyBytes = bodyBytes,
                     HeadersDictionary = headersDictionary,
-                    Host = Endpoint
+                    Host = Endpoint,
+                    HandlerOpts = handlerOptions
                 };
             }
 
             // Checking if we are on local node.
-            if ((localNode_) && (!handlerOptions.CallExternalOnly)) {
+            if ((isLocalNode_) && (!handlerOptions.CallExternalOnly)) {
 
                 String methodSpaceUriSpace = method + " " + relativeUri + " ";
                 String methodSpaceUriSpaceLower = methodSpaceUriSpace;
@@ -815,45 +799,22 @@ namespace Starcounter
                 methodSpaceUriSpaceLower = method + " " + relativeUri.ToLowerInvariant() + " ";
 #endif
 
+DO_CALL_ON_GIVEN_LEVEL:
+
                 // No response initially.
                 Response resp = null;
 
-                // Trying to do local node REST.
-                if (runUriMatcherAndCallHandler_(
-                    methodSpaceUriSpace,
-                    methodSpaceUriSpaceLower,
-                    req,
-                    portNumber_,
-                    HandlerOptions.FilteringLevel,
-                    out resp)) {
-
-                    // Checking if user has supplied a delegate to be called.
-                    if (null != userDelegate) {
-
-                        // Invoking user delegate.
-                        userDelegate.Invoke(resp, userObject);
-
-                        return null;
-                    }
-
-                    return resp;
-                }
-
-                // Checking if we have a response or if its not a gateway level handler.
-                if (resp != null) {
-                    return resp;
-                }
-
-DO_CALL_ON_GIVEN_LEVEL:
-
                 // Running URI matcher and call handler.
-                if (runUriMatcherAndCallHandler_(
+                Boolean handlerFound = runUriMatcherAndCallHandler_(
                     methodSpaceUriSpace,
                     methodSpaceUriSpaceLower,
                     req,
                     portNumber_,
                     handlerOptions,
-                    out resp)) {
+                    out resp);
+
+                // Checking if there is some response.
+                if (resp != null) {
 
                     // Checking if user has supplied a delegate to be called.
                     if (null != userDelegate) {
@@ -867,40 +828,55 @@ DO_CALL_ON_GIVEN_LEVEL:
                     return resp;
                 }
             
-                // Checking if we have a response or if its not a gateway level handler.
-                if (resp != null) {
+                // Going level by level up.
+                if (!handlerFound) {
 
-                    return resp;
-
-                } else {
-
-                    // Going level by level up.
                     if (false == callOnlySpecificHandlerLevel) {
 
                         switch (handlerOptions.HandlerLevel) {
 
                             case HandlerOptions.HandlerLevels.DefaultLevel: {
-                                handlerOptions = HandlerOptions.ApplicationLevel;
+                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel);
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationLevel: {
-                                handlerOptions = HandlerOptions.ApplicationExtraLevel;
+                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel);
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
-                                handlerOptions = HandlerOptions.CodeHostStaticFileServer;
+                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
                         };
+                    }
 
-                    } else {
+                    // Checking if there is a substitute handler.
+                    if (req.HandlerOpts.SubstituteHandler != null) {
+
+                        resp = req.HandlerOpts.SubstituteHandler();
+
+                        if (resp != null) {
+
+                            // Setting the response application name.
+                            resp.AppName = req.HandlerOpts.CallingAppName;
+
+                            if (StarcounterEnvironment.PolyjuiceAppsFlag)
+                                return Response.ResponsesMergerRoutine_(req, resp, null);
+                        }
+
+                        return resp;
+                    }
+
+                    if (true == callOnlySpecificHandlerLevel) {
 
                         // NOTE: We tried a specific handler level but didn't get any response, so returning.
                         return null;
                     }
                 }
+
+                return null;
             }
 
             // Setting the receive timeout.

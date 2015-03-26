@@ -145,7 +145,16 @@ namespace Starcounter.Server.Commands {
         /// queried periodically by the current processor to see if
         /// command processing should be cancelled.
         /// </summary>
-        public Predicate<ServerCommand> CancellationPredicate {
+        public Predicate<CommandId> CancellationPredicate {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets an optional callback that are to be invoked
+        /// when the current processor completes.
+        /// </summary>
+        public Action<CommandId> CompletionCallback {
             get;
             set;
         }
@@ -185,7 +194,8 @@ namespace Starcounter.Server.Commands {
         }
 
         /// <summary>
-        /// Updates the status of the current command to <see cref="CommandStatus.Completed"/>.
+        /// Updates the status of the current command to <see cref="CommandStatus.Completed"/>,
+        /// or <see cref="CommandStatus.Cancelled"/> if the command was cancelled.
         /// </summary>
         private void SetCompleted() {
             var wasCancelled = isCancelledByHost;
@@ -256,7 +266,7 @@ namespace Starcounter.Server.Commands {
         internal bool ShouldCancel() {
             var cancel = (this.Status == CommandStatus.Cancelled) || isCancelledByHost;
             if (!cancel && CancellationPredicate != null) {
-                cancel = CancellationPredicate(this.command);
+                cancel = CancellationPredicate(this.Id);
                 if (cancel) {
                     isCancelledByHost = true;
                 }
@@ -266,15 +276,6 @@ namespace Starcounter.Server.Commands {
 
         internal void ProcessCommand(NotifyCommandStatusChangedCallback notifyStatusChangedCallback) // Must not throw exception!
         {
-            if (ShouldCancel()) {
-                if (this.Status != CommandStatus.Cancelled) {
-                    this.Status = CommandStatus.Cancelled;
-                    NotifyStatusChanged();
-                }
-
-                return;
-            }
-
             // Check we are in a valid state.
             if (this.Status != CommandStatus.Queued && this.Status != CommandStatus.Delayed) {
                 throw new InvalidOperationException();
@@ -282,6 +283,12 @@ namespace Starcounter.Server.Commands {
 
             if (IsPublic) _notifyStatusChangedCallback = notifyStatusChangedCallback;
             try {
+
+                if (ShouldCancel()) {
+                    SetCompleted();
+                    return;
+                }
+
                 this.Status = CommandStatus.Executing;
 
                 NotifyStatusChanged();
@@ -715,6 +722,10 @@ namespace Starcounter.Server.Commands {
             // (See CommandDispatcher.RemoveProcessedCommand)
             if (this.completedEvent != null) {
                 this.completedEvent.Set();
+            }
+
+            if (CompletionCallback != null) {
+                CompletionCallback(this.Id);
             }
         }
 

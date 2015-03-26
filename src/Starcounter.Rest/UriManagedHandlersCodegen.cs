@@ -67,7 +67,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 16)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return (Int32)FastParseInt(dataBegin + p.offset_, p.len_);
             }
@@ -81,7 +81,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 16)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return FastParseInt(dataBegin + p.offset_, p.len_);
             }
@@ -105,7 +105,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 5)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 Byte b = *(((Byte*)dataBegin) + p.offset_);
                 if (b == 't' || b == 'T')
@@ -123,7 +123,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 32)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return Decimal.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -137,7 +137,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 32)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return Double.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -151,7 +151,7 @@ namespace Starcounter.Rest
 
                 // Checking for correct handler info.
                 if (p.len_ > 32)
-                    throw new ArgumentOutOfRangeException("Wrong arguments data format: " + req.Uri);
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
                 return DateTime.Parse(Marshal.PtrToStringAnsi(dataBegin + p.offset_, p.len_), CultureInfo.InvariantCulture);
             }
@@ -402,7 +402,7 @@ namespace Starcounter.Rest
 
             // Checking if handler options is defined.
             if (ho == null) {
-                ho = HandlerOptions.DefaultHandlerOptions;
+                ho = new HandlerOptions();
             }
 
             return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByProcessedUri(processedUriInfo);
@@ -419,16 +419,25 @@ namespace Starcounter.Rest
             MixedCodeConstants.NetworkProtocolType protoType,
             HandlerOptions ho)
         {
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
+
             String[] s = methodAndUriInfo.Split(null);
             String originalUriInfo = null;
-            String polyjuiceMsg = "Error registering handler: " + methodAndUriInfo + ". Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
+            String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
 
             // Checking if consists of method and URI.
             if (s.Length > 1) {
 
                 // Checking that HTTP method is upper case.
                 if ((s[0] != s[0].ToUpperInvariant())) {
-                    throw new ArgumentOutOfRangeException("Handler HTTP method should be upper-case (HTTP 1.1 RFC).");
+                    throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
                 }
 
 #if CASE_INSENSITIVE_URI_MATCHER
@@ -441,11 +450,9 @@ namespace Starcounter.Rest
                     if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
                         // Handler name should start with application name or launcher name.
-                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/" + StarcounterConstants.LauncherAppName, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/" + StarcounterConstants.SocietyObjectsPrefix, StringComparison.InvariantCultureIgnoreCase) &&
-                            !s[1].StartsWith("/__db/", StringComparison.InvariantCultureIgnoreCase)) {
-                            throw new ArgumentOutOfRangeException(polyjuiceMsg);
+                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+
+                            throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                         }
                     }
                 }
@@ -461,7 +468,7 @@ namespace Starcounter.Rest
                     // Checking that its a Polyjuice handler.
                     if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
-                        throw new ArgumentOutOfRangeException(polyjuiceMsg);
+                        throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                     }
                 }
 
@@ -474,7 +481,7 @@ namespace Starcounter.Rest
 
             // Checking if handler options is defined.
             if (ho == null) {
-                ho = HandlerOptions.DefaultHandlerOptions;
+                ho = new HandlerOptions();
             }
 
             // Mutually excluding handler registrations.
@@ -709,9 +716,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<Response>> delegExpr = () => userDelegate();
@@ -730,9 +734,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, Response>> delegExpr = (p1) => userDelegate(p1);
@@ -751,9 +752,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, Response>> delegExpr = (p1, p2) => userDelegate(p1, p2);
@@ -772,9 +770,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, Response>> delegExpr = (p1, p2, p3) => userDelegate(p1, p2, p3);
@@ -793,9 +788,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, Response>> delegExpr = (p1, p2, p3, p4) => userDelegate(p1, p2, p3, p4);
@@ -814,9 +806,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, Response>> delegExpr = (p1, p2, p3, p4, p5) => userDelegate(p1, p2, p3, p4, p5);
@@ -835,9 +824,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, Response>> delegExpr = (p1, p2, p3, p4, p5, p6) => userDelegate(p1, p2, p3, p4, p5, p6);
@@ -856,9 +842,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7) => userDelegate(p1, p2, p3, p4, p5, p6, p7);
@@ -877,9 +860,6 @@ namespace Starcounter.Rest
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
         {
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port)
-                port = StarcounterEnvironment.Default.UserHttpPort;
-
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7, p8) => userDelegate(p1, p2, p3, p4, p5, p6, p7, p8);
@@ -1020,11 +1000,7 @@ namespace Starcounter.Rest
                         req,
                         handlerOptions);
 
-                    // Checking if handled the response.
-                    if (resp == null)
-                        return false;
-
-                    // Request successfully handled.
+                    // Handler was successfully found.
                     return true;
                 }
             }

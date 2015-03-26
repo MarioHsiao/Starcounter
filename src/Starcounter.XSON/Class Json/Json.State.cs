@@ -85,9 +85,10 @@ namespace Starcounter {
         /// </summary>
         internal object _data;
 
-        internal List<Json> _stepSiblings;
-
-        internal Json _stepParent;
+        /// <summary>
+        /// List containing all stepsiblings that exists on this level.
+        /// </summary>
+        private List<Json> _stepSiblings;
 
         internal String _appName;
 
@@ -95,19 +96,27 @@ namespace Starcounter {
         /// If set to true, additional features for keeping track of changes and getting a log of changes 
         /// are initialized. If not needed this should not be enabled since the performance will be much worse.
         /// </summary>
-        internal bool _dirtyCheckEnabled;
-
-        private bool _isArray;
+        private bool _trackChanges;
 
         /// <summary>
-        /// Default value for setting the dirtycheck on or off for new instances of Json.
+        /// If set to false, bound properties will not be updated automatically.
         /// </summary>
-        public static bool DirtyCheckEnabled = true;
+        internal bool _checkBoundProperties;
+ 
+        private bool _isArray;
 
         /// <summary>
         /// If this json is a part of a stateful viewmodel (i.e. puppet) this field contains
         /// the version the json was added to the viewmodel.
         /// </summary>
         private long addedInVersion;
-    }
+
+        //TODO:
+        // Needed when creating patches and serializing and namespaces are used. Sometimes the namespace (= appname)
+        // should not be written.
+        // See if there are better ways of solving this problem.
+        internal bool calledFromStepSibling;
+
+        private bool isAddedToViewmodel;
+    }   
 }

@@ -20,7 +20,6 @@ namespace Starcounter {
         /// Specific handler levels.
         /// </summary>
         public enum HandlerLevels {
-            FilteringLevel,
             DefaultLevel,
             ApplicationLevel,
             ApplicationExtraLevel,
@@ -28,17 +27,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Application name.
+        /// Calling application name.
         /// </summary>
-        internal String AppName {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// Don't merge on this handler.
-        /// </summary>
-        internal Boolean DontMerge {
+        internal String CallingAppName {
             get;
             set;
         }
@@ -46,11 +37,22 @@ namespace Starcounter {
         /// <summary>
         /// Proxy delegate trigger.
         /// </summary>
-        internal Boolean ProxyDelegateTrigger {
+        public Boolean ProxyDelegateTrigger {
             get;
             set;
         }
 
+        /// <summary>
+        /// Replace existing delegate.
+        /// </summary>
+        public Boolean ReplaceExistingDelegate {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Handler level.
+        /// </summary>
         HandlerLevels handlerLevel_ = HandlerLevels.DefaultLevel;
 
         /// <summary>
@@ -70,6 +72,14 @@ namespace Starcounter {
         /// Forcing setting non-polyjuice handler flag.
         /// </summary>
         public Boolean AllowNonPolyjuiceHandler {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Substitute handler.
+        /// </summary>
+        public Func<Response> SubstituteHandler {
             get;
             set;
         }
@@ -108,46 +118,49 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Default handler options.
+        /// Constructor with handler level.
         /// </summary>
-        public static HandlerOptions DefaultHandlerOptions = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.DefaultLevel
-        };
+        public HandlerOptions(HandlerLevels handlerLevel) {
+            handlerLevel_ = handlerLevel;
+        }
 
         /// <summary>
-        /// Security level.
+        /// Constructor without handler level.
         /// </summary>
-        public readonly static HandlerOptions FilteringLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.FilteringLevel
-        };
+        public HandlerOptions() {
+        }
+    }
+
+    /// <summary>
+    /// Represents a middleware filter that is called for external
+    /// requests before the actual user handler.
+    /// </summary>
+    public class MiddlewareFilter {
 
         /// <summary>
-        /// General level.
+        /// Application name that registered this handler.
         /// </summary>
-        public readonly static HandlerOptions DefaultLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.DefaultLevel
-        };
+        public string AppName {
+            get;
+            set;
+        }
 
         /// <summary>
-        /// Application level.
+        /// The actual filter delegate.
         /// </summary>
-        public readonly static HandlerOptions ApplicationLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.ApplicationLevel
-        };
+        public Func<Request, Response> FilterRequest {
+            get;
+            set;
+        }
 
         /// <summary>
-        /// Extra application level.
+        /// Constructor.
         /// </summary>
-        public readonly static HandlerOptions ApplicationExtraLevel = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-        };
-
-        /// <summary>
-        /// Code host static file server level.
-        /// </summary>
-        public readonly static HandlerOptions CodeHostStaticFileServer = new HandlerOptions() {
-            HandlerLevel = HandlerOptions.HandlerLevels.CodeHostStaticFileServer
-        };
+        /// <param name="filterRequest">Filter request parameter.</param>
+        public MiddlewareFilter(Func<Request, Response> filterRequest) {
+            AppName = StarcounterEnvironment.AppName;
+            FilterRequest = filterRequest;
+        }
     }
     
     /// <summary>
@@ -170,6 +183,63 @@ namespace Starcounter {
         const String PATCH_METHOD = "PATCH";
 
         /// <summary>
+        /// Checks if given URI is a part of 
+        /// </summary>
+        /// <param name="uri">Incomming URI.</param>
+        /// <returns>True if its a system handler.</returns>
+        public static Boolean IsSystemHandlerUri(String uri) {
+
+            if (uri.StartsWith("/polyjuice", StringComparison.InvariantCultureIgnoreCase) ||
+                uri.StartsWith("/codehost", StringComparison.InvariantCultureIgnoreCase) ||
+                uri.StartsWith("/_", StringComparison.InvariantCultureIgnoreCase)) {
+
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Filtering request.
+        /// </summary>
+        public static List<MiddlewareFilter> middlewareFilters_ = new List<MiddlewareFilter>();
+
+        /// <summary>
+        /// Adding new filter to middleware.
+        /// </summary>
+        public static void AddFilterToMiddleware(Func<Request, Response> filterRequest) {
+
+            MiddlewareFilter mf = new MiddlewareFilter(filterRequest);
+
+            middlewareFilters_.Add(mf);
+        }
+
+        /// <summary>
+        /// Runs all added middleware filters until one that returns non-null response.
+        /// </summary>
+        /// <returns>Filtered response or null.</returns>
+        internal static Response RunMiddlewareFilters(Request req) {
+
+            String curAppName = StarcounterEnvironment.AppName;
+
+            for (Int32 i = (middlewareFilters_.Count - 1); i >= 0; i--) {
+
+                MiddlewareFilter mf = middlewareFilters_[i];
+
+                StarcounterEnvironment.AppName = mf.AppName;
+
+                Response resp = mf.FilterRequest(req);
+
+                if (null != resp)
+                    return resp;
+            }
+
+            StarcounterEnvironment.AppName = curAppName;
+
+            return null;
+        }
+
+        /// <summary>
         /// Indicator of parameter in URI.
         /// </summary>
         public const String UriParameterIndicator = "{?}";
@@ -178,15 +248,6 @@ namespace Starcounter {
         /// Inject REST handler function provider here
         /// </summary>
         public static volatile IREST _REST;
-
-        /// <summary>
-        /// Registers a routine to merge several responses.
-        /// </summary>
-        /// <param name="mergerRoutine">Provided merging routine.</param>
-        public static void MergeResponses(Func<Request, List<Response>, Response> mergerRoutine)
-        {
-            _REST.RegisterResponsesMerger(mergerRoutine);
-        }
 
         public static void CUSTOM(String methodAndUriInfo, Func<Response> handler, HandlerOptions ho = null)
         {

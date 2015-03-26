@@ -45,6 +45,14 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Set if there is no network gateway.
+        /// </summary>
+        public static Boolean NoNetworkGatewayFlag {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Name of the application.
         /// </summary>
         [ThreadStatic]

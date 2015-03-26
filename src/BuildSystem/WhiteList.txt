@@ -16,16 +16,11 @@ ItemTemplates\
 Json\
 ProjectTemplates\
 
+# Special edition libraries
+EditionLibraries\
+
 # Public assemblies
-Public Assemblies\Starcounter.ClientResolver.dll
-Public Assemblies\Starcounter.dll
-Public Assemblies\Starcounter.Apps.JsonPatch.dll
-Public Assemblies\Starcounter.Bootstrap.dll
-Public Assemblies\Starcounter.HyperMedia.dll
-Public Assemblies\Starcounter.Internal.dll
-Public Assemblies\Starcounter.Logging.dll
-Public Assemblies\Starcounter.Node.dll
-Public Assemblies\Starcounter.XSON.dll
+Public Assemblies\
 
 # Starcounter Administrator
 scadmin\app\
@@ -99,8 +94,6 @@ Mono.CSharp.dll
 MSG00001.bin
 msvcp110.dll
 msvcr110.dll
-Newtonsoft.Json.dll
-Newtonsoft.Json.pdb
 NodeTest.exe
 NodeTest.pdb
 NodeTest.exe.config

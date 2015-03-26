@@ -163,11 +163,17 @@ namespace Starcounter.Hosting {
 
                 UpdateDatabaseSchemaAndRegisterTypes(unregisteredTypeDefinitions);
 
-                if (application != null && !StarcounterEnvironment.IsAdministratorApp)
-                    AppsBootstrapper.Bootstrap(application.WorkingDirectory);
+                if ((application != null) && (!StarcounterEnvironment.IsAdministratorApp)) {
+
+                    AppsBootstrapper.Bootstrap(
+                        application.Name,
+                        application.WorkingDirectory,
+                        StarcounterEnvironment.Default.UserHttpPort);
+                }
 
                 // Initializing package for all executables.
                 if ((InitInternalHttpHandlers_ != null) && (!packageInitialized_)) {
+
                     // Registering internal HTTP handlers.
                     InitInternalHttpHandlers_();
 

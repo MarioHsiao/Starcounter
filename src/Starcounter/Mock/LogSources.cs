@@ -32,5 +32,10 @@ namespace Starcounter
         /// Log sources used by the Starcounter code host assembly resolver.
         /// </summary>
         public static LogSource CodeHostAssemblyResolver = new LogSource("Starcounter.Host.AssemblyResolver");
+
+        /// <summary>
+        /// Well-known log source used by the database host when unloading.
+        /// </summary>
+        public static LogSource Unload = new LogSource("Starcounter.Host.Unload");
     }
 }

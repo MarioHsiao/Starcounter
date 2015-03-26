@@ -84,6 +84,8 @@ namespace Starcounter.Query.Execution {
                 if (partObj == null) {
                     throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "No elementary object at extent number: " + extentNumber);
                 }
+                if (partObj is NullObject)
+                    return null;
                 return DbHelper.GetObjectID(partObj);
             }
             // Control that the type (obj.TypeBinding) of the input object

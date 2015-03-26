@@ -13,14 +13,20 @@ struct HttpResponseParserStruct
     // Structure that holds HTTP response.
     HttpResponse* http_response_;
 
+    // Pointer to response buffer.
+    uint8_t* response_buf_;
+
     // HTTP/WebSockets fields.
     HttpWsFields last_field_;
 
-    // Indicates if we have complete header.
-    bool complete_header_flag_;
+    // Indicates if we have complete headers.
+    bool complete_headers_flag_;
 
-    // Pointer to response buffer.
-    uint8_t* response_buf_;
+    // Indicates if content length header is in place.
+    bool has_content_length_flag_;
+
+    // Indicates if we have complete response.
+    bool complete_response_flag_;
 
     // Resets the parser related fields.
     void Reset(uint8_t* response_buf, HttpResponse* http_response)
@@ -32,7 +38,9 @@ struct HttpResponseParserStruct
         http_response_->Reset();
 
         http_parser_init(&http_parser_, HTTP_RESPONSE);
-        complete_header_flag_ = false;
+        complete_headers_flag_ = false;
+        has_content_length_flag_ = false;
+        complete_response_flag_ = false;
     }
 };
 
@@ -53,7 +61,7 @@ inline int HttpResponseOnHeadersComplete(http_parser* p)
     HttpResponseParserStruct *http = (HttpResponseParserStruct *)p;
 
     // Setting complete header flag.
-    http->complete_header_flag_ = true;
+    http->complete_headers_flag_ = true;
 
     // Setting headers length (skipping 2 bytes for \r\n).
     http->http_response_->headers_len_bytes_ = p->nread - 2 - http->http_response_->headers_len_bytes_;
@@ -63,7 +71,11 @@ inline int HttpResponseOnHeadersComplete(http_parser* p)
 
 inline int HttpResponseOnMessageComplete(http_parser* p)
 {
-    // Do nothing.
+    HttpResponseParserStruct *http = (HttpResponseParserStruct *)p;
+
+    // Setting complete response flag.
+    http->complete_response_flag_ = true;
+
     return 0;
 }
 
@@ -102,6 +114,7 @@ inline int HttpResponseOnHeaderValue(http_parser* p, const char *at, size_t leng
         {
             // Calculating body length.
             http->http_response_->content_len_bytes_ = (int32_t) p->content_length;
+            http->has_content_length_flag_ = true;
 
             break;
         }
@@ -142,9 +155,9 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
         (const char *)response_buf,
         response_size_bytes);
 
-    // Checking if we have complete data.
-    if (!thread_http_response_parser.complete_header_flag_)
-    {
+    // Checking if we have all headers.
+    if (!thread_http_response_parser.complete_headers_flag_) {
+
         //std::cout << "Incomplete HTTP response headers supplied!" << std::endl;
 
         return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
@@ -167,10 +180,24 @@ EXTERN_C uint32_t __stdcall sc_parse_http_response(
             return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
     }
 
-    // TODO: Check body length.
+    // Setting total response size in bytes based on content length flag.
+    if (thread_http_response_parser.has_content_length_flag_) {
 
-    // Setting response properties (+2 for \r\n between headers and body).
-    http_response->response_len_bytes_ = http_response->headers_offset_ + http_response->headers_len_bytes_ + 2 + http_response->content_len_bytes_;
+        // Setting response properties (+2 for \r\n between headers and body).
+        http_response->response_len_bytes_ = http_response->headers_offset_ + http_response->headers_len_bytes_ + 2 + http_response->content_len_bytes_;
+
+    } else {
+
+        // Checking if we have complete response.
+        if (!thread_http_response_parser.complete_response_flag_) {
+
+            //std::cout << "Incomplete HTTP response supplied!" << std::endl;
+
+            return SCERRAPPSHTTPPARSERINCOMPLETEHEADERS;
+        }
+
+        http_response->response_len_bytes_ = response_size_bytes;
+    }
 
     // Setting status code.
     http_response->status_code_ = thread_http_response_parser.http_parser_.status_code;

@@ -88,7 +88,7 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var json = UnboundGetter(parent);
 
-			if (parent._dirtyCheckEnabled && json != null && UseBinding(parent)) {
+            if (json != null && !json._checkBoundProperties && UseBinding(parent)) {
 				json.CheckBoundObject(BoundGetter(parent));
 			}
 
@@ -125,7 +125,7 @@ namespace Starcounter.Templates {
 
 		private Json BoundOrUnboundGet(Json parent) {
 			Json value = UnboundGetter(parent);
-			if (parent._dirtyCheckEnabled && value != null && UseBinding(parent))
+            if (parent._checkBoundProperties && value != null && UseBinding(parent))
 				value.CheckBoundObject(BoundGetter(parent));
 			return value;
 		}
@@ -177,14 +177,6 @@ namespace Starcounter.Templates {
 									   bool overwriteExisting = true) {
             customSetter = setter;
 			bool overwrite = (overwriteExisting || !hasCustomAccessors);
-
-			if (BindingStrategy == BindingStrategy.Unbound) {
-				if (overwrite || Getter == null)
-					Getter = getter;
-				if (overwrite || Setter == null) {
-                    Setter = SetParentAndUseCustomSetter;
-                }
-			}
 
 			if (overwrite || UnboundGetter == null) {
 				UnboundGetter = getter;

@@ -49,7 +49,7 @@ namespace Starcounter {
     /// A Json object can be data bound to a database object such as its bound properties
     /// merely reflect the values of the database objects.
     /// </remarks>
-    public partial class Json : StarcounterBase {
+    public partial class Json {
         /// <summary>
         /// Base classes to be derived by Json-by-example classes.
         /// </summary>
@@ -83,17 +83,28 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Obj" /> class.
+        /// Initializes a new instance of the <see cref="Json" /> class.
         /// </summary>
         public Json()
             : base() {
             _cacheIndexInArr = -1;
             _transaction = TransactionHandle.Invalid;
             AttachCurrentTransaction();
-            _dirtyCheckEnabled = DirtyCheckEnabled;
+            _trackChanges = false;
+            _checkBoundProperties = true;
             if (_Template == null) {
                 Template = GetDefaultTemplate();
             }
+        }
+
+        /// <summary>
+        /// Creates an instance <see cref="Json" /> class using the specified string to build a <see cref="Template" /> 
+        /// and set values.
+        /// </summary>
+        /// <param name="jsonStr">The string containing proper JSON</param>
+        public Json(string jsonStr) : this() {
+            Template = TObject.CreateFromJson(jsonStr);
+            this.PopulateFromJson(jsonStr);
         }
 
         /// <summary>
@@ -116,13 +127,7 @@ namespace Starcounter {
         /// </summary>
         public Session Session {
             get {
-                if (_stepParent != null) {
-                    return _stepParent.Session;
-                }
-                if (_Session == null && Parent != null) {
-                    return Parent.Session;
-                }
-                return _Session;
+                return GetSession(true);
             }
             set {
                 if (Parent != null)
@@ -140,8 +145,29 @@ namespace Starcounter {
             }
         }
 
+        private Session GetSession(bool lookInStepSiblings) {
+            Session session = _Session;
+
+            if (session != null)
+                return session;
+
+            if (Parent != null)
+                session = Parent.GetSession(true);
+
+            if (session == null && lookInStepSiblings && _stepSiblings != null) {
+                foreach (var stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    session = stepSibling.GetSession(false);
+                    if (session != null)
+                        break;
+                }
+            }
+            return session;
+        }
+
         internal void OnSessionSet() {
-            OnAddedToViewmodel();
+            OnAddedToViewmodel(true);
         }
 
         /// <summary>
@@ -202,6 +228,18 @@ namespace Starcounter {
             return false;
         }
 
+        /// <summary>
+        /// Returns the Json root.
+        /// </summary>
+        public Json Root {
+            get {
+                Json r = this;
+                while (r.Parent != null)
+                    r = r.Parent;
+                return r;
+            }
+        }
+
         protected virtual Template GetDefaultTemplate() {
             return null;
         }
@@ -211,23 +249,25 @@ namespace Starcounter {
         /// </summary>
         /// <param name="property">The property</param>
         public void Refresh(Template property) {
-			if (property is TObjArr) {
-				TObjArr tarr = (TObjArr)property;
-				if (tarr.UseBinding(this)) {
-					var jsonArr = tarr.UnboundGetter(this);
-					jsonArr.CheckBoundArray(tarr.BoundGetter(this));
-				}
-			} else if (property is TObject) {
-				var at = (TObject)property;
-				if (at.UseBinding(this)) {
-					CheckBoundObject(at.BoundGetter(this));
-				}
-			} else {
-				TValue p = property as TValue;
-				if (p != null) {
-					HasChanged(p);
-				}
-			}
+            if (property is TObjArr) {
+                TObjArr tarr = (TObjArr)property;
+                if (tarr.UseBinding(this)) {
+                    var jsonArr = tarr.UnboundGetter(this);
+                    jsonArr.CheckBoundArray(tarr.BoundGetter(this));
+                }
+            } else if (property is TObject) {
+                var at = (TObject)property;
+                if (at.UseBinding(this)) {
+                    CheckBoundObject(at.BoundGetter(this));
+                }
+            } else {
+                TValue p = property as TValue;
+                if (p != null) {
+                    HasChanged(p);
+                }
+            }
+            if (_trackChanges)
+                MarkAsReplaced(property);
         }
 
         /// <summary>
@@ -289,13 +329,13 @@ namespace Starcounter {
             // Since we change parents we need to retrieve session twice.
             if (_parent != null) {
                 if (Session != null)
-                    OnRemovedFromViewmodel();
+                    OnRemovedFromViewmodel(true);
             }
 
             _parent = value;
             if (_parent != null) {
                 if (Session != null)
-                    OnAddedToViewmodel();
+                    OnAddedToViewmodel(true);
             }
         }
 

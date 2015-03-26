@@ -30,7 +30,6 @@ namespace Starcounter.Weaver {
                 "PostSharp*.dll",
                 "Roslyn*.dll",
                 "FasterThanJson.dll",
-                "Newtonsoft.Json.dll",
                 "BizArk.Core.dll",
                 "HtmlAgilityPack.dll",
                 "Starcounter.dll",

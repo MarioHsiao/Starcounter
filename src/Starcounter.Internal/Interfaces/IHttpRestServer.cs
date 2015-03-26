@@ -25,9 +25,7 @@ namespace Starcounter.Advanced {
         /// are kept. This allows the web server to serve content from all modules without having to copy or deploy files to
         /// a single location.
         /// </summary>
-        /// <param name="path">The path to add to the list of paths used by the web server to find content.</param>
-        void UserAddedLocalFileDirectoryWithStaticContent(UInt16 port, String path);
-
+        void UserAddedLocalFileDirectoryWithStaticContent(String appName, UInt16 port, String path);
 
         /// <summary>
         /// Get a list with all folders where static file resources such as .html files or images are kept.
@@ -35,11 +33,9 @@ namespace Starcounter.Advanced {
         /// <returns></returns>
         List<string> GetWorkingDirectories(UInt16 port);
 
-
         /// <summary>
         /// Housekeeps this instance.
         /// </summary>
-        /// <returns>System.Int32.</returns>
-        int Housekeep();
+        void Housekeep();
     }
 }

@@ -30,6 +30,11 @@ namespace Starcounter.Internal.Web {
         internal List<string> fileDirectories_ = new List<string>();
 
         /// <summary>
+        /// Application names.
+        /// </summary>
+        internal List<string> appNames_ = new List<string>();
+
+        /// <summary>
         /// Reads the file system to find the resource addressed by an uri without using any cached version.
         /// </summary>
         /// <param name="cached">If there is an existing cache entry, it is provided here. The cache entry may
@@ -163,45 +168,93 @@ namespace Starcounter.Internal.Web {
         }
 
         /// <summary>
-        /// Searches for file specified in the relative uri and returns a bytearray containing
-        /// the contents. 
+        /// Tries to find file in specified directory and returns file contents as byte array.
         /// </summary>
-        /// <param name="relativeUri"></param>
-        /// <param name="fileExtension"></param>
-        /// <param name="payload"></param>
-        /// <returns>True if the file was found, false otherwise.</returns>
-        private bool ReadFile(string relativeUri, out string dir, out string fileName, out string fileExtension, out byte[] payload) {
-            int len;
-            
-            for (int t = 0; t < fileDirectories_.Count; t++) {
-                ParseFileSpecifier(fileDirectories_[t], relativeUri, out dir, out fileName, out fileExtension);
+        Boolean ReadFileInDirectory(
+            string relativeUri, 
+            String dirPath, 
+            out string dir, 
+            out string fileName, 
+            out string fileExtension, 
+            out byte[] payload) {
 
-                FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
-                if (f != null) {
-                    len = (int)f.Length;
+            ParseFileSpecifier(dirPath, relativeUri, out dir, out fileName, out fileExtension);
 
-                    // Check for UTF-8 byte order mark (BOM) offset
-                    if (len >= 3) {
-                        int utf8Size = 3;                  // UTF 8 byte check
-                        byte[] bom = new byte[utf8Size];   // allocate place for UTF-8 check
-                        f.Read(bom, 0, utf8Size);
-                        if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) // UTF-8 {
-                            len -= utf8Size;               // Adjust the payload size without the 'bom'
-                        else {
-                            f.Position -= utf8Size;        // Reset the filestream position
-                        }
+            FileStream f = FileOpenAlternative(dir, fileName, ref fileExtension);
+
+            if (f != null) {
+
+                int len = (int)f.Length;
+
+                // Check for UTF-8 byte order mark (BOM) offset
+                if (len >= 3) {
+                    int utf8Size = 3;                  // UTF 8 byte check
+                    byte[] bom = new byte[utf8Size];   // allocate place for UTF-8 check
+                    f.Read(bom, 0, utf8Size);
+                    if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) {
+                        len -= utf8Size;               // Adjust the payload size without the 'bom'
+                    } else {
+                        f.Position -= utf8Size;        // Reset the filestream position
                     }
-
-                    payload = new byte[len];
-                    f.Read(payload, 0, (int)len);
-                    f.Close();
-                    return true;
                 }
+
+                payload = new byte[len];
+                f.Read(payload, 0, (int)len);
+                f.Close();
+
+                return true;
             }
+
             dir = null;
             fileName = null;
             fileExtension = null;
             payload = null;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Searches for file specified in the relative uri and returns a byte array containing
+        /// the contents. 
+        /// </summary>
+        private bool ReadFile(
+            string relativeUri,
+            out string dir,
+            out string fileName,
+            out string fileExtension,
+            out byte[] payload) {
+
+            // Extracting prefix for the resource, e.g. "/myappname/index.html" will have prefix "/myappname".
+            for (Int32 i = 0; i < appNames_.Count; i++) {
+
+                if (relativeUri.StartsWith("/" + appNames_[i] + "/", StringComparison.InvariantCultureIgnoreCase)) {
+
+                    if (ReadFileInDirectory(
+                        relativeUri.Substring(appNames_[i].Length + 1),
+                        fileDirectories_[i],
+                        out dir,
+                        out fileName,
+                        out fileExtension,
+                        out payload)) {
+
+                        return true;
+                    }
+                }
+            }
+
+            // Going through every directory.
+            for (int t = (fileDirectories_.Count - 1); t >= 0; t--) {
+
+                if (ReadFileInDirectory(relativeUri, fileDirectories_[t], out dir, out fileName, out fileExtension, out payload)) {
+                    return true;
+                }
+            }
+
+            dir = null;
+            fileName = null;
+            fileExtension = null;
+            payload = null;
+
             return false;
         }
 
@@ -246,6 +299,7 @@ namespace Starcounter.Internal.Web {
         /// </summary>
         /// <param name="fsw"></param>
         private void ClearWatchedChange(FileSystemWatcher fsw) {
+
             fsw.EnableRaisingEvents = false;
             fsw.Changed -= new FileSystemEventHandler(FileHasChanged);
             fsw.Deleted += new FileSystemEventHandler(FileHasChanged);
@@ -273,6 +327,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         void FileIsRenamed(object sender, RenamedEventArgs e) {
+
             string fileSignature = e.OldFullPath.ToUpper();
             DecacheByFilePath(fileSignature);
         }
@@ -283,6 +338,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void FileHasChanged(object sender, FileSystemEventArgs e) {
+
             string fileSignature = e.FullPath.ToUpper();
             DecacheByFilePath(fileSignature);
         }
@@ -293,10 +349,10 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileSignature">The file to remove</param>
         private void DecacheByFilePath(string fileSignature) {
 
-            Response cachedResponse;
-
             // Locking because execution is done in separate thread.
             lock (fileDirectories_) {
+
+                Response cachedResponse;
 
                 if (cacheOnFilePath_.TryGetValue(fileSignature, out cachedResponse)) {
 
@@ -325,6 +381,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="fileExtension">The file extension.</param>
         /// <returns></returns>
         private FileStream FileOpenAlternative(string dir, string fileName, ref string fileExtension) {
+
             bool hasExtension = !string.IsNullOrEmpty(fileExtension);
             string filePathWOExt = Path.Combine(dir, fileName);
             string filePath;

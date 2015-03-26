@@ -42,7 +42,7 @@ namespace Starcounter.Internal {
                 }
 
                 // Checking if session has a tree.
-                root = session.GetFirstData();
+                root = session.PublicViewModel;
                 if (root == null) {
                     ws.Disconnect("Session does not contain any state (session.Data).");
                     return;
@@ -55,7 +55,7 @@ namespace Starcounter.Internal {
                 if (patchCount != -1) { 
                     // Getting changes from the root.
                     Byte[] patchResponse;
-                    Int32 sizeBytes = jsonPatch.CreateJsonPatchBytes(session, false, out patchResponse);
+                    Int32 sizeBytes = jsonPatch.CreateJsonPatchBytes(session, true, session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
 
                     // Sending the patch bytes to the client.
                     ws.Send(patchResponse, sizeBytes, ws.IsText);
@@ -82,8 +82,8 @@ namespace Starcounter.Internal {
                 try {
                     if (session == null)
                         return CreateErrorResponse(404, "No session found for the specified uri.");
-//                    root = session.Data;
-                    root = session.GetFirstData();
+                    //                    root = session.Data;
+                    root = session.PublicViewModel;
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
@@ -103,7 +103,7 @@ namespace Starcounter.Internal {
                 } catch (JsonPatchException nex) {
                     return CreateErrorResponse(400, nex.Message + " Patch: " + nex.Patch);
                 }
-            });
+            }, new HandlerOptions() { ProxyDelegateTrigger = true });
 
             Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session) => {
                 Json root = null;
