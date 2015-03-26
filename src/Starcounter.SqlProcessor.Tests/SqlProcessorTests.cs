@@ -226,7 +226,8 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(ParseOK, "SELECT b[Father+].Name FROM Person b WHERE b[Name] = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b.([Father]+)[Name] FROM Person b WHERE b[Name] = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b.([Father]+).Name FROM Person b WHERE b[Name] = 'Bob'");
-            ProcessQuery(ParseOK, "SELECT b.[Father+].Name FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b[Father+][Name] FROM Person b WHERE b[Name] = 'Bob'");
+            ProcessQuery(ParseOK, "SELECT b[Father+].Name FROM Person b WHERE b[Name] = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b[Father]+Name FROM Person b WHERE b[Name] = 'Bob'");
             ProcessQuery(ParseOK, "SELECT b[Father]+Name FROM Person b WHERE b[Name] = 'Bob'+?");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "SELECT b[Father]+Name FROM Person b WHERE b+[Name] = 'Bob'");
