@@ -188,6 +188,7 @@ namespace StarcounterInternal.Hosting
 
             Package package = new Package(
                 typeDefs.ToArray(),
+                customTypeClasses.ToArray(),
                 stopwatch_,
                 assembly,
                 application,

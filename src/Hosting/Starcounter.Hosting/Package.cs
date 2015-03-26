@@ -62,6 +62,13 @@ namespace Starcounter.Hosting {
         private TypeDef[] typeDefinitions;
 
         /// <summary>
+        /// Set of type definitions (and subset of <see cref="typeDefinitions"/>))
+        /// that keeps a reference to every type declared by the application as
+        /// a custom dynamic type class.
+        /// </summary>
+        private TypeDef[] customTypeClasses;
+
+        /// <summary>
         /// The assembly_
         /// </summary>
         private readonly Assembly assembly_;
@@ -87,6 +94,7 @@ namespace Starcounter.Hosting {
         /// <param name="stopwatch">A watch used to time package loading.</param>
         internal Package(TypeDef[] typeDefs, Stopwatch stopwatch) {
             typeDefinitions = typeDefs;
+            customTypeClasses = new TypeDef[0];
             stopwatch_ = stopwatch;
             processedEvent_ = new ManualResetEvent(false);
             processedResult = uint.MaxValue;
@@ -98,6 +106,8 @@ namespace Starcounter.Hosting {
         /// Initializes a new instance of the <see cref="Package" /> class.
         /// </summary>
         /// <param name="typeDefs">Set of type definitions to consider.</param>
+        /// <param name="customTypes">Array of types declared as custom type
+        /// classes by the application.</param>
         /// <param name="stopwatch">A watch used to time package loading.</param>
         /// <param name="assembly">The assembly that comprise the primary
         /// application code.</param>
@@ -107,8 +117,9 @@ namespace Starcounter.Hosting {
         /// if set to false the event will be set before the entrypoint executes.
         /// </param>
         internal Package(
-            TypeDef[] typeDefs, Stopwatch stopwatch, Assembly assembly, Application application, bool execEntryPointSynchronously) 
+            TypeDef[] typeDefs, TypeDef[] customTypes, Stopwatch stopwatch, Assembly assembly, Application application, bool execEntryPointSynchronously) 
             : this(typeDefs, stopwatch) {
+            customTypeClasses = customTypes;
             assembly_ = assembly;
             application_ = application;
             execEntryPointSynchronously_ = execEntryPointSynchronously;
@@ -348,7 +359,7 @@ namespace Starcounter.Hosting {
                         OnTypeSpecificationsInitialized();
                     }
 					else {
-						DynamicTypesBinding.DiscoverNewTypes(unregisteredTypeDefs);
+						DynamicTypesBinding.DiscoverNewTypes(unregisteredTypeDefs, customTypeClasses);
 					}
 
                     MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
