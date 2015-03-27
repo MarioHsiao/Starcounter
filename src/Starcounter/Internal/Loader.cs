@@ -103,30 +103,15 @@ namespace Starcounter.Internal
         /// Loads the and convert schema.
         /// </summary>
         /// <param name="inputDir">The input dir.</param>
+        /// <param name="types">List of all type definitions in the result
+        /// that are determined to be custom dynamic type references.</param>
         /// <returns>List{TypeDef}.</returns>
-        public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir)
+        public static List<TypeDef> LoadAndConvertSchema(DirectoryInfo inputDir, out List<TypeDef> types)
         {
             errorsFoundWithCodeScErrNonPublicFieldNotExposed = 0;
 
-            // Replace with call to new method DatabaseSchema.DeserializeFrom(DirectoryInfo)
-            // TODO:
-
-            var schemaFiles = inputDir.GetFiles("*.schema");
-
-            var databaseSchema = new DatabaseSchema();
-            databaseSchema.AddStarcounterAssembly();
-
             var typeDefs = new List<TypeDef>();
-
-            DatabaseAssembly databaseAssembly;
-
-            for (int i = 0; i < schemaFiles.Length; i++)
-            {
-                databaseAssembly = DatabaseAssembly.Deserialize(schemaFiles[i].FullName);
-                databaseSchema.Assemblies.Add(databaseAssembly);
-            }
-
-            databaseSchema.AfterDeserialization();
+            var databaseSchema = DatabaseSchema.DeserializeFrom(inputDir);
 
             var databaseClasses = new List<DatabaseEntityClass>();
             databaseSchema.PopulateOrderedDatabaseEntityClasses2(databaseClasses);
@@ -136,7 +121,7 @@ namespace Starcounter.Internal
             {
                 var databaseClass = databaseClasses[i];
 
-                databaseAssembly = databaseClass.Assembly;
+                var databaseAssembly = databaseClass.Assembly;
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
                 typeDefs.Add(EntityClassToTypeDef(databaseClass, typeLoader));
@@ -145,6 +130,13 @@ namespace Starcounter.Internal
             if (errorsFoundWithCodeScErrNonPublicFieldNotExposed > 0) {
                 throw ErrorCode.ToException(Error.SCERRCANTBINDAPPWITHPRIVATEDATA,
                     string.Format("{0} illegal fields exist.", errorsFoundWithCodeScErrNonPublicFieldNotExposed));
+            }
+
+            var customTypes = databaseSchema.GetCompileTimeTypes();
+            types = new List<TypeDef>(customTypes.Count);
+            foreach (var customType in customTypes) {
+                var td = typeDefs.Find(t => t.Name.Equals(customType.Name));
+                types.Add(td);
             }
 
             return typeDefs;

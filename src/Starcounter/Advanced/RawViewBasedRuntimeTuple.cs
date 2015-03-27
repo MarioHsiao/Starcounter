@@ -58,7 +58,7 @@ namespace Starcounter.Advanced {
             get { return instance; }
         }
 
-        IDbTuple IDbTuple.Create() {
+        IDbTuple IDbTuple.New() {
             var self = (IDbTuple)this;
             var tb = Bindings.GetTypeBinding(self.Name);
             ulong oid = 0, addr = 0;

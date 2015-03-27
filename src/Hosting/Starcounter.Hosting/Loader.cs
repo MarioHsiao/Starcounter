@@ -170,10 +170,13 @@ namespace StarcounterInternal.Hosting
 
             OnInputVerifiedAndAssemblyResolverUpdated();
 
-            var typeDefs = Db.Environment.HasDatabase ? 
-                SchemaLoader.LoadAndConvertSchema(inputFile.Directory) 
-                : new List<TypeDef>();
-
+            List<TypeDef> typeDefs;
+            List<TypeDef> customTypeClasses;
+            if (Db.Environment.HasDatabase) {
+                typeDefs = SchemaLoader.LoadAndConvertSchema(inputFile.Directory, out customTypeClasses);
+            } else {
+                typeDefs = customTypeClasses = new List<TypeDef>(0);
+            }
             OnSchemaVerifiedAndLoaded();
 
             var assembly = assemblyResolver.ResolveApplication(inputFile.FullName);
@@ -185,6 +188,7 @@ namespace StarcounterInternal.Hosting
 
             Package package = new Package(
                 typeDefs.ToArray(),
+                customTypeClasses.ToArray(),
                 stopwatch_,
                 assembly,
                 application,

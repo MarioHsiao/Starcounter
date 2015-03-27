@@ -51,8 +51,8 @@ namespace Starcounter.Advanced {
             get { return instance; }
         }
 
-        IDbTuple IDbTuple.Create() {
-            var e = instance.Create();
+        IDbTuple IDbTuple.New() {
+            var e = instance.New();
             return new EntityBasedRuntimeTuple(e);
         }
     }

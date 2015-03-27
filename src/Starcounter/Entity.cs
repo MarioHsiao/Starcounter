@@ -166,7 +166,7 @@ namespace Starcounter {
         /// </summary>
         /// <returns>A new entity whose dynamic type is the
         /// current entity.</returns>
-        public Entity Create() {
+        public Entity New() {
             // Proper error messages including new error codes.
             // Delayed until final implementation though (see
             // #2500 for more info).

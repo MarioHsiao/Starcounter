@@ -12,14 +12,30 @@ namespace Starcounter.Binding {
     /// </summary>
     internal static class DynamicTypesBinding {
         static TypeBinding defaultTypeBinding;
+        static Dictionary<string, TypeDef> customTypeClasses;
         
-        public static void DiscoverNewTypes(TypeDef[] unregisteredTypes) {
+        public static void DiscoverNewTypes(TypeDef[] unregisteredTypes, TypeDef[] customTypes) {
             if (defaultTypeBinding == null) {
                 defaultTypeBinding = Bindings.GetTypeBinding(typeof(Entity).FullName);
+                customTypeClasses = new Dictionary<string, TypeDef>();
             }
+
             Db.Transact(() => {
+                RegisterCustomTypeClasses(customTypes);
                 DiscoverTypesAndAssureThem(unregisteredTypes);
             });
+        }
+
+        static void RegisterCustomTypeClasses(TypeDef[] customTypes) {
+            foreach (var t in customTypes) {
+                if (!customTypeClasses.ContainsKey(t.Name)) {
+                    customTypeClasses.Add(t.Name, t);
+                }
+            }
+        }
+
+        static bool IsCustomTypeClass(TypeDef t) {
+            return customTypeClasses.ContainsKey(t.Name);
         }
 
         static void DiscoverTypesAndAssureThem(TypeDef[] unregisteredTypes) {
@@ -35,9 +51,22 @@ namespace Starcounter.Binding {
                 return;
             }
 
+            TypeDef parent = null;
             if (HasDeclaredBaseType(typeDef)) {
-                var parent = Bindings.GetTypeDef(typeDef.BaseName);
+                parent = Bindings.GetTypeDef(typeDef.BaseName);
                 ProcessType(parent);
+            }
+
+            var isTypeClass = IsCustomTypeClass(typeDef);
+            if (isTypeClass) {
+                // Do whatever we need to do.
+                // Don't create any physical type object at
+                // least; type objects emanate from instance
+                // classes.
+                // TODO:
+
+                typeDef.RuntimeDefaultTypeRef.ObjectID = ulong.MaxValue;
+                return;
             }
 
             bool userDeclaredType;
@@ -67,25 +96,40 @@ namespace Starcounter.Binding {
             // or the raw view in case its not declared or inherited from the
             // system.
 
-            ulong oid = 0, addr = 0;
             var binding = defaultTypeBinding;
             if (userDeclaredType) {
                 Trace.Assert(declaredType != null);
                 binding = declaredType;
-            } else {
-                var rawViewProxy = (IObjectProxy)rawView;
-                oid = rawViewProxy.Identity;
-                addr = rawViewProxy.ThisHandle;
             }
 
-            DbState.SystemInsert(binding.TableId, ref oid, ref addr);
-            var proxy = binding.NewInstance(addr, oid);
-            var tuple = TupleHelper.ToTuple(proxy);
+            var tuple = NewSystemAutoType(binding);
             tuple.Name = typeDef.Name;
             tuple.IsType = true;
-            rawView.AutoTypeInstance = oid;
-            typeDef.RuntimeDefaultTypeRef.ObjectID = oid;
-            typeDef.RuntimeDefaultTypeRef.Address = addr;
+
+            IDbTuple baseTuple = null;
+            if (parent != null) {
+                var baseRef = DbHelper.FromID(parent.RuntimeDefaultTypeRef.ObjectID);
+                Trace.Assert(baseRef != null);
+                baseTuple = TupleHelper.ToTuple(baseRef);
+                tuple.Inherits = baseTuple;
+            }
+
+            rawView.AutoTypeInstance = tuple.Proxy.Identity;
+            typeDef.RuntimeDefaultTypeRef.ObjectID = tuple.Proxy.Identity;
+            typeDef.RuntimeDefaultTypeRef.Address = tuple.Proxy.ThisHandle;
+
+            // We'll also create a "type type", always using the default
+            // auto system type binding as the template, and assigning it
+            // either no name, or the name of the declared custom type.
+
+            var typeTypetuple = NewSystemAutoType();
+            typeTypetuple.Name = null;
+            typeTypetuple.IsType = true;
+            if (baseTuple != null) {
+                Trace.Assert(baseTuple.Type != null);
+                typeTypetuple.Inherits = baseTuple.Type;
+            }
+            tuple.Type = typeTypetuple;
         }
 
         static bool IsImplicitType(TypeDef type) {
@@ -121,6 +165,14 @@ namespace Starcounter.Binding {
             }
 
             return result;
+        }
+
+        static IDbTuple NewSystemAutoType(TypeBinding binding = null) {
+            binding = binding ?? defaultTypeBinding;
+            ulong oid = 0, addr = 0;
+            DbState.SystemInsert(binding.TableId, ref oid, ref addr);
+            var proxy = binding.NewInstance(addr, oid);
+            return TupleHelper.ToTuple(proxy);
         }
     }
 }
