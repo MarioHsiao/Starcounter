@@ -60,7 +60,13 @@ namespace Starcounter.Binding {
             var isTypeClass = IsCustomTypeClass(typeDef);
             if (isTypeClass) {
                 // Do whatever we need to do.
+                // Don't create any physical type object at
+                // least; type objects emanate from instance
+                // classes.
                 // TODO:
+
+                typeDef.RuntimeDefaultTypeRef.ObjectID = ulong.MaxValue;
+                return;
             }
 
             bool userDeclaredType;
@@ -117,7 +123,7 @@ namespace Starcounter.Binding {
             // either no name, or the name of the declared custom type.
 
             var typeTypetuple = NewSystemAutoType();
-            typeTypetuple.Name = userDeclaredType ? declaredType.Name : null;
+            typeTypetuple.Name = null;
             typeTypetuple.IsType = true;
             if (baseTuple != null) {
                 Trace.Assert(baseTuple.Type != null);
