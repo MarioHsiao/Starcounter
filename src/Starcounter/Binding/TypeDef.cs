@@ -179,6 +179,10 @@ namespace Starcounter.Binding
         /// <returns>The type object of the current type.</returns>
         public IObjectProxy GetTypeObject() {
             Trace.Assert(RuntimeDefaultTypeRef.ObjectID != 0);
+            if (RuntimeDefaultTypeRef.ObjectID == ulong.MaxValue) {
+                throw new InvalidOperationException("Can't get type object from a type.");
+            }
+
             return (IObjectProxy) DbHelper.FromID(RuntimeDefaultTypeRef.ObjectID);
         }
 

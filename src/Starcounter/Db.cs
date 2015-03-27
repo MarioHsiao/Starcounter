@@ -47,7 +47,7 @@ namespace Starcounter
         /// type.</returns>
         public static IObjectView TypeOf(string name) {
             var td = Bindings.GetTypeDef(name);
-            return DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+            return td.GetTypeObject();
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace Starcounter
         /// </returns>
         public static T TypeOf<T>(string name) {
             var td = Bindings.GetTypeDef(name);
-            var obj = DbHelper.FromID(td.RuntimeDefaultTypeRef.ObjectID);
+            var obj = td.GetTypeObject();
 
             // Convenient to be able to get IDbTuple from a
             // given type. This should pose no runtime penalty I
