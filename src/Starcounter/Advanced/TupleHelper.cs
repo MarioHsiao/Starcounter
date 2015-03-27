@@ -92,8 +92,8 @@ namespace Starcounter.Advanced {
             ToTuple(obj).IsType = value;
         }
 
-        public static IDbTuple Create(object obj) {
-            return ToTuple(obj).Create();
+        public static IDbTuple New(object obj) {
+            return ToTuple(obj).New();
         }
 
         public static bool TupleEquals(IDbTuple t1, IDbTuple t2) {

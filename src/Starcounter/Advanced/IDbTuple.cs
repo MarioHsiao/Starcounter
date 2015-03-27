@@ -57,6 +57,6 @@ namespace Starcounter.Advanced {
         /// </summary>
         /// <returns>A new database tuple whose type will be set to
         /// the current tuple.</returns>
-        IDbTuple Create();
+        IDbTuple New();
     }
 }

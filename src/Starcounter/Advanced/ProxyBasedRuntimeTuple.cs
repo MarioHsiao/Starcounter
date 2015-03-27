@@ -77,7 +77,7 @@ namespace Starcounter.Advanced {
             set { DbState.WriteBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex, value); }
         }
 
-        IDbTuple IDbTuple.Create() {
+        IDbTuple IDbTuple.New() {
             // Proper error messages including new error codes.
             // Delayed until final implementation though (see
             // #2500 for more info).
