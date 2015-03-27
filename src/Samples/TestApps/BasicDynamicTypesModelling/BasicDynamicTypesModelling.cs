@@ -41,6 +41,21 @@ class Program {
 	}
 	
 	static void TestModel2() {
+        var ft = Db.TypeOf<Model2.Foo>();
+		Assert(ft != null);
+        Assert(ft.GetType() == typeof(Model2.FooType));
+		var ftt = TupleHelper.ToTuple(ft);
+		Assert(ftt.Name == typeof(Model2.Foo).FullName);
+		Assert(ftt.IsType);
+		Assert(ftt.Type != null);
+		Assert(ftt.Type.IsType);
+		Assert(ftt.Type.Type == null);
+        
+        Db.Transact(() => {
+           var f = new Model2.Foo();
+           var ft2 = TupleHelper.ToTuple(f);
+           Assert(TupleHelper.TupleEquals(ft2.Type, ftt));
+       });
 	}
 	
 	static void TestModel3() {
