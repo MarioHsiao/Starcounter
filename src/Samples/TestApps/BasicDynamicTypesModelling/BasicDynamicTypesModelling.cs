@@ -10,6 +10,7 @@ namespace Model1 {
 namespace Model2 {
 	[Database] public class Foo { [Type] public FooType Type; }
 	[Database] public class FooType {}
+    [Database] public class Bar : Foo {}
 }
 
 namespace Model3 {
@@ -51,10 +52,25 @@ class Program {
 		Assert(ftt.Type.IsType);
 		Assert(ftt.Type.Type == null);
         
+        var bt = Db.TypeOf<Model2.Bar>();
+		Assert(bt != null);
+		Assert(bt.GetType() == typeof(Model2.FooType));
+        var btt = TupleHelper.ToTuple(bt);
+        Assert(btt.Name == typeof(Model2.Bar).FullName);
+		Assert(TupleHelper.TupleEquals(btt.Inherits,ftt));
+		Assert(btt.IsType);
+		Assert(btt.Type != null);
+		Assert(btt.Type.IsType);
+		Assert(TupleHelper.TupleEquals(btt.Type.Inherits, ftt.Type));
+		Assert(btt.Type.Type == null);
+        
         Db.Transact(() => {
            var f = new Model2.Foo();
            var ft2 = TupleHelper.ToTuple(f);
            Assert(TupleHelper.TupleEquals(ft2.Type, ftt));
+           var b = new Model2.Bar();
+           var bt2 = TupleHelper.ToTuple(b);
+           Assert(TupleHelper.TupleEquals(bt2.Type, btt));
        });
 	}
 	
