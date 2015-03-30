@@ -60,8 +60,10 @@ namespace Starcounter {
             return response;
         }
 
-        public static implicit operator Json(Response r) {            
-            return r.Resource as Json;
+        public static implicit operator Json(Response r) {  
+            if (r != null)
+                return r.Resource as Json;
+            return null;
         }
     }
 }

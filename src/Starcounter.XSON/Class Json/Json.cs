@@ -327,7 +327,7 @@ namespace Starcounter {
             // all stateful info is correct.
 
             // Since we change parents we need to retrieve session twice.
-            if (_parent != null) {
+            if (isAddedToViewmodel && _parent != null) {
                 if (Session != null)
                     OnRemovedFromViewmodel(true);
             }

@@ -534,7 +534,7 @@ namespace Starcounter {
                 root.CleanupOldVersionLogs(ClientServerVersion);
         }
 
-        internal void RegisterTransaction(TransactionHandle handle) {
+        internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;
 
             for (int i = 0; i < transactions.Count; i++) {
@@ -549,10 +549,12 @@ namespace Starcounter {
                 // transaction not registered before. 
                 tref = new TransactionRef();
                 StarcounterBase.TransactionManager.ClaimOwnership(handle);
+                handle.index = -1;
                 tref.Handle = handle;
                 tref.Refs = 1;
                 transactions.Add(tref);
             }
+            return handle;
         }
 
         internal void DeregisterTransaction(TransactionHandle handle) {
