@@ -2,6 +2,7 @@
 using Starcounter.Advanced.XSON;
 using System;
 using System.Collections.Generic;
+using Starcounter.Internal;
 
 namespace Starcounter.XSON {
     public class JsonProperty {
@@ -145,6 +146,9 @@ namespace Starcounter.XSON {
                             null
                         );
                     }
+
+                    // Setting the current name to the correct app after we found an attachpoint to another app.
+                    StarcounterEnvironment.AppName = json._appName;
                 } 
 
                 // Here we have moved to a stepsibling or no stepsiblings exists and the current token 
