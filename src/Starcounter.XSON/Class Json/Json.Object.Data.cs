@@ -192,7 +192,7 @@ namespace Starcounter {
                         var session = Session;
                         if (_transaction != TransactionHandle.Invalid)
                             session.DeregisterTransaction(_transaction);
-                        session.RegisterTransaction(current);
+                        current = session.RegisterTransaction(current);
                     }
 
                     _transaction = current;
