@@ -17,11 +17,11 @@
     "polymer": "^0.5.1"
   },
   "homepage": "https://github.com/Polyjuice/starcounter-debug-aid",
-  "_release": "7e249c846d",
+  "_release": "8b7cc1eade",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "7e249c846d3a4fdbb21cb6511818518fb60bea73"
+    "commit": "8b7cc1eadeb57cf6e469aa065125413342863b2a"
   },
   "_source": "git://github.com/Polyjuice/starcounter-debug-aid.git",
   "_target": "master",
