@@ -1,4 +1,4 @@
-<!-- puppet-client v0.0.1 | MIT License -->
+<!-- puppet-client version: 0.0.2 | MIT License -->
 
 <!-- include PuppetJs with dependencies -->
 <script src="../../fast-json-patch/src/json-patch-duplex.js"></script>
@@ -27,6 +27,7 @@
     PuppetClientPrototype.createdCallback = function() {
         var callback = undefined;
         var whereToBind = this.getAttribute("ref");
+        var me = this;
 
         if(whereToBind){
             callback = function (obj) {
@@ -44,6 +45,26 @@
                                 this.ignoreAdd,
             debug:             parseBoolAttribute(this.hasAttribute("debug"), this.debug),
             // onRemoteChange: ?,
+            onPatchReceived: function (data, url) {
+                me.dispatchEvent(
+                    new CustomEvent("patchreceived", {
+                        detail: {
+                            data: data,
+                            url: url
+                        }
+                    })
+                );
+            },
+            onPatchSent: function (data, url) {
+                me.dispatchEvent(
+                    new CustomEvent("patchsent", {
+                        detail: {
+                            data: data,
+                            url: url
+                        }
+                    })
+                );
+            },
             localVersionPath:  this.hasAttribute("localversionpath") ? this.getAttribute("localversionpath") : defaultLocalVersionPath,
             remoteVersionPath: this.hasAttribute("remoteversionpath") ? this.getAttribute("remoteversionpath") : defaultRemoteVersionPath,
             ot:                parseBoolAttribute(this.hasAttribute("ot"), this.ot),
