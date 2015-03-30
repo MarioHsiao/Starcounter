@@ -33,6 +33,8 @@ namespace Starcounter {
         /// Request constructor.
         /// </summary>
         public Request() {
+
+            headersAccessor_ = new HeadersAccessor(this);
             HandlerOpts = new HandlerOptions();
         }
 
@@ -157,6 +159,20 @@ namespace Starcounter {
         Boolean came_with_correct_session_ = false;
 
         /// <summary>
+        /// Headers accessor.
+        /// </summary>
+        HeadersAccessor headersAccessor_;
+
+        /// <summary>
+        /// Accessing individual headers.
+        /// </summary>
+        public HeadersAccessor Header {
+            get {
+                return headersAccessor_;
+            }
+        }
+
+        /// <summary>
         /// Handler options.
         /// </summary>
         internal HandlerOptions HandlerOpts {
@@ -238,14 +254,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Returns True if request is external.
-        /// </summary>
-        public Boolean IsExternal
-        {
-            get { return isExternalRequest_; }
-        }
-
-        /// <summary>
         /// Returns True if request was aggregated.
         /// </summary>
         internal Boolean IsAggregated {
@@ -288,6 +296,9 @@ namespace Starcounter {
         internal Request(Byte[] requestBytes, Int32 requestBytesLen)
         {
             unsafe {
+
+                headersAccessor_ = new HeadersAccessor(this);
+
                 InternalInit(requestBytes, requestBytesLen);
             }
         }
@@ -518,6 +529,13 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Returns True if request is external.
+        /// </summary>
+        public Boolean IsExternal {
+            get { return isExternalRequest_; }
+        }
+
+        /// <summary>
         /// Linear index for this handler.
         /// </summary>
         internal UInt16 ManagedHandlerId
@@ -529,8 +547,6 @@ namespace Starcounter {
         /// <summary>
         /// Gets the raw parameters structure.
         /// </summary>
-        /// <param name="ptr">The PTR.</param>
-        /// <param name="sizeBytes">The size bytes.</param>
         internal IntPtr GetRawParametersInfo()
         {
             unsafe
@@ -538,10 +554,28 @@ namespace Starcounter {
                 if (null == http_request_struct_)
                     throw new ArgumentException("HTTP request not initialized.");
 
-                if (isExternalRequest_)
+                if (isExternalRequest_) {
                     return new IntPtr(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+                }
 
                 return new IntPtr(http_request_struct_->params_info_ptr_);
+            }
+        }
+
+        /// <summary>
+        /// Gets the raw parameters structure.
+        /// </summary>
+        internal MixedCodeConstants.UserDelegateParamInfo GetParametersInfo() {
+            unsafe {
+
+                if (null == http_request_struct_)
+                    throw new ArgumentException("HTTP request not initialized.");
+
+                if (isExternalRequest_) {
+                    return *(MixedCodeConstants.UserDelegateParamInfo*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
+                }
+
+                return *(MixedCodeConstants.UserDelegateParamInfo*)(http_request_struct_->params_info_ptr_);
             }
         }
 
@@ -1158,6 +1192,28 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Accessors for headers.
+        /// </summary>
+        public class HeadersAccessor {
+
+            Request requestRef_;
+
+            public HeadersAccessor(Request req) {
+                requestRef_ = req;
+            }
+
+            public String this[String name] {
+                get {
+                    return requestRef_[name];
+                }
+
+                set {
+                    requestRef_[name] = value;
+                }
+            }
+        }
+
+        /// <summary>
         /// Gets the <see cref="String" /> with the specified name.
         /// </summary>
         public String this[String name] 
@@ -1174,8 +1230,15 @@ namespace Starcounter {
 
                 unsafe
                 {
-                    if (null == http_request_struct_)
+                    if (null == http_request_struct_) {
+
+                        // Checking specifically for the host header.
+                        if ("Host" == name) {
+                            return Host;
+                        }
+
                         return null;
+                    }
 
                     return http_request_struct_->GetHeaderValue(name, ref headersString_);
                 }

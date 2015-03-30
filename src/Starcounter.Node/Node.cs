@@ -257,7 +257,6 @@ namespace Starcounter
             String methodAndUriPlusSpaceLower,
             Request req,
             UInt16 portNumber,
-            HandlerOptions handlerOptions,
             out Response resp);
 
         /// <summary>
@@ -782,8 +781,7 @@ namespace Starcounter
                     Uri = relativeUri,
                     BodyBytes = bodyBytes,
                     HeadersDictionary = headersDictionary,
-                    Host = Endpoint,
-                    HandlerOpts = handlerOptions
+                    Host = Endpoint
                 };
             }
 
@@ -801,6 +799,9 @@ namespace Starcounter
 
 DO_CALL_ON_GIVEN_LEVEL:
 
+                // Setting handler options.
+                req.HandlerOpts = handlerOptions;
+
                 // No response initially.
                 Response resp = null;
 
@@ -810,7 +811,6 @@ DO_CALL_ON_GIVEN_LEVEL:
                     methodSpaceUriSpaceLower,
                     req,
                     portNumber_,
-                    handlerOptions,
                     out resp);
 
                 // Checking if there is some response.
@@ -836,17 +836,17 @@ DO_CALL_ON_GIVEN_LEVEL:
                         switch (handlerOptions.HandlerLevel) {
 
                             case HandlerOptions.HandlerLevels.DefaultLevel: {
-                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel);
+                                handlerOptions.HandlerLevel = HandlerOptions.HandlerLevels.ApplicationLevel;
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationLevel: {
-                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel);
+                                handlerOptions.HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel;
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
 
                             case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
-                                handlerOptions = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
+                                handlerOptions.HandlerLevel = HandlerOptions.HandlerLevels.CodeHostStaticFileServer;
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
                         };

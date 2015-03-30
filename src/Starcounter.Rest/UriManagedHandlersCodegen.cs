@@ -882,15 +882,15 @@ namespace Starcounter.Rest
             UriInjectMethods.RegisterUriHandlerNativeDelegate registerUriHandlerNative,
             TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
             UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
-            Func<Request, Boolean> onHttpMessageRoot,
-            Func<IntPtr, IntPtr,Request, HandlerOptions, Response> runDelegateAndProcessResponse)
+            Func<Request, Boolean> processExternalRequest,
+            Func<IntPtr, IntPtr,Request, Response> runDelegateAndProcessResponse)
         {
             TcpSocket.InitTcpSockets(tcpSocketHandler);
             UdpSocket.InitUdpSockets(udpSocketHandler);
 
             UriInjectMethods.SetDelegates(
                 registerUriHandlerNative,
-                onHttpMessageRoot,
+                processExternalRequest,
                 runDelegateAndProcessResponse);
 
             RequestHandler.InitREST();
@@ -914,10 +914,11 @@ namespace Starcounter.Rest
             String methodSpaceUriSpaceLower,
             Request req,
             UInt16 portNumber,
-            HandlerOptions handlerOptions,
             out Response resp)
         {
             resp = null;
+
+            HandlerOptions handlerOptions = req.HandlerOpts;
 
             Debug.Assert(req != null);
 
@@ -997,8 +998,7 @@ namespace Starcounter.Rest
                     resp = UriInjectMethods.runDelegateAndProcessResponse_(
                         new IntPtr(methodSpaceUriSpaceOnStack),
                         new IntPtr(parametersInfoBufferOnStack),
-                        req,
-                        handlerOptions);
+                        req);
 
                     // Handler was successfully found.
                     return true;

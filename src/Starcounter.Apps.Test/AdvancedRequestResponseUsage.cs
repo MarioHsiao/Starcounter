@@ -29,6 +29,9 @@ namespace Starcounter.Internal.Test
             Handle.GET("/return_400", (Request req) => {
 
                 Assert.IsTrue("/return_400" == req.Uri);
+
+                Assert.IsTrue("localhost:8080" == req["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Header["Host"]);
                 Assert.IsTrue("localhost:8080" == req.Host);
 
                 return 400;
@@ -37,6 +40,9 @@ namespace Starcounter.Internal.Test
             Handle.GET("/return_200", (Request req) => {
 
                 Assert.IsTrue("/return_200" == req.Uri);
+
+                Assert.IsTrue("localhost:8080" == req["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Header["Host"]);
                 Assert.IsTrue("localhost:8080" == req.Host);
 
                 return 200;
@@ -78,6 +84,9 @@ namespace Starcounter.Internal.Test
             Handle.GET("/response10", (Request req) =>
             {
                 Assert.IsTrue("/response10" == req.Uri);
+
+                Assert.IsTrue("127.0.0.1:8080" == req["Host"]);
+                Assert.IsTrue("127.0.0.1:8080" == req.Header["Host"]);
                 Assert.IsTrue("127.0.0.1:8080" == req.Host);
 
                 Response r = new Response()
