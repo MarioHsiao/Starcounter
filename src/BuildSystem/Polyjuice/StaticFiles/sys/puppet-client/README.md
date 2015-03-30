@@ -21,7 +21,7 @@ Or [download as ZIP](https://github.com/PuppetJs/puppet-client/archive/master.zi
 1. Import Web Components' polyfill:
 
     ```html
-    <script src="bower_components/platform/platform.js"></script>
+    <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
     ```
 
 2. Import Custom Element:
@@ -53,6 +53,12 @@ Attribute          | Options       | Default                | Description
 `ot`               | *Boolean*     | `true`                 | `false` to disable OT
 `purity`           | *Boolean*     | `false`                | true to enable purist mode of OT
 
+## Events
+Name               | Arguments                       | Descriptions
+---                | ---                             | ---
+`patchreceived`    | *String* `data`, *String* `url` | Occurs when a JSON-patch is received.
+`patchsent`        | *String* `data`, *String* `url` | Occurs when a JSON-patch is sent.
+
 ## Properties, Methods, Events
 
 `<puppet-client>` inherits from `Puppet` so take a look at [PuppetJs API](https://github.com/PuppetJs/PuppetJs).
@@ -65,6 +71,13 @@ Attribute          | Options       | Default                | Description
 4. Push to the branch: `git push origin my-new-feature`
 5. Submit a pull request :D
 
+### Releases
+
+To release new version run
+```sh
+grunt uglify bump
+
+```
 ## History
 
 For detailed changelog, check [Releases](https://github.com/PuppetJs/puppet-client/releases).
