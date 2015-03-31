@@ -47,6 +47,15 @@ namespace Starcounter.Advanced {
             }
         }
 
+        int IDbTuple.Instantiates {
+            get {
+                return instance.Instatiates;
+            }
+            set {
+                instance.Instatiates = value;
+            }
+        }
+
         Binding.IObjectProxy IDbTuple.Proxy {
             get { return instance; }
         }

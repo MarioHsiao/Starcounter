@@ -11,7 +11,7 @@ namespace Starcounter.Advanced {
     internal class ProxyBasedRuntimeTuple : IDbTuple {
         readonly IObjectProxy proxy;
         int typeIndex;
-        int isTypeIndex;
+        int instantiatesIndex;
         int inheritsIndex;
         int typeNameIndex;
 
@@ -34,7 +34,7 @@ namespace Starcounter.Advanced {
                         inheritsIndex = i;
                         break;
                     case WeavedNames.InstantiatesColumn:
-                        isTypeIndex = i;
+                        instantiatesIndex = i;
                         break;
                     case WeavedNames.TypeNameColumn:
                         typeNameIndex = i;
@@ -73,8 +73,13 @@ namespace Starcounter.Advanced {
         }
 
         bool IDbTuple.IsType {
-            get { return DbState.ReadBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex); }
-            set { DbState.WriteBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex, value); }
+            get { return DbState.ReadInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex) != sccoredb.STAR_INVALID_TABLE_ID; }
+            set { throw new NotImplementedException(); }
+        }
+
+        int IDbTuple.Instantiates {
+            get { return DbState.ReadInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex); }
+            set { DbState.WriteInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex, value); }
         }
 
         IDbTuple IDbTuple.New() {

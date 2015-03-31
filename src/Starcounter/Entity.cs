@@ -110,16 +110,29 @@ namespace Starcounter {
         /// </summary>
         public bool IsType {
             get {
-                return DbState.ReadBoolean(
-                    __sc__this_id__, 
+                return DbState.ReadInt32(
+                    __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__is_type__);
+                    __starcounterTypeSpecification.columnHandle__sc__instantiates__) != sccoredb.STAR_INVALID_TABLE_ID;
             }
             set {
-                DbState.WriteBoolean(
-                    __sc__this_id__, 
+                throw new NotImplementedException();
+            }
+        }
+
+        internal int Instatiates {
+            get {
+                return DbState.ReadInt32(
+                    __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__is_type__, value);
+                    __starcounterTypeSpecification.columnHandle__sc__instantiates__);
+            }
+            set {
+                DbState.WriteInt32(
+                    __sc__this_id__,
+                    __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle__sc__instantiates__,
+                    value);
             }
         }
         

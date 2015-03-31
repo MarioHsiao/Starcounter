@@ -104,7 +104,7 @@ namespace Starcounter.Binding {
 
             var tuple = NewSystemAutoType(binding);
             tuple.Name = typeDef.Name;
-            tuple.IsType = true;
+            tuple.Instantiates = typeDef.TableDef.TableId;
 
             IDbTuple baseTuple = null;
             if (parent != null) {
@@ -119,12 +119,11 @@ namespace Starcounter.Binding {
             typeDef.RuntimeDefaultTypeRef.Address = tuple.Proxy.ThisHandle;
 
             // We'll also create a "type type", always using the default
-            // auto system type binding as the template, and assigning it
-            // either no name, or the name of the declared custom type.
+            // auto system type binding as the template.
 
             var typeTypetuple = NewSystemAutoType();
             typeTypetuple.Name = null;
-            typeTypetuple.IsType = true;
+            typeTypetuple.Instantiates = binding.TableId;
             if (baseTuple != null) {
                 Trace.Assert(baseTuple.Type != null);
                 typeTypetuple.Inherits = baseTuple.Type;

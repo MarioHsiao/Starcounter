@@ -1,6 +1,7 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
 using Starcounter.Metadata;
+using System;
 
 namespace Starcounter.Advanced {
     /// <summary>
@@ -48,6 +49,15 @@ namespace Starcounter.Advanced {
         string IDbTuple.Name {
             get {
                 return instance.FullName;
+            }
+            set {
+                RaiseExceptionWhenModified();
+            }
+        }
+
+        int IDbTuple.Instantiates {
+            get {
+                throw new NotImplementedException();
             }
             set {
                 RaiseExceptionWhenModified();
