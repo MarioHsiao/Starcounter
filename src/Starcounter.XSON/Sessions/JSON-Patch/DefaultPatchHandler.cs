@@ -2,10 +2,12 @@
 using Starcounter.Templates;
 using System;
 using System.Diagnostics;
+using Starcounter.Internal;
 
 namespace Starcounter.XSON {
     internal static class DefaultPatchHandler {
         internal static void Handle(Session session, JsonPatchOperation patchOp, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
+            string origAppName;
             Debug.WriteLine("Handling patch for: " + pointer.ToString());
 
             if (session == null) return;
@@ -13,35 +15,40 @@ namespace Starcounter.XSON {
             if (patchOp != JsonPatchOperation.Replace)
                 throw new JsonPatchException("Unsupported patch operation in patch.");
 
-            var aat = JsonProperty.Evaluate(pointer, session.PublicViewModel);
+            origAppName = StarcounterEnvironment.AppName;
+            try {
+                var aat = JsonProperty.Evaluate(pointer, session.PublicViewModel);
 
-            if (!aat.Property.Editable) {
-                throw new JsonPatchException(
-                    "Property '" + aat.Property.PropertyName + "' is readonly.",
-                    null
-                );
-            }
-
-            aat.Json.Scope(() => {
-                if (aat.Property is TBool) {
-                    ParseAndProcess((TBool)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TDecimal) {
-                    ParseAndProcess((TDecimal)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TDouble) {
-                    ParseAndProcess((TDouble)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TLong) {
-                    ParseAndProcess((TLong)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TString) {
-                    ParseAndProcess((TString)aat.Property, aat.Json, valuePtr, valueSize);
-                } else if (aat.Property is TTrigger) {
-                    ParseAndProcess((TTrigger)aat.Property, aat.Json);
-                } else {
+                if (!aat.Property.Editable) {
                     throw new JsonPatchException(
-                        "Property " + aat.Property.TemplateName + " is invalid for userinput",
+                        "Property '" + aat.Property.PropertyName + "' is readonly.",
                         null
                     );
                 }
-            });
+
+                aat.Json.Scope(() => {
+                    if (aat.Property is TBool) {
+                        ParseAndProcess((TBool)aat.Property, aat.Json, valuePtr, valueSize);
+                    } else if (aat.Property is TDecimal) {
+                        ParseAndProcess((TDecimal)aat.Property, aat.Json, valuePtr, valueSize);
+                    } else if (aat.Property is TDouble) {
+                        ParseAndProcess((TDouble)aat.Property, aat.Json, valuePtr, valueSize);
+                    } else if (aat.Property is TLong) {
+                        ParseAndProcess((TLong)aat.Property, aat.Json, valuePtr, valueSize);
+                    } else if (aat.Property is TString) {
+                        ParseAndProcess((TString)aat.Property, aat.Json, valuePtr, valueSize);
+                    } else if (aat.Property is TTrigger) {
+                        ParseAndProcess((TTrigger)aat.Property, aat.Json);
+                    } else {
+                        throw new JsonPatchException(
+                            "Property " + aat.Property.TemplateName + " is invalid for userinput",
+                            null
+                        );
+                    }
+                });
+            } finally {
+                StarcounterEnvironment.AppName = origAppName;
+            }
         }
 
         private static void ParseAndProcess(TBool property, Json parent, IntPtr valuePtr, int valueSize) {

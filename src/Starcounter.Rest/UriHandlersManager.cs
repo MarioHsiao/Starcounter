@@ -151,8 +151,9 @@ namespace Starcounter.Rest
         public Response RunUserDelegate(
             Request req,
             IntPtr methodSpaceUriSpaceOnStack,
-            IntPtr parametersInfoOnStack,
-            HandlerOptions handlerOptions) {
+            IntPtr parametersInfoOnStack) {
+
+            HandlerOptions handlerOptions = req.HandlerOpts;
 
             // Determining if proxy handler should be used.
             Boolean useProxyDelegate = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
@@ -176,23 +177,23 @@ namespace Starcounter.Rest
                 Response subsResp = null;
 
                 // Checking if there is a substitute handler.
-                if (req.HandlerOpts.SubstituteHandler != null) {
+                if (handlerOptions.SubstituteHandler != null) {
 
                     // Calling substitute handler.
-                    subsResp = req.HandlerOpts.SubstituteHandler();
+                    subsResp = handlerOptions.SubstituteHandler();
 
                     // Checking if there is a substitute response.
                     if (subsResp == null)
                         return null;
 
                     // Setting the response application name.
-                    subsResp.AppName = req.HandlerOpts.CallingAppName;
+                    subsResp.AppName = handlerOptions.CallingAppName;
 
                     if (StarcounterEnvironment.PolyjuiceAppsFlag &&
-                        (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName))) {
+                        (!String.IsNullOrEmpty(handlerOptions.CallingAppName))) {
 
                         // Checking if we wanted to call the same application, then there is just substitution.
-                        if (req.HandlerOpts.CallingAppName == appName_) {
+                        if (handlerOptions.CallingAppName == appName_) {
                             return Response.ResponsesMergerRoutine_(req, subsResp, null);
                         }
 
@@ -205,8 +206,8 @@ namespace Starcounter.Rest
                     // Checking that its not an outside call.
                     if (StarcounterEnvironment.PolyjuiceAppsFlag &&
                         (!handlerOptions.ProxyDelegateTrigger) &&
-                        (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) &&
-                        (req.HandlerOpts.CallingAppName != appName_)) {
+                        (!String.IsNullOrEmpty(handlerOptions.CallingAppName)) &&
+                        (handlerOptions.CallingAppName != appName_)) {
                             return null;
                     }
                 }
@@ -381,8 +382,8 @@ namespace Starcounter.Rest
 
     public class UriInjectMethods {
 
-        internal static Func<IntPtr, IntPtr, Request, HandlerOptions, Response> runDelegateAndProcessResponse_;
-        public static Func<Request, Boolean> OnHttpMessageRoot_;
+        internal static Func<IntPtr, IntPtr, Request, Response> runDelegateAndProcessResponse_;
+        public static Func<Request, Boolean> processExternalRequest_;
         public delegate void RegisterUriHandlerNativeDelegate(
             UInt16 port,
             String appName,
@@ -392,7 +393,7 @@ namespace Starcounter.Rest
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo);
 
-        internal static RegisterUriHandlerNativeDelegate RegisterUriHandlerNative_;
+        internal static RegisterUriHandlerNativeDelegate registerUriHandlerNative_;
 
         // Checking if this Node supports local resting.
         internal static Boolean IsSupportingLocalNodeResting() {
@@ -401,12 +402,13 @@ namespace Starcounter.Rest
 
         public static void SetDelegates(
             RegisterUriHandlerNativeDelegate registerUriHandlerNative,
-            Func<Request, Boolean> onHttpMessageRoot,
-            Func<IntPtr, IntPtr, Request, HandlerOptions, Response> runDelegateAndProcessResponse) {
+            Func<Request, Boolean> processExternalRequest,
+            Func<IntPtr, IntPtr, Request, Response> runDelegateAndProcessResponse) {
 
-            RegisterUriHandlerNative_ = registerUriHandlerNative;
-            OnHttpMessageRoot_ = onHttpMessageRoot;
+            registerUriHandlerNative_ = registerUriHandlerNative;
+            processExternalRequest_ = processExternalRequest;
             runDelegateAndProcessResponse_ = runDelegateAndProcessResponse;
+            X.SetRunDelegateAndProcessResponse(runDelegateAndProcessResponse);
         }
 
         /// <summary>
@@ -579,7 +581,7 @@ namespace Starcounter.Rest
                     ho);
 
                 // Registering the outer native handler (if any).
-                if (UriInjectMethods.RegisterUriHandlerNative_ != null) {
+                if (UriInjectMethods.registerUriHandlerNative_ != null) {
 
                     // Checking if we are on default handler level so we register with gateway.
                     if (ho.HandlerLevel == HandlerOptions.HandlerLevels.DefaultLevel) {
@@ -589,7 +591,7 @@ namespace Starcounter.Rest
                             appName = MixedCodeConstants.EmptyAppName;
                         }
 
-                        UriInjectMethods.RegisterUriHandlerNative_(
+                        UriInjectMethods.registerUriHandlerNative_(
                             port,
                             appName,
                             originalUriInfo,
