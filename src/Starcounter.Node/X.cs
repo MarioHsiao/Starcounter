@@ -91,6 +91,9 @@ namespace Starcounter
         [ThreadStatic]
         static Node ThreadStaticThisNode;
 
+        // Runs external response.
+        internal static Func<IntPtr, IntPtr, Request, Response> runDelegateAndProcessResponse_;
+
         // Nodes cache when used for Starcounter hosted code.
         static Dictionary<String, Node>[] StaticNodeDictArray = new Dictionary<String, Node>[StarcounterConstants.MaximumSchedulersNumber];
 
@@ -108,6 +111,13 @@ namespace Starcounter
         {
             if (StarcounterEnvironment.IsCodeHosted)
                 IsInSccode = true;
+        }
+
+        /// <summary>
+        /// Runs external response.
+        /// </summary>
+        internal static void SetRunDelegateAndProcessResponse(Func<IntPtr, IntPtr, Request, Response> runDelegateAndProcessResponse) {
+            runDelegateAndProcessResponse_ = runDelegateAndProcessResponse;
         }
 
         /// <summary>
@@ -728,13 +738,14 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Performs synchronous HTTP request with given HTTP method.
+        /// Performs synchronous HTTP request with given original external request.
         /// </summary>
-        public static Response CustomRESTRequest(Request req, Func<Response> substituteHandler) {
+        public static Response CallUsingExternalRequest(Request req, Func<Response> substituteHandler) {
 
             HandlerOptions ho = new HandlerOptions() {
                 SubstituteHandler = substituteHandler,
-                HandlerId = req.ManagedHandlerId
+                HandlerId = req.ManagedHandlerId,
+                ParametersInfo = req.GetParametersInfo()
             };
 
             Node node;
@@ -743,6 +754,26 @@ namespace Starcounter
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, req.Uri, out node, out relativeUri);
 
             return node.CustomRESTRequest(req, 0, ho);
+        }
+
+        /// <summary>
+        /// Performs synchronous HTTP request with given original external request.
+        /// </summary>
+        public static Response CallUsingExternalRequestEfficiently(Request req, Func<Response> substituteHandler) {
+
+            HandlerOptions ho = new HandlerOptions() {
+                SubstituteHandler = substituteHandler,
+                CallingAppName = StarcounterEnvironment.AppName
+            };
+
+            // Setting handler options to request.
+            req.HandlerOpts = ho;
+
+            // Calling using external request.
+            return runDelegateAndProcessResponse_(
+                req.GetRawMethodAndUri(),
+                req.GetRawParametersInfo(),
+                req);
         }
     }
 }

@@ -1,6 +1,6 @@
 {
   "name": "imported-template",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "dependencies": {
     "polymer": "Polymer/polymer#<0.8.0"
   },
@@ -33,13 +33,13 @@
     "examples",
     "preview.png"
   ],
-  "_release": "0.0.8",
+  "_release": "0.0.9",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.8",
-    "commit": "0e5d5df70b012fbcec3ef511431570c2af78cc47"
+    "tag": "0.0.9",
+    "commit": "e0658193811c86944bf26a195ce2c2875a57d103"
   },
   "_source": "git://github.com/Juicy/imported-template.git",
-  "_target": "~0.0.5",
+  "_target": "~0.0.9",
   "_originalSource": "imported-template"
 }

@@ -60,10 +60,11 @@ namespace Starcounter.Internal.Web {
         public Response RunDelegateAndProcessResponse(
             IntPtr methodSpaceUriSpaceOnStack,
             IntPtr parametersInfoOnStack,
-            Request req,
-            HandlerOptions handlerOptions) {
+            Request req) {
 
             Response resp = null;
+
+            HandlerOptions handlerOptions = req.HandlerOpts;
 
             Profiler.Current.Start(ProfilerNames.Empty);
             Profiler.Current.Stop(ProfilerNames.Empty);
@@ -96,9 +97,7 @@ namespace Starcounter.Internal.Web {
                     resp = uhi.RunUserDelegate(
                         req,
                         methodSpaceUriSpaceOnStack,
-                        parametersInfoOnStack,
-                        handlerOptions
-                        );
+                        parametersInfoOnStack);
 
                 } finally {
 

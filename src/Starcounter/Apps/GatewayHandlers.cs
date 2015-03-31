@@ -262,6 +262,26 @@ namespace Starcounter
 		}
 
         /// <summary>
+        /// Start the session that came with request.
+        /// </summary>
+        static void StartSessionThatCameWithRequest(Request req) {
+
+            // Checking if we are in session already.
+            if (req.CameWithCorrectSession) {
+
+                // Obtaining session.
+                Session s = (Session) req.GetAppsSessionInterface();
+
+                // Checking if correct session was obtained.
+                if (null != s) {
+
+                    // Starting session.
+                    Session.Start(s);
+                }
+            }
+        }
+
+        /// <summary>
         /// This is the main entry point of incoming HTTP requests.
         /// It is called from the Gateway via the shared memory IPC (interprocess communication).
         /// </summary>
@@ -376,7 +396,12 @@ namespace Starcounter
                 if (Db.Environment.HasDatabase)
                     TransactionManager.CreateImplicitAndSetCurrent(true);
 
-                *isHandled = UriInjectMethods.OnHttpMessageRoot_(req); 
+                // Starting the session that came with request.
+                StartSessionThatCameWithRequest(req);
+
+                // Processing external request.
+                *isHandled = UriInjectMethods.processExternalRequest_(req);
+
             } catch (Exception exc) {
 
                 LogSources.Hosting.LogException(exc);
@@ -387,7 +412,7 @@ namespace Starcounter
                 // Clearing current session.
                 Session.End();
 
-                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();
 
                 // Reset managed task state before exiting managed task entry point.

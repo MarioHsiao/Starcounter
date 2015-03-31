@@ -420,7 +420,7 @@ namespace Starcounter {
                 // We have a transaction attached on this json. We register the transaction 
                 // on the session to keep track of it. This will also mean that the session
                 // is responsible for releasing it when noone uses it anymore.
-                Session.RegisterTransaction(_transaction);
+                _transaction = Session.RegisterTransaction(_transaction);
             }
 
             if (callStepSiblings == true && this._stepSiblings != null) {
@@ -461,6 +461,9 @@ namespace Starcounter {
         /// children as well.
         /// </summary>
         private void OnRemovedFromViewmodel(bool callStepSiblings) {
+            if (isAddedToViewmodel == false)
+                return;
+
             isAddedToViewmodel = false;
             addedInVersion = -1;
             if (_transaction != TransactionHandle.Invalid) {

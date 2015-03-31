@@ -235,26 +235,6 @@ namespace Starcounter.Internal {
         static Byte[] responseSerializationBuffer_;
 
         /// <summary>
-        /// Start the session that came with request.
-        /// </summary>
-        static void StartSessionThatCameWithRequest(Request req) {
-
-            // Checking if we are in session already.
-            if (req.CameWithCorrectSession) {
-
-                // Obtaining session.
-                Session s = (Session) req.GetAppsSessionInterface();
-
-                // Checking if correct session was obtained.
-                if (null != s) {
-
-                    // Starting session.
-                    Session.Start(s);
-                }
-            }
-        }
-
-        /// <summary>
         /// Entry-point for all external HTTP requests from the Network Gateway.
         /// </summary>
         private static Boolean ProcessExternalRequest(Request req) {
@@ -263,21 +243,20 @@ namespace Starcounter.Internal {
 
             try {
 
-                // Starting the session that came with request.
-                StartSessionThatCameWithRequest(req);
-
                 // Checking if there is a filtering delegate.
                 resp = Handle.RunMiddlewareFilters(req);
 
                 // Checking if filter level did allow this request.
                 if (null == resp) {
 
+                    // Setting empty handler options.
+                    req.HandlerOpts = new HandlerOptions();
+
                     // Handling request on initial level.
                     resp = AppServer_.RunDelegateAndProcessResponse(
                         req.GetRawMethodAndUri(),
                         req.GetRawParametersInfo(),
-                        req,
-                        new HandlerOptions());
+                        req);
                 }
 
             } catch (ResponseException exc) {
@@ -324,10 +303,6 @@ namespace Starcounter.Internal {
                     break;
                 }
             }
-
-            // Checking if a new session was created during handler call.
-            if ((null != Session.Current) && (req.IsExternal))
-                Session.End();
 
             return true;
         }
