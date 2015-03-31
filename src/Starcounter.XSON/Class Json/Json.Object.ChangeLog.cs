@@ -70,6 +70,10 @@ namespace Starcounter {
                             if (stepSibling == this)
                                 continue;
                             stepSibling.CheckpointChangeLog(false);
+
+                            if (stepSibling.Parent != null) {
+                                stepSibling.Parent.CheckpointAt(stepSibling.IndexInParent);
+                            }
                         }
                     }
 				}
