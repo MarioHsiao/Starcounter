@@ -20,7 +20,7 @@ namespace Sc.Server.Weaver {
         public static string[] ImplicitEntityColumnNames = new string[] {
             TypeColumn,
             TypeNameColumn,
-            IsTypeColumn,
+            InstantiatesColumn,
             InheritsColumn
         };
 
@@ -57,7 +57,7 @@ namespace Sc.Server.Weaver {
         /// Gets the name of the implicit column that indicates if
         /// an entity is a type.
         /// </summary>
-        public const string IsTypeColumn = "__sc__is_type__";
+        public const string InstantiatesColumn = "__sc__is_type__";
 
         /// <summary>
         /// Gets the name of the implicit entity column the given

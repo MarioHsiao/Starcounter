@@ -33,7 +33,7 @@ namespace Starcounter.Advanced {
                     case WeavedNames.InheritsColumn:
                         inheritsIndex = i;
                         break;
-                    case WeavedNames.IsTypeColumn:
+                    case WeavedNames.InstantiatesColumn:
                         isTypeIndex = i;
                         break;
                     case WeavedNames.TypeNameColumn:

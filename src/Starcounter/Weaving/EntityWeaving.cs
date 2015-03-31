@@ -37,7 +37,7 @@ namespace Sc.Server.Weaver {
                 entity, 
                 "IsType",
                 DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean),
-                entity.Attributes[WeavedNames.IsTypeColumn]
+                entity.Attributes[WeavedNames.InstantiatesColumn]
                 );
 
             return entity;
@@ -63,7 +63,7 @@ namespace Sc.Server.Weaver {
             AddDefinedProperty(implicitEntity, "__ScImplicitType", entity, entity.Attributes[WeavedNames.TypeColumn]);
             AddDefinedProperty(implicitEntity, "__ScImplicitInherits", entity, entity.Attributes[WeavedNames.InheritsColumn]);
             AddDefinedProperty(implicitEntity, "__ScImplicitName", DatabasePrimitiveType.GetInstance(DatabasePrimitive.String), entity.Attributes[WeavedNames.TypeNameColumn]);
-            AddDefinedProperty(implicitEntity, "__ScImplicitIsType", DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean), entity.Attributes[WeavedNames.IsTypeColumn]);
+            AddDefinedProperty(implicitEntity, "__ScImplicitIsType", DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean), entity.Attributes[WeavedNames.InstantiatesColumn]);
             
             return implicitEntity;
         }
@@ -81,7 +81,7 @@ namespace Sc.Server.Weaver {
             field.IsTypeName = true;
             field.IsNullable = true;
 
-            field = AddDefinedField(classBuilder, WeavedNames.IsTypeColumn, DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean));
+            field = AddDefinedField(classBuilder, WeavedNames.InstantiatesColumn, DatabasePrimitiveType.GetInstance(DatabasePrimitive.Boolean));
             field.IsNullable = false;
 
         }
