@@ -17,7 +17,8 @@
     <RootNamespace>CopyDependenciesLocal</RootNamespace>
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
+    <LocalLevel0CMakeLists>..\..\..\level0\CMakeLists.txt</LocalLevel0CMakeLists>
+    <LocalLevel0Solution>..\..\..\level0\cmake_vs2012\BlueCmake.sln</LocalLevel0Solution>
 	<Level0Configuration>$(LEVEL0_CONFIGURATION)</Level0Configuration>
 	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
     <ServiceConfigFile>Personal.xml</ServiceConfigFile>
@@ -37,10 +38,13 @@
     <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
     
   </ItemGroup>
-  
+
   <!-- Builds Level0 if necessary and copies output files. -->
-  <Target Name="BuildLevel0" Condition="Exists('$(LocalLevel0Solution)')" >
-  
+  <Target Name="BuildLevel0" Condition="Exists('$(LocalLevel0CMakeLists)')" >
+    <!-- Generates Level0 solution from cmake. -->
+    <MakeDir Condition="'$(LEVEL0_CONFIGURATION)' != '' AND !Exists('..\..\..\level0\cmake_vs2012')" Directories="..\..\..\level0\cmake_vs2012"/>
+    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" WorkingDirectory="..\..\..\level0\cmake_vs2012" Command='cmake -DSC_WITH_TT4=ON -DSC_WITH_SCERRRES=OFF -Wno-dev -G "Visual Studio 11 2012 Win64" ..' />
+
     <!-- Building Level0 solution if any. -->
     <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalLevel0Solution) /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     

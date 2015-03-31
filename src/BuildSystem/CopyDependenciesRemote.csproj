@@ -26,7 +26,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
+    <LocalLevel0CMakeLists>..\..\..\level0\CMakeLists.txt</LocalLevel0CMakeLists>
   </PropertyGroup>
 
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -49,8 +49,8 @@
     </ItemGroup>
 
     <!-- Remote files from FTP. -->
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0BinFiles)" DestinationFiles="@(RemoteLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0IncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0CMakeLists)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0BinFiles)" DestinationFiles="@(RemoteLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0CMakeLists)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0IncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemotePostSharpBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCecilBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT64BitBinaries)" DestinationFolder="$(OutputPath)" />
