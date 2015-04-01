@@ -176,6 +176,53 @@ namespace Starcounter {
     /// </remarks>
     public partial class Handle {
 
+        /// <summary>
+        /// Incoming request reference.
+        /// </summary>
+        [ThreadStatic]
+        static Request incomingRequest_;
+
+        /// <summary>
+        /// Incoming external request.
+        /// </summary>
+        public static Request IncomingRequest {
+            get {
+                return incomingRequest_;
+            }
+
+            internal set {
+                incomingRequest_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Outgoing cookies.
+        /// </summary>
+        [ThreadStatic]
+        static List<String> outgoingCookies_;
+
+        /// <summary>
+        /// Incoming external request.
+        /// </summary>
+        internal static List<String> OutgoingCookies {
+            get {
+                return outgoingCookies_;
+            }
+        }
+
+        /// <summary>
+        /// Adding cookie to outgoing response.
+        /// Input string in format: "name=value".
+        /// </summary>
+        public static void AddOutgoingCookie(String cookieNameEqualValue) {
+
+            if (null == outgoingCookies_) {
+                outgoingCookies_ = new List<String>();
+            }
+
+            outgoingCookies_.Add(cookieNameEqualValue);
+        }
+
         const String GET_METHOD = "GET";
         const String PUT_METHOD = "PUT";
         const String POST_METHOD = "POST";
