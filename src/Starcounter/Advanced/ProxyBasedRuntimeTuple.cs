@@ -94,7 +94,17 @@ namespace Starcounter.Advanced {
         }
 
         IDbTuple IDbTuple.Derive() {
-            throw new NotImplementedException();
+            var self = (IDbTuple)this;
+            var t = self.Type;
+            if (t == null) throw new InvalidOperationException("TODO: And a nice error message to go with that, thank you!");
+            var proxy = DynamicTypesHelper.RuntimeNew(t.Instantiates);
+
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Type = t;
+            tuple.Instantiates = self.Instantiates;
+            tuple.Inherits = self;
+
+            return tuple;
         }
     }
 }
