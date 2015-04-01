@@ -10,7 +10,7 @@ namespace Starcounter.Internal {
             // Delayed until final implementation though (see
             // #2500 for more info).
             // TODO:
-            if (IsValidInstantiatesValue(tableId)) throw new InvalidOperationException("This object is not a type.");
+            if (!IsValidInstantiatesValue(tableId)) throw new InvalidOperationException("This object is not a type.");
             var tb = Bindings.GetTypeBinding(tableId);
             ulong oid = 0, addr = 0;
             DbState.Insert(tb.TableId, ref oid, ref addr);
