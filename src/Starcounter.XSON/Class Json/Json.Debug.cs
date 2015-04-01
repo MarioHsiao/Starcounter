@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Starcounter {
 	public partial class Json {
-		internal void WriteToDebugString(StringBuilder sb, int indentation) {
+		internal void WriteToDebugString(StringBuilder sb, int indentation, bool includeStepsiblings) {
 			if (Data != null) {
 				sb.Append("(data=" + Data.GetType().Name + ")");
 			}
@@ -23,7 +23,7 @@ namespace Starcounter {
 			if (IsArray) {
 				WriteArrayToDebugString(sb, indentation);
 			} else {
-				WriteObjectToDebugString(sb, indentation);
+                WriteObjectToDebugString(sb, indentation, includeStepsiblings);
 			}
 		}
 
@@ -38,7 +38,7 @@ namespace Starcounter {
 					sb.AppendLine(",");
 					sb.Append(' ', indentation);
 				}
-				(e as Json).WriteToDebugString(sb, indentation);
+				(e as Json).WriteToDebugString(sb, indentation, true);
 				t++;
 			}
 			indentation -= 3;
@@ -50,7 +50,7 @@ namespace Starcounter {
 		internal string DebugString {
 			get {
 				var sb = new StringBuilder();
-				WriteToDebugString(sb, 0);
+				WriteToDebugString(sb, 0, true);
 				return sb.ToString();
 			}
 		}
@@ -60,12 +60,12 @@ namespace Starcounter {
 		/// </summary>
 		/// <param name="sb"></param>
 		/// <param name="i"></param>
-		private void WriteObjectToDebugString(StringBuilder sb, int i) {
+		private void WriteObjectToDebugString(StringBuilder sb, int i, bool includeStepsiblings) {
 			if (this.IsArray) {
 				throw new NotImplementedException();
 				//                WriteToDebugString(sb, i, (ArrSchema<Json>)Template);
 			} else {
-				WriteObjectToDebugString(sb, i, (TObject)Template);
+                WriteObjectToDebugString(sb, i, (TObject)Template, includeStepsiblings);
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace Starcounter {
 		/// <param name="sb"></param>
 		/// <param name="i"></param>
 		/// <param name="template"></param>
-		private void WriteObjectToDebugString(StringBuilder sb, int i, TObject template) {
+		private void WriteObjectToDebugString(StringBuilder sb, int i, TObject template, bool includeStepsiblings) {
 			if (Template == null) {
 				sb.Append("{}");
 				return;
@@ -87,6 +87,12 @@ namespace Starcounter {
             //        sb.Append("(set)");
             //    }
             //}
+
+            if (Parent != null && !string.IsNullOrEmpty(_appName)) {
+                sb.Append('<');
+                sb.Append(_appName);
+                sb.Append(">");
+            }
 
 			sb.AppendLine("{");
 
@@ -106,10 +112,10 @@ namespace Starcounter {
 				}
 
 				if (prop is TContainer) {
-                    ((TContainer)prop).GetValue(this).WriteToDebugString(sb, i);
+                    ((Json)((TContainer)prop).GetUnboundValueAsObject(this)).WriteToDebugString(sb, i, true);
 				} else {
 					WriteChildStatus(sb, t);
-					sb.Append(((TValue)prop).ValueToJsonString(this));
+					//sb.Append(((TValue)prop).ValueToJsonString(this));
 				}
 				t++;
 			}
@@ -117,6 +123,14 @@ namespace Starcounter {
 			sb.AppendLine();
 			sb.Append(' ', i);
 			sb.Append("}");
+
+            if (includeStepsiblings && _stepSiblings != null && _stepSiblings.Count > 1) {
+                foreach (var stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    stepSibling.WriteToDebugString(sb, i, false);
+                }
+            }
 		}
 
 		private void WriteChildStatus(StringBuilder sb, int index) {
@@ -147,7 +161,7 @@ namespace Starcounter {
                         oldValue = cjson;
                 } else {
                     oldValue = template.GetUnboundValueAsObject(this);
-                    if (template.GetValueAsObject(this) != oldValue) {
+                    if (template.GetUnboundValueAsObject(this) != oldValue) {
                         if (oldValue == null)
                             oldValue = "notsent";
                     }

@@ -130,8 +130,9 @@ namespace Starcounter.Advanced.XSON {
 
             // Wrapping in application name.
             if (wrapInAppName) {
-                // Checking if we have any siblings.
-                if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 0) {
+                // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
+                // we check if we have more than one stepsibling.
+                if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
                     // For comma.
                     sizeBytes++;
 
@@ -354,8 +355,9 @@ namespace Starcounter.Advanced.XSON {
                         *pfrag++ = (byte)'}';
                         offset++;
 
-                        // Checking if we have any siblings.
-                        if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 0) {
+                        // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
+                        // we check if we have more than one stepsibling.
+                        if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
                             *pfrag++ = (byte)',';
                             offset++;
                             
