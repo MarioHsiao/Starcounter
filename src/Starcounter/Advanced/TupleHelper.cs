@@ -96,6 +96,10 @@ namespace Starcounter.Advanced {
             return ToTuple(obj).New();
         }
 
+        public static IDbTuple Derive(object obj) {
+            return ToTuple(obj).Derive();
+        }
+
         public static bool TupleEquals(object t1, object t2) {
             return TupleEquals(ToTuple(t1), ToTuple(t2));
         }
