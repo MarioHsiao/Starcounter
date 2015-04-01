@@ -64,5 +64,10 @@ namespace Starcounter.Advanced {
             var e = instance.New();
             return TupleHelper.ToTuple(e);
         }
+
+        IDbTuple IDbTuple.Derive() {
+            var e = instance.Derive();
+            return TupleHelper.ToTuple(e);
+        }
     }
 }

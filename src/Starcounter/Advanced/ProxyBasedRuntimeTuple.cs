@@ -92,5 +92,9 @@ namespace Starcounter.Advanced {
 
             return tuple;
         }
+
+        IDbTuple IDbTuple.Derive() {
+            throw new NotImplementedException();
+        }
     }
 }

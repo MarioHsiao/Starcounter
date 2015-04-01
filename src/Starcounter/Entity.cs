@@ -195,6 +195,16 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Creates a new entity who will be set to inherit
+        /// current entity.
+        /// </summary>
+        /// <returns>A new entity who is set to inherit
+        /// current entity.</returns>
+        public IObjectProxy Derive() {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Deletes the current entity.
         /// </summary>
         public void Delete() {

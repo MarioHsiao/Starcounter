@@ -70,5 +70,13 @@ namespace Starcounter.Advanced {
         /// <returns>A new database tuple whose type will be set to
         /// the current tuple.</returns>
         IDbTuple New();
+
+        /// <summary>
+        /// Support runtime specialization of database tuples acting
+        /// as types.
+        /// </summary>
+        /// <returns>A new database tuple that will be set to inherit
+        /// the current tuple.</returns>
+        IDbTuple Derive();
     }
 }
