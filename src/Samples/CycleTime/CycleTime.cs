@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace CycleTime {
-    class Program {
+    class CycleTime {
         static void Main(string[] args) {
             ProcessStartInfo processInfo = new ProcessStartInfo();
             processInfo.FileName = "star";
@@ -40,7 +40,7 @@ namespace CycleTime {
                 sw.Stop();
 
                 if (proc.ExitCode != 0) {
-                    throw new Exception("Starting star.exe failed!");
+                    throw new Exception("Starting star.exe failed with error code: " + proc.ExitCode);
                 }
 
                 proc.Close();

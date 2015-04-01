@@ -938,6 +938,15 @@ namespace Starcounter
                         }
                     }
 
+                    // Checking the outgoing cookies list.
+                    if (null != Handle.OutgoingCookies) {
+                        foreach (String c in Handle.OutgoingCookies) {
+                            writer.Write(HttpHeadersUtf8.SetCookieStart);
+                            writer.Write(c);
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        }
+                    }
+
                     if (null != bodyString_) {
                         if (null != bytes)
                             throw new ArgumentException("Either body string, body bytes or resource can be set for Response.");
