@@ -110,10 +110,11 @@ namespace Starcounter {
         /// </summary>
         public bool IsType {
             get {
-                return DbState.ReadInt32(
+                var v = DbState.ReadInt32(
                     __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__instantiates__) != sccoredb.STAR_INVALID_TABLE_ID;
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__);
+                return DynamicTypesHelper.IsValidInstantiatesValue(v);
             }
             set {
                 throw new NotImplementedException();

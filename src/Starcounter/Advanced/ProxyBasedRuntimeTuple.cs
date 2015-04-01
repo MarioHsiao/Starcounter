@@ -73,7 +73,7 @@ namespace Starcounter.Advanced {
         }
 
         bool IDbTuple.IsType {
-            get { return DbState.ReadInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex) != sccoredb.STAR_INVALID_TABLE_ID; }
+            get { return DynamicTypesHelper.IsValidInstantiatesValue(DbState.ReadInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex)); }
             set { throw new NotImplementedException(); }
         }
 
