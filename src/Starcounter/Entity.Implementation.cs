@@ -79,7 +79,7 @@ namespace Starcounter {
             [EditorBrowsable(EditorBrowsableState.Never)]
             internal static int columnHandle___sc__inherits__;
             [EditorBrowsable(EditorBrowsableState.Never)]
-            internal static int columnHandle__sc__instantiates__;
+            internal static int columnHandle___sc__instantiates__;
         }
 
         /// <inheritdoc />

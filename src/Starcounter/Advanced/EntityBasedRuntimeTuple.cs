@@ -49,10 +49,10 @@ namespace Starcounter.Advanced {
 
         int IDbTuple.Instantiates {
             get {
-                return instance.Instatiates;
+                return instance.Instantiates;
             }
             set {
-                instance.Instatiates = value;
+                instance.Instantiates = value;
             }
         }
 

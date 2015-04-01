@@ -113,25 +113,33 @@ namespace Starcounter {
                 return DbState.ReadInt32(
                     __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle__sc__instantiates__) != sccoredb.STAR_INVALID_TABLE_ID;
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__) != sccoredb.STAR_INVALID_TABLE_ID;
             }
             set {
                 throw new NotImplementedException();
             }
         }
 
-        internal int Instatiates {
+        /// <summary>
+        /// Gets an opaque handle to the type/table the current entity
+        /// (being a type) instantiates.
+        /// </summary>
+        /// <remarks>
+        /// Should not be exposed like this in the final version, but needs
+        /// to be for the binding to work right now.
+        /// </remarks>
+        public int Instantiates {
             get {
                 return DbState.ReadInt32(
                     __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle__sc__instantiates__);
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__);
             }
             set {
                 DbState.WriteInt32(
                     __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle__sc__instantiates__,
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__,
                     value);
             }
         }
