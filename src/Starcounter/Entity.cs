@@ -187,9 +187,9 @@ namespace Starcounter {
         /// </summary>
         /// <returns>A new entity whose dynamic type is the
         /// current entity.</returns>
-        public Entity New() {
-            var proxy = (Entity)DynamicTypesHelper.RuntimeNew(this.Instantiates);
-            proxy.Type = this;
+        public IObjectProxy New() {
+            var proxy = DynamicTypesHelper.RuntimeNew(this.Instantiates);
+            TupleHelper.SetType(proxy, this);
             return proxy;
         }
 
