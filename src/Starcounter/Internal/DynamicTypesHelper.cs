@@ -22,7 +22,7 @@ namespace Starcounter.Internal {
             // legal, at least in theory. Ultimately, we should use only the
             // invalid table ID token, but it means we need to assure its the
             // default for every instance created, where 0 is the default.
-            return tableId == 0 || tableId == sccoredb.STAR_INVALID_TABLE_ID;
+            return tableId != 0 && tableId != sccoredb.STAR_INVALID_TABLE_ID;
         }
     }
 }
