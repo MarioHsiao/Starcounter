@@ -201,7 +201,18 @@ namespace Starcounter {
         /// <returns>A new entity who is set to inherit
         /// current entity.</returns>
         public IObjectProxy Derive() {
-            throw new NotImplementedException();
+            var t = this.Type;
+            var typeTuple = t == null ? null : TupleHelper.ToTuple(t);
+            if (typeTuple == null) throw new InvalidOperationException("TODO: And a nice error message to go with that, thank you!");
+
+            var proxy = DynamicTypesHelper.RuntimeNew(typeTuple.Instantiates);
+
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Type = typeTuple;
+            tuple.Instantiates = this.Instantiates;
+            TupleHelper.SetInherits(tuple, this);
+
+            return proxy;
         }
 
         /// <summary>
