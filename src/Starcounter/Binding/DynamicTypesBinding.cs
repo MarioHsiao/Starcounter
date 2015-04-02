@@ -121,7 +121,15 @@ namespace Starcounter.Binding {
             // We'll also create a "type type", always using the default
             // auto system type binding as the template.
 
-            var typeTypetuple = NewSystemAutoType();
+            var typeTypeBinding = defaultTypeBinding;
+            if (userDeclaredType) {
+                declaredType = GetDeclaredTargetType(binding.TypeDef, out userDeclaredType);
+                if (userDeclaredType) {
+                    typeTypeBinding = declaredType;
+                }
+            }
+
+            var typeTypetuple = NewSystemAutoType(typeTypeBinding);
             typeTypetuple.Name = null;
             typeTypetuple.Instantiates = binding.TableId;
             if (baseTuple != null) {
