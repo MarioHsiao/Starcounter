@@ -1017,6 +1017,15 @@ namespace Starcounter
                 }
             }
 
+            // Checking the outgoing cookies list.
+            if (null != Handle.OutgoingCookies) {
+                foreach (String c in Handle.OutgoingCookies) {
+                    size += HttpHeadersUtf8.SetCookieStart.Length;
+                    size += c.Length;
+                    size += HttpHeadersUtf8.CRLF.Length;
+                }
+            }
+
             if (null != bodyString_) {
                 size += (bodyString_.Length << 1); // Multiplying by 2 for possible UTF8.
             } else if (null != bytes) {
