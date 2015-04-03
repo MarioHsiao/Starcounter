@@ -940,9 +940,21 @@ namespace Starcounter
 
                     // Checking the outgoing cookies list.
                     if (null != Handle.OutgoingCookies) {
-                        foreach (String c in Handle.OutgoingCookies) {
+                        foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
                             writer.Write(HttpHeadersUtf8.SetCookieStart);
-                            writer.Write(c);
+                            writer.Write(c.Key);
+                            writer.Write("=");
+                            writer.Write(c.Value);
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        }
+                    }
+
+                    // Checking the outgoing headers list.
+                    if (null != Handle.OutgoingHeaders) {
+                        foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
+                            writer.Write(h.Key);
+                            writer.Write(": ");
+                            writer.Write(h.Value);
                             writer.Write(HttpHeadersUtf8.CRLF);
                         }
                     }
@@ -1000,7 +1012,7 @@ namespace Starcounter
 
             if (null != customHeaderFields_) {
                 foreach (KeyValuePair<string, string> h in customHeaderFields_) {
-                    size += (h.Key.Length + h.Value.Length + 4);
+                    size += (h.Key.Length + h.Value.Length + 4); // 4 for colon, space, CRLF
                 }
             }
 
@@ -1019,10 +1031,16 @@ namespace Starcounter
 
             // Checking the outgoing cookies list.
             if (null != Handle.OutgoingCookies) {
-                foreach (String c in Handle.OutgoingCookies) {
+                foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
                     size += HttpHeadersUtf8.SetCookieStart.Length;
-                    size += c.Length;
-                    size += HttpHeadersUtf8.CRLF.Length;
+                    size += c.Key.Length + c.Value.Length + 3; // 3 for equal sign and CRLF
+                }
+            }
+
+            // Checking the outgoing headers list.
+            if (null != Handle.OutgoingHeaders) {
+                foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
+                    size += (h.Key.Length + h.Value.Length + 4); // 4 for colon, space, CRLF
                 }
             }
 

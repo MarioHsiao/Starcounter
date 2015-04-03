@@ -199,15 +199,54 @@ namespace Starcounter {
         /// Outgoing cookies.
         /// </summary>
         [ThreadStatic]
-        static List<String> outgoingCookies_;
+        static Dictionary<String, String> outgoingCookies_;
 
         /// <summary>
-        /// Incoming external request.
+        /// Outgoing HTTP cookies list.
         /// </summary>
-        internal static List<String> OutgoingCookies {
+        internal static Dictionary<String, String> OutgoingCookies {
             get {
                 return outgoingCookies_;
             }
+        }
+
+        /// <summary>
+        /// Adding cookie to outgoing HTTP response.
+        /// </summary>
+        public static void AddOutgoingCookie(String cookieName, String cookieValue) {
+
+            if (null == outgoingCookies_) {
+                outgoingCookies_ = new Dictionary<String, String>(StringComparer.InvariantCultureIgnoreCase);
+            }
+
+            outgoingCookies_[cookieName] = cookieValue;
+        }
+
+        /// <summary>
+        /// Outgoing HTTP headers.
+        /// </summary>
+        [ThreadStatic]
+        static Dictionary<String, String> outgoingHeaders_;
+
+        /// <summary>
+        /// Outgoing HTTP headers list.
+        /// </summary>
+        internal static Dictionary<String, String> OutgoingHeaders {
+            get {
+                return outgoingHeaders_;
+            }
+        }
+
+        /// <summary>
+        /// Adding HTTP header to outgoing response.
+        /// </summary>
+        public static void AddOutgoingHeader(String headerName, String headerValue) {
+
+            if (null == outgoingHeaders_) {
+                outgoingHeaders_ = new Dictionary<String, String>(StringComparer.InvariantCultureIgnoreCase);
+            }
+
+            outgoingHeaders_[headerName] = headerValue;
         }
 
         /// <summary>
@@ -227,19 +266,6 @@ namespace Starcounter {
             internal set {
                 callLevel_ = value;
             }
-        }
-
-        /// <summary>
-        /// Adding cookie to outgoing response.
-        /// Input string in format: "name=value".
-        /// </summary>
-        public static void AddOutgoingCookie(String cookieNameEqualValue) {
-
-            if (null == outgoingCookies_) {
-                outgoingCookies_ = new List<String>();
-            }
-
-            outgoingCookies_.Add(cookieNameEqualValue);
         }
 
         const String GET_METHOD = "GET";
