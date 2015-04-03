@@ -44,6 +44,7 @@ namespace Starcounter.Internal.Test
             // Initializing system profilers.
             Profiler.Init(true);
 
+            Handle.CallLevel = 0;
             X.LocalNode = true;
         }
     }

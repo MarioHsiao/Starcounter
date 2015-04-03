@@ -211,6 +211,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Incoming request reference.
+        /// </summary>
+        [ThreadStatic]
+        static Int32 callLevel_;
+
+        /// <summary>
+        /// Incoming external request.
+        /// </summary>
+        public static Int32 CallLevel {
+            get {
+                return callLevel_;
+            }
+
+            internal set {
+                callLevel_ = value;
+            }
+        }
+
+        /// <summary>
         /// Adding cookie to outgoing response.
         /// Input string in format: "name=value".
         /// </summary>
