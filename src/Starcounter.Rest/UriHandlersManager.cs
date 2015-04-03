@@ -174,81 +174,92 @@ namespace Starcounter.Rest
 
             } else {
 
-                Response subsResp = null;
+                try {
 
-                // Checking if there is a substitute handler.
-                if (handlerOptions.SubstituteHandler != null) {
+                    // Increasing calling level for internal calls.
+                    Handle.CallLevel++;
 
-                    // Calling substitute handler.
-                    subsResp = handlerOptions.SubstituteHandler();
+                    Response subsResp = null;
 
-                    // Checking if there is a substitute response.
-                    if (subsResp == null)
-                        return null;
+                    // Checking if there is a substitute handler.
+                    if (handlerOptions.SubstituteHandler != null) {
 
-                    // Setting the response application name.
-                    subsResp.AppName = handlerOptions.CallingAppName;
+                        // Calling substitute handler.
+                        subsResp = handlerOptions.SubstituteHandler();
 
-                    if (StarcounterEnvironment.PolyjuiceAppsFlag &&
-                        (!String.IsNullOrEmpty(handlerOptions.CallingAppName))) {
+                        // Checking if there is a substitute response.
+                        if (subsResp == null)
+                            return null;
 
-                        // Checking if we wanted to call the same application, then there is just substitution.
-                        if (handlerOptions.CallingAppName == appName_) {
-                            return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                        // Setting the response application name.
+                        subsResp.AppName = handlerOptions.CallingAppName;
+
+                        if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                            (!String.IsNullOrEmpty(handlerOptions.CallingAppName))) {
+
+                            // Checking if we wanted to call the same application, then there is just substitution.
+                            if (handlerOptions.CallingAppName == appName_) {
+                                return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                            }
+
+                        } else {
+
+                            return subsResp;
                         }
+                    } else {
+
+                        // Checking that its not an outside call.
+                        if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                            (!handlerOptions.ProxyDelegateTrigger) &&
+                            (!String.IsNullOrEmpty(handlerOptions.CallingAppName)) &&
+                            (handlerOptions.CallingAppName != appName_)) {
+                            return null;
+                        }
+                    }
+
+                    // Setting current application name.
+                    StarcounterEnvironment.AppName = appName_;
+
+                    // Calling intermediate user delegate.
+                    resp = userDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
+
+                    // Checking if we have any response.
+                    if (null == resp) {
+
+                        if (subsResp != null) {
+                            if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                                return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                            }
+                            return subsResp;
+                        }
+
+                        return null;
 
                     } else {
 
-                        return subsResp;
+                        // Setting to which application the response belongs.
+                        resp.AppName = appName_;
                     }
-                } else {
 
-                    // Checking that its not an outside call.
-                    if (StarcounterEnvironment.PolyjuiceAppsFlag &&
-                        (!handlerOptions.ProxyDelegateTrigger) &&
-                        (!String.IsNullOrEmpty(handlerOptions.CallingAppName)) &&
-                        (handlerOptions.CallingAppName != appName_)) {
-                            return null;
-                    }
-                }
+                    // Checking if we need to merge.
+                    if ((!handlerOptions.ProxyDelegateTrigger) &&
+                        (StarcounterEnvironment.PolyjuiceAppsFlag)) {
 
-                // Setting current application name.
-                StarcounterEnvironment.AppName = appName_;
-
-                // Calling intermediate user delegate.
-                resp = userDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
-
-                // Checking if we have any response.
-                if (null == resp) {
-
-                    if (subsResp != null) {
-                        if (StarcounterEnvironment.PolyjuiceAppsFlag) {
-                            return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                        // Checking if we have a substitute handler response.
+                        if (subsResp != null) {
+                            List<Response> respList = new List<Response>();
+                            respList.Add(subsResp);
+                            respList.Add(resp);
+                            return Response.ResponsesMergerRoutine_(req, null, respList);
                         }
-                        return subsResp;
+
+                        return Response.ResponsesMergerRoutine_(req, resp, null);
                     }
 
-                    return null;
+                } finally {
 
-                } else {
-
-                    // Setting to which application the response belongs.
-                    resp.AppName = appName_;
-                }
-
-                // Checking if we need to merge.
-                if ((!handlerOptions.ProxyDelegateTrigger) &&
-                    (StarcounterEnvironment.PolyjuiceAppsFlag)) {
-
-                    // Checking if we have a substitute handler response.
-                    if (subsResp != null) {
-                        List<Response> respList = new List<Response>();
-                        respList.Add(subsResp);
-                        respList.Add(resp);
-                        return Response.ResponsesMergerRoutine_(req, null, respList);
-                    }
-
-                    return Response.ResponsesMergerRoutine_(req, resp, null);
+                    // Decreasing calling level for internal calls.
+                    Handle.CallLevel--;
                 }
             }
 

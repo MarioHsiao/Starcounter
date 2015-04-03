@@ -243,6 +243,9 @@ namespace Starcounter.Internal {
 
             try {
 
+                // Setting calling level to -1 because internal call will be made immediately.
+                Handle.CallLevel = -1;
+
                 // Checking if there is a filtering delegate.
                 resp = Handle.RunMiddlewareFilters(req);
 
