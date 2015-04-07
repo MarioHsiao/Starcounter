@@ -358,15 +358,20 @@ namespace Starcounter.Advanced.XSON {
                         // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                         // we check if we have more than one stepsibling.
                         if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
-                            *pfrag++ = (byte)',';
-                            offset++;
-                            
+                            bool addComma = true;
+
                             // Serializing every sibling first.
                             for (int s = 0; s < obj.StepSiblings.Count; s++) {
                                 var pp = obj.StepSiblings[s];
 
                                 if (pp == obj)
                                     continue;
+
+                                if (addComma) {
+                                    addComma = false;
+                                    *pfrag++ = (byte)',';
+                                    offset++;
+                                }
 
                                 pp.calledFromStepSibling = true;
                                 try {
@@ -391,8 +396,7 @@ namespace Starcounter.Advanced.XSON {
                                     offset += valueSize;
 
                                     if ((s + 1) < obj.StepSiblings.Count) {
-                                        *pfrag++ = (byte)',';
-                                        offset++;
+                                        addComma = true;
                                     }
                                 } finally {
                                     pp.calledFromStepSibling = false;
