@@ -109,7 +109,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 schema = new TObject();
                 var tarr = schema.Add<TArray<Json>>("Items");
                 tarr.ElementType = new TObject();
-                property = tarr.ElementType.Add<TDouble>("Stats");
+                property = ((TObject)tarr.ElementType).Add<TDouble>("Stats");
                 json = new Json() { Template = schema };
                 Session.Current.Data = json;
                 json = json.Items.Add();
