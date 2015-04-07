@@ -399,6 +399,9 @@ namespace Starcounter
                 // Starting the session that came with request.
                 StartSessionThatCameWithRequest(req);
 
+                // Setting the incoming request.
+                Handle.IncomingRequest = req;
+
                 // Processing external request.
                 *isHandled = UriInjectMethods.processExternalRequest_(req);
 
@@ -408,6 +411,9 @@ namespace Starcounter
                 return Error.SCERRUNSPECIFIED;
 
             } finally {
+
+                // Setting the incoming request.
+                Handle.IncomingRequest = null;
 
                 // Clearing current session.
                 Session.End();

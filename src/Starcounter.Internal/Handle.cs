@@ -176,6 +176,98 @@ namespace Starcounter {
     /// </remarks>
     public partial class Handle {
 
+        /// <summary>
+        /// Incoming request reference.
+        /// </summary>
+        [ThreadStatic]
+        static Request incomingRequest_;
+
+        /// <summary>
+        /// Incoming external request.
+        /// </summary>
+        public static Request IncomingRequest {
+            get {
+                return incomingRequest_;
+            }
+
+            internal set {
+                incomingRequest_ = value;
+            }
+        }
+
+        /// <summary>
+        /// Outgoing cookies.
+        /// </summary>
+        [ThreadStatic]
+        static Dictionary<String, String> outgoingCookies_;
+
+        /// <summary>
+        /// Outgoing HTTP cookies list.
+        /// </summary>
+        internal static Dictionary<String, String> OutgoingCookies {
+            get {
+                return outgoingCookies_;
+            }
+        }
+
+        /// <summary>
+        /// Adding cookie to outgoing HTTP response.
+        /// </summary>
+        public static void AddOutgoingCookie(String cookieName, String cookieValue) {
+
+            if (null == outgoingCookies_) {
+                outgoingCookies_ = new Dictionary<String, String>(StringComparer.InvariantCultureIgnoreCase);
+            }
+
+            outgoingCookies_[cookieName] = cookieValue;
+        }
+
+        /// <summary>
+        /// Outgoing HTTP headers.
+        /// </summary>
+        [ThreadStatic]
+        static Dictionary<String, String> outgoingHeaders_;
+
+        /// <summary>
+        /// Outgoing HTTP headers list.
+        /// </summary>
+        internal static Dictionary<String, String> OutgoingHeaders {
+            get {
+                return outgoingHeaders_;
+            }
+        }
+
+        /// <summary>
+        /// Adding HTTP header to outgoing response.
+        /// </summary>
+        public static void AddOutgoingHeader(String headerName, String headerValue) {
+
+            if (null == outgoingHeaders_) {
+                outgoingHeaders_ = new Dictionary<String, String>(StringComparer.InvariantCultureIgnoreCase);
+            }
+
+            outgoingHeaders_[headerName] = headerValue;
+        }
+
+        /// <summary>
+        /// Incoming request reference.
+        /// </summary>
+        [ThreadStatic]
+        static Int32 callLevel_;
+
+        /// <summary>
+        /// Incoming external request.
+        /// </summary>
+        public static Int32 CallLevel {
+            get {
+                return callLevel_;
+            }
+
+            internal set {
+                callLevel_ = value;
+            }
+        }
+
         const String GET_METHOD = "GET";
         const String PUT_METHOD = "PUT";
         const String POST_METHOD = "POST";
