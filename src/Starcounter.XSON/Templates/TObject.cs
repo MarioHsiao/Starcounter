@@ -222,18 +222,19 @@ namespace Starcounter.Templates {
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        public static TypeTObj CreateFromMarkup<TypeObj,TypeTObj>(string format, string markup, string origin )
-            where TypeObj : Json, new()
-                    where TypeTObj : TObject, new() {
-            IXsonTemplateMarkupReader reader;
+        public static TTemplate CreateFromMarkup<TJson,TTemplate>(string format, string markup, string origin )
+            where TJson : Json, new()
+            where TTemplate : TValue {
+            IXsonTemplateMarkupReader reader; 
             try {
+                format = format.ToLower();
                 reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
             }
             catch {
                 throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
             }
 
-            return reader.CompileMarkup<TypeObj,TypeTObj>(markup,origin);
+            return reader.CompileMarkup<TJson,TTemplate>(markup,origin);
         }
 
         /// <summary>
@@ -256,14 +257,14 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
-		public virtual object CreateInstance(Json parent = null) {
+		public override Json CreateInstance(Json parent = null) {
 			if (_JsonType != null) {
 				var msg = (Json)Activator.CreateInstance(_JsonType);
 				msg.Template = this;
 				msg.Parent = parent;
 				return msg;
 			}
-			return new Json() { Template = this, Parent = parent };
+            return base.CreateInstance(parent);
 		}
 
         /// <summary>

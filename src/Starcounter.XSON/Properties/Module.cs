@@ -143,7 +143,7 @@ namespace Starcounter.Internal.XSON.Modules {
                 where TypeObj : Json, new()
                 where TypeTObj : TObject, new() {
 
-                return JsonByExampleTemplateReader._CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments);
+                return JsonByExampleTemplateReader.CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments);
             }
 
 

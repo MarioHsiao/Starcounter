@@ -7,6 +7,8 @@
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON.Modules;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -19,7 +21,6 @@ namespace Starcounter.Templates {
         private string _name;
         private string _propertyName;
         internal TContainer _parent;
-        public CompilerOrigin CompilerOrigin = new CompilerOrigin();
 
         private static readonly IReadOnlyList<IReadOnlyTree> _emptyList = new List<IReadOnlyTree>();
 
@@ -28,6 +29,7 @@ namespace Starcounter.Templates {
         /// When using templates in applications this dictionary should never be used or instantiated.
         /// </summary>
         private Dictionary<string, string> codegenMetadata;
+        internal CompilerOrigin CompilerOrigin = new CompilerOrigin();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Template" /> class.
@@ -330,6 +332,16 @@ namespace Starcounter.Templates {
         protected static bool IsSupportedType(Type pt) {
             Func<TObject, string, TValue> dummy;
             return (TObject.@switch.TryGetValue(pt, out dummy));
+        }
+
+        internal static Template CreateFromMarkup(string json) {
+            IXsonTemplateMarkupReader reader;
+            string format = "json";
+
+            if (Starcounter_XSON.JsonByExample.MarkupReaders.TryGetValue(format, out reader))
+                return reader.CompileMarkup<Json, TValue>(json, null);
+            
+            throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
         }
     }
 

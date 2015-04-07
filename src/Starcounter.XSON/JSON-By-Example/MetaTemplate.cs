@@ -3,62 +3,57 @@ using System.Collections.Generic;
 using Starcounter.Templates;
 
 namespace Starcounter.Internal.JsonTemplate {
-    internal abstract class MetaTemplate {
-    }
-
     /// <summary>
     /// Class MetaTemplate
     /// </summary>
-    internal class MetaTemplate<OT, OTT> : MetaTemplate
-        where OT : Json, new()
-        where OTT : TObject, new() {
+    internal class MetaTemplate {
+        private static List<string> booleanProperties;
+        private static List<string> stringProperties;
 
-        private static List<String> _booleanProperties;
-        private static List<String> _stringProperties;
-
-        private Starcounter.Templates.Template _template;
-        private DebugInfo _debugInfo;
+        private Starcounter.Templates.Template template;
+        private DebugInfo debugInfo;
 
         /// <summary>
         /// Initializes static members of the <see cref="MetaTemplate" /> class.
         /// </summary>
         static MetaTemplate() {
-            _booleanProperties = new List<String>();
-            _booleanProperties.Add("EDITABLE");
-            _booleanProperties.Add("BOUND");
+            booleanProperties = new List<string>();
+            booleanProperties.Add("EDITABLE");
+            booleanProperties.Add("BOUND");
 
-            _stringProperties = new List<String>();
-            _stringProperties.Add("UPDATE");
-            _stringProperties.Add("CLASS");
-            _stringProperties.Add("RUN");
-            _stringProperties.Add("BIND");
-            _stringProperties.Add("TYPE");
-            _stringProperties.Add("REUSE");
-            _stringProperties.Add("NAMESPACE");
-            _stringProperties.Add("DATATYPE");
+            stringProperties = new List<string>();
+            stringProperties.Add("UPDATE");
+            stringProperties.Add("CLASS");
+            stringProperties.Add("RUN");
+            stringProperties.Add("BIND");
+            stringProperties.Add("TYPE");
+            stringProperties.Add("REUSE");
+            stringProperties.Add("NAMESPACE");
+            stringProperties.Add("DATATYPE");
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MetaTemplate" /> class.
         /// </summary>
-        /// <param name="forTemplate">For template.</param>
-        /// <param name="debugInfo">The debug info.</param>
-        internal MetaTemplate(Template forTemplate, DebugInfo debugInfo) {
-            _template = forTemplate;
-            _debugInfo = debugInfo;
+        /// <param name="template"></param>
+        /// <param name="debugInfo"></param>
+        internal MetaTemplate(Template template, DebugInfo debugInfo) {
+            this.template = template;
+            this.debugInfo = debugInfo;
         }
 
         /// <summary>
-        /// Sets the specified name.
+        /// Sets the boolean value on the template for the property with the 
+        /// specified name.
         /// </summary>
-        /// <param name="name">The name.</param>
+        /// <param name="name">The name of the property to set.</param>
         /// <param name="v">if set to <c>true</c> [v].</param>
-        public void Set(string name, bool v) {
+        internal void Set(string name, bool v) {
             TValue property;
             String upperName;
             ReplaceableTemplate rt;
 
-            rt = _template as ReplaceableTemplate;
+            rt = template as ReplaceableTemplate;
             if (rt != null) {
                 // If the template is a RepleableTemplate we just store the value
                 // and set it later when the template is replaced with the correct
@@ -69,32 +64,33 @@ namespace Starcounter.Internal.JsonTemplate {
 
             upperName = name.ToUpper();
             if (upperName == "EDITABLE") {
-                property = _template as TValue;
-                if (property == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                property = template as TValue;
+                if (property == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
 
                 property.Editable = v;
             } else {
-                if (_stringProperties.Contains(upperName))
-                    ErrorHelper.RaiseWrongValueForPropertyError(name, "string", "boolean", _debugInfo);
+                if (stringProperties.Contains(upperName))
+                    ErrorHelper.RaiseWrongValueForPropertyError(name, "string", "boolean", debugInfo);
                 else
-                    ErrorHelper.RaiseUnknownPropertyError(name, _debugInfo);
+                    ErrorHelper.RaiseUnknownPropertyError(name, debugInfo);
             }
         }
 
         /// <summary>
-        /// Sets the specified name.
+        /// Sets the string on the template for the property with the 
+        /// specified name.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <param name="v">The v.</param>
-        public void Set(string name, string v) {
+        /// <param name="name">The name of the property to set.</param>
+        /// <param name="v">The value.</param>
+        internal void Set(string name, string v) {
             TTrigger actionTemplate;
-            OTT appTemplate;
+            TObject appTemplate;
             TValue valueTemplate;
             String upperName;
             ReplaceableTemplate rt;
 
             upperName = name.ToUpper();
-            rt = _template as ReplaceableTemplate;
+            rt = template as ReplaceableTemplate;
             if (rt != null) {
                 if (upperName != "TYPE")
                     rt.SetValue(name, v);
@@ -105,66 +101,66 @@ namespace Starcounter.Internal.JsonTemplate {
             }
 
             if (upperName == "UPDATE") {
-                valueTemplate = _template as TValue;
-                if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                valueTemplate = template as TValue;
+                if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
 
                 valueTemplate.OnUpdate = v;
             } else if (upperName == "CLASS") {
-                appTemplate = _template as OTT;
-                if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
-                ((TObject)_template).ClassName = v;
+                appTemplate = template as TObject;
+                if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                appTemplate.ClassName = v;
             } else if (upperName == "RUN") {
-                actionTemplate = _template as TTrigger;
-                if (actionTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                actionTemplate = template as TTrigger;
+                if (actionTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
                 actionTemplate.OnRun = v;
             } else if (upperName == "BIND") {
-                valueTemplate = _template as TValue;
-                if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                valueTemplate = template as TValue;
+                if (valueTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
                 valueTemplate.Bind = v;
             } else if (upperName == "TYPE") {
-                TValue oldProperty = _template as TValue;
+                TValue oldProperty = template as TValue;
                 if (oldProperty == null || (oldProperty is TObject))
-                    ErrorHelper.RaiseInvalidTypeConversionError(_debugInfo);
+                    ErrorHelper.RaiseInvalidTypeConversionError(debugInfo);
 
                 TValue newProperty = GetPropertyFromTypeName(v);
                 oldProperty.CopyTo(newProperty);
 
                 var parent = (TObject)oldProperty.Parent;
                 parent.Properties.Replace(newProperty);
-                _template = newProperty;
+                template = newProperty;
             } else if (upperName == "REUSE") {
-                var tobj = _template as TObject;
+                var tobj = template as TObject;
                 if (tobj == null)
-                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                    ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
 
                 tobj.CodegenMetadata.Add("Reuse", v);
             } else if (upperName == "NAMESPACE") {
-                appTemplate = _template as OTT;
-                if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                appTemplate = template as TObject;
+                if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
 
                 appTemplate.Namespace = v;
             } else if (upperName == "DATATYPE") {
-                if (_template is TObjArr || _template is OTT) {
-                    _template.CodegenMetadata.Add("InstanceDataTypeName", v);
+                if (template is TObjArr || template is TObject) {
+                    template.CodegenMetadata.Add("InstanceDataTypeName", v);
                 } else {
-                    ErrorHelper.RaiseInvalidPropertyError(name, _debugInfo);
+                    ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
                 }
             } else {
-                if (_booleanProperties.Contains(upperName))
-                    ErrorHelper.RaiseWrongValueForPropertyError(name, "boolean", "string", _debugInfo);
+                if (booleanProperties.Contains(upperName))
+                    ErrorHelper.RaiseWrongValueForPropertyError(name, "boolean", "string", debugInfo);
                 else
-                    ErrorHelper.RaiseUnknownPropertyError(name, _debugInfo);
+                    ErrorHelper.RaiseUnknownPropertyError(name, debugInfo);
             }
         }
 
         /// <summary>
-        /// Gets the name of the property from type.
+        /// Gets the template that corresponds to the typename. 
         /// </summary>
-        /// <param name="v">The v.</param>
-        /// <returns>Property.</returns>
-        private TValue GetPropertyFromTypeName(string v) {
+        /// <param name="typeName">The name of the type.</param>
+        /// <returns></returns>
+        private TValue GetPropertyFromTypeName(string typeName) {
             TValue p = null;
-            String nameToUpper = v.ToUpper();
+            String nameToUpper = typeName.ToUpper();
             switch (nameToUpper) {
                 case "DOUBLE":
                 case "FLOAT":
@@ -182,12 +178,12 @@ namespace Starcounter.Internal.JsonTemplate {
                     p = new TString();
                     break;
                 default:
-                    ErrorHelper.RaiseUnknownPropertyTypeError(v, _debugInfo);
+                    ErrorHelper.RaiseUnknownPropertyTypeError(typeName, debugInfo);
                     break;
             }
 
             if (p != null)
-                SetCompilerOrigin(p, _debugInfo);
+                SetCompilerOrigin(p, debugInfo);
 
             return p;
         }

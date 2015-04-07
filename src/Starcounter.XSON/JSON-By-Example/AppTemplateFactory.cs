@@ -16,10 +16,10 @@ namespace Starcounter.Internal.JsonTemplate {
     /// interface used to built Starcounter controller templates.
     /// It is used as a singleton.
     /// </summary>
-    public class TAppFactory<OT, OTT> : ITemplateFactory
-        where OT : Json, new()
-        where OTT : TObject, new() {
-        private static string[] ILLEGAL_PROPERTIES = { "Parent", "Data" };
+    public class TAppFactory<TJson, TTemplate> : ITemplateFactory 
+        where TJson : Json, new()
+        where TTemplate : TValue {
+        private static string[] ILLEGAL_PROPERTIES = { "parent", "data", "input" };
 
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
@@ -33,38 +33,65 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="parent">The parent.</param>
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>Template.</returns>
-        private Template CheckAndAddOrReplaceTemplate(Template newTemplate,
-                                                       OTT parent,
-                                                       DebugInfo debugInfo) {
+        private Template CheckAndAddOrReplaceTemplate(Template newTemplate, object parent, DebugInfo debugInfo) {
             Template existing;
             ReplaceableTemplate rt;
             String name;
+            TObject objParent;
+            TObjArr arrParent;
+
+            if (parent == null)
+                return newTemplate;
 
             name = newTemplate.TemplateName;
-            existing = parent.Properties.GetTemplateByName(name);
 
-            if (existing != null) {
-                rt = existing as ReplaceableTemplate;
-                if (rt != null) {
-                    if (rt.ConvertTo != null) {
-                        if (!(newTemplate is TValue))
-                            ErrorHelper.RaiseInvalidTypeConversionError(rt.ConvertTo.CompilerOrigin);
+            if (parent is TObject) {
+                objParent = (TObject)parent;
+                existing = objParent.Properties.GetTemplateByName(name);
 
-                        newTemplate.CopyTo(rt.ConvertTo);
-                        newTemplate = rt.ConvertTo;
+                if (existing != null) {
+                    rt = existing as ReplaceableTemplate;
+                    if (rt != null) {
+                        if (rt.ConvertTo != null) {
+                            if (!(newTemplate is TValue))
+                                ErrorHelper.RaiseInvalidTypeConversionError(rt.ConvertTo.CompilerOrigin);
+
+                            newTemplate.CopyTo(rt.ConvertTo);
+                            newTemplate = rt.ConvertTo;
+                        }
+
+                        CopyReplaceableTemplateValues(rt, newTemplate);
+                        objParent.Properties.Replace(newTemplate);
+                    } else {
+                        Error.CompileError.Raise<Object>(
+                           "A property with the same name already exists.",
+                           new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
+                           debugInfo.FileName
+                        );
                     }
-
-                    CopyReplaceableTemplateValues(rt, newTemplate);
-                    parent.Properties.Replace(newTemplate);
                 } else {
-                    Error.CompileError.Raise<Object>(
-                       "A property with the same name already exists.",
-                       new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
-                       debugInfo.FileName
-                    );
+                    objParent.Properties.Add(newTemplate);
                 }
-            } else {
-                parent.Properties.Add(newTemplate);
+            } else if (parent is TObjArr) {
+                arrParent = (TObjArr)parent;
+                existing = arrParent.ElementType;
+                if (existing != null) {
+                    rt = existing as ReplaceableTemplate;
+                    if (rt != null) {
+                        if (rt.ConvertTo != null) {
+                            if (!(newTemplate is TValue))
+                                ErrorHelper.RaiseInvalidTypeConversionError(rt.ConvertTo.CompilerOrigin);
+
+                            newTemplate.CopyTo(rt.ConvertTo);
+                            newTemplate = rt.ConvertTo;
+                        }
+
+                        CopyReplaceableTemplateValues(rt, newTemplate);
+                        arrParent.ElementType = (TValue)newTemplate;
+                    }
+                } else {
+                    arrParent.ElementType = (TValue)newTemplate;
+                }
             }
             return newTemplate;
         }
@@ -80,10 +107,8 @@ namespace Starcounter.Internal.JsonTemplate {
             String strVal;
 
             co = rt.CompilerOrigin;
-            MetaTemplate<OT, OTT> tm
-                = new MetaTemplate<OT, OTT>(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
+            MetaTemplate tm = new MetaTemplate(newTemplate, new DebugInfo(co.LineNo, co.ColNo, co.FileName));
             foreach (KeyValuePair<String, Object> value in rt.Values) {
-
                 strVal = value.Value as String;
                 if (value.Value == null || strVal != null) {
                     tm.Set(value.Key, strVal);
@@ -102,7 +127,7 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.GetMetaTemplate(object templ, DebugInfo debugInfo) {
-            return new MetaTemplate<OT, OTT>((Template)templ, debugInfo);
+            return new MetaTemplate((Template)templ, debugInfo);
         }
 
         /// <summary>
@@ -115,7 +140,10 @@ namespace Starcounter.Internal.JsonTemplate {
         object ITemplateFactory.GetMetaTemplateForProperty(object parent,
                                                            string name,
                                                            DebugInfo debugInfo) {
-            var appTemplate = (OTT)parent;
+            if (parent == null)
+                return null;
+
+            var appTemplate = parent as TObject;
             var t = appTemplate.Properties.GetTemplateByName(name);
             if (t == null) {
                 // The template is not created yet. This can be because the metadata 
@@ -127,7 +155,7 @@ namespace Starcounter.Internal.JsonTemplate {
                 SetCompilerOrigin(t, debugInfo);
                 appTemplate.Properties.Add(t);
             }
-            return new MetaTemplate<OT, OTT>(t, debugInfo);
+            return new MetaTemplate(t, debugInfo);
         }
 
         /// <summary>
@@ -141,23 +169,20 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <returns>System.Object.</returns>
         ///
         object ITemplateFactory.AddTString(object parent,
-                                                  string name,
-                                                  string dotNetName,
-                                                  string value,
-                                                  DebugInfo debugInfo) {
-            OTT appTemplate;
+                                            string name,
+                                            string dotNetName,
+                                            string value,
+                                            DebugInfo debugInfo) {
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
 
             if (parent is MetaTemplate) {
-                ((MetaTemplate<OT, OTT>)parent).Set(name, value);
+                ((MetaTemplate)parent).Set(name, value);
                 return null;
             } else {
                 newTemplate = new TString() { TemplateName = name };
-                appTemplate = (OTT)parent;
-
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
                 if (newTemplate is TString)
                     ((TString)newTemplate).DefaultValue = value;
 
@@ -180,20 +205,17 @@ namespace Starcounter.Internal.JsonTemplate {
                                                    string dotNetName,
                                                    int value,
                                                    DebugInfo debugInfo) {
-            OTT appTemplate;
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
-
-            if (!(parent is MetaTemplate<OT, OTT>)) {
+            if (!(parent is MetaTemplate)) {
                 newTemplate = new TLong() { TemplateName = name };
-                appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
                 if (newTemplate is TLong)
                     ((TLong)newTemplate).DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
                 return newTemplate;
-            }
+            } 
             return null;
         }
 
@@ -211,15 +233,13 @@ namespace Starcounter.Internal.JsonTemplate {
                                                    string dotNetName,
                                                    decimal value,
                                                    DebugInfo debugInfo) {
-            OTT appTemplate;
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
 
-            if (!(parent is MetaTemplate<OT, OTT>)) {
+            if (!(parent is MetaTemplate)) {
                 newTemplate = new TDecimal() { TemplateName = name };
-                appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
                 if (newTemplate is TDecimal)
                     ((TDecimal)newTemplate).DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -242,16 +262,13 @@ namespace Starcounter.Internal.JsonTemplate {
                                                   string dotNetName,
                                                   double value,
                                                   DebugInfo debugInfo) {
-            OTT appTemplate;
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
 
-            if (!(parent is MetaTemplate<OT, OTT>)) {
+            if (!(parent is MetaTemplate)) {
                 newTemplate = new TDouble() { TemplateName = name };
-                appTemplate = (OTT)parent;
-
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
                 if (newTemplate is TDouble)
                     ((TDouble)newTemplate).DefaultValue = value;
 
@@ -275,18 +292,15 @@ namespace Starcounter.Internal.JsonTemplate {
                                                    string dotNetName,
                                                    bool value,
                                                    DebugInfo debugInfo) {
-            OTT appTemplate;
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
-
-            if (parent is MetaTemplate<OT, OTT>) {
-                ((MetaTemplate<OT, OTT>)parent).Set(name, value);
+            if (parent is MetaTemplate) {
+                ((MetaTemplate)parent).Set(name, value);
                 return null;
             } else {
                 newTemplate = new TBool() { TemplateName = name };
-                appTemplate = (OTT)parent;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
                 if (newTemplate is TBool)
                     ((TBool)newTemplate).DefaultValue = value;
                 SetCompilerOrigin(newTemplate, debugInfo);
@@ -319,13 +333,12 @@ namespace Starcounter.Internal.JsonTemplate {
                                                  string dotNetName,
                                                  string value,
                                                  DebugInfo debugInfo) {
-            OTT appTemplate;
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
 
-            if (parent is MetaTemplate<OT, OTT>) {
-                ((MetaTemplate<OT, OTT>)parent).Set(name, value);
+            if (parent is MetaTemplate) {
+                ((MetaTemplate)parent).Set(name, value);
                 return null;
             }
 
@@ -344,8 +357,7 @@ namespace Starcounter.Internal.JsonTemplate {
             }
 
             newTemplate = new TTrigger() { TemplateName = name };
-            appTemplate = (OTT)parent;
-            newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+            newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
         }
@@ -361,14 +373,12 @@ namespace Starcounter.Internal.JsonTemplate {
         object ITemplateFactory.AddArrayProperty(object parent,
                                                  string name, string dotNetName,
                                                  DebugInfo debugInfo) {
-            OTT appTemplate;
             Template newTemplate;
 
             VerifyPropertyName(dotNetName, debugInfo);
 
-            newTemplate = new TArray<OT>() { TemplateName = name };
-            appTemplate = (OTT)parent;
-            newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, appTemplate, debugInfo);
+            newTemplate = new TArray<TJson>() { TemplateName = name };
+            newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent, debugInfo);
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
         }
@@ -386,10 +396,10 @@ namespace Starcounter.Internal.JsonTemplate {
 
             VerifyPropertyName(dotNetName, debugInfo);
 
-            newTemplate = new OTT();
+            newTemplate = new TObject();
             if (parent != null) {
                 newTemplate.TemplateName = name;
-                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, (OTT)parent, debugInfo);
+                newTemplate = CheckAndAddOrReplaceTemplate(newTemplate, parent as TObject, debugInfo);
             }
             SetCompilerOrigin(newTemplate, debugInfo);
             return newTemplate;
@@ -402,9 +412,9 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="debugInfo">The debug info.</param>
         /// <returns>System.Object.</returns>
         object ITemplateFactory.AddAppElement(object array, DebugInfo debugInfo) {
-            var newTemplate = new OTT(); // The type of the type array (an TApp)
+            var newTemplate = new TObject(); // The type of the type array (an TApp)
             newTemplate.Parent = (TContainer)array;
-            //			newTemplate.TemplateName = "__ArrayType__"; // All children needs an id
+
             var arr = ((TObjArr)array);
             arr.ElementType = newTemplate;
             newTemplate.Parent = arr;
@@ -509,7 +519,7 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="debugInfo"></param>
         private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
             for (int i = 0; i < ILLEGAL_PROPERTIES.Length; i++) {
-                if (propertyName.Equals(ILLEGAL_PROPERTIES[i])) {
+                if (propertyName.Equals(ILLEGAL_PROPERTIES[i], StringComparison.CurrentCultureIgnoreCase)) {
                     ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
                     break;
                 }

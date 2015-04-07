@@ -162,6 +162,10 @@ namespace Starcounter.Templates {
 			return "";
 		}
 
+        public virtual Json CreateInstance(Json parent = null) {
+            return new Json() { Template = this, Parent = parent };
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>
