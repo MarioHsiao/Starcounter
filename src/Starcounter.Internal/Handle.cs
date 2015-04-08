@@ -250,6 +250,50 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Outgoing HTTP status description.
+        /// </summary>
+        [ThreadStatic]
+        static String outgoingStatusDescription_;
+
+        /// <summary>
+        /// Outgoing HTTP status code.
+        /// </summary>
+        internal static String OutgoingStatusDescription {
+            get {
+                return outgoingStatusDescription_;
+            }
+        }
+
+        /// <summary>
+        /// Setting status description for outgoing HTTP response.
+        /// </summary>
+        public static void SetOutgoingStatusDescription(String statusDescription) {
+            outgoingStatusDescription_ = statusDescription;
+        }
+
+        /// <summary>
+        /// Outgoing HTTP status code.
+        /// </summary>
+        [ThreadStatic]
+        static UInt16 outgoingStatusCode_;
+
+        /// <summary>
+        /// Outgoing HTTP status code.
+        /// </summary>
+        internal static UInt16 OutgoingStatusCode {
+            get {
+                return outgoingStatusCode_;
+            }
+        }
+
+        /// <summary>
+        /// Setting status code for outgoing HTTP response.
+        /// </summary>
+        public static void SetOutgoingStatusCode(UInt16 statusCode) {
+            outgoingStatusCode_ = statusCode;
+        }
+
+        /// <summary>
         /// Incoming request reference.
         /// </summary>
         [ThreadStatic]
