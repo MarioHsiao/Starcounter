@@ -268,11 +268,11 @@ namespace Starcounter {
             }
         }
 
-        const String GET_METHOD = "GET";
-        const String PUT_METHOD = "PUT";
-        const String POST_METHOD = "POST";
-        const String DELETE_METHOD = "DELETE";
-        const String PATCH_METHOD = "PATCH";
+        internal const String GET_METHOD = "GET";
+        internal const String PUT_METHOD = "PUT";
+        internal const String POST_METHOD = "POST";
+        internal const String DELETE_METHOD = "DELETE";
+        internal const String PATCH_METHOD = "PATCH";
 
         /// <summary>
         /// Checks if given URI is a part of 

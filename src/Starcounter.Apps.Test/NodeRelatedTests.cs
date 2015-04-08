@@ -101,13 +101,13 @@ namespace Starcounter.Internal.Tests
             });
 
             String s = null;
-            s = X.GET<String>("/test8080");
+            s = Self.GET<String>("/test8080");
             Assert.IsTrue(s == "test8080");
 
-            s = X.GET<String>(123, "/test123");
+            s = Self.GET<String>(123, "/test123");
             Assert.IsTrue(s == "test123");
 
-            s = X.GET<String>(123, "/test123");
+            s = Self.GET<String>(123, "/test123");
             Assert.IsTrue(s == "test123");
         }
     }

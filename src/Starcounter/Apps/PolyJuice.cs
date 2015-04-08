@@ -309,7 +309,7 @@ namespace PolyjuiceNamespace {
 
                 // Calling handler.
                 req.Uri = uri;
-                Response resp = X.CustomRESTRequest(req, 0, ho);
+                Response resp = Self.CustomRESTRequest(req, ho);
                 resps.Add(resp);
             }
 
@@ -483,14 +483,14 @@ namespace PolyjuiceNamespace {
                             // Calling the mapped handler.
                             hs = mapProcessedUri.Replace(EndsWithStringParam, convertedParam);
                             req.Uri = hs;
-                            resp = X.CustomRESTRequest(req, 0, req.HandlerOpts);
+                            resp = Self.CustomRESTRequest(req, req.HandlerOpts);
 
                         } else {
 
                             // Calling the mapped handler.
                             hs = mapProcessedUri.Replace(EndsWithStringParam, stringParam);
                             req.Uri = hs;
-                            resp = X.CustomRESTRequest(req, 0, req.HandlerOpts);
+                            resp = Self.CustomRESTRequest(req, req.HandlerOpts);
                         }
 
                         return resp;
@@ -508,7 +508,7 @@ namespace PolyjuiceNamespace {
 
                         // Calling the mapped handler.
                         req.Uri = mapProcessedUri;
-                        resp = X.CustomRESTRequest(req, 0, req.HandlerOpts);
+                        resp = Self.CustomRESTRequest(req, req.HandlerOpts);
 
                         return resp;
 
@@ -606,8 +606,7 @@ namespace PolyjuiceNamespace {
                             return null;
                     }
 
-                    Response resp;
-                    X.GET("/so/" + typeName + "/" + soObjectId, out resp, null, 0, req.HandlerOpts);
+                    Response resp = Self.GET("/so/" + typeName + "/" + soObjectId, null, req.HandlerOpts);
 
                     return resp;
 
@@ -767,8 +766,7 @@ namespace PolyjuiceNamespace {
                 String uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, stringParamCopy);
 
                 // Calling handler.
-                Response resp;
-                X.GET(uri, out resp, null, 0, ho);
+                Response resp = Self.GET(uri, null, ho);
                 resps.Add(resp);
 
             };
@@ -792,7 +790,7 @@ namespace PolyjuiceNamespace {
                 }
             } else {
 
-                foreach (HandlerForSoType x in Db.SQL("SELECT X FROM HandlerForType X WHERE X.TheType = ?", type)) {
+                foreach (HandlerForSoType x in Db.SQL("SELECT x FROM HandlerForType x WHERE x.TheType = ?", type)) {
 
                     // Going through each skipped handler.
                     foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
@@ -1109,7 +1107,7 @@ namespace PolyjuiceNamespace {
                     if (String.IsNullOrEmpty(a[1]))
                         continue;
 
-                    Response resp = X.GET(a[1]);
+                    Response resp = Self.GET(a[1]);
                     sb.Append("<imported-template-scope scope=\"{{" + a[0] + "}}\">");
                     sb.Append(resp.Body);
                     sb.Append("</imported-template-scope>");

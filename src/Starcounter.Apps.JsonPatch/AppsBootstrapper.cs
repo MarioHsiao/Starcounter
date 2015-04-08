@@ -71,7 +71,8 @@ namespace Starcounter.Internal {
                     GatewayHandlers.RegisterTcpSocketHandler,
                     GatewayHandlers.RegisterUdpSocketHandler,
                     ProcessExternalRequest,
-                    AppServer_.RunDelegateAndProcessResponse);
+                    AppServer_.RunDelegateAndProcessResponse,
+                    UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
                 AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
             }
