@@ -1,0 +1,7 @@
+# Ignore jQuery dependency of Bootswatch/Bootstrap
+StaticFiles/sys/jquery
+
+# Ignore all the Bootswatch themes apart from Paper
+StaticFiles/sys/bootswatch/*/*
+!StaticFiles/sys/bootswatch/fonts/*
+!StaticFiles/sys/bootswatch/paper/*
