@@ -41,6 +41,11 @@ namespace Starcounter.Internal {
             set { throw new InvalidOperationException(); }
         }
 
+        public int __ScImplicitInstantiates {
+            get { return sccoredb.STAR_INVALID_TABLE_ID; }
+            set { throw new InvalidOperationException(); }
+        }
+
         #endregion
     }
 }

@@ -110,16 +110,38 @@ namespace Starcounter {
         /// </summary>
         public bool IsType {
             get {
-                return DbState.ReadBoolean(
-                    __sc__this_id__, 
+                var v = DbState.ReadInt32(
+                    __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__is_type__);
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__);
+                return DynamicTypesHelper.IsValidInstantiatesValue(v);
             }
             set {
-                DbState.WriteBoolean(
-                    __sc__this_id__, 
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Gets an opaque handle to the type/table the current entity
+        /// (being a type) instantiates.
+        /// </summary>
+        /// <remarks>
+        /// Should not be exposed like this in the final version, but needs
+        /// to be for the binding to work right now.
+        /// </remarks>
+        public int Instantiates {
+            get {
+                return DbState.ReadInt32(
+                    __sc__this_id__,
                     __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle___sc__is_type__, value);
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__);
+            }
+            set {
+                DbState.WriteInt32(
+                    __sc__this_id__,
+                    __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle___sc__instantiates__,
+                    value);
             }
         }
         
@@ -166,19 +188,30 @@ namespace Starcounter {
         /// </summary>
         /// <returns>A new entity whose dynamic type is the
         /// current entity.</returns>
-        public Entity New() {
-            // Proper error messages including new error codes.
-            // Delayed until final implementation though (see
-            // #2500 for more info).
-            // TODO:
-            if (!IsType) throw new InvalidOperationException("This object is not a type.");
-            if (string.IsNullOrEmpty(this.Name)) throw new InvalidOperationException("The type name is not specified.");
+        public IObjectProxy New() {
+            var proxy = DynamicTypesHelper.RuntimeNew(this.Instantiates);
+            TupleHelper.SetType(proxy, this);
+            return proxy;
+        }
 
-            var tb = Bindings.GetTypeBinding(this.Name);
-            ulong oid = 0, addr = 0;
-            DbState.Insert(tb.TableId, ref oid, ref addr);
-            var proxy = (Entity) tb.NewInstance(addr, oid);
-            proxy.Type = this;
+        /// <summary>
+        /// Creates a new entity who will be set to inherit
+        /// current entity.
+        /// </summary>
+        /// <returns>A new entity who is set to inherit
+        /// current entity.</returns>
+        public IObjectProxy Derive() {
+            var t = this.Type;
+            var typeTuple = t == null ? null : TupleHelper.ToTuple(t);
+            if (typeTuple == null) throw new InvalidOperationException("TODO: And a nice error message to go with that, thank you!");
+
+            var proxy = DynamicTypesHelper.RuntimeNew(typeTuple.Instantiates);
+
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Type = typeTuple;
+            tuple.Instantiates = this.Instantiates;
+            TupleHelper.SetInherits(tuple, this);
+
             return proxy;
         }
 

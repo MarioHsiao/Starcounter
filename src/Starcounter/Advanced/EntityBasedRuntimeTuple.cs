@@ -47,13 +47,27 @@ namespace Starcounter.Advanced {
             }
         }
 
+        int IDbTuple.Instantiates {
+            get {
+                return instance.Instantiates;
+            }
+            set {
+                instance.Instantiates = value;
+            }
+        }
+
         Binding.IObjectProxy IDbTuple.Proxy {
             get { return instance; }
         }
 
         IDbTuple IDbTuple.New() {
             var e = instance.New();
-            return new EntityBasedRuntimeTuple(e);
+            return TupleHelper.ToTuple(e);
+        }
+
+        IDbTuple IDbTuple.Derive() {
+            var e = instance.Derive();
+            return TupleHelper.ToTuple(e);
         }
     }
 }

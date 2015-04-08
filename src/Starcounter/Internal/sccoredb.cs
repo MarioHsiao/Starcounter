@@ -26,11 +26,10 @@ namespace Starcounter.Internal
     [SuppressUnmanagedCodeSecurity]
     public static class sccoredb
     {
-
-        /// <summary>
-        /// The MDBI t_ OBJECTID
-        /// </summary>
         public const ulong MDBIT_OBJECTID = 0; // TODO:
+
+        // // #define STAR_INVALID_TABLE_ID 0xFFFF // 65535
+        public const int STAR_INVALID_TABLE_ID = 0xFFFF;
 
         /// <summary>
         /// </summary>

@@ -35,6 +35,18 @@ namespace Starcounter.Advanced {
         }
 
         /// <summary>
+        /// Gets or sets a handle to the concept the current tuple
+        /// (being a type) instantiates.
+        /// </summary>
+        /// <remarks>We should consider making this one not part of
+        /// the interface, since its more of an implementation detail.
+        /// </remarks>
+        int Instantiates {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the name of the current tuple, normally
         /// used when naming a type.
         /// </summary>
@@ -58,5 +70,13 @@ namespace Starcounter.Advanced {
         /// <returns>A new database tuple whose type will be set to
         /// the current tuple.</returns>
         IDbTuple New();
+
+        /// <summary>
+        /// Support runtime specialization of database tuples acting
+        /// as types.
+        /// </summary>
+        /// <returns>A new database tuple that will be set to inherit
+        /// the current tuple.</returns>
+        IDbTuple Derive();
     }
 }

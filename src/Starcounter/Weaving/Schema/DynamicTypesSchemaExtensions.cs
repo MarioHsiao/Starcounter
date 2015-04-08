@@ -36,7 +36,7 @@ namespace Sc.Server.Weaver.Schema {
                 }
 
                 var typeInHierarchy = explicitTypes.FirstOrDefault((candidate) => {
-                    return candidate.Inherit(c) || c.Inherit(candidate);
+                    return c.Inherit(candidate);
                 });
                 if (typeInHierarchy != null) {
                     implicitTypes.Add(c as DatabaseEntityClass);

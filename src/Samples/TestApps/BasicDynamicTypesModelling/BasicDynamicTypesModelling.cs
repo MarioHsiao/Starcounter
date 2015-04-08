@@ -1,6 +1,8 @@
 
 using Starcounter;
 using Starcounter.Advanced;
+using System;
+using System.Linq;
 
 namespace Model1 {
 	[Database] public class Foo {}
@@ -9,7 +11,10 @@ namespace Model1 {
 
 namespace Model2 {
 	[Database] public class Foo { [Type] public FooType Type; }
-	[Database] public class FooType {}
+	[Database] public class FooType {
+		[TypeName] public string Name;
+		[Inherits] public FooType Parent;
+	}
     [Database] public class Bar : Foo {}
 }
 
@@ -71,6 +76,17 @@ class Program {
            var b = new Model2.Bar();
            var bt2 = TupleHelper.ToTuple(b);
            Assert(TupleHelper.TupleEquals(bt2.Type, btt));
+		   
+		   var foos = Db.SQL<Model2.Foo>("SELECT f FROM Model2.Foo f WHERE f IS ?", Db.TypeOf<Model2.Foo>());
+		   Assert(foos != null);
+		   Assert(foos.Count() == 2);
+		   foos = Db.SQL<Model2.Foo>("SELECT f FROM Model2.Foo f WHERE f IS ?", Db.TypeOf<Model2.Bar>());
+		   Assert(foos != null);
+		   Assert(foos.Count() == 1);
+		   
+		   var bars = Db.SQL<Model2.Bar>("SELECT b FROM Model2.Bar b WHERE b IS ?", Db.TypeOf<Model2.Foo>());
+		   Assert(bars != null);
+		   Assert(bars.Count() == 1);
        });
 	}
 	

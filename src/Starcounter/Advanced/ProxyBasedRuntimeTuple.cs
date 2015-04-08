@@ -11,7 +11,7 @@ namespace Starcounter.Advanced {
     internal class ProxyBasedRuntimeTuple : IDbTuple {
         readonly IObjectProxy proxy;
         int typeIndex;
-        int isTypeIndex;
+        int instantiatesIndex;
         int inheritsIndex;
         int typeNameIndex;
 
@@ -33,8 +33,8 @@ namespace Starcounter.Advanced {
                     case WeavedNames.InheritsColumn:
                         inheritsIndex = i;
                         break;
-                    case WeavedNames.IsTypeColumn:
-                        isTypeIndex = i;
+                    case WeavedNames.InstantiatesColumn:
+                        instantiatesIndex = i;
                         break;
                     case WeavedNames.TypeNameColumn:
                         typeNameIndex = i;
@@ -73,26 +73,36 @@ namespace Starcounter.Advanced {
         }
 
         bool IDbTuple.IsType {
-            get { return DbState.ReadBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex); }
-            set { DbState.WriteBoolean(proxy.Identity, proxy.ThisHandle, isTypeIndex, value); }
+            get { return DynamicTypesHelper.IsValidInstantiatesValue(DbState.ReadInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex)); }
+            set { throw new NotImplementedException(); }
+        }
+
+        int IDbTuple.Instantiates {
+            get { return DbState.ReadInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex); }
+            set { DbState.WriteInt32(proxy.Identity, proxy.ThisHandle, instantiatesIndex, value); }
         }
 
         IDbTuple IDbTuple.New() {
-            // Proper error messages including new error codes.
-            // Delayed until final implementation though (see
-            // #2500 for more info).
-            // TODO:
             var self = (IDbTuple)this;
-            if (!self.IsType) throw new InvalidOperationException("This object is not a type.");
-            if (string.IsNullOrEmpty(self.Name)) throw new InvalidOperationException("The type name is not specified.");
-
-            var tb = Bindings.GetTypeBinding(self.Name);
-            ulong oid = 0, addr = 0;
-            DbState.Insert(tb.TableId, ref oid, ref addr);
-            var proxy = tb.NewInstance(addr, oid);
+            var tableId = self.Instantiates;
+            var proxy = DynamicTypesHelper.RuntimeNew(tableId);
 
             var tuple = TupleHelper.ToTuple(proxy);
             tuple.Type = self;
+
+            return tuple;
+        }
+
+        IDbTuple IDbTuple.Derive() {
+            var self = (IDbTuple)this;
+            var t = self.Type;
+            if (t == null) throw new InvalidOperationException("TODO: And a nice error message to go with that, thank you!");
+            var proxy = DynamicTypesHelper.RuntimeNew(t.Instantiates);
+
+            var tuple = TupleHelper.ToTuple(proxy);
+            tuple.Type = t;
+            tuple.Instantiates = self.Instantiates;
+            tuple.Inherits = self;
 
             return tuple;
         }

@@ -422,7 +422,7 @@ namespace Starcounter.Binding
             PropertyInfo result = null;
             if (propertyDef.ColumnName == WeavedNames.InheritsColumn ||
                     propertyDef.ColumnName == WeavedNames.TypeColumn ||
-                    propertyDef.ColumnName == WeavedNames.IsTypeColumn ||
+                    propertyDef.ColumnName == WeavedNames.InstantiatesColumn ||
                     propertyDef.ColumnName == WeavedNames.TypeNameColumn) {
                 result = typeof(ImplicitEntity).GetProperty(propertyDef.Name, BindingFlags.Public | BindingFlags.Instance);
             }

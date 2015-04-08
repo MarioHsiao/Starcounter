@@ -1,6 +1,7 @@
 ﻿using Starcounter.Binding;
 using Starcounter.Internal;
 using Starcounter.Metadata;
+using System;
 
 namespace Starcounter.Advanced {
     /// <summary>
@@ -54,6 +55,15 @@ namespace Starcounter.Advanced {
             }
         }
 
+        int IDbTuple.Instantiates {
+            get {
+                throw new NotImplementedException();
+            }
+            set {
+                RaiseExceptionWhenModified();
+            }
+        }
+
         Binding.IObjectProxy IDbTuple.Proxy {
             get { return instance; }
         }
@@ -69,6 +79,10 @@ namespace Starcounter.Advanced {
             tuple.Type = self;
 
             return tuple;
+        }
+
+        IDbTuple IDbTuple.Derive() {
+            throw new NotImplementedException();
         }
 
         void RaiseExceptionWhenModified() {
