@@ -859,23 +859,31 @@ namespace Starcounter
 
                         writer.Write(HttpHeadersUtf8.Http11);
 
-                        if (statusCode_ > 0) {
-                            writer.Write(statusCode_);
+                        UInt16 statusCode = statusCode_;
+                        if (Handle.OutgoingStatusCode > 0)
+                            statusCode = Handle.OutgoingStatusCode;
+
+                        String statusDescription = statusDescription_;
+                        if (Handle.OutgoingStatusDescription != null)
+                            statusDescription = Handle.OutgoingStatusDescription;
+
+                        if (statusCode > 0) {
+                            writer.Write(statusCode);
                             writer.Write(' ');
 
                             // Checking if Status Description is set.
-                            if (null != statusDescription_)
-                                writer.Write(statusDescription_);
+                            if (null != statusDescription)
+                                writer.Write(statusDescription);
                             else
                                 writer.Write("OK");
 
                             writer.Write(HttpHeadersUtf8.CRLF);
                         } else {
                             // Checking if Status Description is set.
-                            if (null != statusDescription_) {
+                            if (null != statusDescription) {
                                 writer.Write(200);
                                 writer.Write(' ');
-                                writer.Write(statusDescription_);
+                                writer.Write(statusDescription);
                             } else {
                                 writer.Write("200 OK");
                             }
@@ -1007,8 +1015,12 @@ namespace Starcounter
                 size += wsHandshakeResp_.Length;
             }
 
-            if (statusDescription_ != null)
-                size += statusDescription_.Length;
+            String statusDescription = statusDescription_;
+            if (Handle.OutgoingStatusDescription != null)
+                statusDescription = Handle.OutgoingStatusDescription;
+
+            if (statusDescription != null)
+                size += statusDescription.Length;
 
             if (null != customHeaderFields_) {
                 foreach (KeyValuePair<string, string> h in customHeaderFields_) {
