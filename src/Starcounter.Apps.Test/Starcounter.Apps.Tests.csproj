@@ -85,9 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedRequestResponseUsage.cs" />
-    <Compile Include="IRequestHandler.cs" />
     <Compile Include="NewRestTests.cs" />
-    <Compile Include="MainApp.cs" />
     <Compile Include="NodeRelatedTests.cs" />
     <Compile Include="Polyjuice.Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
