@@ -2,9 +2,9 @@
 
 Starcounter makes creating sexy and fast line-of-business application a breeze by collapsing the stack.
 
-Starcounter is an ACID enterprise grade memory centric [database management system (DBMS)](http://en.wikipedia.org/wiki/dbms) (a.k.a. RAM database) with a built in [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) style server. 
+Starcounter removes the boundaries between primary and secondary memory (getting rid of application to database glue code) and allows server side view models (getting rid of the need for service API design and MVC client/server to client glue code).
 
-Starcounter allows your view models, application logic and business logic to coexist in a simple C# program, thus collapsing the stack such as you no longer need to write glue code, use APIs or create services to create applications. 
+This Starcounter is a fused ACID memory centric database engine and C# VM. 
 
 
 This repository is reserved for the public Starcounter bits.
@@ -18,5 +18,5 @@ This repository is reserved for the public Starcounter bits.
 * [Starcounter home page](http://www.starcounter.com) 
 * [Contributors home page](http://starcounter.github.com) 
 
-[![Join the chat at https://gitter.im/dotnet/coreclr](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcounter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/starcounter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/starcounter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
