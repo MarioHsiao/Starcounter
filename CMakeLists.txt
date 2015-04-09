@@ -34,4 +34,3 @@ link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 find_package(CSharp REQUIRED)
 
 add_subdirectory(src)
-# add_subdirectory(StarcounterJs)
