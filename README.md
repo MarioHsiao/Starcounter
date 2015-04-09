@@ -1,8 +1,10 @@
 # Starcounter
 
-Starcounter makes creating sexy, fast and cool line of business systems a breeze by collapsing the stack using a super fast RAM centric database engine.
+Starcounter makes creating sexy and fast line-of-business application a breeze by collapsing the stack.
 
-Starcounter is an enterprise grade memory centric [database management system (DBMS)](http://en.wikipedia.org/wiki/dbms) (a.k.a. RAM database) with a built in [REST](http://en.wikipedia.org/wiki/dbms) style server. It supports [graph](https://github.com/Starcounter/Starcounter/wiki/Graphs), object, document and relational semantics in a single unified model and is fully [ACID](http://en.wikipedia.org/wiki/acid) compliant with advanced concurrency control and transaction isolation modes.
+Starcounter is an ACID enterprise grade memory centric [database management system (DBMS)](http://en.wikipedia.org/wiki/dbms) (a.k.a. RAM database) with a built in [REST](http://en.wikipedia.org/wiki/Representational_state_transfer) style server. 
+
+Starcounter allows your view models, application logic and business logic to coexist in a simple C# program, thus collapsing the stack such as you no longer need to write glue code, use APIs or create services to create applications. 
 
 
 This repository is reserved for the public Starcounter bits.
