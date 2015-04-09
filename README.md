@@ -6,7 +6,6 @@ Starcounter removes the boundaries between primary and secondary memory (getting
 
 This Starcounter is a fused ACID memory centric database engine and C# VM. 
 
-
 This repository is reserved for the public Starcounter bits.
 
 # Download installer
