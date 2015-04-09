@@ -12,4 +12,3 @@ enable_testing()
 find_package(CSharp REQUIRED)
 
 add_subdirectory(src)
-# add_subdirectory(StarcounterJs)
