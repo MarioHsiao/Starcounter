@@ -312,6 +312,18 @@ namespace Starcounter {
             }
         }
 
+        /// <summary>
+        /// Resetting all outgoing fields for new request.
+        /// </summary>
+        internal static void ResetAllOutgoingFields() {
+
+            incomingRequest_ = null;
+            outgoingCookies_ = null;
+            outgoingHeaders_ = null;
+            outgoingStatusDescription_ = null;
+            outgoingStatusCode_ = 0;
+        }
+
         internal const String GET_METHOD = "GET";
         internal const String PUT_METHOD = "PUT";
         internal const String POST_METHOD = "POST";

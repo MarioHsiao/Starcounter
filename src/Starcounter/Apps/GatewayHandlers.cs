@@ -412,8 +412,8 @@ namespace Starcounter
 
             } finally {
 
-                // Setting the incoming request.
-                Handle.IncomingRequest = null;
+                // Restoring all outgoing request fields.
+                Handle.ResetAllOutgoingFields();
 
                 // Clearing current session.
                 Session.End();
