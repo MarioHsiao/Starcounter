@@ -210,7 +210,7 @@ namespace NodeTest
                     // NOTE: Need to sleep to receive correct statistics.
                     Thread.Sleep(1000);
 
-                    String retrieved = X.GET<String>(WebSocketCountersUri);
+                    String retrieved = Http.GET<String>(WebSocketCountersUri);
 
                     String expected = String.Format("WebSockets counters: handshakes={0}, echoes received={1}, disconnects={2}",
                         NumEchoesAllWorkers / NumEchoesPerConnection,
@@ -225,7 +225,7 @@ namespace NodeTest
                 
                 case ProtocolTypes.ProtocolHttpV1: {
 
-                    String retrieved = X.GET<String>(HttpCountersUri);
+                    String retrieved = Http.GET<String>(HttpCountersUri);
 
                     String expected = String.Format("Http counters: echoes received={0}.", NumEchoesAllWorkers);
 
@@ -237,7 +237,7 @@ namespace NodeTest
 
                 case ProtocolTypes.ProtocolRawPort: {
 
-                    String retrieved = X.GET<String>(RawPortCountersUri);
+                    String retrieved = Http.GET<String>(RawPortCountersUri);
 
                     String expected = String.Format("Raw port counters: bytes received={0}, disconnects={1}.", totalBytesSent_, NumEchoesAllWorkers / NumEchoesPerConnection);
 
@@ -552,7 +552,7 @@ namespace NodeTest
                     {
                         if (useNodeX_)
                         {
-                            Response resp = X.POST(Settings.CompleteHttpUri, body_bytes_, null);
+                            Response resp = Http.POST(Settings.CompleteHttpUri, body_bytes_, null);
                             return CheckResponse(resp);
                         }
                         else
@@ -594,7 +594,7 @@ namespace NodeTest
                 try
                 {
                     if (useNodeX_) {
-                        X.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) => {
+                        Http.POST(Settings.CompleteHttpUri, body_bytes_, null, null, (Response resp, Object userObject) => {
                             CheckResponse(resp);
                         });
                     } else {
@@ -939,7 +939,7 @@ namespace NodeTest
                 Console.WriteLine("UseAggregation: " + settings.UseAggregation);
 
                 // Resetting the counters.
-                Response resp = X.DELETE(Settings.ResetCountersUri, (String) null, null, 5000);
+                Response resp = Http.DELETE(Settings.ResetCountersUri, (String) null, null, 5000);
                 if (200 != resp.StatusCode) {
                     throw new Exception("Can't reset counters properly!");
                 }

@@ -85,11 +85,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Flag to set node local for tests.
-        /// </summary>
-        internal static Boolean LocalNode { get; set; }
-
-        /// <summary>
         /// Gets node instance from given URI.
         /// </summary>
         internal static void GetNodeFromUri(UInt16 port, String uri, out Node node, out String relativeUri) {

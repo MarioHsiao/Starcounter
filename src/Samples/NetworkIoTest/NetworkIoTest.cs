@@ -519,7 +519,7 @@ namespace NetworkIoTestApp
                     Handle.GET("/exc1", (Request req) =>
                     {
                         Response resp;
-                        X.GET("/exc2", out resp);
+                        Http.GET("/exc2", out resp);
 
                         return resp;
                     });
