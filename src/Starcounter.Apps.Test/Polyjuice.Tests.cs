@@ -42,8 +42,6 @@ namespace Starcounter.Internal.Tests
             // Initializing system profilers.
             Profiler.Init(true);
 
-            X.LocalNode = true;
-
             // Not actually a merger anymore but linker of sibling Json parts.
             Response.ResponsesMergerRoutine_ = Polyjuice.DefaultMerger;
         }

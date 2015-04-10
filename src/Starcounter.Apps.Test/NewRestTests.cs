@@ -50,7 +50,6 @@ namespace Starcounter.Internal.Test
             Profiler.Init(true);
 
             Handle.CallLevel = 0;
-            X.LocalNode = true;
         }
     }
 

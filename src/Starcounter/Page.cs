@@ -41,7 +41,7 @@ namespace Starcounter {
             resultingMimeType = mimeType;
 
             if (mimeType == MimeType.Text_Html) {
-                return X.GET<Byte[]>(Html);
+                return Self.GET<Byte[]>(Html);
             }
 
             return base.AsMimeType(mimeType, out resultingMimeType, request);
@@ -50,7 +50,7 @@ namespace Starcounter {
         public override string AsMimeType(MimeType mimeType) {
 
             if (mimeType == MimeType.Text_Html) {
-                return X.GET<String>(Html);
+                return Self.GET<String>(Html);
             }
             return base.AsMimeType(mimeType);
         }

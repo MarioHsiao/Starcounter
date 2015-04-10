@@ -64,7 +64,7 @@ namespace BuildHelpers
                         }
                     }
 
-                    Response resp = X.POST(uploadUri, (String) null, null);
+                    Response resp = Http.POST(uploadUri, (String) null, null);
                     if (!resp.IsSuccessStatusCode)
                     {
                         Console.WriteLine("Problems obtaining resource from \"" + uploadUri + "\" Status description: " + resp.Body);
@@ -91,14 +91,14 @@ namespace BuildHelpers
                                     checkSum += truncatedBuf[i];
 
                                 Dictionary<String, String> header = new Dictionary<String, String> { { "UploadSettings", "Final" } };
-                                resp = X.PUT(uploadUri + "/" + resId, truncatedBuf, header);
+                                resp = Http.PUT(uploadUri + "/" + resId, truncatedBuf, header);
                             }
                             else
                             {
                                 for (Int32 i = 0; i < buf.Length; i++)
                                     checkSum += buf[i];
 
-                                resp = X.PUT(uploadUri + "/" + resId, buf, null);
+                                resp = Http.PUT(uploadUri + "/" + resId, buf, null);
                             }
 
                             // Checking response status code.
