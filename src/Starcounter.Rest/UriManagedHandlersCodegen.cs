@@ -883,7 +883,8 @@ namespace Starcounter.Rest
             TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
             UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
             Func<Request, Boolean> processExternalRequest,
-            Func<IntPtr, IntPtr,Request, Response> runDelegateAndProcessResponse)
+            Func<IntPtr, IntPtr,Request, Response> runDelegateAndProcessResponse,
+            Self.RunUriMatcherAndCallHandlerDelegate runUriMatcherAndCallHandlerDelegate)
         {
             TcpSocket.InitTcpSockets(tcpSocketHandler);
             UdpSocket.InitUdpSockets(udpSocketHandler);
@@ -892,6 +893,8 @@ namespace Starcounter.Rest
                 registerUriHandlerNative,
                 processExternalRequest,
                 runDelegateAndProcessResponse);
+
+            Self.InjectDelegates(runUriMatcherAndCallHandlerDelegate, runDelegateAndProcessResponse);
 
             RequestHandler.InitREST();
             UriHandlersManager.Init();

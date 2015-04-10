@@ -21,7 +21,7 @@ namespace Starcounter.Internal.Test
     /// Testing return types for X.
     /// </summary>
     [TestFixture]
-    public class ReturnTypesForX
+    public class ReturnTypes
     {
         [Test]
         public void TestReturnTypesForX1() {
@@ -51,16 +51,16 @@ namespace Starcounter.Internal.Test
             Response resp;
             Object obj;
             
-            obj = X.GET<String>("/return_400");
+            obj = Self.GET<String>("/return_400");
             Assert.AreEqual(obj, null);
 
-            obj = X.GET<String>("/return_200");
+            obj = Self.GET<String>("/return_200");
             Assert.AreEqual(obj, null);
 
-            X.GET("/return_400", out resp);
+            resp = Self.GET("/return_400");
             Assert.AreEqual(resp.StatusCode, 400);
 
-            X.GET("/return_200", out resp);
+            resp = Self.GET("/return_200");
             Assert.AreEqual(resp.StatusCode, 200);
         }
     }
@@ -77,17 +77,13 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestResettingFields()
         {
-            // Node that is used for tests.
-            Node localNode = new Node("127.0.0.1", 8080);
-            localNode.IsLocalNode = true;
-
             Handle.GET("/response10", (Request req) =>
             {
                 Assert.IsTrue("/response10" == req.Uri);
 
-                Assert.IsTrue("127.0.0.1:8080" == req["Host"]);
-                Assert.IsTrue("127.0.0.1:8080" == req.Header["Host"]);
-                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+                Assert.IsTrue("localhost:8080" == req["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Header["Host"]);
+                Assert.IsTrue("localhost:8080" == req.Host);
 
                 Response r = new Response()
                 {
@@ -108,7 +104,7 @@ namespace Starcounter.Internal.Test
                 return r;
             });
 
-            Response resp = localNode.GET("/response10", null);
+            Response resp = Self.GET("/response10");
 
             Assert.IsTrue(404 == resp.StatusCode);
             Assert.IsTrue("Not Found" == resp.StatusDescription);
@@ -149,7 +145,7 @@ namespace Starcounter.Internal.Test
             Handle.GET("/response11", (Request req) =>
             {
                 Assert.IsTrue("/response11" == req.Uri);
-                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+                Assert.IsTrue("localhost:8080" == req.Host);
 
                 Response r = new Response()
                 {
@@ -163,7 +159,7 @@ namespace Starcounter.Internal.Test
                 return r;
             });
 
-            resp = localNode.GET("/response11", null);
+            resp = Self.GET("/response11");
 
             Assert.IsTrue(203 == resp.StatusCode);
             Assert.IsTrue("Non-Authoritative Information" == resp.StatusDescription);
@@ -202,7 +198,7 @@ namespace Starcounter.Internal.Test
             Handle.GET("/response12", (Request req) =>
             {
                 Assert.IsTrue("/response12" == req.Uri);
-                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+                Assert.IsTrue("localhost:8080" == req.Host);
 
                 return new Response()
                 {
@@ -211,7 +207,7 @@ namespace Starcounter.Internal.Test
                 };
             });
 
-            resp = localNode.GET("/response12", null);
+            resp = Self.GET("/response12");
 
             Assert.IsTrue(204 == resp.StatusCode);
             Assert.IsTrue("No Content" == resp.StatusDescription);
@@ -225,7 +221,7 @@ namespace Starcounter.Internal.Test
                 };
             });
 
-            resp = localNode.GET("/response13", null);
+            resp = Self.GET("/response13");
 
             Assert.IsTrue(201 == resp.StatusCode);
             Assert.IsTrue("OK" == resp.StatusDescription);
@@ -237,10 +233,6 @@ namespace Starcounter.Internal.Test
         [Test]
         public void TestChangingRest()
         {
-            // Node that is used for tests.
-            Node localNode = new Node("127.0.0.1", 8080);
-            localNode.IsLocalNode = true;
-
             Handle.POST("/response1", (Request req) =>
             {
                 Assert.IsTrue("/response1" == req.Uri);
@@ -248,7 +240,7 @@ namespace Starcounter.Internal.Test
                 Assert.IsTrue("MyHeader1: value1\r\nMyHeader2: value2\r\n" == req.Headers);
                 Assert.IsTrue("value1" == req["MyHeader1"]);
                 Assert.IsTrue("value2" == req["MyHeader2"]);
-                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+                Assert.IsTrue("localhost:8080" == req.Host);
 
                 req["MyHeader3"] = "value3";
                 req["MyHeader4"] = "value4";
@@ -256,7 +248,7 @@ namespace Starcounter.Internal.Test
                 req.Uri = "/response2";
                 req.ConstructFromFields();
 
-                Response resp = localNode.CustomRESTRequest(req);
+                Response resp = Self.CustomRESTRequest(req);
 
                 Assert.IsTrue("Haha!" == resp["MySuperHeader"]);
                 Assert.IsTrue("Hahaha!" == resp["MyAnotherSuperHeader"]);
@@ -272,7 +264,7 @@ namespace Starcounter.Internal.Test
             Handle.POST("/response2", (Request req) =>
             {
                 Assert.IsTrue("/response2" == req.Uri);
-                Assert.IsTrue("127.0.0.1:8080" == req.Host);
+                Assert.IsTrue("localhost:8080" == req.Host);
 
                 Response resp = new Response()
                 {
@@ -293,7 +285,8 @@ namespace Starcounter.Internal.Test
                 { "MyHeader1", "value1" },
                 { "MyHeader2", "value2" }
             };
-            Response resp2 = localNode.POST("/response1", "Another body!", headers);
+
+            Response resp2 = Self.POST("/response1", "Another body!", null, headers);
 
             Assert.IsTrue("Haha!" == resp2["MySuperHeader"]);
             Assert.IsTrue("Hahaha!" == resp2["MyAnotherSuperHeader"]);

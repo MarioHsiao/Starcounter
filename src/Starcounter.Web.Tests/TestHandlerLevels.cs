@@ -34,13 +34,16 @@ namespace Starcounter.Internal.Tests {
             ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
-            Node.InjectHostedImpl(UriManagedHandlersCodegen.RunUriMatcherAndCallHandler, null);
+            UriManagedHandlersCodegen.Setup(
+                null, 
+                null, 
+                null, 
+                null, 
+                appServer.RunDelegateAndProcessResponse,
+                UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
             // Initializing system profilers.
             Profiler.Init(true);
-
-            X.LocalNode = true;
         }
     }
 
@@ -61,17 +64,16 @@ namespace Starcounter.Internal.Tests {
             Handle.GET(handlerUri + "1", () => { return handlerUri + "1"; }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Handle.GET(handlerUri + "2", () => { return handlerUri + "2"; }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
 
-            Response resp;
-            X.GET(handlerUri + "0", out resp, null, 0);
+            Response resp = Self.GET(handlerUri + "0");
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
-            X.GET(handlerUri + "0", out resp, null, 0, new HandlerOptions());
+            resp = Self.GET(handlerUri + "0", null, new HandlerOptions());
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
-            X.GET(handlerUri + "1", out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
+            resp = Self.GET(handlerUri + "1", null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Assert.AreEqual(resp.Body, handlerUri + "1");
 
-            X.GET(handlerUri + "2", out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
+            resp = Self.GET(handlerUri + "2", null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
             Assert.AreEqual(resp.Body, handlerUri + "2");
 
             // ==============================================
@@ -82,16 +84,16 @@ namespace Starcounter.Internal.Tests {
             Handle.GET(handlerUri, () => { return handlerUri + "1"; }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Handle.GET(handlerUri, () => { return handlerUri + "2"; }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions());
+            resp = Self.GET(handlerUri, null, new HandlerOptions());
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Assert.AreEqual(resp.Body, handlerUri + "1");
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
             Assert.AreEqual(resp.Body, handlerUri + "2");
 
-            X.GET(handlerUri, out resp);
+            resp = Self.GET(handlerUri);
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
             // ==============================================
@@ -102,16 +104,16 @@ namespace Starcounter.Internal.Tests {
             Handle.GET(handlerUri, () => { return null; }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Handle.GET(handlerUri, () => { return handlerUri; }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
 
-            X.GET(handlerUri, out resp);
+            resp = Self.GET(handlerUri);
             Assert.AreEqual(null, resp);
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions());
+            resp = Self.GET(handlerUri, null, new HandlerOptions());
             Assert.AreEqual(null, resp);
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Assert.AreEqual(null, resp);
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
             Assert.AreEqual(handlerUri, resp.Body);
         }
 
@@ -125,16 +127,16 @@ namespace Starcounter.Internal.Tests {
             Handle.GET(handlerUri, () => { return handlerUri + "0"; });
 
             Response resp;
-            X.GET(handlerUri, out resp);
+            resp = Self.GET(handlerUri);
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions());
+            resp = Self.GET(handlerUri, null, new HandlerOptions());
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Assert.AreEqual(resp, null);
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
             Assert.AreEqual(null, resp);
         }
 
@@ -161,13 +163,13 @@ namespace Starcounter.Internal.Tests {
             }, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
 
             Response resp;
-            X.GET(handlerUri, out resp);
+            resp = Self.GET(handlerUri);
             Assert.AreEqual(resp.Body, handlerUri + "0");
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationLevel));
             Assert.AreEqual(resp.Body, handlerUri + "1");
 
-            X.GET(handlerUri, out resp, null, 0, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
+            resp = Self.GET(handlerUri, null, new HandlerOptions(HandlerOptions.HandlerLevels.ApplicationExtraLevel));
             Assert.AreEqual(resp.Body, handlerUri + "2");
         }
     }

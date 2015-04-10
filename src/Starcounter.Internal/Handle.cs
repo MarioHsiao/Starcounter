@@ -250,6 +250,50 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Outgoing HTTP status description.
+        /// </summary>
+        [ThreadStatic]
+        static String outgoingStatusDescription_;
+
+        /// <summary>
+        /// Outgoing HTTP status code.
+        /// </summary>
+        internal static String OutgoingStatusDescription {
+            get {
+                return outgoingStatusDescription_;
+            }
+        }
+
+        /// <summary>
+        /// Setting status description for outgoing HTTP response.
+        /// </summary>
+        public static void SetOutgoingStatusDescription(String statusDescription) {
+            outgoingStatusDescription_ = statusDescription;
+        }
+
+        /// <summary>
+        /// Outgoing HTTP status code.
+        /// </summary>
+        [ThreadStatic]
+        static UInt16 outgoingStatusCode_;
+
+        /// <summary>
+        /// Outgoing HTTP status code.
+        /// </summary>
+        internal static UInt16 OutgoingStatusCode {
+            get {
+                return outgoingStatusCode_;
+            }
+        }
+
+        /// <summary>
+        /// Setting status code for outgoing HTTP response.
+        /// </summary>
+        public static void SetOutgoingStatusCode(UInt16 statusCode) {
+            outgoingStatusCode_ = statusCode;
+        }
+
+        /// <summary>
         /// Incoming request reference.
         /// </summary>
         [ThreadStatic]
@@ -268,11 +312,23 @@ namespace Starcounter {
             }
         }
 
-        const String GET_METHOD = "GET";
-        const String PUT_METHOD = "PUT";
-        const String POST_METHOD = "POST";
-        const String DELETE_METHOD = "DELETE";
-        const String PATCH_METHOD = "PATCH";
+        /// <summary>
+        /// Resetting all outgoing fields for new request.
+        /// </summary>
+        internal static void ResetAllOutgoingFields() {
+
+            incomingRequest_ = null;
+            outgoingCookies_ = null;
+            outgoingHeaders_ = null;
+            outgoingStatusDescription_ = null;
+            outgoingStatusCode_ = 0;
+        }
+
+        internal const String GET_METHOD = "GET";
+        internal const String PUT_METHOD = "PUT";
+        internal const String POST_METHOD = "POST";
+        internal const String DELETE_METHOD = "DELETE";
+        internal const String PATCH_METHOD = "PATCH";
 
         /// <summary>
         /// Checks if given URI is a part of 

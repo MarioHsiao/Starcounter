@@ -31,8 +31,13 @@ namespace Starcounter.Internal.Tests
             ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
             AppRestServer appServer = new AppRestServer(fileServer);
 
-            UriManagedHandlersCodegen.Setup(null, null, null, null, appServer.RunDelegateAndProcessResponse);
-            Node.InjectHostedImpl(UriManagedHandlersCodegen.RunUriMatcherAndCallHandler, null);
+            UriManagedHandlersCodegen.Setup(
+                null, 
+                null, 
+                null, 
+                null, 
+                appServer.RunDelegateAndProcessResponse,
+                UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
             // Initializing system profilers.
             Profiler.Init(true);
@@ -185,22 +190,22 @@ namespace Starcounter.Internal.Tests
             // Simulating external call.
             StarcounterEnvironment.AppName = null;
 
-            json = X.GET<Json>("/GoogleMapsApp/object/12345"); // maps
+            json = Self.GET<Json>("/GoogleMapsApp/object/12345"); // maps
 
             Assert.IsTrue(json.ToJson() == googleMapsWrappedRef.ToJson());
             Assert.IsTrue(googleMapsTemplate == json.Template);
 
-            json = X.GET<Json>("/SkypeApp/skypeuser/12345"); // skype
+            json = Self.GET<Json>("/SkypeApp/skypeuser/12345"); // skype
 
             Assert.IsTrue(json.ToJson() == skypeUserObjWrappedRef.ToJson());
             Assert.IsTrue(skypeUserTemplate == json.Template);
 
-            json = X.GET<Json>("/SalaryApp/employee/12345"); // salary
+            json = Self.GET<Json>("/SalaryApp/employee/12345"); // salary
 
             Assert.IsTrue(json.ToJson() == salaryAppObjRefWrapped.ToJson());
             Assert.IsTrue(salaryTemplate == json.Template);
 
-            json = X.GET<Json>("/FacebookApp/person/12345"); // facebook
+            json = Self.GET<Json>("/FacebookApp/person/12345"); // facebook
 
             Assert.IsTrue(json.ToJson() == facebookProfileObjWrappedRef.ToJson());
             Assert.IsTrue(facebookProfileTemplate == json.Template);
@@ -209,7 +214,7 @@ namespace Starcounter.Internal.Tests
                 Html = "/my.html"
             };
 
-            json = X.GET<Json>("/GoogleMapsApp/object/12345", () => {
+            json = Self.GET<Json>("/GoogleMapsApp/object/12345", () => {
                 return page;
             }); // page
 
@@ -219,17 +224,17 @@ namespace Starcounter.Internal.Tests
             // Testing wrapped application outputs.
             StarcounterEnvironment.AppName = SkypeAppName;
 
-            json = X.GET<Json>("/GoogleMapsApp/object/12345"); // null
+            json = Self.GET<Json>("/GoogleMapsApp/object/12345"); // null
             Assert.IsTrue(json == null);
 
-            json = X.GET<Json>("/GoogleMapsApp/object/12345", () => {
+            json = Self.GET<Json>("/GoogleMapsApp/object/12345", () => {
                 return page;
             }); // page
 
             Assert.IsTrue(json == page);
             Assert.IsTrue(json.ToJson() == page.ToJson());
 
-            json = X.GET<Json>("/SkypeApp/skypeuser/12345"); // skype
+            json = Self.GET<Json>("/SkypeApp/skypeuser/12345"); // skype
 
             Assert.IsTrue(json.ToJson() == skypeUserObjRef.ToJson());
             Assert.IsTrue(skypeUserTemplate == json.Template);
@@ -255,37 +260,37 @@ namespace Starcounter.Internal.Tests
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Json json1 = X.GET("/so/something/123"); // maps
+            Json json1 = Self.GET("/so/something/123"); // maps
             Assert.IsTrue(googleMapsTemplate == json1.Template);
             Assert.IsTrue(json1.ToJson() == googleMapsWrappedRef.ToJson());
 
-            Json json3 = X.GET("/so/legalentity/123"); // maps
+            Json json3 = Self.GET("/so/legalentity/123"); // maps
             Assert.IsTrue(json3.ToJson() == googleMapsWrappedRef.ToJson());
             Assert.IsTrue(googleMapsTemplate == json3.Template);
 
-            json = X.GET<Json>("/GoogleMapsApp/object/12345", () => {
+            json = Self.GET<Json>("/GoogleMapsApp/object/12345", () => {
                 return page;
             }); // page
 
             Assert.IsTrue(json == page);
             Assert.IsTrue(json.ToJson() == page.ToJson());
 
-            Json json2 = X.GET("/so/person/123"); // all
+            Json json2 = Self.GET("/so/person/123"); // all
             Assert.IsTrue(json2.ToJson() == allObjWrappedRef.ToJson());
 
             Assert.IsTrue(json1.Template == json3.Template);
 
-            json1 = X.GET("/GoogleMapsApp/object/123"); // maps
+            json1 = Self.GET("/GoogleMapsApp/object/123"); // maps
             Assert.IsTrue(json1.ToJson() == googleMapsWrappedRef.ToJson());
             Assert.IsTrue(googleMapsTemplate == json1.Template);
 
-            json2 = X.GET("/SalaryApp/employee/123"); // all
+            json2 = Self.GET("/SalaryApp/employee/123"); // all
             Assert.IsTrue(json2.ToJson() == allObjWrappedRef.ToJson());
 
-            json3 = X.GET("/SkypeApp/skypeuser/123"); // all
+            json3 = Self.GET("/SkypeApp/skypeuser/123"); // all
             Assert.IsTrue(json3.ToJson() == allObjWrappedRef.ToJson());
 
-            Json json4 = X.GET("/FacebookApp/person/123"); // all
+            Json json4 = Self.GET("/FacebookApp/person/123"); // all
             Assert.IsTrue(json4.ToJson() == allObjWrappedRef.ToJson());
 
             Assert.IsTrue(json2.ToJson() == json3.ToJson());
@@ -294,43 +299,43 @@ namespace Starcounter.Internal.Tests
 
             StarcounterEnvironment.AppName = FacebookAppName;
 
-            json = X.GET("/FacebookApp/person/123"); // facebook
+            json = Self.GET("/FacebookApp/person/123"); // facebook
             Assert.IsTrue(json.ToJson() == facebookProfileObjRef.ToJson());
             Assert.IsTrue(facebookProfileTemplate == json.Template);
 
             StarcounterEnvironment.AppName = null;
 
-            json1 = X.GET<Json>("/FacebookApp/person/123"); // all
+            json1 = Self.GET<Json>("/FacebookApp/person/123"); // all
             Assert.IsTrue(json1.ToJson() == allObjWrappedRef.ToJson());
 
-            json3 = X.GET<Json>("/FacebookApp/person/123", () => {
+            json3 = Self.GET<Json>("/FacebookApp/person/123", () => {
                 return page;
             }); // page
 
             Assert.IsTrue(json3 == page);
 
-            json2 = X.GET("/so/person/123"); // all
+            json2 = Self.GET("/so/person/123"); // all
             Assert.IsTrue(json2.ToJson() == allObjWrappedRef.ToJson());
 
             StarcounterEnvironment.AppName = SomeAppName;
 
-            json = X.GET<Json>("/GoogleMapsApp/object/123"); // maps
-            json2 = X.GET<Json>("/so/something/123"); // maps
-            json3 = X.GET<Json>("/so/legalentity/123"); // maps
+            json = Self.GET<Json>("/GoogleMapsApp/object/123"); // maps
+            json2 = Self.GET<Json>("/so/something/123"); // maps
+            json3 = Self.GET<Json>("/so/legalentity/123"); // maps
 
             Assert.IsTrue(null == json);
             Assert.IsTrue(null == json2);
             Assert.IsTrue(null == json3);
 
-            json = X.GET<Json>("/GoogleMapsApp/object/123", () => {
+            json = Self.GET<Json>("/GoogleMapsApp/object/123", () => {
                 return page;
             }); // page
 
-            json2 = X.GET<Json>("/so/something/123", () => {
+            json2 = Self.GET<Json>("/so/something/123", () => {
                 return page;
             }); // page
 
-            json3 = X.GET<Json>("/so/legalentity/123", () => {
+            json3 = Self.GET<Json>("/so/legalentity/123", () => {
                 return page;
             }); // page
 
@@ -344,11 +349,11 @@ namespace Starcounter.Internal.Tests
 
             StarcounterEnvironment.AppName = GoogleMapsAppName;
 
-            json1 = X.GET<Json>("/GoogleMapsApp/object/123"); // maps
-            json2 = X.GET<Json>("/so/something/123"); // maps
-            json3 = X.GET<Json>("/so/legalentity/123"); // maps
-            json = X.GET<Json>("/FacebookApp/person/123"); // maps
-            json4 = X.GET<Json>("/so/person/123"); // maps
+            json1 = Self.GET<Json>("/GoogleMapsApp/object/123"); // maps
+            json2 = Self.GET<Json>("/so/something/123"); // maps
+            json3 = Self.GET<Json>("/so/legalentity/123"); // maps
+            json = Self.GET<Json>("/FacebookApp/person/123"); // maps
+            json4 = Self.GET<Json>("/so/person/123"); // maps
 
             Assert.IsTrue(json2.ToJson() == json1.ToJson());
             Assert.IsTrue(json3.ToJson() == json1.ToJson());
@@ -398,16 +403,16 @@ namespace Starcounter.Internal.Tests
             Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped");
             Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped");
 
-            String r = X.GET<String>("/SomeApp/map1");
+            String r = Self.GET<String>("/SomeApp/map1");
             Assert.IsTrue("/map1" == r);
 
-            r = X.GET<String>("/SomeApp/map2");
+            r = Self.GET<String>("/SomeApp/map2");
             Assert.IsTrue("/map1" == r);
 
-            r = X.GET<String>("/SomeApp/map3");
+            r = Self.GET<String>("/SomeApp/map3");
             Assert.IsTrue("/map1" == r);
 
-            r = X.GET<String>("/polyjuice/mapped");
+            r = Self.GET<String>("/polyjuice/mapped");
             Assert.IsTrue("/map1" == r);
 
             //////////////////////////////////////
@@ -447,16 +452,16 @@ namespace Starcounter.Internal.Tests
             Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped", "POST");
             Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped", "POST");
 
-            Response resp = X.POST("/SomeApp/map1", body, null);
+            Response resp = Self.POST("/SomeApp/map1", body, null);
             Assert.IsTrue("/map1" == resp.Body);
 
-            resp = X.POST("/SomeApp/map2", body, null);
+            resp = Self.POST("/SomeApp/map2", body, null);
             Assert.IsTrue("/map1" == resp.Body);
 
-            resp = X.POST("/SomeApp/map3", body, null);
+            resp = Self.POST("/SomeApp/map3", body, null);
             Assert.IsTrue("/map1" == resp.Body);
 
-            resp = X.POST("/polyjuice/mapped", body, null);
+            resp = Self.POST("/polyjuice/mapped", body, null);
             Assert.IsTrue("/map1" == resp.Body);
 
             //////////////////////////////////////
@@ -493,16 +498,16 @@ namespace Starcounter.Internal.Tests
             Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w");
             Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w");
 
-            r = X.GET<String>("/SomeApp/map1/" + param);
+            r = Self.GET<String>("/SomeApp/map1/" + param);
             Assert.IsTrue("/map1/" + param == r);
 
-            r = X.GET<String>("/SomeApp/map2/" + param);
+            r = Self.GET<String>("/SomeApp/map2/" + param);
             Assert.IsTrue("/map1/" + param == r);
 
-            r = X.GET<String>("/SomeApp/map3/" + param);
+            r = Self.GET<String>("/SomeApp/map3/" + param);
             Assert.IsTrue("/map1/" + param == r);
 
-            r = X.GET<String>("/polyjuice/mapped/" + param);
+            r = Self.GET<String>("/polyjuice/mapped/" + param);
             Assert.IsTrue("/map1/" + param == r);
 
             //////////////////////////////////////
@@ -543,17 +548,20 @@ namespace Starcounter.Internal.Tests
             Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w", "POST");
             Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w", "POST");
 
-            resp = X.POST("/SomeApp/map1/" + param, body, null);
+            resp = Self.POST("/SomeApp/map1/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
 
-            resp = X.POST("/SomeApp/map2/" + param, body, null);
+            resp = Self.POST("/SomeApp/map2/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
 
-            resp = X.POST("/SomeApp/map3/" + param, body, null);
+            resp = Self.POST("/SomeApp/map3/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
 
-            resp = X.POST("/polyjuice/mapped/" + param, body, null);
+            resp = Self.POST("/polyjuice/mapped/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
+
+            // Now all applications are treated as Starcounter applications.
+            StarcounterEnvironment.PolyjuiceAppsFlag = false;
         }
     }
 }
