@@ -19,7 +19,7 @@ namespace Starcounter.Tools.Service.Task {
         /// <param name="applications"></param>
         public static bool Execute(StarcounterWatcher service, out Executables applications) {
 
-            string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/applications");
+            string url = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/applications");
 
             Response response;
             // Example JSON response
@@ -48,7 +48,7 @@ namespace Starcounter.Tools.Service.Task {
             //      }
             //  ]
             //}
-            X.GET(url, out response, null, 10000);
+            Http.GET(url, out response, null, 10000);
 
             if (response.IsSuccessStatusCode) {
                 applications = new Executables();

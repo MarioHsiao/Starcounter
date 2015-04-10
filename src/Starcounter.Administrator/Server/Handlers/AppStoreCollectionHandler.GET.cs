@@ -73,7 +73,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     // Get App Store items (external source)
                     Response response;
                     HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
-                    X.GET(uri, out response, null, 10000, opt);
+                    Http.GET(uri, out response, null, 10000, opt);
                     if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
 
                         ErrorResponse errorResponse = new ErrorResponse();
@@ -197,7 +197,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     // Get items
                     string uri = "http://127.0.0.1:" + port + "/api/admin/appstore/apps";
                     Response response;
-                    X.GET(uri, out response, null, 10000);
+                    Http.GET(uri, out response, null, 10000);
                     if (response.StatusCode != (ushort)System.Net.HttpStatusCode.OK) {
                         return new Response() { StatusCode = response.StatusCode, BodyBytes = response.BodyBytes };
                     }

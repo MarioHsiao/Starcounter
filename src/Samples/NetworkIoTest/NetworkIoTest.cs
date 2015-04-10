@@ -518,8 +518,7 @@ namespace NetworkIoTestApp
 
                     Handle.GET("/exc1", (Request req) =>
                     {
-                        Response resp;
-                        Http.GET("/exc2", out resp);
+                        Response resp = Self.GET("/exc2");
 
                         return resp;
                     });
@@ -528,8 +527,7 @@ namespace NetworkIoTestApp
                     {
                         try
                         {
-                            Response resp;
-                            X.GET("/exc3", out resp);
+                            Response resp = Self.GET("/exc3");
                             return resp;
                         }
                         catch (ResponseException exc)
@@ -554,8 +552,7 @@ namespace NetworkIoTestApp
 
                     Handle.GET("/postponed", (Request req) =>
                     {
-                        X.POST("/echotest", "Here we go!", null, null, (Response resp, Object userObject) =>
-                        {
+                        Http.POST("http://localhost:8080/echotest", "Here we go!", null, null, (Response resp, Object userObject) => {
                             // Modifying the response object by injecting some data.
                             resp["MySuperHeader"] = "Here is my header value!";
                             resp["Set-Cookie"] = "MySuperCookie=CookieValue;" + resp["Set-Cookie"];
