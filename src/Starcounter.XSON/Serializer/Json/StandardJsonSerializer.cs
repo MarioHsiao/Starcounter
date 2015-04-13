@@ -35,6 +35,7 @@ namespace Starcounter.Advanced.XSON {
 
             int sizeBytes = 0;
             string htmlUriMerged = null;
+            string partialConfigId = null;
             Session session = obj.Session;
 
             // Checking if application name should wrap the JSON.
@@ -65,8 +66,10 @@ namespace Starcounter.Advanced.XSON {
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
 
                 // Checking if there is any partial Html provided.
-                if (!String.IsNullOrEmpty(obj.GetHtmlPartialUrl())) {
-                    htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
+                partialConfigId = obj.GetHtmlPartialUrl();
+                if (!String.IsNullOrEmpty(partialConfigId)) {
+                    htmlUriMerged = obj._appName + "=" + partialConfigId;
+                    sizeBytes += 15 + partialConfigId.Length; // "PartialId":"configId",
                 }
             }
 
@@ -168,13 +171,15 @@ namespace Starcounter.Advanced.XSON {
                     htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
                     sizeBytes += htmlUriMerged.Length;
 
-                    string setupStr = null;
-                    try {
-                        setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
-                    } catch { }
+                    if (!string.IsNullOrEmpty(partialConfigId)) {
+                        string setupStr = null;
+                        try {
+                            setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
+                        } catch { }
 
-                    if (setupStr != null) {
-                        sizeBytes += setupStr.Length + 9; // "_setup":
+                        if (setupStr != null) {
+                            sizeBytes += setupStr.Length + 18; // "juicyTilesSetup":
+                        }
                     }
                 }
             }
@@ -193,7 +198,8 @@ namespace Starcounter.Advanced.XSON {
             List<Template> exposedProperties;
             TObject tObj;
             int offset = origOffset;
-            String htmlUriMerged = null;
+            string htmlUriMerged = null;
+            string partialConfigId = null;
             Session session = obj.Session;
 
             // Checking if application name should wrap the JSON.
@@ -233,8 +239,9 @@ namespace Starcounter.Advanced.XSON {
 
                     if (wrapInAppName) {
                         // Checking if there is any partial Html provided.
-                        if (!String.IsNullOrEmpty(obj.GetHtmlPartialUrl())) {
-                            htmlUriMerged = obj._appName + "=" + obj.GetHtmlPartialUrl();
+                        partialConfigId = obj.GetHtmlPartialUrl();
+                        if (!String.IsNullOrEmpty(partialConfigId)) {
+                            htmlUriMerged = obj._appName + "=" + partialConfigId;
                         }
 
                         valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
@@ -425,15 +432,31 @@ namespace Starcounter.Advanced.XSON {
                             pfrag += valueSize;
 
                             string setupStr = null;
-                            try {
-                                setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
-                            } catch { }
+                            if (!string.IsNullOrEmpty(partialConfigId)) {
+                                try {
+                                    setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
+                                } catch { }
+                            }
 
                             if (setupStr != null) {
                                 *pfrag++ = (byte)',';
                                 offset++;
 
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "_setup");
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "PartialId");
+                                offset += valueSize;
+                                pfrag += valueSize;
+
+                                *pfrag++ = (byte)':';
+                                offset++;
+
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, partialConfigId);
+                                offset += valueSize;
+                                pfrag += valueSize;
+
+                                *pfrag++ = (byte)',';
+                                offset++;
+
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "juicyTilesSetup");
                                 offset += valueSize;
                                 pfrag += valueSize;
 
