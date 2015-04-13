@@ -52,7 +52,7 @@ namespace StarcounterInternal.Bootstrap {
                 // Only do this when the console hasn't been redirected though.
                 // And exit instantly thereafter.
                 if (args.Length == 0 && !Console.IsInputRedirected) {
-                    Usage(syntax, null);
+                    Usage(Syntax, null);
                     Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
                 }
 
