@@ -607,6 +607,7 @@ namespace Starcounter.Server {
             }
             
             args.Add(database.Name.ToUpper());
+            args.Add(" 0");
 
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
