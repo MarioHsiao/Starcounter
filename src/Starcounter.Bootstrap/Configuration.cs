@@ -83,6 +83,16 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Gets the installation ID.
+        /// </summary>
+        /// <value>The installation ID.</value>
+        public ulong InstallationID {
+            get {
+                return ulong.Parse(this.ProgramArguments.CommandParameters[1]);
+            }
+        }
+
+        /// <summary>
         /// Gets the output directory.
         /// </summary>
         /// <value>The output directory.</value>
