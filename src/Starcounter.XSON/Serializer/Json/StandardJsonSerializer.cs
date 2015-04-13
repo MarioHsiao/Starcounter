@@ -171,13 +171,15 @@ namespace Starcounter.Advanced.XSON {
                     htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
                     sizeBytes += htmlUriMerged.Length;
 
-                    string setupStr = null;
-                    try {
-                        setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", htmlUriMerged).First;
-                    } catch { }
+                    if (!string.IsNullOrEmpty(partialConfigId)) {
+                        string setupStr = null;
+                        try {
+                            setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
+                        } catch { }
 
-                    if (setupStr != null) {
-                        sizeBytes += setupStr.Length + 9; // "_setup":
+                        if (setupStr != null) {
+                            sizeBytes += setupStr.Length + 18; // "juicyTilesSetup":
+                        }
                     }
                 }
             }
@@ -454,7 +456,7 @@ namespace Starcounter.Advanced.XSON {
                                 *pfrag++ = (byte)',';
                                 offset++;
 
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "_setup");
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "juicyTilesSetup");
                                 offset += valueSize;
                                 pfrag += valueSize;
 
