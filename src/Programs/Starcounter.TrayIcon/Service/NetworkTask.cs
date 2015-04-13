@@ -21,7 +21,7 @@ namespace Starcounter.Tools.Service.Task {
 
             appList = new Dictionary<string, IList<int>>();
 
-            string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/gwstats");
+            string url = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/gwstats");
 
 
             Response response;
@@ -68,7 +68,7 @@ namespace Starcounter.Tools.Service.Task {
             //        }
             //    }
             //}
-            X.GET(url, out response, null, 10000);
+            Http.GET(url, out response, null, 10000);
 
             if (response.IsSuccessStatusCode) {
 

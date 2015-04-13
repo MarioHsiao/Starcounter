@@ -10,9 +10,9 @@ namespace Starcounter.Tools.Service.Task {
 
         public static void Execute(StarcounterWatcher service) {
 
-            string uri = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
+            string uri = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
 
-            Response resonse = X.DELETE(uri, string.Empty, null, 10000);
+            Response resonse = Http.DELETE(uri, string.Empty, null, 10000);
 
             if (!resonse.IsSuccessStatusCode) {
                 throw new Exception(resonse.StatusDescription);

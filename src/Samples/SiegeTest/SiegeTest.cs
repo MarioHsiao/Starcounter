@@ -88,7 +88,7 @@ namespace SiegeTest {
                     throw new Exception("Number of failed transactions is non-zero: " + output);
                 }
 
-                Response resp = X.POST("http://" + settings.ServerIp + ":" + settings.ServerPort + "/echotest", "Test!", null, 5000);
+                Response resp = Http.POST("http://" + settings.ServerIp + ":" + settings.ServerPort + "/echotest", "Test!", null, 5000);
 
                 if ((200 != resp.StatusCode) || ("Test!" != resp.Body)) {
                     throw new Exception("Error accessing code-host after Siege run!");

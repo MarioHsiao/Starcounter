@@ -17,6 +17,7 @@ using System.Collections.Generic;
 
 namespace Starcounter
 {
+    //[ObsoleteAttribute("X class is deprecated. Please use Self for internal and Http for external calls.", false)] 
     public class X
     {
         /// <summary>

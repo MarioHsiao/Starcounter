@@ -23,6 +23,13 @@ namespace Starcounter {
         /// Retrieves endpoint and relative URI information from URI.
         /// </summary>
         internal static void GetEndpointFromUri(String uri, out String endpoint, out String relativeUri) {
+            // Checking if its a localhost communication.
+            if ('/' == uri[0]) {
+                endpoint = "localhost";
+                relativeUri = uri;
+
+                return;
+            }
 
             endpoint = "";
             relativeUri = "/";
@@ -85,18 +92,13 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Flag to set node local for tests.
-        /// </summary>
-        internal static Boolean LocalNode { get; set; }
-
-        /// <summary>
         /// Gets node instance from given URI.
         /// </summary>
         internal static void GetNodeFromUri(UInt16 port, String uri, out Node node, out String relativeUri) {
 
             // Checking for URI contents.
-            if ((uri == null) || (uri.Length < 1) || (!uri.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))) {
-                throw new ArgumentOutOfRangeException("URI should contain at least one character.");
+            if ((uri == null) || (!uri.StartsWith("http://", StringComparison.InvariantCultureIgnoreCase))) {
+                throw new ArgumentOutOfRangeException("URI should start with \"http://\" prefix.");
             }
 
             Dictionary<String, Node> nodesDict = null;
