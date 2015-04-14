@@ -13,6 +13,7 @@ using Starcounter.Server.PublicModel;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Principal;
 
 namespace Starcounter.Server {
@@ -21,6 +22,8 @@ namespace Starcounter.Server {
     /// Representing the running server, hosted in a server program.
     /// </summary>
     public sealed class ServerEngine {
+        const ulong FirstInstallationID = 1;
+
         /// <summary>
         /// Gets the simple name of the server.
         /// </summary>
@@ -250,8 +253,30 @@ namespace Starcounter.Server {
             return info;
         }
 
+        /// <summary>
+        /// Allocates a new, unique database installation ID based on the
+        /// current set of already configured databases.
+        /// </summary>
+        /// <returns>A unique installation ID that can be assigned to a
+        /// database.</returns>
+        internal ulong AllocateNextDatabaseInstallationID() {
+            // The current implementation is not very efficient, but
+            // but motivated because it is very straightforward and the
+            // penalty comes as part of creating new databases, in which
+            // the "slowness" of this will totally drown anyway.
+            ulong candidate = FirstInstallationID;
+            do {
+                var occupant = Databases.Values.FirstOrDefault(db => db.InstallationID == candidate);
+                if (occupant == null) {
+                    return candidate;
+                }
+            } while (candidate < byte.MaxValue);
+
+            throw new Exception("TODO: Max number of databases reached.");
+        }
+
         void SetupDatabases() {
-            ulong installationID = 1;
+            ulong installationID = FirstInstallationID;
 
             foreach (var databaseConfigPath in DatabaseConfiguration.GetAllFiles(this.DatabaseDirectory)) {
                 var databaseDirectory = Path.GetDirectoryName(databaseConfigPath);
