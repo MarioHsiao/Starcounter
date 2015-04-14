@@ -251,6 +251,8 @@ namespace Starcounter.Server {
         }
 
         void SetupDatabases() {
+            ulong installationID = 1;
+
             foreach (var databaseConfigPath in DatabaseConfiguration.GetAllFiles(this.DatabaseDirectory)) {
                 var databaseDirectory = Path.GetDirectoryName(databaseConfigPath);
                 var databaseName = Path.GetFileName(databaseDirectory).ToLowerInvariant();
@@ -260,7 +262,10 @@ namespace Starcounter.Server {
                     // be considered by the server.
                     var config = DatabaseConfiguration.Load(databaseConfigPath);
                     var database = new Database(this, config);
+                    database.InstallationID = installationID;
+
                     this.Databases.Add(databaseName, database);
+                    installationID++;
                 }
 
                 // Check for orphaned database files and enque a command to drop
