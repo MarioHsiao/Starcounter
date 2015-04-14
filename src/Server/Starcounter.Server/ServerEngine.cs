@@ -272,7 +272,7 @@ namespace Starcounter.Server {
                 }
             } while (candidate < byte.MaxValue);
 
-            throw new Exception("TODO: Max number of databases reached.");
+            throw ErrorCode.ToException(Error.SCERRTOOMANYDATABASES);
         }
 
         void SetupDatabases() {
