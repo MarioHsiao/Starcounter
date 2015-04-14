@@ -81,9 +81,9 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
 
-        internal static TJson ReadTemplate(string path) {
+        internal static TObject ReadTemplate(string path) {
             var str = File.ReadAllText(path);
-            var tj = TJson.CreateFromJson(str);
+            var tj = (TObject)TObject.CreateFromJson(str);
             tj.ClassName = Path.GetFileNameWithoutExtension(path);
             return tj;
         }
@@ -122,12 +122,12 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         [Test]
         public static void TestGlobalClassSpecifier() {
             string expected = "Starcounter.Json.JsonByExample.Metadata<TObject,Json>";
-            Type t = new Json.JsonByExample.Metadata<Starcounter.Templates.TObject, Json>(null, null).GetType();
+            Type t = new Json.JsonByExample.Metadata<Json, TObject>(null, null).GetType();
             string actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
             Assert.AreEqual(expected, actual);
 
-            expected = "Starcounter.Json.JsonByExample.Schema";
-            t = new Json.JsonByExample.Schema().GetType();
+            expected = "Starcounter.Templates.TObject";
+            t = typeof(TObject);
             actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
             Assert.AreEqual(expected, actual);
         }
