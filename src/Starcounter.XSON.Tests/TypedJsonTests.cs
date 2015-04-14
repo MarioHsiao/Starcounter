@@ -65,6 +65,21 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Wester", lastName.Getter(tim));
         }
 
+        [Test]
+        public static void TestJsonWithSingleValue() {
+            string jsonStr = @"19";
+            TLong template = TObject.CreateFromJson(jsonStr) as TLong;
+
+            Assert.IsNotNull(template);
+            var json = (Json)template.CreateInstance();
+            Assert.AreEqual(19, json.Get<long>(template));
+
+            json.Set<long>(template, 666);
+            Assert.AreEqual(666, json.Get<long>(template));
+
+            jsonStr = json.ToJson();
+        }
+
         /// <summary>
         /// Tests dynamic.
         /// </summary>

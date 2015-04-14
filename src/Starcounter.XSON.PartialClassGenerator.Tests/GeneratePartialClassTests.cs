@@ -8,6 +8,7 @@ using System;
 using System.IO;
 using NUnit.Framework;
 using Starcounter.Internal.MsBuild.Codegen;
+using Starcounter.Templates;
 using Starcounter.Templates.Interfaces;
 using Starcounter.XSON.Metadata;
 using TJson = Starcounter.Templates.TObject;
@@ -78,6 +79,24 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         /// <summary>
         /// </summary>
         [Test]
+        public static void GenerateCsFromPrimitiveJs() {
+            TValue actual = TObject.CreateFromJson(@"{""Items"":[19]}");
+            actual.ClassName = "PlayerApp";
+
+            Assert.IsInstanceOf(typeof(TObject), actual);
+
+            var codegenmodule = new Gen2CodeGenerationModule();
+            ITemplateCodeGenerator codegen = codegenmodule.CreateGenerator(typeof(TObject), "C#", actual, CodeBehindMetadata.Empty);
+//            Helper.ConsoleWriteLine(codegen.DumpAstTree());
+            var code = codegen.GenerateCode();
+            Helper.ConsoleWriteLine(code);
+        }
+
+
+
+        /// <summary>
+        /// </summary>
+        [Test]
         public static void GenerateCsFromSuperSimpleJs() {
             TJson actual = CreateJsonTemplateFromFile("supersimple.json");
             actual.ClassName = "PlayerApp";
@@ -128,6 +147,14 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
                 "Input/emptyarray.json",
                 null);
 
+            Helper.ConsoleWriteLine(codegen.GenerateCode());
+        }
+
+        [Test]
+        public static void GeneratePrimitiveCode() {
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                "Input/Primitive.json",
+                null);
             Helper.ConsoleWriteLine(codegen.GenerateCode());
         }
     }
