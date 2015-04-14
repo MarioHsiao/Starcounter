@@ -61,7 +61,7 @@ ping -n 3 127.0.0.1 > nul
 IF %ERRORLEVEL% NEQ 0 EXIT /b 1
 
 :: Starting database with some delay.
-sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+sccode.exe %DB_NAME% 0 --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
 IF ERRORLEVEL 1 (
     ECHO Error: The query processing regression test failed!
@@ -69,7 +69,7 @@ IF ERRORLEVEL 1 (
 )
 
 :: Disabling the second run due to reasoning in #2477
-:: sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+:: sccode.exe %DB_NAME% 0 --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
 IF ERRORLEVEL 1 (
     ECHO Error: The query processing regression test failed!

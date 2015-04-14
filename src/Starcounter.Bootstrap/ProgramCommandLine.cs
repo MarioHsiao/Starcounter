@@ -52,7 +52,7 @@ namespace StarcounterInternal.Bootstrap {
                 // Only do this when the console hasn't been redirected though.
                 // And exit instantly thereafter.
                 if (args.Length == 0 && !Console.IsInputRedirected) {
-                    Usage(syntax, null);
+                    Usage(Syntax, null);
                     Environment.Exit((int)Error.SCERRBADCOMMANDLINESYNTAX);
                 }
 
@@ -158,7 +158,7 @@ namespace StarcounterInternal.Bootstrap {
             // > prog.exe mydatabase
             // (where we have omitted Start, since its the default).
 
-            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 1);
+            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 2);
 
             // Specifies the property set we accept.
             // A full command line could look like

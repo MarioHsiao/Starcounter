@@ -29,9 +29,12 @@ namespace Starcounter.Server.Commands {
         protected override void Execute() {
             CreateDatabaseCommand command = (CreateDatabaseCommand)this.Command;
             AssureUniqueName(command);
+            var installationID = this.Engine.AllocateNextDatabaseInstallationID();
 
             var setup = new DatabaseSetup(this.Engine, command.SetupProperties);
             var database = setup.CreateDatabase();
+            database.InstallationID = installationID;
+
             Engine.Databases.Add(database.Name, database);
             Engine.CurrentPublicModel.AddDatabase(database);
         }

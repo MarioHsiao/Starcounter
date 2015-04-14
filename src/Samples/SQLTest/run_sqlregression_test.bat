@@ -32,7 +32,7 @@ START scdata.exe 0 SqlTest .db.output SQLTEST .db .db
 START scdblog.exe SqlTest SqlTest .db.output
 START 32bitComponents\scsqlparser.exe 8066
 
-CALL sccode.exe SQLTEST --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
+CALL sccode.exe SQLTEST 0 --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
 
 IF ERRORLEVEL 1 (
     ECHO Error: SQL regression test is failed!

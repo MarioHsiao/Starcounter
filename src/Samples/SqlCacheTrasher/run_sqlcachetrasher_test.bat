@@ -43,7 +43,7 @@ START CMD /C "32bitComponents\scsqlparser.exe 8066"
 ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
-sccode.exe %DB_NAME% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
+sccode.exe %DB_NAME% 0 --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
 
 IF ERRORLEVEL 1 (
     ECHO Error: SQLCacheTrasher test failed!
