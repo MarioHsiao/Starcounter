@@ -111,13 +111,13 @@ namespace Starcounter {
 		/// <param name="value">The value to set.</param>
 		public void Set(TString property, string value) { Set<string>(property, value); }
 
-		/// <summary>
-		/// Gets the value for the specified template. If the property
-		/// is bound the value will be retrived from the underlying dataobject.
-		/// </summary>
-		/// <param name="property">The template to retrieve the value for.</param>
-		/// <returns>The value.</returns>
-		public ulong Get(TOid property) { return Get<ulong>(property); }
+        ///// <summary>
+        ///// Gets the value for the specified template. If the property
+        ///// is bound the value will be retrived from the underlying dataobject.
+        ///// </summary>
+        ///// <param name="property">The template to retrieve the value for.</param>
+        ///// <returns>The value.</returns>
+        //public ulong Get(TOid property) { return Get<ulong>(property); }
 
 		/// <summary>
 		/// 
