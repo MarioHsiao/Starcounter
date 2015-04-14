@@ -549,7 +549,8 @@ namespace Starcounter.Server {
         ProcessStartInfo GetDatabaseStartInfo(Database database) {
             var arguments = new StringBuilder();
 
-            arguments.Append("0 ");
+            arguments.Append(database.InstallationID.ToString());
+            arguments.Append(' ');
 
             arguments.Append('\"');
             arguments.Append(database.Uri);
@@ -606,8 +607,8 @@ namespace Starcounter.Server {
                 args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
             
-            args.Add(database.Name.ToUpper());
-            args.Add(" 0");
+            args.Add(database.Name.ToUpper() + " ");
+            args.Add(database.InstallationID.ToString());
 
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.OutputDir + "=\"{0}\"", database.Server.Configuration.LogDirectory);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.TempDir + "=\"{0}\"", database.Configuration.Runtime.TempDirectory);
