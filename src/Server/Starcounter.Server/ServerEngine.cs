@@ -270,7 +270,7 @@ namespace Starcounter.Server {
                 if (occupant == null) {
                     return candidate;
                 }
-            } while (candidate < byte.MaxValue);
+            } while (++candidate < byte.MaxValue);
 
             throw ErrorCode.ToException(Error.SCERRTOOMANYDATABASES);
         }
