@@ -4270,6 +4270,12 @@
         The application is not an executable.
       </message>
     </code>
+    <code hex="0028" severity="Error" name="ScErrTooManyDatabases">
+      <message>
+        Creating a new database failed. The maximum number of databases that
+        can coexist on a given server have been reached.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
