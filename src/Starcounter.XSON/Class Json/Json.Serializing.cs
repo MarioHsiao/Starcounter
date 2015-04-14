@@ -25,10 +25,7 @@ namespace Starcounter {
 				return "{}";
 			}
 
-            var template = Template as TContainer;
-            if (template == null)
-                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
-            return template.ToJson(this);
+            return ((TValue)Template).ToJson(this);
 		}
 
         /// <summary>
@@ -43,10 +40,7 @@ namespace Starcounter {
                 return buffer;
 			}
 
-            var template = Template as TContainer;
-            if (template == null)
-                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
-            return template.ToJsonUtf8(this);
+            return ((TValue)Template).ToJsonUtf8(this);
         }
 
         /// <summary>
@@ -66,11 +60,7 @@ namespace Starcounter {
                 return 2;
             }
 
-            if (!(Template is TContainer)) {
-                throw new NotImplementedException("Cannot currently serialize JSON for single value JSON");
-            }
-            var template = Template as TContainer;
-            return template.ToJsonUtf8(this, buf, offset);
+            return ((TValue)Template).ToJsonUtf8(this, buf, offset);
         }
 
 		/// <summary>

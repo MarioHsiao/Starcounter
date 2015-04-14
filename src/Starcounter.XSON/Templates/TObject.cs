@@ -214,10 +214,10 @@ namespace Starcounter.Templates {
         }
        
         /// <summary>
-        /// CreateFromMarkup
+        /// 
         /// </summary>
-        /// <typeparam name="TypeObj"></typeparam>
-        /// <typeparam name="TypeTObj"></typeparam>
+        /// <typeparam name="TJson"></typeparam>
+        /// <typeparam name="TTemplate"></typeparam>
         /// <param name="format"></param>
         /// <param name="markup"></param>
         /// <param name="origin"></param>
@@ -242,8 +242,8 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="json"></param>
         /// <returns></returns>
-        public static TObject CreateFromJson(string json) {
-            return CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", json, null);
+        public static TValue CreateFromJson(string json) {
+            return CreateFromMarkup<Json, TValue>("json", json, null);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
-		public override Json CreateInstance(Json parent = null) {
+		public override object CreateInstance(Json parent = null) {
 			if (_JsonType != null) {
 				var msg = (Json)Activator.CreateInstance(_JsonType);
 				msg.Template = this;
@@ -459,54 +459,15 @@ namespace Starcounter.Templates {
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <returns></returns>
-		public override string ToJson(Json json) {
-            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
-            int count = ToJsonUtf8(json, buffer, 0);
-			return Encoding.UTF8.GetString(buffer, 0, count);
-		}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public override byte[] ToJsonUtf8(Json json) {
-            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
-            int count = ToJsonUtf8(json, buffer, 0);
-
-            // Checking if we have to shrink the buffer.
-            if (count != buffer.Length) {
-                byte[] sizedBuffer = new byte[count];
-                Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
-                return sizedBuffer;
-            }
-            return buffer;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
-            return JsonSerializer.Serialize(json, buffer, offset);
-        }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="buffer"></param>
-		/// <returns></returns>
-		public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
-			return FTJSerializer.Serialize(json, buffer, offset);
-		}
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="json"></param>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
+        //    return FTJSerializer.Serialize(json, buffer, offset);
+        //}
 
 		/// <summary>
 		/// 
@@ -544,15 +505,16 @@ namespace Starcounter.Templates {
 			}
 		}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="srcPtr"></param>
-		/// <param name="srcSize"></param>
-		/// <returns></returns>
-		public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
-			return FTJSerializer.Populate(json, srcPtr, srcSize);
-		}
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="json"></param>
+        ///// <param name="srcPtr"></param>
+        ///// <param name="srcSize"></param>
+        ///// <returns></returns>
+        //public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
+        //    return FTJSerializer.Populate(json, srcPtr, srcSize);
+        //}
+
     }
 }

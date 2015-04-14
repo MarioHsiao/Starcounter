@@ -179,10 +179,6 @@ namespace Starcounter.Templates {
 			}
 		}
 
-		internal override string ValueToJsonString(Json parent) {
-		    return Getter(parent).ToString();
-		}
-
 		/// <summary>
 		/// 
 		/// </summary>

@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Starcounter.Templates {
 
@@ -18,6 +19,8 @@ namespace Starcounter.Templates {
     /// the schema template for that property becomes an TTrigger.
     /// </remarks>
     public class TTrigger : TValue {
+        private static byte[] jsonValueAsBytes = new byte[] { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
+
         private Func<Json, TValue, Input> _inputEventCreator;
         private Action<Json, Input> _inputHandler;
 
@@ -137,8 +140,32 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 		}
 
-        internal override string ValueToJsonString(Json parent) {
+        public override string ToJson(Json json) {
             return "null";
+        }
+
+        public override byte[] ToJsonUtf8(Json json) {
+            return jsonValueAsBytes;
+        }
+
+        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+            if ((offset + jsonValueAsBytes.Length) > buffer.Length)
+                return -1;
+            Buffer.BlockCopy(jsonValueAsBytes, 0, buffer, offset, jsonValueAsBytes.Length);
+            return jsonValueAsBytes.Length;
+        }
+
+        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+            if (bufferSize < jsonValueAsBytes.Length)
+                return -1;
+
+            unsafe {
+                byte* pfrag = (byte*)ptr;
+                for (int i = 0; i < jsonValueAsBytes.Length; i++) {
+                    pfrag[i] = jsonValueAsBytes[i];
+                }
+            }
+            return jsonValueAsBytes.Length;
         }
     }
 }

@@ -52,18 +52,58 @@ namespace Starcounter.Templates {
 			}	
 		}
 
-		internal override string ValueToJsonString(Json parent) {
-			string value = Getter(parent);
-			if (!string.IsNullOrEmpty(value)) {
-				byte[] buffer = new byte[value.Length * 4];
-				unsafe {
-					fixed (byte* p = buffer) {
-						int size = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
-						return System.Text.Encoding.UTF8.GetString(buffer, 0, size);
-					}
-				}
-			}
-			return "\"\"";
-		}
+        public override string ToJson(Json json) {
+            string value = Getter(json);
+            if (!string.IsNullOrEmpty(value)) {
+                byte[] buffer = new byte[value.Length * 4];
+                unsafe {
+                    fixed (byte* p = buffer) {
+                        int size = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
+                        return System.Text.Encoding.UTF8.GetString(buffer, 0, size);
+                    }
+                }
+            }
+            return "\"\"";
+        }
+
+        public override byte[] ToJsonUtf8(Json json) {
+            string value = Getter(json);
+            byte[] buf;
+            int realSize;
+
+            if (value != null) {
+                buf = new byte[value.Length * 4];
+                unsafe {
+                    fixed (byte* p = buf) {
+                        realSize = JsonHelper.WriteString((IntPtr)p, buf.Length, value);
+                    }
+                }
+
+                if (buf.Length != realSize) {
+                    byte[] tmp = new byte[realSize];
+                    Buffer.BlockCopy(buf, 0, tmp, 0, realSize);
+                    buf = tmp;
+                }
+            } else {
+                // TODO:
+                // Support real null.
+                buf = new byte[2];
+                buf[0] = (byte)'"';
+                buf[1] = (byte)'"';
+            }
+            return buf;
+        }
+
+        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+            unsafe {
+                fixed (byte* p = &buffer[offset]) {
+                    return JsonHelper.WriteString((IntPtr)p, buffer.Length - offset, Getter(json));
+                }
+            }
+        }
+
+        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+            return JsonHelper.WriteString(ptr, bufferSize, Getter(json));
+        }
     }
 }

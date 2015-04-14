@@ -225,7 +225,7 @@ namespace Starcounter.XSON {
                     Json parent = change.Parent;
                     string value = 
                         parent.Scope<Json, TValue, string>(
-                            (p, t) => { return t.ValueToJsonString(p); },
+                            (p, t) => { return t.ToJson(p); },
                             parent,
                             change.Property
                         );

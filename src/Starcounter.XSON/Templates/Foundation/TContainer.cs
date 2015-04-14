@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON.DeserializerCompiler;
@@ -23,7 +24,6 @@ namespace Starcounter.Templates {
     /// </remarks>
     public abstract class TContainer : TValue {
 		private bool codeGenStarted = false;
-		private bool _Sealed;
 		private TypedJsonSerializer codegenStandardSerializer;
 		private TypedJsonSerializer codegenFTJSerializer;
 
@@ -34,28 +34,6 @@ namespace Starcounter.Templates {
             get { return false; }
         }
 
-		/// <summary>
-		/// Once a TContainer (Obj or Arr schema) is in use (have instances), this property will return
-		/// true and you cannot modify the template.
-		/// </summary>
-		/// <remarks>
-		/// Exception should be change to an SCERR???? error.
-		/// </remarks>
-		/// <value><c>true</c> if sealed; otherwise, <c>false</c>.</value>
-		/// <exception cref="System.Exception">Once a TObj is sealed, you cannot unseal it</exception>
-		public override bool Sealed {
-			get {
-				return _Sealed;
-			}
-			internal set {
-				if (!value && _Sealed) {
-					// TODO! SCERR!
-					throw new Exception("Once a TContainer (Obj or Arr schema) is in use (have instances), you cannot modify it");
-				}
-				_Sealed = value;
-			}
-		}
-
 		internal abstract Json GetValue(Json parent);
 
         /// <summary>
@@ -64,17 +42,55 @@ namespace Starcounter.Templates {
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
 
-		public abstract string ToJson(Json json);
-		public abstract byte[] ToJsonUtf8(Json json);
-
-        public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
-
 		public abstract void PopulateFromJson(Json json, string jsonStr);
 		public abstract int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize);
 		public abstract int PopulateFromJson(Json json, byte[] src, int srcSize);
 
-		public abstract int ToFasterThanJson(Json json, byte[] buffer, int offset);
-		public abstract int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize);
+//		public abstract int ToFasterThanJson(Json json, byte[] buffer, int offset);
+//		public abstract int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public override string ToJson(Json json) {
+            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
+            int count = ToJsonUtf8(json, buffer, 0);
+            return Encoding.UTF8.GetString(buffer, 0, count);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public override byte[] ToJsonUtf8(Json json) {
+            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
+            int count = ToJsonUtf8(json, buffer, 0);
+
+            // Checking if we have to shrink the buffer.
+            if (count != buffer.Length) {
+                byte[] sizedBuffer = new byte[count];
+                Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
+                return sizedBuffer;
+            }
+            return buffer;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <param name="buffer"></param>
+        /// <returns></returns>
+        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+            return JsonSerializer.Serialize(json, buffer, offset);
+        }
+
+        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+            throw new NotImplementedException();
+        }
 
 		/// <summary>
 		/// 

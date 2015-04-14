@@ -180,66 +180,67 @@ restart:
 		}
 
 		public override int Populate(Json obj, IntPtr src, int srcSize) {
-			if (obj.IsArray) {
-				throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
-			}
+            throw new NotImplementedException();
+            //if (obj.IsArray) {
+            //    throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
+            //}
 
-			unsafe {
-				List<Template> exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
-				int valueCount = exposedProperties.Count;
-				var reader = new TupleReaderBase64((byte*)src, (uint)valueCount);
+            //unsafe {
+            //    List<Template> exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
+            //    int valueCount = exposedProperties.Count;
+            //    var reader = new TupleReaderBase64((byte*)src, (uint)valueCount);
 
-				Json arr;
-				Json childObj;
-				TObject tObj = (TObject)obj.Template;
-				Template tProperty;
-				String valueAsStr;
+            //    Json arr;
+            //    Json childObj;
+            //    TObject tObj = (TObject)obj.Template;
+            //    Template tProperty;
+            //    String valueAsStr;
 
-				for (int i = 0; i < exposedProperties.Count; i++){
-					tProperty = exposedProperties[i];
+            //    for (int i = 0; i < exposedProperties.Count; i++){
+            //        tProperty = exposedProperties[i];
 
-					try {
-						if (tProperty is TBool) {
-							ulong v = reader.ReadULong();
-							if (v == 1) ((TBool)tProperty).Setter(obj, true);
-							else ((TBool)tProperty).Setter(obj, false);
-						} else if (tProperty is TDecimal) {
-							valueAsStr = reader.ReadString();
-							((TDecimal)tProperty).Setter(obj, Decimal.Parse(valueAsStr, CultureInfo.InvariantCulture));
-						} else if (tProperty is TDouble) {
-							valueAsStr = reader.ReadString();
-							((TDouble)tProperty).Setter(obj, Double.Parse(valueAsStr, CultureInfo.InvariantCulture));
-						} else if (tProperty is TLong) {
-							((TLong)tProperty).Setter(obj, reader.ReadLong());
-						} else if (tProperty is TString) {
-							((TString)tProperty).Setter(obj, reader.ReadString());
-						} else if (tProperty is TObject) {
-							childObj = ((TObject)tProperty).Getter(obj);
-							((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)reader.AtEnd, 0);
-							reader.Skip();
-						} else if (tProperty is TObjArr) {
-							arr = ((TObjArr)tProperty).Getter(obj);
+            //        try {
+            //            if (tProperty is TBool) {
+            //                ulong v = reader.ReadULong();
+            //                if (v == 1) ((TBool)tProperty).Setter(obj, true);
+            //                else ((TBool)tProperty).Setter(obj, false);
+            //            } else if (tProperty is TDecimal) {
+            //                valueAsStr = reader.ReadString();
+            //                ((TDecimal)tProperty).Setter(obj, Decimal.Parse(valueAsStr, CultureInfo.InvariantCulture));
+            //            } else if (tProperty is TDouble) {
+            //                valueAsStr = reader.ReadString();
+            //                ((TDouble)tProperty).Setter(obj, Double.Parse(valueAsStr, CultureInfo.InvariantCulture));
+            //            } else if (tProperty is TLong) {
+            //                ((TLong)tProperty).Setter(obj, reader.ReadLong());
+            //            } else if (tProperty is TString) {
+            //                ((TString)tProperty).Setter(obj, reader.ReadString());
+            //            } else if (tProperty is TObject) {
+            //                childObj = ((TObject)tProperty).Getter(obj);
+            //                ((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)reader.AtEnd, 0);
+            //                reader.Skip();
+            //            } else if (tProperty is TObjArr) {
+            //                arr = ((TObjArr)tProperty).Getter(obj);
 
-							var arrReader = new TupleReaderBase64(reader.AtEnd, 2);
-							int arrItemCount = (int)arrReader.ReadULong();
+            //                var arrReader = new TupleReaderBase64(reader.AtEnd, 2);
+            //                int arrItemCount = (int)arrReader.ReadULong();
 
-							var itemReader = new TupleReaderBase64(arrReader.AtEnd, (uint)arrItemCount);
+            //                var itemReader = new TupleReaderBase64(arrReader.AtEnd, (uint)arrItemCount);
 							
-							for (int aic = 0; aic < arrItemCount; aic++) {
+            //                for (int aic = 0; aic < arrItemCount; aic++) {
 
-                                childObj = arr.NewItem();
-								((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)itemReader.AtEnd, 0);
-								itemReader.Skip();
-							}
-							arrReader.Skip();
-							reader.Skip();
-						}
-					} catch (InvalidCastException ex) {
-						JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
-					}
-				}
-				return (int)reader.ReadByteCount;
-			}
+            //                    childObj = arr.NewItem();
+            //                    ((TContainer)childObj.Template).PopulateFromFasterThanJson(childObj, (IntPtr)itemReader.AtEnd, 0);
+            //                    itemReader.Skip();
+            //                }
+            //                arrReader.Skip();
+            //                reader.Skip();
+            //            }
+            //        } catch (InvalidCastException ex) {
+            //            JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
+            //        }
+            //    }
+            //    return (int)reader.ReadByteCount;
+            //}
 		}
 
 		protected static byte[] IncreaseCapacity(byte[] current, int offset, int needed) {

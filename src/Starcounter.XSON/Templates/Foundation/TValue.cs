@@ -158,11 +158,7 @@ namespace Starcounter.Templates {
 			parent.CheckpointAt(TemplateIndex);
 		}
 
-		internal virtual string ValueToJsonString(Json parent) {
-			return "";
-		}
-
-        public virtual Json CreateInstance(Json parent = null) {
+        public virtual object CreateInstance(Json parent = null) {
             return new Json() { Template = this, Parent = parent };
         }
 
@@ -175,6 +171,11 @@ namespace Starcounter.Templates {
 			CopyValueDelegates(toTemplate);
 			((TValue)toTemplate).Bind = Bind;
 		}
+
+        public abstract string ToJson(Json json);
+        public abstract byte[] ToJsonUtf8(Json json);
+        public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
+        public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
 
 		/// <summary>
 		/// 

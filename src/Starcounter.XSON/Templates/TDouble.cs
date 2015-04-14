@@ -6,6 +6,7 @@
 
 using System;
 using System.Globalization;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Templates {
 
@@ -25,8 +26,37 @@ namespace Starcounter.Templates {
             get { return typeof(double); }
         }
 
-		internal override string ValueToJsonString(Json parent) {
-			return Getter(parent).ToString("0.0###########################", CultureInfo.InvariantCulture);
-		}
+        public override string ToJson(Json json) {
+            return Getter(json).ToString("0.0###########################", CultureInfo.InvariantCulture);
+        }
+
+        public override byte[] ToJsonUtf8(Json json) {
+            byte[] buf = new byte[32];
+
+            unsafe {
+                fixed (byte* p = buf) {
+                    JsonHelper.WriteDouble((IntPtr)p, buf.Length, Getter(json));
+                }
+            }
+            return buf;
+        }
+
+        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+            if ((offset + 32) > buffer.Length)
+                return -1;
+
+            unsafe {
+                fixed (byte* p = buffer) {
+                    return JsonHelper.WriteDouble((IntPtr)p, buffer.Length, Getter(json));
+                }
+            }
+        }
+
+        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+            if (bufferSize < 32)
+                return -1;
+
+            return JsonHelper.WriteDouble(ptr, bufferSize, Getter(json));
+        }
     }
 }
