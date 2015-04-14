@@ -22,7 +22,7 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
         public static void DefaultValueTest() {
             string script = @"{StrVal: ""default"",BoolVal: true,DblVal: 2e4,DecVal: 23.4,LongVal: 99}";
 
-            TObject schema = TObject.CreateFromJson(script);
+            TObject schema = (TObject)TObject.CreateFromJson(script);
 
             Assert.AreEqual("default", ((TString)schema.Properties[0]).DefaultValue);
             Assert.AreEqual(true, ((TBool)schema.Properties[1]).DefaultValue);
@@ -52,11 +52,13 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
 
             var actual = TJson.CreateFromJson(script2);
             Assert.IsInstanceOf(typeof(TJson), actual);
-            Assert.IsInstanceOf<TString>(actual.Properties[0]);
-            Assert.IsInstanceOf<TString>(actual.Properties[1]);
-            Assert.IsInstanceOf<TBool>(actual.Properties[2]);
-            Assert.IsInstanceOf<TObjArr>(actual.Properties[3]);
-            Console.WriteLine(actual);
+
+            var tobj = (TJson)actual;
+            Assert.IsInstanceOf<TString>(tobj.Properties[0]);
+            Assert.IsInstanceOf<TString>(tobj.Properties[1]);
+            Assert.IsInstanceOf<TBool>(tobj.Properties[2]);
+            Assert.IsInstanceOf<TObjArr>(tobj.Properties[3]);
+            Console.WriteLine(tobj);
         }
 
         /// <summary>
@@ -71,9 +73,10 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
 
             var actual = TJson.CreateFromJson(script2);
             Assert.IsInstanceOf(typeof(TJson), actual);
-            Assert.IsInstanceOf<TString>(actual.Properties[0]);
-            Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
-            Assert.AreEqual("TestApp", actual.ClassName);
+            var tobj = (TJson)actual;
+            Assert.IsInstanceOf<TString>(tobj.Properties[0]);
+            Assert.AreEqual(true, ((TString)tobj.Properties[0]).Editable);
+            Assert.AreEqual("TestApp", tobj.ClassName);
             Console.WriteLine(actual);
         }
 
@@ -99,16 +102,17 @@ namespace Starcounter.Internal.JsonTemplate.Tests {
 
             var actual = TJson.CreateFromMarkup<Json, TJson>("json", script2, null);
             Assert.IsInstanceOf(typeof(TJson), actual);
-            Assert.AreEqual("TestApp", actual.ClassName);
-            Assert.AreEqual("Test", actual.Namespace);
-            Assert.IsInstanceOf<TString>(actual.Properties[0]);
-            Assert.IsInstanceOf<TString>(actual.Properties[1]);
-            Assert.IsInstanceOf<TBool>(actual.Properties[2]);
-            Assert.IsInstanceOf<TObjArr>(actual.Properties[3]);
-            Assert.AreEqual(true, ((TString)actual.Properties[0]).Editable);
-            Assert.AreEqual(false, ((TString)actual.Properties[1]).Editable);
-            Assert.AreEqual(true, ((TBool)actual.Properties[2]).Editable);
-            Console.WriteLine(actual);
+            var tobj = (TJson)actual;
+            Assert.AreEqual("TestApp", tobj.ClassName);
+            Assert.AreEqual("Test", tobj.Namespace);
+            Assert.IsInstanceOf<TString>(tobj.Properties[0]);
+            Assert.IsInstanceOf<TString>(tobj.Properties[1]);
+            Assert.IsInstanceOf<TBool>(tobj.Properties[2]);
+            Assert.IsInstanceOf<TObjArr>(tobj.Properties[3]);
+            Assert.AreEqual(true, ((TString)tobj.Properties[0]).Editable);
+            Assert.AreEqual(false, ((TString)tobj.Properties[1]).Editable);
+            Assert.AreEqual(true, ((TBool)tobj.Properties[2]).Editable);
+            Console.WriteLine(tobj);
         }
 
 
