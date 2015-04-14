@@ -17,7 +17,7 @@ namespace Starcounter {
         private String __bf__Html__;
 
         public new static class JsonByExample {
-            public class Schema : Json.JsonByExample.Schema {
+            public class Schema : TObject {
                 public Schema()
                     : base() {
                     InstanceType = typeof(Page);

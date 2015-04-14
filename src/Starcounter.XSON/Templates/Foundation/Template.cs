@@ -20,6 +20,7 @@ namespace Starcounter.Templates {
         private string _className;
         private string _name;
         private string _propertyName;
+        private bool _sealed;
         internal TContainer _parent;
 
         private static readonly IReadOnlyList<IReadOnlyTree> _emptyList = new List<IReadOnlyTree>();
@@ -204,15 +205,19 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value><c>true</c> if sealed; otherwise, <c>false</c>.</value>
         /// <exception cref="System.Exception">You are not allowed to set the IsSealed value</exception>
-        public virtual bool Sealed {
+        public bool Sealed {
             get {
-                if (Parent == null || !Parent.Sealed) {
-                    return false;
+                if (Parent != null) {
+                    return Parent.Sealed;
                 }
-                return true;
+                return _sealed;
             }
             internal set {
-                throw new Exception("You are not allowed to set the IsSealed value");
+                if (_sealed == true) {
+                    // TODO! SCERR!
+                    throw new Exception("Once a TContainer (Obj or Arr schema) is in use (have instances), you cannot modify it");
+                }
+                _sealed = value;
             }
         }
 

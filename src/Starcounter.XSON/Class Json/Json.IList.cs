@@ -76,17 +76,19 @@ namespace Starcounter {
                     return _list;
                 } else {
                     int childIndex;
-                    var template = (TObject)Template;
-                    while (_list.Count < template.Properties.Count) {
-                        // We allow adding new properties to dynamic templates
-                        // even after instances have been created.
-                        // For this reason, we need to allow the expansion of the 
-                        // values.
-                        if (_trackChanges)
-                            _SetFlag.Add(false);
-                        childIndex = _list.Count;
-                        _list.Add(null);
-                        ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
+                    if (!Template.IsPrimitive) {
+                        var template = (TObject)Template;
+                        while (_list.Count < template.Properties.Count) {
+                            // We allow adding new properties to dynamic templates
+                            // even after instances have been created.
+                            // For this reason, we need to allow the expansion of the 
+                            // values.
+                            if (_trackChanges)
+                                _SetFlag.Add(false);
+                            childIndex = _list.Count;
+                            _list.Add(null);
+                            ((TValue)template.Properties[childIndex]).SetDefaultValue(this);
+                        }
                     }
                     return _list;
                 }
@@ -100,46 +102,42 @@ namespace Starcounter {
         internal void InitializeCache() {
             if (IsArray) {
                 _list = new List<Json>();
-
                 if (_trackChanges)
                     _SetFlag = new List<bool>();
             } else {
-                var template = (TObject)Template;
-                if (IsCodegenerated) {
-                    InitializeBackingFields(template.Properties);
-                } else {
-                    InitializeQuickTuple(template.Properties);
+                SetDefaultValues();
+            }
+        }
+
+        private void SetDefaultValues() {
+            TObject tobj;
+
+            if (!IsCodegenerated)
+                _list = new List<object>();
+
+            _Dirty = false;
+            if (_trackChanges)
+                _SetFlag = new List<bool>();
+
+            if (_Template.IsPrimitive) {
+                SetDefaultValue((TValue)_Template);
+            } else {
+                tobj = (TObject)_Template;
+                _Dirty = false;
+                for (int t = 0; t < tobj.Properties.Count; t++) {
+                    SetDefaultValue((TValue)tobj.Properties[t]);
                 }
             }
         }
 
-        private void InitializeQuickTuple(PropertyList properties) {
-            int count = properties.Count;
-
-            _list = new List<object>(count);
-            if (_trackChanges)
-                _SetFlag = new List<bool>(count);
-            _Dirty = false;
-
-            for (int t = 0; t < count; t++) {
+        private void SetDefaultValue(TValue value) {
+            if (_list != null)
                 _list.Add(null);
-                if (_trackChanges)
-                    _SetFlag.Add(false);
-                ((TValue)properties[t]).SetDefaultValue(this);
-            }
-        }
-
-        private void InitializeBackingFields(PropertyList properties) {
-            int count = properties.Count;
 
             if (_trackChanges)
-                _SetFlag = new List<bool>(count);
-            
-            for (int t = 0; t < count; t++) {
-                if (_trackChanges)
-                    _SetFlag.Add(false);
-                ((TValue)properties[t]).SetDefaultValue(this);
-            }
+                _SetFlag.Add(false);
+
+            value.SetDefaultValue(this);
         }
 
         internal bool WasReplacedAt(int index) {

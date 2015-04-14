@@ -54,22 +54,34 @@ namespace Starcounter {
         /// Base classes to be derived by Json-by-example classes.
         /// </summary>
         public static class JsonByExample {
-            /// <summary>
-            /// Used by to support inheritance when using Json-by-example compiler
-            /// </summary>
-            public class Schema : Starcounter.Templates.TObject {
-            }
+            ///// <summary>
+            ///// Used by to support inheritance when using Json-by-example compiler
+            ///// </summary>
+            //public class Schema : Starcounter.Templates.Template {
+
+            //    public override bool IsPrimitive {
+            //        get { throw new NotImplementedException(); }
+            //    }
+
+            //    public override Type MetadataType {
+            //        get { throw new NotImplementedException(); }
+            //    }
+
+            //    public override bool HasInstanceValueOnClient {
+            //        get { throw new NotImplementedException(); }
+            //    }
+            //}
 
             /// <summary>
             /// Used by to support inheritance when using Json-by-example compiler
             /// </summary>
 			/// <typeparam name="SchemaType">The schema for the Json.</typeparam>
             /// <typeparam name="JsonType">The Json instance type described by this schema</typeparam>
-            public class Metadata<SchemaType, JsonType> : Starcounter.Templates.ObjMetadata<SchemaType, JsonType>
-                where SchemaType : Starcounter.Templates.TObject
-                where JsonType : Json {
+            public class Metadata<TJson, TTemplate> : Starcounter.Templates.ValueMetadata<TJson, TTemplate>
+                where TTemplate : Starcounter.Templates.TValue
+                where TJson : Json {
 
-                public Metadata(JsonType app, SchemaType template) : base(app, template) { }
+                public Metadata(TJson app, TTemplate template) : base(app, template) { }
             }
         }
 
@@ -177,8 +189,11 @@ namespace Starcounter {
         /// <exception cref="System.Exception">Template is already set for App. Cannot change template once it is set</exception>
         public Template Template {
             set {
-                _Template = (TContainer)value;
+                _Template = value;
                 _isArray = (_Template is TObjArr);
+
+                if (_Template == null)
+                    return;
 
                 if (_Template is TObject && ((TObject)_Template).IsDynamic) {
                     TObject t = (TObject)_Template;
@@ -186,12 +201,13 @@ namespace Starcounter {
                         throw new Exception(String.Format("You cannot assign a Template ({0}) for a dynamic Json object (i.e. an Expando like object) to a new Json object ({0})", value, this));
                     }
                     ((TObject)_Template).SingleInstance = (Json)this;
-                }
-                else if (_Template == null) {
-                    return;
-                }
-                else {
+                } else {
                     _Template.Sealed = true;
+
+                    if (_Template.IsPrimitive) {
+                        _Template.TemplateIndex = 0;
+                        ((TValue)_Template).GenerateUnboundGetterAndSetter();
+                    }
                 }
 #if QUICKTUPLE
                 _InitializeValues();

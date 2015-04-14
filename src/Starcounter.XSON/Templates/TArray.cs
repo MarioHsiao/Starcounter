@@ -150,7 +150,7 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent.</param>
 		/// <returns>System.Object.</returns>
-		public override Json CreateInstance(Json parent) {
+		public override object CreateInstance(Json parent) {
 			return new Arr<OT>(parent, this);
 		}
 
