@@ -138,30 +138,30 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
 		private static void RunFTJSerializerTest(string name, TObject tObj, bool useCodegen) {
-			int serializedSize = 0;
-			int afterPopulateSize = 0;
-			Json original;
-			Json newJson;
+            //int serializedSize = 0;
+            //int afterPopulateSize = 0;
+            //Json original;
+            //Json newJson;
 
-			XSONModule.UseCodegeneratedSerializer = false;
+            //XSONModule.UseCodegeneratedSerializer = false;
 
-			original = (Json)tObj.CreateInstance();
+            //original = (Json)tObj.CreateInstance();
 
-            XSONModule.UseCodegeneratedSerializer = useCodegen;
-			XSONModule.DontCreateSerializerInBackground = true;
+            //XSONModule.UseCodegeneratedSerializer = useCodegen;
+            //XSONModule.DontCreateSerializerInBackground = true;
 
-            byte[] ftj = new byte[tObj.JsonSerializer.EstimateSizeBytes(original)];
-			serializedSize = tObj.ToFasterThanJson(original, ftj, 0);
+            //byte[] ftj = new byte[tObj.JsonSerializer.EstimateSizeBytes(original)];
+            //serializedSize = tObj.ToFasterThanJson(original, ftj, 0);
 
-			unsafe {
-				fixed (byte* p = ftj) {
-					newJson = (Json)tObj.CreateInstance();
-					afterPopulateSize = tObj.PopulateFromFasterThanJson(newJson, (IntPtr)p, serializedSize);
-				}
-			}
+            //unsafe {
+            //    fixed (byte* p = ftj) {
+            //        newJson = (Json)tObj.CreateInstance();
+            //        afterPopulateSize = tObj.PopulateFromFasterThanJson(newJson, (IntPtr)p, serializedSize);
+            //    }
+            //}
 
-			Assert.AreEqual(serializedSize, afterPopulateSize);
-			Helper.AssertAreEqual(original, newJson);
+            //Assert.AreEqual(serializedSize, afterPopulateSize);
+            //Helper.AssertAreEqual(original, newJson);
 		}
 
         private static void RunStandardSerializerTest(string name, string jsonStr, bool useCodegen) {
