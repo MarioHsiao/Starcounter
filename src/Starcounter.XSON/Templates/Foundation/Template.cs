@@ -213,7 +213,7 @@ namespace Starcounter.Templates {
                 return _sealed;
             }
             internal set {
-                if (_sealed == true) {
+                if (!value && _sealed == true) {
                     // TODO! SCERR!
                     throw new Exception("Once a TContainer (Obj or Arr schema) is in use (have instances), you cannot modify it");
                 }
