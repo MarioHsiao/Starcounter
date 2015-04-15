@@ -518,6 +518,9 @@ namespace Starcounter.Internal.JsonTemplate {
         /// <param name="propertyName"></param>
         /// <param name="debugInfo"></param>
         private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
+            if (propertyName == null)
+                return;
+
             for (int i = 0; i < ILLEGAL_PROPERTIES.Length; i++) {
                 if (propertyName.Equals(ILLEGAL_PROPERTIES[i], StringComparison.CurrentCultureIgnoreCase)) {
                     ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
