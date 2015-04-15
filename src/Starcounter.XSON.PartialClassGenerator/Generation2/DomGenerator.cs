@@ -255,6 +255,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstInstanceClass ObtainValueClass(Template template, bool isRoot) {
             AstInstanceClass ret;
 
+            if (!isRoot && template.IsPrimitive) {
+                template = GetPrototype(template);
+            }
+
             if (valueClasses.TryGetValue(template, out ret)) {
                 return ret;
             }
@@ -283,8 +287,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 ret = acn;
             } else {
                 if (template.IsPrimitive) {
-                    template = GetPrototype(template);
-                
                     ret = new AstPrimitiveType(this);
                     valueClasses.Add(template, ret);
                     ret.BuiltInType = template.InstanceType;
@@ -467,6 +469,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstTemplateClass ObtainTemplateClass(Template template, bool isRoot) {
             AstTemplateClass ret;
 
+            if (!isRoot && template.IsPrimitive) {
+                template = GetPrototype(template);
+            }
+
             if (templateClasses.TryGetValue(template, out ret)) {
                 return ret;
             }
@@ -482,16 +488,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (inheritedClass != null)
                     ret.InheritedClass = inheritedClass.NTemplateClass;
 
-                ret.Namespace = template.Namespace;
-                ret.NValueClass = acn;
-                ret.Parent = acn.NJsonByExample;
-                ret.ClassStemIdentifier = "Schema";
-                ret.NValueClass = acn;
+                if (template == defaultObjTemplate) {
+                    ret.NValueClass = acn;
+                    ret.BuiltInType = defaultObjTemplate.GetType();
+                } else {
+                    ret.Namespace = template.Namespace;
+                    ret.NValueClass = acn;
+                    ret.Parent = acn.NJsonByExample;
+                    ret.ClassStemIdentifier = "Schema";
+                }
                 return ret;
             } else {
-
                 if (template.IsPrimitive) {
-                    template = GetPrototype(template);
                     ret = new AstTemplateClass(this) {
                         Template = template,
                     };
