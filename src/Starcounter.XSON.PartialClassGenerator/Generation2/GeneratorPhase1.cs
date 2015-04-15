@@ -4,7 +4,7 @@ using Starcounter.XSON.Metadata;
 
 namespace Starcounter.Internal.MsBuild.Codegen {
     /// <summary>
-    /// Creates a code dom from a JSON template (TObject).
+    /// Creates a code dom from a JSON template (TObject). 
     /// </summary>
     internal class GeneratorPhase1 {
         private Gen2DomGenerator generator;
@@ -14,16 +14,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
-        /// This is the main calling point to generate a dom tree for a JSON template (TObject).
+        /// This is the main calling point to generate a dom tree for a JSON template.
         /// </summary>
-        /// <param name="at">The TJson template (i.e. json tree prototype) to generate code for</param>
+        /// <param name="at">The json template (i.e. json tree prototype) to generate code for</param>
         /// <param name="metadata">The metadata.</param>
         /// <returns>An abstract code tree. Use CSharpGenerator to generate .CS code.</returns>
-        internal AstRoot RunPhase1(TObject at, out AstJsonClass acn, out AstSchemaClass tcn, out AstMetadataClass mcn) {
+        internal AstRoot RunPhase1(TValue at, out AstJsonClass acn, out AstSchemaClass tcn, out AstMetadataClass mcn) {
             CodeBehindMetadata metadata = generator.CodeBehindMetadata;
 
             var root = new AstRoot(generator);
-            acn = (AstJsonClass)generator.ObtainValueClass(at);
+            acn = (AstJsonClass)generator.ObtainValueClass(at, true);
             acn.Parent = root;
             acn.IsPartial = true;
             acn.CodebehindClass = metadata.RootClassInfo;
@@ -79,9 +79,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                            template);
                         }
                         else if (kid is TObjArr) {
+                            TObject objElement = null;
 							var tarr = kid as TObjArr;
                             var titem = tarr.ElementType;
-							var isUntyped = ((titem == null) || (titem.Properties.Count == 0));
+
+                            // untyped if titem == null or titem is an object with no properties.
+                            bool isUntyped = (titem == null);
+                            if (!isUntyped) {
+                                objElement = titem as TObject;
+                                if (objElement != null)
+                                    isUntyped = (objElement.Properties.Count == 0);
+                            }
 
                             if (isUntyped) {
                                 if (titem != null && titem.GetCodegenMetadata(Gen2DomGenerator.Reuse) != null)
@@ -97,8 +105,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 								(AstSchemaClass)templParent,
 								metaParent);
 							
-							if (!isUntyped){
-								GenerateForApp(((TObjArr)kid).ElementType,
+                            // TODO:
+                            // Need to generate class for primitive template as well I think.
+							if (!isUntyped && objElement != null) {
+								GenerateForApp(objElement,
 											   appClassParent,
 											   templParent,
 											   metaParent,
@@ -110,7 +120,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         }
                     }
                     else {
-                        AstTemplateClass type = generator.ObtainTemplateClass(kid);
+                        AstTemplateClass type = generator.ObtainTemplateClass(kid, false);
                         GenerateProperty(
                             kid, 
                             (AstJsonClass)appClassParent, 
@@ -133,8 +143,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                       AstSchemaClass templParent,
                                       AstClass metaParent)
         {
-            var valueClass = generator.ObtainValueClass(at);
-            var type = generator.ObtainTemplateClass(at);
+            var valueClass = generator.ObtainValueClass(at, false);
+            var type = generator.ObtainTemplateClass(at, false);
 
             new AstProperty(generator) {
                 Parent = appClassParent,
@@ -154,7 +164,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             new AstProperty(generator) {
                 Parent = metaParent,
                 Template = at,
-                Type = generator.ObtainMetaClass(at)
+                Type = generator.ObtainMetaClass(at, false)
             };
         }
 
@@ -192,11 +202,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     // app (representing, for example, child web pages)
                     generator.AssociateTemplateWithDefaultJson(at);
                 }
-                acn = (AstJsonClass)generator.ObtainValueClass(at);
+                acn = (AstJsonClass)generator.ObtainValueClass(at, true);
                 tcn = acn.NTemplateClass;
                 mcn = acn.NMetadataClass;
             } else {
-                acn = (AstJsonClass)generator.ObtainValueClass(at);
+                acn = (AstJsonClass)generator.ObtainValueClass(at, true);
                 acn.Parent = appClassParent;
                 tcn = acn.NTemplateClass;
                 mcn = acn.NMetadataClass;

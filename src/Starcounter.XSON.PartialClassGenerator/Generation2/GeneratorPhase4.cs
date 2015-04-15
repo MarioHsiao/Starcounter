@@ -40,14 +40,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 			int dotIndex;
 			string templateClassName;
 			string metadataClassName;
-            TObject appTemplate;
-            TObject rootTemplate;
-            TObject[] classesInOrder;
+            TValue appTemplate;
+            TValue rootTemplate;
+            TValue[] classesInOrder;
             CodeBehindClassInfo mapInfo;
             AstJsonClass nAppClass;
 
-            classesInOrder = new TObject[metadata.JsonPropertyMapList.Count];
-            rootTemplate = (TObject)root.AppClassClassNode.Template;
+            classesInOrder = new TValue[metadata.JsonPropertyMapList.Count];
+            rootTemplate = root.AppClassClassNode.Template;
 
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 mapInfo = metadata.JsonPropertyMapList[i];
@@ -70,11 +70,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (!String.IsNullOrEmpty(mapInfo.Namespace))
                         appTemplate.Namespace = mapInfo.Namespace;
 
-                    nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate);
+                    nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate, false);
                     nAppClass.IsPartial = true;
 
-                    var ntAppClass = (AstSchemaClass)generator.ObtainTemplateClass(appTemplate);
-                    var mdAppClass = generator.ObtainMetaClass(appTemplate);
+                    var ntAppClass = (AstSchemaClass)generator.ObtainTemplateClass(appTemplate, false);
+                    var mdAppClass = generator.ObtainMetaClass(appTemplate, false);
 
                     nAppClass.CodebehindClass = mapInfo;
 
@@ -118,7 +118,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="classesInOrder">The classes in order.</param>
         /// <param name="mapInfos">The map infos.</param>
         /// <param name="root">The root.</param>
-        private void ReorderCodebehindClasses(TObject[] classesInOrder,
+        private void ReorderCodebehindClasses(TValue[] classesInOrder,
                                               List<CodeBehindClassInfo> mapInfos,
                                               AstRoot root) {
             List<string> parentClasses;
@@ -130,7 +130,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 var cls = classesInOrder[i];
                 if (cls != null) {
-                    theClass = generator.ObtainValueClass(cls);
+                    theClass = generator.ObtainValueClass(cls, false);
                     parentClasses = mapInfos[i].ParentClasses;
                     if (parentClasses.Count > 0) {
                         parent = root;
@@ -180,7 +180,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="rootTemplate">The root template.</param>
         /// <returns>TApp.</returns>
         /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
-        private TObject FindTAppFor(CodeBehindClassInfo ci, TObject rootTemplate) {
+        private TValue FindTAppFor(CodeBehindClassInfo ci, TValue rootTemplate) {
             TObject appTemplate;
             string[] mapParts;
             Template template;
@@ -189,7 +189,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (ci.ClassPath.Contains(".json."))
                 throw new Exception("The class path should be free from .json. text");
 #endif
-            appTemplate = rootTemplate;
+            appTemplate = (TObject)rootTemplate;
 
 
             mapParts = ci.ClassPath.Split('.');
@@ -200,12 +200,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 // We start with i=1. This means that we assume that the first part
                 // of the class path is the root class no matter what name is used.
                 // This makes it easier when user is refactoring his or her code.
+
                 template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
                 if (template is TObject) {
                     appTemplate = (TObject)template;
                 }
                 else if (template is TObjArr) {
-                    appTemplate = ((TObjArr)template).ElementType;
+                    appTemplate = (TObject)((TObjArr)template).ElementType;
                 }
                 else {
                     // TODO:
@@ -318,7 +319,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 					if (template is TObjArr) {
 						template = ((TObjArr)template).ElementType;
 					}
-					tcn = (AstSchemaClass)generator.ObtainTemplateClass(template);
+					tcn = (AstSchemaClass)generator.ObtainTemplateClass(template, false);
 				}
 			} else {
 				tcn = (AstSchemaClass)((AstJsonClass)astClass).NTemplateClass;
@@ -382,7 +383,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
 				binding = new AstInputBinding(generator);
                 binding.BindsToProperty = (AstProperty)cst.Children[index];
-                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(tcn.Template);
+                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(tcn.Template, false);
                 binding.InputTypeName = info.FullInputTypeName;
 				generator.FindHandleDeclaringClass(binding, info);
                 

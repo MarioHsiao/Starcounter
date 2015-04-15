@@ -236,7 +236,9 @@ namespace Starcounter.Templates {
                     throw new Exception("Once the TemplateName is set, it cannot be changed");
                 _name = value;
                 if (PropertyName == null) {
-                    string name = value.Replace("$", "");
+                    string name = value;
+                    if (value != null)
+                        name = value.Replace("$", "");
                     _propertyName = name;
                     if (Parent != null) {
                         var parent = (TObject)Parent;
