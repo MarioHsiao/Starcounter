@@ -121,7 +121,7 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
 
         [Test]
         public static void TestGlobalClassSpecifier() {
-            string expected = "Starcounter.Json.JsonByExample.Metadata<TObject,Json>";
+            string expected = "Starcounter.Json.JsonByExample.Metadata<Json,TObject>";
             Type t = new Json.JsonByExample.Metadata<Json, TObject>(null, null).GetType();
             string actual = HelperFunctions.GetGlobalClassSpecifier(t, true);
             Assert.AreEqual(expected, actual);
