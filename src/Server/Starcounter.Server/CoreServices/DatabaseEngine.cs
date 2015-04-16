@@ -410,6 +410,7 @@ namespace Starcounter.Server {
                         Error.SCERRCODEHOSTPROCESSNOTEXITED,
                         string.Format("{0}. ({1})", "Killing it.", infoString)).ToString());
                     process.Kill();
+                    process.WaitForExit();
                 }
             }
 
