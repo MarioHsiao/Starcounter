@@ -724,7 +724,7 @@ namespace Starcounter.Server {
             Database database,
             uint errorCode,
             Exception serverException = null) {
-            var exitCode = (uint)engineProcess.ExitCode;
+            var exitCode = (uint)GetSafeExitCode(engineProcess);
             var errorPostfix = FormatDatabaseEngineProcessInfoString(database, engineProcess, true);
 
             // If the exit code indicates anything greater than 1,
@@ -735,6 +735,14 @@ namespace Starcounter.Server {
                 serverException;
 
             return ErrorCode.ToException(errorCode, inner, errorPostfix);
+        }
+
+        static int GetSafeExitCode(Process p) {
+            int code = (int)Error.SCERRPROCESSEXITCODENOTAVAILABLE;
+            try {
+                code = p.ExitCode;
+            } catch { }
+            return code;
         }
     }
 }
