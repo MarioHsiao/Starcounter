@@ -3716,7 +3716,7 @@
 	  <message>Internal error in SQL Processor. Error cannot be retrieved.</message>
 	</code>
 	<code hex="0023" severity="Error" name="ScErrUnexpMetadata">
-	  <message>Internal error in unmanaged runtime meta-data population.</message>
+	  <message>Internal error in unmanaged meta-data population.</message>
 	</code>
 	<code hex="0024" severity="Error" name="ScErrSqlInternalBufferSmall">
 	  <message>Internal error in native SQL processor that allocated buffer is too small.</message>
@@ -4270,7 +4270,12 @@
         The application is not an executable.
       </message>
     </code>
-    <code hex="0028" severity="Error" name="ScErrTooManyDatabases">
+    <code hex="0028" severity="Error" name="ScErrProcessExitCodeNotAvailable">
+      <message>
+        The exit code of the terminating process was not available.
+      </message>
+    </code>
+    <code hex="0029" severity="Error" name="ScErrTooManyDatabases">
       <message>
         Creating a new database failed. The maximum number of databases that
         can coexist on a given server have been reached.
