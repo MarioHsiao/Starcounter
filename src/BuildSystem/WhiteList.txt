@@ -139,6 +139,9 @@ sccoredbm.dll
 sccoredbm.exp
 sccoredbm.lib
 sccoredbm.pdb
+sccoreerr.dll
+sccoreerr.lib
+sccoreerr.pdb
 sccorelib.dll
 sccorelib.exp
 sccorelib.lib
