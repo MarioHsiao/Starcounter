@@ -4228,6 +4228,11 @@
         The application is not an executable.
       </message>
     </code>
+    <code hex="0028" severity="Error" name="ScErrProcessExitCodeNotAvailable">
+      <message>
+        The exit code of the terminating process was not available.
+      </message>
+    </code>
   </facility>
 
   <!-- Error codes related to setup installer -->
