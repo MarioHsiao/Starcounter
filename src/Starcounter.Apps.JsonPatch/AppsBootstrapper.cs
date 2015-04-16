@@ -169,7 +169,16 @@ namespace Starcounter.Internal {
                     String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
 
                     if (Directory.Exists(extendedResourceDirPath)) {
+
                         fullPathToResourcesDir = extendedResourceDirPath;
+
+                    } else {
+
+                        extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.PolyjuiceWebRootName);
+
+                        if (Directory.Exists(extendedResourceDirPath)) {
+                            fullPathToResourcesDir = extendedResourceDirPath;
+                        }
                     }
                 }
 
