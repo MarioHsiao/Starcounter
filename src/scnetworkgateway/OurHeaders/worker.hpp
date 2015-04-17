@@ -639,11 +639,8 @@ public:
 
             if (false == sockets_infos_[proxy_socket_index].IsInvalidSocket()) {
 
-                // NOTE: Not checking for correctness here.
-                g_gateway.DisconnectSocket(sockets_infos_[proxy_socket_index].get_socket());
-
-                // Making socket unusable.
-                InvalidateSocket(proxy_socket_index);
+                // Disconnecting proxy socket.
+                sockets_infos_[proxy_socket_index].DisconnectSocket();
             }
         }
     }
@@ -676,14 +673,6 @@ public:
 #endif
 
         return unique_id;
-    }
-
-    // Setting new unique socket number.
-    void InvalidateSocket(socket_index_type socket_index)
-    {
-        GW_ASSERT_DEBUG(socket_index < g_gateway.setting_max_connections_per_worker());
-
-        sockets_infos_[socket_index].socket_ = INVALID_SOCKET;
     }
 
     // Getting unique socket number.

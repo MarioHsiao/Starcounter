@@ -282,10 +282,8 @@ uint32_t GatewayWorker::CollectInactiveSockets()
                     // Updating unique socket id.
                     GenerateUniqueSocketInfoIds(i);
 
-                    // NOTE: Not checking for error code.
-                    g_gateway.DisconnectSocket(si->get_socket());
-
-                    InvalidateSocket(i);
+                    // Disconnecting outdated socket.
+                    si->DisconnectSocket();
 
                     break;
                 }
@@ -1506,7 +1504,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
         if (INVALID_SOCKET_INDEX == new_socket_index) {
 
             // Just closing the socket.
-            g_gateway.DisconnectSocket(s);
+            closesocket(s);
 
             return;
         }
@@ -1524,7 +1522,7 @@ void GatewayWorker::ProcessRebalancedSockets() {
             new_socket_index = INVALID_SOCKET_INDEX;
 
             // Just closing the socket.
-            g_gateway.DisconnectSocket(s);
+            closesocket(s);
 
             return;
         }

@@ -155,19 +155,6 @@ uint32_t SocketDataChunk::Connect(GatewayWorker* gw, sockaddr_in *serverAddr)
     return ConnectExFunc(GetSocket(), (SOCKADDR *) serverAddr, sizeof(sockaddr_in), NULL, 0, NULL, &ovl_);
 }
 
-// Start disconnecting socket.
-uint32_t SocketDataChunk::Disconnect(GatewayWorker *gw)
-{
-    // Checking correct unique socket.
-    GW_ASSERT(true == CompareUniqueSocketId());
-
-    set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
-
-    memset(&ovl_, 0, OVERLAPPED_SIZE);
-
-    return DisconnectExFunc(GetSocket(), &ovl_, 0, 0);
-}
-
 // Resetting socket.
 void SocketDataChunk::ResetWhenDisconnectIsDone(GatewayWorker *gw)
 {

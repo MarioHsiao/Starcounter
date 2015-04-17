@@ -119,10 +119,17 @@ namespace Starcounter.Internal
 
         internal class SocketContainer {
 
+
+            /// <summary>
+            /// Holds structure for WebSocket.
+            /// </summary>
             internal WebSocketInternal Ws {
                 get; set;
             }
 
+            /// <summary>
+            /// Holds structure for TcpSocket.
+            /// </summary>
             public TcpSocket Rs {
                 get; set;
             }
@@ -193,6 +200,19 @@ namespace Starcounter.Internal
             }
 
             /// <summary>
+            /// Port number.
+            /// </summary>
+            UInt16 port_;
+
+            /// <summary>
+            /// Port number.
+            /// </summary>
+            internal UInt16 Port {
+                get { return port_; }
+                set { port_ = value; }
+            }
+
+            /// <summary>
             /// Network data stream.
             /// </summary>
             NetworkDataStream dataStream_;
@@ -206,11 +226,13 @@ namespace Starcounter.Internal
             }
 
             public void Init(
+                UInt16 port,
                 UInt32 socketIndexNum,
                 UInt64 socketUniqueId,
                 Byte gatewayWorkerId,
                 LinkedListNode<UInt32> activeListNode) {
 
+                port_ = port;
                 socketIndexNum_ = socketIndexNum;
                 socketUniqueId_ = socketUniqueId;
                 gatewayWorkerId_ = gatewayWorkerId;
@@ -275,7 +297,7 @@ namespace Starcounter.Internal
                 return null;
             }
 
-            public SocketContainer AddSocket(UInt32 socketIndexNum, UInt64 socketUniqueId, Byte gatewayWorkerId) {
+            public SocketContainer AddSocket(UInt16 port, UInt32 socketIndexNum, UInt64 socketUniqueId, Byte gatewayWorkerId) {
 
                 Debug.Assert(sockets_[socketIndexNum] == null);
 
@@ -293,7 +315,7 @@ namespace Starcounter.Internal
 
                 activeSocketIndexes_.AddLast(lln);
 
-                sockets_[socketIndexNum].Init(socketIndexNum, socketUniqueId, gatewayWorkerId, lln);
+                sockets_[socketIndexNum].Init(port, socketIndexNum, socketUniqueId, gatewayWorkerId, lln);
 
                 return sockets_[socketIndexNum];
             }
@@ -348,7 +370,8 @@ namespace Starcounter.Internal
             s.RemoveActiveSocket(sc);
         }
 
-        internal static SocketContainer ObtainSocketContainerForRawSocket(NetworkDataStream dataStream) {
+        internal static SocketContainer ObtainSocketContainerForRawSocket(UInt16 port, NetworkDataStream dataStream) {
+
             unsafe {
 
                 // Obtaining socket index and unique id.
@@ -362,7 +385,7 @@ namespace Starcounter.Internal
 
                 // Checking if socket container does not exist.
                 if (null == sws.GetSocket(socketIndex)) {
-                    sc = sws.AddSocket(socketIndex, socketUniqueId, dataStream.GatewayWorkerId);
+                    sc = sws.AddSocket(port, socketIndex, socketUniqueId, dataStream.GatewayWorkerId);
                     sc.Rs = new TcpSocket(sc);
                 } else {
                     sc = sws.GetSocket(socketIndex, socketUniqueId);
@@ -404,6 +427,7 @@ namespace Starcounter.Internal
         }
 
         internal static WebSocketInternal CreateNewWebSocket(
+            UInt16 port,
             UInt32 socketIndex,
             UInt64 socketUniqueId,
             Byte gatewayWorkerId,
@@ -424,7 +448,7 @@ namespace Starcounter.Internal
                 }
 
                 // Adding new socket.
-                sc = sws.AddSocket(socketIndex, socketUniqueId, gatewayWorkerId);
+                sc = sws.AddSocket(port, socketIndex, socketUniqueId, gatewayWorkerId);
 
                 Debug.Assert(sc != null);
                 sc.CargoId = cargoId;

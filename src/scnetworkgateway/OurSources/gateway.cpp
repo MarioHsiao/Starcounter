@@ -2462,16 +2462,6 @@ uint32_t __stdcall AllDatabasesChannelsEventsMonitorRoutine(LPVOID params)
     GW_SC_END_FUNC
 }
 
-// Disconnecting given socket handle.
-void Gateway::DisconnectSocket(SOCKET s) {
-
-    GW_ASSERT(INVALID_SOCKET != s);
-
-    //shutdown(s, SD_BOTH);
-    DisconnectExFunc(s, NULL, 0, 0);
-    closesocket(s);
-}
-
 // Entry point for inactive sockets cleanup.
 uint32_t __stdcall InactiveSocketsCleanupRoutine(LPVOID params)
 {

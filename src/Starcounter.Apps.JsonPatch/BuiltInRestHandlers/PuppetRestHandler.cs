@@ -127,7 +127,7 @@ namespace Starcounter.Internal {
                 if (req.WebSocketUpgrade) {
 
                     // Sending an upgrade (note that we attach the existing session).
-                    req.SendUpgrade(JsonPatchWebSocketChannelName, 0, null, session);
+                    req.SendUpgrade(JsonPatchWebSocketChannelName, 0, null, null, session);
 
                     return HandlerStatus.Handled;
                 }
