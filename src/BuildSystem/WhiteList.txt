@@ -310,6 +310,10 @@ sunflower.dll
 sunflower.exp
 sunflower.lib
 sunflower.pdb
+systables.dll
+systables.pdb
+systables.exp
+systables.lib
 testtemplate.html
 TurboText_en-GB_3.dll
 TurboText_en-GB_3.exp
