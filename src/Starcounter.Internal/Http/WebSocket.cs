@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using System.Text;
+using System.Threading;
 
 namespace Starcounter
 {
@@ -250,8 +251,9 @@ namespace Starcounter
         /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
         /// </summary>
         /// <param name="action">Given action that should be performed with each WebSocket.</param>
-        public static void ForEach(Action<WebSocket> action) {
-            ForEach(null, UInt64.MaxValue, action);
+        /// <param name="port">Port number.</param>
+        public static void ForEach(Action<WebSocket> action, UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
+            ForEach(null, UInt64.MaxValue, action, port);
         }
 
         /// <summary>
@@ -259,8 +261,9 @@ namespace Starcounter
         /// </summary>
         /// <param name="action">Given action that should be performed with each WebSocket.</param>
         /// <param name="channelName">Channel name filter for WebSockets.</param>
-        public static void ForEach(String channelName, Action<WebSocket> action) {
-            ForEach(channelName, UInt64.MaxValue, action);
+        /// <param name="port">Port number.</param>
+        public static void ForEach(String channelName, Action<WebSocket> action, UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
+            ForEach(channelName, UInt64.MaxValue, action, port);
         }
 
         /// <summary>
@@ -268,90 +271,117 @@ namespace Starcounter
         /// </summary>
         /// <param name="action">Given action that should be performed with each WebSocket.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void ForEach(UInt64 cargoId, Action<WebSocket> action) {
-            ForEach(null, cargoId, action);
+        /// <param name="port">Port number.</param>
+        public static void ForEach(UInt64 cargoId, Action<WebSocket> action, UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
+            ForEach(null, cargoId, action, port);
         }
-        
+
+        /// <summary>
+        /// Running task on current scheduler.
+        /// </summary>
+        static void ForEachWebSocketOnCurrentScheduler(
+            UInt32 channelId,
+            UInt64 cargoId, 
+            Action<WebSocket> action, 
+            UInt16 port) {
+
+            // Saving current WebSocket since we are going to set other.
+            WebSocket origCurrentWebSocket = WebSocket.Current;
+
+            try {
+                SchedulerResources.SchedulerSockets ss = 
+                    SchedulerResources.AllHostSockets.GetSchedulerSockets(StarcounterEnvironment.CurrentSchedulerId);
+
+                // Going through each gateway worker.
+                for (Byte gwWorkerId = 0; gwWorkerId < StarcounterEnvironment.Gateway.NumberOfWorkers; gwWorkerId++) {
+
+                    SchedulerResources.SocketsPerSchedulerPerGatewayWorker spspgw = ss.GetSocketsPerGatewayWorker(gwWorkerId);
+
+                    // Going through each active socket.
+                    foreach (UInt32 wsIndex in spspgw.ActiveSocketIndexes) {
+
+                        // Getting socket container.
+                        SchedulerResources.SocketContainer sc = spspgw.GetSocket(wsIndex);
+
+                        // Checking if socket is alive.
+                        if ((sc != null) && (port == sc.Port) && (!sc.IsDead())) {
+
+                            WebSocketInternal wsInternal = sc.Ws;
+
+                            // Checking if its WebSocket.
+                            if (null != wsInternal) {
+
+                                // Comparing given channel name if any.
+                                if ((channelId == MixedCodeConstants.INVALID_WS_CHANNEL_ID) ||
+                                    (wsInternal.ChannelId == channelId)) {
+
+                                    // Comparing given cargo ID if any.
+                                    if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
+
+                                        // Creating WebSocket object used for pushes.
+                                        WebSocket ws = new WebSocket(wsInternal, null, null, false, WebSocket.WsHandlerType.Empty);
+
+                                        // Setting current WebSocket.
+                                        WebSocket.Current = ws;
+
+                                        // Running user delegate with WebSocket as parameter.
+                                        action(ws);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                // Restoring original current WebSocket.
+                WebSocket.Current = origCurrentWebSocket;
+            }
+        }
+
         /// <summary>
         /// Running the given action on WebSockets that meet given criteria (channel name and cargo, if any).
         /// </summary>
         /// <param name="action">Given action that should be performed with each WebSocket.</param>
         /// <param name="channelName">Channel name filter for WebSockets.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void ForEach(String channelName, UInt64 cargoId, Action<WebSocket> action) {
+        /// <param name="port">Port number.</param>
+        public static void ForEach(String channelName, UInt64 cargoId, Action<WebSocket> action, UInt16 port) {
+
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
 
             UInt32 channelId = MixedCodeConstants.INVALID_WS_CHANNEL_ID;
 
-            if (channelName != null)
+            if (channelName != null) {
                 channelId = WsChannelInfo.CalculateChannelIdFromChannelName(channelName);
+            }
 
             // For each scheduler.
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
 
                 Byte schedId = i;
 
-                // Running asynchronous task.
-                ScSessionClass.DbSession.RunAsync(() => {
-
-                    // Saving current WebSocket since we are going to set other.
-                    WebSocket origCurrentWebSocket = WebSocket.Current;
-
-                    try {
-                        SchedulerResources.SchedulerSockets ss = SchedulerResources.AllHostSockets.GetSchedulerSockets(schedId);
-
-                        // Going through each gateway worker.
-                        for (Byte gwWorkerId = 0; gwWorkerId < StarcounterEnvironment.Gateway.NumberOfWorkers; gwWorkerId++) {
-
-                            SchedulerResources.SocketsPerSchedulerPerGatewayWorker spspgw = ss.GetSocketsPerGatewayWorker(gwWorkerId);
-
-                            // Going through each active socket.
-                            foreach (UInt32 wsIndex in spspgw.ActiveSocketIndexes) {
-
-                                // Getting socket container.
-                                SchedulerResources.SocketContainer sc = spspgw.GetSocket(wsIndex);
-
-                                // Checking if socket is alive.
-                                if ((sc != null) && (!sc.IsDead())) {
-
-                                    WebSocketInternal wsInternal = sc.Ws;
-
-                                    // Checking if its WebSocket.
-                                    if (null != wsInternal) {
-
-                                        // Comparing given channel name if any.
-                                        if ((null == channelName) || (wsInternal.ChannelId == channelId)) {
-
-                                            // Comparing given cargo ID if any.
-                                            if ((cargoId == UInt64.MaxValue) || (cargoId == wsInternal.CargoId)) {
-
-                                                // Creating WebSocket object used for pushes.
-                                                WebSocket ws = new WebSocket(wsInternal, null, null, false, WebSocket.WsHandlerType.Empty);
-
-                                                // Setting current WebSocket.
-                                                WebSocket.Current = ws;
-
-                                                // Running user delegate with WebSocket as parameter.
-                                                action(ws);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } finally {
-                        // Restoring original current WebSocket.
-                        WebSocket.Current = origCurrentWebSocket;
-                    }
-
-                }, schedId);
+                ScSessionClass.DbSession.RunAsync(
+                    () => { ForEachWebSocketOnCurrentScheduler(channelId, cargoId, action, port); },
+                    schedId);
             }
         }
 
         /// <summary>
         /// Disconnecting WebSockets that meet given criteria.
         /// </summary>
-        public static void DisconnectEach(String channelName = null, UInt64 cargoId = UInt64.MaxValue) {
-            ForEach(channelName, cargoId, (WebSocket ws) => { ws.Disconnect(); });
+        public static void DisconnectEach(
+            String channelName = null, 
+            UInt64 cargoId = UInt64.MaxValue, 
+            UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
+
+            ForEach(channelName, cargoId, (WebSocket ws) => { ws.Disconnect(); }, port);
         }
 
         Boolean isText_;
@@ -411,13 +441,20 @@ namespace Starcounter
         }
 
         internal void ConstructFromRequest(
+            UInt16 port,
             UInt32 socketIndexNum,
             UInt64 socketUniqueId,
             Byte gatewayWorkerId,
             UInt64 cargoId,
             UInt32 channelId)
         {
-            WebSocketInternal wsi = SchedulerResources.CreateNewWebSocket(socketIndexNum, socketUniqueId, gatewayWorkerId, cargoId, channelId);
+            WebSocketInternal wsi = SchedulerResources.CreateNewWebSocket(
+                port, 
+                socketIndexNum, 
+                socketUniqueId, 
+                gatewayWorkerId, 
+                cargoId, 
+                channelId);
 
             wsInternal_ = wsi;
         }
@@ -429,6 +466,11 @@ namespace Starcounter
         internal void Destroy() {
 
             Debug.Assert(null != wsInternal_);
+
+            // Disconnecting dead WebSocket from the session.
+            if (Session != null) {
+                Session.ActiveWebSocket = null;
+            }
 
             wsInternal_.Destroy();
         }

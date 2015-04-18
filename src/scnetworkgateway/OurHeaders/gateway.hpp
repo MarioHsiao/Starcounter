@@ -997,6 +997,21 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
 
+
+    // Disconnecting given socket handle.
+    void DisconnectSocket() {
+
+        GW_ASSERT(INVALID_SOCKET != socket_);
+
+        shutdown(socket_, SD_BOTH);
+
+        //DisconnectExFunc(socket_, NULL, 0, 0);
+
+        closesocket(socket_);
+
+        socket_ = INVALID_SOCKET;
+    }
+
     bool get_socket_aggregated_flag()
     {
         return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED) != 0;
@@ -1880,8 +1895,6 @@ public:
     {
         return num_processed_http_requests_unsafe_;
     }
-
-    void DisconnectSocket(SOCKET s);
 
     // Steps global timer value.
     void step_global_timer_unsafe(int32_t value)

@@ -22,6 +22,11 @@ namespace Starcounter.Internal
         public const Byte MaximumSchedulersNumber = 128;
 
         /// <summary>
+        /// Number of retries to schedule a task if the input queue is full.
+        /// </summary>
+        public const Byte ScheduleTaskFullInputQueueRetries = 10;
+
+        /// <summary>
         /// Society objects name.
         /// </summary>
         public const string SocietyObjectsPrefix = "SocietyObjects";

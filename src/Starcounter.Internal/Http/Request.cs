@@ -343,10 +343,14 @@ namespace Starcounter {
         /// </summary>
         /// <param name="channelName">WebSocket channel name for subsequent events on created WebSocket.</param>
         /// <param name="cargoId">Integer identifier supplied from user that comes inside WebSocket object in subsequent events.</param>
-        /// <param name="resp">Attached HTTP response if specific cookies or headers should be send in the WebSocket upgrade HTTP response.</param>
         /// <param name="session">Session that should be attached to the created WebSocket.</param>
         /// <returns>Created WebSocket object that immediately can be used.</returns>
-        public WebSocket SendUpgrade(String channelName, UInt64 cargoId = 0, Response resp = null, IAppsSession session = null)
+        public WebSocket SendUpgrade(
+            String channelName,
+            UInt64 cargoId = 0,
+            List<String> cookies = null,
+            Dictionary<String, String> headers = null,
+            IAppsSession session = null)
         {
             Byte[] wsHandshakeResp;
 
@@ -366,10 +370,14 @@ namespace Starcounter {
 
             WebSocket ws = new WebSocket(null, null, null, false, WebSocket.WsHandlerType.Empty);
 
-            if (resp == null)
-                resp = new Response();
+            Response resp = new Response();
+            resp.Cookies = cookies;
+            resp.HeadersDictionary = headers;
 
             ws.Session = session;
+            if (session != null) {
+                ws.Session.ActiveWebSocket = ws;
+            }
 
             resp.WsHandshakeResp = wsHandshakeResp;
 
@@ -511,6 +519,7 @@ namespace Starcounter {
             *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |= (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
 
             ws.ConstructFromRequest(
+                portNumber_,
                 *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
                 *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
                 dataStream_.GatewayWorkerId,

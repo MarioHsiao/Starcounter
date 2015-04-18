@@ -12,6 +12,7 @@ using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 using Starcounter.Advanced;
 using Starcounter.XSON;
+using System.Threading;
 
 namespace Starcounter {
     [Flags]
@@ -160,6 +161,51 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Runs a given session for each task on current scheduler.
+        /// </summary>
+        static void ForEachSessionOnCurrentScheduler(UInt64 cargoId, Action<Session> action) {
+
+            // Saving current session since we are going to set other.
+            Session origCurrentSession = Session.Current;
+
+            try {
+                SchedulerSessions ss = 
+                    GlobalSessions.AllGlobalSessions.GetSchedulerSessions(StarcounterEnvironment.CurrentSchedulerId);
+
+                LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
+                while (used_session_index_node != null) {
+                    LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+
+                    // Getting session instance.
+                    ScSessionClass s = ss.GetAppsSessionIfAlive(used_session_index_node.Value);
+
+                    // Checking if session is created at all.
+                    if (s != null) {
+
+                        // Checking if cargo ID is correct.
+                        if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
+
+                            Session session = (Session)s.apps_session_int_;
+
+                            // Setting new current session.
+                            Session.Current = session;
+
+                            // Running user delegate with session as parameter.
+                            action(session);
+                        }
+                    }
+
+                    // Getting next used session.
+                    used_session_index_node = next_used_session_index_node;
+                }
+            } finally {
+                // Restoring original current session.
+                Session.Current = origCurrentSession;
+            }
+
+        }
+
+        /// <summary>
         /// Running the given action on each active session.
         /// </summary>
         /// <param name="action">The user procedure to be performed on each session.</param>
@@ -167,47 +213,12 @@ namespace Starcounter {
         public static void ForEach(UInt64 cargoId, Action<Session> action) {
 
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+                
                 Byte schedId = i;
 
-                ScSessionClass.DbSession.RunAsync(() => {
-                    // Saving current session since we are going to set other.
-                    Session origCurrentSession = Session.Current;
-
-                    try {
-                        SchedulerSessions ss = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(schedId);
-
-                        LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
-                        while (used_session_index_node != null) {
-                            LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
-
-                            // Getting session instance.
-                            ScSessionClass s = ss.GetAppsSessionIfAlive(used_session_index_node.Value);
-
-                            // Checking if session is created at all.
-                            if (s != null) {
-
-                                // Checking if cargo ID is correct.
-                                if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
-
-                                    Session session = (Session)s.apps_session_int_;
-
-                                    // Setting new current session.
-                                    Session.Current = session;
-
-                                    // Running user delegate with session as parameter.
-                                    action(session);
-                                }
-                            }
-
-                            // Getting next used session.
-                            used_session_index_node = next_used_session_index_node;
-                        }
-                    } finally {
-                        // Restoring original current session.
-                        Session.Current = origCurrentSession;
-                    }
-
-                }, schedId);
+                ScSessionClass.DbSession.RunAsync(
+                    () => { ForEachSessionOnCurrentScheduler(cargoId, action); },
+                    schedId);
             }
         }
 
@@ -223,6 +234,11 @@ namespace Starcounter {
         /// Getting internal session.
         /// </summary>
         public ScSessionClass InternalSession { get; set; }
+
+        /// <summary>
+        /// Currently active WebSocket.
+        /// </summary>
+        public WebSocket ActiveWebSocket { get; set; }
 
         /// <summary>
         /// Current static session object.
@@ -334,12 +350,6 @@ namespace Starcounter {
         /// </summary>
         public String SessionIdString {
             get { return InternalSession.ToAsciiString(); }
-        }
-
-        // Last active WebSocket connection.
-        public WebSocket ActiveWebsocket {
-            get;
-            internal set;
         }
 
         /// <summary>
@@ -608,6 +618,7 @@ namespace Starcounter {
         /// Destroys the session.
         /// </summary>
         public void Destroy() {
+
             _indexPerApplication.Clear();
             DisposeAllTransactions();
 
@@ -622,6 +633,13 @@ namespace Starcounter {
             if (null != _sessionDestroyUserDelegate) {
                 _sessionDestroyUserDelegate(this);
                 _sessionDestroyUserDelegate = null;
+            }
+
+            // Checking if there is an active WebSocket.
+            if (ActiveWebSocket != null) {
+
+                ActiveWebSocket.Session = null;
+                ActiveWebSocket = null;
             }
 
             Session._current = null;

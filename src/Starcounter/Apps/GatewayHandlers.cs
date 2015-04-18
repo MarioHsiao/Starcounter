@@ -203,7 +203,8 @@ namespace Starcounter
                     rawChunk = plainRawPtr;
                 }
 
-                SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForRawSocket(dataStream);
+                SchedulerResources.SocketContainer sc =
+                    SchedulerResources.ObtainSocketContainerForRawSocket(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, dataStream);
 
                 // Checking if socket exists and legal.
                 if (null == sc) {
@@ -638,7 +639,7 @@ namespace Starcounter
                 if (appsSession != null)
                 {
                     Session session = (Session)appsSession;
-                    session.ActiveWebsocket = ws;
+                    session.ActiveWebSocket = ws;
                     Session.Start(session);
                 }
 
@@ -652,8 +653,10 @@ namespace Starcounter
 
                 // Adding session reference.
                 *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
+
                 // Destroying original chunk etc.
                 ws.WsInternal.DestroyDataStream();
+
             } catch (Exception exc) {
 
                 LogSources.Hosting.LogException(exc);

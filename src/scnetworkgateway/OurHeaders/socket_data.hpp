@@ -893,9 +893,6 @@ public:
     // Start connecting on socket.
     uint32_t Connect(GatewayWorker* gw, sockaddr_in *serverAddr);
 
-    // Start disconnecting socket.
-    uint32_t Disconnect(GatewayWorker *gw);
-
     // Puts socket data to database.
     void PrepareToDb()
     {
@@ -1028,10 +1025,7 @@ public:
             return;
 
         // Disconnecting socket handle.
-        g_gateway.DisconnectSocket(GetSocket());
-
-        // Making socket handle unusable.
-        InvalidateSocket();
+        socket_info_->DisconnectSocket();
     }
 
     // Invalidating socket number.
@@ -1137,14 +1131,6 @@ public:
         GW_ASSERT_DEBUG(socket_info_->socket_ != INVALID_SOCKET);
 
         return socket_info_->socket_;
-    }
-
-    // Setting new unique socket number.
-    void InvalidateSocket()
-    {
-        GW_ASSERT_DEBUG(NULL != socket_info_);
-
-        socket_info_->socket_ = INVALID_SOCKET;
     }
 
     // Set scheduler id.
