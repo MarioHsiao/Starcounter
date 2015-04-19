@@ -5,7 +5,7 @@ using StarcounterInternal.Bootstrap;
 using System;
 
 namespace scadminserver {
-    class Program {
+    class scadminserver {
         static void Main(string[] args) {
             var log = new LogSource("Starcounter.AdminServer");
             StarcounterEnvironment.SetInstallationDirectoryFromEntryAssembly();

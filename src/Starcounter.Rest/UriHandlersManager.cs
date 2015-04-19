@@ -125,6 +125,11 @@ namespace Starcounter.Rest
         Func<Request, IntPtr, IntPtr, Response> proxyDelegate_ = null;
 
         /// <summary>
+        /// Saved proxy delegate.
+        /// </summary>
+        Func<Request, IntPtr, IntPtr, Response> savedProxyDelegate_ = null;
+
+        /// <summary>
         /// Owner application name.
         /// </summary>
         String appName_ = null;
@@ -139,10 +144,32 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
+        /// Type of handler.
+        /// </summary>
+        HandlerOptions.TypesOfHandler typeOfHandler_;
+
+        /// <summary>
         /// Constructor.
         /// </summary>
         public UserHandlerInfo(UInt16 handlerId) {
             handlerId_ = handlerId;
+        }
+
+        /// <summary>
+        /// Enables/Disables mapping.
+        /// </summary>
+        public void EnableDisableMapping(Boolean enable, HandlerOptions.TypesOfHandler typeOfHandler) {
+
+            if (typeOfHandler_ == typeOfHandler) {
+
+                if (enable) {
+                    proxyDelegate_ = savedProxyDelegate_;
+                } else {
+                    savedProxyDelegate_ = proxyDelegate_;
+                    proxyDelegate_ = null;
+                }
+
+            }
         }
 
         /// <summary>
@@ -160,19 +187,21 @@ namespace Starcounter.Rest
 
             Response resp = null;
 
+
             if (useProxyDelegate) {
 
                 // Calling proxy user delegate.
                 resp = proxyDelegate_(req, methodSpaceUriSpaceOnStack, parametersInfoOnStack);
 
                 // Checking if we have any response.
-                if (null == resp) {
-
+                if (null == resp)
                     return null;
 
-                }
-
             } else {
+
+                // Checking if delegate is defined.
+                if (userDelegate_ == null)
+                    return null;
 
                 try {
 
@@ -213,6 +242,7 @@ namespace Starcounter.Rest
                             (!handlerOptions.ProxyDelegateTrigger) &&
                             (!String.IsNullOrEmpty(handlerOptions.CallingAppName)) &&
                             (handlerOptions.CallingAppName != appName_)) {
+
                             return null;
                         }
                     }
@@ -332,6 +362,9 @@ namespace Starcounter.Rest
 
                     userDelegate_ = userDelegate;
                 }
+
+                typeOfHandler_ = ho.TypeOfHandler;
+
             } else {
 
                 // Checking if already have a proxy delegate.
@@ -341,6 +374,7 @@ namespace Starcounter.Rest
                         throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate!");
                     } else {
                         proxyDelegate_ = userDelegate;
+                        typeOfHandler_ = ho.TypeOfHandler;
                     }
 
                 } else {
@@ -384,6 +418,8 @@ namespace Starcounter.Rest
 
                 userDelegate_ = user_delegate;
             }
+
+            typeOfHandler_ = ho.TypeOfHandler;
             
             appName_ = StarcounterEnvironment.AppName;
 
@@ -630,7 +666,7 @@ namespace Starcounter.Rest
 
             lock (allUriHandlers_) {
 
-                for (UInt16 i = 0; i < MaxUriHandlers; i++) {
+                for (UInt16 i = 0; i < maxNumHandlersEntries_; i++) {
 
                     if (allUriHandlers_[i].ProcessedUriInfo == processedUriInfo) {
                         
@@ -639,6 +675,20 @@ namespace Starcounter.Rest
                 }
 
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Enables/Disables mapping handlers.
+        /// </summary>
+        public void EnableDisableMapping(Boolean enable, HandlerOptions.TypesOfHandler typeOfHandler) {
+
+            lock (allUriHandlers_) {
+
+                for (UInt16 i = 0; i < maxNumHandlersEntries_; i++) {
+
+                    allUriHandlers_[i].EnableDisableMapping(enable, typeOfHandler);
+                }
             }
         }
 

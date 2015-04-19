@@ -151,6 +151,10 @@ namespace Starcounter.Internal {
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
                 return;
 
+            // By default middleware filters are enabled.
+            StarcounterEnvironment.MiddlewareFiltersEnabled = true;
+
+            // TODO: Check for Polyjuice flag per database!
             Boolean initPolyjuiceFlag = false;
             if ((!StarcounterEnvironment.PolyjuiceAppsFlag) &&
                 (CurrentVersion.EditionName == StarcounterConstants.PolyjuiceEditionName)) {
