@@ -45,6 +45,30 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Enables or disables the middle filters for external requests.
+        /// </summary>
+        public static Boolean MiddlewareFiltersEnabled {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Enables or disables the ordinary mapping (Polyjuice.Map).
+        /// </summary>
+        public static Boolean MappingEnabled {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Enables or disables the ontology mapping (Polyjuice.Map).
+        /// </summary>
+        public static Boolean OntologyMappingEnabled {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Set if there is no network gateway.
         /// </summary>
         public static Boolean NoNetworkGatewayFlag {

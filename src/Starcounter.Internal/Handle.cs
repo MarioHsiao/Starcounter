@@ -43,6 +43,20 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Type of registered handler.
+        /// </summary>
+        public enum TypesOfHandler {
+            Generic,
+            OrdinaryMapping,
+            OntologyMapping
+        }
+
+        /// <summary>
+        /// Type of handler.
+        /// </summary>
+        internal TypesOfHandler TypeOfHandler;
+
+        /// <summary>
         /// Replace existing delegate.
         /// </summary>
         public Boolean ReplaceExistingDelegate {
@@ -351,6 +365,27 @@ namespace Starcounter {
         /// Filtering request.
         /// </summary>
         public static List<MiddlewareFilter> middlewareFilters_ = new List<MiddlewareFilter>();
+
+        /// <summary>
+        /// Saved middleware filters list.
+        /// </summary>
+        public static List<MiddlewareFilter> savedMiddlewareFilters_ = new List<MiddlewareFilter>();
+
+        /// <summary>
+        /// Enable/Disable middleware filters.
+        /// </summary>
+        public static void EnableDisableMiddleware(Boolean enable) {
+
+            if (enable) {
+
+                middlewareFilters_ = savedMiddlewareFilters_;
+
+            } else {
+
+                savedMiddlewareFilters_ = middlewareFilters_;
+                middlewareFilters_ = new List<MiddlewareFilter>();
+            }
+        }
 
         /// <summary>
         /// Adding new filter to middleware.
