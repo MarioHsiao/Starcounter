@@ -87,9 +87,49 @@ namespace Starcounter.Internal {
 
             SchedulerResources.Init(numSchedulers);
 
-            // Registering JSON patch handlers on default user port.
             if (!noNetworkGateway) {
+
+                // Registering JSON patch handlers on default user port.
                 PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
+
+                Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MappingFlag", () => {
+                        return "{\"MappingEnabled\":\"" + StarcounterEnvironment.MappingEnabled.ToString() + "\"}";
+                    });
+
+                Handle.POST(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MappingFlag/{?}", (Boolean enable) => {
+
+                        // Checking if we should switch the flag.
+                        if (StarcounterEnvironment.MappingEnabled != enable) {
+
+                            StarcounterEnvironment.MappingEnabled = enable;
+
+                            UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
+                                StarcounterEnvironment.MappingEnabled, HandlerOptions.TypesOfHandler.OrdinaryMapping);
+                        }
+
+                        return 200;
+                    });
+
+                Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MiddlewareFiltersFlag", () => {
+                        return "{\"MiddlewareFiltersEnabled\":\"" + StarcounterEnvironment.MiddlewareFiltersEnabled.ToString() + "\"}";
+                    });
+
+                Handle.POST(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MiddlewareFiltersFlag/{?}", (Boolean enable) => {
+
+                        // Checking if we should switch the flag.
+                        if (StarcounterEnvironment.MiddlewareFiltersEnabled != enable) {
+
+                            StarcounterEnvironment.MiddlewareFiltersEnabled = enable;
+
+                            Handle.EnableDisableMiddleware(StarcounterEnvironment.MiddlewareFiltersEnabled);
+                        }
+
+                        return 200;
+                    });
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
