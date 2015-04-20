@@ -1,5 +1,6 @@
 {
   "name": "starcounter-debug-aid",
+  "version": "1.0.0",
   "description": "Friendly messages that help to debug Polyjuice apps",
   "license": "MIT",
   "main": "src/starcounter-debug-aid.html",
@@ -17,13 +18,13 @@
     "polymer": "^0.5.1"
   },
   "homepage": "https://github.com/Polyjuice/starcounter-debug-aid",
-  "_release": "e080c46320",
+  "_release": "1.0.0",
   "_resolution": {
-    "type": "branch",
-    "branch": "master",
-    "commit": "e080c46320b6b0d233a2a89be92d00b49b2b7e49"
+    "type": "version",
+    "tag": "1.0.0",
+    "commit": "7f12ec01cb05300f90c17bac7c67f42f0c1d5c05"
   },
   "_source": "git://github.com/Polyjuice/starcounter-debug-aid.git",
-  "_target": "master",
+  "_target": "~1.0.0",
   "_originalSource": "Polyjuice/starcounter-debug-aid"
 }
