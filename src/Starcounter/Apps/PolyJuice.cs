@@ -1124,32 +1124,47 @@ namespace PolyjuiceNamespace {
                 ProxyDelegateTrigger = true
             });
 
-            Handle.GET("/Polyjuice/MappingTrigger", () => {
+            Handle.GET("/Polyjuice/MappingTrigger/{?}", (Boolean enable) => {
 
-                StarcounterEnvironment.MappingEnabled = !StarcounterEnvironment.MappingEnabled;
-                UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
-                    StarcounterEnvironment.MappingEnabled, HandlerOptions.TypesOfHandler.OrdinaryMapping);
+                // Checking if we should switch the flag.
+                if (StarcounterEnvironment.MappingEnabled != enable) {
+
+                    StarcounterEnvironment.MappingEnabled = enable;
+
+                    UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
+                        StarcounterEnvironment.MappingEnabled, HandlerOptions.TypesOfHandler.OrdinaryMapping);
+                }
 
                 return new Response() {
                     Body = "Mapping flag set to: " + StarcounterEnvironment.MappingEnabled
                 };
             });
 
-            Handle.GET("/Polyjuice/OntologyMappingTrigger", () => {
+            Handle.GET("/Polyjuice/OntologyMappingTrigger/{?}", (Boolean enable) => {
 
-                StarcounterEnvironment.OntologyMappingEnabled = !StarcounterEnvironment.OntologyMappingEnabled;
-                UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
-                    StarcounterEnvironment.OntologyMappingEnabled, HandlerOptions.TypesOfHandler.OntologyMapping);
+                // Checking if we should switch the flag.
+                if (StarcounterEnvironment.OntologyMappingEnabled != enable) {
+
+                    StarcounterEnvironment.OntologyMappingEnabled = enable;
+
+                    UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
+                        StarcounterEnvironment.OntologyMappingEnabled, HandlerOptions.TypesOfHandler.OntologyMapping);
+                }
 
                 return new Response() {
                     Body = "Ontology mapping flag set to: " + StarcounterEnvironment.OntologyMappingEnabled
                 };
             });
 
-            Handle.GET("/Polyjuice/MiddlewareFiltersTrigger", () => {
+            Handle.GET("/Polyjuice/MiddlewareFiltersTrigger/{?}", (Boolean enable) => {
 
-                StarcounterEnvironment.MiddlewareFiltersEnabled = !StarcounterEnvironment.MiddlewareFiltersEnabled;
-                Handle.EnableDisableMiddleware(StarcounterEnvironment.MiddlewareFiltersEnabled);
+                // Checking if we should switch the flag.
+                if (StarcounterEnvironment.MiddlewareFiltersEnabled != enable) {
+
+                    StarcounterEnvironment.MiddlewareFiltersEnabled = enable;
+
+                    Handle.EnableDisableMiddleware(StarcounterEnvironment.MiddlewareFiltersEnabled);
+                }
 
                 return new Response() {
                     Body = "Middleware filters flag set to: " + StarcounterEnvironment.MiddlewareFiltersEnabled
