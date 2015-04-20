@@ -1124,23 +1124,13 @@ namespace PolyjuiceNamespace {
                 ProxyDelegateTrigger = true
             });
 
-            Handle.GET("/Polyjuice/MappingTrigger/{?}", (Boolean enable) => {
+            Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                ScSessionClass.DataLocationUriPrefix + "Polyjuice/OntologyMappingFlag", () => {
+                    return "{\"OntologyMappingEnabled\":\"" + StarcounterEnvironment.OntologyMappingEnabled.ToString() + "\"}";
+                });
 
-                // Checking if we should switch the flag.
-                if (StarcounterEnvironment.MappingEnabled != enable) {
-
-                    StarcounterEnvironment.MappingEnabled = enable;
-
-                    UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
-                        StarcounterEnvironment.MappingEnabled, HandlerOptions.TypesOfHandler.OrdinaryMapping);
-                }
-
-                return new Response() {
-                    Body = "Mapping flag set to: " + StarcounterEnvironment.MappingEnabled
-                };
-            });
-
-            Handle.GET("/Polyjuice/OntologyMappingTrigger/{?}", (Boolean enable) => {
+            Handle.POST(StarcounterEnvironment.Default.SystemHttpPort, 
+                ScSessionClass.DataLocationUriPrefix + "Polyjuice/OntologyMappingFlag/{?}", (Boolean enable) => {
 
                 // Checking if we should switch the flag.
                 if (StarcounterEnvironment.OntologyMappingEnabled != enable) {
@@ -1151,24 +1141,7 @@ namespace PolyjuiceNamespace {
                         StarcounterEnvironment.OntologyMappingEnabled, HandlerOptions.TypesOfHandler.OntologyMapping);
                 }
 
-                return new Response() {
-                    Body = "Ontology mapping flag set to: " + StarcounterEnvironment.OntologyMappingEnabled
-                };
-            });
-
-            Handle.GET("/Polyjuice/MiddlewareFiltersTrigger/{?}", (Boolean enable) => {
-
-                // Checking if we should switch the flag.
-                if (StarcounterEnvironment.MiddlewareFiltersEnabled != enable) {
-
-                    StarcounterEnvironment.MiddlewareFiltersEnabled = enable;
-
-                    Handle.EnableDisableMiddleware(StarcounterEnvironment.MiddlewareFiltersEnabled);
-                }
-
-                return new Response() {
-                    Body = "Middleware filters flag set to: " + StarcounterEnvironment.MiddlewareFiltersEnabled
-                };
+                return 200;
             });
 
             StarcounterEnvironment.AppName = savedAppName;
