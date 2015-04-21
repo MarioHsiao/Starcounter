@@ -100,6 +100,7 @@
     <Compile Include="Entity.Implementation.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
+    <Compile Include="Internal\MapInvoke.cs" />
     <Compile Include="Internal\SetValueCallbackInvoke.cs" />
     <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
