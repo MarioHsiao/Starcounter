@@ -433,12 +433,6 @@ namespace Starcounter.Advanced.XSON {
 
                             string setupStr = null;
                             if (!string.IsNullOrEmpty(partialConfigId)) {
-                                try {
-                                    setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
-                                } catch { }
-                            }
-
-                            if (setupStr != null) {
                                 *pfrag++ = (byte)',';
                                 offset++;
 
@@ -453,6 +447,12 @@ namespace Starcounter.Advanced.XSON {
                                 offset += valueSize;
                                 pfrag += valueSize;
 
+                                try {
+                                    setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
+                                } catch { }
+                            }
+
+                            if (setupStr != null) {
                                 *pfrag++ = (byte)',';
                                 offset++;
 
