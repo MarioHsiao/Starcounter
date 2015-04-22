@@ -168,8 +168,7 @@ namespace Starcounter {
         /// </summary>
         public static T GET<T>(String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
 
-            Response resp;
-            GET(uri, out resp, null, receiveTimeoutMs, ho);
+            Response resp = GET(uri, null, receiveTimeoutMs, ho);
 
             if (null != resp)
                 return resp.GetContent<T>();
@@ -182,8 +181,7 @@ namespace Starcounter {
         /// </summary>
         public static T GET<T>(UInt16 port, String uri, Int32 receiveTimeoutMs = 0, HandlerOptions ho = null) {
 
-            Response resp;
-            GET(port, uri, out resp, null, receiveTimeoutMs, ho);
+            Response resp = GET(port, uri, null, receiveTimeoutMs, ho);
 
             if (null != resp)
                 return resp.GetContent<T>();
@@ -222,8 +220,7 @@ namespace Starcounter {
         /// </summary>
         public static Response GET(String uri) {
 
-            Response resp;
-            Http.GET(uri, out resp, null, 0, null);
+            Response resp = Http.GET(uri, null, 0, null);
             return resp;
         }
 
@@ -232,8 +229,7 @@ namespace Starcounter {
         /// </summary>
         public static Response GET(UInt16 port, String uri) {
 
-            Response resp;
-            Http.GET(port, uri, out resp, null, 0, null);
+            Response resp = Http.GET(port, uri, null, 0, null);
             return resp;
         }
 
@@ -246,8 +242,7 @@ namespace Starcounter {
                 SubstituteHandler = substituteHandler
             };
 
-            Response resp;
-            Http.GET(uri, out resp, null, 0, ho);
+            Response resp = Http.GET(uri, null, 0, ho);
             return resp;
         }
 
@@ -260,17 +255,15 @@ namespace Starcounter {
                 SubstituteHandler = substituteHandler
             };
 
-            Response resp;
-            Http.GET(port, uri, out resp, null, 0, ho);
+            Response resp = Http.GET(port, uri, null, 0, ho);
             return resp;
         }
 
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        public static void GET(
+        public static Response GET(
             String uri,
-            out Response response,
             Dictionary<String, String> headersDictionary = null,
             Int32 receiveTimeoutMs = 0,
             HandlerOptions ho = null) {
@@ -280,16 +273,15 @@ namespace Starcounter {
 
             GetNodeFromUri(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, uri, out node, out relativeUri);
 
-            response = node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
+            return node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
         }
 
         /// <summary>
         /// Performs asynchronous HTTP GET.
         /// </summary>
-        public static void GET(
+        public static Response GET(
             UInt16 port,
             String uri,
-            out Response response,
             Dictionary<String, String> headersDictionary = null,
             Int32 receiveTimeoutMs = 0,
             HandlerOptions ho = null) {
@@ -299,7 +291,7 @@ namespace Starcounter {
 
             GetNodeFromUri(port, uri, out node, out relativeUri);
 
-            response = node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
+            return node.GET(relativeUri, headersDictionary, receiveTimeoutMs, ho);
         }
 
         /// <summary>
