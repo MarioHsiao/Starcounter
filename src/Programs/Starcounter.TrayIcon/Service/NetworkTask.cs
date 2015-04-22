@@ -23,8 +23,6 @@ namespace Starcounter.Tools.Service.Task {
 
             string url = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/gwstats");
 
-
-            Response response;
             // Example JSON response
             // {
             //    "ports": [
@@ -68,7 +66,8 @@ namespace Starcounter.Tools.Service.Task {
             //        }
             //    }
             //}
-            Http.GET(url, out response, null, 10000);
+
+            Response response = Http.GET(url, null, 10000);
 
             if (response.IsSuccessStatusCode) {
 

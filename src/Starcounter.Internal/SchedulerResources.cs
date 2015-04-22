@@ -65,6 +65,14 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Has finalizer attached?
+        /// </summary>
+        /// <returns></returns>
+        internal Boolean HasFinalizer() {
+            return (null != finalizer_);
+        }
+
+        /// <summary>
         /// Unlinking finalizer.
         /// </summary>
         internal void UnLinkFinalizer() {

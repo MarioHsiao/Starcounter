@@ -54,17 +54,11 @@ namespace Starcounter
         internal void Init(
             Byte* rawChunk,
             UInt32 chunkIndex,
-            Byte gwWorkerId,
-            Boolean attachFinalizer)
+            Byte gwWorkerId)
         {
             rawChunkPtr_ = rawChunk;
             chunkIndex_ = chunkIndex;
             gwWorkerId_ = gwWorkerId;
-
-            // Adding finalizer on demand (WebSockets, RawSockets).
-            if (attachFinalizer) {
-                CreateFinalizer();
-            }
         }
 
         /// <summary>
@@ -215,6 +209,8 @@ namespace Starcounter
             return false;
         }
 
+
+
         /// <summary>
         /// Frees all data stream resources like chunks.
         /// </summary>
@@ -224,14 +220,14 @@ namespace Starcounter
             UnLinkFinalizer();
 
             // Checking if already destroyed.
-            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+            if (IsDestroyed())
                 return;
 
             // Checking if this request is garbage collected.
             if (!isStarcounterThread)
             {
                 NetworkDataStream thisInst = this;
-                StarcounterBase._DB.RunSync(() => { thisInst.ReleaseChunk(); });
+                StarcounterBase._DB.RunAsync(() => { thisInst.ReleaseChunk(); });
                 return;
             }
 

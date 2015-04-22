@@ -333,7 +333,7 @@ namespace Starcounter.Internal {
                 resp = Response.FromStatusCode(500);
                 resp.Body = AppRestServer.GetExceptionString(exc);
                 resp.ContentType = "text/plain";
-            } 
+            }
 
             // Checking if response was handled.
             if (resp == null)
@@ -356,7 +356,11 @@ namespace Starcounter.Internal {
                 }
 
                 default: {
-                    req.CreateFinalizer();
+
+                    // Checking if request should be finalized.
+                    if (req.ShouldBeFinalized())
+                        req.CreateFinalizer();
+
                     break;
                 }
             }

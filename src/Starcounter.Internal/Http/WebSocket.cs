@@ -501,7 +501,7 @@ namespace Starcounter
                 // Creating network data stream object.
                 System.Diagnostics.Debug.Assert(ws.wsInternal_ != null);
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, ws.wsInternal_.GatewayWorkerId, false);
+                dataStream.Init(chunkMem, chunkIndex, ws.wsInternal_.GatewayWorkerId);
             }
             else
             {

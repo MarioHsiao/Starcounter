@@ -432,7 +432,7 @@ namespace Starcounter
                 else                    
                     comma = true;
                         
-                outString += "{" + String.Format("\"profilerId\":\"{0}\",\"profilerName\":\"{1}\",\"tookMs\":\"{2}\",\"startedTimes\":\"{3}\"",
+                outString += "{" + String.Format("\"profilerId\":\"{0}\",\"profilerName\":\"{1}\",\"totallyTookMs\":\"{2}\",\"startedTimes\":\"{3}\"",
                     id.ToString(),
                     id.GetDescriptionValue(),
                     profilers_[i].Duration.ToString(),
@@ -481,7 +481,7 @@ namespace Starcounter
 
             profilers_[i].Stop();
 
-            outString += String.Format("Profiler #{0} \"{1}\" took {2} ms and was started {3} times.",
+            outString += String.Format("Profiler #{0} \"{1}\" totally took {2} ms and was started {3} times.",
                 i,
                 id.GetDescriptionValue(),
                 profilers_[i].Duration.ToString(),

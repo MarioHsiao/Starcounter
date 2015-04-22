@@ -449,9 +449,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Should the request have a finalizer?
+        /// </summary>
+        /// <returns></returns>
+        internal Boolean ShouldBeFinalized() {
+
+            unsafe {
+
+                // Checking if already destroyed.
+                if (http_request_struct_ != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Destroys the instance of Request.
         /// </summary>
-        void Destroy(Boolean isStarcounterThread)
+        internal void Destroy(Boolean isStarcounterThread)
         {
             unsafe
             {
