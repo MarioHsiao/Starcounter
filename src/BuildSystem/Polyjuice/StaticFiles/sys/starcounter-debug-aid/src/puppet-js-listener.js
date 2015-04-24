@@ -1,25 +1,76 @@
 ﻿(function (global) {
     var Listener = function () {
         this.rows = [];
+        this.lastRequest = null;
+        this.lastResponse = null;
         this.isListening = false;
 
         this.onPatchReceived = this.onPatchReceived.bind(this);
         this.onPatchSent = this.onPatchSent.bind(this);
+        this.onSocketStateChanged = this.onSocketStateChanged.bind(this);
     };
 
     Listener.prototype.formatDate = function (date) {
-        return [date.getFullYear(), "-", date.getMonth() + 1, "-", date.getDate(), " ", date.getHours(), ":", date.getMinutes(), ":", date.getSeconds()].join("");
+        return [date.getFullYear(), "-", date.getMonth() + 1, "-", date.getDate(), " ", date.getHours(), ":", date.getMinutes(), ":", date.getSeconds(), ".", date.getMilliseconds()].join("");
     };
 
-    Listener.prototype.createRow = function (direction, data, url) {
+    Listener.prototype.formatTime = function (date) {
+        return [date.getHours(), ":", date.getMinutes(), ":", date.getSeconds(), ".", date.getMilliseconds()].join("");
+    }
+
+    Listener.prototype.formatDuration = function (time) {
+        var ms = time % 1000;
+        time = (time - ms) / 1000;
+
+        var secs = time % 60;
+        time = (time - secs) / 60;
+        
+        var mins = time % 60;
+        var hrs = (time - mins) / 60;
+
+        var r = [];
+
+        if (hrs) {
+            r.push(hrs, "h ");
+        }
+
+        if (hrs || mins) {
+            r.push(mins, "m ");
+        }
+
+        if (hrs || mins || secs) {
+            r.push(secs, "s ");
+        }
+
+        r.push(ms, "ms");
+
+        return r.join("");
+    };
+
+    Listener.prototype.createRow = function (direction, data, url, method, duration) {
+        var json = null;
+
+        if (typeof(data) == "string") {
+            json = JSON.parse(data);
+        } else if (typeof (data) == "object") {
+            json = data;
+            data = JSON.stringify(json);
+        }
+
+        var code = (json && json.statusCode) ? json.statusCode : 200;
+        var date = new Date();
+
         var row = {
-            date: this.formatDate(new Date()),
+            date: this.formatDate(date),
+            time: this.formatTime(date),
+            duration: duration,
             direction: direction,
             url: url,
+            path: url.replace(/^[a-z]+[:][/][/][^/]*/gi, ""),
             data: data,
-            isHttp: /^http/gi.test(url),
-            isWs: /^ws/gi.test(url),
-            json: data ? eval(data) : null
+            method: method,
+            statusCode: code,
+            json: json
         };
 
         return row;
@@ -37,11 +88,26 @@
     };
 
     Listener.prototype.onPatchReceived = function (e) {
-        this.rows.push(this.createRow("receive", e.detail.data, e.detail.url));
+        this.lastResponse = new Date();
+
+        var duration = "N/A";
+
+        if (this.lastResponse && this.lastRequest) {
+            duration = this.formatDuration(this.lastResponse - this.lastRequest);
+        }
+        
+        this.rows.push(this.createRow("receive", e.detail.data, e.detail.url, e.detail.method, duration));
     };
 
     Listener.prototype.onPatchSent = function (e) {
-        this.rows.push(this.createRow("send", e.detail.data, e.detail.url));
+        this.lastRequest = new Date();
+        this.rows.push(this.createRow("send", e.detail.data, e.detail.url, e.detail.method));
+    };
+
+    Listener.prototype.onSocketStateChanged = function (e) {
+        var data = { state: e.detail.state, url: e.detail.url, data: e.detail.data, code: e.detail.code, reason: e.detail.reason };
+
+        this.rows.push(this.createRow("state", data, e.detail.url, "STATE"));
     };
 
     Listener.prototype.startListen = function () {
@@ -56,6 +122,7 @@
 
             client.addEventListener("patchreceived", this.onPatchReceived);
             client.addEventListener("patchsent", this.onPatchSent);
+            client.addEventListener("socketstatechanged", this.onSocketStateChanged);
         }
     };
 
@@ -69,6 +136,7 @@
         if (client) {
             client.removeEventListener("patchreceived", this.onPatchReceived);
             client.removeEventListener("patchsent", this.onPatchSent);
+            client.removeEventListener("socketstatechanged", this.onSocketStateChanged);
 
             this.isListening = false;
         }

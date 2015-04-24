@@ -1,62 +1,69 @@
-<link rel="import" href="../../polymer/polymer.html" />
+<link rel="import" href="/sys/polymer/polymer.html" />
 <script type="text/javascript" src="puppet-js-listener.js"></script>
 
 <template>
-  <div>
-    <label>
-      <input type="checkbox" id="isWebSocket" />
-      WebSocket
-    </label>
-  </div>
+    <div>
+        <label>
+            <input type="checkbox" id="isWebSocket" />
+            WebSocket
+        </label>
+    </div>
 </template>
 
 <script>
-  (function (window, document) {
-    var listener = window.PuppetListener;
+    (function (window, document) {
+        var listener = window.PuppetListener;
+        var thatDoc = document;
+        var thisDoc = (thatDoc._currentScript || thatDoc.currentScript).ownerDocument;
+        var template = thisDoc.querySelector('template').content;
+        var element = Object.create(HTMLElement.prototype);
+        var settingName = "launcher-puppet-js-useWebSocket";
 
-    var thatDoc = document;
+        element.createdCallback = function () {
+            this.createShadowRoot();
+        };
 
-    var thisDoc = (thatDoc._currentScript || thatDoc.currentScript).ownerDocument;
-
-    var template = thisDoc.querySelector('template').content;
-
-    var element = Object.create(HTMLElement.prototype);
-
-    element.createdCallback = function () {
-      this.createShadowRoot();
-    };
-
-    function isUseWebSocket(useWebSocketStr) {
-      if (!useWebSocketStr) {
-        return true;
-      }
-      else if (useWebSocketStr == "false") {
-        return false;
-      }
-      else {
-        return true;
-      }
-    }
-
-    element.attachedCallback = function () {
-      var clone = thatDoc.importNode(template, true);
-
-      clone.querySelector('#isWebSocket').checked = isUseWebSocket(window.localStorage.getItem("launcher-puppet-js-useWebSocket"))
-
-      clone.querySelector('#isWebSocket').addEventListener('change', function (ev) {
-        var newVal = ev.target.checked;
-        var puppet = listener.getPuppetClient();
-        if (puppet) {
-          puppet.useWebSocket = newVal;
+        function isUseWebSocket(useWebSocketStr) {
+            if (!useWebSocketStr) {
+                return true;
+            }
+            else if (useWebSocketStr == "false") {
+                return false;
+            }
+            else {
+                return true;
+            }
         }
-        window.localStorage.setItem("launcher-puppet-js-useWebSocket", newVal);
-      });
 
-      this.shadowRoot.appendChild(clone);
-    };
+        function getSettingValue() {
+            return isUseWebSocket(window.localStorage.getItem(settingName));
+        }
 
-    document.registerElement('puppet-js-settings', {
-      prototype: element
-    });
-  }(window, document));
+        function applyValue(value) {
+            var puppet = listener.getPuppetClient();
+
+            if (puppet) {
+                puppet.useWebSocket = value;
+            }
+
+            window.localStorage.setItem(settingName, value);
+        }
+
+        element.attachedCallback = function () {
+            var clone = thatDoc.importNode(template, true);
+            var chb = clone.querySelector('#isWebSocket');
+
+            chb.checked = getSettingValue();
+            chb.addEventListener('change', function (ev) {
+                applyValue(ev.target.checked);
+            });
+
+            this.shadowRoot.appendChild(clone);
+        };
+
+        applyValue(getSettingValue());
+        document.registerElement('puppet-js-settings', {
+            prototype: element
+        });
+    }(window, document));
 </script>

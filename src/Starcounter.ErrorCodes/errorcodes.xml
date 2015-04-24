@@ -3682,7 +3682,7 @@
 	  <message>Internal error in SQL Processor. Error cannot be retrieved.</message>
 	</code>
 	<code hex="0023" severity="Error" name="ScErrUnexpMetadata">
-	  <message>Internal error in unmanaged runtime meta-data population.</message>
+	  <message>Internal error in unmanaged meta-data population.</message>
 	</code>
 	<code hex="0024" severity="Error" name="ScErrSqlInternalBufferSmall">
 	  <message>Internal error in native SQL processor that allocated buffer is too small.</message>
@@ -4226,6 +4226,11 @@
     <code hex="0027" severity="Error" name="ScErrApplicationNotAnExecutable">
       <message>
         The application is not an executable.
+      </message>
+    </code>
+    <code hex="0028" severity="Error" name="ScErrProcessExitCodeNotAvailable">
+      <message>
+        The exit code of the terminating process was not available.
       </message>
     </code>
   </facility>

@@ -434,7 +434,8 @@ namespace PolyjuiceNamespace {
                             return MappingHandler(req, mappedHandlersList, p);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
-                            ProxyDelegateTrigger = true
+                            ProxyDelegateTrigger = true,
+                            TypeOfHandler = HandlerOptions.TypesOfHandler.OrdinaryMapping
                         });
 
                     } else {
@@ -444,7 +445,8 @@ namespace PolyjuiceNamespace {
                             return MappingHandler(req, mappedHandlersList, null);
                         }, new HandlerOptions() {
                             AllowNonPolyjuiceHandler = true,
-                            ProxyDelegateTrigger = true
+                            ProxyDelegateTrigger = true,
+                            TypeOfHandler = HandlerOptions.TypesOfHandler.OrdinaryMapping
                         });
                     }
 
@@ -496,7 +498,8 @@ namespace PolyjuiceNamespace {
                         return resp;
 
                     }, new HandlerOptions() {
-                        ProxyDelegateTrigger = true
+                        ProxyDelegateTrigger = true,
+                        TypeOfHandler = HandlerOptions.TypesOfHandler.OrdinaryMapping
                     });
 
                 } else {
@@ -513,7 +516,8 @@ namespace PolyjuiceNamespace {
                         return resp;
 
                     }, new HandlerOptions() {
-                        ProxyDelegateTrigger = true
+                        ProxyDelegateTrigger = true,
+                        TypeOfHandler = HandlerOptions.TypesOfHandler.OrdinaryMapping
                     });
                 }
             }
@@ -611,7 +615,8 @@ namespace PolyjuiceNamespace {
                     return resp;
 
                 }, new HandlerOptions() {
-                    ProxyDelegateTrigger = true
+                    ProxyDelegateTrigger = true,
+                    TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
                 });
             }
         }
@@ -1091,7 +1096,8 @@ namespace PolyjuiceNamespace {
                 }
 
             }, new HandlerOptions() {
-                ProxyDelegateTrigger = true
+                ProxyDelegateTrigger = true,
+                TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
             });
 
             // Merges HTML partials according to provided URLs.
@@ -1118,10 +1124,32 @@ namespace PolyjuiceNamespace {
                 ProxyDelegateTrigger = true
             });
 
+            Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                ScSessionClass.DataLocationUriPrefix + "Polyjuice/OntologyMappingFlag", () => {
+                    return "{\"OntologyMappingEnabled\":\"" + StarcounterEnvironment.OntologyMappingEnabled.ToString() + "\"}";
+                });
+
+            Handle.POST(StarcounterEnvironment.Default.SystemHttpPort, 
+                ScSessionClass.DataLocationUriPrefix + "Polyjuice/OntologyMappingFlag/{?}", (Boolean enable) => {
+
+                // Checking if we should switch the flag.
+                if (StarcounterEnvironment.OntologyMappingEnabled != enable) {
+
+                    StarcounterEnvironment.OntologyMappingEnabled = enable;
+
+                    UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
+                        StarcounterEnvironment.OntologyMappingEnabled, HandlerOptions.TypesOfHandler.OntologyMapping);
+                }
+
+                return 200;
+            });
+
             StarcounterEnvironment.AppName = savedAppName;
 
             // Now all applications are treated as Polyjuice applications.
             StarcounterEnvironment.PolyjuiceAppsFlag = true;
+            StarcounterEnvironment.MappingEnabled = true;
+            StarcounterEnvironment.OntologyMappingEnabled = true;
         }
     }
 }

@@ -164,7 +164,7 @@ namespace Starcounter {
                 }
 
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, socketContainer_.GatewayWorkerId, false);
+                dataStream.Init(chunkMem, chunkIndex, socketContainer_.GatewayWorkerId);
 
             } else {
 
@@ -194,8 +194,16 @@ namespace Starcounter {
         /// <summary>
         /// Running the given action on raw sockets that meet given criteria.
         /// </summary>
-        /// <param name="cargoId">Cargo ID filter (UInt64.MaxValue for all).</param>
-        public static void ForEach(UInt64 cargoId, Action<TcpSocket> action) {
+        public static void ForEach(UInt64 cargoId, Action<TcpSocket> action, UInt16 port) {
+
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
 
             // For each scheduler.
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
@@ -223,7 +231,7 @@ namespace Starcounter {
                                 SchedulerResources.SocketContainer sc = spspgw.GetSocket(wsIndex);
 
                                 // Checking if its a raw socket.
-                                if ((sc != null) && (!sc.IsDead())) {
+                                if ((sc != null) && (port == sc.Port) && (!sc.IsDead())) {
 
                                     TcpSocket rs = sc.Rs;
 
@@ -253,10 +261,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Disconnecting Raw Sockets that meet given criteria.
+        /// Disconnecting Tcp Sockets that meet given criteria.
         /// </summary>
-        public static void DisconnectEach(UInt64 cargoId = UInt64.MaxValue) {
-            ForEach(cargoId, (TcpSocket s) => { s.Disconnect(); });
+        public static void DisconnectEach(UInt64 cargoId = UInt64.MaxValue, UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
+            ForEach(cargoId, (TcpSocket s) => { s.Disconnect(); }, port);
         }
     }
 }

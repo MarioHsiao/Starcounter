@@ -220,7 +220,7 @@ namespace Starcounter {
                         }
                     }
                     json._Dirty = false;
-                } else if (_checkBoundProperties && template.HasAtLeastOneBoundProperty) {
+                } else if (_checkBoundProperties) {
                     for (int t = 0; t < exposed.Count; t++) {
                         if (exposed[t] is TContainer) {
                             var c = ((TContainer)exposed[t]).GetValue(json);
@@ -234,12 +234,7 @@ namespace Starcounter {
                                 p.CheckAndSetBoundValue(json, true);
                             }
                         }
-                    }
-                } else {
-                    foreach (var e in json.list) {
-                        if (e is Json) {
-                            ((Json)e).LogValueChangesWithDatabase(s, true);
-                        }
+
                     }
                 }
 

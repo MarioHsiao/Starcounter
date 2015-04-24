@@ -48,6 +48,11 @@ namespace Starcounter.Internal
         /// Getting internal session.
         /// </summary>
         ScSessionClass InternalSession { get; set; }
+
+        /// <summary>
+        /// Currently active WebSocket.
+        /// </summary>
+        WebSocket ActiveWebSocket { get; set; }
     }
 
     /// <summary>
@@ -919,6 +924,11 @@ namespace Starcounter.Internal
         /// Getting internal session.
         /// </summary>
         public ScSessionClass InternalSession { get; set; }
+
+        /// <summary>
+        /// Currently active WebSocket.
+        /// </summary>
+        public WebSocket ActiveWebSocket { get; set; }
 
         /// <summary>
         /// Linked list node to itself.

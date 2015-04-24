@@ -87,9 +87,49 @@ namespace Starcounter.Internal {
 
             SchedulerResources.Init(numSchedulers);
 
-            // Registering JSON patch handlers on default user port.
             if (!noNetworkGateway) {
+
+                // Registering JSON patch handlers on default user port.
                 PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
+
+                Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MappingFlag", () => {
+                        return "{\"MappingEnabled\":\"" + StarcounterEnvironment.MappingEnabled.ToString() + "\"}";
+                    });
+
+                Handle.POST(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MappingFlag/{?}", (Boolean enable) => {
+
+                        // Checking if we should switch the flag.
+                        if (StarcounterEnvironment.MappingEnabled != enable) {
+
+                            StarcounterEnvironment.MappingEnabled = enable;
+
+                            UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
+                                StarcounterEnvironment.MappingEnabled, HandlerOptions.TypesOfHandler.OrdinaryMapping);
+                        }
+
+                        return 200;
+                    });
+
+                Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MiddlewareFiltersFlag", () => {
+                        return "{\"MiddlewareFiltersEnabled\":\"" + StarcounterEnvironment.MiddlewareFiltersEnabled.ToString() + "\"}";
+                    });
+
+                Handle.POST(StarcounterEnvironment.Default.SystemHttpPort,
+                    ScSessionClass.DataLocationUriPrefix + "MiddlewareFiltersFlag/{?}", (Boolean enable) => {
+
+                        // Checking if we should switch the flag.
+                        if (StarcounterEnvironment.MiddlewareFiltersEnabled != enable) {
+
+                            StarcounterEnvironment.MiddlewareFiltersEnabled = enable;
+
+                            Handle.EnableDisableMiddleware(StarcounterEnvironment.MiddlewareFiltersEnabled);
+                        }
+
+                        return 200;
+                    });
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
@@ -151,6 +191,10 @@ namespace Starcounter.Internal {
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
                 return;
 
+            // By default middleware filters are enabled.
+            StarcounterEnvironment.MiddlewareFiltersEnabled = true;
+
+            // TODO: Check for Polyjuice flag per database!
             Boolean initPolyjuiceFlag = false;
             if ((!StarcounterEnvironment.PolyjuiceAppsFlag) &&
                 (CurrentVersion.EditionName == StarcounterConstants.PolyjuiceEditionName)) {
@@ -169,7 +213,16 @@ namespace Starcounter.Internal {
                     String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
 
                     if (Directory.Exists(extendedResourceDirPath)) {
+
                         fullPathToResourcesDir = extendedResourceDirPath;
+
+                    } else {
+
+                        extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.PolyjuiceWebRootName);
+
+                        if (Directory.Exists(extendedResourceDirPath)) {
+                            fullPathToResourcesDir = extendedResourceDirPath;
+                        }
                     }
                 }
 
@@ -280,7 +333,7 @@ namespace Starcounter.Internal {
                 resp = Response.FromStatusCode(500);
                 resp.Body = AppRestServer.GetExceptionString(exc);
                 resp.ContentType = "text/plain";
-            } 
+            }
 
             // Checking if response was handled.
             if (resp == null)
@@ -303,7 +356,11 @@ namespace Starcounter.Internal {
                 }
 
                 default: {
-                    req.CreateFinalizer();
+
+                    // Checking if request should be finalized.
+                    if (req.ShouldBeFinalized())
+                        req.CreateFinalizer();
+
                     break;
                 }
             }
