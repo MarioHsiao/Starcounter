@@ -13,10 +13,6 @@ namespace Starcounter {
         /// <summary>
         /// Register TCP socket handler.
         /// </summary>
-        /// <param name="port"></param>
-        /// <param name="appName"></param>
-        /// <param name="rawCallback"></param>
-        /// <param name="handlerInfo"></param>
         internal delegate void RegisterTcpSocketHandlerDelegate(
             UInt16 port,
             String appName,
@@ -42,6 +38,11 @@ namespace Starcounter {
         public UInt64 SocketUniqueId { get { return socketContainer_.SocketUniqueId; } }
 
         /// <summary>
+        /// Scheduler ID to which this socket belongs.
+        /// </summary>
+        internal Byte schedulerId_ = StarcounterConstants.MaximumSchedulersNumber;
+
+        /// <summary>
         /// Cargo ID getter.
         /// </summary>
         public UInt64 CargoId {
@@ -60,6 +61,7 @@ namespace Starcounter {
         internal TcpSocket(SchedulerResources.SocketContainer outerSocketContainer) {
 
             socketContainer_ = outerSocketContainer;
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
         }
 
         /// <summary>
@@ -89,6 +91,7 @@ namespace Starcounter {
         /// Resets the socket.
         /// </summary>
         internal void Destroy() {
+
             if (null != socketContainer_) {
                 SchedulerResources.ReturnSocketContainer(socketContainer_);
                 socketContainer_ = null;
@@ -100,6 +103,13 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public Boolean IsDead() {
+
+            // Checking if WebSocket is used on correct scheduler.
+            if (StarcounterEnvironment.CurrentSchedulerId != schedulerId_) {
+                throw ErrorCode.ToException(Error.SCERRBADSCHEDIDSUPPLIED, 
+                    "Trying to perform an operation on TcpSocket that belongs to a different scheduler.");
+            }
+
             return ((null == socketContainer_) || (socketContainer_.IsDead()));
         }
 
