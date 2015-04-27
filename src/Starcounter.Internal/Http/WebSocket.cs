@@ -50,6 +50,14 @@ namespace Starcounter
         /// </summary>
         SchedulerResources.SocketContainer socketContainer_;
 
+        /// <summary>
+        /// Gateway worker id.
+        /// </summary>
+        public Byte GatewayWorkerId { get { return socketContainer_.GatewayWorkerId; } }
+
+        /// <summary>
+        /// Socket container.
+        /// </summary>
         internal SchedulerResources.SocketContainer SocketContainer {
             get { return socketContainer_; }
         }
@@ -59,16 +67,10 @@ namespace Starcounter
         /// </summary>
         /// <param name="outerSocketContainer"></param>
         /// <param name="channelId"></param>
-        public WebSocketInternal(SchedulerResources.SocketContainer outerSocketContainer, UInt32 channelId)
-        {
+        public WebSocketInternal(SchedulerResources.SocketContainer outerSocketContainer, UInt32 channelId) {
             socketContainer_ = outerSocketContainer;
             channelId_ = channelId;
         }
-
-        /// <summary>
-        /// Gateway worker id.
-        /// </summary>
-        public Byte GatewayWorkerId { get { return socketContainer_.GatewayWorkerId; } }
 
         /// <summary>
         /// Destroys only data stream.
@@ -129,6 +131,11 @@ namespace Starcounter
         internal WebSocketInternal WsInternal { get { return wsInternal_; } }
 
         /// <summary>
+        /// Scheduler ID to which this socket belongs.
+        /// </summary>
+        internal Byte schedulerId_ = StarcounterConstants.MaximumSchedulersNumber;
+
+        /// <summary>
         /// Network data stream.
         /// </summary>
         public NetworkDataStream DataStream {
@@ -151,10 +158,8 @@ namespace Starcounter
         /// <summary>
         /// Specific saved user object ID.
         /// </summary>
-        public UInt64 CargoId
-        {
-            get
-            {
+        public UInt64 CargoId {
+            get {
                 return wsInternal_.CargoId;
             }
         }
@@ -179,8 +184,13 @@ namespace Starcounter
         /// </summary>
         /// <param name="message">Optional error message.</param>
         /// <param name="code">Optional error code.</param>
-        public void Disconnect(String message = null, WebSocketCloseCodes code = WebSocketCloseCodes.WS_CLOSE_NORMAL)
-        {
+        public void Disconnect(String message = null, WebSocketCloseCodes code = WebSocketCloseCodes.WS_CLOSE_NORMAL) {
+
+            // Checking if WebSocket is used on correct scheduler.
+            if (StarcounterEnvironment.CurrentSchedulerId != schedulerId_) {
+                throw ErrorCode.ToException(Error.SCERRBADSCHEDIDSUPPLIED, "Trying to disconnect WebSocket on wrong scheduler.");
+            }
+
             Int32 bufLen = 2;            
 
             if (message != null)
@@ -220,8 +230,7 @@ namespace Starcounter
         /// <param name="data">Data to push.</param>
         /// <param name="isText">Is given data a text?</param>
         /// <param name="connFlags">Connection flags on the push.</param>
-        public void Send(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
-        {
+        public void Send(Byte[] data, Boolean isText = false, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags) {
             PushServerMessage(this, data, data.Length, isText, connFlags);
         }
 
@@ -242,8 +251,7 @@ namespace Starcounter
         /// <param name="data">Data to push.</param>
         /// <param name="isText">Is given data a text?</param>
         /// <param name="connFlags">Connection flags on the push.</param>
-        public void Send(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
-        {
+        public void Send(String data, Boolean isText = true, Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags) {
             Send(Encoding.UTF8.GetBytes(data), isText, connFlags);
         }
 
@@ -400,8 +408,7 @@ namespace Starcounter
         /// <summary>
         /// Received text message.
         /// </summary>
-        internal String Message
-        {
+        internal String Message {
             get {
                 return message_;
             }
@@ -412,8 +419,7 @@ namespace Starcounter
         /// <summary>
         /// Received binary bytes.
         /// </summary>
-        internal Byte[] Bytes
-        {
+        internal Byte[] Bytes {
             get {
                 return bytes_;
             }
@@ -421,8 +427,7 @@ namespace Starcounter
 
         WsHandlerType wsHandlerType_;
 
-        internal WsHandlerType HandlerType
-        {
+        internal WsHandlerType HandlerType {
             get { return wsHandlerType_; }
         }
 
@@ -438,6 +443,7 @@ namespace Starcounter
             bytes_ = bytes;
             wsHandlerType_ = wsHandlerType;
             isText_ = isText;
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
         }
 
         internal void ConstructFromRequest(
@@ -457,6 +463,7 @@ namespace Starcounter
                 channelId);
 
             wsInternal_ = wsi;
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
         }
 
         /// <summary>
@@ -474,7 +481,6 @@ namespace Starcounter
 
             wsInternal_.Destroy();
         }
-
        
         /// <summary>
         /// Creates new Request based on session.
@@ -486,6 +492,12 @@ namespace Starcounter
             Boolean isText,
             Response.ConnectionFlags connFlags = Response.ConnectionFlags.NoSpecialFlags)
         {
+            // Checking if WebSocket is used on correct scheduler.
+            if (StarcounterEnvironment.CurrentSchedulerId != ws.schedulerId_) {
+                throw ErrorCode.ToException(Error.SCERRBADSCHEDIDSUPPLIED,
+                    "Trying to do WebSocket send on wrong scheduler.");
+            }
+
             NetworkDataStream dataStream;
             UInt32 chunkIndex;
             Byte* chunkMem;
@@ -526,7 +538,8 @@ namespace Starcounter
 
             (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
-            (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte)MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
+            (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = 
+                (Byte)MixedCodeConstants.NetworkProtocolType.PROTOCOL_WEBSOCKETS;
 
             (*(UInt32*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = ws.wsInternal_.SocketIndexNum;
             (*(UInt64*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = ws.wsInternal_.SocketUniqueId;
@@ -536,10 +549,13 @@ namespace Starcounter
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             // Checking if we have text or binary WebSocket frame.
-            if (isText)
-                (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = (Byte) MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT;
-            else
-                (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = (Byte) MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY;
+            if (isText) {
+                (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) =
+                    (Byte)MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT;
+            } else {
+                (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE)) = 
+                    (Byte)MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY;
+            }
 
             dataStream.SendResponse(data, 0, dataLen, connFlags);
         }
