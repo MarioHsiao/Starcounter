@@ -27,9 +27,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Skip middleware filters.
+        /// Skip middleware filters flag.
         /// </summary>
-        internal Boolean SkipMiddlewareFilters {
+        public Boolean SkipMiddlewareFilters {
             get;
             set;
         }
