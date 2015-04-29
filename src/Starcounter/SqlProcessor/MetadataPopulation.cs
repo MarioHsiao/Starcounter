@@ -43,10 +43,11 @@ namespace Starcounter.SqlProcessor {
                         AssemblyName = (app != null ? app.Name : null),
                         AppDomainName = AppDomain.CurrentDomain.FriendlyName,
                         Inherits = parentView,
-                        Updatable = app == null ? false : true
+                        Updatable = rawview.Updatable
                     };
                     createdViews[j] = obj;
                     Debug.Assert(obj.Mapper != null);
+                    Debug.Assert(obj.Updatable == (app == null ? false : true));
                 }
                 // Insert meta-data about properties
                 for (int j = 0; j < typeDefs.Length; j++) {
