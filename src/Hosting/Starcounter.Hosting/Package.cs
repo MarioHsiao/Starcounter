@@ -283,8 +283,6 @@ namespace Starcounter.Hosting {
                         uint e = systables.star_prepare_system_tables();
                         if (e != 0) throw ErrorCode.ToException(e);
                         transaction.Scope(() => {
-                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
-                            OnRuntimeMetadataPopulated();
                             // Call CLR class clean up
                             Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
                             OnCleanClrMetadata();
@@ -483,7 +481,6 @@ namespace Starcounter.Hosting {
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
-        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
         private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
         private void OnPopulateMetadataDefs() { Trace("Properties and columns were populated for the given meta-types."); }
