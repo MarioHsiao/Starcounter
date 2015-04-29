@@ -77,6 +77,7 @@ namespace Starcounter.Metadata {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
             internal static int columnHandle_MaterializedColumn;
+            internal static int columnHandle_IndexId;
             internal static int columnHandle_Unique;
         }
 #pragma warning disable 0628, 0169
@@ -103,6 +104,17 @@ namespace Starcounter.Metadata {
             internal set {
                 DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_MaterializedColumn, value);
+            }
+        }
+
+        public UInt64 IndexId {
+            get {
+                return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_IndexId);
+            }
+            internal set {
+                DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_IndexId, value);
             }
         }
 
