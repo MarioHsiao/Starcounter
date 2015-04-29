@@ -202,6 +202,7 @@ namespace Starcounter.SqlProcessor {
                     Name = matCol.Name,
                     MaterializedColumn = matCol,
                     IndexId = matCol.Index,
+                    Nullable = matCol.Nullable,
                     Inherited = col.IsInherited
                 };
                 if (col.Type == sccoredb.STAR_TYPE_REFERENCE) {

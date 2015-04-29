@@ -225,6 +225,7 @@ namespace QueryProcessingTest {
             Trace.Assert(c.MaterializedColumn != null);
             Trace.Assert(c.MaterializedColumn.Name == c.Name);
             Trace.Assert(c.MaterializedColumn.Index == c.IndexId);
+            Trace.Assert(c.MaterializedColumn.Nullable == c.Nullable);
             Trace.Assert(!c.Unique);
 #if false
             int nrColumns = 0;

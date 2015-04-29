@@ -78,6 +78,7 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_MaterializedColumn;
             internal static int columnHandle_IndexId;
+            internal static int columnHandle_Nullable;
             internal static int columnHandle_Unique;
         }
 #pragma warning disable 0628, 0169
@@ -115,6 +116,17 @@ namespace Starcounter.Metadata {
             internal set {
                 DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_IndexId, value);
+            }
+        }
+
+        public Boolean Nullable {
+            get {
+                return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Nullable);
+            }
+            internal set {
+                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Nullable, value);
             }
         }
 
