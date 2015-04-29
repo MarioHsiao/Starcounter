@@ -82,6 +82,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rv.UniqueIdentifierReversed == "ClrClass.Metadata.Starcounter.Raw.Starcounter");
             Trace.Assert(rv.MaterializedTable != null);
             Trace.Assert(rv.MaterializedTable.Name == rv.FullName);
+            Trace.Assert(rv.TableId > 0);
             Trace.Assert(!rv.Updatable);
             Trace.Assert(rv.Inherits != null);
             Trace.Assert(rv.Inherits.FullName == "Starcounter.Metadata.VMView");

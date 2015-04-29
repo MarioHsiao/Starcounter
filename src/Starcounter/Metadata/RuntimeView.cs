@@ -95,6 +95,7 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
+            internal static int columnHandle_TableId;
             internal static int columnHandle_MaterializedTable;
             internal static int columnHandle_AutoTypeInstance;
         }
@@ -109,6 +110,13 @@ namespace Starcounter.Metadata {
         public RawView(Uninitialized u) : base(u) { }
         internal RawView() : this(null) {
             DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public UInt64 TableId {
+            get { return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableId); }
+            internal set {
+                DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__, __starcounterTypeSpecification.columnHandle_TableId, value);
+            }
         }
 
         public Starcounter.Internal.Metadata.MaterializedTable MaterializedTable {
