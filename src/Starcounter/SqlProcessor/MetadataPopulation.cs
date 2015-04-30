@@ -235,7 +235,8 @@ namespace Starcounter.SqlProcessor {
                 Name = matIndx.Name,
                 Table =
                     Db.SQL<RawView>("select v from rawview v where materializedtable = ?", matIndx.Table).First,
-                Unique = matIndx.Unique
+                Unique = matIndx.Unique,
+                Token = matIndx.NameToken
             };
             Debug.Assert(rawIndx.Table != null);
             Debug.Assert(rawIndx.Table is Starcounter.Metadata.RawView);

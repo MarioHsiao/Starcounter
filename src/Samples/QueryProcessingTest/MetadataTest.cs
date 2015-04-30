@@ -460,6 +460,7 @@ namespace QueryProcessingTest {
                             " and c.column.name = m.column.name",
                             indx, matIndx).First;
                         Trace.Assert(numMatchedColIndx == numColIndx);
+                        Trace.Assert(indx.Token == matIndx.NameToken);
                         nrIndColumns += numColIndx;
                     }
             }
