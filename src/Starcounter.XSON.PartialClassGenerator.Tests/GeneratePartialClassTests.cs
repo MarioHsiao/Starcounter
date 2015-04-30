@@ -151,7 +151,48 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
         }
 
         [Test]
-        public static void GeneratePrimitiveCode() {
+        public static void GeneratePrimitiveCode1() {
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                "Input/Primitive.json",
+                null);
+
+            var ast = codegen.DumpAstTree();
+            var code = codegen.GenerateCode();
+
+//            Helper.ConsoleWriteLine(ast);
+            Helper.ConsoleWriteLine(code);
+        }
+
+        [Test]
+        public static void GeneratePrimitiveCode2() {
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                "Input/Primitive2.json",
+                null);
+
+            var ast = codegen.DumpAstTree();
+            var code = codegen.GenerateCode();
+
+//            Helper.ConsoleWriteLine(ast);
+            Helper.ConsoleWriteLine(code);
+        }
+
+        [Test]
+        public static void GeneratePrimitiveCode3() {
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                "Input/Primitive3.json",
+                null);
+
+            var ast = codegen.DumpAstTree();
+            var code = codegen.GenerateCode();
+
+            Helper.ConsoleWriteLine(ast);
+
+            Helper.ConsoleWriteLine("\n\n");
+            Helper.ConsoleWriteLine(code);
+        }
+
+        [Test]
+        public static void GeneratePrimitiveArrayCode() {
             var codegen = PartialClassGenerator.GenerateTypedJsonCode(
                 "Input/Primitive.json",
                 null);
