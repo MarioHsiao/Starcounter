@@ -296,6 +296,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(col.MaterializedColumn.Equals(mc));
                 Trace.Assert(col.Name == mc.Name);
                 Trace.Assert(col.Table.FullName == mc.Table.Name);
+                Trace.Assert(col.MaterializedColumn.NameToken == col.Token);
             }
         }
 

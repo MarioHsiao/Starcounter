@@ -78,6 +78,7 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_MaterializedColumn;
             internal static int columnHandle_IndexId;
+            internal static int columnHandle_Token;
             internal static int columnHandle_Nullable;
             internal static int columnHandle_Unique;
         }
@@ -116,6 +117,17 @@ namespace Starcounter.Metadata {
             internal set {
                 DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_IndexId, value);
+            }
+        }
+
+        public UInt64 Token {
+            get {
+                return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Token);
+            }
+            internal set {
+                DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_Token, value);
             }
         }
 

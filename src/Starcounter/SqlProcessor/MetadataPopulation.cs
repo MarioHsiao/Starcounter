@@ -203,6 +203,7 @@ namespace Starcounter.SqlProcessor {
                     Name = matCol.Name,
                     MaterializedColumn = matCol,
                     IndexId = matCol.Index,
+                    Token = matCol.NameToken,
                     Nullable = matCol.Nullable,
                     Inherited = col.IsInherited
                 };
