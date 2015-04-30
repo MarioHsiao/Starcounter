@@ -119,6 +119,7 @@ namespace Starcounter.SqlProcessor {
                 FullName = typeDef.TableDef.Name,
                 MaterializedTable = matTab,
                 Inherits = parentTab,
+                Token = matTab.NameToken,
                 Updatable = true
             };
             rawView.UniqueIdentifier = GetUniqueIdentifier(matTab.Name);

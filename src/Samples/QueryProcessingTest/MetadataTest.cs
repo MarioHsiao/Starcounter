@@ -106,6 +106,7 @@ namespace QueryProcessingTest {
                 false)) {
                 Trace.Assert(v.MaterializedTable != null);
                 Trace.Assert(v.MaterializedTable.Name == v.FullName);
+                Trace.Assert(v.MaterializedTable.NameToken == v.Token);
                 Trace.Assert(v.UniqueIdentifier == v.UniqueIdentifierReversed.ReverseOrderDotWords());
                 Trace.Assert(!String.IsNullOrWhiteSpace(v.Name));
                 count++;
