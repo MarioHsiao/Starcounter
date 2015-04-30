@@ -1,0 +1,24 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+	"ID": "", 
+	"DisplayName": "", 
+	"ImageUri" : "",
+	"Version" : "",
+	"VersionDate" : "",
+	"Description": "",
+	"Company" : "",
+	"DatabaseName" : "",
+    "Heading" :"",
+	"SourceUrl" : "",
+
+	"Rating":0,
+	"Size" : 0,
+
+
+	"IsDeployed" : false,
+	"IsRunning" : false,
+	"Status" : 0,
+	"StatusText" : "",
+	"Download$" : 0,
+	"Open$" : 0
+}

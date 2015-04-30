@@ -77,3 +77,16 @@ adminModule.filter('bytes', function () {
         return (val.match(/\.0*$/) ? val.substr(0, val.indexOf('.')) : val) + ' ' + units[number];
     }
 });
+
+
+adminModule.filter('fixdate', function ($filter) {
+    return function (input, mode) {
+        if (input == null) return null;
+        input = input.replaceAt(10, "T");
+        return $filter('date')(input, mode);
+    };
+})
+
+String.prototype.replaceAt = function (index, character) {
+    return this.substr(0, index) + character + this.substr(index + character.length);
+}

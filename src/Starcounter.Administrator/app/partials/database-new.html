@@ -1,0 +1,184 @@
+﻿
+
+<!--<div class="row pageheader"></div>-->
+
+<!--<div class="row pageheader">
+
+    <div class="btn-toolbar">
+
+        <div class="btn-group btn-group-sm">
+            <button style="min-width: 100px" class="btn  btn-primary" ng-click="gotoDatabase()" title="Go to database">Select database</button>
+            <button class="btn  btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" title="Change database">
+                <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+                <li role="presentation" ng-repeat="item in data.model.Databases" title="{{item.DisplayName}}">
+                    <a href="#/databases/{{item.ID}}" role="menuitem">{{item.DisplayName}}</a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="btn-group btn-group-sm">
+            <a class="btn " href="#/database-new" role="button" title="Create database">Create database</a>
+        </div>
+
+
+
+    </div>
+
+
+</div>-->
+
+
+
+<div class="panel panel-default">
+
+    <div class="panel-heading">Create a new database</div>
+
+    <div class="panel-body">
+
+        <form name="myForm" class="form-horizontal" role="form">
+
+            <!-- Database name -->
+            <div class="form-group " ng-class="{'has-error': myForm.Name.$invalid, 'has-feedback': myForm.Name.$invalid}">
+                <label class="col-sm-2 control-label" for="Name">Name</label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="text" name="Name" id="Name" placeholder="Database name" ng-model="settings.Name" required>
+                    <span class="help-block error" ng-show="myForm.Name.$error.validationError">Invalid format</span>
+                    <span class="help-block error" ng-show="myForm.Name.$error.required">Required</span>
+                    <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.Name.$error.validationError||myForm.Name.$error.required"></span>
+                </div>
+            </div>
+
+            <div class="form-group ">
+                <label class="col-sm-2 control-label"></label>
+
+                <accordion class="col-sm-10">
+                    <accordion-group is-open="$parent.step1open" ng-init="step1open = false">
+
+                        <accordion-heading >
+                            Advanced<i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': isopen, 'glyphicon-chevron-right': !isopen}"></i>
+                        </accordion-heading>
+
+                        <!-- DefaultUserHttpPort -->
+                        <div class="form-group" ng-class="{'has-error': myForm.DefaultUserHttpPort.$invalid, 'has-feedback': myForm.DefaultUserHttpPort.$invalid}">
+                            <label class="col-sm-2 control-label" for="DefaultUserHttpPort">Http Port</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" type="number" min="0" max="65535" integer name="DefaultUserHttpPort" id="DefaultUserHttpPort" placeholder="Http port" ng-model="settings.DefaultUserHttpPort" required>
+                                <span class="help-block error" ng-show="myForm.DefaultUserHttpPort.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.DefaultUserHttpPort.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.DefaultUserHttpPort.$error.validationError||myForm.DefaultUserHttpPort.$error.required"></span>
+                            </div>
+                        </div>    
+
+                        <!-- CollationFile -->
+                        <div class="form-group" ng-class="{'has-error': myForm.CollationFile.$invalid, 'has-feedback': myForm.CollationFile.$invalid}">
+                            <label class="col-sm-2 control-label" for="CollationFile">Collation</label>
+                            <div class="col-sm-10">
+
+                                <select class="form-control" ng-model="settings.CollationFile" name="CollationFile" id="CollationFile" required>
+                                    <option value="{{collation.File}}" ng-repeat="collation in collations">{{collation.Description}}</option>
+                                </select>
+
+                                <span class="help-block error" ng-show="myForm.CollationFile.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.CollationFile.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.CollationFile.$error.validationError||myForm.CollationFile.$error.required"></span>
+                            </div>
+                        </div>
+
+                        <!-- ImageDirectory -->
+                        <div class="form-group" ng-class="{'has-error': myForm.ImageDirectory.$invalid, 'has-feedback': myForm.ImageDirectory.$invalid}">
+                            <label class="col-sm-2 control-label" for="ImageDirectory">Image Directory</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" ng-change="onUserChangedFolder('ImageDirectory')" class="input-xxlarge" type="text" name="ImageDirectory" id="ImageDirectory" placeholder="Image Directory" ng-model="settings.ImageDirectory" required>
+                                <span class="help-block error" ng-show="myForm.ImageDirectory.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.ImageDirectory.$error.required">Required</span>
+                                <span class="help-block">Full path of the directory containing image files (relative to the server).</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.ImageDirectory.$error.validationError||myForm.ImageDirectory.$error.required"></span>
+                            </div>
+                        </div>
+
+                        <!-- TransactionLogDirectory -->
+                        <div class="form-group" ng-class="{'has-error': myForm.TransactionLogDirectory.$invalid, 'has-feedback': myForm.TransactionLogDirectory.$invalid}">
+                            <label class="col-sm-2 control-label" for="TransactionLogDirectory">Transaction Log Directory</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" ng-change="onUserChangedFolder('TransactionLogDirectory')" class="input-xxlarge" type="text" name="TransactionLogDirectory" id="TransactionLogDirectory" placeholder="Transactionlog Directory" ng-model="settings.TransactionLogDirectory" required>
+                                <span class="help-block error" ng-show="myForm.TransactionLogDirectory.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.TransactionLogDirectory.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.TransactionLogDirectory.$error.validationError||myForm.TransactionLogDirectory.$error.required"></span>
+                                <span class="help-block">Full path of the directory containing transaction log files (relative to the server).</span>
+                            </div>
+                        </div>
+
+                        <!-- TempDirectory -->
+                        <div class="form-group" ng-class="{'has-error': myForm.TempDirectory.$invalid, 'has-feedback': myForm.TempDirectory.$invalid}">
+                            <label class="col-sm-2 control-label" for="TempDirectory">Temp Directory</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" ng-change="onUserChangedFolder('TempDirectory')" class="input-xxlarge" type="text" name="TempDirectory" id="TempDirectory" placeholder="Temp Directory" ng-model="settings.TempDirectory" required>
+                                <span class="help-block error" ng-show="myForm.TempDirectory.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.TempDirectory.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.TempDirectory.$error.validationError||myForm.TempDirectory.$error.required"></span>
+                                <span class="help-block">Full path of the directory which temporary files are stored (relative to the server).</span>
+                            </div>
+                        </div>
+
+                        <!-- DumpDirectory -->
+                        <div class="form-group" ng-class="{'has-error': myForm.DumpDirectory.$invalid, 'has-feedback': myForm.DumpDirectory.$invalid}">
+                            <label class="col-sm-2 control-label" for="DumpDirectory">Dump Directory</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" ng-change="onUserChangedFolder('DumpDirectory')" class="input-xxlarge" type="text" name="DumpDirectory" id="DumpDirectory" placeholder="Dump Directory" ng-model="settings.DumpDirectory" required>
+                                <span class="help-block error" ng-show="myForm.DumpDirectory.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.DumpDirectory.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.DumpDirectory.$error.validationError||myForm.DumpDirectory.$error.required"></span>
+                                <span class="help-block">Full path of the directory containing dump files (relative to the server).</span>
+                            </div>
+                        </div>
+
+                        <!-- SchedulerCount -->
+                        <div class="form-group" ng-class="{'has-error': myForm.SchedulerCount.$invalid, 'has-feedback': myForm.SchedulerCount.$invalid}">
+                            <label class="col-sm-2 control-label" for="SchedulerCount">Scheduler Count</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" type="number" min="0" max="65535" integer name="SchedulerCount" id="SchedulerCount" placeholder="Scheduler Count" ng-model="settings.SchedulerCount" required>
+                                <span class="help-block error" ng-show="myForm.SchedulerCount.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.SchedulerCount.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.SchedulerCount.$error.validationError||myForm.SchedulerCount.$error.required"></span>
+                                <span class="help-block">Number of schedulers the database host should utilize.</span>
+                            </div>
+                        </div>
+
+                        <!-- ChunksNumber -->
+                        <div class="form-group" ng-class="{'has-error': myForm.ChunksNumber.$invalid, 'has-feedback': myForm.ChunksNumber.$invalid}">
+                            <label class="col-sm-2 control-label" for="ChunksNumber">Chunks</label>
+                            <div class="col-sm-10">
+                                <input class="form-control" type="number" min="0" name="ChunksNumber" id="ChunksNumber" placeholder="Chunks" ng-model="settings.ChunksNumber" required>
+                                <span class="help-block error" ng-show="myForm.ChunksNumber.$error.validationError">Invalid format</span>
+                                <span class="help-block error" ng-show="myForm.ChunksNumber.$error.required">Required</span>
+                                <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.ChunksNumber.$error.validationError||myForm.ChunksNumber.$error.required"></span>
+                                <span class="help-block">Number of shared memory chunks, dividable by 256.</span>
+                            </div>
+                        </div>
+                    </accordion-group>
+                </accordion>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" ng-disabled="myForm.$invalid || Status != 0" class="btn btn-default btn-success" ng-click="btnCreateDatabase(settings)">Create</button>
+                    <button ng-disabled="myForm.$pristine  == true || Status != 0" class="btn btn-default" ng-click="btnResetSettings()">Reset</button>
+
+                    <span ng-show="Status != 0">
+                        <span title="Creating new database..." class="spinner tiny"></span>
+                        Creating new database...
+                    </span>
+                    <div style="margin-top:20px" ng-show="HasErrorMessage">
+                        <span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
+                        {{ErrorMessage.Message}}
+                        <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">What does it mean?</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+                    </div>
+
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

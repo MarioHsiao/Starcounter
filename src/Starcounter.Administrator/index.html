@@ -16,28 +16,30 @@
     <link rel="stylesheet" type="text/css" href="/app/vendor/codemirror/monokai.css">
 
     <!-- Bootstrap, Used by: Global -->
-    <link rel="stylesheet" href="/app/vendor/bootstrap/bootstrap-3.1.1.min.css">
-
-    <link rel="stylesheet" href="/app/vendor/select2/select2-3.4.5.css">
-
-    <link rel="stylesheet" href="/app/css/master.css">
+    <link rel="stylesheet" href="/app/vendor/bootstrap/bootstrap.min.css">
 
     <!-- jQuery, Used by: angular-ui, ui-bootstrap  -->
     <script src="/app/vendor/jquery/jquery-2.1.0.min.js"></script>
 
     <!-- Bootstrap, Used by: Global -->
-    <script src="/app/vendor/bootstrap/bootstrap-3.1.1.min.js"></script>
+    <script src="/app/vendor/bootstrap/bootstrap.min.js"></script>
 
     <script src="/app/vendor/handsontable/very-native-scrollbar-0.0.20131217.js"></script>
 
-    <script src="/app/vendor/select2/select2-3.4.5.js"></script>
-
     <!-- Angular, Used by: Global -->
-    <script src="/app/vendor/angular/angular-1.2.5.min.js"></script>
-    <script src="/app/vendor/angular/angular-route-1.2.5.min.js"></script>
-    <script src="/app/vendor/angular/angular-resource-1.2.5.min.js"></script>
+    <script src="/app/vendor/angular/angular.min.js"></script>
+    <script src="/app/vendor/angular/angular-route.min.js"></script>
+    <script src="/app/vendor/angular/angular-resource.min.js"></script>
+    <script src="/app/vendor/angular/angular-sanitize.min.js"></script>
 
-    <script src="/app/vendor/angular-ui/select2.js"></script>
+    <!-- ui-select files -->
+    <script src="/app/vendor/angular-ui/select.js"></script>
+    <link href="/app/vendor/angular-ui/select.min.css" rel="stylesheet">
+
+    <!-- Select2 theme -->
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/select2/3.4.5/select2.css">
+
+    <link rel="stylesheet" href="/app/css/master.css">
 
     <!-- CodeMirror -->
     <script src="/app/vendor/codemirror/codemirror.js"></script>
@@ -58,18 +60,23 @@
 
     <script src="/app/js/app.js"></script>
 
+
+    <!-- include PuppetJs with dependencies -->
+    <script src="app/js/json-patch-duplex.min.js"></script>
+    <script src="app/js/puppet.js"></script>
+
     <!-- Services -->
     <script src="/app/services/HostModelService.js"></script>
-    <script src="/app/services/ConsoleService.js"></script>
     <script src="/app/services/DatabaseService.js"></script>
+
+    <script src="/app/services/MessageService.js"></script>
     <script src="/app/services/ApplicationService.js"></script>
-    <script src="/app/services/InstalledApplicationService.js"></script>
-    <script src="/app/services/AppStoreService.js"></script>
     <script src="/app/services/SqlService.js"></script>
     <script src="/app/services/LogService.js"></script>
     <script src="/app/services/NetworkService.js"></script>
     <script src="/app/services/ServerService.js"></script>
     <script src="/app/services/VersionCheckService.js"></script>
+    <script src="/app/services/SubmenuService.js"></script>
 
     <!-- Factories -->
     <script src="/app/factories/Utils.js"></script>
@@ -79,13 +86,14 @@
 
     <!-- Controllers -->
     <script src="/app/controllers/UserErrorMessageCtrl.js"></script>
+    <script src="/app/controllers/MessagesCtrl.js"></script>
     <script src="/app/controllers/DatabasesCtrl.js"></script>
     <script src="/app/controllers/DatabaseCtrl.js"></script>
-    <script src="/app/controllers/DatabaseCreateCtrl.js"></script>
+    <script src="/app/controllers/DatabaseNewCtrl.js"></script>
     <script src="/app/controllers/DatabaseSettingsCtrl.js"></script>
     <script src="/app/controllers/ApplicationCtrl.js"></script>
-    <script src="/app/controllers/ApplicationsCtrl.js"></script>
-    <script src="/app/controllers/ApplicationStartCtrl.js"></script>
+    <script src="/app/controllers/ApplicationItemCtrl.js"></script>
+    <script src="/app/controllers/ExecutableStartCtrl.js"></script>
     <script src="/app/controllers/SqlCtrl.js"></script>
     <script src="/app/controllers/LogCtrl.js"></script>
     <script src="/app/controllers/NetworkCtrl.js"></script>
@@ -114,53 +122,174 @@
 
         document.write('<scr' + 'ipt type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.5/angular-locale_' + l_lang.toLowerCase() + '.js"></sc' + 'ript>');
     </script>
-
 </head>
 
 <body data-ng-app="scadmin">
+    <div data-ng-controller="NavbarController">
+        <nav class="navbar navbar-default" role="navigation">
+            <div class="container-fluid">
 
-    <nav class="navbar navbar-default" role="navigation" data-ng-controller="NavbarController">
-        <div class="container-fluid">
+                <div class="navbar-header">
 
-            <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
 
-                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
-                    <span class="sr-only">Toggle navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
+                    <a class="navbar-brand" href="#">
+                        <img src="/app/images/sc_logo_24x24.png" style="margin: -5px 5px 0px 0px" class=""></img>
+                        <div style="margin-top: 5px;display:inline-block">Starcounter Administrator</div>
+                    </a>
+                </div>
 
-                <a class="navbar-brand" href="#">
-                    <img src="/app/images/sc_logo_24x24.png" style="margin: -3px 0px 0px 0px" class=""></img>
-                    Starcounter Administrator
-                </a>
+                <div class="collapse navbar-collapse" id="navbar-collapse-1">
+
+
+                    <!--                    <ul class="nav navbar-nav">
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Themes <b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" data-theme="default" class="theme-link">Default</a></li>
+                                <li><a href="#" data-theme="amelia" class="theme-link">Amelia</a></li>
+                                <li><a href="#" data-theme="cerulean" class="theme-link">Cerulean</a></li>
+                                <li><a href="#" data-theme="cosmo" class="theme-link">Cosmo</a></li>
+                                <li><a href="#" data-theme="cyborg" class="theme-link">Cyborg</a></li>
+                                <li><a href="#" data-theme="flatly" class="theme-link">Flatly</a></li>
+                                <li><a href="#" data-theme="journal" class="theme-link">Journal</a></li>
+                                <li><a href="#" data-theme="readable" class="theme-link">Readable</a></li>
+                                <li><a href="#" data-theme="simplex" class="theme-link">Simplex</a></li>
+                                <li><a href="#" data-theme="slate" class="theme-link">Slate</a></li>
+                                <li><a href="#" data-theme="spacelab" class="theme-link">Spacelab</a></li>
+                                <li><a href="#" data-theme="united" class="theme-link">United</a></li>
+                            </ul>
+                        </li>
+                    </ul>-->
+                    <ul ng-hide="false" class="nav navbar-nav">
+
+
+                        <!--                    <select class="dropdown" title="Select database" style="margin-top:18px; min-width: 120px" class="form-control" ng-model="serverModel.selectedDatabase" name="Database" id="Select1" required>
+                        <option value="{{database}}" ng-repeat="database in serverModel.Databases | orderBy: 'DisplayName'">{{database.DisplayName}}</option>
+                    </select>-->
+
+
+                        <!--                        <li class="dropdown" data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/database-new')}">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Database <strong>{{data.selectedDatabase.DisplayName}}</strong> <span class="caret"></span></a>
+                            <ul class="dropdown-menu" role="menu">
+                                <li data-ng-class="{active: getClass('/databases/{{database.ID}}')}" ng-repeat="database in serverModel.Databases | orderBy: 'DisplayName'"><a href="#/databases/{{database.ID}}">{{database.DisplayName}}</a></li>
+                                <li class="divider"></li>
+                                <li><a href="#/database-new" title="Create a new database">Create database</a></li>
+
+                            </ul>
+                        </li>-->
+
+                        <li data-ng-class="{active: getClass('/databases[^/]*$')}"><a href="#/databases">Databases</a></li>
+
+
+                        <li class="dropdown" data-ng-class="{active: getClass('^(/databases/)')}">
+                            <a ng-show="data.selectedDatabase == null" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Select Database&nbsp;<span class="caret"></span></a>
+                            <a ng-show="data.selectedDatabase != null" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><strong>{{data.selectedDatabase.DisplayName}}</strong>&nbsp;<span class="caret"></span></a>
+
+                            <ul class="dropdown-menu" role="menu">
+                                <li data-ng-class="{active: getClass('/databases/{{database.ID}}')}" ng-repeat="database in serverModel.Databases | orderBy: 'DisplayName'"><a href="#/databases/{{database.ID}}">{{database.DisplayName}}</a></li>
+                                <li ng-hide="serverModel.Databases==0" class="divider"></li>
+                                <li><a href="#/database-new" title="Create a new database">New database</a></li>
+                            </ul>
+                        </li>
+
+
+                        <!--<li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/database-new')}"><a href="#/databases">Databases</a></li>-->
+                        <!--<li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>-->
+                    </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+
+                        <version-check></version-check>
+
+                        <li data-ng-class="{active: getClass('/server/log')}"><a href="#/server/log">Log</a></li>
+                        <li data-ng-class="{active: getClass('/server/network') }"><a href="#/server/network">Network</a></li>
+                        <!--<li data-ng-class="{active: getClass('/appStore') }"><a href="#/appStore">App Store <span style="border-radius: 1em;" class="label label-success">0</span></a></li>-->
+                        <li data-ng-class="{active: getClass('/server/settings') }"><a href="#/server/settings"><span class="glyphicon glyphicon glyphicon-cog"></span></a></li>
+                        <li><a href="https://github.com/starcounter/starcounter/wiki" target="_blank">Help</a></li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="collapse navbar-collapse" id="navbar-collapse-1">
-                <ul class="nav navbar-nav">
-                    <li data-ng-class="{active: getClass('/databases/.*/applications/.*|/applications|/applicationStart')}"><a href="#/applications">Applications</a></li>
-                    <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/databaseCreate')}"><a href="#/databases">Databases</a></li>
-                    <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
-                    <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
-                    <li data-ng-class="{active: getClass('/network') }"><a href="#/network">Network</a></li>
-                    <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
-                </ul>
+            <div class="navsubtitle" ng-hide="true">
 
-                <ul class="nav navbar-nav navbar-right">
-                    <li  data-ng-class="{active: getClass('/appStore') }"><a href="#/appStore">App Store</a></li>
-                    <li><a href="https://github.com/starcounter/starcounter/wiki" target="_blank">Help</a></li>
 
-                </ul>
+                <div class="btn-toolbar" role="toolbar" aria-label="...">
+                    <div class="btn-group">
+                        <!--<a href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>-->
+                        <a href="#/application-start" title="Start a new Application">Start Application</a>
+                        <a href="#/sql" title="Query">SQL</a>
+                        <a href="#/appStore">App Store <span style="border-radius: 1em;" class="label label-success">0</span></a>
 
-                
+                    </div>
+                </div>
 
             </div>
+        </nav>
+
+        <!-- Sub menu-->
+        <div class="pageheader" ng-hide="subMenu.menues.length==0">
+
+            <div class="btn-toolbar">
+
+                <!--      <div ng-show="subMenu.showHome" class="btn-group btn-group-sm" style="padding-top: 5px">
+                    <a href="#/databases/{{data.selectedDatabase.ID}}" tooltip="{{data.selectedDatabase.DisplayName}}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a>
+                </div>-->
+
+
+                <!--                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-primary" ng-click="gotoLink(data.selectedDatabase)" title="Go to database">Select database {{$scope.data.SelectedDatabase}}</button>
+                    <button class="btn btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" title="Change database">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li role="presentation" ng-repeat="item in data.model.Databases" title="{{item.DisplayName}}">
+                            <a href="#/databases/{{item.ID}}" role="menuitem">{{item.DisplayName}}</a>
+                        </li>
+                    </ul>
+                </div>-->
+
+                <div class="btn-group btn-group-sm">
+
+                    <ul class="nav nav-pills">
+                        <li ng-show="subMenu.showHome" data-ng-class="{ active: isActive('#/databases/'+data.selectedDatabase.ID)}">
+                            <a href="#/databases/{{data.selectedDatabase.ID}}" tooltip="{{data.selectedDatabase.DisplayName}}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a>
+                        </li>
+
+                        <li ng-repeat="item in subMenu.menues" role="presentation" data-ng-class="{ active: isActive(item.Link)}"><a href="{{item.Link}}">{{item.Title}}</a></li>
+                    </ul>
+                </div>
+
+
+                <!--       <div class="btn-group pull-right btn-group-sm" data-toggle="buttons-radio">
+            <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'card'" title="Card view"><span class="glyphicon glyphicon-th" aria-hidden="true"></span></button>
+            <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'list'" title="List view"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></button>
+        </div>-->
+
+            </div>
+
+            <!--            <div class="btn-toolbar">
+                <div class="btn-group btn-group-sm" ng-repeat="item in subMenu">
+                    <a class="btn " href="{{item.Link}}" role="button" title="Create database">{{item.Title}}</a>
+                </div>
+
+                <div class="btn-group pull-right btn-group-sm" data-toggle="buttons-radio">
+                    <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'card'" title="Card view"><span class="glyphicon glyphicon-th" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'list'" title="List view"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></button>
+                </div>
+
+            </div>-->
         </div>
-    </nav>
 
-    <!-- Version check -->
-    <version-check></version-check>
+        <!-- Fix top margin when there is not submenu -->
+        <!--<div style="margin-bottom: 15px" ng-show="subMenu.menues.length==30"></div>-->
+
+    </div>
 
     <div class="progress progress-striped active" data-ng-repeat="job in jobs">
         <div class="bar" style="width: 100%;">{{job.message}}</div>

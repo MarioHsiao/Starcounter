@@ -122,6 +122,32 @@ namespace Starcounter {
             InitializeCache();
         }
 
+
+        private ChangeLog _ChangeLog;
+        public IChangeLog ChangeLog {
+            get {
+                return _ChangeLog;
+            }
+        }
+
+        public bool LogChanges {
+            set {
+                if (value) {
+                    if (ChangeLog == null) {
+                        var cl = new ChangeLog();
+                        _ChangeLog = cl;
+                        Session = cl.Session;
+                    }
+                }
+                else {
+                    _ChangeLog = null;
+                }
+            }
+            get {
+                return _ChangeLog != null;
+            }
+        }
+
         /// <summary>
         /// Json objects can be stored on the server between requests as session data.
         /// </summary>

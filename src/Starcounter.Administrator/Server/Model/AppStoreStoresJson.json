@@ -1,0 +1,9 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+    "Items": [
+        {
+			"$" : { "Reuse" : "Administrator.Server.Model.AppStoreStoreJson" }
+        }
+    ]
+}
+

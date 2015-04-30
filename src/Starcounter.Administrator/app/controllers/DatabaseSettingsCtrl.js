@@ -3,8 +3,9 @@
  * Databases Settings page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '$routeParams', '$anchorScroll', 'NoticeFactory', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $location, $routeParams, $anchorScroll, NoticeFactory, DatabaseService, UserMessageFactory) {
+adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', 'HostModelService', '$routeParams', '$anchorScroll', 'NoticeFactory', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $location, HostModelService, $routeParams, $anchorScroll, NoticeFactory, DatabaseService, UserMessageFactory) {
 
+    $scope.data = HostModelService.data;
 
     // Model
     $scope.model = {
@@ -12,6 +13,13 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
         settings: null
     }
 
+    /**
+     * Navigate to database
+     * @param {object} database Database
+     */
+    $scope.gotoDatabase = function (database) {
+        $location.path("/databases/" + database.ID);
+    }
 
     /**
      * Refresh database settings
@@ -36,7 +44,6 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
             });
     }
-
 
     /**
      * Save settings
@@ -108,38 +115,10 @@ adminModule.controller('DatabaseSettingsCtrl', ['$scope', '$log', '$location', '
 
     }
 
-
     /**
      * Reset server settings
      */
     $scope.btnResetSettings = function () {
         $scope.refreshSettings();
     }
-
-
-    // Init
-    // Refresh databases list
-    DatabaseService.refreshDatabases(
-
-        function () {
-            // Success
-            var database = DatabaseService.getDatabase($routeParams.name);
-            if (database != null) {
-                $scope.model.database = database;
-                $scope.refreshSettings();
-            }
-            else {
-
-                var title = "Missing database";
-                var message = "Failed to retrieve the database " + $routeParams.name;
-                var buttons = [{ result: 0, label: 'Ok', cssClass: 'btn btn-primary' }];
-
-                UserMessageFactory.showMessageBox(title, message, buttons);
-            }
-
-        },
-        function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
 }]);

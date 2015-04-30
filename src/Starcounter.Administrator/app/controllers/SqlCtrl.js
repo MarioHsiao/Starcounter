@@ -3,16 +3,22 @@
  * Sql page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'NoticeFactory', 'SqlService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, $sce, $document, NoticeFactory, SqlService, DatabaseService, UserMessageFactory) {
+adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$location', '$routeParams', 'HostModelService', 'NoticeFactory', 'SqlService', 'UserMessageFactory', function ($scope, $log, $sce, $document, $location, $routeParams, HostModelService, NoticeFactory, SqlService, UserMessageFactory) {
 
-    // List of databases
-    $scope.databases = DatabaseService.databases;
+    $scope.database = null;
 
-    // Show/Hide progressbar
+    $scope.HasErrorMessage = false;
+    $scope.ErrorMessage = {
+        "Title": "",
+        "Message": "",
+        "HelpLink": ""
+    };
+
     $scope.isBusy = false;
 
     // Execute button title
     $scope.executeButtonTitle = function (isBusy) {
+
         if (isBusy) {
             return "Executing...";
         }
@@ -34,14 +40,13 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
 
         var trimmedQuery = query.statement.trim();
 
-        // Check if file is already 'rememberd'
+        // Check if query is already 'rememberd'
         for (var i = 0; i < $scope.queryHistory.length ; i++) {
 
             // Query already rememberd
             if (trimmedQuery == $scope.queryHistory[i].statement.trim()) {
                 return;
             }
-
         }
 
         // Add new items to the beginning of an array:
@@ -57,15 +62,14 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
         localStorage.setItem("queryHistory", str);
     }
 
-
     /**
      * Can execute query
      * @return {boolean} True if the conditions is correct.
      */
     $scope.canExecute = function () {
-        return $scope.queryState.selectedDatabaseName && $scope.isBusy == false && $scope.queryState.sqlQuery;
-    }
 
+        return $scope.isBusy == false && $scope.queryState.sqlQuery;
+    }
 
     /**
      * Refresh Query history
@@ -89,15 +93,14 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
         }
     }
 
-
     /**
      * Button click, Select One Query from history
      * @param {string} query Query
      */
     $scope.btnSelectQuery = function (query) {
+
         $scope.queryState.sqlQuery = query.statement;
     }
-
 
     /**
      * Button click, Execut query
@@ -105,9 +108,9 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
      * @param {string} databaseName Database name
      */
     $scope.btnExecute = function (query, databaseName) {
+
         $scope.execute(query, databaseName);
     }
-
 
     /**
      * Button click, Execut query
@@ -115,6 +118,8 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
      * @param {string} databaseName Database name
      */
     $scope.execute = function (query, databaseName) {
+
+        $scope.HasErrorMessage = false;
 
         NoticeFactory.ClearAll();
 
@@ -151,33 +156,27 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
 
                 $scope.queryState.queryPlan = $sce.trustAsHtml(plan);
             }
-
-
         },
             function (messageObject) {
                 // Error
                 $scope.isBusy = false;
 
+                $scope.HasErrorMessage = true;
+                $scope.ErrorMessage = {
+                    "Title": messageObject.header,
+                    "Message": messageObject.message,
+                    "HelpLink": messageObject.helpLink
+
+                };
+
                 if (messageObject.isError) {
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
-                else {
-                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                }
-
             });
-
     }
 
-
-    // Controller destructor
-    $scope.$on('$destroy', function iVeBeenDismissed() {
-        // Unbind the keypress listener
-        $document.unbind('keypress', onKeyPress);
-    })
-    // bind the keypress listener
-    $document.bind('keypress', onKeyPress);
-
+    // Set Data
+    $scope.database = HostModelService.getDatabase($routeParams.name);
 
     /**
      * On keypress event
@@ -186,37 +185,20 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', 'Notic
     function onKeyPress(event) {
 
         if ($scope.canExecute() && event.ctrlKey && (event.keyCode == 10 || event.keyCode == 13)) {
-            $scope.execute($scope.queryState.sqlQuery, $scope.queryState.selectedDatabaseName);
+            $scope.execute($scope.queryState.sqlQuery, $scope.database.ID);
             event.preventDefault();
         }
     }
 
+    $scope.$on('$destroy', function iVeBeenDismissed() {
 
-    // Init
-    DatabaseService.refreshDatabases(function () {
-
-        var database = DatabaseService.getDatabase($scope.queryState.selectedDatabaseName);
-        if (database != null) {
-            $scope.queryState.selectedDatabaseName = database.name;
-        }
-        else {
-            if ($scope.databases.length > 0 && !$scope.queryState.selectedDatabaseName && $scope.databases[0].running) {
-                $scope.queryState.selectedDatabaseName = $scope.databases[0].name;
-            }
-            else {
-                $scope.queryState.selectedDatabaseName = null;
-            }
-        }
-
-
-    }, function (messageObject) {
-        // Error
-        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-    });
-
+        // Unbind the keypress listener
+        $document.unbind('keypress', onKeyPress);
+    })
+    // bind the keypress listener
+    $document.bind('keypress', onKeyPress);
 
     $scope.afterRender = scrollRefresh;
 
     $scope.refreshQueryHistory();
-
 }]);

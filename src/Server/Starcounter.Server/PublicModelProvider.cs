@@ -61,6 +61,7 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases.Add(database.Uri, info);
             }
+            Self.POST("/__internal_api/databases", database.Name, null);
             return info;
         }
 
@@ -76,6 +77,7 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases[database.Uri] = info;
             }
+            Self.PUT("/__internal_api/databases/" + database.Name, string.Empty, null);
             return info;
         }
 
@@ -92,6 +94,7 @@ namespace Starcounter.Server {
 
             if (!removed)
                 throw new ArgumentException(String.Format("Database '{0}' doesn't exist.", database.Uri));
+
         }
 
         /// <inheritdoc />
@@ -107,7 +110,7 @@ namespace Starcounter.Server {
 
         /// <inheritdoc />
         public CommandInfo Execute(
-            ServerCommand command, 
+            ServerCommand command,
             Predicate<CommandId> cancellationPredicate = null,
             Action<CommandId> completionCallback = null) {
             command.GetReadyToEnqueue();

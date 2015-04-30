@@ -402,7 +402,7 @@ namespace Starcounter {
         /// Gets the public viewmodel
         /// </summary>
         /// <returns></returns>
-        internal Json PublicViewModel {
+        public Json PublicViewModel {
             get {
                 if (publicViewModelIndex != -1)
                     return _stateList[publicViewModelIndex];

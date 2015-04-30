@@ -1,0 +1,94 @@
+﻿<style>
+    .fixedwidth {
+        width: 300px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+</style>
+
+
+<div ng-show="database" class="panel panel-default">
+
+    <div class="panel-heading">AppStore, visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications</div>
+
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th></th>
+                <!--                <th>ID</th>
+                <th>IsDeployed</th>
+                <th>IsRunning</th>-->
+                <th>Status</th>
+                <!--<th>StatusText</th>-->
+
+                <th></th>
+
+                <th>Name</th>
+                <th>Heading</th>
+                <th>Rating</th>
+                <!--<th>Size</th>-->
+                <th>Version</th>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Company</th>
+                <!--<th>DatabaseName</th>-->
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <tr ng-repeat="item in database.AppStoreApplications | orderBy:['-IsInstalled','DisplayName']">
+
+                <td>
+                    <div>
+                        <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
+                        <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Open</button>
+                    </div>
+                </td>
+
+                <td>{{item.StatusText}}</td>
+
+                <td class="text-center">
+                    <img style="height: auto; width: auto; max-width: 32px; max-height: 32px;" ng-src="{{item.ImageUri}}" />
+                </td>
+                <td><a target="_blank" href="{{item.SourceUrl}}">{{item.DisplayName}}</a></td>
+                <td>{{item.Heading}}</td>
+                <td>{{item.Rating}}</td>
+
+
+                <td>{{item.Version}}</td>
+                <td>{{item.VersionDate | fixdate:'medium'}}</td>
+                <td>
+
+                    <div class="fixedwidth">
+                        {{item.Description}}
+
+                    </div>
+
+                </td>
+                <td>{{item.Company}}</td>
+                <!--<td>{{item.DatabaseName}}</td>-->
+            </tr>
+        </tbody>
+    </table>
+
+
+    <!--<div ng-show="appStoreMessage">
+    <div class="alert alert-info" role="alert">
+        <strong>{{appStoreMessage.header}}</strong><br />
+        {{appStoreMessage.message}}
+    </div>
+</div>
+
+<div style="margin-bottom: 10px" ng-show="isBusy" title="Connecting to App Store" class="spinner medium"></div>-->
+
+
+</div>
+
+
+<div ng-hide="database" class="panel panel-default">
+  <div class="panel-heading">
+      Database not found. <a href="/#/databases">Continue.</a>
+    </div>
+</div>

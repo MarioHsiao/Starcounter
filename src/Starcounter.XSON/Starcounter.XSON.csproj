@@ -57,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding\BindingInfo.cs" />
+    <Compile Include="Class Json\ChangeLog.cs" />
     <Compile Include="Class Json\Json.IList.cs" />
     <Compile Include="Class Json\Json.cs" />
     <Compile Include="Class Json\Json.State.cs" />

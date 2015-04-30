@@ -1,0 +1,55 @@
+﻿<div class="panel panel-default">
+    <div class="panel-heading">Start executable (.exe) located on the server</div>
+    <div class="panel-body">
+        <form name="myForm" class="form-horizontal" role="form">
+
+            <!-- Executable file -->
+            <div class="form-group " ng-class="{'has-error': myForm.file.$invalid, 'has-feedback': myForm.file.$invalid}">
+                <label class="col-sm-2 control-label" for="file">File</label>
+                <div class="col-sm-10">
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="file" id="file" placeholder="Executable file" ng-model="selectedApplication.Path" required>
+                        <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.file.$error.validationError||myForm.file.$error.required"></span>
+
+                        <div class="input-group-btn">
+
+                            <button class="btn btn-default" type="button" ng-click="btnPick()">...</button>
+
+                            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                                <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu pull-right">
+
+                                <li ng-repeat="application in recentApplications track by $index | orderBy:reverse">
+                                    <a ng-click="btnSelect(application)">{{$index+1}}. {{application.Path}}</a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                    <span class="help-block error" ng-show="myForm.file.$error.validationError">Invalid format</span>
+                    <span class="help-block error" ng-show="myForm.file.$error.required">Required</span>
+                    <span class="help-block">Full path to the executable (relative to the server).</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+
+                <div class="col-sm-offset-2 col-sm-10">
+                    <button type="submit" ng-disabled="myForm.$invalid || selectedApplication.task != null" class="btn btn-default btn-success" ng-click="btnStart(selectedApplication)" type="button">Start</button>
+                    <div ng-show="selectedApplication.task.Text" title="{{selectedApplication.task.Text}}" class="spinner tiny"></div>
+                </div>
+
+                <div class="col-sm-offset-2 col-sm-10" style="margin-top: 15px">
+                    <span ng-show="HasErrorMessage">
+                        <span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
+                        {{ErrorMessage.Message}}
+                        <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">What does it mean?</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+
+                    </span>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

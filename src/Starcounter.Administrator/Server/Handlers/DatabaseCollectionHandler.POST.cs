@@ -11,6 +11,7 @@ using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Administrator.Server.Utilities;
 using Starcounter.Administrator.API.Handlers;
+using Administrator.Server.Managers;
 
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
@@ -50,7 +51,22 @@ namespace Starcounter.Administrator.Server.Handlers {
                     var info = server.Execute(command);
                     info = server.Wait(info);
                     if (info.HasError) {
-                        return DatabaseCollectionHandler.ToErrorResponse(info);
+
+                        ErrorInfo single = info.Errors.PickSingleServerError();
+                        var msg = single.ToErrorMessage();
+
+                        dynamic errorResultJson = new DynamicJson();
+                        errorResultJson.Title = info.Description;
+                        errorResultJson.Message = msg.Brief;
+                        errorResultJson.HelpLink = msg.Helplink;
+
+                        if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS) {
+                            return new Response() { StatusCode = (ushort)422, Body = errorResultJson.ToString() };
+                        }
+
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResultJson.ToString() };
+
+                        //                        return DatabaseCollectionHandler.ToErrorResponse(info);
                     }
 
                     // TODO: Return the new Created Database

@@ -42,7 +42,7 @@ namespace Starcounter.Internal {
                 if (req.WebSocketUpgrade) {
                     WebSocket ws = req.SendUpgrade(ConsoleWebSocketChannelName);
 
-                    ConsoleEvents consoleEvents = GetConsoleEvents();
+                    ConsoleEvents consoleEvents = GetConsoleEvents(null);
 
                     // Pushing current console buffer.
                     ws.Send(consoleEvents.ToJson());
@@ -51,7 +51,36 @@ namespace Starcounter.Internal {
                 }
 
                 // Get and return the console buffer
-                return ConsoleOuputRestHandler.GetConsoleResponse();
+                return ConsoleOuputRestHandler.GetConsoleResponse(null);
+            });
+
+
+            // Handle Console connections (Socket and non socket)
+            Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/{?}", (string appName, Request req) => {
+
+                // Check if the request was a WebSocket request.
+                if (req.WebSocketUpgrade) {
+
+                    ulong cargoId = (ulong)appName.GetHashCode();
+
+                    WebSocket ws = req.SendUpgrade("AppChannel", cargoId);
+
+                    ConsoleEvents consoleEvents = GetConsoleEvents(appName);
+
+                    // Pushing current console buffer.
+                    ws.Send(consoleEvents.ToJson());
+
+                    return HandlerStatus.Handled;
+                }
+
+                // Get and return the console buffer
+                return ConsoleOuputRestHandler.GetConsoleResponse(appName);
+            });
+
+
+            // Socket incoming message event
+            Handle.WebSocket(defaultSystemHttpPort, "AppChannel", (String s, WebSocket ws) => {
+                // We don't use incoming client messages.
             });
 
             // Socket channel disconnected event
@@ -107,8 +136,19 @@ namespace Starcounter.Internal {
                     consoleEvent.applicationName = consoleEventArg.ApplicationName;
                     consoleEvent.text = consoleEventArg.Text;
                     consoleEvent.time = consoleEventArg.Time.ToString("s", CultureInfo.InvariantCulture);
-                    
+
                     string s = consoleEvents.ToJson();
+
+                    if (!string.IsNullOrEmpty(consoleEventArg.ApplicationName)) {
+                        ulong cargoId = (ulong)consoleEventArg.ApplicationName.GetHashCode();
+
+                        WebSocket.ForEach("AppChannel", (WebSocket ws) => {
+
+                            if (ws.CargoId == cargoId) {
+                                ws.Send(s);
+                            }
+                        });
+                    }
 
                     WebSocket.ForEach(ConsoleWebSocketChannelName, (WebSocket ws) => {
                         ws.Send(s);
@@ -140,10 +180,10 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        private static Response GetConsoleResponse() {
+        private static Response GetConsoleResponse(string appName) {
 
             try {
-                return GetConsoleEvents();
+                return GetConsoleEvents(appName);
             }
             catch (Exception e) {
 
@@ -156,15 +196,19 @@ namespace Starcounter.Internal {
             }
         }
 
-
         /// <summary>
         /// Get console events
         /// </summary>
         /// <returns>ConsoleEvents</returns>
-        private static ConsoleEvents GetConsoleEvents() {
+        private static ConsoleEvents GetConsoleEvents(string appName) {
             ConsoleEvents list = new ConsoleEvents();
 
             foreach (ConsoleEventArgs item in ConsoleWriteEvents) {
+
+                if (appName != null && appName != item.ApplicationName) {
+                    continue;
+                }
+
                 var consoleEvent = list.Items.Add();
                 consoleEvent.databaseName = item.DatabaseName;
                 consoleEvent.applicationName = item.ApplicationName;
@@ -174,6 +218,7 @@ namespace Starcounter.Internal {
 
             return list;
         }
+
 
     }
 

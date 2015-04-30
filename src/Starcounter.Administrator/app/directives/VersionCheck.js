@@ -17,7 +17,6 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
                 else {
                     // No web storage support..
                 }
-
             };
 
             /**
@@ -34,7 +33,6 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
                 // }
                 VersionCheckService.getLatestVersionInfo(function (latestVersion) {
                     // Success
-
                     if (typeof (successCallback) == "function") {
                         successCallback(latestVersion);
                     }
@@ -46,10 +44,7 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
                         errorCallback(messageObject);
                     }
                 });
-
-
             }
-
 
             /**
              * Check if a version check is needed
@@ -84,7 +79,6 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
                 // VersionCheck is disabled due to no web storage support
                 return false;
             }
-
 
             /**
              * Check if a version check is needed
@@ -124,11 +118,26 @@ adminModule.directive("versionCheck", ['$http', '$log', 'VersionCheckService', '
 
         },
         restrict: "E",
+        replace: true,
         scope: {},
-        template: "<div style='margin-left:15px;margin-right:15px' class='alert alert-info' data-ng-show='newVersion!=null'><button type='button' class='close' data-ng-click='closeVersionNotice()' data-dismiss='alert'>&times;</button><strong>New Version!</strong><p>A newer version of Starcounter is available.</p><a href='{{newVersion.downloadUri}}' target='_blank'>Download ({{newVersion.version}})</a></div>",
+        template: "<li data-ng-show='newVersion!=null'><a style='color:rgb(92, 184, 92)' href='{{newVersion.downloadUri}}' target='_blank'>New Version available (v{{newVersion.version}})</a></li>",
+//        template: "<div style='margin-left:15px;margin-right:15px' class='alert alert-info' data-ng-show='newVersion!=null'><button type='button' class='close' data-ng-click='closeVersionNotice()' data-dismiss='alert'>&times;</button><strong>New Version!</strong><p>A newer version of Starcounter is available.</p><a href='{{newVersion.downloadUri}}' target='_blank'>Download ({{newVersion.version}})</a></div>",
         link: function (scope) {
 
         }
     }
 
 }]);
+
+
+adminModule.directive('errSrc', function () {
+    return {
+        link: function (scope, element, attrs) {
+            element.bind('error', function () {
+                if (attrs.src != attrs.errSrc) {
+                    attrs.$set('src', attrs.errSrc);
+                }
+            });
+        }
+    }
+});

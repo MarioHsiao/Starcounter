@@ -1,0 +1,178 @@
+﻿<!doctype html>
+
+<head>
+    <title>Starcounter Administrator</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" value="notranslate">
+
+    <link rel="shortcut icon" href="/app/images/favicon.ico">
+
+    <link rel="stylesheet" media="screen" href="/app/vendor/handsontable/angular-ui-handsontable-0.3.17.full.css">
+
+    <!-- CodeMirror -->
+    <link rel="stylesheet" type="text/css" href="/app/vendor/codemirror/codemirror.css">
+    <link rel="stylesheet" type="text/css" href="/app/vendor/codemirror/monokai.css">
+
+    <!-- Bootstrap, Used by: Global -->
+    <link rel="stylesheet" href="/app/vendor/bootstrap/bootstrap-3.1.1.min.css">
+
+    <link rel="stylesheet" href="/app/vendor/select2/select2-3.4.5.css">
+
+    <link rel="stylesheet" href="/app/css/master.css">
+
+    <!-- jQuery, Used by: angular-ui, ui-bootstrap  -->
+    <script src="/app/vendor/jquery/jquery-2.1.0.min.js"></script>
+
+    <!-- Bootstrap, Used by: Global -->
+    <script src="/app/vendor/bootstrap/bootstrap-3.1.1.min.js"></script>
+
+    <script src="/app/vendor/handsontable/very-native-scrollbar-0.0.20131217.js"></script>
+
+    <script src="/app/vendor/select2/select2-3.4.5.js"></script>
+
+    <!-- Angular, Used by: Global -->
+    <script src="/app/vendor/angular/angular-1.2.5.min.js"></script>
+    <script src="/app/vendor/angular/angular-route-1.2.5.min.js"></script>
+    <script src="/app/vendor/angular/angular-resource-1.2.5.min.js"></script>
+
+    <script src="/app/vendor/angular-ui/select2.js"></script>
+
+    <!-- CodeMirror -->
+    <script src="/app/vendor/codemirror/codemirror.js"></script>
+    <script src="/app/vendor/codemirror/sql.js"></script>
+
+    <!-- Angular UI, Used by: CodeMirror -->
+    <script src="/app/vendor/angular-ui/angular-ui-0.4.0.min.js"></script>
+
+    <!-- UI-Bootstrap, Used by: Modal window, toogle button -->
+    <script src="/app/vendor/angular-ui/ui-bootstrap-tpls-0.10.0.js"></script>
+
+    <!-- Handsontable, Used in: Log and Sql window -->
+    <script src="/app/vendor/handsontable/angular-ui-handsontable-0.3.17.full.js"></script>
+
+    <!-- Type conversion from Starcounter DbTypeCode to HandsonTable types. See https://gist.github.com/warpech/c33eabf2b72741eb927b -->
+    <script src="/app/js/scTypesPlugin.js"></script>
+    <script src="/app/js/scNullCellsPlugin.js"></script>
+
+    <script src="/app/js/app.js"></script>
+
+    <!-- Services -->
+    <script src="/app/services/HostModelService.js"></script>
+    <script src="/app/services/ConsoleService.js"></script>
+    <script src="/app/services/DatabaseService.js"></script>
+    <script src="/app/services/ApplicationService.js"></script>
+    <script src="/app/services/InstalledApplicationService.js"></script>
+    <script src="/app/services/AppStoreService.js"></script>
+    <script src="/app/services/SqlService.js"></script>
+    <script src="/app/services/LogService.js"></script>
+    <script src="/app/services/NetworkService.js"></script>
+    <script src="/app/services/ServerService.js"></script>
+    <script src="/app/services/VersionCheckService.js"></script>
+
+    <!-- Factories -->
+    <script src="/app/factories/Utils.js"></script>
+    <script src="/app/factories/UserMessageFactory.js"></script>
+    <script src="/app/factories/NoticeFactory.js"></script>
+    <script src="/app/factories/JobFactory.js"></script>
+
+    <!-- Controllers -->
+    <script src="/app/controllers/UserErrorMessageCtrl.js"></script>
+    <script src="/app/controllers/DatabasesCtrl.js"></script>
+    <script src="/app/controllers/DatabaseCtrl.js"></script>
+    <script src="/app/controllers/DatabaseCreateCtrl.js"></script>
+    <script src="/app/controllers/DatabaseSettingsCtrl.js"></script>
+    <script src="/app/controllers/ApplicationCtrl.js"></script>
+    <script src="/app/controllers/ApplicationsCtrl.js"></script>
+    <script src="/app/controllers/ApplicationStartCtrl.js"></script>
+    <script src="/app/controllers/SqlCtrl.js"></script>
+    <script src="/app/controllers/LogCtrl.js"></script>
+    <script src="/app/controllers/NetworkCtrl.js"></script>
+    <script src="/app/controllers/ServerSettingsCtrl.js"></script>
+    <script src="/app/controllers/AppStoreCtrl.js"></script>
+
+    <!-- Directives -->
+    <script src="/app/directives/Notices.js"></script>
+    <script src="/app/directives/Jobs.js"></script>
+    <script src="/app/directives/VersionCheck.js"></script>
+    <script src="/app/directives/ConsoleWindow.js"></script>
+
+    <!-- Filters -->
+    <script src="/app/filters/Truncate.js"></script>
+
+    <!-- Angular localisation -->
+    <script type='text/javascript'>
+
+        var l_lang;
+        if (navigator.userLanguage) // Explorer
+            l_lang = navigator.userLanguage;
+        else if (navigator.language) // Chrome
+            l_lang = navigator.language;
+        else
+            l_lang = "en";
+
+        document.write('<scr' + 'ipt type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/angular-i18n/1.2.5/angular-locale_' + l_lang.toLowerCase() + '.js"></sc' + 'ript>');
+    </script>
+
+</head>
+
+<body data-ng-app="scadmin">
+
+    <nav class="navbar navbar-default" role="navigation" data-ng-controller="NavbarController">
+        <div class="container-fluid">
+
+            <div class="navbar-header">
+
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                <a class="navbar-brand" href="#">
+                    <img src="/app/images/sc_logo_24x24.png" style="margin: -3px 0px 0px 0px" class=""></img>
+                    Starcounter Administrator
+                </a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li data-ng-class="{active: getClass('/databases/.*/applications/.*|/applications|/applicationStart')}"><a href="#/applications">Applications</a></li>
+                    <li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/databaseCreate')}"><a href="#/databases">Databases</a></li>
+                    <li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>
+                    <li data-ng-class="{active: getClass('/log')}"><a href="#/log">Log</a></li>
+                    <li data-ng-class="{active: getClass('/network') }"><a href="#/network">Network</a></li>
+                    <li data-ng-class="{active: getClass('/serverSettings') }"><a href="#/serverSettings">Settings</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li  data-ng-class="{active: getClass('/appStore') }"><a href="#/appStore">App Store</a></li>
+                    <li><a href="https://github.com/starcounter/starcounter/wiki" target="_blank">Help</a></li>
+
+                </ul>
+
+                
+
+            </div>
+        </div>
+    </nav>
+
+    <!-- Version check -->
+    <version-check></version-check>
+
+    <div class="progress progress-striped active" data-ng-repeat="job in jobs">
+        <div class="bar" style="width: 100%;">{{job.message}}</div>
+    </div>
+
+    <!-- Jobs -->
+    <jobs></jobs>
+
+    <!-- Notices -->
+    <notices></notices>
+
+    <!-- Content -->
+    <div class="container-fluid" data-ng-view />
+
+</body>
