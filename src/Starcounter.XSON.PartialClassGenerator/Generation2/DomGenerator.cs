@@ -44,6 +44,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private TValue defaultObjTemplate = null;
         private TArray<Json> defaultArrayTemplate = null;
 
+        private ulong anonymousClassId = 1;
+
         internal Gen2DomGenerator(Gen2CodeGenerationModule mod, TValue template, Type defaultNewTemplateType, CodeBehindMetadata metadata) {
             defaultObjTemplate = new TObject();//(TValue)defaultNewTemplateType.GetConstructor(new Type[0]).Invoke(null);
             defaultObjTemplate.Namespace = "Starcounter";
@@ -97,7 +99,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 appTemplate = candidate as TObject;
                 if (appTemplate != null) {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName)) {
-                        declaringAppClass = (AstJsonClass)ObtainValueClass(appTemplate, true);
+                        declaringAppClass = (AstJsonClass)ObtainRootValueClass(appTemplate);
                         break;
                     }
                 }
@@ -136,12 +138,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         //    return astJson;
         //}
 
-        public AstInstanceClass GetJsonArrayClass(string instanceTypeName) {
+        public AstInstanceClass GetJsonArrayClass(AstInstanceClass instanceClass) {
             var astArray = new AstInstanceClass(this);
-            var genericTypeClass = new AstJsonClass(this) { ClassStemIdentifier = instanceTypeName, ParentProperty = astArray };
-            genericTypeClass.CodebehindClass = new Starcounter.XSON.Metadata.CodeBehindClassInfo(null) { ClassName = instanceTypeName };
+//            var genericTypeClass = new AstJsonClass(this) { ClassStemIdentifier = instanceTypeName, ParentProperty = astArray };
+//            genericTypeClass.CodebehindClass = new Starcounter.XSON.Metadata.CodeBehindClassInfo(null) { ClassName = instanceTypeName };
 
-            astArray.Generic = new AstClass[] { genericTypeClass };
+//            astArray.Generic = new AstClass[] { genericTypeClass };
+            astArray.Generic = new AstClass[] { instanceClass };
             astArray.ClassStemIdentifier = "Arr";
             astArray.Namespace = "Starcounter";
 
@@ -149,7 +152,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 NValueClass = astArray,
                 ClassStemIdentifier = "TArray",
                 Namespace = "Starcounter.Templates",
-                Generic = new AstClass[] { genericTypeClass },
+                Generic = new AstClass[] { instanceClass },
             };
 
             astArray.NMetadataClass = new AstMetadataClass(this) {
@@ -179,20 +182,22 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return protoAction;
             } else if (template is TObject) {
                 return defaultObjTemplate;
+            } else if (template is TObjArr) {
+                return defaultArrayTemplate;
             }
             return template;
         }
 
         internal AstInstanceClass ObtainDefaultValueClass() {
-            return ObtainValueClass(defaultObjTemplate, true);
+            return ObtainValueClass(defaultObjTemplate);
         }
 
         internal AstInstanceClass ObtainDefaultArrayValueClass() {
-            return ObtainValueClass(defaultArrayTemplate, false);
+            return ObtainValueClass(defaultArrayTemplate);
         }
 
         internal void AssociateTemplateWithDefaultJson(TObject template) {
-            var defaultJsonClass = ObtainValueClass(defaultObjTemplate, true);
+            var defaultJsonClass = ObtainValueClass(defaultObjTemplate);
             valueClasses[template] = defaultJsonClass;
             templateClasses[template] = defaultJsonClass.NTemplateClass;
             metaClasses[template] = defaultJsonClass.NMetadataClass;
@@ -213,7 +218,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="template"></param>
         internal void AssociateTemplateWithDefaultArray(TObjArr template) {
-            var defaultArrayClass = ObtainValueClass(defaultArrayTemplate, false);
+            var defaultArrayClass = ObtainValueClass(defaultArrayTemplate);
             valueClasses[template] = defaultArrayClass;
             templateClasses[template] = defaultArrayClass.NTemplateClass;
             metaClasses[template] = defaultArrayClass.NMetadataClass;
@@ -248,14 +253,197 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         /// <summary>
+        /// Find the class for the specified template. If the class not yet exists it will
+        /// be created as a AstJsonClass for all types of templates (primitve, object, array).
+        /// </summary>
+        /// <param name="template"></param>
+        /// <returns></returns>
+        public AstJsonClass ObtainRootValueClass(Template template) {
+            AstJsonClass jsonClass;
+            AstInstanceClass cachedClass;
+            AstOtherClass jsonByExampleClass;
+            AstJsonClass arrItemJsonClass;
+
+            if (valueClasses.TryGetValue(template, out cachedClass)) {
+                jsonClass = (AstJsonClass)cachedClass;
+            } else {
+                jsonClass = new AstJsonClass(this);
+                valueClasses.Add(template, jsonClass);
+
+                if (template.ClassName == null && template.TemplateName == null)
+                    template.TemplateName = "Anonymous" + anonymousClassId++;
+
+                // TODO:
+                // Single arrays should probably inherit from Arr<Type>
+
+                if (template is TObjArr) {
+
+//                    jsonClass.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(template.InstanceType);
+
+                    arrItemJsonClass = ObtainRootValueClass(((TObjArr)template).ElementType);
+//                    jsonClass.Generic = new AstClass[] { arrItemJsonClass };
+
+                    jsonClass.InheritedClass = ObtainValueClass(defaultArrayTemplate);
+                    jsonClass.InheritedClass.Generic = new AstClass[] { arrItemJsonClass };
+                } else {
+                    jsonClass.InheritedClass = ObtainValueClass(defaultObjTemplate);
+                }
+
+                jsonByExampleClass = new AstOtherClass(this) {
+                    Parent = jsonClass,
+                    ClassStemIdentifier = "JsonByExample",
+                    IsStatic = true
+                };
+                jsonClass.NJsonByExample = jsonByExampleClass;
+
+
+
+                jsonClass.NMetadataClass = ObtainRootMetaClass(template);
+                jsonClass.NTemplateClass = ObtainRootSchemaClass(template);
+            }
+            return jsonClass;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="template">The template.</param>
+        /// <returns>NTemplateClass.</returns>
+        public AstTemplateClass ObtainRootSchemaClass(Template template) {
+            AstJsonClass jsonClass;
+//            AstInstanceClass inheritedJsonClass;
+            AstTemplateClass schemaClass;
+
+            if (!templateClasses.TryGetValue(template, out schemaClass)) {
+                schemaClass = new AstSchemaClass(this) {
+                    Template = template
+                };
+                templateClasses.Add(template, schemaClass);
+
+                jsonClass = ObtainRootValueClass(template);
+                
+
+
+                //inheritedJsonClass = jsonClass.InheritedClass as AstInstanceClass;
+
+                // TODO:
+                // inherited values?
+                // Arrays.
+//                if (template is TObjArr) {
+//                    schemaClass.InheritedClass = jsonClass.NTemplateClass;
+ //               } else {
+                    schemaClass.InheritedClass = ObtainTemplateClass(GetPrototype(template));
+  //              }
+
+                //if (inheritedJsonClass != null) 
+                //    schemaClass.InheritedClass = inheritedJsonClass.NTemplateClass;
+
+                schemaClass.NValueClass = jsonClass;
+//                if (template == defaultObjTemplate) {
+//                    schemaClass.BuiltInType = defaultObjTemplate.GetType();
+//                } else {
+                    schemaClass.Namespace = template.Namespace;
+                    schemaClass.Parent = jsonClass.NJsonByExample;
+                    schemaClass.ClassStemIdentifier = "Schema";
+//                }
+
+                if (template is TObjArr){
+                //    schemaClass.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(template.GetType());
+                    Template elementTemplate = ((TObjArr)template).ElementType;
+                    if (elementTemplate != null)
+                        schemaClass.InheritedClass.Generic = new AstClass[] { jsonClass.InheritedClass.Generic[0] };
+                }
+            }
+            return schemaClass;
+        }
+
+        public AstMetadataClass ObtainRootMetaClass(Template template) {
+            AstMetadataClass ret;
+            AstInstanceClass parent = null;
+
+            if (metaClasses.TryGetValue(template, out ret)) {
+                return ret;
+            }
+
+            parent = ObtainValueClass(defaultObjTemplate);
+
+            if (template.IsPrimitive) {
+                ret = new AstMetadataClass(this);
+                metaClasses.Add(template, ret);
+                ret.BuiltInType = template.MetadataType;
+                ret.NValueClass = ObtainValueClass(template);
+                return ret;
+            }
+
+            if (template is TObject) {
+                AstClass[] gen;
+                gen = new AstClass[] {
+                    ObtainTemplateClass(template),
+                    parent
+                };
+                var mcn = new AstJsonMetadataClass(this) {
+                    Generic = gen
+                };
+
+                metaClasses.Add(template, mcn);
+                var acn = (AstJsonClass)ObtainValueClass(template);
+                mcn.NValueClass = acn;
+
+                var inheritedClass = acn.InheritedClass as AstJsonClass;
+                if (inheritedClass != null)
+                    mcn.InheritedClass = inheritedClass.NMetadataClass;
+
+                mcn.Namespace = template.Namespace;
+
+                // TODO! Add back
+                //  mcn.Parent = acn.NJsonByExample;
+                mcn.ClassStemIdentifier = "Metadata";
+                return mcn;
+            } else if (template is TObjArr) {
+                var tarr = template as TObjArr;
+                AstClass[] gen;
+                gen = new AstClass[] {
+                    ObtainTemplateClass(tarr.ElementType),
+                    parent
+                };
+
+                var mcn = new AstJsonMetadataClass(this) {
+                    Generic = gen
+                };
+                metaClasses.Add(template, mcn);
+
+                var tarrType = tarr.GetType();
+                mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
+                mcn.Namespace = tarrType.Namespace;
+
+                mcn.NValueClass = ObtainValueClass(template);
+                return mcn;
+            } else {
+                AstClass[] gen;
+                gen = new AstClass[] {
+                    parent
+                };
+
+
+                var mcn = new AstJsonMetadataClass(this) {
+                    Generic = gen
+                };
+                metaClasses.Add(template, mcn);
+                mcn.NValueClass = ObtainValueClass(template);
+                return mcn;
+            }
+        }
+
+        /// <summary>
         /// Finds the specified template.
         /// </summary>
         /// <param name="template">The template.</param>
         /// <returns>NValueClass.</returns>
-        public AstInstanceClass ObtainValueClass(Template template, bool isRoot) {
+        public AstInstanceClass ObtainValueClass(Template template) {
             AstInstanceClass ret;
 
-            if (!isRoot && template.IsPrimitive) {
+            if (template.IsPrimitive) {
                 template = GetPrototype(template);
             }
 
@@ -263,13 +451,14 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return ret;
             }
 
-            if (isRoot || template is TObject) {
+            if (template is TObject) {
                 var acn = new AstJsonClass(this);
                 valueClasses.Add(template, acn);
-                acn.InheritedClass = ObtainValueClass(defaultObjTemplate, false);
+
+                acn.InheritedClass = ObtainValueClass(defaultObjTemplate);
 
                 if (template.Parent != null)
-                    acn.ParentProperty = ObtainValueClass(template.Parent, false);
+                    acn.ParentProperty = ObtainValueClass(template.Parent);
 
                 acn.Namespace = template.Namespace;
                 var jsonbyexample = new AstOtherClass(this) {
@@ -278,39 +467,31 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     IsStatic = true
                 };
                 acn.NJsonByExample = jsonbyexample;
-                if (template.Parent != null) {
-                    acn.ParentProperty = (AstInstanceClass)ObtainValueClass(template.Parent, false);
-                }
-
-                acn.NMetadataClass = ObtainMetaClass(template, isRoot);
-                acn.NTemplateClass = ObtainTemplateClass(template, isRoot);
                 ret = acn;
-            } else {
-                if (template.IsPrimitive) {
-                    ret = new AstPrimitiveType(this);
-                    valueClasses.Add(template, ret);
-                    ret.BuiltInType = template.InstanceType;
-                    ret.NTemplateClass = ObtainTemplateClass(template, isRoot);
-                    ret.NMetadataClass = ObtainMetaClass(template, isRoot);
-                } else if (template is TObjArr) {
-                    var tarr = template as TObjArr;
-                    var acn = new AstInstanceClass(this);
-                    valueClasses.Add(template, acn);
-                    acn.NMetadataClass = ObtainMetaClass(template, isRoot);
-                    acn.NTemplateClass = ObtainTemplateClass(template, isRoot);
+            } else if (template.IsPrimitive) {
+                ret = new AstPrimitiveType(this);
+                valueClasses.Add(template, ret);
 
-                    var newJson = ObtainValueClass(tarr.ElementType, false);
+                ret.BuiltInType = template.InstanceType;
+            } else if (template is TObjArr) {
+                var tarr = template as TObjArr;
+                var acn = new AstInstanceClass(this);
+                valueClasses.Add(template, acn);
 
-                    if (template.Parent != null) {
-                        newJson.Parent = ObtainValueClass(template.Parent, false);
-                    }
+                var newJson = ObtainRootValueClass(tarr.ElementType);
 
-                    acn.Namespace = template.InstanceType.Namespace;
-                    acn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(template.InstanceType);
-                    acn.Generic = new AstClass[] { newJson };
-                    ret = acn;
-                }
+                if (template.Parent != null)
+                    newJson.Parent = ObtainValueClass(template.Parent);
+            
+                acn.Namespace = template.InstanceType.Namespace;
+                acn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(template.InstanceType);
+                acn.Generic = new AstClass[] { newJson };
+                ret = acn;
             }
+
+            ret.NMetadataClass = ObtainMetaClass(template);
+            ret.NTemplateClass = ObtainTemplateClass(template);
+
             return ret;
         }
 
@@ -322,7 +503,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal AstJsonClass ObtainInheritedValueClass(CodeBehindClassInfo mapInfo) {
             AstJsonClass acn;
             if (mapInfo.DerivesDirectlyFromJson) {
-                acn = (AstJsonClass)ObtainValueClass(defaultObjTemplate, true);
+                acn = (AstJsonClass)ObtainValueClass(defaultObjTemplate);
             } else {
                 acn = new AstJsonClass(this) {
                     CodebehindClass = new CodeBehindClassInfo(null) {
@@ -382,83 +563,85 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="template">The template.</param>
         /// <returns>NMetadataClass.</returns>
-        public AstMetadataClass ObtainMetaClass(Template template, bool isRoot) {
+        public AstMetadataClass ObtainMetaClass(Template template) {
+            AstMetadataClass ret;
+            AstInstanceClass parent = null;
+
             if (template.IsPrimitive) {
                 template = GetPrototype(template);
             }
 
-            AstMetadataClass ret;
             if (metaClasses.TryGetValue(template, out ret)) {
                 return ret;
             }
 
             if (template.IsPrimitive) {
                 ret = new AstMetadataClass(this);
-                metaClasses.Add(template, ret);
                 ret.BuiltInType = template.MetadataType;
-                ret.NValueClass = ObtainValueClass(template, false);
-                return ret;
-            }
-
-            AstInstanceClass parent = null;
-            if (template.Parent != null)
-                parent = ObtainValueClass(template.Parent, false);
-            else
-                parent = ObtainValueClass(defaultObjTemplate, true);
-
-            if (template is TObject) {
-                AstClass[] gen;
-                gen = new AstClass[] {
-                    ObtainTemplateClass(template, isRoot),
-                    parent
-                };
-                var mcn = new AstJsonMetadataClass(this) {
-                    Generic = gen
-                };
-                metaClasses.Add(template, mcn);
-                var acn = (AstJsonClass)ObtainValueClass(template, true);
-                mcn.NValueClass = acn;
-
-                var inheritedClass = acn.InheritedClass as AstJsonClass;
-                if (inheritedClass != null)
-                    mcn.InheritedClass = inheritedClass.NMetadataClass;
-
-                mcn.Namespace = template.Namespace;
-
-                // TODO! Add back
-                //  mcn.Parent = acn.NJsonByExample;
-                mcn.ClassStemIdentifier = "Metadata";
-                return mcn;
-            } else if (template is TObjArr) {
-                var tarr = template as TObjArr;
-                AstClass[] gen;
-                gen = new AstClass[] {
-                    ObtainTemplateClass(tarr.ElementType, isRoot),
-                    parent
-                };
-                var mcn = new AstJsonMetadataClass(this) {
-                    Generic = gen
-                };
-                metaClasses.Add(template, mcn);
-
-                var tarrType = tarr.GetType();
-                mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
-                mcn.Namespace = tarrType.Namespace;
-
-                mcn.NValueClass = ObtainValueClass(template, false);
-                return mcn;
             } else {
-                AstClass[] gen;
-                gen = new AstClass[] {
+                if (template.Parent != null)
+                    parent = ObtainValueClass(template.Parent);
+                else
+                    parent = ObtainValueClass(defaultObjTemplate);
+
+                if (template is TObject) {
+                    AstClass[] gen = new AstClass[] { 
+                                            ObtainTemplateClass(template), 
+                                            parent 
+                                     };
+
+                    var mcn = new AstJsonMetadataClass(this) {
+                        Generic = gen
+                    };
+                    
+                    var acn = (AstJsonClass)ObtainValueClass(template);
+                    mcn.NValueClass = acn;
+
+                    var inheritedClass = acn.InheritedClass as AstJsonClass;
+                    if (inheritedClass != null)
+                        mcn.InheritedClass = inheritedClass.NMetadataClass;
+
+                    mcn.Namespace = template.Namespace;
+
+                    // TODO! Add back
+                    //  mcn.Parent = acn.NJsonByExample;
+                    mcn.ClassStemIdentifier = "Metadata";
+                    ret = mcn;
+                } else if (template is TObjArr) {
+                    var tarr = template as TObjArr;
+                    AstClass[] gen;
+                    gen = new AstClass[] {
+                        ObtainRootSchemaClass(tarr.ElementType),
+                        parent
+                    };
+
+                    var mcn = new AstJsonMetadataClass(this) {
+                        Generic = gen
+                    };
+                    metaClasses.Add(template, mcn);
+
+                    var tarrType = tarr.GetType();
+                    mcn.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
+                    mcn.Namespace = tarrType.Namespace;
+
+                    return mcn;
+                } else {
+                    AstClass[] gen;
+                    gen = new AstClass[] {
                     parent
                 };
-                var mcn = new AstJsonMetadataClass(this) {
-                    Generic = gen
-                };
-                metaClasses.Add(template, mcn);
-                mcn.NValueClass = ObtainValueClass(template, false);
-                return mcn;
+                    var mcn = new AstJsonMetadataClass(this) {
+                        Generic = gen
+                    };
+                    return mcn;
+                }
             }
+
+            metaClasses.Add(template, ret);
+
+            ret.NValueClass = ObtainValueClass(template);
+
+            return ret;
         }
 
         /// <summary>
@@ -466,10 +649,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="template">The template.</param>
         /// <returns>NTemplateClass.</returns>
-        public AstTemplateClass ObtainTemplateClass(Template template, bool isRoot) {
+        public AstTemplateClass ObtainTemplateClass(Template template) {
             AstTemplateClass ret;
 
-            if (!isRoot && template.IsPrimitive) {
+            if (template.IsPrimitive) {
                 template = GetPrototype(template);
             }
 
@@ -477,12 +660,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 return ret;
             }
 
-            if (isRoot || template is TObject) {
+            if (template is TObject) {
                 ret = new AstSchemaClass(this) {
                     Template = template
                 };
                 templateClasses.Add(template, ret);
-                var acn = (AstJsonClass)ObtainValueClass(template, isRoot);
+                var acn = (AstJsonClass)ObtainValueClass(template);
 
                 var inheritedClass = acn.InheritedClass as AstInstanceClass;
                 if (inheritedClass != null)
@@ -506,15 +689,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     templateClasses.Add(template, ret);
                     var type = template.GetType();
                     ret.BuiltInType = type;
-                    ret.NValueClass = ObtainValueClass(template, false);
+                    ret.NValueClass = ObtainValueClass(template);
                 } else if (template is TObjArr) {
                     var tarr = template as TObjArr;
                     ret = new AstTemplateClass(this) {
                         Template = template
                     };
                     templateClasses.Add(template, ret);
-                    ret.NValueClass = ObtainValueClass(template, false);
-                    var acn = ObtainValueClass(tarr.ElementType, true);
+                    ret.NValueClass = ObtainValueClass(template);
+                    var acn = ObtainRootValueClass(tarr.ElementType);
                     var tarrType = tarr.GetType();
                     ret.ClassStemIdentifier = HelperFunctions.GetClassStemIdentifier(tarrType);
                     ret.Namespace = tarrType.Namespace;

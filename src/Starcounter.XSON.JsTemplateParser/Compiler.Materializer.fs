@@ -241,7 +241,7 @@ module public Materializer =
                        begin
                            fun ( expression ) ->
 //                               Console.WriteLine( "Adding element " + name );
-                               materializePropertyOfParent newObj ast "<Element>" expression factory |> ignore
+                               materializePropertyOfParent newObj ast null expression factory |> ignore
                        end
                    newObj
                | _ ->
