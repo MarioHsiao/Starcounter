@@ -237,6 +237,11 @@ namespace Starcounter.Rest
                                 return Response.ResponsesMergerRoutine_(req, subsResp, null);
                             }
 
+                            // Setting the active appname on json.
+                            if (subsResp.Resource != null) {
+                                ((Json)subsResp.Resource)._activeAppName = appName_;
+                            }
+
                         } else {
 
                             return subsResp;

@@ -10,6 +10,7 @@ using System.Collections;
 
 namespace Starcounter.Advanced.XSON {
 	public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
+
         public override int EstimateSizeBytes(Json obj) {
             return obj.Scope<Json, int>(_EstimateSizeBytes, obj);
         }
@@ -36,6 +37,7 @@ namespace Starcounter.Advanced.XSON {
             int sizeBytes = 0;
             string htmlUriMerged = null;
             string partialConfigId = null;
+            string activeAppName = null;
             Session session = obj.Session;
 
             // Checking if application name should wrap the JSON.
@@ -63,13 +65,45 @@ namespace Starcounter.Advanced.XSON {
             Template tProperty;
 
             if (wrapInAppName) {
+
                 sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
 
-                // Checking if there is any partial Html provided.
-                partialConfigId = obj.GetHtmlPartialUrl();
-                if (!String.IsNullOrEmpty(partialConfigId)) {
-                    htmlUriMerged = obj._appName + "=" + partialConfigId;
-                    sizeBytes += 15 + partialConfigId.Length; // "PartialId":"configId",
+                // Checking if active application is defined.
+                if (obj._activeAppName != null) {
+
+                    if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
+
+                        // Serializing every sibling first.
+                        for (int s = 0; s < obj.StepSiblings.Count; s++) {
+
+                            var pp = obj.StepSiblings[s];
+
+                            if (pp == obj)
+                                continue;
+
+                            // Checking if application name is the same.
+                            if (obj._activeAppName == pp._appName) {
+
+                                // Checking if there is any partial Html provided.
+                                partialConfigId = pp.GetHtmlPartialUrl();
+
+                                break;
+                            }
+                        }
+                    }
+
+                    activeAppName = obj._activeAppName;
+
+                } else {
+
+                    // Checking if there is any partial Html provided.
+                    partialConfigId = obj.GetHtmlPartialUrl();
+                    activeAppName = obj._appName;
+
+                    if (!String.IsNullOrEmpty(partialConfigId)) {
+                        htmlUriMerged = activeAppName + "=" + partialConfigId;
+                        sizeBytes += 15 + partialConfigId.Length; // "PartialId":"",
+                    }
                 }
             }
 
@@ -133,6 +167,7 @@ namespace Starcounter.Advanced.XSON {
 
             // Wrapping in application name.
             if (wrapInAppName) {
+
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
                 if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
@@ -172,13 +207,20 @@ namespace Starcounter.Advanced.XSON {
                     sizeBytes += htmlUriMerged.Length;
 
                     if (!string.IsNullOrEmpty(partialConfigId)) {
+
+                        // "AppName":"",
+                        sizeBytes += 13 + activeAppName.Length;
+
+                        // "PartialId":"",
+                        sizeBytes += 15 + partialConfigId.Length;
+                        
                         string setupStr = null;
                         try {
                             setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
                         } catch { }
 
                         if (setupStr != null) {
-                            sizeBytes += setupStr.Length + 18; // "juicyTilesSetup":
+                            sizeBytes += setupStr.Length + 21; // "juicyTilesSetup":"",
                         }
                     }
                 }
@@ -200,6 +242,7 @@ namespace Starcounter.Advanced.XSON {
             int offset = origOffset;
             string htmlUriMerged = null;
             string partialConfigId = null;
+            string activeAppName = null;
             Session session = obj.Session;
 
             // Checking if application name should wrap the JSON.
@@ -238,10 +281,42 @@ namespace Starcounter.Advanced.XSON {
                     offset++;
 
                     if (wrapInAppName) {
-                        // Checking if there is any partial Html provided.
-                        partialConfigId = obj.GetHtmlPartialUrl();
-                        if (!String.IsNullOrEmpty(partialConfigId)) {
-                            htmlUriMerged = obj._appName + "=" + partialConfigId;
+
+                        // Checking if active application is defined.
+                        if (obj._activeAppName != null) {
+
+                            if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
+
+                                // Serializing every sibling first.
+                                for (int s = 0; s < obj.StepSiblings.Count; s++) {
+
+                                    var pp = obj.StepSiblings[s];
+
+                                    if (pp == obj)
+                                        continue;
+
+                                    // Checking if application name is the same.
+                                    if (obj._activeAppName == pp._appName) {
+
+                                        // Checking if there is any partial Html provided.
+                                        partialConfigId = pp.GetHtmlPartialUrl();
+                                        break;
+                                    }
+                                }
+                            }
+
+                            activeAppName = obj._activeAppName;
+                            obj._activeAppName = null;
+
+                        } else {
+
+                            // Checking if there is any partial Html provided.
+                            partialConfigId = obj.GetHtmlPartialUrl();
+                            activeAppName = obj._appName;
+
+                            if (!String.IsNullOrEmpty(partialConfigId)) {
+                                htmlUriMerged = activeAppName + "=" + partialConfigId;
+                            }
                         }
 
                         valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
@@ -359,6 +434,7 @@ namespace Starcounter.Advanced.XSON {
 
                     // Wrapping in application name.
                     if (wrapInAppName) {
+
                         *pfrag++ = (byte)'}';
                         offset++;
 
@@ -433,6 +509,21 @@ namespace Starcounter.Advanced.XSON {
 
                             string setupStr = null;
                             if (!string.IsNullOrEmpty(partialConfigId)) {
+
+                                *pfrag++ = (byte)',';
+                                offset++;
+
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "AppName");
+                                offset += valueSize;
+                                pfrag += valueSize;
+
+                                *pfrag++ = (byte)':';
+                                offset++;
+
+                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, activeAppName);
+                                offset += valueSize;
+                                pfrag += valueSize;
+
                                 *pfrag++ = (byte)',';
                                 offset++;
 

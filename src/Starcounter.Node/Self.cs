@@ -272,7 +272,15 @@ namespace Starcounter {
         /// <summary>
         /// Performs synchronous HTTP request with given original external request.
         /// </summary>
-        public static Response CallUsingExternalRequest(Request req) {
+        public static Response CallUsingExternalRequest(Request req, Func<Response> substituteHandler) {
+
+            HandlerOptions ho = new HandlerOptions() {
+                SubstituteHandler = substituteHandler,
+                CallingAppName = StarcounterEnvironment.AppName
+            };
+
+            // Setting handler options to request.
+            req.HandlerOpts = ho;
 
             // Calling using external request.
             return runDelegateAndProcessResponse_(
