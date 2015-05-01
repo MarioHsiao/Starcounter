@@ -235,24 +235,6 @@ namespace Administrator.Server.Managers {
         }
 
         /// <summary>
-        /// Download application from AppStore to local 'cache'
-        /// </summary>
-        /// <param name="application"></param>
-        //public static void DownloadApplication(DatabaseApplication application) {
-
-        //    AppStoreManager.Download(application);
-        //}
-
-        /// <summary>
-        /// Delete application from local 'cache'
-        /// </summary>
-        /// <param name="application"></param>
-        //public static void DeleteApplication(DatabaseApplication application) {
-
-        //    AppStoreManager.Delete(application);
-        //}
-
-        /// <summary>
         /// 
         /// </summary>
         /// <param name="application"></param>
@@ -309,7 +291,7 @@ namespace Administrator.Server.Managers {
                         ) {
 
                         // Find deployed item
-                            string deployedId = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + deployedItem.GetExecutableFullPath(DeployManager.GetDeployFolder(databaseName)));
+                        string deployedId = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + deployedItem.GetExecutableFullPath(DeployManager.GetDeployFolder(databaseName)));
 
                         freshApplication = GetApplication(deployedId, freshApplications);
                         if (freshApplication == null) {
@@ -435,48 +417,5 @@ namespace Administrator.Server.Managers {
 
             return null;
         }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="app"></param>
-        ///// <param name="applicationJson"></param>
-        //public static void AvailableApplicationToJson(AvailableApplication app, out Representations.JSON.DatabaseApplication applicationJson) {
-
-        //    applicationJson = new Representations.JSON.DatabaseApplication();
-        //    applicationJson.ID = app.ID;
-        //    applicationJson.IsDeployed = app.IsDeployed;
-        //    applicationJson.IsRunning = app.IsRunning;
-        //    applicationJson.IsRemote = app.IsRemote;
-        //    applicationJson.IsInstalled = app.IsInstalled;
-        //    applicationJson.DisplayName = app.DisplayName;
-        //    applicationJson.Description = app.Description;
-        //    applicationJson.Company = app.Company;
-        //    applicationJson.Version = app.Version;
-        //    applicationJson.VersionDate = app.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-        //    applicationJson.DatabaseName = app.DatabaseName;
-        //    if (applicationJson.IsRemote) {
-        //        applicationJson.ImageUrl = app.ImageUri;
-        //    }
-        //    else {
-        //        applicationJson.ImageUrl = string.IsNullOrEmpty(app.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), app.ImageUri); // Use default image?
-        //    }
-        //}
     }
-
-    //public class LocalConfig {
-    //    public string Description;
-    //    public string Company;
-    //    public string Version;
-    //    public DateTime VersionDate;
-    //    public string AppName;          // Running application name
-    //    public string DisplayName {
-    //        get {
-    //            // TODO: Use Executable file name if appname is empty
-    //            return this.AppName;
-    //        }
-    //    }
-    //    public string Executable;       // Fullpath
-    //    public string ResourceFolder;   // Fullpath
-    //}
 }

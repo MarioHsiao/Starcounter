@@ -27,5 +27,6 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
 
     // Set Data
     $scope.database = HostModelService.getDatabase($routeParams.name);
+    $scope.database.RefreshAppStoreStores$++;
 }]);
 

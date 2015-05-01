@@ -13,9 +13,10 @@
 		"$" : { "Reuse" : "Administrator.Server.Model.DatabaseApplicationJson" }
 		}
 	],
-	"AppStoreApplications" :[{
-		"$" : { "Reuse" : "Administrator.Server.Model.AppStoreApplicationJson" }
+	"AppStoreStores" :[{
+		"$" : { "Reuse" : "Administrator.Server.Model.AppStoreStoreJson" }
 	}],
+	"RefreshAppStoreStores$" : 0,
 	"Start$" : 0,
 	"Stop$" : 0,
 	"Delete$" : 0

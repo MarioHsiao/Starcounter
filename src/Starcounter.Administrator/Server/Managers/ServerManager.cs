@@ -63,13 +63,10 @@ namespace Administrator.Server.Managers {
             // Incoming patch on socket
             Handle.WebSocket(ServerManager.SocketChannelName, (string data, WebSocket ws) => {
 
-
                 if (ws.Session == null) {
                     ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                     return;
                 }
-
-                WriteToLog("INCOMING MESSAGE!" + Environment.NewLine);
 
                 Json viewModel = ((Starcounter.Session)ws.Session).Data;
                 viewModel.ChangeLog.ApplyChanges(data);
@@ -85,9 +82,6 @@ namespace Administrator.Server.Managers {
 
             // Incoming patch on http
             Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
-
-
-                WriteToLog("INCOMING MESSAGE" + Environment.NewLine);
 
                 Json json = TemporaryStorage.Find(id);
                 json.ChangeLog.ApplyChanges(request.Body);
@@ -155,11 +149,15 @@ namespace Administrator.Server.Managers {
                         Database database = ServerInstance.GetDatabase(databaseName);
 
                         AppStoreApplication appStoreApplication = null;
-                        foreach (AppStoreApplication item in database.AppStoreApplications) {
 
-                            if (item.ID == task.ID) {
-                                appStoreApplication = item;
-                                break;
+                        foreach (AppStoreStore store in database.AppStoreStores) {
+
+                            foreach (AppStoreApplication item in store.Applications) {
+
+                                if (item.ID == task.ID) {
+                                    appStoreApplication = item;
+                                    break;
+                                }
                             }
                         }
 
@@ -185,11 +183,14 @@ namespace Administrator.Server.Managers {
                         Database database = ServerInstance.GetDatabase(databaseName);
 
                         AppStoreApplication appStoreApplication = null;
-                        foreach (AppStoreApplication item in database.AppStoreApplications) {
+                        foreach (AppStoreStore store in database.AppStoreStores) {
 
-                            if (item.ID == task.ID) {
-                                appStoreApplication = item;
-                                break;
+                            foreach (AppStoreApplication item in store.Applications) {
+
+                                if (item.ID == task.ID) {
+                                    appStoreApplication = item;
+                                    break;
+                                }
                             }
                         }
 
@@ -240,12 +241,6 @@ namespace Administrator.Server.Managers {
             ServerManager.PushchangesToListeners();
         }
 
-        private static void WriteToLog(string str) {
-
-            System.IO.File.AppendAllText(@"d:\tmp\debug.txt", str+Environment.NewLine);
-
-        }
-
         /// <summary>
         /// This will be called when the model has been changed
         /// And we want to inform our listeners (connected clients)
@@ -253,8 +248,14 @@ namespace Administrator.Server.Managers {
         private static void PushchangesToListeners() {
 
             //WebSocket.ForEach(ServerManager.SocketChannelName, (WebSocket socket) => {
-            //    string changes = ((Starcounter.Session)socket.Session).PublicViewModel.ChangeLog.GetChanges();
-            //    socket.Send(changes);
+
+            //    Json model = ((Starcounter.Session)socket.Session).PublicViewModel;
+            //    string changes = model.ChangeLog.GetChanges();
+            //    if (changes != "[]") {
+            //        WriteToLog(changes);
+            //        model.ChangeLog.Clear();
+            //        socket.Send(changes);
+            //    }
             //});
 
             Session.ForEach(4, (s) => {
@@ -263,7 +264,6 @@ namespace Administrator.Server.Managers {
                     if (s.ActiveWebSocket != null) {
                         string changes = s.PublicViewModel.ChangeLog.GetChanges();
                         if (changes != "[]") {
-                            WriteToLog(changes);
                             s.PublicViewModel.ChangeLog.Clear();
                             s.ActiveWebSocket.Send(changes);
                         }
@@ -271,6 +271,7 @@ namespace Administrator.Server.Managers {
                 }
                 catch (Exception) { }
             });
+
 
             //lock (ServerManager.Server) {
 

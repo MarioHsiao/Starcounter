@@ -19,8 +19,8 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', '$
 
     $scope.HasErrorMessage = false;
     $scope.ErrorMessage = {
-        Message: "123",
-        HelpLink: "45654"
+        Message: "",
+        HelpLink: ""
     }
     /**
      * Start Application

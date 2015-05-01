@@ -120,7 +120,6 @@ namespace Administrator.Server.Model {
             }
         }
 
-
         public Database Database { get; set; }
 
         private DatabaseApplication _DatabaseApplication;
@@ -146,8 +145,8 @@ namespace Administrator.Server.Model {
         void _DatabaseApplication_Changed(object sender, EventArgs e) {
 
             this.OnChanged(sender, e);
-
         }
+
         public bool HasDatabaseAppliction {
             get {
                 return this.DatabaseApplication != null;
@@ -203,43 +202,6 @@ namespace Administrator.Server.Model {
                     this.DeployApplication();
                 }
             }
-            else {
-
-                //if (!this.CouldnotDelete && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
-
-
-
-                //    this.DeleteApplication();
-                //}
-            }
-
-            //if (!this.WantDeployed == this.IsDeployed) {
-            //    // Wait until Wanted deployed status is achieved
-            //    return;
-            //}
-
-            //if (this.WantRunning) {
-
-            //    if (!this.CouldnotStart && this.IsRunning == false && !this.Status.HasFlag(ApplicationStatus.Starting)) {
-            //        this.StartApplication(); // Async
-            //    }
-            //}
-            //else {
-            //    if (!this.CouldnotStop && this.IsRunning == true && !this.Status.HasFlag(ApplicationStatus.Stopping)) {
-            //        this.StopApplication();  // Async
-            //    }
-            //}
-
-            //if (this.WantInstalled) {
-            //    if (!this.CouldnotInstall && this.IsInstalled == false && !this.Status.HasFlag(ApplicationStatus.Installing)) {
-            //        this.InstallApplication();   // Sync
-            //    }
-            //}
-            //else {
-            //    if (!this._CouldnotUninstall && this.IsInstalled == true && !this.Status.HasFlag(ApplicationStatus.Uninstalling)) {
-            //        this.UninstallApplication(); // Sync
-            //    }
-            //}
         }
 
         #region Actions

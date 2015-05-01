@@ -7,7 +7,7 @@ namespace Administrator.Server.Model {
     partial class DatabaseJson : Page, IBound<Database> {
 
         /// <summary>
-        /// Start invoked
+        /// Start 
         /// </summary>
         /// <param name="action"></param>
         void Handle(Input.Start action) {
@@ -16,7 +16,7 @@ namespace Administrator.Server.Model {
         }
 
         /// <summary>
-        /// Stop invoked
+        /// Stop 
         /// </summary>
         /// <param name="action"></param>
         void Handle(Input.Stop action) {
@@ -24,11 +24,22 @@ namespace Administrator.Server.Model {
             this.Data.WantRunning = false;
         }
 
+        /// <summary>
+        /// Delete
+        /// </summary>
+        /// <param name="action"></param>
         void Handle(Input.Delete action) {
 
             this.Data.WantDeleted = true;
         }
+
+        /// <summary>
+        /// Refresh appstore stores
+        /// </summary>
+        /// <param name="action"></param>
+        void Handle(Input.RefreshAppStoreStores action) {
+
+            this.Data.InvalidateAppStoreStores();
+        }
     }
 }
-
-

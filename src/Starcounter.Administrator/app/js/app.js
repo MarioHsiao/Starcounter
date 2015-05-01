@@ -34,7 +34,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/databases/:name/appstore', {
-        templateUrl: '/app/partials/applications-store',
+        templateUrl: '/app/partials/databaseAppstore.html',
         controller: 'AppStoreCtrl',
         resolve: {
             setDatabase: function (HostModelService, $route) {
@@ -44,7 +44,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/databases/:name/sql', {
-        templateUrl: '/app/partials/database-sql.html',
+        templateUrl: '/app/partials/databaseSql.html',
         controller: 'SqlCtrl',
         resolve: {
             setDatabase: function (HostModelService, $route) {
@@ -54,7 +54,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/databases/:name/executabe-start', {
-        templateUrl: '/app/partials/executabe-start.html',
+        templateUrl: '/app/partials/executabeStart.html',
         controller: 'ExecutableStartCtrl',
         resolve: {
             setDatabase: function (HostModelService, $route) {
@@ -64,7 +64,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/databases/:name/settings', {
-        templateUrl: '/app/partials/database-settings.html',
+        templateUrl: '/app/partials/databaseSettings.html',
         controller: 'DatabaseSettingsCtrl',
         resolve: {
             setDatabase: function (HostModelService, $route) {
@@ -85,7 +85,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/database-new', {
-        templateUrl: '/app/partials/database-new.html',
+        templateUrl: '/app/partials/databaseNew.html',
         controller: 'DatabaseNewCtrl',
         resolve: {
             assureHostModel: function (HostModelService, $route) {
@@ -105,7 +105,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/server/log', {
-        templateUrl: '/app/partials/server-log.html',
+        templateUrl: '/app/partials/serverLog.html',
         controller: 'LogCtrl',
         reloadOnSearch: false,
         redirectTo: function (routeParams, path, search) {
@@ -126,7 +126,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/server/network', {
-        templateUrl: '/app/partials/server-network.html',
+        templateUrl: '/app/partials/serverNetwork.html',
         controller: 'NetworkCtrl',
         resolve: {
             assureHostModel: function (HostModelService, $route) {
@@ -136,7 +136,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
     });
 
     $routeProvider.when('/server/settings', {
-        templateUrl: '/app/partials/Server-settings.html',
+        templateUrl: '/app/partials/ServerSettings.html',
         controller: 'ServerSettingsCtrl',
         resolve: {
             assureHostModel: function (HostModelService, $route) {

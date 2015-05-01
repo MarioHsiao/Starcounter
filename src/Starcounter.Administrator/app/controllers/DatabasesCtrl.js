@@ -34,7 +34,7 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'HostModelService', '
         var buttons = [{ result: 0, label: 'Delete Database', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
         var model = { "title": title, "message": message, "buttons": buttons, enteredDatabaseName: "" };
         model.pattern = "/^" + database.ID + "$/";
-        UserMessageFactory.showModal('app/partials/database-delete-modal.html', 'UserErrorMessageCtrl', model, function (result) {
+        UserMessageFactory.showModal('app/partials/databaseDeleteModal.html', 'UserErrorMessageCtrl', model, function (result) {
 
             if (result == 0) {
 

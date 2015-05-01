@@ -84,6 +84,7 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
+    <Compile Include="Server\Model\AppStoreStore.cs" />
     <Compile Include="Server\Model\DeployedConfigFile.cs" />
     <Compile Include="Server\Managers\PackageManager.cs" />
     <Compile Include="Server\Model\ErrorMessage.cs" />
@@ -262,10 +263,10 @@
     <Content Include="app\partials\application.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\applications-store.html">
+    <Content Include="app\partials\databaseAppstore.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\database-delete-modal.html">
+    <Content Include="app\partials\databaseDeleteModal.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\partials\messages.html" />
@@ -275,34 +276,34 @@
     <Content Include="app\partials\database.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\database-settings.html">
+    <Content Include="app\partials\databaseSettings.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\server-settings.html">
+    <Content Include="app\partials\serverSettings.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\partials\databases.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\database-new.html">
+    <Content Include="app\partials\databaseNew.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\message-error.html">
+    <Content Include="app\partials\messageError.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\factories\NoticeFactory.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\executabe-start.html">
+    <Content Include="app\partials\executabeStart.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\server-network.html">
+    <Content Include="app\partials\serverNetwork.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\server-log.html">
+    <Content Include="app\partials\serverLog.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\database-sql.html">
+    <Content Include="app\partials\databaseSql.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\services\SubmenuService.js" />

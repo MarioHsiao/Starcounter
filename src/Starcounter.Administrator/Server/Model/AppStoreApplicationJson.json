@@ -14,6 +14,7 @@
 	"Rating":0,
 	"Size" : 0,
 
+	"Store" : { "$" : { "Reuse" : "Administrator.Server.Model.AppStoreStoreJson" } },
 
 	"IsDeployed" : false,
 	"IsRunning" : false,

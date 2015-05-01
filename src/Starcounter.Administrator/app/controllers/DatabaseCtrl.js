@@ -34,7 +34,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$location', '
         var buttons = [{ result: 0, label: 'Delete Database', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
         var model = { "title": title, "message": message, "buttons": buttons, enteredDatabaseName: "" };
         model.pattern = "/^" + database.ID + "$/";
-        UserMessageFactory.showModal('app/partials/database-delete-modal.html', 'UserErrorMessageCtrl', model, function (result) {
+        UserMessageFactory.showModal('app/partials/databaseDeleteModal.html', 'UserErrorMessageCtrl', model, function (result) {
 
             if (result == 0) {
 
@@ -53,15 +53,13 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$location', '
         var message = "Do you want to stop the database " + database.DisplayName;
         var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
-        database.Stop$++;
+        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
-        //UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
+            if (result == 0) {
 
-        //    if (result == 0) {
-
-        //        database.Stop$++;
-        //    }
-        //});
+                database.Stop$++;
+            }
+        });
     }
 
     /**

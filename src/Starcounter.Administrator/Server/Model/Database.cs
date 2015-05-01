@@ -205,12 +205,40 @@ namespace Administrator.Server.Model {
             }
         }
 
+
+        //private bool _WantAppStoreStores;
+        //public bool WantAppStoreStores {
+        //    get {
+        //        return this._WantAppStoreStores;
+        //    }
+        //    set {
+        //        if (this._WantAppStoreStores == value) return;
+        //        this._WantAppStoreStores = value;
+        //        this.OnPropertyChanged("WantAppStoreStores");
+
+        //        this.InvalidateAppStoreStores();  // Async
+        //    }
+        //}
+
+        //private bool _CouldNotGetAppStoreStores;
+        //public bool CouldNotGetAppStoreStores {
+        //    get {
+        //        return this._CouldNotGetAppStoreStores;
+        //    }
+        //    set {
+        //        if (this._CouldNotGetAppStoreStores == value) return;
+        //        this._CouldNotGetAppStoreStores = value;
+        //        this.OnPropertyChanged("CouldNotGetAppStoreStores");
+        //    }
+        //}
+
         #endregion
 
 
         // TODO: Make thread-safe
         public ObservableCollection<DatabaseApplication> Applications = new ObservableCollection<DatabaseApplication>();
-        public ObservableCollection<AppStoreApplication> AppStoreApplications = new ObservableCollection<AppStoreApplication>();
+        //public ObservableCollection<AppStoreApplication> AppStoreApplications = new ObservableCollection<AppStoreApplication>();
+        public ObservableCollection<AppStoreStore> AppStoreStores = new ObservableCollection<AppStoreStore>();
 
         #endregion
 
@@ -225,21 +253,33 @@ namespace Administrator.Server.Model {
 
             this.PropertyChanged += Database_PropertyChanged;
             this.Applications.CollectionChanged += DatabaseApplications_CollectionChanged;
-            this.AppStoreApplications.CollectionChanged += AppStoreApplications_CollectionChanged;
+            //this.AppStoreApplications.CollectionChanged += AppStoreApplications_CollectionChanged;
+            this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
         }
 
-        private void AppStoreApplications_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+        void AppStoreStores_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 
             switch (e.Action) {
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
 
-                    // Add listeners on the database instance
-                    foreach (AppStoreApplication item in e.NewItems) {
+                    foreach (AppStoreStore item in e.NewItems) {
 
-                        item.Changed += AppStoreApplication_Changed;
-                        // Connect AppStoreAppliction with DatabaseApplication (if available)
-                        item.DatabaseApplication = this.GetApplicationBySourceUrl(item.SourceUrl);
-                        item.UpdateModel();
+                        item.Changed -= AppStoreStore_Changed;
+                        item.Changed += AppStoreStore_Changed;
+
+                        AppStoreManager.GetApplications(this, item, (remoteApplications) => {
+
+                            item.Applications.Clear();// TODO: Merge lists.
+
+                            foreach (AppStoreApplication remoteApplication in remoteApplications) {
+                                item.Applications.Add(remoteApplication);
+                            }
+
+                        }, (errorMessage) => {
+
+                            this.OnCommandError("AppStore", errorMessage, null);
+                        });
+
                     }
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
@@ -247,9 +287,8 @@ namespace Administrator.Server.Model {
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
 
-                    // Remove listeners on the database instance
-                    foreach (AppStoreApplication item in e.OldItems) {
-                        item.Changed -= AppStoreApplication_Changed;
+                    foreach (AppStoreStore item in e.OldItems) {
+                        item.Changed -= AppStoreStore_Changed;
                     }
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
@@ -257,16 +296,56 @@ namespace Administrator.Server.Model {
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
 
-                    // Remove listeners on the database instance
-                    foreach (AppStoreApplication item in this.AppStoreApplications) {
-                        item.Changed -= AppStoreApplication_Changed;
-                        item.Changed += AppStoreApplication_Changed;
-                    }
                     break;
             }
 
             this.OnChanged(sender, e);
         }
+
+        void AppStoreStore_Changed(object sender, EventArgs e) {
+
+            this.OnChanged(sender, e);
+        }
+
+        //private void AppStoreApplications_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+
+        //    switch (e.Action) {
+        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
+
+        //            // Add listeners on the database instance
+        //            foreach (AppStoreApplication item in e.NewItems) {
+
+        //                item.Changed += AppStoreApplication_Changed;
+        //                // Connect AppStoreAppliction with DatabaseApplication (if available)
+        //                item.DatabaseApplication = this.GetApplicationBySourceUrl(item.SourceUrl);
+        //                item.UpdateModel();
+        //            }
+        //            break;
+        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
+
+        //            break;
+        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
+
+        //            // Remove listeners on the database instance
+        //            foreach (AppStoreApplication item in e.OldItems) {
+        //                item.Changed -= AppStoreApplication_Changed;
+        //            }
+        //            break;
+        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
+
+        //            break;
+        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
+
+        //            // Remove listeners on the database instance
+        //            foreach (AppStoreApplication item in this.AppStoreApplications) {
+        //                item.Changed -= AppStoreApplication_Changed;
+        //                item.Changed += AppStoreApplication_Changed;
+        //            }
+        //            break;
+        //    }
+
+        //    this.OnChanged(sender, e);
+        //}
 
         /// <summary>
         /// Called when an application has been added or removed from a database
@@ -435,7 +514,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         /// <param name="sourceUrl"></param>
         /// <returns></returns>
-        private DatabaseApplication GetApplicationBySourceUrl(string sourceUrl) {
+        public DatabaseApplication GetApplicationBySourceUrl(string sourceUrl) {
 
             foreach (DatabaseApplication app in this.Applications) {
                 // TODO: USe Uri.Compare(
@@ -453,14 +532,35 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         private AppStoreApplication GetAppStoreApplication(string sourceUrl) {
 
-            foreach (AppStoreApplication app in this.AppStoreApplications) {
-                // TODO: USe Uri.Compare(
-                if (String.Equals(app.SourceUrl, sourceUrl, StringComparison.OrdinalIgnoreCase)) {
-                    return app;
+            foreach (AppStoreStore store in this.AppStoreStores) {
+
+                foreach (AppStoreApplication app in store.Applications) {
+                    // TODO: USe Uri.Compare(
+                    if (String.Equals(app.SourceUrl, sourceUrl, StringComparison.OrdinalIgnoreCase)) {
+                        return app;
+                    }
                 }
             }
             return null;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public AppStoreStore GetStore(string id) {
+
+            foreach (AppStoreStore store in this.AppStoreStores) {
+
+                if (store.ID == id) {
+                    return store;
+                }
+            }
+
+            return null;
+        }
+
 
         #region Invalidate Model
 
@@ -472,7 +572,7 @@ namespace Administrator.Server.Model {
             this.IsRunning = this.DatabaseRunningState();
 
             this.InvalidateApplications();
-            this.InvalidateAppStoreApplications();  // Async
+            //this.InvalidateAppStoreApplications();  // Async
         }
 
         /// <summary>
@@ -524,17 +624,17 @@ namespace Administrator.Server.Model {
         /// <summary>
         /// Invalidate app store applications
         /// </summary>
-        private void InvalidateAppStoreApplications() {
+        public void InvalidateAppStoreStores() {
 
-            AppStoreManager.GetApplications(this, (remoteApplications) => {
+            AppStoreManager.GetStores(this, (stores) => {
 
-                this.AppStoreApplications.Clear(); // TODO: Merge lists.
-                foreach (AppStoreApplication remoteApplication in remoteApplications) {
-                    this.AppStoreApplications.Add(remoteApplication);
+                this.AppStoreStores.Clear(); // TODO: Merge lists.
+                foreach (AppStoreStore appStore in stores) {
+                    this.AppStoreStores.Add(appStore);
                 }
-
             }, (errorMessage) => {
-                // TODO: Handle error
+
+                this.OnCommandError("AppStore", errorMessage, null);
             });
         }
 

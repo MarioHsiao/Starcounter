@@ -20,7 +20,6 @@ adminModule.controller('ApplicationItemCtrl', ['$scope', '$log', '$sce', '$route
     }
 
     $scope.$on("$destroy", function handler() {
-        console.log("$destroy application");
 
         if ($scope.socket != null) {
             $scope.socket.close();

@@ -9,6 +9,8 @@
     <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'card'" title="Card view"><span class="glyphicon glyphicon-th" aria-hidden="true"></span></button>
 </div>-->
 
+
+
 <!-- Database -->
 <div class="panel panel-default" ng-show="database">
 <!--    <div class="panel-heading">Database</div>-->
@@ -119,7 +121,7 @@
 
                 <td class="vert-align">
 
-                    <img  onerror="this.src='/app/images/EXE-32.png'" style="margin-right: 10px; height: 40px; width: 40px;  min-width:32px; max-width: 32px; max-height: 32px;" src="{{application.ImageUri}}" />
+                    <img onerror="this.src='/app/images/EXE-32.png'" style="margin-right: 10px; height: 40px; width: 40px;  min-width:32px; max-width: 32px; max-height: 32px;" ng-src="{{application.ImageUri}}" />
 
                     
                     <!--<img style="margin-right: 10px; height: 40px; width: 40px;  min-width:32px; max-width: 32px; max-height: 32px;" err-src="/app/images/sc_logo_24x24.png" ng-src="{{application.ImageUri}}" />-->
@@ -168,33 +170,27 @@
             <div class="btn-toolbar">
 
                 <div class="btn-group btn-group-sm">
+                    <img onerror="this.src='/app/images/EXE-32.png'" style="margin-right: 5px; height: 30px; width: 30px;  min-width:30px; max-width: 30px; max-height: 30px;" ng-src="{{application.ImageUri}}" />
                     <a href="#/databases/{{application.DatabaseName}}/applications/{{application.ID}}">{{application.DisplayName}}</a>
                 </div>
 
                 <div class="btn-group btn-group-sm pull-right">
-<!--                    <span ng-show="application.HasErrorMessage == false && application.IsRunning && application.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Application is running"></span>
-                    <span ng-hide="application.HasErrorMessage == false && application.IsRunning && application.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Application is stopped"></span>-->
-
 
                     <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" tooltip="Running"></span>
-
-                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" tooltip="Stopped"></span>
-                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="top: 3px; font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" tooltip="Not running"></span>
-
+                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" tooltip="Stopped" title="Stopped"></span>
+                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="top: 3px; font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" tooltip="Not running" title="Not running"></span>
                     <span ng-show="application.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" tooltip="{{application.ErrorMessage.Message}}"></span>
-
-
                 </div>
             </div>
 
-            <div class="btn-toolbar" style="margin-top:5px">
+            <div class="btn-toolbar" style="margin-top:15px">
 
-                <button class="btn btn-success btn-sm" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
-                <button class="btn btn-default btn-sm" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
+                <button style="min-width: 80px" class="btn btn-success btn-sm" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
+                <button style="min-width: 80px" class="btn btn-default btn-sm" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
 
                 <span ng-show="application.Status!=0" class="btn-group_" style="margin-top: 5px">
                     <span title="{{application.StatusText}}" class="spinner tiny"></span>
-                    <div style="vertical-align: middle; display: inline-block; width: 205px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{application.StatusText}}</div>
+                    <div style="vertical-align: middle; display: inline-block; width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{application.StatusText}}</div>
                     
                 </span>
             </div>
@@ -209,7 +205,7 @@
                 </div>
             </div>
 
-            <div ng-class="{consoleAppIsNotRunning: application.Status!=0, consoleAppIsRunning: application.Status==0}" ng-show="!application.HasErrorMessage" ng-style="{'height':'205px', 'width':'100%'}" title="Console output">
+            <div ng-class="{consoleAppIsNotRunning: application.Status!=0, consoleAppIsRunning: application.Status==0}" ng-show="!application.HasErrorMessage" ng-style="{'height':'187px', 'width':'100%'}" title="Console output">
                 <consolewindow ng-model="consoleText"></consolewindow>
             </div>
 
