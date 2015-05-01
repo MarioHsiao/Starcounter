@@ -92,6 +92,8 @@ namespace Starcounter {
 
         internal String _appName;
 
+        internal String _activeAppName;
+
         /// <summary>
         /// If set to true, additional features for keeping track of changes and getting a log of changes 
         /// are initialized. If not needed this should not be enabled since the performance will be much worse.
