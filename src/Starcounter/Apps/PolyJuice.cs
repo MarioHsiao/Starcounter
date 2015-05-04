@@ -1007,6 +1007,8 @@ namespace PolyjuiceNamespace {
                 if (responses.Count == 1)
                     return mainResponse;
 
+                var oldSiblings = mainJson.StepSiblings;
+
                 stepSiblings = new List<Json>();
                 mainJson.StepSiblings = stepSiblings;
                 stepSiblings.Add(mainJson);
@@ -1042,6 +1044,25 @@ namespace PolyjuiceNamespace {
                             stepSiblings.Add(siblingJson);
                         }
                     }
+                }
+
+                if (oldSiblings != null && mainJson.Parent != null) {
+                    bool refresh = false;
+
+                    if (oldSiblings.Count != stepSiblings.Count) {
+                        refresh = true;
+                    } else  {
+                        for (int i = 0; i < stepSiblings.Count; i++) {
+                            if (oldSiblings[i] != stepSiblings[i]) {
+                                refresh = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    // if the old siblings differ in any way from the new siblings, we refresh the whole mainjson.
+                    if (refresh)
+                        mainJson.Parent.MarkAsReplaced(mainJson.IndexInParent);
                 }
             }
 
