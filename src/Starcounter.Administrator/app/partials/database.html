@@ -121,7 +121,10 @@
 
                 <td class="vert-align">
 
-                    <img onerror="this.src='/app/images/EXE-32.png'" style="margin-right: 10px; height: 40px; width: 40px;  min-width:32px; max-width: 32px; max-height: 32px;" ng-src="{{application.ImageUri}}" />
+
+ <!--onerror="this.src='/app/images/EXE-32.png'"-->
+
+                    <img ng-src="{{application.ImageUri}}"  err-Src="/app/images/EXE-32.png" style="margin-right: 10px; height: 40px; width: 40px;  min-width:32px; max-width: 32px; max-height: 32px;" />
 
                     
                     <!--<img style="margin-right: 10px; height: 40px; width: 40px;  min-width:32px; max-width: 32px; max-height: 32px;" err-src="/app/images/sc_logo_24x24.png" ng-src="{{application.ImageUri}}" />-->
@@ -170,7 +173,7 @@
             <div class="btn-toolbar">
 
                 <div class="btn-group btn-group-sm">
-                    <img onerror="this.src='/app/images/EXE-32.png'" style="margin-right: 5px; height: 30px; width: 30px;  min-width:30px; max-width: 30px; max-height: 30px;" ng-src="{{application.ImageUri}}" />
+                    <img ng-src="{{application.ImageUri}}"  err-Src="/app/images/EXE-32.png" style="margin-right: 5px; height: 30px; width: 30px;  min-width:30px; max-width: 30px; max-height: 30px;"  />
                     <a href="#/databases/{{application.DatabaseName}}/applications/{{application.ID}}">{{application.DisplayName}}</a>
                 </div>
 
@@ -205,10 +208,9 @@
                 </div>
             </div>
 
-            <div ng-class="{consoleAppIsNotRunning: application.Status!=0, consoleAppIsRunning: application.Status==0}" ng-show="!application.HasErrorMessage" ng-style="{'height':'187px', 'width':'100%'}" title="Console output">
+            <div ng-class="{'consoleAppIsNotRunning': application.Status!=0 || application.IsRunning==false}"  ng-show="!application.HasErrorMessage" ng-style="{'height':'187px', 'width':'100%'}" title="Console output">
                 <consolewindow ng-model="consoleText"></consolewindow>
             </div>
-
         </li>
     </ul>
 </div>

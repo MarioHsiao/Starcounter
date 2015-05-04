@@ -39,7 +39,7 @@
     <div class="panel-heading">AppStore, visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications.</div>
 
     <ul>
-        <li ng-repeat="store in database.AppStoreStores | filter:Applications.length > 0 | orderBy:'DisplayName'">
+        <li ng-repeat="store in database.AppStoreStores | filter:database.Applications.length > 0 | orderBy:'DisplayName'">
             <h1>{{store.DisplayName}} store</h1>
 
             <table class="table">
