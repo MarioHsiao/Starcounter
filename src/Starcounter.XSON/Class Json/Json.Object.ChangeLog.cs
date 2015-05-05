@@ -155,7 +155,13 @@ namespace Starcounter {
                 ArrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < _list.Count; t++) {
-                    ((Json)_list[t]).LogValueChangesWithDatabase(session, callStepSiblings);
+                    var arrItem = ((Json)_list[t]);
+                    if (this.WasReplacedAt(t)) { // A refresh of an existing row (that is not added or removed)
+                        session.AddChange(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
+                        this.CheckpointAt(t);
+                    } else {
+                        arrItem.LogValueChangesWithDatabase(session, callStepSiblings);
+                    }
                 }
             }
 		}
