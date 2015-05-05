@@ -85,6 +85,11 @@ namespace Starcounter.Internal.Web {
                 }
             }
 
+            // Checking if we couldn't find suitable mime-type.
+            if (mimeType == null) {
+                mimeType = "text/plain";
+            }
+
             response = Response.FromStatusCode((int)statusCode);
             contentLength = (payload != null) ? payload.Length : -1;
             if (mimeType.StartsWith("text/")) {
