@@ -52,7 +52,7 @@
                         <span ng-show="database.HasErrorMessage">
                             <span style="top: 3px; font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{database.ErrorMessage.Message}}"></span>
                             {{database.ErrorMessage.Message}}
-                            <a ng-show="database.ErrorMessage.HelpLink" href="{{database.ErrorMessage.HelpLink}}" target="_blank">What does it mean?</a>.
+                            <a ng-show="database.ErrorMessage.HelpLink" href="{{database.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                             View the <a href="#/server/log">log</a> for more details.
                         </span>
 
@@ -146,7 +146,7 @@
 
                         {{application.ErrorMessage.Message}}
 
-                        <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">What does it mean?</a>.
+                        <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                         View the <a href="#/server/log">log</a> for more details.
 
                     </span>
@@ -203,7 +203,7 @@
                 <div ng-show="application.HasErrorMessage" style="margin-top: 15px">
                     <span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>
                     {{application.ErrorMessage.Message}}
-                <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">What does it mean?</a>.
+                <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                     View the <a href="#/server/log">log</a> for more details.
                 </div>
             </div>

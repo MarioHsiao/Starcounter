@@ -180,41 +180,11 @@ adminModule.prepData = function ($q, $timeout) {
  */
 adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'SubmenuService', 'MessageService', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, SubmenuService, MessageService, HostModelService) {
 
-
     $scope.subMenu = SubmenuService.model;
-
     $scope.newVersion = null;
-
     $scope.messages = MessageService.messages;
     $scope.serverModel = HostModelService.serverStatus.obj;
-
-
     $scope.data = HostModelService.data;
-
-    //$scope.$watchCollection('serverModel.Databases', function (newCollection, oldCollection) {
-
-    //    if (newCollection == null) return;
-
-    //    for (var i = 0; i < newCollection.length ; i++) {
-    //        console.log(">" + newCollection[i].DisplayName);
-    //    }
-
-
-    //});
-
-    //$rootScope.$on('HostModelService.loaded', function (event, data) {
-    //    debugger;
-
-
-    //});
-
-    // TODO: Keep querystate
-    $rootScope.queryState = {
-        selectedDatabaseName: null,
-        sqlQuery: "",
-        columns: [],
-        rows: []
-    }
 
     // Make selected nav pile to be selected 'active'
     $scope.getClass = function (path) {
@@ -233,11 +203,6 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
         return viewLocation === "#" + $location.path();
     };
 
-    //$scope.$on('$routeChangeError', function () {
-    //    // handle the error
-    //    debugger;
-    //});
-
     $rootScope.$on("$routeChangeError", function (event, current, pervious, refection) {
         // Show Network down..
 
@@ -248,15 +213,8 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 
         NoticeFactory.ShowNotice({ type: 'danger', msg: "The server is not responding or is not reachable.", helpLink: null });
     });
-    // $routeChangeStart
-    // $routeChangeSuccess
 
     $scope.viewmode = null;
-
-    //$scope.$watch("viewmode", function (newValue, oldValue) {
-
-    //    $location.search('view', newValue);
-    //});
 
     $rootScope.$on("$routeChangeSuccess", function (event, current, pervious, refection) {
 
@@ -289,28 +247,12 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 
         if (databaseName != null) {
             SubmenuService.model.showHome = true;
-            //SubmenuService.subMenu.push({ "Title": databaseName, "Link": "#/databases/" + databaseName + "" })
-            //SubmenuService.subMenu.push({ "Title": "home", "Link": "#/databases/" + databaseName + "" })
             SubmenuService.model.menues.push({ "Title": "SQL", "Link": "#/databases/" + databaseName + "/sql" })
             SubmenuService.model.menues.push({ "Title": "AppStore", "Link": "#/databases/" + databaseName + "/appstore" })
             SubmenuService.model.menues.push({ "Title": "Start Executable", "Link": "#/databases/" + databaseName + "/executabe-start" })
         }
 
     });
-
-    //    $rootScope.$on('$routeChangeStart', function (scope, next, current) {
-    //        console.log('Changing from ' + angular.toJson(current) + ' to ' + angular.toJson(next));
-    //    });
-
-    // Init
-    // Refresh host model
-    //HostModelService.refreshHostModel(function () {
-    //}, function (messageObject) {
-    //    // Error
-    //    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-    //});
-
-
 }]);
 
 

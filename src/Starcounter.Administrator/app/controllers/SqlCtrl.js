@@ -68,7 +68,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
      */
     $scope.canExecute = function () {
 
-        return $scope.isBusy == false && $scope.queryState.sqlQuery;
+        return $scope.isBusy == false && $scope.database._queryState.sqlQuery;
     }
 
     /**
@@ -99,7 +99,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
      */
     $scope.btnSelectQuery = function (query) {
 
-        $scope.queryState.sqlQuery = query.statement;
+        $scope.database._queryState.sqlQuery = query.statement;
     }
 
     /**
@@ -134,18 +134,16 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
         // Execute query
         SqlService.executeQuery(query, databaseName, function (response) {
 
+            // Success
             $scope.isBusy = false;
 
             $scope.rememberQuery({ statement: query, databaseName: databaseName });
-
-
-            // Success
-            $scope.queryState.columns = response.columns;
-            $scope.queryState.rows = response.rows.rows;
+            $scope.database._queryState.columns = response.columns;
+            $scope.database._queryState.rows = response.rows.rows;
 
             // Make all columns readonly
-            for (var i = 0; i < $scope.queryState.columns.length ; i++) {
-                $scope.queryState.columns[i].readOnly = true;
+            for (var i = 0; i < $scope.database._queryState.columns.length ; i++) {
+                $scope.database._queryState.columns[i].readOnly = true;
             }
 
             if (response.queryPlan) {
@@ -154,7 +152,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
                 // Replace all occurrences of \t with &emsp;
                 var plan = response.queryPlan.replace(/\r\n/g, "<br>").replace(/\t/g, "&emsp;");
 
-                $scope.queryState.queryPlan = $sce.trustAsHtml(plan);
+                $scope.database._queryState.queryPlan = $sce.trustAsHtml(plan);
             }
         },
             function (messageObject) {
@@ -178,6 +176,15 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
     // Set Data
     $scope.database = HostModelService.getDatabase($routeParams.name);
 
+    // Add empty query state on database if it doent exist
+    if ($scope.database._queryState == null) {
+        $scope.database._queryState = {
+            sqlQuery: "",
+            columns: [],
+            rows: []
+        }
+    }
+
     /**
      * On keypress event
      * @param {event} event Key event
@@ -185,7 +192,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
     function onKeyPress(event) {
 
         if ($scope.canExecute() && event.ctrlKey && (event.keyCode == 10 || event.keyCode == 13)) {
-            $scope.execute($scope.queryState.sqlQuery, $scope.database.ID);
+            $scope.execute($scope.database._queryState.sqlQuery, $scope.database.ID);
             event.preventDefault();
         }
     }
@@ -195,6 +202,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
         // Unbind the keypress listener
         $document.unbind('keypress', onKeyPress);
     })
+
     // bind the keypress listener
     $document.bind('keypress', onKeyPress);
 

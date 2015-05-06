@@ -5,7 +5,7 @@
         <div class="btn-toolbar" role="toolbar">
             <div class="btn-group btn-group-sm">
                 <!-- Query history -->
-                <button style="min-width: 100px" type="submit" class="btn btn-default btn-success" ng-disabled="!canExecute()" ng-click="btnExecute(queryState.sqlQuery,database.ID)" title="Execute query (CTRL+Enter)">{{executeButtonTitle(isBusy)}}</button>
+                <button style="min-width: 100px" type="submit" class="btn btn-default btn-success" ng-disabled="!canExecute()" ng-click="btnExecute(database._queryState.sqlQuery,database.ID)" title="Execute query (CTRL+Enter)">{{executeButtonTitle(isBusy)}}</button>
 
                 <button class="btn btn-default btn-success dropdown-toggle" data-toggle="dropdown" title="Query history">
                     <span class="caret"></span>
@@ -24,14 +24,17 @@
             <span ng-show="HasErrorMessage" class="btn-group btn-group-sm" style="vertical-align: middle; vertical-align: -webkit-baseline-middle; margin-left: 15px;margin-top:5px">
                 <span style="vertical-align: middle; margin-top: -1px; font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
                 <span style="vertical-align: middle">{{ErrorMessage.Message}}</span>
-                <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">What does it mean?</a>. View the <a href="#/server/log">log</a> for more details.
+                <span style="vertical-align: middle">
+                <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">Help. </a>View the <a href="#/server/log">log</a> for more details.
+
+                </span>
             </span>
         </div>
     </div>
 
     <div class="panel-body">
         <div style="margin-top: 15px; margin-bottom: 15px" title="SQL Query">
-            <textarea id="sqlinput" ui-codemirror="{theme:'monokai'}" ng-model="queryState.sqlQuery"></textarea>
+            <textarea id="sqlinput" ui-codemirror="{theme:'monokai'}" ng-model="database._queryState.sqlQuery"></textarea>
         </div>
 
         <div ng-hide='isBusy == true' style="margin-top: 15px; margin-bottom: -15px">
@@ -45,10 +48,10 @@
                         selectedindex="SelectedIndex"
                         outsideclickdeselects="false"
                         selectedindex="currentSelection"
-                        columns="queryState.columns"
+                        columns="database._queryState.columns"
                         minsparerows="0"
                         startrows="0"
-                        datarows="row in queryState.rows"
+                        datarows="row in database._queryState.rows"
                         currentrowclassname="'currentRow'"
                         manualcolumnmove="false"
                         manualcolumnresize="false"
@@ -61,7 +64,7 @@
                 </tab>
 
                 <tab heading="Queryplan">
-                    <div style="margin-left: 15px; margin-right: 15px" ng-bind-html="queryState.queryPlan"></div>
+                    <div style="margin-left: 15px; margin-right: 15px" ng-bind-html="database._queryState.queryPlan"></div>
                </tab>
             </tabset>
         </div>
