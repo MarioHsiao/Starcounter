@@ -989,8 +989,9 @@ namespace NodeTest
                 Environment.Exit(0);
 
                 // Waiting for all worker threads to finish.
-                for (Int32 w = 0; w < settings.NumWorkers; w++)
+                for (Int32 w = 0; w < settings.NumWorkers; w++) {
                     worker_threads[w].Join();
+                }
 
                 return 0;
 

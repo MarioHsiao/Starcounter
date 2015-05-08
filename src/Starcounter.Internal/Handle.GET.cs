@@ -29,63 +29,63 @@ namespace Starcounter {
         /// WebSocket data receive event handler.
         /// </summary>
         /// <param name="port"></param>
-        /// <param name="channel"></param>
+        /// <param name="groupName"></param>
         /// <param name="handler"></param>
-        public static void WebSocket(UInt16 port, String channel, Action<Byte[], WebSocket> handler)
+        public static void WebSocket(UInt16 port, String groupName, Action<Byte[], WebSocket> handler)
         {
-            _REST.RegisterWsHandler(port, channel, handler);
+            _REST.RegisterWsHandler(port, groupName, handler);
         }
 
         /// <summary>
         /// WebSocket data receive event handler.
         /// </summary>
         /// <param name="port"></param>
-        /// <param name="channel"></param>
+        /// <param name="groupName"></param>
         /// <param name="handler"></param>
-        public static void WebSocket(UInt16 port, String channel, Action<String, WebSocket> handler)
+        public static void WebSocket(UInt16 port, String groupName, Action<String, WebSocket> handler)
         {
-            _REST.RegisterWsHandler(port, channel, handler);
+            _REST.RegisterWsHandler(port, groupName, handler);
         }
 
         /// <summary>
         /// Handler on WebSocket disconnect event.
         /// </summary>
         /// <param name="port"></param>
-        /// <param name="channel"></param>
+        /// <param name="groupName"></param>
         /// <param name="handler"></param>
-        public static void WebSocketDisconnect(UInt16 port,String channel, Action<UInt64, IAppsSession> handler)
+        public static void WebSocketDisconnect(UInt16 port, String groupName, Action<WebSocket> handler)
         {
-            _REST.RegisterWsDisconnectHandler(port, channel, handler);
+            _REST.RegisterWsDisconnectHandler(port, groupName, handler);
         }
 
         /// <summary>
         /// Socket data receive event handler.
         /// </summary>
-        /// <param name="channel"></param>
+        /// <param name="groupName"></param>
         /// <param name="handler"></param>
-        public static void WebSocket(String channel, Action<Byte[], WebSocket> handler)
+        public static void WebSocket(String groupName, Action<Byte[], WebSocket> handler)
         {
-            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, groupName, handler);
         }
 
         /// <summary>
         /// Socket receive event handler.
         /// </summary>
-        /// <param name="channel"></param>
+        /// <param name="groupName"></param>
         /// <param name="handler"></param>
-        public static void WebSocket(String channel, Action<String, WebSocket> handler)
+        public static void WebSocket(String groupName, Action<String, WebSocket> handler)
         {
-            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+            _REST.RegisterWsHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, groupName, handler);
         }
 
         /// <summary>
         /// Handler on socket disconnect event.
         /// </summary>
-        /// <param name="channel"></param>
+        /// <param name="groupName"></param>
         /// <param name="handler"></param>
-        public static void WebSocketDisconnect(String channel, Action<UInt64, IAppsSession> handler)
+        public static void WebSocketDisconnect(String groupName, Action<WebSocket> handler)
         {
-            _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, channel, handler);
+            _REST.RegisterWsDisconnectHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, groupName, handler);
         }
 
         /// <summary>

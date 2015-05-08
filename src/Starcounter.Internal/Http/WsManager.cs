@@ -14,21 +14,21 @@ using Starcounter.Rest;
 
 namespace Starcounter.Internal
 {
-    internal class WsChannelInfo
+    internal class WsGroupInfo
     {
         Action<Byte[], WebSocket> receiveBinaryHandler_;
 
         Action<String, WebSocket> receiveStringHandler_;
 
-        Action<UInt64, IAppsSession> disconnectHandler_;
+        Action<WebSocket> disconnectHandler_;
 
-        public String InternalChannelName { get; set; }
+        public String InternalGroupName { get; set; }
 
         UInt16 port_;
 
         public UInt16 Port { get { return port_; } }
 
-        UInt32 channelId_;
+        UInt32 groupId_;
 
         UInt16 handlerId_;
 
@@ -41,7 +41,7 @@ namespace Starcounter.Internal
             set { handlerInfo_ = value; }
         }
 
-        public UInt32 ChannelId { get { return channelId_; } }
+        public UInt32 GroupId { get { return groupId_; } }
 
         Boolean alive_;
 
@@ -51,21 +51,21 @@ namespace Starcounter.Internal
 
         public String AppName { get { return appName_; } }
 
-        public WsChannelInfo(String appName, UInt16 handlerId, UInt16 port, String internalChannelName)
+        public WsGroupInfo(String appName, UInt16 handlerId, UInt16 port, String internalGroupName)
         {
-            InternalChannelName = internalChannelName;
-            channelId_ = CalculateChannelIdFromInternalName(internalChannelName);
+            InternalGroupName = internalGroupName;
+            groupId_ = CalculateGroupIdFromInternalName(internalGroupName);
             handlerId_ = handlerId;
             port_ = port;
             appName_ = appName;
         }
 
-        static UInt32 CalculateChannelIdFromInternalName(String internalChannelName) {
-            return (UInt32)internalChannelName.GetHashCode();
+        static UInt32 CalculateGroupIdFromInternalName(String internalGroupName) {
+            return (UInt32)internalGroupName.GetHashCode();
         }
 
-        public static UInt32 CalculateChannelIdFromChannelName(String channelName) {
-            return CalculateChannelIdFromInternalName(StarcounterEnvironment.DatabaseNameLower + channelName);
+        public static UInt32 CalculateGroupIdFromGroupName(String groupName) {
+            return CalculateGroupIdFromInternalName(StarcounterEnvironment.DatabaseNameLower + groupName);
         }
 
         public void Destroy()
@@ -85,7 +85,7 @@ namespace Starcounter.Internal
             alive_ = true;
         }
 
-        public void SetDisconnectHandler(Action<UInt64, IAppsSession> disconnectHandler)
+        public void SetDisconnectHandler(Action<WebSocket> disconnectHandler)
         {
             disconnectHandler_ = disconnectHandler;
             alive_ = true;
@@ -129,10 +129,9 @@ namespace Starcounter.Internal
 
                 case WebSocket.WsHandlerType.Disconnect:
                 {
-                    if (disconnectHandler_ != null)
-                        disconnectHandler_(ws.CargoId, ws.Session);
-
-                    ws.Destroy();
+                    if (disconnectHandler_ != null) {
+                        disconnectHandler_(ws);
+                    }
 
                     break;
                 }
@@ -143,66 +142,67 @@ namespace Starcounter.Internal
         }
     }
 
-    internal class AllWsChannels
+    internal class AllWsGroups
     {
         public const Int32 MAX_WS_HANDLERS = 512;
 
-        WsChannelInfo[] allWsChannels_ = new WsChannelInfo[MAX_WS_HANDLERS];
+        WsGroupInfo[] allWsGroups_ = new WsGroupInfo[MAX_WS_HANDLERS];
 
-        UInt16 maxWsChannels_ = 0;
+        UInt16 maxWsGroups_ = 0;
 
-        internal WsChannelInfo FindChannel(UInt16 port, String channelName)
+        internal WsGroupInfo FindGroup(UInt16 port, String groupName)
         {
             // Pre-pending database name for automatic uniqueness.
-            channelName = StarcounterEnvironment.DatabaseNameLower + channelName;
+            groupName = StarcounterEnvironment.DatabaseNameLower + groupName;
 
             // Searching WebSocket channel.
-            for (UInt16 i = 0; i < maxWsChannels_; i++)
+            for (UInt16 i = 0; i < maxWsGroups_; i++)
             {
-                if ((allWsChannels_[i] != null) && (allWsChannels_[i].Alive))
+                if ((allWsGroups_[i] != null) && (allWsGroups_[i].Alive))
                 {
-                    if ((allWsChannels_[i].Port == port) && (0 == String.Compare(allWsChannels_[i].InternalChannelName, channelName)))
-                        return allWsChannels_[i];
+                    if ((allWsGroups_[i].Port == port) && (0 == String.Compare(allWsGroups_[i].InternalGroupName, groupName))) {
+                        return allWsGroups_[i];
+                    }
                 }
             }
 
             return null;
         }
 
-        static AllWsChannels wsManager_ = new AllWsChannels();
+        static AllWsGroups wsManager_ = new AllWsGroups();
 
-        public static AllWsChannels WsManager { get { return wsManager_; } }
+        public static AllWsGroups WsManager { get { return wsManager_; } }
 
         internal delegate void RegisterWsChannelHandlerNativeDelegate(
             UInt16 port,
             String appName,
-            String channelName,
-            UInt32 channelId,
+            String groupName,
+            UInt32 groupId,
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo);
 
-        RegisterWsChannelHandlerNativeDelegate RegisterWsChannelHandlerNative_;
+        RegisterWsChannelHandlerNativeDelegate RegisterWsGroupHandlerNative_;
 
-        internal void InitWebSockets(RegisterWsChannelHandlerNativeDelegate registerWsChannelHandlerNative) {
-            RegisterWsChannelHandlerNative_ = registerWsChannelHandlerNative;
-            SchedulerResources.InitSockets();
+        internal void InitWebSockets(RegisterWsChannelHandlerNativeDelegate registerWsGroupHandlerNative) {
+            RegisterWsGroupHandlerNative_ = registerWsGroupHandlerNative;
         }
 
-        WsChannelInfo CreateWsChannel(UInt16 port, String internalChannelName)
+        WsGroupInfo CreateWsGroup(UInt16 port, String internalGroupName)
         {
-            if (maxWsChannels_ >= MAX_WS_HANDLERS)
+            if (maxWsGroups_ >= MAX_WS_HANDLERS) {
                 throw ErrorCode.ToException(Error.SCERRMAXHANDLERSREACHED);
+            }
 
             // Not found, creating new.
-            WsChannelInfo w = new WsChannelInfo(StarcounterEnvironment.AppName, maxWsChannels_, port, internalChannelName);
-            allWsChannels_[maxWsChannels_] = w;
+            WsGroupInfo w = new WsGroupInfo(StarcounterEnvironment.AppName, maxWsGroups_, port, internalGroupName);
+            allWsGroups_[maxWsGroups_] = w;
 
-            maxWsChannels_++;
+            maxWsGroups_++;
 
             return w;
         }
 
-        WsChannelInfo RegisterHandlerInternal(UInt16 port, String channelName)
+        WsGroupInfo RegisterHandlerInternal(UInt16 port, String groupName)
         {
             // Checking if port is not specified.
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
@@ -213,39 +213,41 @@ namespace Starcounter.Internal
                 }
             }
 
-            if (channelName.Length > 32)
-                throw new Exception("Registering too long channel name: " + channelName);
+            if (groupName.Length > 32) {
+                throw new Exception("Registering too long group name: " + groupName);
+            }
 
-            WsChannelInfo w = FindChannel(port, channelName);
+            WsGroupInfo group = FindGroup(port, groupName);
 
             // Pre-pending database name for automatic uniqueness.
-            String internalChannelName = StarcounterEnvironment.DatabaseNameLower + channelName;
+            String internalGroupName = StarcounterEnvironment.DatabaseNameLower + groupName;
 
-            if (w == null)
-            {
-                w = CreateWsChannel(port, internalChannelName);
+            // Checking if group is found.
+            if (group == null) {
 
-                String appName = w.AppName;
+                group = CreateWsGroup(port, internalGroupName);
+
+                String appName = group.AppName;
                 if (String.IsNullOrEmpty(appName)) {
                     appName = MixedCodeConstants.EmptyAppName;
                 }
 
                 UInt64 handlerInfo;
-                RegisterWsChannelHandlerNative_(port, appName, internalChannelName, w.ChannelId, w.HandlerId, out handlerInfo);
-                w.HandlerInfo = handlerInfo;
+                RegisterWsGroupHandlerNative_(port, appName, internalGroupName, group.GroupId, group.HandlerId, out handlerInfo);
+                group.HandlerInfo = handlerInfo;
             }
 
-            return w;
+            return group;
         }
 
         public void RegisterWsDelegate(
             UInt16 port,
-            String channelName,
+            String groupName,
             Action<Byte[], WebSocket> userDelegate)
         {
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandlerInternal(port, channelName);
+                WsGroupInfo w = RegisterHandlerInternal(port, groupName);
 
                 w.SetReceiveBinaryHandler(userDelegate);
             }
@@ -253,12 +255,12 @@ namespace Starcounter.Internal
 
         public void RegisterWsDelegate(
             UInt16 port,
-            String channelName,
+            String groupName,
             Action<String, WebSocket> userDelegate)
         {
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandlerInternal(port, channelName);
+                WsGroupInfo w = RegisterHandlerInternal(port, groupName);
 
                 w.SetReceiveStringHandler(userDelegate);
             }
@@ -266,26 +268,28 @@ namespace Starcounter.Internal
 
         public void RegisterWsDisconnectDelegate(
             UInt16 port,
-            String channelName,
-            Action<UInt64, IAppsSession> userDelegate)
+            String groupName,
+            Action<WebSocket> userDelegate)
         {
             lock (wsManager_)
             {
-                WsChannelInfo w = RegisterHandlerInternal(port, channelName); 
+                WsGroupInfo w = RegisterHandlerInternal(port, groupName); 
 
                 w.SetDisconnectHandler(userDelegate);
             }
         }
 
-        public Boolean RunHandler(UInt16 id, WebSocket ws)
+        public Boolean RunHandler(UInt16 handlerid, UInt32 groupId, WebSocket ws)
         {
-            if (allWsChannels_[id] != null && allWsChannels_[id].Alive)
-            {
-                allWsChannels_[id].DetermineAndRunHandler(ws);
+            if ((allWsGroups_[handlerid] != null) && 
+                (allWsGroups_[handlerid].Alive) &&
+                (allWsGroups_[handlerid].GroupId == groupId)) {
+
+                allWsGroups_[handlerid].DetermineAndRunHandler(ws);
                 return true;
-            }
-            else
-            {
+
+            } else {
+
                 ws.Disconnect("WebSocket handlers on the requested channel are not registered. Closing the connection.",
                     WebSocket.WebSocketCloseCodes.WS_CLOSE_CANT_ACCEPT_DATA);
             }

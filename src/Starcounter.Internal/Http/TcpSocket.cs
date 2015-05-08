@@ -11,12 +11,54 @@ namespace Starcounter {
     public class TcpSocket {
 
         /// <summary>
+        /// Socket structure.
+        /// </summary>
+        SocketStruct socketStruct_;
+
+        /// <summary>
+        /// Socket structure.
+        /// </summary>
+        internal SocketStruct InternalSocketStruct {
+            get {
+                return socketStruct_;
+            }
+        }
+
+        /// <summary>
+        /// Converts lower and upper part of TcpSocket into an object.
+        /// </summary>
+        /// <param name="lowerPart">Lower part of the socket info.</param>
+        /// <param name="upperPart">Upper part of the socket info.</param>
+        public TcpSocket(UInt64 lowerPart, UInt64 upperPart) {
+            socketStruct_ = SocketStruct.FromLowerUpper(lowerPart, upperPart);
+        }
+
+        /// <summary>
+        /// Converts TcpSocket to lower and upper parts.
+        /// </summary>
+        /// <param name="socketIdLower">Lower part of socket ID.</param>
+        /// <param name="socketIdUpper">Upper part of socket ID.</param>
+        public void ToLowerUpper(
+            out UInt64 socketIdLower,
+            out UInt64 socketIdUpper) {
+
+            SocketStruct.ToLowerUpper(socketStruct_, out socketIdLower, out socketIdUpper);
+        }
+
+        /// <summary>
+        /// Creates a new TcpSocket.
+        /// </summary>
+        internal TcpSocket(
+            NetworkDataStream dataStream,
+            SocketStruct socketStruct)
+        {
+            dataStream_ = dataStream;
+            socketStruct_ = socketStruct;
+        }
+
+        /// <summary>
         /// Register TCP socket handler.
         /// </summary>
-        /// <param name="port"></param>
-        /// <param name="appName"></param>
-        /// <param name="rawCallback"></param>
-        /// <param name="handlerInfo"></param>
         internal delegate void RegisterTcpSocketHandlerDelegate(
             UInt16 port,
             String appName,
@@ -37,32 +79,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Unique socket id on gateway.
-        /// </summary>
-        public UInt64 SocketUniqueId { get { return socketContainer_.SocketUniqueId; } }
-
-        /// <summary>
-        /// Cargo ID getter.
-        /// </summary>
-        public UInt64 CargoId {
-            get { return socketContainer_.CargoId; }
-            set { socketContainer_.CargoId = value; }
-        } 
-
-        /// <summary>
-        /// Socket container.
-        /// </summary>
-        SchedulerResources.SocketContainer socketContainer_;
-
-        /// <summary>
-        /// Constructor.
-        /// </summary>
-        internal TcpSocket(SchedulerResources.SocketContainer outerSocketContainer) {
-
-            socketContainer_ = outerSocketContainer;
-        }
-
-        /// <summary>
         /// Current RawSocket object.
         /// </summary>
         [ThreadStatic]
@@ -77,21 +93,16 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Destroys only data stream.
+        /// Network data stream.
         /// </summary>
-        /// <param name="isStarcounterThread"></param>
-        internal void DestroyDataStream() {
-            if (null != socketContainer_)
-                socketContainer_.DestroyDataStream();
-        }
+        NetworkDataStream dataStream_;
 
         /// <summary>
-        /// Resets the socket.
+        /// Network data stream.
         /// </summary>
-        internal void Destroy() {
-            if (null != socketContainer_) {
-                SchedulerResources.ReturnSocketContainer(socketContainer_);
-                socketContainer_ = null;
+        internal NetworkDataStream DataStream {
+            get {
+                return dataStream_;
             }
         }
 
@@ -100,7 +111,8 @@ namespace Starcounter {
         /// </summary>
         /// <returns></returns>
         public Boolean IsDead() {
-            return ((null == socketContainer_) || (socketContainer_.IsDead()));
+
+            return socketStruct_.IsDead();
         }
 
         /// <summary>
@@ -115,11 +127,23 @@ namespace Starcounter {
 
             PushServerMessage(TempDisconnectBuffer, 0, 1, Response.ConnectionFlags.DisconnectImmediately);
 
-            Destroy();
+            socketStruct_.Kill();
         }
 
         /// <summary>
-        /// Send data over raw socket.
+        /// Destroys the socket.
+        /// </summary>
+        internal void Destroy(Boolean isStarcounterThread) {
+
+            if (dataStream_ != null) {
+                dataStream_.Destroy(isStarcounterThread);
+            }
+
+            socketStruct_.Kill();
+        }
+
+        /// <summary>
+        /// Send data over Tcp socket.
         /// </summary>
         /// <param name="data">Data to push.</param>
         public void Send(Byte[] data) {
@@ -127,7 +151,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Send data over raw socket.
+        /// Send data over Tcp socket.
         /// </summary>
         /// <param name="data">Data to send.</param>
         /// <param name="offset">Offset in data.</param>
@@ -153,7 +177,7 @@ namespace Starcounter {
             UInt32 chunkIndex;
             Byte* chunkMem;
 
-            NetworkDataStream existingDataStream = socketContainer_.DataStream;
+            NetworkDataStream existingDataStream = dataStream_;
 
             // Checking if we still have the data stream with original chunk available.
             if (existingDataStream == null || existingDataStream.IsDestroyed()) {
@@ -164,7 +188,7 @@ namespace Starcounter {
                 }
 
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, socketContainer_.GatewayWorkerId);
+                dataStream.Init(chunkMem, chunkIndex, socketStruct_.GatewayWorkerId);
 
             } else {
 
@@ -181,90 +205,14 @@ namespace Starcounter {
 
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) MixedCodeConstants.NetworkProtocolType.PROTOCOL_RAW_PORT;
 
-            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = socketContainer_.SocketIndexNum;
-            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketContainer_.SocketUniqueId;
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketContainer_.GatewayWorkerId;
+            (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = socketStruct_.SocketIndexNum;
+            (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketStruct_.SocketUniqueId;
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketStruct_.GatewayWorkerId;
 
             (*(UInt16*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             dataStream.SendResponse(data, offset, dataLen, connFlags);
-        }
-
-        /// <summary>
-        /// Running the given action on raw sockets that meet given criteria.
-        /// </summary>
-        public static void ForEach(UInt64 cargoId, Action<TcpSocket> action, UInt16 port) {
-
-            // Checking if port is not specified.
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
-                if (StarcounterEnvironment.IsAdministratorApp) {
-                    port = StarcounterEnvironment.Default.SystemHttpPort;
-                } else {
-                    port = StarcounterEnvironment.Default.UserHttpPort;
-                }
-            }
-
-            // For each scheduler.
-            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
-
-                Byte schedId = i;
-
-                // Running asynchronous task.
-                ScSessionClass.DbSession.RunAsync(() => {
-
-                    // Saving current socket since we are going to set other.
-                    TcpSocket origCurrentSocket = TcpSocket.Current;
-
-                    try {
-                        SchedulerResources.SchedulerSockets ss = SchedulerResources.AllHostSockets.GetSchedulerSockets(schedId);
-
-                        // Going through each gateway worker.
-                        for (Byte gwWorkerId = 0; gwWorkerId < StarcounterEnvironment.Gateway.NumberOfWorkers; gwWorkerId++) {
-
-                            SchedulerResources.SocketsPerSchedulerPerGatewayWorker spspgw = ss.GetSocketsPerGatewayWorker(gwWorkerId);
-
-                            // Going through each active socket.
-                            foreach (UInt32 wsIndex in spspgw.ActiveSocketIndexes) {
-
-                                // Getting socket container.
-                                SchedulerResources.SocketContainer sc = spspgw.GetSocket(wsIndex);
-
-                                // Checking if its a raw socket.
-                                if ((sc != null) && (port == sc.Port) && (!sc.IsDead())) {
-
-                                    TcpSocket rs = sc.Rs;
-
-                                    // Checking if socket is alive.
-                                    if (null != rs) {
-
-                                        // Comparing given cargo ID if any.
-                                        if ((cargoId == UInt64.MaxValue) || (cargoId == sc.CargoId)) {
-
-                                            // Setting current socket.
-                                            TcpSocket.Current = rs;
-
-                                            // Running user delegate with socket as parameter.
-                                            action(rs);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    } finally {
-                        // Restoring original current socket.
-                        TcpSocket.Current = origCurrentSocket;
-                    }
-
-                }, schedId);
-            }
-        }
-
-        /// <summary>
-        /// Disconnecting Tcp Sockets that meet given criteria.
-        /// </summary>
-        public static void DisconnectEach(UInt64 cargoId = UInt64.MaxValue, UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
-            ForEach(cargoId, (TcpSocket s) => { s.Disconnect(); }, port);
         }
     }
 }

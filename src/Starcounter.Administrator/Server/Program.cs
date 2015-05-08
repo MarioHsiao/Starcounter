@@ -229,7 +229,7 @@ namespace Starcounter.Administrator.Server {
                 ws.Send(bs);
             });
 
-            Handle.WebSocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect("echotestws", (WebSocket ws) => {
                 Interlocked.Increment(ref WsDisconnectsCounter);
 
                 // Do nothing!

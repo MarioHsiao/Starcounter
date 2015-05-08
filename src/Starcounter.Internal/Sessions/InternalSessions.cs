@@ -89,73 +89,112 @@ namespace Starcounter.Internal
         }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SessionIdLowerUpper {
+        public UInt64 IdLower;
+        public UInt64 IdUpper;
+    }
+
     /// <summary>
     /// Struct ScSessionStruct
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct ScSessionStruct
     {
         // Unique random salt.
-        public UInt64 random_salt_;
+        public UInt64 randomSalt_;
 
         // Session linear index.
-        public UInt32 linear_index_;
+        public UInt32 linearIndex_;
 
         // Scheduler id.
-        public Byte scheduler_id_;
+        public Byte schedulerId_;
 
         // Gateway worker id.
-        public Byte gw_worker_id_;
+        public Byte gwWorkerId_;
 
+        /// <summary>
+        /// Creates session struct from lower and upper parts.
+        /// </summary>
+        public static ScSessionStruct FromLowerUpper(
+            UInt64 idLower, UInt64 idUpper) {
+
+            unsafe {
+
+                SessionIdLowerUpper lowerUpper = new SessionIdLowerUpper() {
+                    IdLower = idLower,
+                    IdUpper = idUpper
+                };
+
+                ScSessionStruct s = *(ScSessionStruct*)(&lowerUpper);
+
+                return s;
+            }
+        }
+
+        /// <summary>
+        /// Creates socket struct from lower and upper parts.
+        /// </summary>
+        public static void ToLowerUpper(
+            ScSessionStruct s,
+            out UInt64 idLower,
+            out UInt64 idUpper) {
+
+            unsafe {
+
+                SessionIdLowerUpper id = *(SessionIdLowerUpper*)(&s);
+
+                idLower = id.IdLower;
+                idUpper = id.IdUpper;
+            }
+        }
+        
         /// <summary>
         /// Constructor.
         /// </summary>
         public ScSessionStruct(Boolean initDefault) {
-            random_salt_ = 0;
-            linear_index_ = UInt32.MaxValue;
-            scheduler_id_ = StarcounterEnvironment.CurrentSchedulerId;
-            gw_worker_id_ = Byte.MaxValue;
+            randomSalt_ = 0;
+            linearIndex_ = UInt32.MaxValue;
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
+            gwWorkerId_ = Byte.MaxValue;
         }
 
         /// <summary>
         /// Initializes session struct.
         /// </summary>
-        /// <param name="scheduler_id"></param>
-        /// <param name="linear_index"></param>
-        /// <param name="random_salt"></param>
-        /// <param name="gw_worker_id"></param>
         public void Init(
-            Byte scheduler_id,
-            UInt32 linear_index,
-            UInt64 random_salt,
-            Byte gw_worker_id)
+            Byte schedulerId,
+            UInt32 linearIndex,
+            UInt64 randomSalt,
+            Byte gwWorkerId)
         {
-            scheduler_id_ = scheduler_id;
-            linear_index_ = linear_index;
-            random_salt_ = random_salt;
-            gw_worker_id_ = gw_worker_id;
+            schedulerId_ = schedulerId;
+            linearIndex_ = linearIndex;
+            randomSalt_ = randomSalt;
+            gwWorkerId_ = gwWorkerId;
         }
 
         // Checks if this session is active.
         public Boolean IsAlive()
         {
-            return linear_index_ != Request.INVALID_APPS_SESSION_INDEX;
+            return linearIndex_ != Request.INVALID_APPS_SESSION_INDEX;
         }
 
         // Destroys existing session.
         public void Destroy()
         {
-            linear_index_ = Request.INVALID_APPS_SESSION_INDEX;
-            random_salt_ = Request.INVALID_APPS_SESSION_SALT;
+            linearIndex_ = Request.INVALID_APPS_SESSION_INDEX;
+            randomSalt_ = Request.INVALID_APPS_SESSION_SALT;
         }
 
         // Print current session.
         public void PrintSession()
         {
             Console.WriteLine(String.Format("Session: scheduler={0}, index={1}, salt={2}, gwworkerid={3}.",
-                scheduler_id_,
-                linear_index_,
-                random_salt_,
-                gw_worker_id_));
+                schedulerId_,
+                linearIndex_,
+                randomSalt_,
+                gwWorkerId_));
         }
 
         /// <summary>
@@ -166,23 +205,23 @@ namespace Starcounter.Internal
         {
             Byte[] strBytes = Encoding.ASCII.GetBytes(str);
 
-            random_salt_ = (UInt64) hex_string_to_uint64(strBytes, 0, 16);
-            linear_index_ = (UInt32) hex_string_to_uint64(strBytes, 16, 6);
-            scheduler_id_ = (Byte) hex_string_to_uint64(strBytes, 22, 2);
+            randomSalt_ = (UInt64) hex_string_to_uint64(strBytes, 0, 16);
+            linearIndex_ = (UInt32) hex_string_to_uint64(strBytes, 16, 6);
+            schedulerId_ = (Byte) hex_string_to_uint64(strBytes, 22, 2);
         }
 
         // Serializing session structure to bytes.
         public void SerializeToBytes(Byte[] session_bytes)
         {
-            uint64_to_hex_string(random_salt_, session_bytes, 0, 16);
-            uint64_to_hex_string(linear_index_, session_bytes, 16, 6);
-            uint64_to_hex_string(scheduler_id_, session_bytes, 22, 2);
+            uint64_to_hex_string(randomSalt_, session_bytes, 0, 16);
+            uint64_to_hex_string(linearIndex_, session_bytes, 16, 6);
+            uint64_to_hex_string(schedulerId_, session_bytes, 22, 2);
         }
 
         static Byte[] hex_table = { (Byte)'0', (Byte)'1', (Byte)'2', (Byte)'3', (Byte)'4', (Byte)'5', (Byte)'6', (Byte)'7', (Byte)'8', (Byte)'9', (Byte)'A', (Byte)'B', (Byte)'C', (Byte)'D', (Byte)'E', (Byte)'F' };
 
         // Converts uint64 number to hexadecimal string.
-        Int32 uint64_to_hex_string(UInt64 number, Byte[] str_out, Int32 offset, Int32 num_4bits)
+        public static Int32 uint64_to_hex_string(UInt64 number, Byte[] str_out, Int32 offset, Int32 num_4bits)
         {
             Int32 n = 0;
             while (number > 0)
@@ -207,7 +246,7 @@ namespace Starcounter.Internal
         const UInt64 INVALID_CONVERTED_NUMBER = 0xFFFFFFFFFFFFFFFF;
 
         // Converts hexadecimal string to uint64.
-        UInt64 hex_string_to_uint64(Byte[] str_in, Int32 offset, Int32 num_4bits)
+        public static UInt64 hex_string_to_uint64(Byte[] str_in, Int32 offset, Int32 num_4bits)
         {
             UInt64 result = 0;
             Int32 i = offset, s = 0;
@@ -352,7 +391,7 @@ namespace Starcounter.Internal
         public void UpdateLastActive()
         {
             // Setting last active time.
-            LastActiveTimeTick = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(session_struct_.scheduler_id_).CurrentTimeTick;
+            LastActiveTimeTick = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(session_struct_.schedulerId_).CurrentTimeTick;
             LastActive = DateTime.UtcNow;
         }
 
@@ -535,10 +574,10 @@ namespace Starcounter.Internal
             free_session_indexes_.RemoveFirst();
 
             // Obtaining linear index.
-            ss.linear_index_ = linear_index_node.Value;
+            ss.linearIndex_ = linear_index_node.Value;
 
             // Generating random salt.
-            ss.random_salt_ = GenerateRandomSalt();
+            ss.randomSalt_ = GenerateRandomSalt();
 
             // Generating new session internally.
             return CreateNewSessionInternal(
@@ -554,25 +593,25 @@ namespace Starcounter.Internal
             LinkedListNode<UInt32> linear_index_node)
         {
             // Creating new session object if needed.
-            if (apps_sessions_[ss.linear_index_] == null)
-                apps_sessions_[ss.linear_index_] = new ScSessionClass();
+            if (apps_sessions_[ss.linearIndex_] == null)
+                apps_sessions_[ss.linearIndex_] = new ScSessionClass();
 
             // Getting session class reference.
-            ScSessionClass s = apps_sessions_[ss.linear_index_];
+            ScSessionClass s = apps_sessions_[ss.linearIndex_];
 
             // Initializing session structure underneath.
             s.session_struct_.Init(
-                ss.scheduler_id_,
-                ss.linear_index_,
-                ss.random_salt_,
-                ss.gw_worker_id_);
+                ss.schedulerId_,
+                ss.linearIndex_,
+                ss.randomSalt_,
+                ss.gwWorkerId_);
 
             // Serializing to bytes.
             s.SerializeToBytes();
 
             // Saving reference to internal session.
             if (apps_session_int != null)
-                apps_session_int.InternalSession = apps_sessions_[ss.linear_index_];
+                apps_session_int.InternalSession = apps_sessions_[ss.linearIndex_];
 
             // Setting last active time.
             s.UpdateLastActive();
@@ -595,7 +634,7 @@ namespace Starcounter.Internal
         // Destroys existing Apps session.
         public UInt32 DestroySession(ScSessionStruct s)
         {
-            return DestroySession(s.linear_index_, s.random_salt_);
+            return DestroySession(s.linearIndex_, s.randomSalt_);
         }
 
         // Destroys existing Apps session.
@@ -608,7 +647,7 @@ namespace Starcounter.Internal
                 return 0;
 
             // Checking that salt is correct.
-            if (s.session_struct_.random_salt_ == random_salt)
+            if (s.session_struct_.randomSalt_ == random_salt)
             {
                 // Checking that session is not being used at the moment.
                 if (s.IsBeingUsed())
@@ -642,7 +681,7 @@ namespace Starcounter.Internal
                 return null;
 
             // Checking for the correct session salt.
-            if (random_salt == s.session_struct_.random_salt_)
+            if (random_salt == s.session_struct_.randomSalt_)
             {
                 // Setting last active time.
                 s.UpdateLastActive();
@@ -668,7 +707,7 @@ namespace Starcounter.Internal
                 return null;
 
             // Checking for the correct session salt.
-            if (random_salt == s.session_struct_.random_salt_)
+            if (random_salt == s.session_struct_.randomSalt_)
             {
                 // Returning the session class.
                 return s;
@@ -793,7 +832,7 @@ namespace Starcounter.Internal
             ref ScSessionStruct ss,
             IAppsSession apps_session)
         {
-            return scheduler_sessions_[ss.scheduler_id_].CreateNewSession(ref ss, apps_session);
+            return scheduler_sessions_[ss.schedulerId_].CreateNewSession(ref ss, apps_session);
         }
 
         /// <summary>
@@ -903,9 +942,9 @@ namespace Starcounter.Internal
         /// <returns></returns>
         internal IAppsSession GetAppsSessionInterface(ref ScSessionStruct ss)
         {
-            return scheduler_sessions_[ss.scheduler_id_].GetAppsSessionInterface(
-                ss.linear_index_,
-                ss.random_salt_);
+            return scheduler_sessions_[ss.schedulerId_].GetAppsSessionInterface(
+                ss.linearIndex_,
+                ss.randomSalt_);
         }
     }
 

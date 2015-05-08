@@ -276,28 +276,6 @@ namespace Starcounter {
 
             HandlerOptions ho = new HandlerOptions() {
                 SubstituteHandler = substituteHandler,
-                HandlerId = req.ManagedHandlerId,
-                ParametersInfo = req.GetParametersInfo()
-            };
-
-            return DoSelfNodeCall(
-                req.PortNumber,
-                req.Method,
-                req.Uri,
-                null,
-                null,
-                null,
-                ho,
-                req);
-        }
-
-        /// <summary>
-        /// Performs synchronous HTTP request with given original external request.
-        /// </summary>
-        public static Response CallUsingExternalRequestEfficiently(Request req, Func<Response> substituteHandler) {
-
-            HandlerOptions ho = new HandlerOptions() {
-                SubstituteHandler = substituteHandler,
                 CallingAppName = StarcounterEnvironment.AppName
             };
 

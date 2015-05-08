@@ -61,7 +61,7 @@ typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
 typedef int8_t chunk_store_type;
-typedef uint32_t ws_channel_id_type;
+typedef uint32_t ws_group_id_type;
 
 // Statistics macros.
 //#define GW_DETAILED_STATISTICS
@@ -974,8 +974,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Number of bytes left for accumulation.
     uint32_t accum_data_bytes_left_;
 
-    // WebSockets channel id.
-    ws_channel_id_type ws_channel_id_;
+    // WebSockets group id.
+    ws_group_id_type ws_group_id_;
 
     //////////////////////////////
     //////// 16 bits data ////////
@@ -996,7 +996,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
-
 
     // Disconnecting given socket handle.
     void DisconnectSocket() {
@@ -1080,7 +1079,7 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SOCKET_INDEX;
         aggr_socket_info_index_ = INVALID_SOCKET_INDEX;
-        ws_channel_id_ = MixedCodeConstants::INVALID_WS_CHANNEL_ID;
+        ws_group_id_ = MixedCodeConstants::INVALID_WS_CHANNEL_ID;
     }
 
     bool IsReset() {
@@ -1258,7 +1257,7 @@ class HandlersList;
 class SocketDataChunk;
 class PortHandlers;
 class RegisteredUris;
-class PortWsChannels;
+class PortWsGroups;
 class RegisteredSubports;
 class ServerPort
 {
@@ -1281,7 +1280,7 @@ class ServerPort
     std::list<UriMatcherCacheEntry*> uri_matcher_cache_;
 
     // All registered WebSockets belonging to this port.
-    PortWsChannels* registered_ws_channels_;
+    PortWsGroups* registered_ws_groups_;
 
     // This port index in global array.
     port_index_type port_index_;
@@ -1375,10 +1374,10 @@ public:
         return registered_uris_;
     }
 
-    // Getting registered port WebSocket channels.
-    PortWsChannels* get_registered_ws_channels()
+    // Getting registered port WebSocket groups.
+    PortWsGroups* get_registered_ws_groups()
     {
-        return registered_ws_channels_;
+        return registered_ws_groups_;
     }
 
     // Getting registered port handlers.

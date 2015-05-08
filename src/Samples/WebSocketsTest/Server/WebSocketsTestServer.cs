@@ -21,11 +21,9 @@ namespace WebSocketsTestServer {
 
     class WebSocketsTestServer {
 
-        const String WsTestChannelName = "WsTestChannel";
+        const String WsTestGroupName = "WsTestGroup";
 
-        const Int32 PushSleepInterval = 10;
-
-        static UInt64 GlobalUniqueWsId = 0;
+        const Int32 PushSleepInterval = 100;
 
         static Int32 GlobalErrorCode = 0;
 
@@ -36,7 +34,7 @@ namespace WebSocketsTestServer {
         /// </summary>
         static void ProcessMessage(Byte[] data, WebSocket ws) {
 
-            WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.CargoId).First;
+            WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
 
             // Checking if there is no such WebSocket.
             if (wss == null) {
@@ -94,7 +92,7 @@ namespace WebSocketsTestServer {
                                     s.Destroy();
                                 }
 
-                                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.CargoId).First;
+                                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
 
                                 // Checking if there is no such WebSocket.
                                 if (wss == null) {
@@ -132,33 +130,32 @@ namespace WebSocketsTestServer {
 
             while (true) {
 
+                Byte schedId = 0;
+
                 for (Int32 k = 0; k < numForEachesPerRound; k++) {
 
                     try {
 
-                        WebSocket.ForEach((WebSocket ws) => {
+                        Byte s = schedId;
 
-                            try {
+                        // Getting sessions for current scheduler.
+                        new DbSession().RunAsync(() => {
 
-                                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.CargoId).First;
+                            foreach (WebSocketState wss in Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w")) {
 
-                                // Checking if there is no such WebSocket.
-                                if (wss == null) {
-                                    GlobalErrorCode = 7;
-                                    return;
-                                }
+                                WebSocket ws = new WebSocket(wss.Id);
 
                                 // Pushing messages on this WebSocket.
                                 for (Int32 i = 0; i < 5; i++) {
                                     PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
                                 }
-
-                            } catch (Exception exc) {
-
-                                GlobalErrorCode = 8;
-                                Console.WriteLine("Error occurred: " + exc.ToString());
                             }
-                        });
+                        }, s);
+
+                        schedId++;
+                        if (schedId >= StarcounterEnvironment.SchedulerCount) {
+                            schedId = 0;
+                        }
 
                     } catch (Exception exc) {
 
@@ -212,19 +209,14 @@ namespace WebSocketsTestServer {
 
                         GlobalErrorCode = 0;
 
-                        UInt64 cargoId;
-
-                        // Safely incrementing the global lock.
-                        lock (WsTestChannelName) {
-                            cargoId = GlobalUniqueWsId++;
-                        }
-
                         WebSocketState wss = null;
+
+                        UInt64 wsId = req.GetWebSocketId();
 
                         Db.Transact(() => {
 
                             wss = new WebSocketState() {
-                                Id = cargoId,
+                                Id = wsId,
                                 NumMessagesToSend = numMessagesToSend,
                                 MessageSize = messageSize,
                                 NumMessagesSent = 0,
@@ -234,17 +226,17 @@ namespace WebSocketsTestServer {
                         });
 
                         Dictionary<String, String> headers = new Dictionary<String, String>() {
-                            { "CargoId", cargoId.ToString() }
+                            { "WebSocketId", wsId.ToString() }
                         };
 
                         // Creating and attaching a new session.
                         Session s = new Session();
 
                         // Sending Web Socket upgrade.
-                        WebSocket ws = req.SendUpgrade(WsTestChannelName, cargoId, null, headers, s);
+                        WebSocket ws = req.SendUpgrade(WsTestGroupName, null, headers, s);
 
-                        // First pushing cargo id.
-                        ws.Send(cargoId.ToString());
+                        // First pushing WebSocket id.
+                        ws.Send(wsId.ToString());
 
                         // Pushing some messages on this WebSocket.
                         for (Int32 i = 0; i < 10; i++) {
@@ -270,9 +262,9 @@ namespace WebSocketsTestServer {
                 }
             });
 
-            Handle.WebSocketDisconnect(WsTestChannelName, (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect(WsTestGroupName, (WebSocket ws) => {
 
-                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", cargoId).First;
+                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
 
                 // Checking if there is no such WebSocket.
                 if (wss == null) {
@@ -281,26 +273,26 @@ namespace WebSocketsTestServer {
                 }
 
                 // Safely incrementing the global lock.
-                lock (WsTestChannelName) {
+                lock (WsTestGroupName) {
                     GlobalNumberOfDisconnects++;
                 }                
             });
 
-            Handle.WebSocket(WsTestChannelName, (String message, WebSocket ws) => {
+            Handle.WebSocket(WsTestGroupName, (String message, WebSocket ws) => {
 
                 Byte[] data = Encoding.UTF8.GetBytes(message);
 
                 ProcessMessage(data, ws);
             });
 
-            Handle.WebSocket(WsTestChannelName, (Byte[] data, WebSocket ws) => {
+            Handle.WebSocket(WsTestGroupName, (Byte[] data, WebSocket ws) => {
 
                 ProcessMessage(data, ws);
             });
 
-            Handle.GET("/WsStats/{?}", (Int64 cargoId) => {
+            Handle.GET("/WsStats/{?}", (Int64 wsId) => {
 
-                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", cargoId).First;
+                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", wsId).First;
 
                 // Checking if there is no such WebSocket.
                 if (wss == null) {

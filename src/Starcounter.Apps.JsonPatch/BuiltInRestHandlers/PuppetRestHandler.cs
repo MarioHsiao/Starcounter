@@ -21,7 +21,7 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Name of the WebSocket Json-Patch channel.
         /// </summary>
-        static String JsonPatchWebSocketChannelName = "jsonpatchws";
+        static String JsonPatchWebSocketGroupName = "jsonpatchws";
 
         /// <summary>
         /// Handles incoming WebSocket byte data.
@@ -127,7 +127,7 @@ namespace Starcounter.Internal {
                 if (req.WebSocketUpgrade) {
 
                     // Sending an upgrade (note that we attach the existing session).
-                    req.SendUpgrade(JsonPatchWebSocketChannelName, 0, null, null, session);
+                    req.SendUpgrade(JsonPatchWebSocketGroupName, null, null, session);
 
                     return HandlerStatus.Handled;
                 }
@@ -136,7 +136,7 @@ namespace Starcounter.Internal {
             });
 
             // Handling WebSocket JsonPatch string message.
-            Handle.WebSocket(port, JsonPatchWebSocketChannelName, (String s, WebSocket ws) => {
+            Handle.WebSocket(port, JsonPatchWebSocketGroupName, (String s, WebSocket ws) => {
                 
                 Byte[] dataBytes = Encoding.UTF8.GetBytes(s);
 
@@ -145,10 +145,10 @@ namespace Starcounter.Internal {
             });
 
             // Handling WebSocket JsonPatch byte array.
-            Handle.WebSocket(port, JsonPatchWebSocketChannelName, HandleWebSocketJson);
+            Handle.WebSocket(port, JsonPatchWebSocketGroupName, HandleWebSocketJson);
 
             // Handling JsonPatch WebSocket disconnect here.
-            Handle.WebSocketDisconnect(port, JsonPatchWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect(port, JsonPatchWebSocketGroupName, (WebSocket ws) => {
 
                 // Do nothing!
             });

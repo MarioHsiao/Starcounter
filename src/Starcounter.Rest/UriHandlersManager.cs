@@ -143,10 +143,18 @@ namespace Starcounter.Rest
             }
         }
 
-        /// <summary>
+        /// <summary>  
         /// Type of handler.
         /// </summary>
         HandlerOptions.TypesOfHandler typeOfHandler_;
+
+        /// <summary>
+        /// Try if middleware filters should be skipped.
+        /// </summary>
+        internal Boolean SkipMiddlewareFilters {
+            get;
+            set;
+        }
 
         /// <summary>
         /// Constructor.
@@ -168,7 +176,6 @@ namespace Starcounter.Rest
                     savedProxyDelegate_ = proxyDelegate_;
                     proxyDelegate_ = null;
                 }
-
             }
         }
 
@@ -186,7 +193,6 @@ namespace Starcounter.Rest
             Boolean useProxyDelegate = (proxyDelegate_ != null) && (!handlerOptions.ProxyDelegateTrigger);
 
             Response resp = null;
-
 
             if (useProxyDelegate) {
 
@@ -229,6 +235,11 @@ namespace Starcounter.Rest
                             // Checking if we wanted to call the same application, then there is just substitution.
                             if (handlerOptions.CallingAppName == appName_) {
                                 return Response.ResponsesMergerRoutine_(req, subsResp, null);
+                            }
+
+                            // Setting the active appname on json.
+                            if (subsResp.Resource != null) {
+                                ((Json)subsResp.Resource)._activeAppName = appName_;
                             }
 
                         } else {
@@ -409,6 +420,8 @@ namespace Starcounter.Rest
                 uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
 
             Debug.Assert(userDelegate_ == null);
+
+            SkipMiddlewareFilters = ho.SkipMiddlewareFilters;
 
             if (ho.ProxyDelegateTrigger) {
 

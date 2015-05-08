@@ -218,7 +218,7 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
     if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) &&
         get_ws_upgrade_approved_flag())
     {
-        SetWebSocketChannelId(*(uint32_t*)accept_or_params_or_temp_data_);
+        SetWebSocketGroupId(*(ws_group_id_type*)accept_or_params_or_temp_data_);
     }
 }
 

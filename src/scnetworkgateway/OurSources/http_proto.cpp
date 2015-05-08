@@ -709,8 +709,9 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             goto ALL_DATA_ACCUMULATED;
 
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->is_web_socket())
+        if (sd->is_web_socket()) {
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
+        }
 
         // Resetting the parsing structure.
         ResetParser(gw, sd);
@@ -909,8 +910,9 @@ ALL_DATA_ACCUMULATED:
     else
     {
         // Checking if we are already passed the WebSockets handshake.
-        if (sd->is_web_socket())
+        if (sd->is_web_socket()) {
             return sd->get_ws_proto()->ProcessWsDataFromDb(gw, sd, handler_id, is_handled);
+        }
 
         // Handled successfully.
         *is_handled = true;

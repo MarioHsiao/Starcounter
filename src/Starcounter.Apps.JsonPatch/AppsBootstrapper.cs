@@ -74,7 +74,7 @@ namespace Starcounter.Internal {
                     AppServer_.RunDelegateAndProcessResponse,
                     UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
-                AllWsChannels.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
+                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
             }
 
             // Injecting required hosted Node functionality.
@@ -300,8 +300,13 @@ namespace Starcounter.Internal {
                 // Setting calling level to -1 because internal call will be made immediately.
                 Handle.CallLevel = -1;
 
-                // Checking if there is a filtering delegate.
-                resp = Handle.RunMiddlewareFilters(req);
+                // Getting handler information.
+                UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
+                UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
+                if (!uhi.SkipMiddlewareFilters) {
+                    // Checking if there is a filtering delegate.
+                    resp = Handle.RunMiddlewareFilters(req);
+                }
 
                 // Checking if filter level did allow this request.
                 if (null == resp) {
