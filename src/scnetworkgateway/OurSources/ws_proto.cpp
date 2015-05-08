@@ -102,6 +102,9 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 {
     uint8_t* payload = (uint8_t*) sd + frame_info_.payload_offset_;
 
+    // Setting group id.
+    sd->FetchWebSocketGroupIdFromSocket();
+
     switch (frame_info_.opcode_)
     {
         case WS_OPCODE_CONTINUATION: // TODO: Fix full support!
@@ -165,13 +168,13 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 }
 
 // Obtains user handler info from channel name of the WebSocket.
-inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(GatewayWorker *gw, SocketDataChunkRef sd)
+inline BMX_HANDLER_TYPE SearchUserHandlerInfoByGroupId(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
     ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
-    PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
-    uint32_t channel_id = sd->GetWebSocketChannelId();
-    return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
+    PortWsGroups* port_ws_groups = server_port->get_registered_ws_groups();
+    ws_group_id_type group_id = sd->GetWebSocketGroupId();
+    return port_ws_groups->FindRegisteredHandlerByChannelId(group_id);
 }
 
 // Send disconnect to database.
@@ -183,7 +186,7 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsDisconnects);
 
     // Obtaining handler info from channel id.
-    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
+    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByGroupId(gw, sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
         return 0;
 
@@ -197,6 +200,9 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
 
     // Setting the opcode indicating socket disconnect.
     sd_push_to_db->get_ws_proto()->get_frame_info()->opcode_ = (MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_CLOSE);
+
+    // Setting group id.
+    sd_push_to_db->FetchWebSocketGroupIdFromSocket();
 
     // Push chunk to corresponding channel/scheduler.
     err_code = gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
@@ -224,8 +230,8 @@ uint32_t WsProto::ProcessWsDataToDb(
 
     uint32_t err_code = 0;
 
-    // Obtaining handler info from channel id.
-    user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
+    // Obtaining handler info from group id.
+    user_handler_id = SearchUserHandlerInfoByGroupId(gw, sd);
     if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
         return SCERRGWWEBSOCKET;
 
@@ -346,8 +352,9 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     *is_handled = true;
 
     // Checking if we want to disconnect the socket.
-    if (sd->get_disconnect_socket_flag())
+    if (sd->get_disconnect_socket_flag()) {
         return SCERRGWDISCONNECTFLAG;
+    }
 
     // Checking if this socket data is for send only.
     if (sd->get_socket_just_send_flag())

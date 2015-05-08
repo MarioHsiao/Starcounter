@@ -29,7 +29,7 @@ namespace Administrator.Server.Managers {
                 // Check if the request was a WebSocket request.
                 if (request.WebSocketUpgrade) {
 
-                    WebSocket ws = request.SendUpgrade(ServerManager.SocketChannelName, 4, null, null, session);
+                    WebSocket ws = request.SendUpgrade(ServerManager.SocketChannelName, null, null, session);
                     return HandlerStatus.Handled;
                 }
 
@@ -72,7 +72,7 @@ namespace Administrator.Server.Managers {
                 viewModel.ChangeLog.ApplyChanges(data);
             });
 
-            Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (cargoId, session) => {
+            Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (session) => {
 
                 Console.WriteLine("WebSocketDisconnect");
 

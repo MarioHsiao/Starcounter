@@ -25,7 +25,7 @@ namespace Starcounter.Advanced {
         /// <summary>
         /// Registers a disconnect handler for a WebSocket.
         /// </summary>
-        void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler);
+        void RegisterWsDisconnectHandler(ushort port, string channel, Action<WebSocket> handler);
 
         /// <summary>
         /// Registers a handler with no parameters

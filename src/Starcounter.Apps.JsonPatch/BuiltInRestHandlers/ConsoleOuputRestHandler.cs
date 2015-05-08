@@ -2,6 +2,7 @@
 using Starcounter.Internal;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -16,9 +17,9 @@ namespace Starcounter.Internal {
     public static class ConsoleOuputRestHandler {
 
         /// <summary>
-        /// Console WebSocket channel name.
+        /// Console WebSocket group name.
         /// </summary>
-        const String ConsoleWebSocketChannelName = "console";
+        const String ConsoleWebSocketGroupName = "console";
 
         private static StreamWriter consoleWriter;
 
@@ -27,6 +28,12 @@ namespace Starcounter.Internal {
         /// </summary>
         static ObservableCollection<ConsoleEventArgs> ConsoleWriteEvents = new ObservableCollection<ConsoleEventArgs>();
 
+        /// <summary>
+        /// All active console web sockets.
+        /// </summary>
+        //static LinkedList<UInt64> ConsoleWebSockets = new LinkedList<UInt64>();
+
+        static Dictionary<string, IList<ulong>> ConsoleWebSockets = new Dictionary<string, IList<ulong>>();
 
         /// <summary>
         /// Registers the built in REST handlers.
@@ -40,7 +47,25 @@ namespace Starcounter.Internal {
 
                 // Check if the request was a WebSocket request.
                 if (req.WebSocketUpgrade) {
-                    WebSocket ws = req.SendUpgrade(ConsoleWebSocketChannelName);
+
+                    WebSocket ws = req.SendUpgrade(ConsoleWebSocketGroupName);
+
+                    lock (ConsoleWebSocketGroupName) {
+
+                        IList<ulong> connections;
+
+                        if (ConsoleWebSockets.ContainsKey("")) {
+                            connections = ConsoleWebSockets[""];
+                        }
+                        else {
+                            connections = new List<ulong>();
+                            ConsoleWebSockets.Add("", connections);
+                        }
+
+                        connections.Add(ws.ToUInt64());
+
+                        //ConsoleWebSockets.AddFirst(ws.ToUInt64());
+                    }
 
                     ConsoleEvents consoleEvents = GetConsoleEvents(null);
 
@@ -61,9 +86,26 @@ namespace Starcounter.Internal {
                 // Check if the request was a WebSocket request.
                 if (req.WebSocketUpgrade) {
 
-                    ulong cargoId = (ulong)appName.GetHashCode();
+                    appName = appName.ToLower();
 
-                    WebSocket ws = req.SendUpgrade("AppChannel", cargoId);
+                    WebSocket ws = req.SendUpgrade(ConsoleWebSocketGroupName);
+
+                    lock (ConsoleWebSocketGroupName) {
+
+                        IList<ulong> connections;
+
+                        if (ConsoleWebSockets.ContainsKey(appName)) {
+                            connections = ConsoleWebSockets[appName];
+                        }
+                        else {
+                            connections = new List<ulong>();
+                            ConsoleWebSockets.Add(appName, connections);
+                        }
+
+                        connections.Add(ws.ToUInt64());
+
+                        //ConsoleWebSockets.AddFirst(ws.ToUInt64());
+                    }
 
                     ConsoleEvents consoleEvents = GetConsoleEvents(appName);
 
@@ -79,17 +121,35 @@ namespace Starcounter.Internal {
 
 
             // Socket incoming message event
-            Handle.WebSocket(defaultSystemHttpPort, "AppChannel", (String s, WebSocket ws) => {
+            Handle.WebSocket(defaultSystemHttpPort, ConsoleWebSocketGroupName, (String s, WebSocket ws) => {
                 // We don't use incoming client messages.
             });
 
             // Socket channel disconnected event
-            Handle.WebSocketDisconnect(defaultSystemHttpPort, ConsoleWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect(defaultSystemHttpPort, ConsoleWebSocketGroupName, (WebSocket ws) => {
 
+                lock (ConsoleWebSocketGroupName) {
+
+                    UInt64 wsId = ws.ToUInt64();
+
+                    foreach (KeyValuePair<string, IList<ulong>> entry in ConsoleWebSockets) {
+
+                        for (int i = 0; i < entry.Value.Count; i++)
+
+                            if (wsId == entry.Value[i]) {
+                                // Found it.
+                                entry.Value.RemoveAt(i);
+                                return;
+                            }
+                    }
+
+                    //if (ConsoleWebSockets.Contains(wsId))
+                    //    ConsoleWebSockets.Remove(wsId);
+                }
             });
 
             // Socket incoming message event
-            Handle.WebSocket(defaultSystemHttpPort, ConsoleWebSocketChannelName, (String s, WebSocket ws) => {
+            Handle.WebSocket(defaultSystemHttpPort, ConsoleWebSocketGroupName, (String s, WebSocket ws) => {
                 // We don't use incoming client messages.
             });
 
@@ -124,11 +184,15 @@ namespace Starcounter.Internal {
         /// <param name="e"></param>
         static void consoleEvents_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
 
-
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add) {
 
                 // Collect and create console events
                 foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
+
+                    if (string.IsNullOrEmpty(consoleEventArg.ApplicationName)) {
+                        // If there is no app name then ignore it.
+                        continue;
+                    }
 
                     ConsoleEvents consoleEvents = new ConsoleEvents();
                     var consoleEvent = consoleEvents.Items.Add();
@@ -139,19 +203,26 @@ namespace Starcounter.Internal {
 
                     string s = consoleEvents.ToJson();
 
-                    if (!string.IsNullOrEmpty(consoleEventArg.ApplicationName)) {
-                        ulong cargoId = (ulong)consoleEventArg.ApplicationName.GetHashCode();
+                    // Getting sessions for current scheduler.
+                    new DbSession().RunAsync(() => {
 
-                        WebSocket.ForEach("AppChannel", (WebSocket ws) => {
+                        lock (ConsoleWebSocketGroupName) {
 
-                            if (ws.CargoId == cargoId) {
+                            if( !ConsoleWebSockets.ContainsKey(consoleEvent.applicationName.ToLower())) {
+                                return;
+                            }
+
+                            foreach (ulong wsId in ConsoleWebSockets[consoleEvent.applicationName.ToLower()]) {
+                                WebSocket ws = new WebSocket(wsId);
                                 ws.Send(s);
                             }
-                        });
-                    }
 
-                    WebSocket.ForEach(ConsoleWebSocketChannelName, (WebSocket ws) => {
-                        ws.Send(s);
+
+                            //foreach (UInt64 wsId in ConsoleWebSockets) {
+                            //    WebSocket ws = new WebSocket(wsId);
+                            //    ws.Send(s);
+                            //}
+                        }
                     });
                 }
 
@@ -205,9 +276,13 @@ namespace Starcounter.Internal {
 
             foreach (ConsoleEventArgs item in ConsoleWriteEvents) {
 
-                if (appName != null && appName != item.ApplicationName) {
+                if (appName != null && !appName.Equals(item.ApplicationName, StringComparison.InvariantCultureIgnoreCase) ) {
                     continue;
                 }
+
+                //if (appName != null && appName != item.ApplicationName) {
+                //    continue;
+                //}
 
                 var consoleEvent = list.Items.Add();
                 consoleEvent.databaseName = item.DatabaseName;

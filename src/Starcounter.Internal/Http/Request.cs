@@ -335,57 +335,78 @@ namespace Starcounter {
 
             // Checking if session is correct.
             GetAppsSessionInterface();
-            came_with_correct_session_ = (INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_));
+            came_with_correct_session_ = (INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linearIndex_));
+        }
+
+        /// <summary>
+        /// Getting WebSocket UInt64 id from request information.
+        /// </summary>
+        /// <returns>UInt64 representing WebSocket id.</returns>
+        public UInt64 GetWebSocketId() {
+
+            unsafe {
+                WebSocket ws = new WebSocket(
+                    *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream_.GatewayWorkerId);
+
+                return ws.ToUInt64();
+            }
         }
 
         /// <summary>
         /// Sends the WebSocket upgrade HTTP response and creates a WebSocket object.
         /// </summary>
-        /// <param name="channelName">WebSocket channel name for subsequent events on created WebSocket.</param>
+        /// <param name="groupName">WebSocket group name for subsequent events on created WebSocket.</param>
         /// <param name="cargoId">Integer identifier supplied from user that comes inside WebSocket object in subsequent events.</param>
         /// <param name="session">Session that should be attached to the created WebSocket.</param>
         /// <returns>Created WebSocket object that immediately can be used.</returns>
         public WebSocket SendUpgrade(
-            String channelName,
-            UInt64 cargoId = 0,
+            String groupName,
             List<String> cookies = null,
             Dictionary<String, String> headers = null,
             IAppsSession session = null)
         {
-            Byte[] wsHandshakeResp;
-
             unsafe {
+
                 System.Diagnostics.Debug.Assert(http_request_struct_->socket_data_ != null);
 
                 Byte* chunk_data = http_request_struct_->socket_data_ - MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
                 // Checking if we should copy the WebSocket handshake data.
-                wsHandshakeResp = new Byte[*(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
+                Byte[] wsHandshakeResp = new Byte[*(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
                 Marshal.Copy(new IntPtr(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
-            }
 
-            WsChannelInfo w = AllWsChannels.WsManager.FindChannel(PortNumber, channelName);
-            if (w == null)
-                throw new Exception("Specified WebSocket channel is not registered: " + channelName);
+                WsGroupInfo w = AllWsGroups.WsManager.FindGroup(PortNumber, groupName);
 
-            WebSocket ws = new WebSocket(null, null, null, false, WebSocket.WsHandlerType.Empty);
+                if (w == null) {
+                    throw new Exception("Specified WebSocket group is not registered: " + groupName);
+                }
 
-            Response resp = new Response();
-            resp.Cookies = cookies;
-            resp.HeadersDictionary = headers;
+                WebSocket ws = new WebSocket(
+                    *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream_.GatewayWorkerId);
 
-            ws.Session = session;
-            if (session != null) {
-                ws.Session.ActiveWebSocket = ws;
-            }
+                Response resp = new Response();
+                resp.Cookies = cookies;
+                resp.HeadersDictionary = headers;
 
-            resp.WsHandshakeResp = wsHandshakeResp;
+                ws.Session = session;
+                if (session != null) {
+                    ws.Session.ActiveWebSocket = ws;
+                }
 
-            InitWebSocket(ws, w.ChannelId, cargoId);
+                resp.WsHandshakeResp = wsHandshakeResp;
 
-            SendResponse(resp, null);
+                *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = w.GroupId;
+                *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |=
+                    (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
 
-            return ws;
+                SendResponse(resp, null);
+
+                return ws;
+            }            
         }
 
         /// <summary>
@@ -521,26 +542,6 @@ namespace Starcounter {
 
             return (((*(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) &
                 (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_HOST_LOOPING_CHUNKS) != 0);
-        }
-
-        /// <summary>
-        /// Initializes some WebSocket fields.
-        /// </summary>
-        /// <param name="ws"></param>
-        internal unsafe void InitWebSocket(WebSocket ws, UInt32 channelId, UInt64 cargoId) {
-
-            System.Diagnostics.Debug.Assert(http_request_struct_->socket_data_ != null);
-
-            *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = channelId;
-            *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |= (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
-
-            ws.ConstructFromRequest(
-                portNumber_,
-                *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                dataStream_.GatewayWorkerId,
-                cargoId,
-                channelId);
         }
 
         /// <summary>
