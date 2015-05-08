@@ -101,8 +101,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 (AstSchemaClass)templParent,
                                 metaParent);
 
-                            // TODO:
-                            // Need to generate class for primitive template as well I think.
                             if (!isUntyped && objElement != null) {
                                 GenerateForApp(objElement,
                                                appClassParent,
@@ -144,14 +142,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     titem = null;
                 }
 
-                //GenerateProperty(
-                //    kid,
-                //    (AstJsonClass)appClassParent,
-                //    (AstSchemaClass)templParent,
-                //    metaParent);
-
-                // TODO:
-                // Need to generate class for primitive template as well I think.
                 if (!isUntyped && titem != null) {
                     GenerateForApp(titem,
                                    appClassParent,
