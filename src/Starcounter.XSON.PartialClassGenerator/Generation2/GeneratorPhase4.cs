@@ -70,11 +70,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (!String.IsNullOrEmpty(mapInfo.Namespace))
                         appTemplate.Namespace = mapInfo.Namespace;
 
-                    nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate, false);
+                    nAppClass = (AstJsonClass)generator.ObtainValueClass(appTemplate);
                     nAppClass.IsPartial = true;
 
-                    var ntAppClass = (AstSchemaClass)generator.ObtainTemplateClass(appTemplate, false);
-                    var mdAppClass = generator.ObtainMetaClass(appTemplate, false);
+                    var ntAppClass = (AstSchemaClass)generator.ObtainTemplateClass(appTemplate);
+                    var mdAppClass = generator.ObtainMetaClass(appTemplate);
 
                     nAppClass.CodebehindClass = mapInfo;
 
@@ -130,7 +130,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             for (Int32 i = 0; i < classesInOrder.Length; i++) {
                 var cls = classesInOrder[i];
                 if (cls != null) {
-                    theClass = generator.ObtainValueClass(cls, false);
+                    theClass = generator.ObtainValueClass(cls);
                     parentClasses = mapInfos[i].ParentClasses;
                     if (parentClasses.Count > 0) {
                         parent = root;
@@ -319,7 +319,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 					if (template is TObjArr) {
 						template = ((TObjArr)template).ElementType;
 					}
-					tcn = (AstSchemaClass)generator.ObtainTemplateClass(template, false);
+					tcn = (AstSchemaClass)generator.ObtainTemplateClass(template);
 				}
 			} else {
 				tcn = (AstSchemaClass)((AstJsonClass)astClass).NTemplateClass;
@@ -383,7 +383,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
 				binding = new AstInputBinding(generator);
                 binding.BindsToProperty = (AstProperty)cst.Children[index];
-                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(tcn.Template, false);
+                binding.PropertyAppClass = (AstJsonClass)generator.ObtainValueClass(tcn.Template);
                 binding.InputTypeName = info.FullInputTypeName;
 				generator.FindHandleDeclaringClass(binding, info);
                 
