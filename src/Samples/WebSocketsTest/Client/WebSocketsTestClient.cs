@@ -46,7 +46,7 @@ namespace WebSocketsTestClient {
                         sendBytes[i] = (Byte)messageLetter;
                     }
 
-                    UInt64 cargoId = UInt64.MaxValue;
+                    UInt64 webSocketId = UInt64.MaxValue;
 
                     Task<WebSocketReceiveResult> recvTask;
                     WebSocketReceiveResult result;
@@ -59,10 +59,13 @@ namespace WebSocketsTestClient {
 
                     // Checking that its a full message and its text.
                     if ((result.EndOfMessage) && (result.MessageType == WebSocketMessageType.Text)) {
-                        String cargoIdString = Encoding.UTF8.GetString(respBytes, 0, result.Count);
-                        cargoId = UInt64.Parse(cargoIdString);
+
+                        String wsIdString = Encoding.UTF8.GetString(respBytes, 0, result.Count);
+                        webSocketId = UInt64.Parse(wsIdString);
+
                     } else {
-                        Console.Error.WriteLine("Wrong CargoId response.");
+
+                        Console.Error.WriteLine("Wrong WebSocketId response.");
                         GlobalErrorCode = 1;
                         return GlobalErrorCode;
                     }
@@ -208,10 +211,10 @@ namespace WebSocketsTestClient {
                     const Int32 NumStatsRetries = 10;
                     for (Int32 i = 0; i < NumStatsRetries; i++) {
 
-                        String serverSocketStats = Http.GET<String>("http://localhost:8080/WsStats/" + cargoId);
+                        String serverSocketStats = Http.GET<String>("http://localhost:8080/WsStats/" + webSocketId);
 
                         String correctStats = String.Format("{0} {1} {2} {3} {4} {5}",
-                            cargoId,
+                            webSocketId,
                             numMessages,
                             messageSize,
                             numMessages,
@@ -256,7 +259,7 @@ namespace WebSocketsTestClient {
 
             try {
 
-                UInt64 cargoId = UInt64.MaxValue;
+                UInt64 webSocketId = UInt64.MaxValue;
 
                 List<KeyValuePair<String, String>> headers = new List<KeyValuePair<String, String>>();
                 headers.Add(new KeyValuePair<string, string>("NumMessagesToSend", numMessages.ToString()));
@@ -281,10 +284,10 @@ namespace WebSocketsTestClient {
 
                 ws.MessageReceived += (s, e) => {
 
-                    // Trying to read the cargo id.
-                    if (cargoId == UInt64.MaxValue) {
+                    // Trying to read the web socket id.
+                    if (webSocketId == UInt64.MaxValue) {
 
-                        cargoId = UInt64.Parse(e.Message);
+                        webSocketId = UInt64.Parse(e.Message);
                         return;
                     }
 
@@ -383,10 +386,10 @@ namespace WebSocketsTestClient {
                 const Int32 NumStatsRetries = 10;
                 for (Int32 i = 0; i < NumStatsRetries; i++) {
 
-                    String serverSocketStats = Http.GET<String>("http://localhost:8080/WsStats/" + cargoId);
+                    String serverSocketStats = Http.GET<String>("http://localhost:8080/WsStats/" + webSocketId);
 
                     String correctStats = String.Format("{0} {1} {2} {3} {4} {5}",
-                        cargoId,
+                        webSocketId,
                         numMessages,
                         messageSize,
                         numMessages,

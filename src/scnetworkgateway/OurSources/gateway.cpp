@@ -419,7 +419,7 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, bool is_
     // Allocating needed tables.
     port_handlers_ = GwNewConstructor(PortHandlers);
     registered_uris_ = GwNewConstructor1(RegisteredUris, port_number);
-    registered_ws_channels_ = GwNewConstructor1(PortWsChannels, port_number);
+    registered_ws_groups_ = GwNewConstructor1(PortWsGroups, port_number);
 
     listening_sock_ = listening_sock;
     port_number_ = port_number;
@@ -445,7 +445,7 @@ void ServerPort::EraseDb(db_index_type db_index)
     registered_uris_->RemoveEntry(db_index);
     
     // Deleting WebSocket channels if any.
-    registered_ws_channels_->RemoveEntry(db_index);
+    registered_ws_groups_->RemoveEntry(db_index);
 }
 
 // Checking if port is unused by any database.
@@ -464,7 +464,7 @@ bool ServerPort::IsEmpty()
         return false;
 
     // Checking WebSocket channels.
-    if (registered_ws_channels_ && (!registered_ws_channels_->IsEmpty()))
+    if (registered_ws_groups_ && (!registered_ws_groups_->IsEmpty()))
         return false;
 
     // Checking connections.
@@ -513,10 +513,10 @@ void ServerPort::Erase()
         registered_uris_ = NULL;
     }
 
-    if (registered_ws_channels_)
+    if (registered_ws_groups_)
     {
-        GwDeleteSingle(registered_ws_channels_);
-        registered_ws_channels_ = NULL;
+        GwDeleteSingle(registered_ws_groups_);
+        registered_ws_groups_ = NULL;
     }
 
     port_number_ = INVALID_PORT_NUMBER;
@@ -623,7 +623,7 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
-    registered_ws_channels_->PrintRegisteredChannels(stats_stream);
+    registered_ws_groups_->PrintRegisteredChannels(stats_stream);
     stats_stream << "}";
 }
 
@@ -639,7 +639,7 @@ ServerPort::ServerPort()
     listening_sock_ = INVALID_SOCKET;
     port_handlers_ = NULL;
     registered_uris_ = NULL;
-    registered_ws_channels_ = NULL;
+    registered_ws_groups_ = NULL;
 
     Erase();
 }
@@ -1337,7 +1337,7 @@ uint32_t RegisterWsHandler(
     uint16_t port;
     std::string db_name;
     std::string app_name;
-    ws_channel_id_type ws_channel_id;
+    ws_group_id_type ws_channel_id;
     std::string ws_channel_name;
 
     ss >> db_name;
@@ -1384,12 +1384,12 @@ uint32_t RegisterWsHandler(
     }
 
     // Searching existing WebSocket handler with the same channel name.
-    if (INVALID_URI_INDEX != server_port->get_registered_ws_channels()->FindRegisteredChannelName(ws_channel_name.c_str()))
+    if (INVALID_URI_INDEX != server_port->get_registered_ws_groups()->FindRegisteredChannelName(ws_channel_name.c_str()))
         err_code = SCERRHANDLERALREADYREGISTERED;
 
     if (0 == err_code)
     {
-        server_port->get_registered_ws_channels()->AddNewEntry(
+        server_port->get_registered_ws_groups()->AddNewEntry(
             handler_info,
             app_name.c_str(),
             ws_channel_id,

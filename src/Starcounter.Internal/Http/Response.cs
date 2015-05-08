@@ -1558,7 +1558,7 @@ namespace Starcounter
             {
                 unsafe
                 {
-                    return Request.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_);
+                    return Request.INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linearIndex_);
                 }
             }
         }
@@ -1572,7 +1572,7 @@ namespace Starcounter
             {
                 unsafe
                 {
-                    return session_->linear_index_;
+                    return session_->linearIndex_;
                 }
             }
         }
@@ -1586,7 +1586,7 @@ namespace Starcounter
             {
                 unsafe
                 {
-                    return session_->random_salt_;
+                    return session_->randomSalt_;
                 }
             }
         }

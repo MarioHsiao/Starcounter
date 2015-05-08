@@ -1094,18 +1094,25 @@ public:
         return socket_info_->aggr_unique_socket_id_;
     }
 
-    void SetWebSocketChannelId(ws_channel_id_type ws_channel_id)
+    void SetWebSocketGroupId(ws_group_id_type ws_group_id)
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
 
-        socket_info_->ws_channel_id_ = ws_channel_id;
+        socket_info_->ws_group_id_ = ws_group_id;
     }
 
-    uint32_t GetWebSocketChannelId()
+    void FetchWebSocketGroupIdFromSocket()
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
 
-        return socket_info_->ws_channel_id_;
+        *(ws_group_id_type*)accept_or_params_or_temp_data_ = socket_info_->ws_group_id_;
+    }
+
+    ws_group_id_type GetWebSocketGroupId()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->ws_group_id_;
     }
 
     // Checks for proxy connect socket flag.

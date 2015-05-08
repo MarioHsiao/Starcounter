@@ -174,7 +174,7 @@ public:
     }
 };
 
-class PortWsChannels
+class PortWsGroups
 {
     // Array of all registered URIs.
     LinearList<RegisteredWsChannel, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_ws_channels_;
@@ -227,7 +227,7 @@ public:
     }
 
     // Constructor.
-    PortWsChannels(uint16_t port_number)
+    PortWsGroups(uint16_t port_number)
     {
         port_number_ = port_number;
     }
@@ -337,7 +337,7 @@ public:
     void AddNewEntry(
         BMX_HANDLER_TYPE handler_info,
         const char* app_name_string,
-        ws_channel_id_type channel_id,
+        ws_group_id_type channel_id,
         const char* channel_name,
         db_index_type db_index)
     {

@@ -207,17 +207,14 @@ namespace Starcounter
                     rawChunk = plainRawPtr;
                 }
 
-                SchedulerResources.SocketContainer sc =
-                    SchedulerResources.ObtainSocketContainerForRawSocket(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, dataStream);
+                SocketStruct socketStruct = new SocketStruct();
+                socketStruct.Init(
+                    *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream.GatewayWorkerId
+                    );
 
-                // Checking if socket exists and legal.
-                if (null == sc) {
-
-                    dataStream.Destroy(true);
-                    return 0;
-                }
-
-                tcpSocket = sc.Rs;
+                tcpSocket = new TcpSocket(dataStream, socketStruct);
                 Debug.Assert(null != tcpSocket);
 
                 Byte[] dataBytes = null;
@@ -232,7 +229,7 @@ namespace Starcounter
                 } else {
 
                     // Making socket unusable.
-                    tcpSocket.Destroy();
+                    tcpSocket.Destroy(true);
                 }
 
                 if (Db.Environment.HasDatabase)
@@ -247,7 +244,7 @@ namespace Starcounter
 
                 // Destroying original chunk etc.
                 if (null != tcpSocket) {
-                    tcpSocket.DestroyDataStream();
+                    tcpSocket.Destroy(true);
                 }
 
                 // Cleaning the linear buffer in case of multiple chunks.
@@ -258,7 +255,7 @@ namespace Starcounter
                     rawChunk = null;
                 }
 
-                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();
 
                 // Reset managed task state before exiting managed task entry point.
@@ -565,21 +562,18 @@ namespace Starcounter
                 MixedCodeConstants.WebSocketDataTypes wsType = 
                     (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
 
+                UInt32 groupId = (*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID));
+
                 // Creating network data stream object.
                 NetworkDataStream dataStream = new NetworkDataStream();
                 dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
 
-                SchedulerResources.SocketContainer sc = SchedulerResources.ObtainSocketContainerForWebSocket(dataStream);
-
-                // Checking if WebSocket exists and legal.
-                if (sc == null) {
-                    dataStream.Destroy(true);
-                    return 0;
-                }
-
-                WebSocketInternal wsInternal = sc.Ws;
-                Debug.Assert(null != wsInternal);
-                Debug.Assert(null != wsInternal.SocketContainer);
+                SocketStruct socketStruct = new SocketStruct();
+                socketStruct.Init(
+                    *(UInt32*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(dataStream.RawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream.GatewayWorkerId
+                    );
 
                 // Checking if we need to process linked chunks.
                 if (!isSingleChunk)
@@ -614,7 +608,7 @@ namespace Starcounter
 
                         Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
 
-                        ws = new WebSocket(wsInternal, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
+                        ws = new WebSocket(dataStream, socketStruct, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
                         break;
                     }
@@ -627,20 +621,21 @@ namespace Starcounter
                             *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
                             Encoding.UTF8);
 
-                        ws = new WebSocket(wsInternal, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
+                        ws = new WebSocket(dataStream, socketStruct, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
 
                         break;
                     }
 
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_CLOSE:
                     {
-                        ws = new WebSocket(wsInternal, null, null, false, WebSocket.WsHandlerType.Disconnect);
+                        ws = new WebSocket(null, socketStruct, null, null, false, WebSocket.WsHandlerType.Disconnect);
 
                         break;
                     }
 
-                    default:
+                    default: {
                         throw new Exception("Unknown WebSocket frame type: " + wsType);
+                    }
                 }
 
                 ScSessionStruct sessionStruct = 
@@ -663,13 +658,12 @@ namespace Starcounter
                 // Setting statically available current WebSocket.
                 WebSocket.Current = ws;
 
-                Debug.Assert(null != wsInternal.SocketContainer);
-
-                if (Db.Environment.HasDatabase)
+                if (Db.Environment.HasDatabase) {
                     TransactionManager.CreateImplicitAndSetCurrent(true);
+                }
 
                 // Adding session reference.
-                *isHandled = AllWsChannels.WsManager.RunHandler(managedHandlerId, ws);
+                *isHandled = AllWsGroups.WsManager.RunHandler(managedHandlerId, groupId, ws);
 
             } catch (Exception exc) {
 
@@ -680,7 +674,7 @@ namespace Starcounter
 
                 // Destroying original chunk etc.
                 if (null != ws) {
-                    ws.WsInternal.DestroyDataStream();
+                    ws.Destroy(true);
                 }
 
                 // Cleaning the linear buffer in case of multiple chunks.
@@ -694,7 +688,7 @@ namespace Starcounter
                 // Clearing current session.
                 Session.End();
 
-                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();                
 
                 // Reset managed task state before exiting managed task entry point.
@@ -710,8 +704,8 @@ namespace Starcounter
         internal static void RegisterWsChannelHandlerNative(
             UInt16 port,
             String appName,
-            String channelName,
-            UInt32 channelId,
+            String groupName,
+            UInt32 groupId,
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo)
         {
@@ -725,14 +719,14 @@ namespace Starcounter
                 UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
                     port,
                     appName,
-                    channelName,
-                    channelId,
+                    groupName,
+                    groupId,
                     pinnedDelegate,
                     managedHandlerIndex,
                     out handlerInfo);
 
                 if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Channel string: " + channelName);
+                    throw ErrorCode.ToException(errorCode, "Channel string: " + groupName);
 
                 String dbName = StarcounterEnvironment.DatabaseNameLower;
 
@@ -741,8 +735,8 @@ namespace Starcounter
                     appName + " " +
                     handlerInfo + " " +
                     port + " " +                            
-                    channelId + " " +
-                    channelName + " ";
+                    groupId + " " +
+                    groupName + " ";
 
                 uriHandlerInfo += "\r\n\r\n\r\n\r\n";
 
