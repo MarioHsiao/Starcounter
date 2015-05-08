@@ -164,6 +164,7 @@ namespace Starcounter
             }
 
             TcpSocket tcpSocket = null;
+            NetworkDataStream dataStream = new NetworkDataStream();
 
             try {
 
@@ -179,7 +180,6 @@ namespace Starcounter
                 // Determining if chunk is single.
                 isSingleChunk = ((taskInfo->flags & 0x01) == 0);
 
-                NetworkDataStream dataStream = new NetworkDataStream();
                 dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
 
                 // Checking if we need to process linked chunks.
@@ -243,9 +243,7 @@ namespace Starcounter
             } finally {
 
                 // Destroying original chunk etc.
-                if (null != tcpSocket) {
-                    tcpSocket.Destroy(true);
-                }
+                dataStream.Destroy(true);
 
                 // Cleaning the linear buffer in case of multiple chunks.
                 if (!isSingleChunk) {
@@ -548,6 +546,7 @@ namespace Starcounter
             }
 
             WebSocket ws = null;
+            NetworkDataStream dataStream = new NetworkDataStream();
 
             try {
 
@@ -565,7 +564,6 @@ namespace Starcounter
                 UInt32 groupId = (*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID));
 
                 // Creating network data stream object.
-                NetworkDataStream dataStream = new NetworkDataStream();
                 dataStream.Init(rawChunk, taskInfo->chunk_index, taskInfo->client_worker_id);
 
                 SocketStruct socketStruct = new SocketStruct();
@@ -673,9 +671,7 @@ namespace Starcounter
             } finally {
 
                 // Destroying original chunk etc.
-                if (null != ws) {
-                    ws.Destroy(true);
-                }
+                dataStream.Destroy(true);
 
                 // Cleaning the linear buffer in case of multiple chunks.
                 if (!isSingleChunk) {
