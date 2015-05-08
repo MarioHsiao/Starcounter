@@ -206,7 +206,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         var inherited = (AstTemplateClass)ast.InheritedClass;
                         if (inherited != null) {
                             sb.Append(" : ");
-                            sb.Append(inherited.GlobalClassSpecifierWithoutGenerics);
+//                            sb.Append(inherited.GlobalClassSpecifierWithoutGenerics);
+                            sb.Append(inherited.GlobalClassSpecifier);
                         }
                     } else {
                         if (n.Inherits != null) {
@@ -372,11 +373,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 if (prop != null && prop.BackingFieldName != null) {
                     string bfTypeName = null;
                     if (prop.Template is TObjArr) {
-                        if (prop.Type.Generic != null && prop.Type.Generic.Length > 0) {
-                            var astJsonClass = prop.Type.Generic[0] as AstJsonClass;
-                            if (astJsonClass != null && astJsonClass.ParentProperty != null)
-                                bfTypeName = astJsonClass.ParentProperty.GlobalClassSpecifier;
-                        }
+                        var templateClass = prop.Type as AstTemplateClass;
+                        if (templateClass != null)
+                            bfTypeName = templateClass.NValueClass.GlobalClassSpecifier;
                     } else if (prop.Template is TObject) {
                         var parent = prop.Type.Parent;
                         while (parent != null) {
@@ -402,7 +401,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private AstClass GetParentPropertyType(Template a) {
-            var x = Generator.ObtainValueClass((Template)a.Parent, false);
+            var x = Generator.ObtainValueClass((Template)a.Parent);
             return x;
         }
 
