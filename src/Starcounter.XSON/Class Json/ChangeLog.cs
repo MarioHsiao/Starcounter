@@ -33,7 +33,7 @@ namespace Starcounter {
             // HUR?
             var jp = new JsonPatch();
 
-            byte[] bytes = Encoding.ASCII.GetBytes(patches);
+            byte[] bytes = Encoding.UTF8.GetBytes(patches);
 
             //            byte[] bytes = new byte[patches.Length * sizeof(char)];
             //            System.Buffer.BlockCopy(patches.ToCharArray(), 0, bytes, 0, bytes.Length);

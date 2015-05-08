@@ -10,7 +10,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$location', '
 
     $scope.appsFilter = function (application) {
 
-        return application.IsInstalled && (application.HasErrorMessage || application.IsRunning == false);
+        return application.Status == 0 && application.IsInstalled && (application.HasErrorMessage || application.IsRunning == false);
     }
 
     /**
