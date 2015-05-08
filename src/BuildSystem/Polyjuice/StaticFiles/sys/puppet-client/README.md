@@ -54,10 +54,11 @@ Attribute          | Options       | Default                | Description
 `purity`           | *Boolean*     | `false`                | true to enable purist mode of OT
 
 ## Events
-Name               | Arguments                       | Descriptions
----                | ---                             | ---
-`patchreceived`    | *String* `data`, *String* `url` | Occurs when a JSON-patch is received.
-`patchsent`        | *String* `data`, *String* `url` | Occurs when a JSON-patch is sent.
+Name                 | Arguments                                                             | Descriptions
+---                  | ---                                                                   | ---
+`patchreceived`      | *String* `data`, *String* `url`, *String*, `method`                   | Occurs when a JSON-patch is received.
+`patchsent`          | *String* `data`, *String* `url`, *String*, `method`                   | Occurs when a JSON-patch is sent.
+`socketstatechanged` | *int* `state`, *String* `url`, *String* `data`, *int* `code`, *String* `reason` | Occurs when sockets changes its state.
 
 ## Properties, Methods, Events
 
