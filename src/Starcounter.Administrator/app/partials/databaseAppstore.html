@@ -48,18 +48,22 @@
 
                     <tr ng-repeat="item in store.Applications | orderBy:['-IsInstalled','DisplayName'] ">
 
-                        <td class="vert-align" style="width: 40px; padding-left: 15px">
-                            <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" tooltip="Installed" title="Installed"></span>
-                            <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" tooltip="Not installed" title="Not installed"></span>
+                        <td class="vert-align" style="width: 41px; padding-left:15px">
+                            <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Installed"></span>
+                            <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Not installed" title="Not installed"></span>
                             <span ng-show="item.Status!=0" title="{{item.StatusText}}" tooltip="{{item.StatusText}}" class="spinner tiny" style="margin: 0px; padding: 0px"></span>
                         </td>
 
-                        <td class="vert-align" >
+                        <td class="vert-align" style="width: 95px;">
                             <div >
                                 <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
                                 <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Open</button>
                             </div>
                         </td>
+
+<!--                        <td>
+                                <div>{{item.StatusText}}</div>
+                        </td>-->
 
                         <td>
                             <span style="display:inline">
@@ -77,7 +81,7 @@
                             </div>
                         </td>
 
-                        <td>{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
+                        <td class="vert-align text-right">{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
 
                     </tr>
                 </tbody>
