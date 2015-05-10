@@ -1,6 +1,6 @@
 {
   "name": "puppet-client",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Custom Element to bind server-side view models with HTML nodes (HTML Templates/Web Components/AngularJs Apps) using PuppetJs communication (JSON-Patch)",
   "license": "MIT",
   "main": "src/puppet-client.html",
@@ -19,20 +19,20 @@
   ],
   "dependencies": {
     "polymer": "<0.8.0",
-    "PuppetJs": "~0.3.0"
+    "PuppetJs": ">=1.0.0"
   },
   "devDependencies": {
     "model-operations": "Polyjuice/model-operations",
     "puppet-bunny": "PuppetJs/puppet-bunny"
   },
   "homepage": "https://github.com/PuppetJS/puppet-client",
-  "_release": "0.0.2",
+  "_release": "0.0.3",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.2",
-    "commit": "273d16ba93f80d939b4a5bae870595dbe4961243"
+    "tag": "0.0.3",
+    "commit": "10e5a4b47ad177004e8055bd820428024f2dcc03"
   },
   "_source": "git://github.com/PuppetJS/puppet-client.git",
-  "_target": "~0.0.2",
+  "_target": "~0.0.3",
   "_originalSource": "PuppetJS/puppet-client"
 }
