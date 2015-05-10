@@ -1168,6 +1168,7 @@ namespace PolyjuiceNamespace {
             StarcounterEnvironment.AppName = savedAppName;
 
             // Now all applications are treated as Polyjuice applications.
+            StarcounterEnvironment.PolyjuiceAppsFlag = true;
             StarcounterEnvironment.MappingEnabled = true;
             StarcounterEnvironment.OntologyMappingEnabled = true;
         }

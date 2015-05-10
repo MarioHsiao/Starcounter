@@ -133,7 +133,6 @@ namespace Starcounter.Internal {
                     });
 
                 // Checking if we have a Polyjuice edition.
-                StarcounterEnvironment.PolyjuiceAppsFlag = polyjuiceDatabaseFlag;
                 if (polyjuiceDatabaseFlag) {
 
                     Polyjuice.Init();
