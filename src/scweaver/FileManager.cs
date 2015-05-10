@@ -1,5 +1,6 @@
 ﻿
 using PostSharp.Sdk.Extensibility;
+using Starcounter.Internal;
 using Starcounter.Internal.Weaver;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -104,7 +105,8 @@ namespace Starcounter.Weaver {
             // Assure we always add edition libraries LAST - this is what we depend
             // on to avoid having to weave them when they are not referenced
             var editionLibraries = CodeWeaver.Current.EditionLibrariesDirectory;
-            if (Directory.Exists(editionLibraries)) {
+
+            if (Directory.Exists(editionLibraries) && (!CodeWeaver.Current.DisableEditionLibraries)) {
                 var libs = Directory.GetFiles(editionLibraries, "*.dll");
                 AddEditionLibraries(libs, sourceFiles);
             }

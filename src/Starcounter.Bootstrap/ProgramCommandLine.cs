@@ -172,6 +172,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ServerName, "Specifies the name of Starcounter server which started the database.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.ChunksNumber, "Specifies the total number of chunks used for shared memory communication.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes, "Specifies the default session timeout in minutes.");
+            commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag, "Specifies the database Polyjuice flag.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber, "Specifies the number of gateway workers.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.AutoStartExePath, "Specifies the path to executable that should be run on startup.");
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.SQLProcessPort, "Specifies TCP/IP port to be used by " + StarcounterConstants.ProgramNames.ScSqlParser + ".exe.");

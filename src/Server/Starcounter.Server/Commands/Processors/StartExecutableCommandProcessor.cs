@@ -96,7 +96,11 @@ namespace Starcounter.Server.Commands {
                     weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.BinaryFilePath, appRuntimeDirectory);
                     OnAssembliesCopiedToRuntimeDirectory();
                 } else {
-                    weavedExecutable = weaver.Weave(command.Application.BinaryFilePath, appRuntimeDirectory);
+                    weavedExecutable = weaver.Weave(
+                        command.Application.BinaryFilePath,
+                        appRuntimeDirectory,
+                        !database.Configuration.Runtime.PolyjuiceDatabaseFlag);
+
                     OnWeavingCompleted();
                 }
             });

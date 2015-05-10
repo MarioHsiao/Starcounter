@@ -44,7 +44,8 @@ namespace Starcounter.Internal {
             UInt16 defaultSystemHttpPort,
             UInt32 sessionTimeoutMinutes,
             String dbName,
-            Boolean noNetworkGateway)
+            Boolean noNetworkGateway,
+            Boolean polyjuiceDatabaseFlag)
         {
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
@@ -53,7 +54,7 @@ namespace Starcounter.Internal {
 
             StarcounterEnvironment.IsAdministratorApp = (0 == String.Compare(dbName, MixedCodeConstants.AdministratorAppName, true));
 
-            // // Allow reading of JSON-by-example files at runtime
+            // Allow reading of JSON-by-example files at runtime
             // Starcounter_XSON_JsonByExample.Initialize();
 
             // Dependency injection for db and transaction calls.
@@ -130,6 +131,13 @@ namespace Starcounter.Internal {
 
                         return 200;
                     });
+
+                // Checking if we have a Polyjuice edition.
+                StarcounterEnvironment.PolyjuiceAppsFlag = polyjuiceDatabaseFlag;
+                if (polyjuiceDatabaseFlag) {
+
+                    Polyjuice.Init();
+                }
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
@@ -194,21 +202,13 @@ namespace Starcounter.Internal {
             // By default middleware filters are enabled.
             StarcounterEnvironment.MiddlewareFiltersEnabled = true;
 
-            // TODO: Check for Polyjuice flag per database!
-            Boolean initPolyjuiceFlag = false;
-            if ((!StarcounterEnvironment.PolyjuiceAppsFlag) &&
-                (CurrentVersion.EditionName == StarcounterConstants.PolyjuiceEditionName)) {
-
-                initPolyjuiceFlag = true;
-            }
-
             // Checking if there is a given web resource path.
             if (webResourcesDir != null) {
 
                 String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
 
                 // Checking if we have wwwroot folder for Polyjuice edition.
-                if (StarcounterEnvironment.PolyjuiceAppsFlag || initPolyjuiceFlag) {
+                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
 
                     String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
 
@@ -249,15 +249,7 @@ namespace Starcounter.Internal {
             }
 
             // Initializing based on the edition and codehost type.
-            if (!StarcounterEnvironment.IsAdministratorApp) {
-
-                // Checking if we have a Polyjuice edition.
-                if (initPolyjuiceFlag) {
-
-                    Polyjuice.Init();
-                }
-
-            } else {
+            if (StarcounterEnvironment.IsAdministratorApp) {
 
                 // Checking if its a Polyjuice edition and then adding Polyjuice specific static files directory.
                 String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");

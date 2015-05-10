@@ -226,6 +226,21 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Polyjuice database flag.
+        /// </summary>
+        public Boolean PolyjuiceDatabaseFlag {
+            get {
+                Boolean polyjuiceDatabaseFlag = (CurrentVersion.EditionName == "Polyjuice");
+                String s;
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag, out s)) {
+                    polyjuiceDatabaseFlag = Boolean.Parse(s);
+                }
+
+                return polyjuiceDatabaseFlag;
+            }
+        }
+
+        /// <summary>
         /// Gets the chunks number.
         /// </summary>
         /// <value>The chunks number.</value>
