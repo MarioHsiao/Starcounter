@@ -1,4 +1,4 @@
-/*! puppet.js version: 1.0.1
+/*! puppet.js version: 1.0.2
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -212,7 +212,7 @@
     // resolve session path given in referrer in the context of remote WS URL
     var upgradeURL = (
       new URL(
-        this.referer.replace(/(\/?)__([^\/]*)\//g, "__$2/wsupgrade/"), 
+        this.referer.replace(/(\/?)__([^\/]*)\//g, "/__$2/wsupgrade/"), 
         this.wsURL
         )
       ).toString();
