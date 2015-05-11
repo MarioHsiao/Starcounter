@@ -13,8 +13,7 @@ namespace Starcounter.Tools.Service.Task {
 
             string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
 
-            Response response;
-            X.GET(url, out response, null, 10000);
+            Response response = Http.GET(url, null, 10000);
 
             if (response.IsSuccessStatusCode) {
                 bool interactiveMode = false;

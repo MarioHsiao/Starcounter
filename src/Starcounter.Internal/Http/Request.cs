@@ -377,10 +377,12 @@ namespace Starcounter {
                 Byte[] wsHandshakeResp = new Byte[*(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
                 Marshal.Copy(new IntPtr(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
 
-                WsGroupInfo w = AllWsGroups.WsManager.FindGroup(PortNumber, groupName);
+                WsGroupInfo wsGroupInfo = AllWsGroups.WsManager.FindGroup(PortNumber, groupName);
 
-                if (w == null) {
-                    throw new Exception("Specified WebSocket group is not registered: " + groupName);
+                UInt32 groupId = 0;
+
+                if (wsGroupInfo != null) {
+                    groupId = wsGroupInfo.GroupId;
                 }
 
                 WebSocket ws = new WebSocket(
@@ -399,7 +401,7 @@ namespace Starcounter {
 
                 resp.WsHandshakeResp = wsHandshakeResp;
 
-                *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = w.GroupId;
+                *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = groupId;
                 *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |=
                     (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
 

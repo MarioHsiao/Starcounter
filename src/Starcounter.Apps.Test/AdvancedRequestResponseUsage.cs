@@ -18,7 +18,7 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Test
 {
     /// <summary>
-    /// Testing return types for X.
+    /// Testing return types for internal REST calls.
     /// </summary>
     [TestFixture]
     public class ReturnTypes
