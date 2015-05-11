@@ -492,7 +492,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	str_template =
         L"scadminserver.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
-        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --FLAG:NoDb %s";
+        L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --PolyjuiceDatabaseFlag=false --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 
