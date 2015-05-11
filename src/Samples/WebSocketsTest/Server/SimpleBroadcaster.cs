@@ -37,7 +37,7 @@ namespace WebSocketsTestServer {
 
                             WebSocket ws = new WebSocket(wsDb.Id);
 
-                            // Checking if ready to disconnect.
+                            // Checking if ready to disconnect after certain amount of sends.
                             if (wsDb.NumBroadcasted == 100) {
 
                                 ws.Disconnect();
@@ -47,7 +47,7 @@ namespace WebSocketsTestServer {
                                 continue;
                             }
 
-                            String sendMsg = "Broadcast id: " + wsDb.Id;
+                            String sendMsg = "Broadcasting id: " + wsDb.Id;
 
                             ws.Send(sendMsg);
 
