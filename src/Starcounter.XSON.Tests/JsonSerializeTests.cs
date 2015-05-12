@@ -14,12 +14,12 @@ namespace Starcounter.Internal.XSON.Tests {
     /// </summary>
     public static class JsonSerializeTests {
         private static StandardJsonSerializer defaultSerializer;
-		private static FasterThanJsonSerializer ftjSerializer;
+//		private static FasterThanJsonSerializer ftjSerializer;
 
         [TestFixtureSetUp]
         public static void InitializeTest() {
 			defaultSerializer = new StandardJsonSerializer();
-			ftjSerializer = new FasterThanJsonSerializer();
+//			ftjSerializer = new FasterThanJsonSerializer();
         }
 
         [Test]
@@ -182,12 +182,12 @@ namespace Starcounter.Internal.XSON.Tests {
             XSONModule.DontCreateSerializerInBackground = true;
 
             byte[] jsonArr = new byte[tObj.JsonSerializer.EstimateSizeBytes(original)];
-			serializedSize = tObj.ToJsonUtf8(original, jsonArr, 0);
+			serializedSize = original.ToJsonUtf8(jsonArr, 0);
 
 			unsafe {
 				fixed (byte* p = jsonArr) {
 					newJson = (Json)tObj.CreateInstance();
-					afterPopulateSize = tObj.PopulateFromJson(newJson, (IntPtr)p, serializedSize);
+					afterPopulateSize = newJson.PopulateFromJson((IntPtr)p, serializedSize);
 				}
 			}
 
