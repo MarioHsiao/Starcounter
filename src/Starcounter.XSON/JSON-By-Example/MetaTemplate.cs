@@ -135,10 +135,10 @@ namespace Starcounter.Internal.JsonTemplate {
 
                 tobj.CodegenMetadata.Add("Reuse", v);
             } else if (upperName == "NAMESPACE") {
-                appTemplate = template as TObject;
-                if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
+                //appTemplate = template as TObject;
+                //if (appTemplate == null) ErrorHelper.RaiseInvalidPropertyError(name, debugInfo);
 
-                appTemplate.Namespace = v;
+                template.Namespace = v;
             } else if (upperName == "DATATYPE") {
                 if (template is TObjArr || template is TObject) {
                     template.CodegenMetadata.Add("InstanceDataTypeName", v);
