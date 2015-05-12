@@ -68,7 +68,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestJsonWithSingleValue() {
             string jsonStr = @"19";
-            TLong template = TObject.CreateFromJson(jsonStr) as TLong;
+            TLong template = Template.CreateFromMarkup(jsonStr) as TLong;
 
             Assert.IsNotNull(template);
             var json = (Json)template.CreateInstance();
@@ -76,6 +76,28 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Set<long>(template, 666);
             Assert.AreEqual(666, json.Get<long>(template));
+
+            jsonStr = json.ToJson();
+        }
+
+        [Test]
+        public static void TestJsonWithSingleArray() {
+            string jsonStr = @"[{""Apa"":""Papa""}]";
+            TObjArr template = Template.CreateFromMarkup(jsonStr) as TObjArr;
+
+            Assert.IsNotNull(template);
+            var json = (Json)template.CreateInstance();
+
+            jsonStr = json.ToJson();
+        }
+
+        [Test]
+        public static void TestJsonWithSingleUntypedArray() {
+            string jsonStr = @"[]";
+            TObjArr template = Template.CreateFromMarkup(jsonStr) as TObjArr;
+
+            Assert.IsNotNull(template);
+            var json = (Json)template.CreateInstance();
 
             jsonStr = json.ToJson();
         }

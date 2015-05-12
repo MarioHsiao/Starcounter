@@ -203,6 +203,22 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             Helper.ConsoleWriteLine(ast);
             Helper.ConsoleWriteLine(code);
         }
+
+        [Test]
+        public static void GeneratePrimitiveUntypedArrayCode() {
+            TObjArr tarr = (TObjArr)Template.CreateFromJson("[]");
+
+            var codegen = PartialClassGenerator.GenerateTypedJsonCode(
+                tarr,
+                null,
+                null);
+
+            var ast = codegen.DumpAstTree();
+            var code = codegen.GenerateCode();
+
+            Helper.ConsoleWriteLine(ast);
+            Helper.ConsoleWriteLine(code);
+        }
     }
 }
 
