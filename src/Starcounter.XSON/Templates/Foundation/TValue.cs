@@ -7,6 +7,7 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
+        protected Type jsonType;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
         internal bool isBoundToParent;
@@ -84,6 +85,24 @@ namespace Starcounter.Templates {
 				InvalidateBoundGetterAndSetter();
 			}
 		}
+
+
+        /// <summary>
+        /// The .NET type of the instance represented by this template.
+        /// </summary>
+        /// <value>The type of the instance.</value>
+        public override Type InstanceType {
+            get {
+                if (jsonType == null)
+                    return DefaultInstanceType;
+                return jsonType;
+            }
+            set { jsonType = value; }
+        }
+
+        internal virtual Type DefaultInstanceType {
+            get { return typeof(Json); }
+        }
 
 		/// <summary>
 		/// 
@@ -176,6 +195,8 @@ namespace Starcounter.Templates {
         public abstract byte[] ToJsonUtf8(Json json);
         public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
         public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
+
+        public abstract int EstimateUtf8SizeInBytes(Json json);
 
 		/// <summary>
 		/// 
