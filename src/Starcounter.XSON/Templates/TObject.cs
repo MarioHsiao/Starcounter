@@ -32,7 +32,6 @@ namespace Starcounter.Templates {
 		private PropertyList _PropertyTemplates;
 
 		private BindingStrategy bindChildren = BindingStrategy.Auto;
-		protected Type _JsonType;
 		public bool HasAtLeastOneBoundProperty = true; // TODO!
 		
 		/// <summary>
@@ -124,6 +123,9 @@ namespace Starcounter.Templates {
 		}
 
 		private Json BoundOrUnboundGet(Json parent) {
+            if (UnboundGetter == null)
+                return parent;
+
 			Json value = UnboundGetter(parent);
             if (parent._checkBoundProperties && value != null && UseBinding(parent))
 				value.CheckBoundObject(BoundGetter(parent));
@@ -258,28 +260,14 @@ namespace Starcounter.Templates {
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
 		public override object CreateInstance(Json parent = null) {
-			if (_JsonType != null) {
-				var msg = (Json)Activator.CreateInstance(_JsonType);
+			if (jsonType != null) {
+				var msg = (Json)Activator.CreateInstance(jsonType);
 				msg.Template = this;
 				msg.Parent = parent;
 				return msg;
 			}
             return base.CreateInstance(parent);
 		}
-
-        /// <summary>
-        /// The .NET type of the instance represented by this template.
-        /// </summary>
-        /// <value>The type of the instance.</value>
-        public override Type InstanceType {
-            get {
-                if (_JsonType == null) {
-                    return typeof(Json);
-                }
-                return _JsonType;
-            }
-            set { _JsonType = value; }
-        }
 
         /// <summary>
         /// Creates a new property (template) with the specified name and type.
@@ -504,6 +492,20 @@ namespace Starcounter.Templates {
 				}
 			}
 		}
+
+        public override int EstimateUtf8SizeInBytes(Json parent) {
+            var json = Getter(parent);
+            return JsonSerializer.EstimateSizeBytes(json);
+        }
+
+        public override int ToJsonUtf8(Json parent, byte[] buffer, int offset) {
+            var json = Getter(parent);
+            return JsonSerializer.Serialize(json, buffer, offset);
+        }
+
+        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+            throw new NotImplementedException();
+        }
 
         ///// <summary>
         ///// 

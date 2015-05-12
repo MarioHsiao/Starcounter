@@ -22,7 +22,7 @@ namespace Starcounter.Templates {
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(long); }
         }
 
@@ -57,6 +57,10 @@ namespace Starcounter.Templates {
             unsafe {
                 return (int)Utf8Helper.WriteIntAsUtf8((byte*)ptr, value);
             }
+        }
+
+        public override int EstimateUtf8SizeInBytes(Json json) {
+            return 32;
         }
 
         private static int GetSizeOfIntAsUtf8(long value) {

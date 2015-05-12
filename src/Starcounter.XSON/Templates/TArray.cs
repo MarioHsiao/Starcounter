@@ -88,6 +88,9 @@ namespace Starcounter.Templates {
 		}
 
 		private Arr<OT> BoundOrUnboundGet(Json parent) {
+            if (UnboundGetter == null)
+                return (Arr<OT>)parent;
+
 			Arr<OT> arr = UnboundGetter(parent);
 
             if (parent._checkBoundProperties && UseBinding(parent)) {
@@ -158,7 +161,7 @@ namespace Starcounter.Templates {
 		/// The .NET type of the instance represented by this template.
 		/// </summary>
 		/// <value>The type of the instance.</value>
-		public override System.Type InstanceType {
+		internal override System.Type DefaultInstanceType {
 			get { return typeof(Arr<OT>); }
 		}
 	}

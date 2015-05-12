@@ -190,6 +190,9 @@ namespace Starcounter.Templates {
 		}
 
 		private Json BoundOrUnboundGet(Json parent) {
+            if (UnboundGetter == null)
+                return parent;
+
 			Json arr = UnboundGetter(parent);
 
             if (parent._checkBoundProperties && UseBinding(parent)) {
@@ -322,6 +325,57 @@ namespace Starcounter.Templates {
                     return PopulateFromJson(json, (IntPtr)p, srcSize);
                 }
             }
+        }
+
+        public override int EstimateUtf8SizeInBytes(Json json) {
+            Json arrJson = Getter(json);
+            Json arrItem;
+            int sizeBytes = 2; // 2 for "[]".
+            IList arrList = (IList)arrJson;
+
+            for (int i = 0; i < arrList.Count; i++) {
+                arrItem = (Json)arrList[i];
+                sizeBytes += ((TValue)arrItem.Template).EstimateUtf8SizeInBytes(arrItem);
+            }
+            return sizeBytes;
+        }
+
+        public override int ToJsonUtf8(Json parent, byte[] buffer, int offset) {
+            var json = Getter(parent);
+            return JsonSerializer.Serialize(json, buffer, offset);
+        }
+
+        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+            throw new NotImplementedException();
+            //int offset = 0;
+            //int valueSize;
+            //Json arrItem;
+            //Json arrJson = Getter(json);
+            //IList arrList = (IList)arrJson;
+
+            //unsafe {
+            //    byte* pfrag = (byte*)ptr;
+
+            //    *pfrag++ = (byte)'[';
+            //    offset++;
+
+            //    for (int i = 0; i < arrList.Count; i++) {
+            //        arrItem = (Json)arrList[i];
+
+            //        valueSize = ((TValue)arrItem.Template).ToJsonUtf8(arrItem, (IntPtr)pfrag, bufferSize - offset);
+
+            //        pfrag += valueSize;
+            //        offset += valueSize;
+
+            //        if ((i + 1) < arrList.Count) {
+            //            *pfrag++ = (byte)',';
+            //            offset++;
+            //        }
+            //    }
+            //    *pfrag++ = (byte)']';
+            //    offset++;
+            //}
+            //return offset;
         }
 
         ///// <summary>

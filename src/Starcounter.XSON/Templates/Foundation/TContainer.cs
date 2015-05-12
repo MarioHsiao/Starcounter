@@ -78,42 +78,42 @@ namespace Starcounter.Templates {
             return buffer;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
-            return JsonSerializer.Serialize(json, buffer, offset);
-        }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="json"></param>
+        ///// <param name="buffer"></param>
+        ///// <returns></returns>
+        //public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
+        //    return JsonSerializer.Serialize(json, buffer, offset);
+        //}
 
-        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
-            throw new NotImplementedException();
-        }
+        //public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
+        //    throw new NotImplementedException();
+        //}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		internal TypedJsonSerializer FTJSerializer {
-			get {
-				if (Module.UseCodegeneratedSerializer) {
-					if (codegenFTJSerializer != null)
-						return codegenFTJSerializer;
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //internal TypedJsonSerializer FTJSerializer {
+        //    get {
+        //        if (Module.UseCodegeneratedSerializer) {
+        //            if (codegenFTJSerializer != null)
+        //                return codegenFTJSerializer;
 
-					if (!codeGenStarted) {
-						codeGenStarted = true;
-						if (!Module.DontCreateSerializerInBackground)
-							ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
-						else {
-							GenerateSerializer(false);
-							return codegenFTJSerializer;
-						}
-					}
-				}
-				return Module.GetJsonSerializer(Module.FTJSerializerId);
-			}
-		}
+        //            if (!codeGenStarted) {
+        //                codeGenStarted = true;
+        //                if (!Module.DontCreateSerializerInBackground)
+        //                    ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
+        //                else {
+        //                    GenerateSerializer(false);
+        //                    return codegenFTJSerializer;
+        //                }
+        //            }
+        //        }
+        //        return Module.GetJsonSerializer(Module.FTJSerializerId);
+        //    }
+        //}
 
 		/// <summary>
 		/// 

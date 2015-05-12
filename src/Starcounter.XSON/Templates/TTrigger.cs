@@ -167,5 +167,9 @@ namespace Starcounter.Templates {
             }
             return jsonValueAsBytes.Length;
         }
+
+        public override int EstimateUtf8SizeInBytes(Json json) {
+            return jsonValueAsBytes.Length;
+        }
     }
 }

@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(string); }
         }
 
@@ -104,6 +104,14 @@ namespace Starcounter.Templates {
 
         public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
             return JsonHelper.WriteString(ptr, bufferSize, Getter(json));
+        }
+
+        public override int EstimateUtf8SizeInBytes(Json json) {
+            String s = Getter(json);
+
+            if (s != null)
+                return s.Length * 2 + 2; // 2 for quotation marks around string.
+            return 2; // 2 for quotation marks around string.
         }
     }
 }

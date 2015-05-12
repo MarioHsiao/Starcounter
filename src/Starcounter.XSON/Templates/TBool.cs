@@ -21,7 +21,7 @@ namespace Starcounter.Templates {
         /// Will return the Boolean runtime type
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(bool); }
         }
 
@@ -75,6 +75,10 @@ namespace Starcounter.Templates {
             unsafe {
                 return JsonHelper.WriteBool((IntPtr)ptr, bufferSize, value);
             }
+        }
+
+        public override int EstimateUtf8SizeInBytes(Json json) {
+            return 5;
         }
     }
 }

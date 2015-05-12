@@ -22,7 +22,7 @@ namespace Starcounter.Templates {
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(double); }
         }
 
@@ -57,6 +57,10 @@ namespace Starcounter.Templates {
                 return -1;
 
             return JsonHelper.WriteDouble(ptr, bufferSize, Getter(json));
+        }
+
+        public override int EstimateUtf8SizeInBytes(Json json) {
+            return 32;
         }
     }
 }
