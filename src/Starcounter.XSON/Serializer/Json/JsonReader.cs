@@ -19,8 +19,7 @@ namespace Starcounter.Advanced.XSON {
 
         public int Used {
             get {
-                // The offset is zero-bound so we add one to get the correct number of bytes read.
-                return offset + 1;
+                return offset;
             }
         }
 
@@ -128,7 +127,7 @@ namespace Starcounter.Advanced.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Boolean", ReadString());
 
             offset += valueSize;
-            if (bufferSize <= offset)
+            if (bufferSize < offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
             pBuffer += valueSize;
 
@@ -143,7 +142,7 @@ namespace Starcounter.Advanced.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Decimal", ReadString());
 
             offset += valueSize;
-            if (bufferSize <= offset)
+            if (bufferSize < offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
             pBuffer += valueSize;
 
@@ -158,7 +157,7 @@ namespace Starcounter.Advanced.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Double", ReadString());
 
             offset += valueSize;
-            if (bufferSize <= offset)
+            if (bufferSize < offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
             pBuffer += valueSize;
 
@@ -173,7 +172,7 @@ namespace Starcounter.Advanced.XSON {
                 JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Int64", ReadString());
 
             offset += valueSize;
-            if (bufferSize <= offset)
+            if (bufferSize < offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
             pBuffer += valueSize;
 
@@ -188,7 +187,7 @@ namespace Starcounter.Advanced.XSON {
                 JsonHelper.ThrowUnexpectedEndOfContentException();
 
             offset += valueSize;
-            if (bufferSize <= offset)
+            if (bufferSize < offset)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
             pBuffer += valueSize;
         }
@@ -200,15 +199,6 @@ namespace Starcounter.Advanced.XSON {
             while (true) {
                 current = *pBuffer;
 
-                if (current == '{') {
-                    return true;
-                }
-
-                if (current == '[') {
-                    isArray = true;
-                    return true;
-                }
-
                 if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
                     offset++;
                     if (bufferSize <= offset)
@@ -216,7 +206,10 @@ namespace Starcounter.Advanced.XSON {
                     pBuffer++;
                     continue;
                 } else {
-                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
+                    if (current == '[') {
+                        isArray = true;
+                    }
+                    return true;
                 }
             }
         }

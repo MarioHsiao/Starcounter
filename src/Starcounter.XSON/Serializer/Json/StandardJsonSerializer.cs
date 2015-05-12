@@ -277,12 +277,6 @@ namespace Starcounter.Advanced.XSON {
             return 4;
         }
 
-
-
-
-
-
-
         private static int SerializeException(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
             throw new Exception("Cannot serialize Json. The type of template is unknown: " + template.GetType());
         }
@@ -636,57 +630,135 @@ namespace Starcounter.Advanced.XSON {
 	}
 
     public class StandardJsonSerializer : StandardJsonSerializerBase {
+        private delegate void PopulateDelegate(Json json, Template template, JsonReader reader);
 
-        public override int Populate(Json obj, IntPtr source, int sourceSize) {
-            string propertyName;
+        private static PopulateDelegate[] populatePerTemplate;
 
-            if (obj.IsArray) {
-                throw new NotImplementedException("Cannot serialize JSON where the root object is an array");
+        static StandardJsonSerializer() {
+            populatePerTemplate = new PopulateDelegate[9];
+            populatePerTemplate[(int)TemplateTypeEnum.Unknown] = PopulateException;
+            populatePerTemplate[(int)TemplateTypeEnum.Bool] = PopulateBool;
+            populatePerTemplate[(int)TemplateTypeEnum.Decimal] = PopulateDecimal;
+            populatePerTemplate[(int)TemplateTypeEnum.Double] = PopulateDouble;
+            populatePerTemplate[(int)TemplateTypeEnum.Long] = PopulateLong;
+            populatePerTemplate[(int)TemplateTypeEnum.String] = PopulateString;
+            populatePerTemplate[(int)TemplateTypeEnum.Object] = PopulateObject;
+            populatePerTemplate[(int)TemplateTypeEnum.Array] = PopulateArray;
+            populatePerTemplate[(int)TemplateTypeEnum.Trigger] = PopulateTrigger;
+        }
+
+        private static void PopulateException(Json json, Template template, JsonReader reader) {
+            throw new Exception("Cannot populate Json. Unknown template: " + template.GetType());
+        }
+
+        private static void PopulateBool(Json json, Template template, JsonReader reader) {
+            if (template == null)
+                template = json.Template;
+
+            try {
+                ((TBool)template).Setter(json, reader.ReadBool());
+            } catch (InvalidCastException ex) {
+                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.ReadString());
             }
+        }
 
-            var reader = new JsonReader(source, sourceSize);
-            Json arr;
-            Json childObj;
-            TObject tObj = (TObject)obj.Template;
+        private static void PopulateDecimal(Json json, Template template, JsonReader reader) {
+            if (template == null)
+                template = json.Template;
+
+            try {
+            ((TDecimal)template).Setter(json, reader.ReadDecimal());
+            } catch (InvalidCastException ex) {
+                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.ReadString());
+            }
+        }
+
+        private static void PopulateDouble(Json json, Template template, JsonReader reader) {
+            if (template == null)
+                template = json.Template;
+
+            try {
+                ((TDouble)template).Setter(json, reader.ReadDouble());
+            } catch (InvalidCastException ex) {
+                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.ReadString());
+            }
+        }
+
+        private static void PopulateLong(Json json, Template template, JsonReader reader) {
+            if (template == null)
+                template = json.Template;
+
+            try {
+                ((TLong)template).Setter(json, reader.ReadLong());
+            } catch (InvalidCastException ex) {
+                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.ReadString());
+            }
+        }
+
+        private static void PopulateString(Json json, Template template, JsonReader reader) {
+            if (template == null)
+                template = json.Template;
+
+            try {
+                ((TString)template).Setter(json, reader.ReadString());
+            } catch (InvalidCastException ex) {
+                JsonHelper.ThrowWrongValueTypeException(ex, template.TemplateName, template.JsonType, reader.ReadString());
+            }
+        }
+
+        private static void PopulateObject(Json json, Template template, JsonReader reader) {
+            string propertyName;
             Template tProperty;
-            JsonReader arrayReader;
+            TObject tObject;
+
+            if (template != null) {
+                tObject = (TObject)template;
+                json = tObject.Getter(json);
+            } else {
+                tObject = (TObject)json.Template;
+            }
 
             while (reader.GotoProperty()) {
                 propertyName = reader.ReadString();
-                tProperty = tObj.Properties.GetExposedTemplateByName(propertyName);
+                tProperty = tObject.Properties.GetExposedTemplateByName(propertyName);
                 if (tProperty == null) {
                     JsonHelper.ThrowPropertyNotFoundException(propertyName);
                 }
 
                 reader.GotoValue();
-                try {
-                    if (tProperty is TBool) {
-                        ((TBool)tProperty).Setter(obj, reader.ReadBool());
-                    } else if (tProperty is TDecimal) {
-                        ((TDecimal)tProperty).Setter(obj, reader.ReadDecimal());
-                    } else if (tProperty is TDouble) {
-                        ((TDouble)tProperty).Setter(obj, reader.ReadDouble());
-                    } else if (tProperty is TLong) {
-                        ((TLong)tProperty).Setter(obj, reader.ReadLong());
-                    } else if (tProperty is TString) {
-                        ((TString)tProperty).Setter(obj, reader.ReadString());
-                    }
-                    else if (tProperty is TObject) {
-                        childObj = ((TObject)tProperty).Getter(obj);
-                        reader.PopulateObject(childObj);
-                    } else if (tProperty is TObjArr) {
-                        arr = ((TObjArr)tProperty).Getter(obj);
-                        arrayReader = reader.CreateSubReader();
-                        while (arrayReader.GotoNextObject()) {
-                            childObj = arr.NewItem();
-                            arrayReader.PopulateObject(childObj);
-                        }
-                        reader.Skip(arrayReader.Used);
-                    }
-                } catch (InvalidCastException ex) {
-                    JsonHelper.ThrowWrongValueTypeException(ex, tProperty.TemplateName, tProperty.JsonType, reader.ReadString());
+
+                if (tProperty.TemplateTypeId == (int)TemplateTypeEnum.Object) {
+                    reader.PopulateObject(((TObject)tProperty).Getter(json));
+                } else {
+                    populatePerTemplate[(int)tProperty.TemplateTypeId](json, tProperty, reader);
                 }
             }
+            reader.Skip(1);
+        }
+
+        private static void PopulateArray(Json json, Template template, JsonReader reader) {
+            Json childObj;
+
+            if (template != null) {
+                json = ((TObjArr)template).Getter(json);
+            }
+            
+            JsonReader arrayReader = reader.CreateSubReader();
+            while (arrayReader.GotoNextObject()) {
+                childObj = json.NewItem();
+                arrayReader.PopulateObject(childObj);
+            }
+            reader.Skip(arrayReader.Used + 1);
+        }
+
+        private static void PopulateTrigger(Json json, Template template, JsonReader reader) {
+            // Should not get here. Not sure how triggers should be handled.
+            throw new NotImplementedException();
+        }
+
+        public override int Populate(Json json, IntPtr source, int sourceSize) {
+            var reader = new JsonReader(source, sourceSize);
+            populatePerTemplate[(int)json.Template.TemplateTypeId](json, null, reader);
             return reader.Used;
         }
     }
