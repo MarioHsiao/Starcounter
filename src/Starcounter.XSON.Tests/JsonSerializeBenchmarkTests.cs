@@ -334,7 +334,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 fixed (byte* p = jsonArr) {
                     start = DateTime.Now;
                     for (int i = 0; i < numberOfTimes; i++) {
-                        size = tObj.PopulateFromJson(jsonInst, (IntPtr)p, size);
+                        size = jsonInst.PopulateFromJson((IntPtr)p, size);
                     }
                 }
             }
