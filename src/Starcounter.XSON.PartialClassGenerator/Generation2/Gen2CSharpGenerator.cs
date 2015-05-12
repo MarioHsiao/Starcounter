@@ -273,11 +273,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (m.Template is TTrigger)
                 return;
 
+            bool appendMemberName = (m.Template != ((AstJsonClass)m.Parent).Template);
+
             m.Prefix.Add(markAsCodegen);
             var sb = new StringBuilder();
 
             sb.Append("public ");
-            sb.Append(m.Type.GlobalClassSpecifier);
+
+            if (m.Template.IsPrimitive) {
+                sb.Append(HelperFunctions.GetGlobalClassSpecifier(m.Template.InstanceType, true));
+            } else {
+                sb.Append(m.Type.GlobalClassSpecifier);
+            }
+
             sb.Append(' ');
             sb.Append(m.MemberName);
             sb.AppendLine(" {");
@@ -294,13 +302,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AppendLineDirectiveIfDefined(sb, "#line hidden");
 
             sb.Append("        return ");
-            if (m.Type is AstJsonClass) {
+            if (!m.Template.IsPrimitive && m.Type is AstJsonClass) {
                 sb.Append('(');
                 sb.Append(m.Type.GlobalClassSpecifier);
                 sb.Append(')');
             }
-            sb.Append("Template.");
-            sb.Append(m.MemberName);
+
+            sb.Append("Template");
+            if (appendMemberName) {
+                sb.Append('.');
+                sb.Append(m.MemberName);
+            } 
             sb.AppendLine(".Getter(this); }");
 
             AppendLineDirectiveIfDefined(sb,
@@ -312,8 +324,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             sb.AppendLine("    set {");
             AppendLineDirectiveIfDefined(sb, "#line hidden");
-            sb.Append("        Template.");
-            sb.Append(m.MemberName);
+            sb.Append("        Template");
+            if (appendMemberName) {
+                sb.Append('.');
+                sb.Append(m.MemberName);
+            } 
             sb.AppendLine(".Setter(this, value); } }");
 
             AppendLineDirectiveIfDefined(sb, "#line default");
@@ -483,42 +498,50 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             sb.Append("\";");
             a.Prefix.Add(sb.ToString());
 
-            if (!a.Template.IsPrimitive) {
+            if (a.Template is TObject) {
                 a.Prefix.Add("        Properties.ClearExposed();");
             }
 
             foreach (AstBase kid in cst.Children) {
                 if (kid is AstProperty) {
                     var mn = kid as AstProperty;
-                    sb = new StringBuilder();
-                    sb.Append("        ");
-                    sb.Append(mn.MemberName);
-                    sb.Append(" = Add<");
-                    sb.Append(mn.Type.GlobalClassSpecifier);
-
-                    sb.Append(">(\"");
-                    sb.Append(mn.Template.TemplateName);
-                    sb.Append('"');
-
                     TValue tv = mn.Template as TValue;
-                    if (tv != null && tv.BindingStrategy != BindingStrategy.UseParent && tv.BindingStrategy != BindingStrategy.Auto) {
-                        if (tv.Bind == null) {
-                            sb.Append(", bind:null");
-                        } else {
-                            sb.Append(", bind:\"");
-                            sb.Append(tv.Bind);
-                            sb.Append('"');
+
+                    string memberName = mn.MemberName;
+                    if (mn.Template == a.Template)
+                        memberName = "this";
+
+                    sb = new StringBuilder();
+
+                    if (!"this".Equals(memberName)) {
+                        sb.Append("        ");
+                        sb.Append(memberName);
+                        sb.Append(" = Add<");
+                        sb.Append(mn.Type.GlobalClassSpecifier);
+
+                        sb.Append(">(\"");
+                        sb.Append(mn.Template.TemplateName);
+                        sb.Append('"');
+    
+                        if (tv != null && tv.BindingStrategy != BindingStrategy.UseParent && tv.BindingStrategy != BindingStrategy.Auto) {
+                            if (tv.Bind == null) {
+                                sb.Append(", bind:null");
+                            } else {
+                                sb.Append(", bind:\"");
+                                sb.Append(tv.Bind);
+                                sb.Append('"');
+                            }
                         }
+                        sb.Append(");");
+                        a.Prefix.Add(sb.ToString());
                     }
-                    sb.Append(");");
-                    a.Prefix.Add(sb.ToString());
 
                     if (tv != null) {
-                        WriteDefaultValue(a, mn, tv);
+                        WriteDefaultValue(a, mn, tv, memberName);
                     }
 
                     if (mn.Template.Editable) {
-                        a.Prefix.Add("        " + mn.MemberName + ".Editable = true;");
+                        a.Prefix.Add("        " + memberName + ".Editable = true;");
                     }
 
                     var tArr = mn.Template as TObjArr;
@@ -528,7 +551,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         if (isCustomClass || !"Json".Equals(mn.Type.Generic[0].ClassStemIdentifier)) {
                             sb.Clear();
                             sb.Append("        ");
-                            sb.Append(mn.MemberName);
+                            sb.Append(memberName);
                             sb.Append(".SetCustomGetElementType((arr) => { return ");
                             sb.Append(mn.Type.Generic[0].GlobalClassSpecifier);
                             sb.Append(".DefaultTemplate;});");
@@ -539,7 +562,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     if (mn.BackingFieldName != null /*&& !(mn.Template is TObjArr)*/) {
                         sb.Clear();
                         sb.Append("        ");
-                        sb.Append(mn.MemberName);
+                        sb.Append(memberName);
                         sb.Append(".SetCustomAccessors((_p_) => { return ((");
                         sb.Append(a.NValueClass.GlobalClassSpecifier);
                         sb.Append(")_p_).");
@@ -552,11 +575,17 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                         AstProperty valueProp = (AstProperty)a.NValueClass.Children.Find((AstBase item) => {
                             var prop = item as AstProperty;
-                            if (prop != null && prop.MemberName.Equals(mn.MemberName))
+                            if (prop != null && (memberName.Equals("this") || prop.MemberName.Equals(memberName)))
                                 return true;
                             return false;
                         });
-                        sb.Append(valueProp.Type.GlobalClassSpecifier);
+
+                        if (valueProp.Template.IsPrimitive) {
+                            sb.Append(HelperFunctions.GetGlobalClassSpecifier(valueProp.Template.InstanceType, true));
+                        } else {
+                            sb.Append(valueProp.Type.GlobalClassSpecifier);
+                        }
+
                         sb.Append(")_v_; }, false);");
                         a.Prefix.Add(sb.ToString());
                     }
@@ -568,7 +597,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 "    }");
         }
 
-        private void WriteDefaultValue(AstSchemaClass a, AstProperty mn, TValue tv) {
+        private void WriteDefaultValue(AstSchemaClass a, AstProperty mn, TValue tv, string memberName) {
             string value = null;
 
             if (tv is TBool) {
@@ -589,7 +618,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             //}
 
             if (value != null) {
-                a.Prefix.Add("        " + mn.MemberName + ".DefaultValue = " + value + ";");
+                a.Prefix.Add("        " + memberName + ".DefaultValue = " + value + ";");
             }
         }
 

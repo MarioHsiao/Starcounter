@@ -78,10 +78,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     nAppClass.CodebehindClass = mapInfo;
 
-                    var outsider = generator.ObtainInheritedValueClass(mapInfo);
-                    nAppClass.InheritedClass = outsider;
-                    ntAppClass.InheritedClass = outsider.NTemplateClass;
-                     mdAppClass.InheritedClass = outsider.NMetadataClass;
+                    var outsider = generator.ObtainInheritedValueClass(mapInfo, appTemplate);
+                    if (outsider != null) {
+                        nAppClass.InheritedClass = outsider;
+                        ntAppClass.InheritedClass = outsider.NTemplateClass;
+                        mdAppClass.InheritedClass = outsider.NMetadataClass;
+                    }
 
                     // if there is codebehind and the class is not inherited from Json we need 
                     // to change the inheritance on the template and metadata classes as well.
@@ -181,7 +183,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>TApp.</returns>
         /// <exception cref="System.Exception">Invalid property to bind codebehind.</exception>
         private TValue FindTAppFor(CodeBehindClassInfo ci, TValue rootTemplate) {
-            TObject appTemplate;
+            TValue appTemplate;
             string[] mapParts;
             Template template;
 
@@ -189,24 +191,31 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             if (ci.ClassPath.Contains(".json."))
                 throw new Exception("The class path should be free from .json. text");
 #endif
-            appTemplate = (TObject)rootTemplate;
-
+            appTemplate = rootTemplate;
 
             mapParts = ci.ClassPath.Split('.');
 
             // We skip the two first parts since the first one will always be "json" 
             // and the second the rootTemplate.
             for (Int32 i = 1; i < mapParts.Length; i++) {
+                if (!(appTemplate is TObject)) {
+                    throw new Exception(
+                            String.Format("The code-behind tries to bind a class to the json-by-example using the attribute [{0}]. The property {1} is not found.",
+                                ci.RawDebugJsonMapAttribute,
+                                mapParts[i]
+                            ));
+                }
+
                 // We start with i=1. This means that we assume that the first part
                 // of the class path is the root class no matter what name is used.
                 // This makes it easier when user is refactoring his or her code.
 
-                template = appTemplate.Properties.GetTemplateByPropertyName(mapParts[i]);
-                if (template is TObject) {
-                    appTemplate = (TObject)template;
+                template = ((TObject)appTemplate).Properties.GetTemplateByPropertyName(mapParts[i]);
+                if (template is TObjArr) {
+                    appTemplate = ((TObjArr)template).ElementType;
                 }
-                else if (template is TObjArr) {
-                    appTemplate = (TObject)((TObjArr)template).ElementType;
+                else if (template != null) {
+                    appTemplate = (TValue)template;
                 }
                 else {
                     // TODO:

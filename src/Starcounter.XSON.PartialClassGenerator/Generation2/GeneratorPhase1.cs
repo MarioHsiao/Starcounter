@@ -149,6 +149,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                    metaParent,
                                    template);
                 }
+            } else {
+                // A primitive type. Generate a property for the whole schema.
+                GenerateProperty(template, (AstJsonClass)appClassParent, (AstSchemaClass)templParent, metaParent, "Value");
             }
         }
 
@@ -162,7 +165,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         private void GenerateProperty(Template at,
                                       AstJsonClass appClassParent,
                                       AstSchemaClass templParent,
-                                      AstClass metaParent)
+                                      AstClass metaParent,
+                                      string propertyNameOverride = null)
         {
             var valueClass = generator.ObtainValueClass(at);
             var type = generator.ObtainTemplateClass(at);
@@ -170,22 +174,26 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             new AstProperty(generator) {
                 Parent = appClassParent,
                 Template = at,
-                Type = valueClass
+                Type = valueClass,
+                MemberName = propertyNameOverride
             };
             new AstProperty(generator) {
                 Parent = templParent,
                 Template = at,
-                Type = type
+                Type = type,
+                MemberName = propertyNameOverride
             };
             new AstProperty(generator) {
                 Parent = templParent.Constructor,
                 Template = at,
-                Type = type
+                Type = type,
+                MemberName = propertyNameOverride
             };
             new AstProperty(generator) {
                 Parent = metaParent,
                 Template = at,
-                Type = generator.ObtainMetaClass(at)
+                Type = generator.ObtainMetaClass(at),
+                MemberName = propertyNameOverride
             };
         }
 

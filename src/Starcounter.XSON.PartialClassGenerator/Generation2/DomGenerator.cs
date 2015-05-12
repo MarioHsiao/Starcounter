@@ -152,7 +152,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal void AssociateTemplateWithReusedJson(TObject template, string instanceTypeName) {
             CodeBehindClassInfo cci = new CodeBehindClassInfo(null);
             cci.BaseClassName = instanceTypeName;
-            var jsonClass = ObtainInheritedValueClass(cci);
+            var jsonClass = ObtainInheritedValueClass(cci, template);
 
             valueClasses[template] = jsonClass;
             templateClasses[template] = jsonClass.NTemplateClass;
@@ -227,6 +227,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     jsonClass.InheritedClass = ObtainValueClass(defaultObjTemplate);
                 }
 
+                jsonClass.Namespace = template.Namespace;
                 jsonByExampleClass = new AstOtherClass(this) {
                     Parent = jsonClass,
                     ClassStemIdentifier = "JsonByExample",
@@ -356,12 +357,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstInstanceClass ObtainValueClass(Template template) {
             AstInstanceClass ret;
 
-            if (template.IsPrimitive) {
-                template = GetPrototype(template);
-            }
-
             if (valueClasses.TryGetValue(template, out ret)) {
                 return ret;
+            }
+
+            if (template.IsPrimitive) {
+                template = GetPrototype(template);
+                if (valueClasses.TryGetValue(template, out ret)) {
+                    return ret;
+                }
             }
 
             if (template is TObject) {
@@ -413,10 +417,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         /// <param name="mapInfo"></param>
         /// <returns></returns>
-        internal AstJsonClass ObtainInheritedValueClass(CodeBehindClassInfo mapInfo) {
+        internal AstJsonClass ObtainInheritedValueClass(CodeBehindClassInfo mapInfo, Template template) {
             AstJsonClass acn;
             if (mapInfo.DerivesDirectlyFromJson) {
-                acn = (AstJsonClass)ObtainValueClass(defaultObjTemplate);
+                acn = null; // (AstJsonClass)ObtainValueClass(defaultObjTemplate);
             } else {
                 acn = new AstJsonClass(this) {
                     CodebehindClass = new CodeBehindClassInfo(null) {
@@ -435,7 +439,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var genSchemaClass = new AstSchemaClass(this) {
                     NValueClass = acn,
                     Parent = jsonbyexample,
-                    Template = defaultObjTemplate,
+                    Template = template,
                     IsCodegenerated = true,
                     ClassStemIdentifier = "Schema",
                     UseClassAlias = false
@@ -480,12 +484,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             AstMetadataClass ret;
             AstInstanceClass parent = null;
 
-            if (template.IsPrimitive) {
-                template = GetPrototype(template);
-            }
-
             if (metaClasses.TryGetValue(template, out ret)) {
                 return ret;
+            }
+
+            if (template.IsPrimitive) {
+                template = GetPrototype(template);
+                if (metaClasses.TryGetValue(template, out ret)) {
+                    return ret;
+                }
             }
 
             if (template.IsPrimitive) {
@@ -565,8 +572,15 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public AstTemplateClass ObtainTemplateClass(Template template) {
             AstTemplateClass ret;
 
+            if (templateClasses.TryGetValue(template, out ret)) {
+                return ret;
+            }
+
             if (template.IsPrimitive) {
                 template = GetPrototype(template);
+                if (templateClasses.TryGetValue(template, out ret)) {
+                    return ret;
+                }
             }
 
             if (templateClasses.TryGetValue(template, out ret)) {
