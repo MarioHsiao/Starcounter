@@ -32,6 +32,10 @@ namespace Starcounter.Templates {
         private Dictionary<string, string> codegenMetadata;
         internal CompilerOrigin CompilerOrigin = new CompilerOrigin();
 
+        static Template() {
+            Starcounter.Internal.XSON.Modules.Starcounter_XSON.Initialize();
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Template" /> class.
         /// </summary>
@@ -343,6 +347,15 @@ namespace Starcounter.Templates {
             return (TObject.@switch.TryGetValue(pt, out dummy));
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static TValue CreateFromJson(string json) {
+            return CreateFromMarkup<Json, TValue>("json", json, null);
+        }
+
         internal static Template CreateFromMarkup(string json) {
             IXsonTemplateMarkupReader reader;
             string format = "json";
@@ -351,6 +364,29 @@ namespace Starcounter.Templates {
                 return reader.CompileMarkup<Json, TValue>(json, null);
             
             throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="TJson"></typeparam>
+        /// <typeparam name="TTemplate"></typeparam>
+        /// <param name="format"></param>
+        /// <param name="markup"></param>
+        /// <param name="origin"></param>
+        /// <returns></returns>
+        public static TTemplate CreateFromMarkup<TJson, TTemplate>(string format, string markup, string origin)
+            where TJson : Json, new()
+            where TTemplate : TValue {
+            IXsonTemplateMarkupReader reader;
+            try {
+                format = format.ToLower();
+                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
+            } catch {
+                throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
+            }
+
+            return reader.CompileMarkup<TJson, TTemplate>(markup, origin);
         }
     }
 

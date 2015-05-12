@@ -39,7 +39,6 @@ namespace Starcounter.Templates {
 		/// </summary>
 		static TObject() {
 			HelperFunctions.PreLoadCustomDependencies();
-			Starcounter.Internal.XSON.Modules.Starcounter_XSON.Initialize();
 		}
 
 		/// <summary>
@@ -215,39 +214,6 @@ namespace Starcounter.Templates {
             get { return typeof(ObjMetadata<TObject, Json>); }
         }
        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <typeparam name="TJson"></typeparam>
-        /// <typeparam name="TTemplate"></typeparam>
-        /// <param name="format"></param>
-        /// <param name="markup"></param>
-        /// <param name="origin"></param>
-        /// <returns></returns>
-        public static TTemplate CreateFromMarkup<TJson,TTemplate>(string format, string markup, string origin )
-            where TJson : Json, new()
-            where TTemplate : TValue {
-            IXsonTemplateMarkupReader reader; 
-            try {
-                format = format.ToLower();
-                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
-            }
-            catch {
-                throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-            }
-
-            return reader.CompileMarkup<TJson,TTemplate>(markup,origin);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static TValue CreateFromJson(string json) {
-            return CreateFromMarkup<Json, TValue>("json", json, null);
-        }
-
         /// <summary>
         /// 
         /// </summary>
