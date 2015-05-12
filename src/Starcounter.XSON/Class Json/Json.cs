@@ -54,23 +54,11 @@ namespace Starcounter {
         /// Base classes to be derived by Json-by-example classes.
         /// </summary>
         public static class JsonByExample {
-            ///// <summary>
-            ///// Used by to support inheritance when using Json-by-example compiler
-            ///// </summary>
-            //public class Schema : Starcounter.Templates.Template {
-
-            //    public override bool IsPrimitive {
-            //        get { throw new NotImplementedException(); }
-            //    }
-
-            //    public override Type MetadataType {
-            //        get { throw new NotImplementedException(); }
-            //    }
-
-            //    public override bool HasInstanceValueOnClient {
-            //        get { throw new NotImplementedException(); }
-            //    }
-            //}
+            /// <summary>
+            /// 
+            /// </summary>
+            public class Schema : TObject {
+            }
 
             /// <summary>
             /// Used by to support inheritance when using Json-by-example compiler
