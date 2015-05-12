@@ -524,7 +524,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestDataBindingWithDifferentClasses() {
             // Bound to SimpleBase datatype.
-            TObject tSimple = Helper.CreateJsonTemplateFromFile("simple.json");
+            TValue tSimple = Helper.CreateJsonTemplateFromFile("simple.json");
             dynamic json = tSimple.CreateInstance();
 
             var o = new SubClass1();

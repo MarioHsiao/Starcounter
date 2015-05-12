@@ -32,19 +32,19 @@ namespace Starcounter.Internal.XSON.Tests {
             return new JsonProperty(app, template);
         }
 
-        internal static TObject CreateJsonTemplateFromFile(string filePath) {
+        internal static TValue CreateJsonTemplateFromFile(string filePath) {
             string json = File.ReadAllText("json\\" + filePath);
             string className = Path.GetFileNameWithoutExtension(filePath);
-            var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, className);
-            tobj.ClassName = className;
-            return tobj;
+            var tval = Template.CreateFromMarkup<Json, TValue>("json", json, className);
+            tval.ClassName = className;
+            return tval;
         }
 
-        internal static TObject CreateJsonTemplateFromContent(string filename, string json) {
+        internal static TValue CreateJsonTemplateFromContent(string filename, string json) {
             var className = Path.GetFileNameWithoutExtension(filename);
-            var tobj = TObject.CreateFromMarkup<Json, TObject>("json",json, className);
-            tobj.ClassName = className;
-            return tobj;
+            var tval = Template.CreateFromMarkup<Json, TValue>("json", json, className);
+            tval.ClassName = className;
+            return tval;
         }
 
         internal static string Jsonify(string input) {

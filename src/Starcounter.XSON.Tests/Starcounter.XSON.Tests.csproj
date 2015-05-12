@@ -102,6 +102,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Json\SingleArray.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\SingleValue.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Json\JsonWithFiller.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
