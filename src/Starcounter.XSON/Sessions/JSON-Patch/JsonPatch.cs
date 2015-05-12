@@ -216,60 +216,60 @@ namespace Starcounter.XSON {
                     }
                 }
 
+                var serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                int size;
+
                 if (childJson != null) {
-                    writer.Write(childJson.ToJsonUtf8());
+                    unsafe {
+                        size = serializer.Serialize(childJson, (IntPtr)writer.Buffer, int.MaxValue); // We know we have enough space so no need to be exact here.
+                        writer.Skip(size);
+                    }
                     childJson.SetBoundValuesInTuple();
                 } else {
-                    // TODO: 
-                    // Should write value directly to buffer.
-                    Json parent = change.Parent;
-                    string value = 
-                        parent.Scope<Json, TValue, string>(
-                            (p, t) => { return t.ToJson(p); },
-                            parent,
-                            change.Property
-                        );
-                    writer.Write(value);
+                    unsafe {
+                        size = serializer.Serialize(change.Parent, change.Property, (IntPtr)writer.Buffer, int.MaxValue); // We know we have enough space so no need to be exact here.
+                        writer.Skip(size);
+                    }
                 }
             }
             writer.Write('}');
             return true;
         }
 
-        private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index, Json item) {
-            int sizeBytes = 0;
+        //private static int EstimatePropertyValueSizeInBytes(TValue property, Json parent, int index, Json item) {
+        //    int sizeBytes = 0;
 
-            if (property is TLong) {
-                sizeBytes += 32;
-            } else if (property is TString) {
-                string s = ((TString)property).Getter(parent);
-                if (s == null)
-                    sizeBytes += 2; // 2 for quotation marks around string.
-                else
-                    sizeBytes += s.Length * 2 + 2; // 2 for quotation marks around string.
-            } else if (property is TBool) {
-                sizeBytes += 5;
-            } else if (property is TDecimal) {
-                sizeBytes += 32;
-            } else if (property is TDouble) {
-                sizeBytes += 32;
-            } else if (property is TTrigger) {
-                sizeBytes += 4;
-            } else if (property is TContainer) {
-                var childJson = (Json)property.GetUnboundValueAsObject(parent);
-                if (index != -1) {
-                    childJson = item;
-                }
-                if (childJson != null)
-                    sizeBytes = ((TContainer)childJson.Template).JsonSerializer.EstimateSizeBytes(childJson);
-                else
-                    sizeBytes = 2;
-            } else if (property == null) {
-                sizeBytes = ((TContainer)parent.Template).JsonSerializer.EstimateSizeBytes(parent);
-            }
+        //    if (property is TLong) {
+        //        sizeBytes += 32;
+        //    } else if (property is TString) {
+        //        string s = ((TString)property).Getter(parent);
+        //        if (s == null)
+        //            sizeBytes += 2; // 2 for quotation marks around string.
+        //        else
+        //            sizeBytes += s.Length * 2 + 2; // 2 for quotation marks around string.
+        //    } else if (property is TBool) {
+        //        sizeBytes += 5;
+        //    } else if (property is TDecimal) {
+        //        sizeBytes += 32;
+        //    } else if (property is TDouble) {
+        //        sizeBytes += 32;
+        //    } else if (property is TTrigger) {
+        //        sizeBytes += 4;
+        //    } else if (property is TContainer) {
+        //        var childJson = (Json)property.GetUnboundValueAsObject(parent);
+        //        if (index != -1) {
+        //            childJson = item;
+        //        }
+        //        if (childJson != null)
+        //            sizeBytes = ((TContainer)childJson.Template).JsonSerializer.EstimateSizeBytes(childJson);
+        //        else
+        //            sizeBytes = 2;
+        //    } else if (property == null) {
+        //        sizeBytes = ((TContainer)parent.Template).JsonSerializer.EstimateSizeBytes(parent);
+        //    }
 
-            return sizeBytes;
-        }
+        //    return sizeBytes;
+        //}
 
         internal static int EstimateSizeOfPatch(Change change, bool includeNamespace) {
             int size;
@@ -301,11 +301,18 @@ namespace Starcounter.XSON {
             
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
                 size += 9;
-                size += change.Parent.Scope<Change, int>(
-                            (Change c) => {
-                                return EstimatePropertyValueSizeInBytes(c.Property, c.Parent, c.Index, c.Item);
-                            },
-                            change);
+
+                TypedJsonSerializer serializer;
+
+                if (change.Property == null) {
+                    serializer = ((TValue)change.Parent.Template).JsonSerializer;
+                    size += serializer.EstimateSizeBytes(change.Parent);
+                } else if (change.Index != -1) {
+                    serializer = ((TValue)change.Item.Template).JsonSerializer;
+                    size += serializer.EstimateSizeBytes(change.Item);
+                } else {
+                    size += change.Property.JsonSerializer.EstimateSizeBytes(change.Parent, change.Property);
+                }
             }
             return size;
         }

@@ -10,16 +10,75 @@ using System.Collections;
 
 namespace Starcounter.Advanced.XSON {
 	public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
+        private delegate int EstimateSizeDelegate(TypedJsonSerializer serializer, Json json, Template template);
+        private delegate int SerializeDelegate(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize);
 
-        public override int EstimateSizeBytes(Json obj) {
-            return obj.Scope<Json, int>(_EstimateSizeBytes, obj);
+        private static EstimateSizeDelegate[] estimatePerTemplate;
+        private static SerializeDelegate[] serializePerTemplate;
+
+        static StandardJsonSerializerBase() {
+            estimatePerTemplate = new EstimateSizeDelegate[9];
+            estimatePerTemplate[(int)TemplateTypeEnum.Unknown] = EstimateException;
+            estimatePerTemplate[(int)TemplateTypeEnum.Bool] = EstimateBool;
+            estimatePerTemplate[(int)TemplateTypeEnum.Decimal] = EstimateDecimal;
+            estimatePerTemplate[(int)TemplateTypeEnum.Double] = EstimateDouble;
+            estimatePerTemplate[(int)TemplateTypeEnum.Long] = EstimateLong;
+            estimatePerTemplate[(int)TemplateTypeEnum.String] = EstimateString;
+            estimatePerTemplate[(int)TemplateTypeEnum.Object] = EstimateObject;
+            estimatePerTemplate[(int)TemplateTypeEnum.Array] = EstimateArray;
+            estimatePerTemplate[(int)TemplateTypeEnum.Trigger] = EstimateTrigger;
+
+            serializePerTemplate = new SerializeDelegate[9];
+            serializePerTemplate[(int)TemplateTypeEnum.Unknown] = SerializeException;
+            serializePerTemplate[(int)TemplateTypeEnum.Bool] = SerializeBool;
+            serializePerTemplate[(int)TemplateTypeEnum.Decimal] = SerializeDecimal;
+            serializePerTemplate[(int)TemplateTypeEnum.Double] = SerializeDouble;
+            serializePerTemplate[(int)TemplateTypeEnum.Long] = SerializeLong;
+            serializePerTemplate[(int)TemplateTypeEnum.String] = SerializeString;
+            serializePerTemplate[(int)TemplateTypeEnum.Object] = SerializeObject;
+            serializePerTemplate[(int)TemplateTypeEnum.Array] = SerializeArray;
+            serializePerTemplate[(int)TemplateTypeEnum.Trigger] = SerializeTrigger;
         }
 
-        public override int Serialize(Json obj, byte[] buf, int origOffset) {
-            return obj.Scope<Json, byte[], int, int>(_Serialize, obj, buf, origOffset);
+        public override int EstimateSizeBytes(Json json) {
+            return json.Scope<TypedJsonSerializer, Json, int>((TypedJsonSerializer tjs, Json j) => {
+                return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null);
+            }, 
+            this,
+            json);
         }
 
-        private bool WrapInAppName(Session session, Json obj) {
+        public override int EstimateSizeBytes(Json json, Template property) {
+            return json.Scope<TypedJsonSerializer, Json, Template, int>((TypedJsonSerializer tjs, Json j, Template t) => {
+                return estimatePerTemplate[(int)t.TemplateTypeId](tjs, j, t);
+            },
+            this,
+            json,
+            property);
+        }
+
+        public override int Serialize(Json json, IntPtr dest, int destSize) {
+            return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
+                return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
+            },
+            this,
+            json, 
+            dest, 
+            destSize);
+        }
+
+        public override int Serialize(Json json, Template property, IntPtr dest, int destSize) {
+            return json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
+                return serializePerTemplate[(int)t.TemplateTypeId](tjs, j, t, d, ds);
+            },
+            this,
+            json,
+            property,
+            dest,
+            destSize);
+        }
+
+        private static bool WrapInAppName(Session session, Json obj) {
             if (!string.IsNullOrEmpty(obj._appName)
                 && session != null
                 && session.CheckOption(SessionOptions.IncludeNamespaces)
@@ -29,105 +88,120 @@ namespace Starcounter.Advanced.XSON {
             return false;
         }
 
-        /// <summary>
-        /// Estimates the size of serialization in bytes.
-        /// </summary>
-        private int _EstimateSizeBytes(Json obj) {
-            int sizeBytes = 0;
-            string htmlUriMerged = null;
-            string partialConfigId = null;
-            string activeAppName = null;
-            Session session = obj.Session;
+        private static int EstimateException(TypedJsonSerializer serializer, Json json, Template template) {
+            throw new Exception("Cannot estimate size of Json. The type of template is unknown: " + template.GetType());
+        }
 
-            Template template = obj.Template;
+        private static int EstimateBool(TypedJsonSerializer serializer, Json json, Template template) {
+            return 5;
+        }
 
-            // Checking if application name should wrap the JSON.
-            bool wrapInAppName = WrapInAppName(session, obj);
-               
-            if (obj.IsArray) {
-                sizeBytes = 2; // 2 for "[]".
+        private static int EstimateDecimal(TypedJsonSerializer serializer, Json json, Template template) {
+            return 32;
+        }
 
-                for (int arrPos = 0; arrPos < ((IList)obj).Count; arrPos++) {
-                    var rowJson = (Json)obj._GetAt(arrPos);
-                    sizeBytes += EstimateSizeBytes(rowJson) + 1;
-                }
-                return sizeBytes;
+        private static int EstimateDouble(TypedJsonSerializer serializer, Json json, Template template) {
+            return 32;
+        }
+
+        private static int EstimateLong(TypedJsonSerializer serializer, Json json, Template template) {
+            return 32;
+        }
+
+        private static int EstimateString(TypedJsonSerializer serializer, Json json, Template template) {
+            if (template == null) {
+                // This is a root. Take template from json.
+                template = json.Template;
             }
 
-            if (template == null) {
+            string value = ((TString)template).Getter(json);
+
+            if (value != null)
+                return value.Length * 2 + 2;
+            return 2;
+        }
+
+        private static int EstimateObject(TypedJsonSerializer serializer, Json json, Template template) {
+            Session session = json.Session;
+            int sizeBytes = 0;
+            string partialConfigId = null;
+            string activeAppName;
+            string htmlUriMerged = null;
+
+            if (template != null) {
+                // Not a root. Get correct value from template getter.
+                json = ((TObject)template).Getter(json);
+            }
+
+            if (json.Template == null) {
                 sizeBytes += 1; // 1 for "}".
                 return sizeBytes;
             }
 
-            if (template.IsPrimitive) {
-                return ((TValue)template).EstimateUtf8SizeInBytes(obj);
-            } else {
-                sizeBytes += 1; // 1 for "{".
-                List<Template> exposedProperties;
-                Template tProperty;
+            // Checking if application name should wrap the JSON.
+            bool wrapInAppName = WrapInAppName(session, json);
 
-                if (wrapInAppName) {
-                    sizeBytes += obj._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
+            sizeBytes += 1; // 1 for "{".
+            List<Template> exposedProperties;
+            Template tProperty;
 
-                    // Checking if active application is defined.
-                    if (obj._activeAppName != null) {
-                        if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
-                            // Serializing every sibling first.
-                            for (int s = 0; s < obj.StepSiblings.Count; s++) {
-                                var pp = obj.StepSiblings[s];
-
-                                if (pp == obj)
-                                    continue;
-
-                                // Checking if application name is the same.
-                                if (obj._activeAppName == pp._appName) {
-                                    // Checking if there is any partial Html provided.
-                                    partialConfigId = pp.GetHtmlPartialUrl();
-                                    break;
-                                }
-                            }
-                        }
-                        activeAppName = obj._activeAppName;
-                    } else {
-                        // Checking if there is any partial Html provided.
-                        partialConfigId = obj.GetHtmlPartialUrl();
-                        activeAppName = obj._appName;
-
-                        if (!String.IsNullOrEmpty(partialConfigId)) {
-                            htmlUriMerged = activeAppName + "=" + partialConfigId;
-                            sizeBytes += 15 + partialConfigId.Length; // "PartialId":"",
-                        }
-                    }
-                }
-
-                if (session != null && obj == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
-                    // add serverversion and clientversion to the serialized json if we have a root.
-                    sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
-                    sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
-                }
-
-                exposedProperties = ((TObject)obj.Template).Properties.ExposedProperties;
-                for (int i = 0; i < exposedProperties.Count; i++) {
-                    tProperty = exposedProperties[i];
-                    sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
-                    // Property value.
-                    sizeBytes += ((TValue)tProperty).EstimateUtf8SizeInBytes(obj);
-                    sizeBytes += 1; // 1 for comma.
-                }
+            if (session != null && json == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
+                // add serverversion and clientversion to the serialized json if we have a root.
+                sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
+                sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
             }
 
-            // Wrapping in application name.
-            if (wrapInAppName) {
+            exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
+            for (int i = 0; i < exposedProperties.Count; i++) {
+                tProperty = exposedProperties[i];
 
+                sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
+                sizeBytes += estimatePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty);
+                sizeBytes += 1; // 1 for comma.
+            }
+
+            if (wrapInAppName) {
+                sizeBytes += json._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
+
+                // Checking if active application is defined.
+                if (json._activeAppName != null) {
+                    if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                        // Serializing every sibling first.
+                        for (int s = 0; s < json.StepSiblings.Count; s++) {
+                            var pp = json.StepSiblings[s];
+
+                            if (pp == json)
+                                continue;
+
+                            // Checking if application name is the same.
+                            if (json._activeAppName == pp._appName) {
+                                // Checking if there is any partial Html provided.
+                                partialConfigId = pp.GetHtmlPartialUrl();
+                                break;
+                            }
+                        }
+                    }
+                    activeAppName = json._activeAppName;
+                } else {
+                    // Checking if there is any partial Html provided.
+                    partialConfigId = json.GetHtmlPartialUrl();
+                    activeAppName = json._appName;
+
+                    if (!String.IsNullOrEmpty(partialConfigId)) {
+                        htmlUriMerged = activeAppName + "=" + partialConfigId;
+                        sizeBytes += 15 + partialConfigId.Length; // "PartialId":"",
+                    }
+                }
+            
                 // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
                 // we check if we have more than one stepsibling.
-                if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
+                if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
                     // For comma.
                     sizeBytes++;
 
                     // Calculating the size for each step sibling.
-                    foreach (Json pp in obj.StepSiblings) {
-                        if (pp == obj)
+                    foreach (Json pp in json.StepSiblings) {
+                        if (pp == json)
                             continue;
 
                         pp.calledFromStepSibling = true;
@@ -142,7 +216,7 @@ namespace Starcounter.Advanced.XSON {
                             }
 
                             sizeBytes += pp._appName.Length + 1; // 1 for ":".
-                            sizeBytes += EstimateSizeBytes(pp) + 2; // 2 for ",".
+                            sizeBytes += serializer.EstimateSizeBytes(pp) + 2; // 2 for ",".
                         } finally {
                             pp.calledFromStepSibling = false;
                         }
@@ -150,7 +224,7 @@ namespace Starcounter.Advanced.XSON {
                 }
 
                 // ,"Html":"" is 10 characters
-                sizeBytes += 10; 
+                sizeBytes += 10;
 
                 // Checking if merging Html URI was constructed.
                 if (htmlUriMerged != null) {
@@ -164,7 +238,7 @@ namespace Starcounter.Advanced.XSON {
 
                         // "PartialId":"",
                         sizeBytes += 15 + partialConfigId.Length;
-                        
+
                         string setupStr = null;
                         try {
                             setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
@@ -178,313 +252,386 @@ namespace Starcounter.Advanced.XSON {
             }
 
             sizeBytes += 1; // 1 for "}".
-
             return sizeBytes;
         }
 
-        /// <summary>
-        /// Serializes given JSON object.
-        /// </summary>
-        private int _Serialize(Json obj, byte[] buf, int origOffset) {
+        private static int EstimateArray(TypedJsonSerializer serializer, Json json, Template template) {
+            Json arr = json;
+
+            if (template != null) {
+                // Not a root. Get correct value from getter.
+                arr = ((TObjArr)template).Getter(json);
+            }
+
+            int sizeBytes = 2; // 2 for "[]".
+            IList arrList = (IList)arr;
+
+            for (int i = 0; i < arrList.Count; i++) {
+                var rowJson = (Json)arrList[i];
+                sizeBytes += serializer.EstimateSizeBytes(rowJson) + 1;
+            }
+            return sizeBytes;
+        }
+
+        private static int EstimateTrigger(TypedJsonSerializer serializer, Json json, Template template) {
+            return 4;
+        }
+
+
+
+
+
+
+
+        private static int SerializeException(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            throw new Exception("Cannot serialize Json. The type of template is unknown: " + template.GetType());
+        }
+
+        private static int SerializeBool(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            if (template == null)
+                template = json.Template;
+
+            bool value = ((TBool)template).Getter(json);
+            return JsonHelper.WriteBool(dest, destSize, value);
+        }
+
+        private static int SerializeDecimal(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            if (template == null)
+                template = json.Template;
+
+            decimal value = ((TDecimal)template).Getter(json);
+            return JsonHelper.WriteDecimal(dest, destSize, value);            
+        }
+
+        private static int SerializeDouble(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            if (template == null)
+                template = json.Template;
+
+            double value = ((TDouble)template).Getter(json);
+            return JsonHelper.WriteDouble(dest, destSize, value);
+        }
+
+        private static int SerializeLong(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            if (template == null)
+                template = json.Template;
+
+            long value = ((TLong)template).Getter(json);
+            return JsonHelper.WriteInt(dest, destSize, value);
+        }
+
+        private static int SerializeString(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            if (template == null)    
+                template = json.Template;
+            
+            string value = ((TString)template).Getter(json);
+            return JsonHelper.WriteString(dest, destSize, value);
+        }
+
+        private static int SerializeObject(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
             int valueSize;
+            int used = 0;
             List<Template> exposedProperties;
-            TObject tObj;
-            int offset = origOffset;
             string htmlUriMerged = null;
             string partialConfigId = null;
             string activeAppName = null;
-            Session session = obj.Session;
+            Session session;
+
+            if (template != null)
+                json = ((TObject)template).Getter(json);
+
+            session = json.Session;
 
             // Checking if application name should wrap the JSON.
-            bool wrapInAppName = WrapInAppName(session, obj);
+            bool wrapInAppName = WrapInAppName(session, json);
 
             unsafe {
-                // Starting from the last written position
-                fixed (byte* p = &buf[offset]) {
-                    byte* pfrag = p;
+                byte* pfrag = (byte*)dest;
 
-                    // Processing array first.
-                    if (obj.IsArray) {
-                        *pfrag++ = (byte)'[';
-                        offset++;
+                *pfrag++ = (byte)'{';
+                used++;
 
-                        for (int arrPos = 0; arrPos < ((IList)obj).Count; arrPos++) {
-                            valueSize = (obj._GetAt(arrPos) as Json).ToJsonUtf8(buf, offset);
+                if (json.Template == null) {
+                    *pfrag++ = (byte)'}';
+                    used++;
+                    return used;
+                }
 
-                            pfrag += valueSize;
-                            offset += valueSize;
+                if (wrapInAppName) {
+                    // Checking if active application is defined.
+                    if (json._activeAppName != null) {
+                        if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                            // Serializing every sibling first.
+                            for (int s = 0; s < json.StepSiblings.Count; s++) {
+                                var pp = json.StepSiblings[s];
 
-                            if ((arrPos + 1) < ((IList)obj).Count) {
-                                *pfrag++ = (byte)',';
-                                offset++;
-                            }
-                        }
-                        *pfrag++ = (byte)']';
-                        offset++;
+                                if (pp == json)
+                                    continue;
 
-                        return offset - origOffset;
-                    }
-
-                    // If its not an array, its an object or a primitive value.
-                    Template template = obj.Template;
-
-                    // TODO:
-                    // Can template be null here?
-                    // Should we write empty object or null?
-                    if (template == null) {
-                        *pfrag++ = (byte)'{';
-                        *pfrag++ = (byte)'}';
-                        offset += 2;
-                        return offset - origOffset;
-                    }
-
-                    if (!template.IsPrimitive) {
-                        *pfrag++ = (byte)'{';
-                        offset++;
-                    }
-
-                    if (wrapInAppName) {
-                        // Checking if active application is defined.
-                        if (obj._activeAppName != null) {
-                            if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
-                                // Serializing every sibling first.
-                                for (int s = 0; s < obj.StepSiblings.Count; s++) {
-                                    var pp = obj.StepSiblings[s];
-
-                                    if (pp == obj)
-                                        continue;
-
-                                    // Checking if application name is the same.
-                                    if (obj._activeAppName == pp._appName) {
-                                        // Checking if there is any partial Html provided.
-                                        partialConfigId = pp.GetHtmlPartialUrl();
-                                        break;
-                                    }
+                                // Checking if application name is the same.
+                                if (json._activeAppName == pp._appName) {
+                                    // Checking if there is any partial Html provided.
+                                    partialConfigId = pp.GetHtmlPartialUrl();
+                                    break;
                                 }
                             }
-
-                            activeAppName = obj._activeAppName;
-                            obj._activeAppName = null;
-                        } else {
-                            // Checking if there is any partial Html provided.
-                            partialConfigId = obj.GetHtmlPartialUrl();
-                            activeAppName = obj._appName;
-
-                            if (!String.IsNullOrEmpty(partialConfigId)) {
-                                htmlUriMerged = activeAppName + "=" + partialConfigId;
-                            }
                         }
 
-                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, obj._appName);
-                        offset += valueSize;
-                        pfrag += valueSize;
+                        activeAppName = json._activeAppName;
+                        json._activeAppName = null;
+                    } else {
+                        // Checking if there is any partial Html provided.
+                        partialConfigId = json.GetHtmlPartialUrl();
+                        activeAppName = json._appName;
 
-                        *pfrag++ = (byte)':';
-                        offset++;
-
-                        *pfrag++ = (byte)'{';
-                        offset++;
+                        if (!String.IsNullOrEmpty(partialConfigId)) {
+                            htmlUriMerged = activeAppName + "=" + partialConfigId;
+                        }
                     }
 
-                    if (template.IsPrimitive) {
+                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, json._appName);
+                    pfrag += valueSize;
+                    used += valueSize;
+
+                    *pfrag++ = (byte)':';
+                    used++;
+
+                    *pfrag++ = (byte)'{';
+                    used++;
+                }
+
+                exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
+
+                if (session != null && json == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
+                    // add serverversion and clientversion to the serialized json if we have a root.
+                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
+                    used += valueSize;
+                    pfrag += valueSize;
+                    *pfrag++ = (byte)':';
+                    used++;
+                    valueSize = JsonHelper.WriteInt((IntPtr)pfrag, destSize - used, session.ClientVersion);
+                    used += valueSize;
+                    pfrag += valueSize;
+                    *pfrag++ = (byte)',';
+                    used++;
+
+                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, Starcounter.XSON.JsonPatch.ServerVersionPropertyName);
+                    used += valueSize;
+                    pfrag += valueSize;
+                    *pfrag++ = (byte)':';
+                    used++;
+                    valueSize = JsonHelper.WriteInt((IntPtr)pfrag, destSize - used, session.ServerVersion);
+                    used += valueSize;
+                    pfrag += valueSize;
+
+                    if (exposedProperties.Count > 0) {
+                        *pfrag++ = (byte)',';
+                        used++;
+                    }
+                }
+
+                for (int i = 0; i < exposedProperties.Count; i++) {
+                    Template tProperty = exposedProperties[i];
+
+                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, tProperty.TemplateName);
+                    used += valueSize;
+                    pfrag += valueSize;
+
+                    *pfrag++ = (byte)':';
+                    used++;
+
+                    // TODO:
+                    // If we have an object with another serializer set, this code wont work since it will bypass the setting.
+                    valueSize = serializePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty, (IntPtr)pfrag, destSize - used);
+                    used += valueSize;
+                    pfrag += valueSize;
+
+                    if ((i + 1) < exposedProperties.Count) {
+                        *pfrag++ = (byte)',';
+                        used++;
+                    }
+                }
+
+                // Wrapping in application name.
+                if (wrapInAppName) {
+                    *pfrag++ = (byte)'}';
+                    used++;
+
+                    // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
+                    // we check if we have more than one stepsibling.
+                    if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
+                        bool addComma = true;
+
+                        // Serializing every sibling first.
+                        for (int s = 0; s < json.StepSiblings.Count; s++) {
+                            var pp = json.StepSiblings[s];
+
+                            if (pp == json)
+                                continue;
+
+                            if (addComma) {
+                                addComma = false;
+                                *pfrag++ = (byte)',';
+                                used++;
+                            }
+
+                            pp.calledFromStepSibling = true;
+                            try {
+                                // Checking if there is any partial Html provided.
+                                if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
+
+                                    if (htmlUriMerged != null)
+                                        htmlUriMerged += "&";
+
+                                    htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
+                                }
+
+                                valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, pp._appName);
+                                used += valueSize;
+                                pfrag += valueSize;
+
+                                *pfrag++ = (byte)':';
+                                used++;
+
+                                valueSize = pp.ToJsonUtf8((IntPtr)pfrag, destSize - used);
+                                pfrag += valueSize;
+                                used += valueSize;
+
+                                if ((s + 1) < json.StepSiblings.Count) {
+                                    addComma = true;
+                                }
+                            } finally {
+                                pp.calledFromStepSibling = false;
+                            }
+                        }
+                    }
+
+                    // Adding Html property.
+                    *pfrag++ = (byte)',';
+                    used++;
+
+                    // Adding Html property to outer level.
+                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, "Html");
+                    used += valueSize;
+                    pfrag += valueSize;
+
+                    *pfrag++ = (byte)':';
+                    used++;
+
+                    // Checking if merging Html URI was constructed.
+                    if (null != htmlUriMerged) {
+                        htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
+
+                        valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, htmlUriMerged);
+                        used += valueSize;
+                        pfrag += valueSize;
+
+                        string setupStr = null;
+                        if (!string.IsNullOrEmpty(partialConfigId)) {
+
+                            *pfrag++ = (byte)',';
+                            used++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "AppName");
+                            used += valueSize;
+                            pfrag += valueSize;
+
+                            *pfrag++ = (byte)':';
+                            used++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, activeAppName);
+                            used += valueSize;
+                            pfrag += valueSize;
+
+                            *pfrag++ = (byte)',';
+                            used++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "PartialId");
+                            used += valueSize;
+                            pfrag += valueSize;
+
+                            *pfrag++ = (byte)':';
+                            used++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, partialConfigId);
+                            used += valueSize;
+                            pfrag += valueSize;
+
+                            try {
+                                setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
+                            } catch { }
+                        }
+
+                        if (setupStr != null) {
+                            *pfrag++ = (byte)',';
+                            used++;
+
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "juicyTilesSetup");
+                            used += valueSize;
+                            pfrag += valueSize;
+
+                            *pfrag++ = (byte)':';
+                            used++;
+
+                            valueSize = JsonHelper.WriteStringNoQuotations(pfrag, destSize - used, setupStr);
+                            used += valueSize;
+                            pfrag += valueSize;
+                        }
 
                     } else {
 
-                        tObj = (TObject)obj.Template;
-                        exposedProperties = tObj.Properties.ExposedProperties;
+                        // Inserting an empty string.
 
-                        if (session != null && obj == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
-                            // add serverversion and clientversion to the serialized json if we have a root.
-                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
-                            offset += valueSize;
-                            pfrag += valueSize;
-                            *pfrag++ = (byte)':';
-                            offset++;
-                            valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, session.ClientVersion);
-                            offset += valueSize;
-                            pfrag += valueSize;
-                            *pfrag++ = (byte)',';
-                            offset++;
-
-                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, Starcounter.XSON.JsonPatch.ServerVersionPropertyName);
-                            offset += valueSize;
-                            pfrag += valueSize;
-                            *pfrag++ = (byte)':';
-                            offset++;
-                            valueSize = JsonHelper.WriteInt((IntPtr)pfrag, buf.Length - offset, session.ServerVersion);
-                            offset += valueSize;
-                            pfrag += valueSize;
-
-                            if (exposedProperties.Count > 0) {
-                                *pfrag++ = (byte)',';
-                                offset++;
-                            }
-                        }
-
-                        for (int i = 0; i < exposedProperties.Count; i++) {
-                            Template tProperty = exposedProperties[i];
-                            valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, tProperty.TemplateName);
-
-                            offset += valueSize;
-                            pfrag += valueSize;
-
-                            *pfrag++ = (byte)':';
-                            offset++;
-
-                            valueSize = ((TValue)tProperty).ToJsonUtf8(obj, buf, offset);
-                            offset += valueSize;
-                            pfrag += valueSize;
-
-                            if ((i + 1) < exposedProperties.Count) {
-                                *pfrag++ = (byte)',';
-                                offset++;
-                            }
-                        }
+                        *pfrag++ = (byte)'\"';
+                        used++;
+                        *pfrag++ = (byte)'\"';
+                        used++;
                     }
-
-                    // Wrapping in application name.
-                    if (wrapInAppName) {
-                        *pfrag++ = (byte)'}';
-                        offset++;
-
-                        // Checking if we have any siblings. Since the array contains all stepsiblings (including this object)
-                        // we check if we have more than one stepsibling.
-                        if (!obj.calledFromStepSibling && obj.StepSiblings != null && obj.StepSiblings.Count != 1) {
-                            bool addComma = true;
-
-                            // Serializing every sibling first.
-                            for (int s = 0; s < obj.StepSiblings.Count; s++) {
-                                var pp = obj.StepSiblings[s];
-
-                                if (pp == obj)
-                                    continue;
-
-                                if (addComma) {
-                                    addComma = false;
-                                    *pfrag++ = (byte)',';
-                                    offset++;
-                                }
-
-                                pp.calledFromStepSibling = true;
-                                try {
-                                    // Checking if there is any partial Html provided.
-                                    if (!String.IsNullOrEmpty(pp.GetHtmlPartialUrl())) {
-
-                                        if (htmlUriMerged != null)
-                                            htmlUriMerged += "&";
-
-                                        htmlUriMerged += pp._appName + "=" + pp.GetHtmlPartialUrl();
-                                    }
-
-                                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, pp._appName);
-                                    offset += valueSize;
-                                    pfrag += valueSize;
-
-                                    *pfrag++ = (byte)':';
-                                    offset++;
-
-                                    valueSize = pp.ToJsonUtf8(buf, offset);
-                                    pfrag += valueSize;
-                                    offset += valueSize;
-
-                                    if ((s + 1) < obj.StepSiblings.Count) {
-                                        addComma = true;
-                                    }
-                                } finally {
-                                    pp.calledFromStepSibling = false;
-                                }
-                            }
-                        }
-
-                        // Adding Html property.
-                        *pfrag++ = (byte)',';
-                        offset++;
-
-                        // Adding Html property to outer level.
-                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, buf.Length - offset, "Html");
-                        offset += valueSize;
-                        pfrag += valueSize;
-
-                        *pfrag++ = (byte)':';
-                        offset++;
-
-                        // Checking if merging Html URI was constructed.
-                        if (null != htmlUriMerged) {
-                            htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
-
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, htmlUriMerged);
-                            offset += valueSize;
-                            pfrag += valueSize;
-
-                            string setupStr = null;
-                            if (!string.IsNullOrEmpty(partialConfigId)) {
-
-                                *pfrag++ = (byte)',';
-                                offset++;
-
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "AppName");
-                                offset += valueSize;
-                                pfrag += valueSize;
-
-                                *pfrag++ = (byte)':';
-                                offset++;
-
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, activeAppName);
-                                offset += valueSize;
-                                pfrag += valueSize;
-
-                                *pfrag++ = (byte)',';
-                                offset++;
-
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "PartialId");
-                                offset += valueSize;
-                                pfrag += valueSize;
-
-                                *pfrag++ = (byte)':';
-                                offset++;
-
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, partialConfigId);
-                                offset += valueSize;
-                                pfrag += valueSize;
-
-                                try {
-                                    setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
-                                } catch { }
-                            }
-
-                            if (setupStr != null) {
-                                *pfrag++ = (byte)',';
-                                offset++;
-
-                                valueSize = JsonHelper.WriteString((IntPtr)pfrag, buf.Length - offset, "juicyTilesSetup");
-                                offset += valueSize;
-                                pfrag += valueSize;
-
-                                *pfrag++ = (byte)':';
-                                offset++;
-
-                                valueSize = JsonHelper.WriteStringNoQuotations(pfrag, buf.Length - offset, setupStr);
-                                offset += valueSize;
-                                pfrag += valueSize;
-                            }
-
-                        } else {
-
-                            // Inserting an empty string.
-
-                            *pfrag++ = (byte)'\"';
-                            offset++;
-                            *pfrag++ = (byte)'\"';
-                            offset++;
-                        }
-                    }
-
-                    *pfrag++ = (byte)'}';
-                    offset++;
                 }
+
+                *pfrag++ = (byte)'}';
+                used++;
             }
 
-            return offset - origOffset;
+            return used;
+        }
+
+        private static int SerializeArray(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            int used = 0;
+            int valueSize;
+            IList arrList;
+            Json arr = json;
+
+            if (template != null)
+                arr = ((TObjArr)template).Getter(json);
+
+            unsafe {
+                byte* pfrag = (byte*)dest;
+
+                *pfrag++ = (byte)'[';
+                used++;
+
+
+                arrList = (IList)arr;
+                for (int i = 0; i < arrList.Count; i++) {
+                    valueSize = ((Json)arrList[i]).ToJsonUtf8((IntPtr)pfrag, destSize - used);
+
+                    pfrag += valueSize;
+                    used += valueSize;
+
+                    if ((i + 1) < arrList.Count) {
+                        *pfrag++ = (byte)',';
+                        used++;
+                    }
+                }
+                *pfrag++ = (byte)']';
+                used++;
+
+                return used;
+            }
+        }
+
+        private static int SerializeTrigger(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
+            return JsonHelper.WriteNull(dest, destSize);
         }
 	}
 
