@@ -140,36 +140,8 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 		}
 
-        public override string ToJson(Json json) {
-            return "null";
-        }
-
-        public override byte[] ToJsonUtf8(Json json) {
-            return jsonValueAsBytes;
-        }
-
-        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
-            if ((offset + jsonValueAsBytes.Length) > buffer.Length)
-                return -1;
-            Buffer.BlockCopy(jsonValueAsBytes, 0, buffer, offset, jsonValueAsBytes.Length);
-            return jsonValueAsBytes.Length;
-        }
-
-        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
-            if (bufferSize < jsonValueAsBytes.Length)
-                return -1;
-
-            unsafe {
-                byte* pfrag = (byte*)ptr;
-                for (int i = 0; i < jsonValueAsBytes.Length; i++) {
-                    pfrag[i] = jsonValueAsBytes[i];
-                }
-            }
-            return jsonValueAsBytes.Length;
-        }
-
-        public override int EstimateUtf8SizeInBytes(Json json) {
-            return jsonValueAsBytes.Length;
+        internal override int TemplateTypeId {
+            get { return (int)TemplateTypeEnum.Trigger; }
         }
     }
 }

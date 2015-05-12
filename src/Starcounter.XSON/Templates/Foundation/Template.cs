@@ -301,6 +301,8 @@ namespace Starcounter.Templates {
             }
         }
 
+        internal abstract int TemplateTypeId { get; }
+
         /// <summary>
         /// 
         /// </summary>
@@ -359,5 +361,17 @@ namespace Starcounter.Templates {
         public string FileName;
         public int LineNo;
         public int ColNo;
+    }
+
+    internal enum TemplateTypeEnum {
+        Unknown = 0,
+        Bool = 1,
+        Decimal = 2,
+        Double = 3,
+        Long = 4,
+        String = 5,
+        Object = 6,
+        Array = 7,
+        Trigger = 8,
     }
 }

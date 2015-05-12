@@ -447,76 +447,8 @@ namespace Starcounter.Templates {
             }
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="json"></param>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
-        //    return FTJSerializer.Serialize(json, buffer, offset);
-        //}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="jsonStr"></param>
-		public override void PopulateFromJson(Json json, string jsonStr) {
-			byte[] buffer = Encoding.UTF8.GetBytes(jsonStr);
-			PopulateFromJson(json, buffer, buffer.Length);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="srcPtr"></param>
-		/// <param name="srcSize"></param>
-		/// <returns></returns>
-		public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
-			return JsonSerializer.Populate(json, srcPtr, srcSize);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="src"></param>
-		/// <param name="srcSize"></param>
-		/// <returns></returns>
-		public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
-			unsafe {
-				fixed (byte* p = src) {
-					return PopulateFromJson(json, (IntPtr)p, srcSize);
-				}
-			}
-		}
-
-        public override int EstimateUtf8SizeInBytes(Json parent) {
-            var json = Getter(parent);
-            return JsonSerializer.EstimateSizeBytes(json);
+        internal override int TemplateTypeId {
+            get { return (int)TemplateTypeEnum.Object; }
         }
-
-        public override int ToJsonUtf8(Json parent, byte[] buffer, int offset) {
-            var json = Getter(parent);
-            return JsonSerializer.Serialize(json, buffer, offset);
-        }
-
-        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
-            throw new NotImplementedException();
-        }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="json"></param>
-        ///// <param name="srcPtr"></param>
-        ///// <param name="srcSize"></param>
-        ///// <returns></returns>
-        //public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
-        //    return FTJSerializer.Populate(json, srcPtr, srcSize);
-        //}
-
     }
 }

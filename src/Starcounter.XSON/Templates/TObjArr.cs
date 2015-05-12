@@ -281,114 +281,6 @@ namespace Starcounter.Templates {
             return new Arr<Json>(parent, this);
 		}
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="json"></param>
-        ///// <param name="buffer"></param>
-        ///// <returns></returns>
-        //public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
-        //    return FTJSerializer.Serialize(json, buffer, offset);
-        //}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="jsonStr"></param>
-        public override void PopulateFromJson(Json json, string jsonStr) {
-            byte[] buffer = Encoding.UTF8.GetBytes(jsonStr);
-            PopulateFromJson(json, buffer, buffer.Length);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="srcPtr"></param>
-        /// <param name="srcSize"></param>
-        /// <returns></returns>
-        public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
-            return JsonSerializer.Populate(json, srcPtr, srcSize);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="src"></param>
-        /// <param name="srcSize"></param>
-        /// <returns></returns>
-        public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
-            unsafe {
-                fixed (byte* p = src) {
-                    return PopulateFromJson(json, (IntPtr)p, srcSize);
-                }
-            }
-        }
-
-        public override int EstimateUtf8SizeInBytes(Json json) {
-            Json arrJson = Getter(json);
-            Json arrItem;
-            int sizeBytes = 2; // 2 for "[]".
-            IList arrList = (IList)arrJson;
-
-            for (int i = 0; i < arrList.Count; i++) {
-                arrItem = (Json)arrList[i];
-                sizeBytes += ((TValue)arrItem.Template).EstimateUtf8SizeInBytes(arrItem);
-            }
-            return sizeBytes;
-        }
-
-        public override int ToJsonUtf8(Json parent, byte[] buffer, int offset) {
-            var json = Getter(parent);
-            return JsonSerializer.Serialize(json, buffer, offset);
-        }
-
-        public override int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize) {
-            throw new NotImplementedException();
-            //int offset = 0;
-            //int valueSize;
-            //Json arrItem;
-            //Json arrJson = Getter(json);
-            //IList arrList = (IList)arrJson;
-
-            //unsafe {
-            //    byte* pfrag = (byte*)ptr;
-
-            //    *pfrag++ = (byte)'[';
-            //    offset++;
-
-            //    for (int i = 0; i < arrList.Count; i++) {
-            //        arrItem = (Json)arrList[i];
-
-            //        valueSize = ((TValue)arrItem.Template).ToJsonUtf8(arrItem, (IntPtr)pfrag, bufferSize - offset);
-
-            //        pfrag += valueSize;
-            //        offset += valueSize;
-
-            //        if ((i + 1) < arrList.Count) {
-            //            *pfrag++ = (byte)',';
-            //            offset++;
-            //        }
-            //    }
-            //    *pfrag++ = (byte)']';
-            //    offset++;
-            //}
-            //return offset;
-        }
-
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <param name="json"></param>
-        ///// <param name="srcPtr"></param>
-        ///// <param name="srcSize"></param>
-        ///// <returns></returns>
-        //public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
-        //    return FTJSerializer.Populate(json, srcPtr, srcSize);
-        //}
-
         /// <summary>
         /// Autogenerates a template for a given data object given its (one dimensional) primitive fields and properties.
         /// This allows you to assign a SQL result to an expando like Json object without having defined
@@ -415,6 +307,10 @@ namespace Starcounter.Templates {
                 }
             }
             ElementType = elementType;
+        }
+
+        internal override int TemplateTypeId {
+            get { return (int)TemplateTypeEnum.Array; }
         }
     }
 }
