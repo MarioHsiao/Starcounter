@@ -277,7 +277,7 @@ namespace Starcounter.Templates {
             }
         }
 
-        public override object CreateInstance(Json parent) {
+        public override object CreateInstance(Json parent = null) {
             return new Arr<Json>(parent, this);
 		}
 
