@@ -182,33 +182,37 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         internal static void AssertAreEqual(Json expected, Json actual) {
-            TObject tExpected = (TObject)expected.Template;
-            TObject tActual = (TObject)actual.Template;
+            Assert.AreEqual(expected.Template.GetType(), actual.Template.GetType());
 
-            // We assume that the instances used the same Template.
-            Assert.AreEqual(tExpected, tActual);
-            foreach (Template child in tExpected.Properties) {
-                if (child is TBool)
-                    Assert.AreEqual(((TBool)child).Getter(expected), ((TBool)child).Getter(actual));
-                else if (child is TDecimal)
-                    Assert.AreEqual(((TDecimal)child).Getter(expected), ((TDecimal)child).Getter(actual));
-                else if (child is TDouble)
-                    Assert.AreEqual(((TDouble)child).Getter(expected), ((TDouble)child).Getter(actual));
-                else if (child is TLong)
-                    Assert.AreEqual(((TLong)child).Getter(expected), ((TLong)child).Getter(actual));
-                else if (child is TString)
-                    Assert.AreEqual(((TString)child).Getter(expected), ((TString)child).Getter(actual));
-                else if (child is TObject)
-                    AssertAreEqual(((TObject)child).Getter(expected), ((TObject)child).Getter(actual));
-                else if (child is TObjArr) {
-                    var arr1 = ((TObjArr)child).Getter(expected);
-                    var arr2 = ((TObjArr)child).Getter(actual);
-                    Assert.AreEqual(((IList)arr1).Count, ((IList)arr2).Count);
-                    for (int i = 0; i < ((IList)arr1).Count; i++) {
-                        AssertAreEqual((Json)arr1._GetAt(i), (Json)arr2._GetAt(i));
-                    }
-                } else
-                    throw new NotSupportedException();
+            if (expected.Template is TObject) {
+                TObject tExpected = (TObject)expected.Template;
+                TObject tActual = (TObject)actual.Template;
+
+                // We assume that the instances used the same Template.
+                Assert.AreEqual(tExpected, tActual);
+                foreach (Template child in tExpected.Properties) {
+                    if (child is TBool)
+                        Assert.AreEqual(((TBool)child).Getter(expected), ((TBool)child).Getter(actual));
+                    else if (child is TDecimal)
+                        Assert.AreEqual(((TDecimal)child).Getter(expected), ((TDecimal)child).Getter(actual));
+                    else if (child is TDouble)
+                        Assert.AreEqual(((TDouble)child).Getter(expected), ((TDouble)child).Getter(actual));
+                    else if (child is TLong)
+                        Assert.AreEqual(((TLong)child).Getter(expected), ((TLong)child).Getter(actual));
+                    else if (child is TString)
+                        Assert.AreEqual(((TString)child).Getter(expected), ((TString)child).Getter(actual));
+                    else if (child is TObject)
+                        AssertAreEqual(((TObject)child).Getter(expected), ((TObject)child).Getter(actual));
+                    else if (child is TObjArr) {
+                        var arr1 = ((TObjArr)child).Getter(expected);
+                        var arr2 = ((TObjArr)child).Getter(actual);
+                        Assert.AreEqual(((IList)arr1).Count, ((IList)arr2).Count);
+                        for (int i = 0; i < ((IList)arr1).Count; i++) {
+                            AssertAreEqual((Json)arr1._GetAt(i), (Json)arr2._GetAt(i));
+                        }
+                    } else
+                        throw new NotSupportedException();
+                }
             }
         }
 
