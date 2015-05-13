@@ -143,5 +143,9 @@ namespace Starcounter.Templates {
         internal override int TemplateTypeId {
             get { return (int)TemplateTypeEnum.Trigger; }
         }
+
+        internal override Type DefaultInstanceType {
+            get { return null; }
+        }
     }
 }
