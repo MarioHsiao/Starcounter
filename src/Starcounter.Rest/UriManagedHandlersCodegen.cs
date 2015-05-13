@@ -26,6 +26,9 @@ namespace Starcounter.Rest
 
         public UriManagedHandlersCodegen()
         {
+            if (MixedCodeConstants.REST_ARG_SESSION != (int) RestDelegateArgumentTypes.REST_ARG_SESSION)
+                throw new Exception("Wrong value for MixedCodeConstants.REST_ARG_SESSION!");
+
             if (USER_PARAM_INFO_SIZE != 4)
                 throw new Exception("User param info size != 4");
         }

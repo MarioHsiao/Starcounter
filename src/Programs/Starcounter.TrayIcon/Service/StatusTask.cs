@@ -11,7 +11,7 @@ namespace Starcounter.Tools.Service.Task {
 
         public static void Execute(StarcounterWatcher service, out StatusEventArgs statusEventArgs) {
 
-            string url = string.Format("{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
+            string url = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/api/server");
 
             Response response = Http.GET(url, null, 10000);
 

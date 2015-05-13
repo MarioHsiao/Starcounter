@@ -166,9 +166,9 @@ namespace Starcounter.Hosting {
                 if ((application != null) && (!StarcounterEnvironment.IsAdministratorApp)) {
 
                     AppsBootstrapper.Bootstrap(
-                        application.Name,
+                        StarcounterEnvironment.Default.UserHttpPort,
                         application.WorkingDirectory,
-                        StarcounterEnvironment.Default.UserHttpPort);
+                        application.Name);
                 }
 
                 // Initializing package for all executables.

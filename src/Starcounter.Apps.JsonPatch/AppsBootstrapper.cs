@@ -168,16 +168,6 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
-        /// Adds a directory to the list of directories used by the web server to
-        /// resolve GET requests for static content.
-        /// </summary>
-        /// <param name="path">The directory to include</param>
-        internal static void AddFileServingDirectory(String appName, UInt16 port, String path) {
-
-            AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
-        }
-        
-        /// <summary>
         /// Gets a list of directories used by the web server to
         /// resolve GET requests for static content.
         /// </summary>
@@ -186,13 +176,55 @@ namespace Starcounter.Internal {
         }
 
         /// <summary>
+        /// Adding static files directory.
+        /// </summary>
+        /// <param name="port">Port number.</param>
+        /// <param name="webResourcesDir">Path to static files directory.</param>
+        public static void AddStaticFileDirectory(UInt16 port, String webResourcesDir) {
+            InternalAddStaticFileDirectory(port, webResourcesDir, StarcounterEnvironment.AppName);
+        }
+
+        /// <summary>
+        /// Adding static files directory.
+        /// </summary>
+        /// <param name="port">Port number.</param>
+        /// <param name="webResourcesDir">Path to static files directory.</param>
+        /// <param name="appName">Application name.</param>
+        internal static void InternalAddStaticFileDirectory(UInt16 port, String webResourcesDir, String appName) {
+
+            // Obtaining full path to directory.
+            String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
+
+            // Registering files directory.
+            AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, fullPathToResourcesDir);
+
+            // Checking if this is not administrator.
+            if (!StarcounterEnvironment.IsAdministratorApp) {
+
+                // Putting port and full path to resources directory.
+                String body =
+                    appName + StarcounterConstants.NetworkConstants.CRLF +
+                    StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
+                    port + StarcounterConstants.NetworkConstants.CRLF +
+                    fullPathToResourcesDir;
+
+                // Sending REST POST request to Administrator to register static resources directory.
+                Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
+
+                if ("Success!" != resp.Body) {
+                    throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
+                }
+            }
+        }
+
+        /// <summary>
         /// Function that registers a default handler in the gateway and handles incoming requests
         /// and dispatch them to Apps. Also registers internal handlers for jsonpatch.
         /// </summary>
-        public static void Bootstrap(
-            String appName,
+        internal static void Bootstrap(
+            UInt16 port,
             String webResourcesDir,
-            UInt16 port) {
+            String appName) {
 
             // Checking if there is no network gateway, then just returning.
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
@@ -204,6 +236,7 @@ namespace Starcounter.Internal {
             // Checking if there is a given web resource path.
             if (webResourcesDir != null) {
 
+                // Obtaining full path to directory.
                 String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
 
                 // Checking if we have wwwroot folder for Polyjuice edition.
@@ -225,26 +258,8 @@ namespace Starcounter.Internal {
                     }
                 }
 
-                // Registering files directory.
-                AddFileServingDirectory(appName, port, fullPathToResourcesDir);
-
-                // Checking if this is not administrator.
-                if (!StarcounterEnvironment.IsAdministratorApp) {
-
-                    // Putting port and full path to resources directory.
-                    String body = 
-                        appName + StarcounterConstants.NetworkConstants.CRLF +
-                        StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
-                        port + StarcounterConstants.NetworkConstants.CRLF +
-                        fullPathToResourcesDir;
-
-                    // Sending REST POST request to Administrator to register static resources directory.
-                    Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
-
-                    if ("Success!" != resp.Body) {
-                        throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
-                    }
-                }
+                // Adding found directory to static file server.
+                InternalAddStaticFileDirectory(port, fullPathToResourcesDir, appName);
             }
 
             // Initializing based on the edition and codehost type.
