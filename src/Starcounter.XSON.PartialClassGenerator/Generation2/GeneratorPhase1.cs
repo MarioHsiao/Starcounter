@@ -151,8 +151,29 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 }
             } else {
                 // A primitive type. Generate a property for the whole schema.
-                GenerateProperty(template, (AstJsonClass)appClassParent, (AstSchemaClass)templParent, metaParent, "Value");
+                GenerateProperty(template, 
+                                (AstJsonClass)appClassParent, 
+                                (AstSchemaClass)templParent, 
+                                metaParent, 
+                                GetPropertyNameForSinglePrimitiveTemplate(appClassParent.NTemplateClass.Template));
             }
+        }
+
+        private string GetPropertyNameForSinglePrimitiveTemplate(Template template) {
+            var enumValue = (TemplateTypeEnum)template.TemplateTypeId;
+            switch (enumValue) {
+                case TemplateTypeEnum.Bool:
+                    return "BoolValue";
+                case TemplateTypeEnum.Decimal:
+                    return "DecimalValue";
+                case TemplateTypeEnum.Double:
+                    return "DoubleValue";
+                case TemplateTypeEnum.Long:
+                    return "IntegerValue";
+                case TemplateTypeEnum.String:
+                    return "StringValue";
+            }
+            throw new Exception("Unknown templatetype: " + template.GetType());
         }
 
         /// <summary>

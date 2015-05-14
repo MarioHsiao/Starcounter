@@ -661,7 +661,13 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             bool hasValue = ib.HasValue;
             StringBuilder sb = new StringBuilder();
             sb.Append("        ");
-            sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
+
+            if (ib.BindsToProperty.Type == ib.DeclaringAppClass.NTemplateClass) {
+                // Handler for a single value
+                sb.Append("this");
+            } else {
+                sb.Append(ib.BindsToProperty.Template.PropertyName);       // {0}
+            }
             sb.Append(".AddHandler((Json pup, ");
 
             if (hasValue) {

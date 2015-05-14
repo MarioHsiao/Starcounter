@@ -92,11 +92,11 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         internal void FindHandleDeclaringClass(AstInputBinding binding, InputBindingInfo info) {
             Int32 parentCount = 0;
             TValue candidate = binding.PropertyAppClass.Template;
-            TObject appTemplate;
+            TValue appTemplate;
             AstJsonClass declaringAppClass = null;
 
             while (candidate != null) {
-                appTemplate = candidate as TObject;
+                appTemplate = candidate as TValue;
                 if (appTemplate != null) {
                     if (info.DeclaringClassName.Equals(appTemplate.ClassName)) {
                         declaringAppClass = (AstJsonClass)ObtainRootValueClass(appTemplate);
