@@ -40,8 +40,12 @@ namespace Starcounter.Internal.JsonTemplate {
             TObject objParent;
             TObjArr arrParent;
 
-            if (parent == null)
+            if (parent == null) {
+                // HACK HACK HACK.
+                // There is no way to easily set metadata on single value json today so we set editable to true per default.
+                newTemplate.Editable = true;
                 return newTemplate;
+            }
 
             name = newTemplate.TemplateName;
 
@@ -92,7 +96,7 @@ namespace Starcounter.Internal.JsonTemplate {
                 } else {
                     arrParent.ElementType = (TValue)newTemplate;
                 }
-            }
+            } 
             return newTemplate;
         }
 
