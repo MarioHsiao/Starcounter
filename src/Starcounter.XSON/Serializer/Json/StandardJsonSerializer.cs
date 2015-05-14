@@ -43,7 +43,7 @@ namespace Starcounter.Advanced.XSON {
         public override int EstimateSizeBytes(Json json) {
             return json.Scope<TypedJsonSerializer, Json, int>((TypedJsonSerializer tjs, Json j) => {
                 return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null);
-            }, 
+            },
             this,
             json);
         }
@@ -126,7 +126,12 @@ namespace Starcounter.Advanced.XSON {
                 // Not a root. Get correct value from template getter.
                 json = ((TObject)template).Getter(json);
             }
-            return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
+
+            if (json != null) {
+                return json.Scope<TypedJsonSerializer, Json, int>(EstimateObject, serializer, json);
+            } else {
+                return 2;
+            }
         }
 
         private static int EstimateObject(TypedJsonSerializer serializer, Json json) {
@@ -160,11 +165,11 @@ namespace Starcounter.Advanced.XSON {
 
                 sizeBytes += tProperty.TemplateName.Length + 3; // 1 for ":" and to for quotation marks around string.
 
-                if (tProperty.TemplateTypeId == (int)TemplateTypeEnum.Object) {
-                    sizeBytes += serializer.EstimateSizeBytes(((TObject)tProperty).Getter(json));
-                } else {
+                //if (tProperty.TemplateTypeId == (int)TemplateTypeEnum.Object) {
+                //    sizeBytes += serializer.EstimateSizeBytes(((TObject)tProperty).Getter(json));
+                //} else {
                     sizeBytes += estimatePerTemplate[(int)tProperty.TemplateTypeId](serializer, json, tProperty);
-                }
+                //}
                 sizeBytes += 1; // 1 for comma.
             }
 
@@ -268,7 +273,12 @@ namespace Starcounter.Advanced.XSON {
                 // Not a root. Get correct value from getter.
                 json = ((TObjArr)template).Getter(json);
             }
-            return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
+
+            if (json != null) {
+                return json.Scope<TypedJsonSerializer, Json, int>(EstimateArray, serializer, json);
+            } else {
+                return 2;
+            }
         }
 
         private static int EstimateArray(TypedJsonSerializer serializer, Json json) {
@@ -333,7 +343,17 @@ namespace Starcounter.Advanced.XSON {
         private static int ScopeAndSerializeObject(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
             if (template != null)
                 json = ((TObject)template).Getter(json);
-            return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeObject, serializer, json, dest, destSize);
+
+            if (json != null) {
+                return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeObject, serializer, json, dest, destSize);
+            } else {
+                unsafe {
+                    byte* pdest = (byte*)dest;
+                    *pdest++ = (byte)'{';
+                    *pdest++ = (byte)'}';
+                }
+                return 2;
+            }
         }
 
         private static int SerializeObject(TypedJsonSerializer serializer, Json json, IntPtr dest, int destSize) {
@@ -602,7 +622,17 @@ namespace Starcounter.Advanced.XSON {
         private static int ScopeAndSerializeArray(TypedJsonSerializer serializer, Json json, Template template, IntPtr dest, int destSize) {
             if (template != null)
                 json = ((TObjArr)template).Getter(json);
-            return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeArray, serializer, json, dest, destSize);
+
+            if (json != null) {
+                return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>(SerializeArray, serializer, json, dest, destSize);
+            } else {
+                unsafe {
+                    byte* pdest = (byte*)dest;
+                    *pdest++ = (byte)'[';
+                    *pdest++ = (byte)']';
+                    return 2;
+                }
+            }
         }
 
         private static int SerializeArray(TypedJsonSerializer serializer, Json json, IntPtr dest, int destSize) {
