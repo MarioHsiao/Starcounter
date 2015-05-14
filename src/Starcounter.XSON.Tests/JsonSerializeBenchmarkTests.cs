@@ -226,11 +226,11 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         private static void RunFTJBenchmark(string name, string json, int numberOfTimes, bool useCodegen) {
-            TObject tObj = Helper.CreateJsonTemplateFromContent(name, json);
+            TValue tObj = Helper.CreateJsonTemplateFromContent(name, json);
             RunFTJBenchmark(name, tObj, numberOfTimes, useCodegen);
         }
 
-        private static void RunFTJBenchmark(string name, TObject tObj, int numberOfTimes, bool useCodegen) {
+        private static void RunFTJBenchmark(string name, TValue tObj, int numberOfTimes, bool useCodegen) {
             return;
             // TODO: Rewrite FTJ serializer.
             /*
@@ -293,11 +293,11 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         private static void RunStandardJsonBenchmark(string name, string json, int numberOfTimes, bool useCodegen) {
-            TObject tObj = Helper.CreateJsonTemplateFromContent(name, json);
+            TValue tObj = Helper.CreateJsonTemplateFromContent(name, json);
             RunStandardJsonBenchmark(name, tObj, numberOfTimes, useCodegen);
         }
 
-        private static void RunStandardJsonBenchmark(string name, TObject tObj, int numberOfTimes, bool useCodegen) {
+        private static void RunStandardJsonBenchmark(string name, TValue tObj, int numberOfTimes, bool useCodegen) {
             byte[] jsonArr = null;
             int size = 0;
             Json jsonInst;
