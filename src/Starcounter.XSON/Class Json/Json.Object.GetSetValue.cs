@@ -4,6 +4,7 @@
 //// </copyright>
 //// ***********************************************************************
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal.XSON;
@@ -305,5 +306,105 @@ namespace Starcounter {
             this.HasChanged(property);
         }
 
+        public bool BoolValue {
+            get {
+                if (!IsBool)
+                    throw new InvalidOperationException("This instance does not have a bool value.");
+                return Get((TBool)Template);
+            }
+            set {
+                if (!IsBool)
+                    throw new InvalidOperationException("This instance does not have a bool value.");
+                Set((TBool)Template, value);
+            }
+        }
+
+        public decimal DecimalValue {
+            get {
+                if (!IsDecimal)
+                    throw new InvalidOperationException("This instance does not have a decimal value.");
+                return Get((TDecimal)Template);
+            }
+            set {
+                if (!IsDecimal)
+                    throw new InvalidOperationException("This instance does not have a decimal value.");
+                Set((TDecimal)Template, value);
+            }
+        }
+
+        public double DoubleValue {
+            get {
+                if (!IsDouble)
+                    throw new InvalidOperationException("This instance does not have a double value.");
+                return Get((TDouble)Template);
+            }
+            set {
+                if (!IsDouble)
+                    throw new InvalidOperationException("This instance does not have a double value.");
+                Set((TDouble)Template, value);
+            }
+        }
+
+        public long IntegerValue {
+            get {
+                if (!IsInteger)
+                    throw new InvalidOperationException("This instance does not have a integer value.");
+                return Get((TLong)Template);
+            }
+            set {
+                if (!IsInteger)
+                    throw new InvalidOperationException("This instance does not have a integer value.");
+                Set((TLong)Template, value);
+            }
+        }
+
+        public string StringValue {
+            get {
+                if (!IsString)
+                    throw new InvalidOperationException("This instance does not have a string value.");
+                return Get((TString)Template);
+            }
+            set {
+                if (!IsString)
+                    throw new InvalidOperationException("This instance does not have a string value.");
+                Set((TString)Template, value);
+            }
+        }
+
+        public bool IsBool { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Bool); 
+            } 
+        }
+
+        public bool IsDecimal { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Decimal); 
+            } 
+        }
+
+        public bool IsDouble { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Double); 
+            } 
+        }
+
+        public bool IsInteger { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Long); 
+            } 
+        }
+
+        public bool IsString { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.String); 
+            } 
+        }
+
+        public bool IsObject { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Object); 
+            } 
+        }
 	}
 }
