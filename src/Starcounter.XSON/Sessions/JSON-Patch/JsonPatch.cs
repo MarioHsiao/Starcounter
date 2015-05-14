@@ -209,11 +209,6 @@ namespace Starcounter.XSON {
                     childJson = (Json)change.Property.GetUnboundValueAsObject(change.Parent);
                     if (change.Index != -1)
                         childJson = change.Item;
-
-                    if (childJson == null) {
-                        writer.Write('{');
-                        writer.Write('}');
-                    }
                 }
 
                 var serializer = ((TValue)change.Parent.Template).JsonSerializer;
