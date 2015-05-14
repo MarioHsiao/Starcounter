@@ -26,8 +26,8 @@ namespace Starcounter.Templates {
             get { return typeof(double); }
         }
 
-        internal override int TemplateTypeId {
-            get { return (int)TemplateTypeEnum.Double; }
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Double; }
         }
     }
 }

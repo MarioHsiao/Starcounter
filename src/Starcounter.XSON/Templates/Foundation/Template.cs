@@ -305,7 +305,7 @@ namespace Starcounter.Templates {
             }
         }
 
-        internal abstract int TemplateTypeId { get; }
+        internal abstract TemplateTypeEnum TemplateTypeId { get; }
 
         /// <summary>
         /// 

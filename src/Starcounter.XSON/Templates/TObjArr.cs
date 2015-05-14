@@ -309,8 +309,8 @@ namespace Starcounter.Templates {
             ElementType = elementType;
         }
 
-        internal override int TemplateTypeId {
-            get { return (int)TemplateTypeEnum.Array; }
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Array; }
         }
     }
 }

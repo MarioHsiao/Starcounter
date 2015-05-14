@@ -373,37 +373,37 @@ namespace Starcounter {
 
         public bool IsBool { 
             get { 
-                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Bool); 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Bool); 
             } 
         }
 
         public bool IsDecimal { 
             get { 
-                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Decimal); 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Decimal); 
             } 
         }
 
         public bool IsDouble { 
             get { 
-                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Double); 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Double); 
             } 
         }
 
         public bool IsInteger { 
             get { 
-                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Long); 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Long); 
             } 
         }
 
         public bool IsString { 
             get { 
-                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.String); 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.String); 
             } 
         }
 
         public bool IsObject { 
             get { 
-                return (Template != null) && (Template.TemplateTypeId == (int)TemplateTypeEnum.Object); 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Object); 
             } 
         }
 	}

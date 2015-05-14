@@ -25,8 +25,8 @@ namespace Starcounter.Templates {
             get { return typeof(decimal); }
         }
 
-        internal override int TemplateTypeId {
-            get { return (int)TemplateTypeEnum.Decimal; }
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Decimal; }
         }
     }
 }

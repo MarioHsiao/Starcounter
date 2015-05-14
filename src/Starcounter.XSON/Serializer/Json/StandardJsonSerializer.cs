@@ -769,7 +769,7 @@ namespace Starcounter.Advanced.XSON {
 
                 reader.GotoValue();
 
-                if (tProperty.TemplateTypeId == (int)TemplateTypeEnum.Object) {
+                if (tProperty.TemplateTypeId == TemplateTypeEnum.Object) {
                     reader.PopulateObject(((TObject)tProperty).Getter(json));
                 } else {
                     populatePerTemplate[(int)tProperty.TemplateTypeId](json, tProperty, reader);

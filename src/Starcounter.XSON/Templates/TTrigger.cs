@@ -140,8 +140,8 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 		}
 
-        internal override int TemplateTypeId {
-            get { return (int)TemplateTypeEnum.Trigger; }
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Trigger; }
         }
 
         internal override Type DefaultInstanceType {
