@@ -18,7 +18,99 @@ using Starcounter.Templates;
 namespace Starcounter.Internal.Test
 {
     /// <summary>
-    /// Testing return types for X.
+    /// Testing border integer values.
+    /// </summary>
+    [TestFixture]
+    public class TestBorderIntegerValues {
+        [Test]
+        public void RunTest() {
+
+            Handle.GET("/min/int64/{?}", (Request req, Int64 value) => {
+
+                Assert.IsTrue(value == Int64.MinValue);
+                
+                return 200;
+            });
+
+            Handle.GET("/max/int64/{?}", (Request req, Int64 value) => {
+
+                Assert.IsTrue(value == Int64.MaxValue);
+
+                return 200;
+            });
+
+            Handle.GET("/min/uint64/{?}", (Request req, UInt64 value) => {
+
+                Assert.IsTrue(value == UInt64.MinValue);
+
+                return 200;
+            });
+
+            Handle.GET("/max/uint64/{?}", (Request req, UInt64 value) => {
+
+                Assert.IsTrue(value == UInt64.MaxValue);
+
+                return 200;
+            });
+
+            Handle.GET("/min/int32/{?}", (Request req, Int32 value) => {
+
+                Assert.IsTrue(value == Int32.MinValue);
+
+                return 200;
+            });
+
+            Handle.GET("/max/int32/{?}", (Request req, Int32 value) => {
+
+                Assert.IsTrue(value == Int32.MaxValue);
+
+                return 200;
+            });
+
+            Handle.GET("/min/uint32/{?}", (Request req, UInt32 value) => {
+
+                Assert.IsTrue(value == UInt32.MinValue);
+
+                return 200;
+            });
+
+            Handle.GET("/max/uint32/{?}", (Request req, UInt32 value) => {
+
+                Assert.IsTrue(value == UInt32.MaxValue);
+
+                return 200;
+            });
+
+            Response resp;
+
+            resp = Self.GET("/min/int64/" + Int64.MinValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/max/int64/" + Int64.MaxValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/min/uint64/" + UInt64.MinValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/max/uint64/" + UInt64.MaxValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/min/int32/" + Int32.MinValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/max/int32/" + Int32.MaxValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/min/uint32/" + UInt32.MinValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+            resp = Self.GET("/max/uint32/" + UInt32.MaxValue);
+            Assert.AreEqual(resp.IsSuccessStatusCode, true);
+        }
+    }
+
+    /// <summary>
+    /// Testing return types for internal REST calls.
     /// </summary>
     [TestFixture]
     public class ReturnTypes

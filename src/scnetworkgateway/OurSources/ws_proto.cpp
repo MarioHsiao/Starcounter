@@ -187,8 +187,14 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
 
     // Obtaining handler info from channel id.
     BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByGroupId(gw, sd);
-    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
+
+    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id) {
+
+        // If there is no handler for WebSocket maybe the server is
+        // working in PUSH mode only, i.e. has no handlers for receiving
+        // WebSocket frames, in this case we simply not sending anything.
         return 0;
+    }
 
     SocketDataChunk* sd_push_to_db = NULL;
     uint32_t err_code = sd->CloneToPush(gw, &sd_push_to_db);
@@ -232,8 +238,18 @@ uint32_t WsProto::ProcessWsDataToDb(
 
     // Obtaining handler info from group id.
     user_handler_id = SearchUserHandlerInfoByGroupId(gw, sd);
-    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
-        return SCERRGWWEBSOCKET;
+
+    // If there is no handler for WebSocket maybe the server is
+    // working in PUSH mode only, i.e. has no handlers for receiving
+    // WebSocket frames, in this case we simply need to continue receiving.
+    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id) {
+
+        // Receiving from scratch.
+        sd->ResetAccumBuffer();
+
+        // Returning socket to receiving state.
+        return gw->Receive(sd);
+    }
 
     SocketDataChunk* sd_push_to_db = NULL;
     uint8_t* orig_data_ptr = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
