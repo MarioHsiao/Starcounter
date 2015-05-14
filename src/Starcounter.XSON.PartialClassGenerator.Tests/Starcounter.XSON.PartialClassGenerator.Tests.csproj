@@ -190,6 +190,10 @@
       <DependentUpon>minimal.json</DependentUpon>
     </None>
     <Compile Include="Helper.cs" />
+    <None Include="Input\Primitive.json.cs">
+      <DependentUpon>Primitive.json</DependentUpon>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Compile Include="SimpleNestingTests.cs" />
     <None Include="Input\ParentChild.json.cs.v1">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
