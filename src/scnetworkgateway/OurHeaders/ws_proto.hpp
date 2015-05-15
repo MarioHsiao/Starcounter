@@ -110,7 +110,7 @@ public:
 
     uint8_t *WritePayload(GatewayWorker* gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint32_t total_payload_len, uint8_t* payload, uint32_t& payload_len);
 
-    uint32_t ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
+    bool ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
 };
 
 class RegisteredWsChannel

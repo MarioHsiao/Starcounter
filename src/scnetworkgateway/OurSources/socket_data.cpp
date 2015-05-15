@@ -58,6 +58,8 @@ uint32_t SocketDataChunk::ReceiveTcp(GatewayWorker *gw, uint32_t *num_bytes)
     DWORD* flags = (DWORD*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD));
     *flags = 0;
 
+    accum_buf_.CheckSpaceLeftForReceive();
+
     return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, &ovl_, NULL);
 }
 
@@ -88,6 +90,8 @@ uint32_t SocketDataChunk::ReceiveUdp(GatewayWorker *gw, uint32_t *num_bytes)
 
     int32_t* from_length = (int32_t*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD) - sizeof(int32_t));
     *from_length = sizeof(SOCKADDR);
+
+    accum_buf_.CheckSpaceLeftForReceive();
 
     return WSARecvFrom(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, (SOCKADDR*) accept_or_params_or_temp_data_, from_length, &ovl_, NULL);
 }

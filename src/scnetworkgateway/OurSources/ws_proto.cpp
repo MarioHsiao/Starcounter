@@ -256,10 +256,6 @@ uint32_t WsProto::ProcessWsDataToDb(
     uint32_t num_accum_bytes = sd->get_accum_buf()->get_accum_len_bytes();
     uint32_t num_processed_bytes = 0;
 
-    // Checking if we have already parsed the frame.
-    if (sd->get_complete_header_flag())
-        goto DATA_ACCUMULATED;
-
     // Since WebSocket frames can be grouped into one network packet
     // we have to processes all of them in a loop.
     while (true)
@@ -268,13 +264,11 @@ uint32_t WsProto::ProcessWsDataToDb(
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
         // Obtaining frame info.
-        err_code = ParseFrameInfo(sd, cur_data_ptr, orig_data_ptr + num_accum_bytes);
-        if (err_code)
-            return err_code;
+        bool complete_header = ParseFrameInfo(sd, cur_data_ptr, orig_data_ptr + num_accum_bytes);
 
-        // Checking frame information is complete.
-        if (!sd->get_complete_header_flag())
-        {
+        // Checking if header is not complete.
+        if (!complete_header) {
+
             // Checking if we need to move current data up.
             cur_data_ptr = sd->get_accum_buf()->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
 
@@ -282,52 +276,53 @@ uint32_t WsProto::ProcessWsDataToDb(
             return gw->Receive(sd);
         }
 
+        // Pointer to actual frame payload.
         uint8_t* payload = (uint8_t*) sd + frame_info_.payload_offset_;
 
         // Calculating number of bytes processed.
         int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
-        num_processed_bytes += header_len;
 
-        // Continue accumulating data.
-        if (num_processed_bytes + frame_info_.payload_len_ > num_accum_bytes)
-        {
-            // Setting the desired number of bytes to accumulate.
-            err_code = gw->StartAccumulation(
-                sd,
-                static_cast<uint32_t>(header_len + frame_info_.payload_len_),
-                header_len + num_accum_bytes - num_processed_bytes);
+        // Checking if message fits in current accumulated data.
+        int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
+        int32_t frame_size = header_len + frame_info_.payload_len_;
+        if (num_remaining_bytes < frame_size) {
 
-            if (err_code)
-                return err_code;
+            // Checking if we need to move current data up.
+            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopAndContinueReceive(cur_data_ptr, num_remaining_bytes);
 
-            // Checking if we have not accumulated everything yet.
-            return gw->Receive(sd);
-        }
-        // Checking if it is not the last frame.
-        else
-        {
-            // Checking if all received data processed.
-            if (num_processed_bytes + frame_info_.payload_len_ == num_accum_bytes)
+            // Checking if data that needs accumulation fits into chunk.
+            if (sd->get_accum_buf()->get_chunk_num_available_bytes() < (uint32_t)(frame_size - num_remaining_bytes))
             {
-                sd_push_to_db = NULL;
-            }
-            else
-            {
-                // Cloning chunk to push it to database.
-                err_code = sd->CloneToPush(gw, &sd_push_to_db);
+                uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, frame_size);
                 if (err_code)
                     return err_code;
             }
+
+            // Returning socket to receiving state.
+            return gw->Receive(sd);
         }
 
-        // Payload size has been checked, so we can add payload as processed.
-        num_processed_bytes += static_cast<uint32_t>(frame_info_.payload_len_);
+        // Adding whole frame as processed.
+        num_processed_bytes += frame_size;
+
+        // Number of processed bytes can not exceed the total accumulated number of bytes.
+        GW_ASSERT(num_processed_bytes <= num_accum_bytes);
+
+        // Checking if all received data processed.
+        if (num_processed_bytes == num_accum_bytes) {
+
+            sd_push_to_db = NULL;
+
+        } else {
+            // Cloning chunk to push it to database.
+            err_code = sd->CloneToPush(gw, &sd_push_to_db);
+            if (err_code)
+                return err_code;
+        }
 
 #ifdef GW_WEBSOCKET_DIAG
         GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
 #endif
-
-DATA_ACCUMULATED:
 
         // Data is complete, no more frames, creating parallel receive clone.
         if (NULL == sd_push_to_db)
@@ -580,7 +575,7 @@ void WsProto::UnMaskPayload(
 #define swap64(y) ((static_cast<uint64_t>(ntohl(static_cast<uint32_t>(y))) << 32) | ntohl(static_cast<uint32_t>(y >> 32)))
 
 // Parses WebSockets frame info.
-uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit)
+bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit)
 {
     // Getting final fragment bit.
     frame_info_.is_final_ = ((*data & 0x80) != 0);
@@ -628,14 +623,15 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
     if (0 == frame_info_.payload_len_)
         limit++;
 
-    // Checking if frame was successfully parsed.
-    if (data < limit)
-        sd->set_complete_header_flag();
-    
     // Calculating payload offset relatively to socket data.
     frame_info_.payload_offset_ = static_cast<uint32_t> (data - (uint8_t*)sd);
 
-    return 0;
+    // Checking if frame was successfully parsed.
+    if (data >= limit) {
+        return false;
+    }
+    
+    return true;
 }
 
 // Write payload data.

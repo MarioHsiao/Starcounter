@@ -1,6 +1,7 @@
 ﻿using Starcounter;
 using Starcounter.Internal;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -9,7 +10,7 @@ using System.Threading;
 
 namespace WebSocketsTestServer {
 
-    [Database]
+    //[Database]
     public class WebSocketState {
         public UInt64 Id;
         public Int32 NumMessagesToSend;
@@ -21,6 +22,8 @@ namespace WebSocketsTestServer {
 
     class WebSocketsTestServer {
 
+        static ConcurrentDictionary<UInt64, WebSocketState> allWebSockets_ = new ConcurrentDictionary<UInt64, WebSocketState>();
+
         const String WsTestGroupName = "WsTestGroup";
 
         const Int32 PushSleepInterval = 100;
@@ -29,6 +32,48 @@ namespace WebSocketsTestServer {
 
         static Int32 GlobalNumberOfDisconnects = 0;
 
+        /// <summary>
+        /// Processing incoming message.
+        /// </summary>
+        static void ProcessMessage(Byte[] data, WebSocket ws) {
+
+            WebSocketState wss = allWebSockets_[ws.ToUInt64()];
+
+            // Checking if there is no such WebSocket.
+            if (wss == null) {
+
+                ws.Disconnect("Can't find WebSocket state object in database.");
+                GlobalErrorCode = 1;
+                return;
+            }
+
+            // Checking that message length is correct.
+            if (data.Length != wss.MessageSize) {
+
+                ws.Disconnect("Wrong size of received data.");
+                GlobalErrorCode = 2;
+                return;
+            }
+
+            // Checking that the received message is correct.
+            for (Int32 i = 0; i < wss.MessageSize; i++) {
+
+                if (data[i] != (Byte)wss.MessageLetter) {
+
+                    ws.Disconnect("Wrong data in received WebSocket message.");
+                    GlobalErrorCode = 3;
+                    return;
+                }
+            }
+
+            // Incrementing the number of received messages.
+            wss.NumMessagesReceived++;
+                
+            // Pushing messages on this WebSocket.
+            PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
+        }
+
+        /*
         /// <summary>
         /// Processing incoming message.
         /// </summary>
@@ -68,7 +113,7 @@ namespace WebSocketsTestServer {
                 wss.NumMessagesReceived++;
             });
 
-            PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+            PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
         }
 
         /// <summary>
@@ -102,7 +147,7 @@ namespace WebSocketsTestServer {
 
                                 // Pushing message on this WebSocket.
                                 for (Int32 i = 0; i < 5; i++) {
-                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
                                 }
 
                             } catch (Exception exc) {
@@ -124,6 +169,66 @@ namespace WebSocketsTestServer {
         }
 
         /// <summary>
+        /// Push a message to WebSocket.
+        /// </summary>
+        static void PushOnWebSocket(String message, WebSocket ws) {
+
+            Db.Transact(() => {
+
+                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
+
+                // Checking if have sent everything.
+                if ((wss.NumMessagesReceived > 0) && (wss.NumMessagesSent < wss.NumMessagesToSend)) {
+
+                    // Sending the message.
+                    ws.Send(message);
+
+                    // Incrementing the number of received messages.
+                    wss.NumMessagesSent++;
+                }
+            });
+        }
+
+        Handle.WebSocketDisconnect(WsTestGroupName, (WebSocket ws) => {
+
+            Db.Transact(() => {
+
+                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
+
+                // Checking if there is no such WebSocket.
+                if (wss == null) {
+                    GlobalErrorCode = 12;
+                    return;
+                }
+
+                wss.Delete();
+            });
+        });
+         
+        */
+
+        /// <summary>
+        /// Push a message to WebSocket.
+        /// </summary>
+        static void PushOnWebSocket(String message, WebSocket ws) {
+
+            WebSocketState wss = allWebSockets_[ws.ToUInt64()];
+
+            lock (WsTestGroupName) {
+
+                // Checking if have sent everything.
+                if ((wss.NumMessagesReceived > 0) && (wss.NumMessagesSent < wss.NumMessagesToSend)) {
+
+                    // Sending the message.
+                    ws.Send(message);
+
+                    // Incrementing the number of received messages.
+                    wss.NumMessagesSent++;
+                }
+            }
+        }
+
+        /// <summary>
         /// Broadcasts on active WebSockets.
         /// </summary>
         static void BroadcastWebSockets(Int32 numForEachesPerRound) {
@@ -141,15 +246,28 @@ namespace WebSocketsTestServer {
                         // Getting sessions for current scheduler.
                         new DbSession().RunAsync(() => {
 
-                            foreach (WebSocketState wss in Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w")) {
+                            /*foreach (WebSocketState wss in Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w")) {
 
                                 WebSocket ws = new WebSocket(wss.Id);
 
                                 // Pushing messages on this WebSocket.
                                 for (Int32 i = 0; i < 5; i++) {
-                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
+                                }
+                            }*/
+
+                            foreach (KeyValuePair<UInt64, WebSocketState> wssKey in allWebSockets_) {
+
+                                WebSocketState wss = wssKey.Value;
+
+                                WebSocket ws = new WebSocket(wss.Id);
+
+                                // Pushing messages on this WebSocket.
+                                for (Int32 i = 0; i < 5; i++) {
+                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
                                 }
                             }
+
                         }, s);
 
                         schedId++;
@@ -168,32 +286,14 @@ namespace WebSocketsTestServer {
             }
         }
 
-        /// <summary>
-        /// Push a message to WebSocket.
-        /// </summary>
-        static void PushOnWebSocket(String message, WebSocket ws, WebSocketState wss) {
-
-            // Checking if have sent everything.
-            if (wss.NumMessagesSent < wss.NumMessagesToSend) {
-
-                // Sending the message.
-                ws.Send(message);
-
-                // Incrementing the number of received messages.
-                Db.Transact(() => {
-                    wss.NumMessagesSent++;
-                });
-            }
-        }
-
         static Int32 Main(string[] args) {
 
             //Debugger.Launch();
 
             // Removing existing objects from database.
-            Db.Transact(() => {
+            /*Db.Transact(() => {
                 Db.SlowSQL("DELETE FROM WebSocketState");
-            });
+            });*/
 
             // Handle WebSocket connections for listening on log changes
             Handle.GET("/wstest", (Request req) => {
@@ -213,7 +313,7 @@ namespace WebSocketsTestServer {
 
                         UInt64 wsId = req.GetWebSocketId();
 
-                        Db.Transact(() => {
+                        //Db.Transact(() => {
 
                             wss = new WebSocketState() {
                                 Id = wsId,
@@ -223,11 +323,14 @@ namespace WebSocketsTestServer {
                                 NumMessagesReceived = 0,
                                 MessageLetter = messageLetter
                             };
-                        });
+                        //});
 
                         Dictionary<String, String> headers = new Dictionary<String, String>() {
                             { "WebSocketId", wsId.ToString() }
                         };
+
+                        // Adding to dictionary.
+                        allWebSockets_[wsId] = wss;
 
                         // Creating and attaching a new session.
                         Session s = new Session();
@@ -237,11 +340,6 @@ namespace WebSocketsTestServer {
 
                         // First pushing WebSocket id.
                         ws.Send(wsId.ToString());
-
-                        // Pushing some messages on this WebSocket.
-                        for (Int32 i = 0; i < 10; i++) {
-                            PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
-                        }
 
                         return HandlerStatus.Handled;
                     }
@@ -263,19 +361,20 @@ namespace WebSocketsTestServer {
             });
 
             Handle.WebSocketDisconnect(WsTestGroupName, (WebSocket ws) => {
+                /*
+                // Safely incrementing the global lock.
+                WebSocketState wss;
+                Boolean removed = allWebSockets_.TryRemove(ws.ToUInt64(), out wss);
 
-                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
-
-                // Checking if there is no such WebSocket.
-                if (wss == null) {
+                if (!removed) {
                     GlobalErrorCode = 12;
                     return;
                 }
-
-                // Safely incrementing the global lock.
+                */
                 lock (WsTestGroupName) {
                     GlobalNumberOfDisconnects++;
-                }                
+                }
+                
             });
 
             Handle.WebSocket(WsTestGroupName, (String message, WebSocket ws) => {
@@ -290,9 +389,10 @@ namespace WebSocketsTestServer {
                 ProcessMessage(data, ws);
             });
 
-            Handle.GET("/WsStats/{?}", (Int64 wsId) => {
+            Handle.GET("/WsStats/{?}", (UInt64 wsId) => {
 
-                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", wsId).First;
+                //WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", wsId).First;
+                WebSocketState wss = allWebSockets_[wsId];
 
                 // Checking if there is no such WebSocket.
                 if (wss == null) {
@@ -334,8 +434,8 @@ namespace WebSocketsTestServer {
             //Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(10); });
             //broadcastSessionsThread.Start();
 
-            Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(10); });
-            broadcastWebSocketsThread.Start();
+            //Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(10); });
+            //broadcastWebSocketsThread.Start();
 
             return 0;
         }
