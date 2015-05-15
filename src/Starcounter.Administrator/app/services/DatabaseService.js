@@ -20,7 +20,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             // success handler
             if (successCallback != null) {
                 // TODO: Return the newly create database
-                successCallback();
+                successCallback(response.data.name);
             }
         }, function (response) {
 
@@ -79,7 +79,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
      */
     this.getSettings = function (database, successCallback, errorCallback) {
 
-        var uri = "/api/admin/databases/" + database.name + "/settings";
+        var uri = "/api/admin/databases/" + database.ID + "/settings";
 
         $http.get(uri).then(function (response) {
             // success handler
@@ -172,14 +172,9 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
 
         var errorHeader = "Failed to save database settings";
 
-        var job = { message: "Saving database settings" };
-        JobFactory.AddJob(job);
-        var uri = "/api/admin/databases/" + database.name + "/settings";
+        var uri = "/api/admin/databases/" + database.ID + "/settings";
 
         $http.put(uri, settings).then(function (response) {
-
-            // success
-            JobFactory.RemoveJob(job);
 
             if (successCallback != null) {
                 successCallback(response.data);
@@ -188,7 +183,6 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
         }, function (response) {
 
             // Error
-            JobFactory.RemoveJob(job);
             var messageObject;
 
             $log.error(errorHeader, response);

@@ -10,10 +10,11 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
     $scope.Status = 0;
     $scope.HasErrorMessage = false;
     $scope.ErrorMessage = {
-        Title: "",
         Message: "",
         HelpLink: ""
     };
+
+    $scope.SuccessMessage = null;
 
     // Database Default settings
     $scope.settings = null;
@@ -38,20 +39,22 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
 
         $scope.Status = 1;
         $scope.HasErrorMessage = false;
+        $scope.SuccessMessage = null;
+
         // Scroll top top
 //        $location.hash('top');
 //        $anchorScroll();
 
-        DatabaseService.createDatabase(settings, function () {
+        DatabaseService.createDatabase(settings, function (databaseName) {
 
             // NOTE: The incoming database does only contain one propety 'name'
 
+            $scope.SuccessMessage = "Created.";
             // Success
             //NoticeFactory.ShowNotice({ type: 'success', msg: "The Database was successfully created" });
-
             // Navigate to database list if user has not navigated to another page
-            if ($location.path() == "/database-new") {
-               $location.path("/databases");
+            if ($location.path() == "/databaseNew") {
+                $location.path("/databases/" + databaseName);
             }
             $scope.Status = 0;
 
@@ -68,7 +71,13 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
                 for (var i = 0; i < validationErrors.length; i++) {
                     //$scope.alerts.push({ type: 'danger', msg: validationErrors[i].message });
                     if ($scope.myForm[validationErrors[i].PropertyName] == undefined) {
-                        NoticeFactory.ShowNotice({ type: 'danger', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
+                        //NoticeFactory.ShowNotice({ type: 'danger', msg: "Missing or invalid property: " + validationErrors[i].PropertyName });
+
+                        $scope.HasErrorMessage = true;
+                        $scope.ErrorMessage.Message = "Missing or invalid property: " + validationErrors[i].PropertyName;
+                        $scope.ErrorMessage.HelpLink = null;
+
+
                     } else {
 
                         $scope.myForm[validationErrors[i].PropertyName].$setValidity("validationError", false);
@@ -96,13 +105,20 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
             else {
 
                 $scope.HasErrorMessage = true;
-                $scope.ErrorMessage.Title = "TODO";
                 $scope.ErrorMessage.Message = messageObject.message;
                 $scope.ErrorMessage.HelpLink = messageObject.helpLink;
 
                 if (messageObject.isError) {
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
+
+                //$scope.HasErrorMessage = true;
+                //$scope.ErrorMessage.Message = messageObject.message;
+                //$scope.ErrorMessage.HelpLink = messageObject.helpLink;
+
+                //if (messageObject.isError) {
+                //    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                //}
                 //else {
                 //    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 //}
@@ -126,6 +142,9 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
      * Refresh database default settings
      */
     $scope.refreshDatabaseDefaultSettings = function () {
+
+        $scope.HasErrorMessage = false;
+        $scope.SuccessMessage = null;
 
         DatabaseService.getDatabaseDefaultSettings(function (settings) {
             // Success
@@ -157,7 +176,11 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
                 else {
-                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
+                    $scope.HasErrorMessage = true;
+                    $scope.ErrorMessage.Message = messageObject.message;
+                    $scope.ErrorMessage.HelpLink = messageObject.helpLink;
+
+//                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
                 }
 
             });

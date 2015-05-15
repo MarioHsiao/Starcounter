@@ -234,10 +234,8 @@ namespace Administrator.Server.Model {
 
         #endregion
 
-
         // TODO: Make thread-safe
         public ObservableCollection<DatabaseApplication> Applications = new ObservableCollection<DatabaseApplication>();
-        //public ObservableCollection<AppStoreApplication> AppStoreApplications = new ObservableCollection<AppStoreApplication>();
         public ObservableCollection<AppStoreStore> AppStoreStores = new ObservableCollection<AppStoreStore>();
 
         #endregion
@@ -306,46 +304,6 @@ namespace Administrator.Server.Model {
 
             this.OnChanged(sender, e);
         }
-
-        //private void AppStoreApplications_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-
-        //    switch (e.Action) {
-        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
-
-        //            // Add listeners on the database instance
-        //            foreach (AppStoreApplication item in e.NewItems) {
-
-        //                item.Changed += AppStoreApplication_Changed;
-        //                // Connect AppStoreAppliction with DatabaseApplication (if available)
-        //                item.DatabaseApplication = this.GetApplicationBySourceUrl(item.SourceUrl);
-        //                item.UpdateModel();
-        //            }
-        //            break;
-        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
-
-        //            break;
-        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Remove:
-
-        //            // Remove listeners on the database instance
-        //            foreach (AppStoreApplication item in e.OldItems) {
-        //                item.Changed -= AppStoreApplication_Changed;
-        //            }
-        //            break;
-        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
-
-        //            break;
-        //        case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
-
-        //            // Remove listeners on the database instance
-        //            foreach (AppStoreApplication item in this.AppStoreApplications) {
-        //                item.Changed -= AppStoreApplication_Changed;
-        //                item.Changed += AppStoreApplication_Changed;
-        //            }
-        //            break;
-        //    }
-
-        //    this.OnChanged(sender, e);
-        //}
 
         /// <summary>
         /// Called when an application has been added or removed from a database
@@ -473,10 +431,6 @@ namespace Administrator.Server.Model {
             this.InvalidateApplications();
         }
 
-        private void OnDeleted() {
-            // Remove database from server list
-        }
-
         /// <summary>
         /// Get Application
         /// </summary>
@@ -544,24 +498,6 @@ namespace Administrator.Server.Model {
             return null;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        public AppStoreStore GetStore(string id) {
-
-            foreach (AppStoreStore store in this.AppStoreStores) {
-
-                if (store.ID == id) {
-                    return store;
-                }
-            }
-
-            return null;
-        }
-
-
         #region Invalidate Model
 
         /// <summary>
@@ -572,7 +508,6 @@ namespace Administrator.Server.Model {
             this.IsRunning = this.DatabaseRunningState();
 
             this.InvalidateApplications();
-            //this.InvalidateAppStoreApplications();  // Async
         }
 
         /// <summary>

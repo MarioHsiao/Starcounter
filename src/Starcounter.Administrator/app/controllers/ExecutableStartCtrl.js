@@ -62,7 +62,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', '$
                 $scope.rememberRecentApplication(application);
 
                 // Navigate to Application list if user has not navigated to another page
-                if ($location.path() == ("/databases/" + $scope.database.ID + "/executabe-start")) {
+                if ($location.path() == ("/databases/" + $scope.database.ID + "/executabeStart")) {
                     $location.path("/databases/" + $scope.database.ID);
                 }
 

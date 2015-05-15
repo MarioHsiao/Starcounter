@@ -141,7 +141,7 @@
 
                     <a class="navbar-brand" href="#/databases">
                         <img src="/app/images/sc_logo_24x24.png" style="margin: -5px 5px 0px 0px" class=""></img>
-                        <div style="margin-top: 5px;display:inline-block">Starcounter Administrator</div>
+                        <div style="margin-top: 5px; display: inline-block">Starcounter Administrator</div>
                     </a>
                 </div>
 
@@ -175,32 +175,31 @@
                     </select>-->
 
 
-                        <!--                        <li class="dropdown" data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/database-new')}">
+                        <!--                        <li class="dropdown" data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/databaseNew')}">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Database <strong>{{data.selectedDatabase.DisplayName}}</strong> <span class="caret"></span></a>
                             <ul class="dropdown-menu" role="menu">
                                 <li data-ng-class="{active: getClass('/databases/{{database.ID}}')}" ng-repeat="database in serverModel.Databases | orderBy: 'DisplayName'"><a href="#/databases/{{database.ID}}">{{database.DisplayName}}</a></li>
                                 <li class="divider"></li>
-                                <li><a href="#/database-new" title="Create a new database">Create database</a></li>
+                                <li><a href="#/databaseNew" title="Create a new database">Create database</a></li>
 
                             </ul>
                         </li>-->
 
                         <li data-ng-class="{active: getClass('/databases[^/]*$')}"><a href="#/databases">Databases</a></li>
 
-
                         <li class="dropdown" data-ng-class="{active: getClass('^(/databases/)')}">
                             <a ng-show="data.selectedDatabase == null" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Select Database&nbsp;<span class="caret"></span></a>
                             <a ng-show="data.selectedDatabase != null" href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><strong>{{data.selectedDatabase.DisplayName}}</strong>&nbsp;<span class="caret"></span></a>
 
                             <ul class="dropdown-menu" role="menu">
-                                <li data-ng-class="{active: getClass('/databases/{{database.ID}}')}" ng-repeat="database in serverModel.Databases | orderBy: 'DisplayName'"><a href="#/databases/{{database.ID}}">{{database.DisplayName}}</a></li>
-                                <li ng-hide="serverModel.Databases==0" class="divider"></li>
-                                <li><a href="#/database-new" title="Create a new database">New database</a></li>
+                                <li data-ng-class="{active: getClass('^(/databases/{{database.ID}})$')}" ng-repeat="database in data.model.Databases | orderBy: 'DisplayName'"><a href="#/databases/{{database.ID}}">{{database.DisplayName}}</a></li>
+                                <li ng-hide="data.model.Databases.length==0" class="divider"></li>
+                                <li><a href="#/databaseNew" title="Create a new database">New database</a></li>
                             </ul>
                         </li>
 
 
-                        <!--<li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/database-new')}"><a href="#/databases">Databases</a></li>-->
+                        <!--<li data-ng-class="{active: getClass('/databases[^/]*$|/databases/[^/]*$|/databaseNew')}"><a href="#/databases">Databases</a></li>-->
                         <!--<li data-ng-class="{active: getClass('/sql')}"><a href="#/sql">SQL</a></li>-->
                     </ul>
 
@@ -258,11 +257,16 @@
                 <div class="btn-group btn-group-sm">
 
                     <ul class="nav nav-pills">
-                        <li ng-show="subMenu.showHome" data-ng-class="{ active: isActive('#/databases/'+data.selectedDatabase.ID)}">
+                        <li ng-show="subMenu.isDatabase" data-ng-class="{ active: isActive('#/databases/'+data.selectedDatabase.ID)}">
                             <a href="#/databases/{{data.selectedDatabase.ID}}" tooltip="{{data.selectedDatabase.DisplayName}}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a>
                         </li>
 
                         <li ng-repeat="item in subMenu.menues" role="presentation" data-ng-class="{ active: isActive(item.Link)}"><a href="{{item.Link}}">{{item.Title}}</a></li>
+
+                        <li ng-show="subMenu.isDatabase" data-ng-class="{ active: isActive('#/databases/'+data.selectedDatabase.ID+'/settings')}">
+                            <a href="#/databases/{{data.selectedDatabase.ID}}/settings"><span class="glyphicon glyphicon glyphicon-cog"></span></a>
+                        </li>
+
                     </ul>
                 </div>
 

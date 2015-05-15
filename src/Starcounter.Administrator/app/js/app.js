@@ -3,7 +3,7 @@
  * Starcounter Administrator module
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHandsontable', 'ui', 'ui.config','ngSanitize','ui.select'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHandsontable', 'ui', 'ui.config', 'ngSanitize', 'ui.select'], function ($routeProvider) {
 
     $routeProvider.when('/databases', {
         templateUrl: '/app/partials/databases.html',
@@ -53,7 +53,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
         }
     });
 
-    $routeProvider.when('/databases/:name/executabe-start', {
+    $routeProvider.when('/databases/:name/executabeStart', {
         templateUrl: '/app/partials/executabeStart.html',
         controller: 'ExecutableStartCtrl',
         resolve: {
@@ -84,7 +84,7 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
         }
     });
 
-    $routeProvider.when('/database-new', {
+    $routeProvider.when('/databaseNew', {
         templateUrl: '/app/partials/databaseNew.html',
         controller: 'DatabaseNewCtrl',
         resolve: {
@@ -183,7 +183,7 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
     $scope.subMenu = SubmenuService.model;
     $scope.newVersion = null;
     $scope.messages = MessageService.messages;
-    $scope.serverModel = HostModelService.serverStatus.obj;
+    //$scope.serverModel = HostModelService.serverStatus.obj;
     $scope.data = HostModelService.data;
 
     // Make selected nav pile to be selected 'active'
@@ -197,6 +197,31 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
             return false;
         }
     }
+
+
+    $scope.$watchCollection('data.model.Databases', function (newNames, oldNames) {
+
+        // Check if selected database exists
+        if (newNames == undefined || $scope.data.selectedDatabase == undefined) return;
+
+        for (var i = 0; i < $scope.data.model.Databases.length ; i++) {
+            var db = $scope.data.model.Databases[i];
+
+            if ($scope.data.selectedDatabase.ID == db.ID) {
+                return;
+            }
+        }
+
+        // Selected database has been removed.
+        if ($scope.data.model.Databases.length > 0) {
+            $location.path("/databases/" + $scope.data.model.Databases[0].ID);
+        }
+        else {
+            $scope.data.selectedDatabase = null;
+            $location.path("/databases");
+        }
+
+    });
 
     $scope.isActive = function (viewLocation) {
 
@@ -222,34 +247,34 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
         var locationStr = $location.path();
         var r = locationStr.match(re);
 
+
+        var databaseName = null;
+
         if (r != null && r.length > 2) {
-            HostModelService._wantedSelectedDatabaseName = r[2];
-        }
-        else {
-            HostModelService._wantedSelectedDatabaseName = null;
+            databaseName = r[2];
         }
 
-        var databaseName = HostModelService._wantedSelectedDatabaseName;
+        HostModelService._wantedSelectedDatabaseName = databaseName;
 
         SubmenuService.model.menues.length = 0;
-        
-        if (locationStr == "/databases" || locationStr == "/database-new") {
+
+        if (locationStr == "/databases" || locationStr == "/databaseNew") {
             //HostModelService.data.selectedDatabase = null;
-            SubmenuService.model.menues.push({ "Title": "New database", "Link": "#/database-new" })
-            SubmenuService.model.showHome = false;
+            SubmenuService.model.menues.push({ "Title": "New database", "Link": "#/databaseNew" })
+            SubmenuService.model.isDatabase = false;
             return;
         }
 
         if (locationStr.lastIndexOf("/server", 0) === 0) {
-            SubmenuService.model.showHome = false;
+            SubmenuService.model.isDatabase = false;
             return;
         }
 
         if (databaseName != null) {
-            SubmenuService.model.showHome = true;
+            SubmenuService.model.isDatabase = true;
             SubmenuService.model.menues.push({ "Title": "SQL", "Link": "#/databases/" + databaseName + "/sql" })
             SubmenuService.model.menues.push({ "Title": "AppStore", "Link": "#/databases/" + databaseName + "/appstore" })
-            SubmenuService.model.menues.push({ "Title": "Start Executable", "Link": "#/databases/" + databaseName + "/executabe-start" })
+            SubmenuService.model.menues.push({ "Title": "Start Executable", "Link": "#/databases/" + databaseName + "/executabeStart" })
         }
 
     });

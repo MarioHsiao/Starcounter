@@ -1,34 +1,6 @@
-﻿<div class="row pageheader">
+﻿<div class="panel panel-default">
 
-    <div class="btn-toolbar">
-
-        <div class="btn-group btn-group-sm">
-            <button style="min-width: 100px" class="btn  btn-primary" ng-click="gotoDatabase(data.selectedDatabase)" title="Go to database">{{data.selectedDatabase.DisplayName}}</button>
-            <button class="btn  btn-xs btn-primary dropdown-toggle" data-toggle="dropdown" title="Change database">
-                <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-                <li role="presentation" ng-repeat="item in data.model.Databases" title="{{item.DisplayName}}">
-                    <a href="#/databases/{{item.ID}}" role="menuitem">{{item.DisplayName}}</a>
-                </li>
-            </ul>
-        </div>
-
-        <div class="btn-group btn-group-sm  text-center">
-            <p style="margin: 0px; margin-left: 10px" class="lead">Settings</p>
-
-        </div>
-
-
-
-    </div>
-
-
-</div>
-
-
-
-<div class="panel panel-default">
+    <div class="panel-heading">Settings</div>
 
     <div class="panel-body">
         <form name="myForm" class="form-horizontal" role="form">
@@ -68,13 +40,54 @@
                 </div>
             </div>
 
+            <!-- PolyjuiceDatabaseFlag -->
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="PolyjuiceDatabaseFlag" id="PolyjuiceDatabaseFlag" placeholder="PolyjuiceDatabaseFlag" ng-model="model.settings.PolyjuiceDatabaseFlag">
+                            Polyjuice Database
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+<!--            <div class="form-group" ng-class="{'has-error': myForm.PolyjuiceDatabaseFlag.$invalid, 'has-feedback': myForm.PolyjuiceDatabaseFlag.$invalid}">
+                <label class="col-sm-2 control-label" for="PolyjuiceDatabaseFlag">PolyjuiceDatabaseFlag</label>
+                <div class="col-sm-10">
+                    <input class="form-control" type="checkbox" name="PolyjuiceDatabaseFlag" id="PolyjuiceDatabaseFlag" placeholder="PolyjuiceDatabaseFlag" ng-model="model.settings.PolyjuiceDatabaseFlag">
+                    <span class="help-block error" ng-show="myForm.PolyjuiceDatabaseFlag.$error.validationError">Invalid format</span>
+                    <span class="help-block error" ng-show="myForm.PolyjuiceDatabaseFlag.$error.required">Required</span>
+                    <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.PolyjuiceDatabaseFlag.$error.validationError||myForm.PolyjuiceDatabaseFlag.$error.required"></span>
+                    <span class="help-block">PolyjuiceDatabaseFlag</span>
+                </div>
+            </div>-->
+
             <div class="form-group">
                 <div class="col-sm-offset-2 col-sm-10">
                     <button type="submit" ng-disabled="myForm.$invalid || isBusy == true || myForm.$dirty == false" class="btn btn-default btn-success" ng-click="btnSaveSettings(model.database,model.settings)">Save</button>
                     <button ng-disabled="myForm.$pristine  == true || isBusy == true" class="btn btn-default" ng-click="btnResetSettings()">Reset</button>
                 </div>
+
+                <div class="col-sm-offset-2 col-sm-10" style="margin-top: 15px">
+                    <span ng-show="HasErrorMessage">
+                        <span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
+                        {{ErrorMessage.Message}}
+                        <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+                    </span>
+
+                    <span ng-show="SuccessMessage != null">
+                        {{SuccessMessage}}
+                    </span>
+
+                    <span ng-show="WarnMessage != null">
+                        <span style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
+                        {{WarnMessage}}
+                    </span>
+                </div>
+
             </div>
         </form>
     </div>
-</div>
 </div>

@@ -1,6 +1,4 @@
-﻿
-
-<!--<div class="row pageheader"></div>-->
+﻿<!--<div class="row pageheader"></div>-->
 
 <!--<div class="row pageheader">
 
@@ -19,7 +17,7 @@
         </div>
 
         <div class="btn-group btn-group-sm">
-            <a class="btn " href="#/database-new" role="button" title="Create database">Create database</a>
+            <a class="btn " href="#/databaseNew" role="button" title="Create database">Create database</a>
         </div>
 
 
@@ -47,6 +45,18 @@
                     <span class="help-block error" ng-show="myForm.Name.$error.validationError">Invalid format</span>
                     <span class="help-block error" ng-show="myForm.Name.$error.required">Required</span>
                     <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.Name.$error.validationError||myForm.Name.$error.required"></span>
+                </div>
+            </div>
+
+            <!-- PolyjuiceDatabaseFlag -->
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="PolyjuiceDatabaseFlag" id="PolyjuiceDatabaseFlag" placeholder="PolyjuiceDatabaseFlag" ng-model="settings.PolyjuiceDatabaseFlag">
+                            Polyjuice Database
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -170,12 +180,13 @@
                         <span title="Creating new database..." class="spinner tiny"></span>
                         Creating new database...
                     </span>
-                    <div style="margin-top:20px" ng-show="HasErrorMessage">
+                    <div style="margin-top: 20px" ng-show="HasErrorMessage">
                         <span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
                         {{ErrorMessage.Message}}
                         <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                         View the <a href="#/server/log">log</a> for more details.
                     </div>
+                    <span ng-show="SuccessMessage != null">{{SuccessMessage}}</span>
 
                 </div>
             </div>

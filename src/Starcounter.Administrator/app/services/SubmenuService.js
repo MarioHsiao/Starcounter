@@ -9,11 +9,7 @@ adminModule.service('SubmenuService', ['$http', '$rootScope', '$log', '$sce', 'U
 
     this.model = {
         "menues": [],
-        "showHome" : false
+        "isDatabase": false
     }
-
-//    this.subMenu = [];
-//    this.showHome = false;
-
 
 }]);

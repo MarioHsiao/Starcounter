@@ -128,7 +128,7 @@
 
     <!-- Create new database item -->
     <!--    <li>
-        <h4 class="list-group-item-heading"><a href="#/database-new" title="Create a new database">Create new database</a></h4>
+        <h4 class="list-group-item-heading"><a href="#/databaseNew" title="Create a new database">Create new database</a></h4>
     </li>-->
 </ul>
 
@@ -140,7 +140,7 @@
     </div>
 
     <div class="panel-body" ng-show="data.model.Databases.length == 0">
-        <p>To create a new database click <a href="#/database-new">here</a>. Or click on the menu choice <a href="#/database-new"><i>New database</i></a> in the menu</p>
+        <p>To create a new database click <a href="#/databaseNew">here</a>. Or click on the menu choice <a href="#/databaseNew"><i>New database</i></a> in the menu</p>
     </div>
 
     <table class="table" ng-show="data.model.Databases.length > 0">
@@ -149,9 +149,9 @@
 
             <tr ng-repeat="database in data.model.Databases | filter:{DisplayName:searchDatabase} | orderBy:['DisplayName']">
 
-                <td class="vert-align" style="width: 40px; padding-left:15px">
+                <td class="vert-align" style="width: 40px; padding-left: 15px">
                     <!-- Running all OK -->
-<!--                    <span ng-show="database.HasErrorMessage == false && database.IsRunning && database.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Database is running"></span>
+                    <!--                    <span ng-show="database.HasErrorMessage == false && database.IsRunning && database.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Database is running"></span>
                     <span ng-show="database.HasErrorMessage == false && database.IsRunning == false && database.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Database is stopped"></span>
                     <span ng-show="database.Status!=0" title="{{database.StatusText}}" class="spinner tiny" style="margin: 0px; padding: 0px"></span>-->
 
@@ -169,7 +169,9 @@
                     </div>
                 </td>
 
-
+                <td class="vert-align" style="width: 20px">
+                    <a href="#/databases/{{database.ID}}/settings"><span class="glyphicon glyphicon glyphicon-cog"></span></a>
+                </td>
 
                 <td class="vert-align" style="width: 100px">
                     <a href="#/databases/{{database.ID}}">{{database.DisplayName}}</a>
