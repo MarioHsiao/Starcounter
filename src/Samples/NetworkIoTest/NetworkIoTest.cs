@@ -295,15 +295,6 @@ namespace NetworkIoTestApp {
                     break;
                 }
 
-                case TestTypes.MODE_APPS_URIS:
-                {
-                    AppsBootstrapper.Bootstrap(StarcounterEnvironment.AppName, "c:\\pics", StarcounterEnvironment.Default.UserHttpPort);
-
-                    AppsClass.InitAppHandlers();
-
-                    break;
-                }
-
                 case TestTypes.MODE_APPS_URIS_SESSION:
                 {
                     AppsClass.InitAppHandlersSession();

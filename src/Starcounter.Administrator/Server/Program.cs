@@ -70,13 +70,13 @@ namespace Starcounter.Administrator.Server {
             // Registering Default handlers.
             RegisterHandlers();
 
-            // Bootstraping the application.
+            // Bootstrapping the application.
             AppsBootstrapper.Bootstrap(
-                StarcounterEnvironment.AppName,
+                StarcounterEnvironment.Default.SystemHttpPort,
                 Program.ResourceFolder,
-                StarcounterEnvironment.Default.SystemHttpPort);
+                StarcounterEnvironment.AppName);
 
-            // Boostrap Admin API handlers
+            // Bootstrap Admin API handlers
             StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, Program.ResourceFolder);
 
             // Start User Tracking (Send data to tracking server each hour and crash reports)
@@ -123,7 +123,7 @@ namespace Starcounter.Administrator.Server {
                 String path = settings[3];
 
                 // Adding static files serving directory.
-                AppsBootstrapper.AddFileServingDirectory(appName, port, path);
+                AppsBootstrapper.InternalAddStaticFileDirectory(port, path, appName);
 
                 return "Success!";
             });

@@ -221,7 +221,7 @@ namespace Starcounter.Internal
         public const int MAX_URI_STRING_LEN = 1024;
 
         // Session parameter type number in user delegate.
-        public const int REST_ARG_SESSION = 10;
+        public const int REST_ARG_SESSION = 12;
 
         // Bad server log handler.
         public const int INVALID_SERVER_LOG_HANDLE = 0;
