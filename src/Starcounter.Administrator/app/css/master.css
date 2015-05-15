@@ -6,6 +6,15 @@ body {
 }
 
 
+
+
+.modal-header h3 {
+  
+    font-size: 20px;
+    margin: 0px;
+}
+
+
 .panel {
     -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
     box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
@@ -50,6 +59,12 @@ body {
     border-radius: 0px;
     background-color: transparent;
 }
+
+
+.nav-pills > li > a:focus {
+    background-color: #6192bb;
+}
+
 
 .nav-pills > li > a:hover {
     border-radius: 0px;

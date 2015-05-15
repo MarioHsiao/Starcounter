@@ -31,6 +31,10 @@
         {{database.ErrorMessage.Message}}
         <a ng-show="database.ErrorMessage.HelpLink" href="{{database.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
         View the <a href="#/server/log">log</a> for more details.
+
+        <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-click="btnRefreshAppStoreStores()" title="Refresh">Refresh</button>
+
+
     </div>
 </div>
 
@@ -48,25 +52,25 @@
 
                     <tr ng-repeat="item in store.Applications | orderBy:['-IsInstalled','DisplayName'] ">
 
-                        <td class="vert-align" style="width: 41px; padding-left:15px">
+                        <td class="vert-align" style="width: 41px; padding-left: 15px">
                             <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
                             <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Not installed" title="Not downloaded"></span>
                             <span ng-show="item.Status!=0" title="{{item.StatusText}}" tooltip="{{item.StatusText}}" class="spinner tiny" style="margin: 0px; padding: 0px"></span>
                         </td>
 
                         <td class="vert-align" style="width: 95px;">
-                            <div >
+                            <div>
                                 <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
                                 <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Open</button>
                             </div>
                         </td>
 
-<!--                        <td class="vert-align">
+                        <!--                        <td class="vert-align">
                                 <div>{{item.StatusText}}</div>
                         </td>-->
 
                         <td>
-                            <span style="display:inline">
+                            <span style="display: inline">
                                 <img style="margin-right: 10px; vertical-align: baseline; height: 32px; width: 32px; max-width: 32px; max-height: 32px;" ng-src="{{item.ImageUri}}" />
                                 <span style="display: inline-block">
                                     <a target="_blank" href="{{item.SourceUrl}}"><span ng-hide="item.Heading">{{item.DisplayName}}</span>{{item.Heading}}</a>

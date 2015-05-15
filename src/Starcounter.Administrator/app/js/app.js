@@ -260,7 +260,7 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 
         if (locationStr == "/databases" || locationStr == "/databaseNew") {
             //HostModelService.data.selectedDatabase = null;
-            SubmenuService.model.menues.push({ "Title": "New database", "Link": "#/databaseNew" })
+            SubmenuService.model.menues.push({ "Title": "New database", "Link": "#/databaseNew", "Tooltip": "Create a new database" })
             SubmenuService.model.isDatabase = false;
             return;
         }
@@ -272,9 +272,9 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
 
         if (databaseName != null) {
             SubmenuService.model.isDatabase = true;
-            SubmenuService.model.menues.push({ "Title": "SQL", "Link": "#/databases/" + databaseName + "/sql" })
-            SubmenuService.model.menues.push({ "Title": "AppStore", "Link": "#/databases/" + databaseName + "/appstore" })
-            SubmenuService.model.menues.push({ "Title": "Start Executable", "Link": "#/databases/" + databaseName + "/executabeStart" })
+            SubmenuService.model.menues.push({ "Title": "SQL", "Link": "#/databases/" + databaseName + "/sql", "Tooltip": "Make SQL Queries" })
+            SubmenuService.model.menues.push({ "Title": "AppStore", "Link": "#/databases/" + databaseName + "/appstore", "Tooltip": "Download Applications from the AppStore" })
+            SubmenuService.model.menues.push({ "Title": "Start Executable", "Link": "#/databases/" + databaseName + "/executabeStart", "Tooltip" : "Start executable" })
         }
 
     });

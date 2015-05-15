@@ -561,6 +561,8 @@ namespace Administrator.Server.Model {
         /// </summary>
         public void InvalidateAppStoreStores() {
 
+            this.ResetErrorMessage();
+
             AppStoreManager.GetStores(this, (stores) => {
 
                 this.AppStoreStores.Clear(); // TODO: Merge lists.

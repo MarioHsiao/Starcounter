@@ -258,13 +258,13 @@
 
                     <ul class="nav nav-pills">
                         <li ng-show="subMenu.isDatabase" data-ng-class="{ active: isActive('#/databases/'+data.selectedDatabase.ID)}">
-                            <a href="#/databases/{{data.selectedDatabase.ID}}" tooltip="{{data.selectedDatabase.DisplayName}}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a>
+                            <a href="#/databases/{{data.selectedDatabase.ID}}" title="Home of {{data.selectedDatabase.DisplayName}}" tooltip="{{data.selectedDatabase.DisplayName}}"><span class="glyphicon glyphicon-home" aria-hidden="true"></span></a>
                         </li>
 
-                        <li ng-repeat="item in subMenu.menues" role="presentation" data-ng-class="{ active: isActive(item.Link)}"><a href="{{item.Link}}">{{item.Title}}</a></li>
+                        <li ng-repeat="item in subMenu.menues" role="presentation" title="{{item.Tooltip}}" data-ng-class="{ active: isActive(item.Link)}"><a href="{{item.Link}}">{{item.Title}}</a></li>
 
                         <li ng-show="subMenu.isDatabase" data-ng-class="{ active: isActive('#/databases/'+data.selectedDatabase.ID+'/settings')}">
-                            <a href="#/databases/{{data.selectedDatabase.ID}}/settings"><span class="glyphicon glyphicon glyphicon-cog"></span></a>
+                            <a title="Database settings" href="#/databases/{{data.selectedDatabase.ID}}/settings"><span class="glyphicon glyphicon glyphicon-cog"></span></a>
                         </li>
 
                     </ul>

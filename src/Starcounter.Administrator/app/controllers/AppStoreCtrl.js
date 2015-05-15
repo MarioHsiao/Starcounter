@@ -25,6 +25,11 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
         application.Open$++;
     }
 
+    $scope.btnRefreshAppStoreStores = function () {
+
+        $scope.database.RefreshAppStoreStores$++;
+    }
+
     // Set Data
     $scope.database = HostModelService.getDatabase($routeParams.name);
     $scope.database.RefreshAppStoreStores$++;

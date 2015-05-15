@@ -1,67 +1,4 @@
-﻿<div class="panel panel-default" ng-show="application">
-
-
-    <table class="table">
-
-        <tbody>
-
-            <tr>
-                <td class="vert-align" style="width: 300px; background: rgba(0, 0, 0, 0.0)">
-
-                    <div class="btn-group-sm">
-                        <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
-                        <button style="min-width: 80px" class="btn btn-default" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
-                        <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Install Application">Auto-Start (OFF)</button>
-                        <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Uninstall Application">Auto-Start (ON)</button>
-                        <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
-                    </div>
-                </td>
-
-                <td class="vert-align" style="width: 30px">
-                    <!-- Running all OK -->
-                    <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Application is running"></span>
-                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Application is stopped"></span>
-
-                    <span ng-show="application.HasErrorMessage && application.Status==0" style="top: 3px; font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>
-
-                    <!-- Working -->
-                    <span style="margin-top:-2px" ng-show="application.Status!=0"  title="{{application.StatusText}}" class="spinner tiny"></span>
-
-                </td>
-
-                <!--                <td class="vert-align">
-                    <img style="margin-right: 10px; height: auto; width: auto; min-width: 32px; max-width: 32px; max-height: 32px;" ng-src="{{application.ImageUri}}" />
-                    <a href="#/databases/{{application.DatabaseName}}/applications/{{application.ID}}">{{application.DisplayName}}</a>
-                </td>-->
-
-                <td class="vert-align">
-
-                    <!-- OK -->
-                    <!--<span ng-show="application.HasErrorMessage == false && application.IsRunning && application.Status==0" style="vertical-align: baseline; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Application is running"></span>-->
-
-
-                    <span ng-show="application.HasErrorMessage">
-                        <!--<span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
-
-                        {{application.ErrorMessage.Message}}
-
-                        <span ng-show="application.ErrorMessage.HelpLink">
-
-                            <a href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help
-                            </a>.
-                        </span>
-                        View the <a href="#/server/log">log</a> for more details.
-
-                    </span>
-
-                    <!-- Status Text -->
-                    {{application.StatusText}}
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-</div>
+﻿
 
 
 <div ng-show="application" class="panel panel-default">
@@ -76,15 +13,64 @@
             </span>
         </span>
 
+
     </div>
 
-    <div class="panel-body">
-        <div ng-class="{consoleAppIsNotRunning: application.Status!=0, consoleAppIsRunning: application.Status==0}" title="Console output" id="console" ng-style="sizeStyle()">
+        <table class="table">
+
+            <tbody>
+                <tr >
+                    <!-- Status -->
+                    <td class="vert-align" style="width: 41px; padding-left: 15px">
+
+                        <div style="margin-top: 5px;">
+                            <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
+                            <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Stopped" tooltip="Stopped"></span>
+                            <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not running" tooltip="Not running"></span>
+                            <span ng-show="application.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}" tooltip="{{application.ErrorMessage.Message}}"></span>
+                            <span ng-show="application.Status!=0" style="margin-top: -2px" title="{{application.StatusText}}" class="spinner tiny"></span>
+                        </div>
+                    </td>
+
+                    <!-- Buttons -->
+                    <td class="vert-align" style="width: 300px; background: rgba(0, 0, 0, 0.0)">
+
+                        <div class="btn-group-sm">
+                            <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
+                            <button style="min-width: 80px" class="btn btn-default" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
+                            <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Start Application when database starts">Auto-Start (OFF)</button>
+                            <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Start Application when database starts">Auto-Start (ON)</button>
+                            <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
+                        </div>
+                    </td>
+
+                    <!-- Error message -->
+                    <td class="vert-align">
+
+                        <span style="color: #d9534f" ng-show="application.HasErrorMessage">
+                            <!--                        <span style="margin-top: 5px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
+                            <!--<span style="position:relative; top: 4px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
+
+                            {{application.ErrorMessage.Message}}
+
+                            <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                            View the <a href="#/server/log">log</a> for more details.
+
+                        </span>
+                        <!-- Status Text -->
+                        {{application.StatusText}}
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+
+    <div class="panel-body" style="padding:0px">
+
+        <div  ng-class="{'consoleAppIsNotRunning': application.Status!=0 || application.IsRunning==false}" title="Console output" id="console" ng-style="sizeStyle()">
             <consolewindow ng-model="consoleText"></consolewindow>
         </div>
     </div>
-    <!--    <div class="panel-footer">
-    </div>-->
 </div>
 
 <div ng-hide="application" class="panel panel-default">
