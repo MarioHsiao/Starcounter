@@ -282,18 +282,19 @@ uint32_t WsProto::ProcessWsDataToDb(
         // Calculating number of bytes processed.
         int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
 
-        // Checking if message fits in current accumulated data.
         int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
-        int32_t frame_size = header_len + frame_info_.payload_len_;
-        if (num_remaining_bytes < frame_size) {
+        int32_t header_plus_payload_bytes = header_len + frame_info_.payload_len_;
+
+        // Checking if complete frame does not fit in current accumulated data.
+        if (header_plus_payload_bytes > num_remaining_bytes) {
 
             // Checking if we need to move current data up.
             cur_data_ptr = sd->get_accum_buf()->MoveDataToTopAndContinueReceive(cur_data_ptr, num_remaining_bytes);
 
             // Checking if data that needs accumulation fits into chunk.
-            if (sd->get_accum_buf()->get_chunk_num_available_bytes() < (uint32_t)(frame_size - num_remaining_bytes))
+            if (sd->get_accum_buf()->get_chunk_num_available_bytes() < static_cast<uint32_t>(header_plus_payload_bytes - num_remaining_bytes))
             {
-                uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, frame_size);
+                uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, header_plus_payload_bytes);
                 if (err_code)
                     return err_code;
             }
@@ -303,7 +304,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         }
 
         // Adding whole frame as processed.
-        num_processed_bytes += frame_size;
+        num_processed_bytes += header_plus_payload_bytes;
 
         // Number of processed bytes can not exceed the total accumulated number of bytes.
         GW_ASSERT(num_processed_bytes <= num_accum_bytes);
@@ -314,6 +315,7 @@ uint32_t WsProto::ProcessWsDataToDb(
             sd_push_to_db = NULL;
 
         } else {
+
             // Cloning chunk to push it to database.
             err_code = sd->CloneToPush(gw, &sd_push_to_db);
             if (err_code)
@@ -343,6 +345,7 @@ uint32_t WsProto::ProcessWsDataToDb(
             // Unmasking frame and pushing to database.
             err_code = UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id);
 
+            // Original sd would be released automatically.
             if (err_code) {
                 
                 // Releasing the cloned chunk.
@@ -527,8 +530,9 @@ void WsProto::MaskUnMask(
     {
         int32_t num_begin_bytes = 8 - num_remaining_bytes;
 
-        for (int32_t i = 0; i < num_remaining_bytes; i++)
+        for (int32_t i = 0; i < num_remaining_bytes; i++) {
             payload[i] = payload[i] ^ (((uint8_t*)&mask_8bytes)[num_begin_bytes + i]);
+        }
 
         processed_bytes += num_remaining_bytes;
     }
@@ -540,8 +544,9 @@ void WsProto::MaskUnMask(
         if (tail_bytes_num < 8)
         {
             // Processing last bytes.
-            for (int32_t i = 0; i < tail_bytes_num; i++)
+            for (int32_t i = 0; i < tail_bytes_num; i++) {
                 payload[processed_bytes + i] = payload[processed_bytes + i] ^ (((uint8_t*)&mask_8bytes)[i]);
+            }
 
             num_remaining_bytes = 8 - tail_bytes_num;
 
@@ -619,12 +624,13 @@ bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
         }
     }
 
-    // Increasing limit by one if payload length is 0.
-    if (0 == frame_info_.payload_len_)
-        limit++;
-
     // Calculating payload offset relatively to socket data.
     frame_info_.payload_offset_ = static_cast<uint32_t> (data - (uint8_t*)sd);
+
+    // Increasing limit by one if payload length is 0.
+    if (0 == frame_info_.payload_len_) {
+        limit++;
+    }
 
     // Checking if frame was successfully parsed.
     if (data >= limit) {

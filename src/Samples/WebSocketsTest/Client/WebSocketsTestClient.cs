@@ -77,20 +77,16 @@ namespace WebSocketsTestClient {
                             // Sending and receiving messages.
                             for (Int32 n = 0; n < numMessages; n++) {
 
-                                //lock (ServerIp) {
+                                ArraySegment<Byte> bytesToSend = new ArraySegment<Byte>(sendBytes);
 
-                                    ArraySegment<Byte> bytesToSend = new ArraySegment<Byte>(sendBytes);
+                                // Sending data in preferred format: text or binary.
+                                Task task = ws.SendAsync(
+                                    bytesToSend,
+                                    WebSocketMessageType.Text,
+                                    true,
+                                    CancellationToken.None);
 
-                                    // Sending data in preferred format: text or binary.
-                                    Task task = ws.SendAsync(
-                                        bytesToSend,
-                                        WebSocketMessageType.Text,
-                                        true,
-                                        CancellationToken.None);
-
-                                    task.Wait();
-                                //}
-                                
+                                task.Wait();
                             }
 
                         } catch (Exception exc) {
@@ -110,28 +106,26 @@ namespace WebSocketsTestClient {
                             // Sending and receiving messages.
                             for (Int32 n = 0; n < numMessages; n++) {
 
-                                //lock (ServerIp) {
-                                    bytesReceived = new ArraySegment<Byte>(respBytes, 0, respBytes.Length);
+                                bytesReceived = new ArraySegment<Byte>(respBytes, 0, respBytes.Length);
 
-                                    String respMessage = "";
+                                String respMessage = "";
 
-                                    // Accumulating until all data is received.
-                                    do {
+                                // Accumulating until all data is received.
+                                do {
 
-                                        recvTask = ws.ReceiveAsync(bytesReceived, CancellationToken.None);
-                                        recvTask.Wait();
-                                        result = recvTask.Result;
-                                        respMessage += Encoding.UTF8.GetString(respBytes, 0, result.Count);
+                                    recvTask = ws.ReceiveAsync(bytesReceived, CancellationToken.None);
+                                    recvTask.Wait();
+                                    result = recvTask.Result;
+                                    respMessage += Encoding.UTF8.GetString(respBytes, 0, result.Count);
 
-                                    } while (!result.EndOfMessage);
+                                } while (!result.EndOfMessage);
 
-                                    if (c == 10000) {
-                                        Console.WriteLine(n);
-                                        c = 0;
-                                    }
+                                if (c == 10000) {
+                                    Console.WriteLine(n);
+                                    c = 0;
+                                }
 
-                                    c++;
-                                //}
+                                c++;
                             }
 
                         } catch (Exception exc) {
@@ -146,102 +140,40 @@ namespace WebSocketsTestClient {
                     sendThread.Join();
                     recvThread.Join();
 
-                    /*
-                    // Sending and receiving messages.
-                    for (Int32 n = 0; n < numMessages; n++) {
-
-                        ArraySegment<Byte> bytesToSend = new ArraySegment<Byte>(sendBytes);
-
-                        // Sending data in preferred format: text or binary.
-                        Task task = ws.SendAsync(
-                            bytesToSend,
-                            WebSocketMessageType.Text,
-                            true,
-                            CancellationToken.None);
-
-                        task.Wait();
-
-                        bytesReceived = new ArraySegment<Byte>(respBytes, 0, respBytes.Length);
-
-                        recvTask = ws.ReceiveAsync(bytesReceived, CancellationToken.None);
-                        recvTask.Wait();
-                        result = recvTask.Result;
-
-                        // Checking if we have a text message.
-                        if (result.MessageType != WebSocketMessageType.Text) {
-                            GlobalErrorCode = 1;
-                            return GlobalErrorCode;
-                        }
-
-                        // Checking if need to continue accumulation.
-                        if (!result.EndOfMessage) {
-
-                            Int32 totalReceived = result.Count;
-
-                            // Accumulating until all data is received.
-                            while (totalReceived < sendBytes.Length) {
-
-                                bytesReceived = new ArraySegment<byte>(respBytes, totalReceived, respBytes.Length - totalReceived);
-
-                                recvTask = ws.ReceiveAsync(bytesReceived, CancellationToken.None);
-                                recvTask.Wait();
-                                result = recvTask.Result;
-
-                                totalReceived += result.Count;
-                            }
-                        }
-                    }
-                    */
-
                     if (GlobalErrorCode != 0)
                         return GlobalErrorCode;
 
-                    // Trying to get correct socket statistics.
-                    const Int32 NumStatsRetries = 10;
-                    for (Int32 i = 0; i < NumStatsRetries; i++) {
+                    t = ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Just closing.", CancellationToken.None);
+                    t.Wait();
+
+                    String correctStats = String.Format("{0} {1} {2} {3} {4} {5} True",
+                        webSocketId,
+                        numMessages,
+                        messageSize,
+                        numMessages,
+                        numMessages,
+                        messageLetter);
+
+                    for (Int32 i = 0; i < 30; i++) {
 
                         Response resp = Http.GET("http://" + ServerIp + ":" + ServerPort + "/WsStats/" + webSocketId);
 
-                        if (!resp.IsSuccessStatusCode) {
-
-                            if ((NumStatsRetries - 1) == i) {
-
-                                Console.WriteLine(String.Format("Can not obtain socket stats: ", webSocketId));
-                                GlobalErrorCode = 5;
-                                return GlobalErrorCode;
-                            }
-                        }
-
-                        String correctStats = String.Format("{0} {1} {2} {3} {4} {5}",
-                            webSocketId,
-                            numMessages,
-                            messageSize,
-                            numMessages,
-                            numMessages,
-                            messageLetter);
-
                         // If stats are not correct, maybe server have not received all the data yet.
-                        if (correctStats != resp.Body) {
-
-                            // Checking if its a last try.
-                            if ((NumStatsRetries - 1) == i) {
-
-                                Console.WriteLine(String.Format("Wrong socket stats: \"{0}\" VS \"{1}\"", correctStats, resp.Body));
-                                GlobalErrorCode = 4;
-                                return GlobalErrorCode;
-                            }
-
-                        } else {
+                        if (resp.IsSuccessStatusCode && (correctStats.ToLower() == resp.Body.ToLower())) {
 
                             break;
+
+                        } else if (i == 29) {
+
+                            Console.WriteLine(String.Format("Wrong socket stats: \"{0}\" VS \"{1}\"", correctStats, resp.Body));
+                            GlobalErrorCode = 4;
+                            return GlobalErrorCode;
                         }
 
-                        Console.Write(".");
-                        Thread.Sleep(100);
+                        Thread.Sleep(1000);
+                        Console.WriteLine(".");
                     }
-
-                    t = ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Just closing.", CancellationToken.None);
-                    t.Wait();
+                    
                 }
 
             } catch (Exception exc) {
@@ -258,7 +190,7 @@ namespace WebSocketsTestClient {
 
             //Debugger.Launch();
 
-            Console.WriteLine("Usage: WebSocketsTestClient.exe --ServerIp=127.0.0.1 --ServerPort=8080 --NumMessagesPerWebSocket=10000 --MessageSizeBytes=10");
+            Console.WriteLine("Usage: WebSocketsTestClient.exe --ServerIp=127.0.0.1 --ServerPort=8080 --NumMessagesPerWebSocket=10000 --MessageSizeBytes=10 --NumSockets=10000");
             Console.WriteLine();
 
             // Parsing parameters.
@@ -271,6 +203,8 @@ namespace WebSocketsTestClient {
                     NumMessagesPerWebSocket = Int32.Parse(arg.Substring("--NumMessagesPerWebSocket=".Length));
                 } else if (arg.StartsWith("--MessageSizeBytes=")) {
                     MessageSizeBytes = Int32.Parse(arg.Substring("--MessageSizeBytes=".Length));
+                } else if (arg.StartsWith("--NumSockets=")) {
+                    NumSockets = Int32.Parse(arg.Substring("--NumSockets=".Length));
                 }
             }
 
@@ -281,8 +215,6 @@ namespace WebSocketsTestClient {
             for (Int32 i = 0; i < NumSockets; i++) {
 
                 sw.Restart();
-
-                //Int32 errCode = RunOneWebSocketTestWebSocket4Net(NumMessagesPerWebSocket, MessageSizeBytes, 'A');
 
                 Int32 errCode = RunOneWebSocketTestNetFramework(NumMessagesPerWebSocket, MessageSizeBytes, 'A');
 
@@ -299,23 +231,14 @@ namespace WebSocketsTestClient {
 
             Response globalStats = Http.GET("http://" + ServerIp + ":" + ServerPort + "/WsGlobalStatus");
 
-            if (200 == globalStats.StatusCode) {
+            if (200 != globalStats.StatusCode) {
 
-                Int32 numDisconnects = Int32.Parse(globalStats.Body);
-
-                if (numDisconnects == NumSockets) {
-
-                    Console.WriteLine("WebSockets test finished successfully!");
-
-                    return 0;
-
-                } else {
-                    Console.WriteLine("Wrong number of disconnects: " + numDisconnects);
-                    GlobalErrorCode = 14;
-                }
-            } else {
-                Console.WriteLine("Wrong global statistics response.");
+                Console.WriteLine("Wrong global statistics response: " + globalStats.Body);
                 GlobalErrorCode = 15;
+            }
+
+            if (GlobalErrorCode == 0) {
+                Console.WriteLine("WebSocket test finished successfully!");
             }
 
             return GlobalErrorCode;

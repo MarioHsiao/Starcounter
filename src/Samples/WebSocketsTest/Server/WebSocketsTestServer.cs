@@ -18,6 +18,7 @@ namespace WebSocketsTestServer {
         public Int32 NumMessagesSent;
         public Int32 NumMessagesReceived;
         public Int32 MessageLetter;
+        public Boolean HasDisconnected;
     }
 
     class WebSocketsTestServer {
@@ -28,9 +29,9 @@ namespace WebSocketsTestServer {
 
         const Int32 PushSleepInterval = 100;
 
-        static Int32 GlobalErrorCode = 0;
+        static UInt32 GlobalErrorCode = 0;
 
-        static Int32 GlobalNumberOfDisconnects = 0;
+        static String GlobalErrorMessage = "";
 
         /// <summary>
         /// Processing incoming message.
@@ -42,16 +43,16 @@ namespace WebSocketsTestServer {
             // Checking if there is no such WebSocket.
             if (wss == null) {
 
-                ws.Disconnect("Can't find WebSocket state object in database.");
                 GlobalErrorCode = 1;
+                ws.Disconnect("Can't find WebSocket object with ID: " + ws.ToUInt64());
                 return;
             }
 
             // Checking that message length is correct.
             if (data.Length != wss.MessageSize) {
 
-                ws.Disconnect("Wrong size of received data.");
                 GlobalErrorCode = 2;
+                ws.Disconnect("Wrong size of received data.");
                 return;
             }
 
@@ -60,14 +61,18 @@ namespace WebSocketsTestServer {
 
                 if (data[i] != (Byte)wss.MessageLetter) {
 
-                    ws.Disconnect("Wrong data in received WebSocket message.");
                     GlobalErrorCode = 3;
+                    ws.Disconnect("Wrong data in received WebSocket message.");
                     return;
                 }
             }
 
-            // Incrementing the number of received messages.
-            wss.NumMessagesReceived++;
+            lock (WsTestGroupName) {
+
+                // Incrementing the number of received messages.
+                wss.NumMessagesReceived++;
+
+            }
                 
             // Pushing messages on this WebSocket.
             PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
@@ -84,16 +89,16 @@ namespace WebSocketsTestServer {
             // Checking if there is no such WebSocket.
             if (wss == null) {
 
-                ws.Disconnect("Can't find WebSocket state object in database.");
                 GlobalErrorCode = 1;
+                ws.Disconnect("Can't find WebSocket state object in database.");
                 return;
             }
 
             // Checking that message length is correct.
             if (data.Length != wss.MessageSize) {
-
-                ws.Disconnect("Wrong size of received data.");
+                
                 GlobalErrorCode = 2;
+                ws.Disconnect("Wrong size of received data.");
                 return;
             }
 
@@ -102,8 +107,8 @@ namespace WebSocketsTestServer {
 
                 if (data[i] != (Byte) wss.MessageLetter) {
 
-                    ws.Disconnect("Wrong data in received WebSocket message.");
                     GlobalErrorCode = 3;
+                    ws.Disconnect("Wrong data in received WebSocket message.");
                     return;
                 }
             }
@@ -153,14 +158,12 @@ namespace WebSocketsTestServer {
                             } catch (Exception exc) {
 
                                 GlobalErrorCode = 5;
-                                Console.WriteLine("Error occurred: " + exc.ToString());
                             }
                         });
 
                     } catch (Exception exc) {
 
                         GlobalErrorCode = 6;
-                        Console.WriteLine("Error occurred: " + exc.ToString());
                     }
                 }
 
@@ -231,17 +234,15 @@ namespace WebSocketsTestServer {
         /// <summary>
         /// Broadcasts on active WebSockets.
         /// </summary>
-        static void BroadcastWebSockets(Int32 numForEachesPerRound) {
+        static void BroadcastWebSockets() {
 
             while (true) {
 
-                Byte schedId = 0;
-
-                for (Int32 k = 0; k < numForEachesPerRound; k++) {
+                for (Byte k = 0; k < StarcounterEnvironment.SchedulerCount; k++) {
 
                     try {
 
-                        Byte s = schedId;
+                        Byte s = k;
 
                         // Getting sessions for current scheduler.
                         new DbSession().RunAsync(() => {
@@ -270,15 +271,10 @@ namespace WebSocketsTestServer {
 
                         }, s);
 
-                        schedId++;
-                        if (schedId >= StarcounterEnvironment.SchedulerCount) {
-                            schedId = 0;
-                        }
-
                     } catch (Exception exc) {
 
-                        GlobalErrorCode = 9;
-                        Console.WriteLine("Error occurred: " + exc.ToString());
+                        GlobalErrorMessage = exc.ToString();
+                        GlobalErrorCode = 4;
                     }
                 }
 
@@ -307,8 +303,6 @@ namespace WebSocketsTestServer {
                         Int32 messageSize = Int32.Parse(req["MessageSize"]);
                         Int32 messageLetter = (Int32)req["MessageLetter"][0];
 
-                        GlobalErrorCode = 0;
-
                         WebSocketState wss = null;
 
                         UInt64 wsId = req.GetWebSocketId();
@@ -321,7 +315,8 @@ namespace WebSocketsTestServer {
                                 MessageSize = messageSize,
                                 NumMessagesSent = 0,
                                 NumMessagesReceived = 0,
-                                MessageLetter = messageLetter
+                                MessageLetter = messageLetter,
+                                HasDisconnected = false
                             };
                         //});
 
@@ -344,7 +339,7 @@ namespace WebSocketsTestServer {
                         return HandlerStatus.Handled;
                     }
 
-                    GlobalErrorCode = 10;
+                    GlobalErrorCode = 5;
 
                     return new Response() {
                         StatusCode = 500,
@@ -353,26 +348,26 @@ namespace WebSocketsTestServer {
 
                 } catch (Exception exc) {
 
-                    GlobalErrorCode = 11;
-                    Console.WriteLine("Error occurred: " + exc.ToString());
+                    GlobalErrorMessage = exc.ToString();
+                    GlobalErrorCode = 6;
 
                     return 500;
                 }
             });
 
             Handle.WebSocketDisconnect(WsTestGroupName, (WebSocket ws) => {
-                /*
-                // Safely incrementing the global lock.
-                WebSocketState wss;
-                Boolean removed = allWebSockets_.TryRemove(ws.ToUInt64(), out wss);
 
-                if (!removed) {
-                    GlobalErrorCode = 12;
+                // Safely incrementing the global lock.
+                WebSocketState wss = allWebSockets_[ws.ToUInt64()];
+
+                if (wss == null) {
+                    GlobalErrorCode = 7;
                     return;
                 }
-                */
+
                 lock (WsTestGroupName) {
-                    GlobalNumberOfDisconnects++;
+
+                    wss.HasDisconnected = true;
                 }
                 
             });
@@ -396,19 +391,32 @@ namespace WebSocketsTestServer {
 
                 // Checking if there is no such WebSocket.
                 if (wss == null) {
-                    GlobalErrorCode = 12;
-                    return 400;
+                    return new Response() {
+                        StatusCode = 500,
+                        StatusDescription = "WebSocket with the following ID does not exist: " + wsId
+                    };
                 }
 
-                String s = String.Format("{0} {1} {2} {3} {4} {5}", 
+                String stats = String.Format("{0} {1} {2} {3} {4} {5} {6}", 
                     wss.Id,
                     wss.NumMessagesToSend,
                     wss.MessageSize,
                     wss.NumMessagesSent,
                     wss.NumMessagesReceived,
-                    (Char) wss.MessageLetter);
+                    (Char) wss.MessageLetter,
+                    wss.HasDisconnected);
 
-                return s;
+                Boolean removed = allWebSockets_.TryRemove(wsId, out wss);
+
+                if (!removed) {
+
+                    return new Response() {
+                        StatusCode = 500,
+                        StatusDescription = "WebSocket with the following ID can't be removed: " + wsId
+                    };
+                }
+
+                return stats;
             });
 
             Handle.GET("/WsGlobalStatus", () => {
@@ -419,23 +427,18 @@ namespace WebSocketsTestServer {
                     return new Response() {
                         StatusCode = 500,
                         StatusDescription = "WebSocket test failed",
-                        Body = GlobalErrorCode.ToString()
+                        Body = GlobalErrorCode.ToString() + ": " + GlobalErrorMessage.ToString()
                     };
                 }
 
-                Int32 totalNumDisconnects = GlobalNumberOfDisconnects;
-                GlobalNumberOfDisconnects = 0;
-
-                return new Response() {
-                    Body = String.Format("{0}", totalNumDisconnects)
-                };
+                return 200;
             });
 
-            //Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(10); });
+            //Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(); });
             //broadcastSessionsThread.Start();
 
-            //Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(10); });
-            //broadcastWebSocketsThread.Start();
+            Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(); });
+            broadcastWebSocketsThread.Start();
 
             return 0;
         }
