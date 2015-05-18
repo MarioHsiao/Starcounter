@@ -752,7 +752,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             return SCERRBADGATEWAYCONFIG;
         }
 
-        node_elem = root_elem->first_node("InternalSystemPort");
+        node_elem = root_elem->first_node(MixedCodeConstants::GatewayInternalSystemPortSettingName);
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read InternalSystemPort property.");
@@ -767,7 +767,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         }
 
         // Getting aggregation port number.
-        node_elem = root_elem->first_node("AggregationPort");
+        node_elem = root_elem->first_node(MixedCodeConstants::GatewayAggregationPortSettingName);
         if (node_elem)
         {
             setting_aggregation_port_ = (uint16_t)atoi(node_elem->value());
