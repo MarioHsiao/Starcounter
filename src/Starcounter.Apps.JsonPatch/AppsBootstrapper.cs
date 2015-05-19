@@ -137,6 +137,23 @@ namespace Starcounter.Internal {
 
                     Polyjuice.Init();
                 }
+
+                Handle.GET(defaultSystemHttpPort, "/schedulers/" + dbName, () => {
+
+                    String allResults = "{\"Schedulers\":[";
+
+                    for (Int32 i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+
+                        allResults += "{\"SchedulerId\":\"" + GatewayHandlers.SchedulerNumRequests[i] + "\"}";
+
+                        if (i < (StarcounterEnvironment.SchedulerCount - 1))
+                            allResults += ",";
+                    }
+
+                    allResults += "]}";
+
+                    return allResults;
+                });
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.

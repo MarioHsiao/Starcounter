@@ -167,12 +167,12 @@ namespace Starcounter {
             Byte[] patch;
             Int32 sizeBytes = jsonPatch_.CreateJsonPatchBytes(
                 this, 
-                false, 
+                true, 
                 CheckOption(SessionOptions.IncludeNamespaces), 
                 out patch);
 
             // Sending the patch bytes to the client.
-            ActiveWebSocket.Send(patch, sizeBytes);
+            ActiveWebSocket.Send(patch, sizeBytes, true);
         }
 
         /// <summary>
@@ -235,12 +235,20 @@ namespace Starcounter {
         /// <param name="cargoId">Cargo ID filter.</param>
         public static void ForEach(UInt64 cargoId, Action<Session> action) {
 
+            String appName = StarcounterEnvironment.AppName;
+
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
                 
                 Byte schedId = i;
 
                 ScSessionClass.DbSession.RunAsync(
-                    () => { ForEachSessionOnCurrentScheduler(cargoId, action); },
+                    () => {
+
+                        // We need to set application name when running on different schedulers.
+                        StarcounterEnvironment.AppName = appName;
+
+                        ForEachSessionOnCurrentScheduler(cargoId, action);
+                    },
                     schedId);
             }
         }

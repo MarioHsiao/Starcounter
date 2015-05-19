@@ -215,9 +215,6 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
 {
     type_of_network_protocol_ = GetTypeOfNetworkProtocol();
 
-    // NOTE: Setting global session including scheduler id.
-    SetGlobalSessionCopy(session_);
-
     // Checking if WebSocket handshake was approved.
     if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) &&
         get_ws_upgrade_approved_flag())
@@ -332,6 +329,8 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
     // Checking if we need to create scheduler id for certain protocols.
     switch (get_type_of_network_protocol()) {
 
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
 
             // Obtaining the current scheduler id.
@@ -346,7 +345,6 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
             }
 
             break;
-
         }
     }
 }

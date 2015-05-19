@@ -78,7 +78,7 @@ typedef uint32_t ws_group_id_type;
 //#define GW_SESSIONS_DIAG
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
-#define LEAST_USED_SCHEDULING
+//#define LEAST_USED_SCHEDULING
 #define CASE_INSENSITIVE_URI_MATCHER
 
 #ifdef GW_DEV_DEBUG
