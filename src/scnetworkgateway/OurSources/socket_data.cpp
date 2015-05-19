@@ -424,6 +424,45 @@ uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_s
     return 0;
 }
 
+// Clone current socket data to simply send it.
+uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
+    GatewayWorker*gw,
+    int32_t payload_len,
+    uint8_t* payload,
+    SocketDataChunk** new_sd)
+{
+    // Taking the chunk where accumulated buffer fits.
+    SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(payload_len);
+
+    // Checking if couldn't obtain chunk.
+    if (NULL == sd)
+        return SCERRGWMAXCHUNKSNUMBERREACHED;
+
+    // First copying socket data headers.
+    sd->PlainCopySocketDataInfoHeaders(this);
+
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+
+    // Checking if data fits inside chunk.
+    GW_ASSERT(payload_len <= (int32_t)accum_buf->get_chunk_num_available_bytes());
+
+    // Checking if message should be copied.
+    memcpy(accum_buf->get_chunk_orig_buf_ptr(), payload, payload_len);
+
+    // Setting proper payload offset.
+    sd->get_ws_proto()->get_frame_info()->payload_offset_ = static_cast<uint16_t>(accum_buf->get_chunk_orig_buf_ptr() - (uint8_t*) sd);
+
+    // Adjusting the accumulative buffer.
+    accum_buf->AddAccumulatedBytes(payload_len);
+
+    // This socket becomes unattached.
+    sd->reset_socket_representer_flag();
+
+    *new_sd = sd;
+
+    return 0;
+}
+
 // Copies IPC chunks to gateway chunk.
 uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
     WorkerDbInterface* worker_db,

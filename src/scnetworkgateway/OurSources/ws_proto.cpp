@@ -317,7 +317,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         } else {
 
             // Cloning chunk to push it to database.
-            err_code = sd->CloneToPush(gw, &sd_push_to_db);
+            err_code = sd->CreateWebSocketDataFromBigBuffer(gw, frame_info_.payload_len_, payload, &sd_push_to_db);
             if (err_code)
                 return err_code;
         }
@@ -343,7 +343,7 @@ uint32_t WsProto::ProcessWsDataToDb(
         else
         {
             // Unmasking frame and pushing to database.
-            err_code = UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id);
+            err_code = sd_push_to_db->get_ws_proto()->UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id);
 
             // Original sd would be released automatically.
             if (err_code) {

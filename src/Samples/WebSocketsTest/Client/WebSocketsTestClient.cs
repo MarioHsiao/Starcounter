@@ -69,6 +69,8 @@ namespace WebSocketsTestClient {
 
                     // Checking that its a full message and its text.
                     webSocketId = UInt64.Parse(wsIdString);
+
+                    Int32 sendRecvRatio = 0;
                                         
                     Thread sendThread = new Thread(() => {
 
@@ -76,6 +78,10 @@ namespace WebSocketsTestClient {
 
                             // Sending and receiving messages.
                             for (Int32 n = 0; n < numMessages; n++) {
+
+                                while (sendRecvRatio >= 30000) {
+                                    Thread.Sleep(1);
+                                }
 
                                 ArraySegment<Byte> bytesToSend = new ArraySegment<Byte>(sendBytes);
 
@@ -87,6 +93,8 @@ namespace WebSocketsTestClient {
                                     CancellationToken.None);
 
                                 task.Wait();
+
+                                Interlocked.Increment(ref sendRecvRatio);
                             }
 
                         } catch (Exception exc) {
@@ -119,6 +127,8 @@ namespace WebSocketsTestClient {
                                     respMessage += Encoding.UTF8.GetString(respBytes, 0, result.Count);
 
                                 } while (!result.EndOfMessage);
+
+                                Interlocked.Decrement(ref sendRecvRatio);
 
                                 if (c == 10000) {
                                     Console.WriteLine(n);
