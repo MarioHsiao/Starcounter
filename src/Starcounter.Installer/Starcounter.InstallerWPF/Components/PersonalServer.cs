@@ -27,17 +27,17 @@ namespace Starcounter.InstallerWPF.Components {
             }
         }
 
-        private bool _SendUsageAndCrashReports;
-        public bool SendUsageAndCrashReports {
-            get {
-                return this._SendUsageAndCrashReports;
-            }
-            set {
-                if (this._SendUsageAndCrashReports == value) return;
-                this._SendUsageAndCrashReports = value;
-                this.OnPropertyChanged("SendUsageAndCrashReports");
-            }
-        }
+        //private bool _SendUsageAndCrashReports;
+        //public bool SendUsageAndCrashReports {
+        //    get {
+        //        return this._SendUsageAndCrashReports;
+        //    }
+        //    set {
+        //        if (this._SendUsageAndCrashReports == value) return;
+        //        this._SendUsageAndCrashReports = value;
+        //        this.OnPropertyChanged("SendUsageAndCrashReports");
+        //    }
+        //}
 
         private readonly string[] _Dependencys = new string[] { InstallationBase.Identifier };
         public override string[] Dependencys {
@@ -53,7 +53,7 @@ namespace Starcounter.InstallerWPF.Components {
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 #endif
 
-            this.SendUsageAndCrashReports = true;
+            //this.SendUsageAndCrashReports = true;
 
             this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), ConstantsBank.SCProductName);
 
