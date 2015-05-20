@@ -331,12 +331,21 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP2: {
 
             // Checking scheduler id validity.
             if (INVALID_SCHEDULER_ID == sched_id) {
                 sched_id = db->GenerateSchedulerId();
             }
+
+            break;
+        }
+
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP: {
+
+            GW_ASSERT(INVALID_SCHEDULER_ID == sched_id);
 
             break;
         }
