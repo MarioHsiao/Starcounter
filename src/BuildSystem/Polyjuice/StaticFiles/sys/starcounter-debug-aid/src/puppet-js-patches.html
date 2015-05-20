@@ -101,7 +101,9 @@
         (function (gloabl) {
             var listener = gloabl.PuppetListener;
 
-            listener.startListen();
+            window.addEventListener("polymer-ready", function (e) {
+                listener.startListen();
+            });
 
             function filterRows(rows, filter) {
                 var result = [];

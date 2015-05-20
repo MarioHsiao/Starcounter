@@ -927,6 +927,13 @@ public:
         uint8_t* data,
         SocketDataChunk** new_sd);
 
+    // Extract socket data from a bigger WebSocket frame.
+    uint32_t CreateWebSocketDataFromBigBuffer(
+        GatewayWorker*gw,
+        int32_t payload_len,
+        uint8_t* payload,
+        SocketDataChunk** new_sd);
+
     // Attaches session to socket data.
     void AssignSession(ScSessionStruct& session)
     {

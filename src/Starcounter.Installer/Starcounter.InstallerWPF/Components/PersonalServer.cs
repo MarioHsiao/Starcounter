@@ -59,6 +59,7 @@ namespace Starcounter.InstallerWPF.Components {
 
             this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+            this.DefaultAggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
             this.DefaultPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort;
 
             switch (this.Command) {
@@ -122,6 +123,21 @@ namespace Starcounter.InstallerWPF.Components {
 
                 this._DefaultSystemHttpPort = value;
                 this.OnPropertyChanged("DefaultSystemHttpPort");
+            }
+        }
+
+        private UInt16 _DefaultAggregationPort;
+        public UInt16 DefaultAggregationPort {
+            get {
+                return _DefaultAggregationPort;
+            }
+
+            set {
+                if (_DefaultAggregationPort == value)
+                    return;
+
+                this._DefaultAggregationPort = value;
+                this.OnPropertyChanged("DefaultAggregationPort");
             }
         }
 

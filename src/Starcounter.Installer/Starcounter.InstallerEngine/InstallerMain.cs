@@ -91,6 +91,7 @@ namespace Starcounter.InstallerEngine
         public static void CopyGatewayConfig(
             String serverDir,
             String internalSystemPort,
+            String aggregationPort,
             Boolean useExistingServerInstallation)
         {
             // Copying gateway configuration.
@@ -105,10 +106,17 @@ namespace Starcounter.InstallerEngine
             // Overwriting server config values.
             if (!Utilities.ReplaceXMLParameterInFile(
                 Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
-                ConstantsBank.GatewayInternalSystemPort,
+                MixedCodeConstants.GatewayInternalSystemPortSettingName,
                 internalSystemPort))
             {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway statistics port.");
+            }
+
+            if (!Utilities.ReplaceXMLParameterInFile(
+                Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                MixedCodeConstants.GatewayAggregationPortSettingName,
+                aggregationPort)) {
+                throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway aggregation port.");
             }
         }
 

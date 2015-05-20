@@ -677,6 +677,12 @@ class AccumBuffer
 
 public:
 
+    // Checking there are enough space for receive.
+    void CheckSpaceLeftForReceive() {
+        GW_ASSERT(chunk_num_available_bytes_ > 0);
+        GW_ASSERT(chunk_cur_buf_ptr_ + chunk_num_available_bytes_ <= chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_);
+    }
+
     uint32_t* get_desired_accum_bytes_addr()
     {
         return &desired_accum_bytes_;

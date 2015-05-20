@@ -398,6 +398,7 @@ public class CPersonalServer : CComponentBase
         InstallerMain.CopyGatewayConfig(
             serverInnerDir,
             InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort),
+            InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_AggregationPort),
             pointToExistingServerDir);
 
         // Creating service

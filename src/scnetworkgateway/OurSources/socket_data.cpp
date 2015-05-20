@@ -58,6 +58,8 @@ uint32_t SocketDataChunk::ReceiveTcp(GatewayWorker *gw, uint32_t *num_bytes)
     DWORD* flags = (DWORD*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD));
     *flags = 0;
 
+    accum_buf_.CheckSpaceLeftForReceive();
+
     return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, &ovl_, NULL);
 }
 
@@ -88,6 +90,8 @@ uint32_t SocketDataChunk::ReceiveUdp(GatewayWorker *gw, uint32_t *num_bytes)
 
     int32_t* from_length = (int32_t*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD) - sizeof(int32_t));
     *from_length = sizeof(SOCKADDR);
+
+    accum_buf_.CheckSpaceLeftForReceive();
 
     return WSARecvFrom(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, (SOCKADDR*) accept_or_params_or_temp_data_, from_length, &ovl_, NULL);
 }
@@ -416,6 +420,45 @@ uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_s
 
     // This socket becomes unattached.
     (*new_sd)->reset_socket_representer_flag();
+
+    return 0;
+}
+
+// Clone current socket data to simply send it.
+uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
+    GatewayWorker*gw,
+    int32_t payload_len,
+    uint8_t* payload,
+    SocketDataChunk** new_sd)
+{
+    // Taking the chunk where accumulated buffer fits.
+    SocketDataChunk* sd = gw->GetWorkerChunks()->ObtainChunk(payload_len);
+
+    // Checking if couldn't obtain chunk.
+    if (NULL == sd)
+        return SCERRGWMAXCHUNKSNUMBERREACHED;
+
+    // First copying socket data headers.
+    sd->PlainCopySocketDataInfoHeaders(this);
+
+    AccumBuffer* accum_buf = sd->get_accum_buf();
+
+    // Checking if data fits inside chunk.
+    GW_ASSERT(payload_len <= (int32_t)accum_buf->get_chunk_num_available_bytes());
+
+    // Checking if message should be copied.
+    memcpy(accum_buf->get_chunk_orig_buf_ptr(), payload, payload_len);
+
+    // Setting proper payload offset.
+    sd->get_ws_proto()->get_frame_info()->payload_offset_ = static_cast<uint16_t>(accum_buf->get_chunk_orig_buf_ptr() - (uint8_t*) sd);
+
+    // Adjusting the accumulative buffer.
+    accum_buf->AddAccumulatedBytes(payload_len);
+
+    // This socket becomes unattached.
+    sd->reset_socket_representer_flag();
+
+    *new_sd = sd;
 
     return 0;
 }
