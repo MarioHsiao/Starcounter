@@ -57,7 +57,7 @@ namespace Starcounter
         /// <summary>
         /// Contains number of requests for each scheduler.
         /// </summary>
-        public static Int64[] SchedulerNumRequests = new Int64[StarcounterEnvironment.SchedulerCount];
+        public static Int64[] SchedulerNumRequests = new Int64[StarcounterConstants.MaximumSchedulersNumber];
 
         /// <summary>
         /// UDP outer handler.
