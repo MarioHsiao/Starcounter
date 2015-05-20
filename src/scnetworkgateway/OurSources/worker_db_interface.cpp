@@ -460,6 +460,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         return 0;
     }
 
+    // Binding socket to scheduler.
+    sd->BindSocketToScheduler(gw, this);
+
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = sd->get_scheduler_id();
 

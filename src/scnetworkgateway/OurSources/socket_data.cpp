@@ -326,6 +326,9 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
 // Binds current socket to some scheduler.
 void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface *db) {
 
+    // Obtaining the current scheduler id.
+    scheduler_id_type sched_id = GetSchedulerId();
+
     // Checking if we need to create scheduler id for certain protocols.
     switch (get_type_of_network_protocol()) {
 
@@ -333,20 +336,17 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
 
-            // Obtaining the current scheduler id.
-            scheduler_id_type sched_id = get_scheduler_id();
-
             // Checking scheduler id validity.
             if (INVALID_SCHEDULER_ID == sched_id) {
-
                 sched_id = db->GenerateSchedulerId();
-
-                SetSchedulerId(sched_id);
             }
 
             break;
         }
     }
+
+    // Setting private scheduler id.
+    SetSchedulerId(sched_id);
 }
 
 // Resets session depending on protocol.
