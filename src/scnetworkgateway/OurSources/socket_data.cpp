@@ -341,14 +341,6 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
 
             break;
         }
-
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1:
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP: {
-
-            GW_ASSERT(INVALID_SCHEDULER_ID == sched_id);
-
-            break;
-        }
     }
 
     // Setting private scheduler id.
