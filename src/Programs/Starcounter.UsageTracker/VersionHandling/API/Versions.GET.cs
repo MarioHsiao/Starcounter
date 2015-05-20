@@ -140,7 +140,13 @@ namespace Starcounter.Applications.UsageTrackerApp.API.Versions {
                         versionItem.documentationUrl = string.Format("http://{0}/doc/{1}/{2}/{3}/{4}", VersionHandlerApp.StarcounterTrackerUrl, versionSource.Edition, versionSource.Channel, versionSource.Version, "webframe.html");
                     }
 
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = versionItem.ToJsonUtf8() };
+                    Response response = new Response();
+                    response.StatusCode = (ushort)System.Net.HttpStatusCode.OK;
+                    response.BodyBytes = versionItem.ToJsonUtf8();
+                    response["Access-Control-Allow-Origin"] = "*";
+                    return response;
+
+                    //return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = versionItem.ToJsonUtf8() };
 
                 }
                 catch (Exception e) {

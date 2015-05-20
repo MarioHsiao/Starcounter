@@ -37,15 +37,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
             VersionHandlerApp.Settings = VersionHandlerSettings.GetSettings();
 
             // Add public static resource
-            String body = publicPort.ToString() + "\r\n" +  Path.GetFullPath(System.IO.Path.Combine(folder, "public"));
-
-            Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null, null, (Response resp, Object userObject) => {
-                String respString = resp.Body;
-                if ("Success!" != respString) {
-                    throw new Exception(string.Format("Failed to register the static resources directory ({0}).", body));
-                }
-            });
-
+            AppsBootstrapper.AddStaticFileDirectory(publicPort, Path.GetFullPath(System.IO.Path.Combine(folder, "public")));
 
             // Documentation
             String publicDocumentationFolder = System.IO.Path.Combine(VersionHandlerApp.Settings.DocumentationFolder, "public");
@@ -53,14 +45,7 @@ namespace StarcounterApplicationWebSocket.VersionHandler {
                 Directory.CreateDirectory(publicDocumentationFolder);
             }
 
-            String publicDocfolder = publicPort.ToString() + "\r\n" +  Path.GetFullPath(publicDocumentationFolder);
-
-            Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, publicDocfolder, null, null, (Response resp, Object userObject) => {
-                String respString = resp.Body;
-                if ("Success!" != respString)
-                    throw new Exception(string.Format("Failed to register the static resources directory {0} on port {1} for the documentation.", publicDocumentationFolder, publicPort));
-            });
-
+            AppsBootstrapper.AddStaticFileDirectory(publicPort, Path.GetFullPath(publicDocumentationFolder));
 
             // Set log filename to logwriter
             LogWriter.Init(VersionHandlerApp.Settings.LogFile);
