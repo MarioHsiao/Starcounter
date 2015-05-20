@@ -25,28 +25,15 @@ namespace Starcounter.Applications.UsageTrackerApp {
                 if (result == false || uPort > IPEndPoint.MaxPort || uPort < IPEndPoint.MinPort) {
                     throw new IndexOutOfRangeException("Invalid port number");
                 }
-
-                // Putting port and full path to resources directory.
-                String body = port + StarcounterConstants.NetworkConstants.CRLF + Path.GetFullPath(resourceFolder);
-
-                // Sending REST POST request to Administrator to register static resources directory.
-                Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null, null, (Response resp, Object userObject) => {
-                    String respString = resp.Body;
-                    if ("Success!" != respString) {
-                        throw new Exception("Could not register static resources directory with administrator!");
-                    }
-                });
+                
+                AppsBootstrapper.AddStaticFileDirectory(uPort, Path.GetFullPath(resourceFolder));
 
                 Utils.AssureIndexes();
 
                 // use TrackingEnvironment.StarcounterTrackerPort
                 // Bootstrap Tracking Incoming message
                 UsageTrackerAPI.Bootstrap(8585, 8282, 80, resourceFolder);
-
             }
-
         }
     }
-
-
 }
