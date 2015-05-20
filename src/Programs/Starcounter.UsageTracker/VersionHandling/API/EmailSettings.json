@@ -1,6 +1,0 @@
-{
-	"$":{"Namespace":"Starcounter.Applications.UsageTrackerApp.API.Versions"},
-	to: "", // "touser@domain.com",
-	from: "", // "fromaccount@domain.com",
-	password: "", // "account password"
-}
