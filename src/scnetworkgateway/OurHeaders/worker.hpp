@@ -666,7 +666,6 @@ public:
         GW_ASSERT(unique_id != INVALID_SESSION_SALT);
 
         sockets_infos_[socket_index].unique_socket_id_ = unique_id;
-        sockets_infos_[socket_index].session_.scheduler_id_ = 0;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;

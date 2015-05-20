@@ -173,9 +173,6 @@ void SocketDataChunk::ResetWhenDisconnectIsDone(GatewayWorker *gw)
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
-    // Clearing attached session.
-    //g_gateway.ClearSession(sessionIndex);
-
     // Removing reference to/from session.
     session_.Reset();
 

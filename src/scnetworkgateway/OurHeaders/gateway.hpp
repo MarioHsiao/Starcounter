@@ -1089,7 +1089,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     }
 
     bool IsReset() {
-        return (INVALID_SESSION_SALT == unique_socket_id_);
+        return (INVALID_SESSION_SALT == unique_socket_id_) && 
+            (INVALID_SCHEDULER_ID == session_.scheduler_id_);
     }
 };
 
