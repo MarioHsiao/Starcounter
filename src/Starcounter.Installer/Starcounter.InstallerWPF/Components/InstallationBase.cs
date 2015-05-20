@@ -72,6 +72,19 @@ namespace Starcounter.InstallerWPF.Components
             }
         }
 
+        private bool _SendUsageAndCrashReports;
+        public bool SendUsageAndCrashReports {
+            get {
+                return this._SendUsageAndCrashReports;
+            }
+            set {
+                if (this._SendUsageAndCrashReports == value) return;
+                this._SendUsageAndCrashReports = value;
+                this.OnPropertyChanged("SendUsageAndCrashReports");
+            }
+        }
+
+
         private bool _AddToStartMenu;
         public bool AddToStartMenu
         {
@@ -99,6 +112,8 @@ namespace Starcounter.InstallerWPF.Components
 
             // Setting the installation flag.
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.InstallationBase];
+
+            this.SendUsageAndCrashReports = true;
 
             // Setting installation path (new path is created if not installed).
 #if !SIMULATE_CLEAN_INSTALLATION

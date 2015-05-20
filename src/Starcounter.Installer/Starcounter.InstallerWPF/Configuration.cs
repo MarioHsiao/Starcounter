@@ -227,7 +227,7 @@ namespace Starcounter.InstallerWPF {
 
                 // Send usage statistics and crash reports
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_SendUsageAndCrashReports);
-                elem.InnerText = personalServer.SendUsageAndCrashReports.ToString();
+                elem.InnerText = installationBase.SendUsageAndCrashReports.ToString();
                 subRootElem.AppendChild(elem);
 
                 // Personal server Desktop shortcuts.
