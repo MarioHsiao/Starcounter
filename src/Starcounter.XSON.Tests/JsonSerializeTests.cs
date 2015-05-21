@@ -211,15 +211,12 @@ namespace Starcounter.Internal.XSON.Tests {
 
         [Test]
         public static void TestIncorrectInputJsonForDefaultSerializer() {
-            TValue tObj = Helper.CreateJsonTemplateFromFile("supersimple.json");
+            TValue tObj = Helper.CreateJsonTemplateFromFile("PlayerAndAccounts.json");
 
             XSONModule.UseCodegeneratedSerializer = false;
             var obj = (Json)tObj.CreateInstance();
 
-            string invalidJson = "message";
-            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
-
-            invalidJson = "PlayerId: \"Hey!\" }";
+            var invalidJson = "PlayerId: \"Hey!\" }";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
 
             invalidJson = "{ PlayerId: \"Hey!\" ";
@@ -229,6 +226,12 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
 
             invalidJson = "{ PlayerId: 123";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ Accounts: [ }";
+            Assert.Catch(() => obj.PopulateFromJson(invalidJson));
+
+            invalidJson = "{ Accounts: ] }";
             Assert.Catch(() => obj.PopulateFromJson(invalidJson));
         }
 
