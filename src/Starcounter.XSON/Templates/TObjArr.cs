@@ -27,7 +27,7 @@ namespace Starcounter.Templates {
 		internal Func<Json, IEnumerable> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
 		internal Func<Json, Json> UnboundGetter;
-        private Func<TObjArr, TObject> getElementType = null;
+        private Func<TObjArr, TValue> getElementType = null;
 		private TValue[] single = new TValue[0];
       
 		/// <summary>
@@ -43,7 +43,7 @@ namespace Starcounter.Templates {
             customSetter(parent, value);
         }
 
-        public void SetCustomGetElementType(Func<TObjArr, TObject> getElementType) {
+        public void SetCustomGetElementType(Func<TObjArr, TValue> getElementType) {
             ElementType = null;
             this.getElementType = getElementType;
         }
