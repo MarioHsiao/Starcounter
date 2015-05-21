@@ -752,6 +752,7 @@ namespace Starcounter.Advanced.XSON {
             string propertyName;
             Template tProperty;
             TObject tObject;
+            JsonToken token;
 
             if (template != null) {
                 tObject = (TObject)template;
@@ -760,37 +761,79 @@ namespace Starcounter.Advanced.XSON {
                 tObject = (TObject)json.Template;
             }
 
-            while (reader.GotoProperty()) {
+            token = reader.ReadNext();
+            if (!(token == JsonToken.StartObject))
+                JsonHelper.ThrowInvalidJsonException("Expected object but found: " + token.ToString());
+
+            reader.Skip(1);
+
+            while (true) {
+                token = reader.ReadNext();
+
+                if (token == JsonToken.EndObject) {
+                    reader.Skip(1);
+                    break;
+                }
+
+                if (token == JsonToken.End)
+                    JsonHelper.ThrowInvalidJsonException("No end object token found");
+
+                if (!(token == JsonToken.PropertyName))
+                    JsonHelper.ThrowInvalidJsonException("Expected name of property but found token: " + token.ToString());
+
                 propertyName = reader.ReadString();
                 tProperty = tObject.Properties.GetExposedTemplateByName(propertyName);
                 if (tProperty == null) {
                     JsonHelper.ThrowPropertyNotFoundException(propertyName);
                 }
 
-                reader.GotoValue();
-
+                token = reader.ReadNext();
                 if (tProperty.TemplateTypeId == TemplateTypeEnum.Object) {
-                    reader.PopulateObject(((TObject)tProperty).Getter(json));
+                    var childObj = ((TObject)tProperty).Getter(json);
+                    var valueSize = childObj.PopulateFromJson(reader.CurrentPtr, reader.Size - reader.Position);
+                    reader.Skip(valueSize);
                 } else {
                     populatePerTemplate[(int)tProperty.TemplateTypeId](json, tProperty, reader);
                 }
             }
-            reader.Skip(1);
         }
 
         private static void PopulateArray(Json json, Template template, JsonReader reader) {
+            int valueSize;
             Json childObj;
+            JsonToken token;
 
             if (template != null) {
                 json = ((TObjArr)template).Getter(json);
             }
-            
-            JsonReader arrayReader = reader.CreateSubReader();
-            while (arrayReader.GotoNextObject()) {
+
+            token = reader.ReadNext();
+
+            if (!(token == JsonToken.StartArray))
+                JsonHelper.ThrowInvalidJsonException("Expected array but found: " + token.ToString());
+
+            reader.Skip(1);
+
+            while (true) {
+                token = reader.ReadNext();
+                if (token == JsonToken.EndArray) {
+                    reader.Skip(1);
+                    break;
+                }
+
+                if (token == JsonToken.End)
+                    JsonHelper.ThrowInvalidJsonException("No end array token found");
+
                 childObj = json.NewItem();
-                arrayReader.PopulateObject(childObj);
+                valueSize = childObj.PopulateFromJson(reader.CurrentPtr, reader.Size - reader.Position);
+                reader.Skip(valueSize);
             }
-            reader.Skip(arrayReader.Used + 1);
+            
+            //while (arrayReader.GotoNextObject()) {
+            //    childObj = json.NewItem();
+            //    arrayReader.PopulateObject(childObj);
+            //}
+            //reader.Skip(arrayReader.Used + 1);
         }
 
         private static void PopulateTrigger(Json json, Template template, JsonReader reader) {
@@ -801,7 +844,7 @@ namespace Starcounter.Advanced.XSON {
         public override int Populate(Json json, IntPtr source, int sourceSize) {
             var reader = new JsonReader(source, sourceSize);
             populatePerTemplate[(int)json.Template.TemplateTypeId](json, null, reader);
-            return reader.Used;
+            return reader.Position;
         }
     }
 }

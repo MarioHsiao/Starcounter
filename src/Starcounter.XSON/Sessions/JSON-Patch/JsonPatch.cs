@@ -486,7 +486,6 @@ namespace Starcounter.XSON {
         /// <param name="body">The body of the request.</param>
         /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued.</returns>
         public int EvaluatePatches(Session session, IntPtr patchArrayPtr, int patchArraySize) {
-            int used = 0;
             int patchCount = 0;
             int patchStart = -1;
             int rejectedPatches = 0;
@@ -503,106 +502,125 @@ namespace Starcounter.XSON {
             bool versionCheckEnabled = session.CheckOption(SessionOptions.PatchVersioning);
             session.ClientServerVersion = session.ServerVersion;
 
+            member = JsonPatchMember.Invalid;
+            valuePtr = IntPtr.Zero;
+            valueSize = 0;
+            pointer = null;
+
             try {
                 unsafe {
                     reader = new JsonReader(patchArrayPtr, patchArraySize);
+                    JsonToken token = JsonToken.Null;
 
-                    while (reader.GotoNextObject()) {
-                        member = JsonPatchMember.Invalid;
-                        pointer = null;
-                        valuePtr = IntPtr.Zero;
-                        valueSize = -1;
+                    while (token != JsonToken.End) {
+                        token = reader.ReadNext();
 
-                        patchStart = reader.Used - 1;
-                        while (reader.GotoProperty()) {
-                            reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                            GetPatchMember(tmpBuf, 1, out member);
-                            reader.GotoValue();
-
-                            switch (member) {
-                                case JsonPatchMember.Op:
-                                    reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                                    patchOp = JsonPatch.GetPatchOperation(tmpBuf, 0, usedTmpBufSize);
-                                    break;
-                                case JsonPatchMember.Path:
-                                    reader.ReadRaw(tmpBuf, out usedTmpBufSize);
-                                    byte[] ptr = new byte[usedTmpBufSize - 2];
-                                    Buffer.BlockCopy(tmpBuf, 1, ptr, 0, usedTmpBufSize - 2);
-                                    pointer = new JsonPointer(ptr);
-                                    break;
-                                case JsonPatchMember.Value:
-                                    valuePtr = reader.CurrentPtr;
-                                    valueSize = reader.SkipValue();
-                                    break;
-                                default:
-                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unknown property in patch.");
-                                    break;
-                            }
-                        }
-
-                        if (patchOp == JsonPatchOperation.Undefined)
-                            ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unsupported patch operation in patch.");
-
-                        if (pointer == null)
-                            ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No path found in patch.");
-
-                        if ((patchOp != JsonPatchOperation.Remove) && (valuePtr == IntPtr.Zero))
-                            ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No value found in patch.");
-
-                        used += reader.Used;
-                        patchCount++;
-
-                        if (versionCheckEnabled && patchCount <= 2) {
-                            if (patchCount == 1) {
-                                if ((patchOp != JsonPatchOperation.Replace) || !VerifyPatchPath(pointer, clientVersionPath)) {
-                                    // First patch need to be replace for client version.
-                                    ThrowPatchException(patchStart, valuePtr, valueSize, "Second patch when versioncheck is enabled have to be replace for client version.");
-                                }
-                                clientVersion = GetLongValue(valuePtr, valueSize, JsonPatch.ClientVersionPropertyName);
-                                if (clientVersion != (session.ClientVersion + 1)) {
-                                    if (clientVersion <= session.ClientVersion) {
-                                        ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Local version of client and clientversion in patch mismatched.");
-                                    } else {
-                                        byte[] tmp = new byte[patchArraySize];
-                                        Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
-                                        session.EnqueuePatch(tmp, (int)(clientVersion - session.ClientVersion - 2));
-
-                                        patchCount = -1;
+                        switch (token) {
+                            case JsonToken.StartArray:
+                            case JsonToken.EndArray:
+                                reader.Skip(1);
+                                break;
+                            case JsonToken.StartObject:
+                                member = JsonPatchMember.Invalid;
+                                pointer = null;
+                                valuePtr = IntPtr.Zero;
+                                valueSize = -1;
+                                patchStart = reader.Position;
+                                reader.Skip(1);
+                                break;
+                            case JsonToken.PropertyName:
+                                reader.ReadRaw(tmpBuf, out usedTmpBufSize);
+                                GetPatchMember(tmpBuf, 1, out member);
+                                break;
+                            case JsonToken.Value:
+                                switch (member) {
+                                    case JsonPatchMember.Op:
+                                        reader.ReadRaw(tmpBuf, out usedTmpBufSize);
+                                        patchOp = JsonPatch.GetPatchOperation(tmpBuf, 0, usedTmpBufSize);
                                         break;
+                                    case JsonPatchMember.Path:
+                                        reader.ReadRaw(tmpBuf, out usedTmpBufSize);
+                                        byte[] ptr = new byte[usedTmpBufSize - 2];
+                                        Buffer.BlockCopy(tmpBuf, 1, ptr, 0, usedTmpBufSize - 2);
+                                        pointer = new JsonPointer(ptr);
+                                        break;
+                                    case JsonPatchMember.Value:
+                                        valuePtr = reader.CurrentPtr;
+                                        valueSize = reader.Position;
+                                        reader.SkipCurrent();
+                                        valueSize = reader.Position - valueSize;
+                                        break;
+                                    default:
+                                        ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unknown property in patch.");
+                                        break;
+                                }
+                                break;
+                            case JsonToken.EndObject:
+                                reader.Skip(1);
+                                // Handle complete patch
+                                if (patchOp == JsonPatchOperation.Undefined)
+                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Unsupported patch operation in patch.");
+
+                                if (pointer == null)
+                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No path found in patch.");
+
+                                if ((patchOp != JsonPatchOperation.Remove) && (valuePtr == IntPtr.Zero))
+                                    ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "No value found in patch.");
+
+                                patchCount++;
+                                if (versionCheckEnabled && patchCount <= 2) {
+                                    if (patchCount == 1) {
+                                        if ((patchOp != JsonPatchOperation.Replace) || !VerifyPatchPath(pointer, clientVersionPath)) {
+                                            // First patch need to be replace for client version.
+                                            ThrowPatchException(patchStart, valuePtr, valueSize, "Second patch when versioncheck is enabled have to be replace for client version.");
+                                        }
+                                        clientVersion = GetLongValue(valuePtr, valueSize, JsonPatch.ClientVersionPropertyName);
+                                        if (clientVersion != (session.ClientVersion + 1)) {
+                                            if (clientVersion <= session.ClientVersion) {
+                                                ThrowPatchException(patchStart, patchArrayPtr, patchArraySize, "Local version of client and clientversion in patch mismatched.");
+                                            } else {
+                                                byte[] tmp = new byte[patchArraySize];
+                                                Marshal.Copy(patchArrayPtr, tmp, 0, patchArraySize);
+                                                session.EnqueuePatch(tmp, (int)(clientVersion - session.ClientVersion - 2));
+                                                patchCount = -1;
+                                                token = JsonToken.End;
+                                                break;
+                                            }
+                                        }
+                                        session.ClientVersion = clientVersion;
+                                    } else {
+                                        // Server: Second patch -> determine if transformations are needed and what version.
+                                        if ((patchOp != JsonPatchOperation.Test) || !VerifyPatchPath(pointer, serverVersionPath)) {
+                                            ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
+                                        }
+
+                                        session.ClientServerVersion = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
+                                        session.CleanupOldVersionLogs();
+                                    }
+                                } else {
+                                    if (patchHandler != null) {
+                                        try {
+                                            patchHandler(session, patchOp, pointer, valuePtr, valueSize);
+                                        } catch (JsonPatchException) {
+                                            if (session.CheckOption(SessionOptions.StrictPatchRejection))
+                                                throw;
+                                            rejectedPatches++;
+                                        } catch (FormatException) {
+                                            if (session.CheckOption(SessionOptions.StrictPatchRejection))
+                                                throw;
+                                            rejectedPatches++;
+                                        }
                                     }
                                 }
-                                session.ClientVersion = clientVersion;
-                            } else {
-                                // Server: Second patch -> determine if transformations are needed and what version.
-                                if ((patchOp != JsonPatchOperation.Test) || !VerifyPatchPath(pointer, serverVersionPath)) {
-                                    ThrowPatchException(patchStart, valuePtr, valueSize, "First patch when versioncheck is enabled have to be test for server version.");
-                                }
-
-                                session.ClientServerVersion = GetLongValue(valuePtr, valueSize, ServerVersionPropertyName);
-                                session.CleanupOldVersionLogs();
-                            }
-                        } else {
-                            if (patchHandler != null) {
-                                try {
-                                    patchHandler(session, patchOp, pointer, valuePtr, valueSize);
-                                } catch (JsonPatchException) {
-                                    if (session.CheckOption(SessionOptions.StrictPatchRejection))
-                                        throw;
-                                    rejectedPatches++;
-                                } catch (FormatException) {
-                                    if (session.CheckOption(SessionOptions.StrictPatchRejection))
-                                        throw;
-                                    rejectedPatches++;
-                                }
-                            }
+                                break;
                         }
                     }
-                }
 
-                if (patchCount != -1) {
-                    byte[] enqueuedPatch = session.GetNextEnqueuedPatch();
-                    if (enqueuedPatch != null) {
-                        patchCount += EvaluatePatches(session, enqueuedPatch);
+                    if (patchCount != -1) {
+                        byte[] enqueuedPatch = session.GetNextEnqueuedPatch();
+                        if (enqueuedPatch != null) {
+                            patchCount += EvaluatePatches(session, enqueuedPatch);
+                        }
                     }
                 }
             } catch (JsonPatchException jpex) {
