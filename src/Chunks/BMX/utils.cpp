@@ -164,6 +164,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
     if (err_code)
         return err_code;
 
+    // Terminating the first chunk.
+    ((shared_memory_chunk*) first_smc)->terminate_link();
+
     return 0;
 }
 
