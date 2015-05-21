@@ -242,9 +242,6 @@ namespace Starcounter {
             if (!(item is Json)) {
                 throw new Exception("You are only allowed to insert/add elements of type Json to a type Json array");
             }
-            if ((item as Json).IsArray) {
-                throw new Exception("Nested arrays are not currently supported in typed Json");
-            }
             return (Json)item;
         }
 
