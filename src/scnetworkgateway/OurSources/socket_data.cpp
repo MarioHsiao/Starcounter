@@ -173,9 +173,6 @@ void SocketDataChunk::ResetWhenDisconnectIsDone(GatewayWorker *gw)
     set_type_of_network_oper(DISCONNECT_SOCKET_OPER);
     SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
 
-    // Clearing attached session.
-    //g_gateway.ClearSession(sessionIndex);
-
     // Removing reference to/from session.
     session_.Reset();
 
@@ -214,9 +211,6 @@ void SocketDataChunk::ExchangeToProxySocket(GatewayWorker* gw)
 void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
 {
     type_of_network_protocol_ = GetTypeOfNetworkProtocol();
-
-    // NOTE: Setting global session including scheduler id.
-    SetGlobalSessionCopy(session_);
 
     // Checking if WebSocket handshake was approved.
     if ((get_type_of_network_protocol() == MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS) &&
@@ -329,26 +323,28 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
 // Binds current socket to some scheduler.
 void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface *db) {
 
+    // Obtaining the current scheduler id.
+    scheduler_id_type sched_id = GetSchedulerId();
+
     // Checking if we need to create scheduler id for certain protocols.
     switch (get_type_of_network_protocol()) {
 
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
-
-            // Obtaining the current scheduler id.
-            scheduler_id_type sched_id = get_scheduler_id();
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP2: {
 
             // Checking scheduler id validity.
             if (INVALID_SCHEDULER_ID == sched_id) {
-
                 sched_id = db->GenerateSchedulerId();
-
-                SetSchedulerId(sched_id);
             }
 
             break;
-
         }
     }
+
+    // Setting private scheduler id.
+    SetSchedulerId(sched_id);
 }
 
 // Resets session depending on protocol.

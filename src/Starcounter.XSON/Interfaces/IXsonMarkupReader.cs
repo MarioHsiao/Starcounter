@@ -17,9 +17,9 @@ namespace Starcounter.Advanced.XSON {
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
-        TypeTObj CompileMarkup<TypeObj, TypeTObj>(string markup, string origin)
-            where TypeObj : Json, new()
-            where TypeTObj : TObject, new();
+        TTemplate CompileMarkup<TJson, TTemplate>(string markup, string origin)
+            where TJson : Json, new()
+            where TTemplate : TValue;
 
     }
 }

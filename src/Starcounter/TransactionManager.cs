@@ -551,6 +551,17 @@ namespace Starcounter.Internal {
             }
         }
 
+        public TResult Scope<T1, T2, T3, T4, T5, TResult>(TransactionHandle handle, Func<T1, T2, T3, T4, T5, TResult> func, T1 arg1, T2 arg2, T3 arg3, T4 arg4, T5 arg5) {
+            var old = CurrentHandle;
+
+            try {
+                SetCurrentTransaction(handle);
+                return func(arg1, arg2, arg3, arg4, arg5);
+            } finally {
+                SetCurrentTransaction(old);
+            }
+        }
+
         //public void MergeTransaction(TransactionHandle mainHandle, TransactionHandle toMergeHandle) {
         //    var old = currentHandle;
         //    uint ec;

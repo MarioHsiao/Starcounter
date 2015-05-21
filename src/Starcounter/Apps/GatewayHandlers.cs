@@ -55,6 +55,11 @@ namespace Starcounter
 		}
 
         /// <summary>
+        /// Contains number of requests for each scheduler.
+        /// </summary>
+        public static Int64[] SchedulerNumRequests = new Int64[StarcounterConstants.MaximumSchedulersNumber];
+
+        /// <summary>
         /// UDP outer handler.
         /// </summary>
         unsafe static UInt32 HandleUdpSocket(
@@ -62,6 +67,9 @@ namespace Starcounter
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled) {
+
+            // Distribution statistics.
+            SchedulerNumRequests[taskInfo->scheduler_number]++;
 
             UInt32 errorCode;
             UInt32 chunkIndex = taskInfo->chunk_index;
@@ -151,6 +159,9 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled)
 		{
+            // Distribution statistics.
+            SchedulerNumRequests[taskInfo->scheduler_number]++;
+
             Boolean isSingleChunk = false;
             IntPtr plainChunksData = IntPtr.Zero;
 
@@ -293,6 +304,9 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled)
         {
+            // Distribution statistics.
+            SchedulerNumRequests[taskInfo->scheduler_number]++;
+
             Boolean isSingleChunk = false;
 
             // Allocate memory on the stack that can hold a few number of transactions that are fast 
@@ -533,6 +547,9 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled)
         {
+            // Distribution statistics.
+            SchedulerNumRequests[taskInfo->scheduler_number]++;
+
             Boolean isSingleChunk = false;
             IntPtr plainChunksData = IntPtr.Zero;
 

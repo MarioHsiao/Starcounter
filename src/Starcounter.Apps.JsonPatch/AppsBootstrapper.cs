@@ -137,6 +137,23 @@ namespace Starcounter.Internal {
 
                     Polyjuice.Init();
                 }
+
+                Handle.GET(defaultSystemHttpPort, "/schedulers/" + dbName, () => {
+
+                    String allResults = "{\"Schedulers\":[";
+
+                    for (Int32 i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+
+                        allResults += "{\"SchedulerId\":\"" + GatewayHandlers.SchedulerNumRequests[i] + "\"}";
+
+                        if (i < (StarcounterEnvironment.SchedulerCount - 1))
+                            allResults += ",";
+                    }
+
+                    allResults += "]}";
+
+                    return allResults;
+                });
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
@@ -361,7 +378,17 @@ namespace Starcounter.Internal {
                     }
 
                     // Standard response send.
-                    req.SendResponse(resp, responseSerializationBuffer_);
+                    try {
+                        req.SendResponse(resp, responseSerializationBuffer_);
+                    } catch (Exception ex) {
+                        // Exception when constructing or sending response. Can happen for example 
+                        // if the mimeconverter for the resource fails.
+                        LogSources.Hosting.LogException(ex);
+                        resp = Response.FromStatusCode(500);
+                        resp.Body = AppRestServer.GetExceptionString(ex);
+                        resp.ContentType = "text/plain";
+                        req.SendResponse(resp, responseSerializationBuffer_);
+                    }
 
                     break;
                 }

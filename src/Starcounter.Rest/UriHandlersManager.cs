@@ -382,14 +382,14 @@ namespace Starcounter.Rest
                 if (ho.ProxyDelegateTrigger) {
 
                     if (proxyDelegate_ != null) {
-                        throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate!");
+                        throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate: " + ProcessedUriInfo);
                     } else {
                         proxyDelegate_ = userDelegate;
                         typeOfHandler_ = ho.TypeOfHandler;
                     }
 
                 } else {
-                    throw new ArgumentException("Trying to add a delegate to an already existing handler!");
+                    throw new ArgumentException("Trying to add a delegate to an already existing handler: " + ProcessedUriInfo);
                 }
             }
         }

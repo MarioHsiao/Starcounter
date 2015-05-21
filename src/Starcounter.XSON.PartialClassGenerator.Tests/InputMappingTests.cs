@@ -1,14 +1,14 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
-using TJson = Starcounter.Templates.TObject;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
     [TestFixture]
     static class InputMappingTests {
-        internal static TJson ReadTemplate(string path) {
+        internal static TObject ReadTemplate(string path) {
             var str = File.ReadAllText(path);
-            var tj = TJson.CreateFromJson(str);
+            var tj = (TObject)TObject.CreateFromJson(str);
             tj.ClassName = Path.GetFileNameWithoutExtension(path);
             return tj;
         }

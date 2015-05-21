@@ -6,10 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading;
 using Starcounter.Advanced.XSON;
 using Starcounter.Internal.XSON.DeserializerCompiler;
-using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -22,39 +22,12 @@ namespace Starcounter.Templates {
     /// use alternate schemas.
     /// </remarks>
     public abstract class TContainer : TValue {
-		private bool codeGenStarted = false;
-		private bool _Sealed;
-		private TypedJsonSerializer codegenStandardSerializer;
-		private TypedJsonSerializer codegenFTJSerializer;
-
 		/// <summary>
 		/// 
 		/// </summary>
         public override bool IsPrimitive {
             get { return false; }
         }
-
-		/// <summary>
-		/// Once a TContainer (Obj or Arr schema) is in use (have instances), this property will return
-		/// true and you cannot modify the template.
-		/// </summary>
-		/// <remarks>
-		/// Exception should be change to an SCERR???? error.
-		/// </remarks>
-		/// <value><c>true</c> if sealed; otherwise, <c>false</c>.</value>
-		/// <exception cref="System.Exception">Once a TObj is sealed, you cannot unseal it</exception>
-		public override bool Sealed {
-			get {
-				return _Sealed;
-			}
-			internal set {
-				if (!value && _Sealed) {
-					// TODO! SCERR!
-					throw new Exception("Once a TContainer (Obj or Arr schema) is in use (have instances), you cannot modify it");
-				}
-				_Sealed = value;
-			}
-		}
 
 		internal abstract Json GetValue(Json parent);
 
@@ -63,86 +36,6 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <value>The child property or child element type template</value>
         public abstract IEnumerable<Template> Children { get; }
-
-		public abstract string ToJson(Json json);
-		public abstract byte[] ToJsonUtf8(Json json);
-
-        public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
-
-		public abstract void PopulateFromJson(Json json, string jsonStr);
-		public abstract int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize);
-		public abstract int PopulateFromJson(Json json, byte[] src, int srcSize);
-
-		public abstract int ToFasterThanJson(Json json, byte[] buffer, int offset);
-		public abstract int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize);
-
-		/// <summary>
-		/// 
-		/// </summary>
-		internal TypedJsonSerializer FTJSerializer {
-			get {
-				if (Module.UseCodegeneratedSerializer) {
-					if (codegenFTJSerializer != null)
-						return codegenFTJSerializer;
-
-					if (!codeGenStarted) {
-						codeGenStarted = true;
-						if (!Module.DontCreateSerializerInBackground)
-							ThreadPool.QueueUserWorkItem(GenerateSerializer, false);
-						else {
-							GenerateSerializer(false);
-							return codegenFTJSerializer;
-						}
-					}
-				}
-				return Module.GetJsonSerializer(Module.FTJSerializerId);
-			}
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <returns></returns>
-		internal TypedJsonSerializer JsonSerializer {
-			get {
-				if (Module.UseCodegeneratedSerializer) {
-					if (codegenStandardSerializer != null)
-						return codegenStandardSerializer;
-
-					// This check might give the wrong answer if the same instance of this template
-					// is used from different threads. However the worst thing that can happen
-					// is that the serializer is generated more than once in the background, but
-					// the fallback serializer will be used instead so it's better than locking.
-					if (!codeGenStarted) {
-						codeGenStarted = true;
-						if (!Module.DontCreateSerializerInBackground)
-							ThreadPool.QueueUserWorkItem(GenerateSerializer, true);
-						else {
-							GenerateSerializer(true);
-							return codegenStandardSerializer;
-						}
-					}
-				}
-				return Module.GetJsonSerializer(Module.StandardJsonSerializerId);
-			}
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="state"></param>
-		private void GenerateSerializer(object state) {
-			bool createStd = (bool)state;
-
-			// it doesn't really matter if setting the variable in the template is synchronized 
-			// or not since if the serializer is null a fallback serializer will be used instead.
-			if (createStd)
-				codegenStandardSerializer = SerializerCompiler.The.CreateStandardJsonSerializer((TObject)this);
-			else
-				codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer((TObject)this);
-			codeGenStarted = false;
-		}
-
 
         internal void UpdateParentAndIndex(Json parent, Json newValue) {
             if (newValue != null) {

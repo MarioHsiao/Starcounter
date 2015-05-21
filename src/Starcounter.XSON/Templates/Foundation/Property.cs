@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Starcounter.XSON;
+using Starcounter.Internal;
 
 namespace Starcounter.Templates {
     /// <summary>
@@ -23,6 +24,7 @@ namespace Starcounter.Templates {
 		internal Func<Json, T>  UnboundGetter;  
         private Func<Json, Property<T>, T, Input<T>> _inputEventCreator;
         private Action<Json, Input<T>> _inputHandler;
+        private String _appName; // To which application this input handler belongs.
 
 		public Property() {
 			Getter = BoundOrUnboundGet;
@@ -179,10 +181,6 @@ namespace Starcounter.Templates {
 			}
 		}
 
-		internal override string ValueToJsonString(Json parent) {
-		    return Getter(parent).ToString();
-		}
-
 		/// <summary>
 		/// 
 		/// </summary>
@@ -210,6 +208,24 @@ namespace Starcounter.Templates {
                                Action<Json, Input<T>> handler) {
             _inputEventCreator = createInputEvent;
             _inputHandler = handler;
+            _appName = StarcounterEnvironment.AppName;
+        }
+
+        /// <summary>
+        /// Invoking user provided input handler respecting application name.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="input"></param>
+        void InvokeHandler(Json parent, Input<T> input) {
+
+            // Setting the application name of the input handler owner.
+            String savedAppName = StarcounterEnvironment.AppName;
+            try {
+                StarcounterEnvironment.AppName = _appName;
+                _inputHandler.Invoke(parent, input);
+            } finally {
+                StarcounterEnvironment.AppName = savedAppName;
+            }
         }
 
         /// <summary>
@@ -227,7 +243,8 @@ namespace Starcounter.Templates {
 
             if (input != null && _inputHandler != null) {
                 input.OldValue = Getter(parent);
-                _inputHandler.Invoke(parent, input);
+
+                InvokeHandler(parent, input);
 
                 if (!input.Cancelled) {
                     Debug.WriteLine("Setting value after custom handler: " + input.Value);
@@ -261,7 +278,8 @@ namespace Starcounter.Templates {
 
             if (input != null && _inputHandler != null) {
                 input.OldValue = existingInput.OldValue;
-                _inputHandler.Invoke(parent, input);
+
+                InvokeHandler(parent, input);
 
                 if (!input.Cancelled) {
                     existingInput.Value = input.Value;

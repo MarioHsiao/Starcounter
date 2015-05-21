@@ -78,7 +78,7 @@ typedef uint32_t ws_group_id_type;
 //#define GW_SESSIONS_DIAG
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
-#define LEAST_USED_SCHEDULING
+//#define LEAST_USED_SCHEDULING
 #define CASE_INSENSITIVE_URI_MATCHER
 
 #ifdef GW_DEV_DEBUG
@@ -1089,7 +1089,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     }
 
     bool IsReset() {
-        return (INVALID_SESSION_SALT == unique_socket_id_);
+        return (INVALID_SESSION_SALT == unique_socket_id_) && 
+            (INVALID_SCHEDULER_ID == session_.scheduler_id_);
     }
 };
 

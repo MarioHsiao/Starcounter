@@ -460,6 +460,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         return 0;
     }
 
+    // Binding socket to scheduler.
+    sd->BindSocketToScheduler(gw, this);
+
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = sd->get_scheduler_id();
 
@@ -478,9 +481,15 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
     // Checking scheduler id validity.
-    if (sched_id >= num_schedulers_)
+    if (INVALID_SCHEDULER_ID == sched_id)
     {
-        sched_id = GenerateSchedulerId();
+        // TODO: Fix race condition on codehost!
+        if (sd->GetPortNumber() == g_gateway.get_setting_internal_system_port()) {
+            sched_id = 0;
+        } else {
+            sched_id = GenerateSchedulerId();
+        }
+
         ipc_sd->set_scheduler_id(sched_id);
     }
 

@@ -18,6 +18,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
     /// Represents a property, a field or a function
     /// </summary>
     public class AstProperty : AstBase {
+        private string memberName;
 
         /// <summary>
         /// 
@@ -40,7 +41,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <value>The name of the member.</value>
         public string MemberName {
             get {
+                if (memberName != null)
+                    return memberName;
                 return Template.PropertyName;
+            }
+            set {
+                memberName = value;
             }
         }
 

@@ -287,7 +287,6 @@ namespace Starcounter.Internal
             PROTOCOL_HTTP2,
             PROTOCOL_TCP,
             PROTOCOL_UDP,
-            PROTOCOL_UNKNOWN,
             PROTOCOL_COUNT
         };
 

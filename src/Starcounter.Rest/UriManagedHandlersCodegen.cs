@@ -502,101 +502,104 @@ namespace Starcounter.Rest
             MethodInfo userDelegateInfo,
             Expression delegExpr,
             MixedCodeConstants.NetworkProtocolType protoType,
-            HandlerOptions ho)
-        {
-            // Checking if port is not specified.
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
-                if (StarcounterEnvironment.IsAdministratorApp) {
-                    port = StarcounterEnvironment.Default.SystemHttpPort;
-                } else {
-                    port = StarcounterEnvironment.Default.UserHttpPort;
+            HandlerOptions ho) {
+
+            lock (user_codegen_handler_) {
+
+                // Checking if port is not specified.
+                if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                    if (StarcounterEnvironment.IsAdministratorApp) {
+                        port = StarcounterEnvironment.Default.SystemHttpPort;
+                    } else {
+                        port = StarcounterEnvironment.Default.UserHttpPort;
+                    }
                 }
-            }
 
-            String[] s = methodAndUriInfo.Split(null);
-            String originalUriInfo = null;
-            String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
+                String[] s = methodAndUriInfo.Split(null);
+                String originalUriInfo = null;
+                String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
 
-            // Checking if consists of method and URI.
-            if (s.Length > 1) {
+                // Checking if consists of method and URI.
+                if (s.Length > 1) {
 
-                // Checking that HTTP method is upper case.
-                if ((s[0] != s[0].ToUpperInvariant())) {
-                    throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
-                }
+                    // Checking that HTTP method is upper case.
+                    if ((s[0] != s[0].ToUpperInvariant())) {
+                        throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
+                    }
 
 #if CASE_INSENSITIVE_URI_MATCHER
-                s[1] = s[1].ToLowerInvariant();
+                    s[1] = s[1].ToLowerInvariant();
 #endif
-                // Checking if its a Polyjuice application.
-                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                    // Checking if its a Polyjuice application.
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
 
-                    // Checking that its a Polyjuice handler.
-                    if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
+                        // Checking that its a Polyjuice handler.
+                        if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
-                        // Handler name should start with application name or launcher name.
-                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+                            // Handler name should start with application name or launcher name.
+                            if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+
+                                throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
+                            }
+                        }
+                    }
+
+                    // Constructing original URI info.
+                    originalUriInfo = s[0] + " " + s[1];
+
+                } else {
+
+                    // Checking if its a Polyjuice application.
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+
+                        // Checking that its a Polyjuice handler.
+                        if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
                             throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                         }
                     }
-                }
-
-                // Constructing original URI info.
-                originalUriInfo = s[0] + " " + s[1];
-
-            } else {
-
-                // Checking if its a Polyjuice application.
-                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
-
-                    // Checking that its a Polyjuice handler.
-                    if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
-
-                        throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
-                    }
-                }
 
 #if CASE_INSENSITIVE_URI_MATCHER
-                s[0] = s[0].ToLowerInvariant();
+                    s[0] = s[0].ToLowerInvariant();
 #endif
 
-                originalUriInfo = s[0];
+                    originalUriInfo = s[0];
+                }
+
+                // Checking if handler options is defined.
+                if (ho == null) {
+                    ho = new HandlerOptions();
+                }
+
+                // Mutually excluding handler registrations.
+                Byte[] nativeParamTypes;
+                String processedUriInfo;
+                Type argMessageType;
+                Type argSessionType;
+
+                // Generating callback.
+                Func<Request, IntPtr, IntPtr, Response> wrappedDelegate = GenerateParsingDelegateAndGetParameters(
+                    originalUriInfo,
+                    userDelegateInfo,
+                    delegExpr,
+                    out nativeParamTypes,
+                    out processedUriInfo,
+                    out argMessageType,
+                    out argSessionType);
+
+                // Registering handler with gateway and getting the id.
+                UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).RegisterUriHandler(
+                    port,
+                    originalUriInfo,
+                    processedUriInfo,
+                    nativeParamTypes,
+                    argMessageType,
+                    wrappedDelegate,
+                    protoType,
+                    ho);
+
+                return wrappedDelegate;
             }
-
-            // Checking if handler options is defined.
-            if (ho == null) {
-                ho = new HandlerOptions();
-            }
-
-            // Mutually excluding handler registrations.
-            Byte[] nativeParamTypes;
-            String processedUriInfo;
-            Type argMessageType;
-            Type argSessionType;
-
-            // Generating callback.
-            Func<Request, IntPtr, IntPtr, Response> wrappedDelegate = GenerateParsingDelegateAndGetParameters(
-                originalUriInfo,
-                userDelegateInfo,
-                delegExpr,
-                out nativeParamTypes,
-                out processedUriInfo,
-                out argMessageType,
-                out argSessionType);
-
-            // Registering handler with gateway and getting the id.
-            UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).RegisterUriHandler(
-                port,
-                originalUriInfo,
-                processedUriInfo,
-                nativeParamTypes,
-                argMessageType,
-                wrappedDelegate,
-                protoType,
-                ho);
-
-            return wrappedDelegate;
         }
 
         /// <summary>

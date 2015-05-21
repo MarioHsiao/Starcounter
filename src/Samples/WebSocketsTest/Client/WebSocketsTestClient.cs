@@ -76,12 +76,10 @@ namespace WebSocketsTestClient {
 
                         try {
 
+                            Int32 c = 0;
+
                             // Sending and receiving messages.
                             for (Int32 n = 0; n < numMessages; n++) {
-
-                                while (sendRecvRatio >= 30000) {
-                                    Thread.Sleep(1);
-                                }
 
                                 ArraySegment<Byte> bytesToSend = new ArraySegment<Byte>(sendBytes);
 
@@ -95,6 +93,13 @@ namespace WebSocketsTestClient {
                                 task.Wait();
 
                                 Interlocked.Increment(ref sendRecvRatio);
+
+                                if (c == 10000) {
+                                    Console.WriteLine("Sent: " + n);
+                                    c = 0;
+                                }
+
+                                c++;
                             }
 
                         } catch (Exception exc) {
@@ -131,7 +136,7 @@ namespace WebSocketsTestClient {
                                 Interlocked.Decrement(ref sendRecvRatio);
 
                                 if (c == 10000) {
-                                    Console.WriteLine(n);
+                                    Console.WriteLine("Recv: " + n);
                                     c = 0;
                                 }
 

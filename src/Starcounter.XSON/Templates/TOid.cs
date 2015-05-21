@@ -7,21 +7,20 @@
 using System;
 
 namespace Starcounter.Templates {
+    ///// <summary>
+    ///// 
+    ///// </summary>
+    //public class TOid : PrimitiveProperty<UInt64> {
+    //    public override Type MetadataType {
+    //        get { throw new NotImplementedException(); } // TODO!
+    //    }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    public class TOid : PrimitiveProperty<UInt64> {
-        public override Type MetadataType {
-            get { throw new NotImplementedException(); } // TODO!
-        }
-
-        /// <summary>
-        /// The .NET type of the instance represented by this template.
-        /// </summary>
-        /// <value>The type of the instance.</value>
-        public override Type InstanceType {
-            get { return typeof(UInt64); }
-        }
-    }
+    //    /// <summary>
+    //    /// The .NET type of the instance represented by this template.
+    //    /// </summary>
+    //    /// <value>The type of the instance.</value>
+    //    public override Type InstanceType {
+    //        get { return typeof(UInt64); }
+    //    }
+    //}
 }

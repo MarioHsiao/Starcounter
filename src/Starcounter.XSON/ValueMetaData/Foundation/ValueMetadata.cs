@@ -9,9 +9,9 @@ namespace Starcounter.Templates {
     /// <summary>
     /// 
     /// </summary>
-    public class ValueMetadata<JsonType,TemplateType> : ObjMetadataBase<JsonType,TemplateType>
-            where JsonType : Json
-        where TemplateType : Template
+    public class ValueMetadata<TJson, TTemplate> : ObjMetadataBase<TJson, TTemplate>
+        where TJson : Json
+        where TTemplate : TValue
     {
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="app">The app.</param>
         /// <param name="template">The template.</param>
-        public ValueMetadata(JsonType app, TemplateType template)
+        public ValueMetadata(TJson app, TTemplate template)
             : base(app, template) {
         }
 
@@ -31,6 +31,7 @@ namespace Starcounter.Templates {
             set;
             get;
         }
+
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="ValueMetadata" /> is visible.
         /// </summary>
@@ -39,6 +40,7 @@ namespace Starcounter.Templates {
             set;
             get;
         }
+
         /// <summary>
         /// Gets or sets a value indicating whether this <see cref="ValueMetadata" /> is editable.
         /// </summary>
