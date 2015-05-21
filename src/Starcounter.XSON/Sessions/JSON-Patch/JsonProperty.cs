@@ -57,6 +57,10 @@ namespace Starcounter.XSON {
         public static JsonProperty Evaluate(JsonPointer pointer, Json root) {
             var property = new JsonProperty();
             property.DoEvaluate(pointer, root);
+
+            if (property.Property == null && (!root.IsObject)) {
+                property.current = (TValue)root.Template;
+            }
             return property;
         }
 

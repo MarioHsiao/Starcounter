@@ -39,6 +39,13 @@ namespace Starcounter {
         /// <summary>
         /// 
         /// </summary>
+        public Arr()
+            : base() {
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="parent"></param>
         /// <param name="templ"></param>
         public Arr(Json parent, TObjArr templ)

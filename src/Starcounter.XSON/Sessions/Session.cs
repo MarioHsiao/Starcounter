@@ -484,7 +484,8 @@ namespace Starcounter {
         /// <param name="property">The property to update</param>
         internal void UpdateValue(Json obj, TValue property) {
             _changes.Add(Change.Update(obj, property));
-            property.Checkpoint(obj);
+            if (property != null)
+                property.Checkpoint(obj);
         }
 
         /// <summary>

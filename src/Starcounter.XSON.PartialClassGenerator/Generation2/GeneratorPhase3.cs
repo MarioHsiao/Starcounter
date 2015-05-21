@@ -36,6 +36,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             GeneratePrimitiveValueEvents(input, acn, "Input");
         }
 
+
+
         /// <summary>
         /// Used to generate Handle( ... ) event classes used by the user programmer
         /// to catch events such as the Input event.
@@ -47,7 +49,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             foreach (var kid in app.Children) {
                 if (kid is AstProperty) {
                     var mn = kid as AstProperty;
-                    if (mn.Type is AstPrimitiveType) {
+                    if (mn.Template.IsPrimitive) {
                         new AstEventClass(generator) {
                             NMember = mn,
                             Parent = parent,

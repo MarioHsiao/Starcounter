@@ -378,7 +378,17 @@ namespace Starcounter.Internal {
                     }
 
                     // Standard response send.
-                    req.SendResponse(resp, responseSerializationBuffer_);
+                    try {
+                        req.SendResponse(resp, responseSerializationBuffer_);
+                    } catch (Exception ex) {
+                        // Exception when constructing or sending response. Can happen for example 
+                        // if the mimeconverter for the resource fails.
+                        LogSources.Hosting.LogException(ex);
+                        resp = Response.FromStatusCode(500);
+                        resp.Body = AppRestServer.GetExceptionString(ex);
+                        resp.ContentType = "text/plain";
+                        req.SendResponse(resp, responseSerializationBuffer_);
+                    }
 
                     break;
                 }

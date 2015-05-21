@@ -6,6 +6,7 @@
 
 using System;
 using System.Globalization;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Templates {
 
@@ -20,12 +21,12 @@ namespace Starcounter.Templates {
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(decimal); }
         }
 
-		internal override string ValueToJsonString(Json parent) {
-            return Getter(parent).ToString("0.0###########################", CultureInfo.InvariantCulture);
-		}
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Decimal; }
+        }
     }
 }

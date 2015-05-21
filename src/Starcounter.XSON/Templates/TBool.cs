@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter.Templates {
 
@@ -20,14 +21,12 @@ namespace Starcounter.Templates {
         /// Will return the Boolean runtime type
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(bool); }
         }
 
-		internal override string ValueToJsonString(Json parent) {
-			bool v = Getter(parent);
-			if (v) return "true";
-			return "false";
-		}
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Bool; }
+        }
     }
 }

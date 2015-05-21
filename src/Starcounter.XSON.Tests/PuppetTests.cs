@@ -446,8 +446,10 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestArrayDisableCheckBoundProperties() {
             var schema = new TObject();
             var tarr = schema.Add<TArray<Json>>("Recursives");
-            tarr.ElementType = new TObject();
-            tarr.ElementType.Add<TString>("Name");
+
+            var elementType = new TObject();
+            elementType.Add<TString>("Name");
+            tarr.ElementType = elementType;
 
             dynamic json = new Json() { Template = schema };
             

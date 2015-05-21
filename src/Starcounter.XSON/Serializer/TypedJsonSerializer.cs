@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using Starcounter.Templates;
 
 namespace Starcounter.Advanced.XSON {
     public abstract class TypedJsonSerializer {
         public abstract int EstimateSizeBytes(Json obj);
-        public abstract int Serialize(Json json, byte[] buffer, int offset);
-        public abstract int Populate(Json json, IntPtr source, int sourceSize);
+        public abstract int EstimateSizeBytes(Json obj, Template property);
+        public abstract int Serialize(Json json, IntPtr dest, int destSize);
+        public abstract int Serialize(Json json, Template property, IntPtr dest, int destSize);
+        public abstract int Populate(Json json, IntPtr src, int srcSize);
     }
 }
