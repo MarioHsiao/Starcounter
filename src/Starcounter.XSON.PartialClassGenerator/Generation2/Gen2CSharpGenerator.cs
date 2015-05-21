@@ -474,6 +474,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <param name="cst">The CST.</param>
         private void WriteTAppConstructor(AstConstructor cst) {
             AstSchemaClass a = (AstSchemaClass)cst.Parent;
+            TObjArr tArr;
+            TObject tObjElement;
             var sb = new StringBuilder();
 
             sb.Append("    public ");
@@ -500,6 +502,20 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
             if (a.Template is TObject) {
                 a.Prefix.Add("        Properties.ClearExposed();");
+            }
+
+            tArr = a.Template as TObjArr;
+            if (tArr != null) {
+                tObjElement = tArr.ElementType as TObject;
+                bool isCustomClass = ((tArr.ElementType != null) && (tObjElement != null) && (tObjElement.Properties.Count > 0));
+                if (isCustomClass || !"Json".Equals(a.InheritedClass.Generic[0].ClassStemIdentifier)) {
+                    sb.Clear();
+                    sb.Append("        ");
+                    sb.Append("SetCustomGetElementType((arr) => { return ");
+                    sb.Append(a.InheritedClass.Generic[0].GlobalClassSpecifier);
+                    sb.Append(".DefaultTemplate;});");
+                    a.Prefix.Add(sb.ToString());
+                }
             }
 
             foreach (AstBase kid in cst.Children) {
@@ -544,9 +560,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                         a.Prefix.Add("        " + memberName + ".Editable = true;");
                     }
 
-                    var tArr = mn.Template as TObjArr;
+                    tArr = mn.Template as TObjArr;
                     if (tArr != null) {
-                        var tObjElement = tArr.ElementType as TObject;
+                        tObjElement = tArr.ElementType as TObject;
                         bool isCustomClass = ((tArr.ElementType != null) && (tObjElement != null) && (tObjElement.Properties.Count > 0));
                         if (isCustomClass || !"Json".Equals(mn.Type.Generic[0].ClassStemIdentifier)) {
                             sb.Clear();

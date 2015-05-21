@@ -101,8 +101,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 (AstSchemaClass)templParent,
                                 metaParent);
 
-                            if (!isUntyped && objElement != null) {
-                                GenerateForApp(objElement,
+                            if (!isUntyped && titem != null) {
+                                GenerateForApp(titem,
                                                appClassParent,
                                                templParent,
                                                metaParent,
