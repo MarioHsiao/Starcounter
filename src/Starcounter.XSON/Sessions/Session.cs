@@ -37,6 +37,8 @@ namespace Starcounter {
         [ThreadStatic]
         private static Session _current;
 
+        private static JsonPatch jsonPatch_ = new JsonPatch();​
+
         private Action<Session> _sessionDestroyUserDelegate;
         private bool _brandNew;
         private bool _isInUse;
@@ -150,6 +152,27 @@ namespace Starcounter {
         /// </summary>
         public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
             InternalSession.RunSync(action, schedId);
+        }
+
+        /// <summary>
+        /// Calculates the patch and pushes it on WebSocket.
+        /// </summary>
+        public void CalculatePatchAndPushOnWebSocket() {
+
+            // Checking if there is an active WebSocket.
+            if (ActiveWebSocket == null)
+                return;
+
+            // Calculating the patch.
+            Byte[] patch;
+            Int32 sizeBytes = jsonPatch_.CreateJsonPatchBytes(
+                this, 
+                false, 
+                CheckOption(SessionOptions.IncludeNamespaces), 
+                out patch);
+
+            // Sending the patch bytes to the client.
+            ActiveWebSocket.Send(patch, sizeBytes);
         }
 
         /// <summary>

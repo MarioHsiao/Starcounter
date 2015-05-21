@@ -70,7 +70,7 @@
                         </Grid.RowDefinitions>
 
                         <!-- Personal Server -->
-                        <StackPanel Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[PersonalServer]}">
+                        <StackPanel Name="sp_PersonalServer" Margin="0,7.5,0,7.5" Grid.Row="0" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[PersonalServer]}">
 
                             <CheckBox x:Name="serverCheckBox" IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}" >
 
@@ -116,7 +116,6 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
 
-
                                             <TextBox x:Name="tb_PersonalServerPath" Margin="0"  Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
                                                 <TextBox.Text>
                                                     <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
@@ -129,11 +128,7 @@
                                                 </TextBox.Text>
                                             </TextBox>
 
-                                            <Button MinWidth="0" Content="..." Grid.Column="1" Margin="5,0,0,0"  Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the Server repository will be installed" CommandTarget="{Binding ElementName=tb_PersonalServerPath}"  >
-                                                <!--<Image Stretch="None" Source="..\resources\16x16\Folder.png"/>-->
-                                            </Button>
-
-
+                                            <Button MinWidth="0" Content="..." Grid.Column="1" Margin="5,0,0,0"  Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the Server repository will be installed" CommandTarget="{Binding ElementName=tb_PersonalServerPath}"  />
                                         </Grid>
 
                                         <Grid Margin="0,7.5,0,0">
@@ -143,82 +138,56 @@
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
                                                 <RowDefinition Height="Auto"/>
+                                                <RowDefinition Height="Auto"/>
                                             </Grid.RowDefinitions>
 
                                             <!-- DefaultUserHttpPort -->
                                             <StackPanel>
                                                 <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _user port"   />
-                                                <ComboBox x:Name="cb_PersonalServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
-
-                                                    <ComboBox.Text>
-                                                        <Binding Path="DefaultUserHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                <TextBox x:Name="cb_PersonalServerDefaultUserHttpPort" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
+                                                    <TextBox.Text>
+                                                        <Binding Path="DefaultUserHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                             <Binding.ValidationRules>
-                                                                <rules:PortRule ValidatesOnTargetUpdated="True"/>
+                                                                <rules:PortRule UseWarning="False" CheckIfAvailable="True" ValidatesOnTargetUpdated="True" />
                                                             </Binding.ValidationRules>
                                                         </Binding>
-                                                    </ComboBox.Text>
-
-                                                    <ComboBoxItem>
-                                                        <TextBlock>8080</TextBlock>
-                                                    </ComboBoxItem>
-                                                    <ComboBoxItem>
-                                                        <TextBlock>9090</TextBlock>
-                                                    </ComboBoxItem>
-                                                </ComboBox>
+                                                    </TextBox.Text>
+                                                </TextBox>
                                             </StackPanel>
 
                                             <!-- DefaultSystemHttpPort-->
                                             <StackPanel Grid.Row="2">
-                                                <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default HTTP _system port"   />
-                                                <ComboBox x:Name="cb_PersonalServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
-
-                                                    <ComboBox.Text>
-                                                        <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
+                                                <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="HTTP _System port"   />
+                                                <TextBox x:Name="cb_PersonalServerDefaultSystemHttpPort" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
+                                                    <TextBox.Text>
+                                                        <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                             <Binding.ValidationRules>
-                                                                <rules:PortRule  CheckIfAvailable="True" ValidatesOnTargetUpdated="True"/>
+                                                                <rules:PortRule UseWarning="False" CheckIfAvailable="True" ValidatesOnTargetUpdated="True" />
                                                             </Binding.ValidationRules>
                                                         </Binding>
-                                                    </ComboBox.Text>
-
-                                                    <ComboBoxItem>
-                                                        <TextBlock>8181</TextBlock>
-                                                    </ComboBoxItem>
-                                                    <ComboBoxItem>
-                                                        <TextBlock>9191</TextBlock>
-                                                    </ComboBoxItem>
-                                                </ComboBox>
+                                                    </TextBox.Text>
+                                                </TextBox>
                                             </StackPanel>
 
+                                            <!-- DefaultAggregationPort-->
+                                            <StackPanel Grid.Row="3">
+                                                <Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultAggregationPort}" Margin="0,5,0,5"  Content="Gateway _Aggregation port"   />
+                                                <TextBox x:Name="cb_PersonalServerDefaultAggregationPort" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
+                                                    <TextBox.Text>
+                                                        <Binding Path="DefaultAggregationPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
+                                                            <Binding.ValidationRules>
+                                                                <rules:PortRule UseWarning="False" CheckIfAvailable="True" ValidatesOnTargetUpdated="True" />
+                                                            </Binding.ValidationRules>
+                                                        </Binding>
+                                                    </TextBox.Text>
+                                                </TextBox>
+                                            </StackPanel>
 
                                             <!-- Devider -->
-                                            <Border Margin="0,7.5,0,7.5" Grid.Row="3" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />
+                                            <!--<Border Margin="0,7.5,0,7.5" Grid.Row="4" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />
 
-
-                                            <CheckBox x:Name="sendStatisticsCheckBox" Grid.Row="4"  Content="Send usage statistics and crash reports" IsChecked="{Binding Path=SendUsageAndCrashReports}" />
-
-
+                                            <CheckBox x:Name="sendStatisticsCheckBox" Grid.Row="5"  Content="Send usage statistics and crash reports" IsChecked="{Binding Path=SendUsageAndCrashReports}" />-->
                                         </Grid>
-
-                                        <!--<Label Padding="0" Target="{Binding ElementName=cb_PersonalServerDefaultPrologSqlProcessPort}" Margin="0,5,0,5"  Content="Default Prolog _SQL port"   />
-
-                                        <ComboBox x:Name="cb_PersonalServerDefaultPrologSqlProcessPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError">
-
-                                            <ComboBox.Text>
-                                                <Binding Path="DefaultPrologSqlProcessPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
-                                                    <Binding.ValidationRules>
-                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
-                                                    </Binding.ValidationRules>
-                                                </Binding>
-                                            </ComboBox.Text>
-
-                                            <ComboBoxItem>
-                                                <TextBlock>8066</TextBlock>
-                                            </ComboBoxItem>
-                                            <ComboBoxItem>
-                                                <TextBlock>9066</TextBlock>
-                                            </ComboBoxItem>
-                                        </ComboBox>-->
-
                                     </StackPanel>
 
                                 </StackPanel>
@@ -226,120 +195,6 @@
                             </Grid>
 
                         </StackPanel>
-
-                        <!-- Devider -->
-                        <!--<Border Margin="0,7.5,0,7.5" Grid.Row="1" Height="2" Background="#15ffffff" BorderBrush="#50000000" BorderThickness="1,1,0,0" />-->
-
-                        <!-- System Server -->
-                        <!--<StackPanel Margin="0,7.5,0,7.5" Grid.Row="2" Grid.IsSharedSizeScope="True" DataContext="{Binding Components[SystemServer]}">
-
-                            <CheckBox  IsEnabled="{Binding IsExecuteCommandEnabled}" Background="{Binding Path=Command, Converter={StaticResource commandToBackgroundConverter}}" Style="{DynamicResource BigCheckBoxStyle}">
-
-                                <CheckBox.IsChecked>
-                                    <MultiBinding Converter="{StaticResource isCheckedConverter}">
-                                        <Binding  Path="IsExecuteCommandEnabled" Mode="OneWay"/>
-                                        <Binding  Path="ExecuteCommand" Mode="TwoWay"/>
-                                    </MultiBinding>
-                                </CheckBox.IsChecked>
-
-                                <StackPanel Orientation="Horizontal">
-
-                                    <Label Padding="0" Margin="0" Content="_System Server (for in-production use only)" />
-                                    <TextBlock  Margin="7.5,0,0,0" Text="{Binding Comment}" />
-
-                                </StackPanel>
-
-                            </CheckBox>
-
-                            <Grid >
-
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" SharedSizeGroup="Box" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,0,0">
-
-                                    <TextBlock Style="{DynamicResource ComponentDescription}">
-                                  The system server is the server you typically will want to use in a production environment. It will install as a Windows service and as such, it's lifetime is managed by, and configured in, the underlying operating system.
-                                  <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
-                                    </TextBlock>
-
-                                    <StackPanel Margin="0,5,0,2.5" Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
-
-                                        <Label Padding="0" Target="{Binding ElementName=tb_SystemServerPath}" Margin="0,0,0,5"  Content="_Server (system databases repository) path"   />
-
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-
-                                            <TextBox x:Name="tb_SystemServerPath" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" VerticalAlignment="Top">
-                                                <TextBox.Text>
-                                                    <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
-                                                        <Binding.ValidationRules>
-                                                            <rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
-                                                            <rules:DuplicatPathCheckRule Type="{x:Static rules:DuplicatPathCheckRule+SelfType.PersonalServerPath}"  ValidatesOnTargetUpdated="True"/>
-                                                        </Binding.ValidationRules>
-                                                    </Binding>
-                                                </TextBox.Text>
-                                            </TextBox>
-
-                                            <Button MinWidth="0" Grid.Column="1" Margin="5,0,0,0" Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the system server repository will be installed"  CommandTarget="{Binding ElementName=tb_SystemServerPath}"  >
-                                                <Image Stretch="None" Source="..\resources\16x16\Folder.png"/>
-                                            </Button>
-
-
-                                        </Grid>
-
-                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultUserHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP user port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
-
-                                        <ComboBox x:Name="cb_SystemServerDefaultUserHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
-                                            <ComboBox.Text>
-                                                <Binding Path="DefaultUserHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
-                                                    <Binding.ValidationRules>
-                                                        <rules:PortRule ValidatesOnTargetUpdated="True"/>
-                                                    </Binding.ValidationRules>
-                                                </Binding>
-                                            </ComboBox.Text>
-
-                                            <ComboBoxItem>
-                                                <TextBlock>80</TextBlock>
-                                            </ComboBoxItem>
-                                            <ComboBoxItem>
-                                                <TextBlock>90</TextBlock>
-                                            </ComboBoxItem>
-                                        </ComboBox>
-
-                                        <Label Padding="0" Target="{Binding ElementName=cb_SystemServerDefaultSystemHttpPort}" Margin="0,5,0,5"  Content="Default _HTTP system port" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent" Validation.Error="Validation_OnError" />
-
-                                        <ComboBox x:Name="cb_SystemServerDefaultSystemHttpPort" IsEditable="True" SelectedIndex="0" MaxWidth="150" HorizontalAlignment="Left">
-                                            <ComboBox.Text>
-                                                <Binding Path="DefaultSystemHttpPort" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged">
-                                                    <Binding.ValidationRules>
-                                                        <rules:PortRule CheckIfAvailable="True" ValidatesOnTargetUpdated="True"/>
-                                                    </Binding.ValidationRules>
-                                                </Binding>
-                                            </ComboBox.Text>
-
-                                            <ComboBoxItem>
-                                                <TextBlock>81</TextBlock>
-                                            </ComboBoxItem>
-                                            <ComboBoxItem>
-                                                <TextBlock>91</TextBlock>
-                                            </ComboBoxItem>
-                                        </ComboBox>
-
-
-                                    </StackPanel>
-
-                                </StackPanel>
-
-                            </Grid>
-
-                        </StackPanel>-->
-
 
                     </Grid>
 

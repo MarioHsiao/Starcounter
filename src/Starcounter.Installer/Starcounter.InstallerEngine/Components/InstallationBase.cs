@@ -98,6 +98,7 @@ public class CInstallationBase : CComponentBase
         StarcounterConstants.ProgramNames.ScNetworkGateway,
         StarcounterConstants.ProgramNames.ScNetworkGateway,
         StarcounterConstants.ProgramNames.ScNetworkGateway,
+        StarcounterConstants.ProgramNames.ScNetworkGateway,
         StarcounterConstants.ProgramNames.ScNetworkGateway
     };
 
@@ -108,7 +109,8 @@ public class CInstallationBase : CComponentBase
         StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String,
         StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String,
         StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String,
-        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String
+        StarcounterConstants.ProgramNames.ScNetworkGateway + StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String,
+        StarcounterConstants.ProgramNames.ScNetworkGateway + MixedCodeConstants.GatewayAggregationPortSettingName
     };
 
     /// <summary>
@@ -131,6 +133,7 @@ public class CInstallationBase : CComponentBase
             FirewallSpecialParams[2] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultPersonalServerSystemHttpPort);
             FirewallSpecialParams[3] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerUserHttpPort);
             FirewallSpecialParams[4] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(ConstantsBank.Setting_DefaultSystemServerSystemHttpPort);
+            FirewallSpecialParams[5] = "protocol=TCP localport=" + InstallerMain.GetInstallationSettingValue(MixedCodeConstants.GatewayAggregationPortSettingName);
         }
 
         // Adding each executable as an exception.
@@ -152,9 +155,10 @@ public class CInstallationBase : CComponentBase
                 if (isAdding)
                 {
                     // Creating rule from executable name without path!
-                    netshTool.StartInfo.Arguments = "advfirewall firewall add rule name=\"Allow " + FirewallExceptionNames[i] + "\" " +
-                                                    "description=\"Allow inbound traffic for one of the Starcounter components.\" " +
-                                                    FirewallSpecialParams[i] + " dir=in program=\"" + exeFullPath + "\" action=allow";
+                    netshTool.StartInfo.Arguments = 
+                        "advfirewall firewall add rule name=\"Allow " + FirewallExceptionNames[i] + "\" " +
+                        "description=\"Allow inbound traffic for one of the Starcounter components.\" " +
+                        FirewallSpecialParams[i] + " dir=in program=\"" + exeFullPath + "\" action=allow";
                 }
                 else // Removing program from the firewall.
                 {

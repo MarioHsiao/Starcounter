@@ -237,6 +237,16 @@ namespace Starcounter.Internal
         public const String AdministratorAppName = "Administrator";
 
         /// <summary>
+        /// Gateway internal system port setting name.
+        /// </summary>
+        public const String GatewayInternalSystemPortSettingName = "InternalSystemPort";
+
+        /// <summary>
+        /// Gateway aggregation port setting name.
+        /// </summary>
+        public const String GatewayAggregationPortSettingName = "AggregationPort";
+
+        /// <summary>
         /// Name of session cookie.
         /// </summary>
         public const String ScSessionCookieName = "ScSessionCookie";

@@ -982,9 +982,16 @@ namespace Starcounter
                         writer.Write(HttpHeadersUtf8.CRLFCRLF);
                         writer.Write(bytes);
                     } else {
-                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
-                        writer.Write('0');
-                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+
+                        // NOTE: When we do WebSocket upgrade by some reason we can't send "Content-Length: 0" header.
+                        if (wsHandshakeResp_ == null) {
+
+                            writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                            writer.Write('0');
+                            writer.Write(HttpHeadersUtf8.CRLF);
+                        }
+
+                        writer.Write(HttpHeadersUtf8.CRLF);
                     }
                 }
             }
