@@ -84,7 +84,8 @@ namespace Starcounter.Templates
             get { return _values; }
         }
 
-
-
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Unknown; }
+        }
     }
 }

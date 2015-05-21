@@ -54,16 +54,22 @@ namespace Starcounter {
 				}
 			} else {
 				if (Template != null) {
-                    this.Scope<TObject>( 
-                        (tjson) => {
-                            for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-                                var property = tjson.Properties.ExposedProperties[i] as TValue;
-                                if (property != null) {
-                                    property.Checkpoint(this);
+                    this.Scope<Json, TValue>( 
+                        (parent, tjson) => {
+                            if (parent.IsObject) {
+                                TObject tobj = (TObject)tjson;
+                                for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
+                                    var property = tobj.Properties.ExposedProperties[i] as TValue;
+                                    if (property != null) {
+                                        property.Checkpoint(parent);
+                                    }
                                 }
+                            } else {
+                                tjson.Checkpoint(parent);
                             }
                         },
-                        (TObject)Template);
+                        this,
+                        (TValue)Template);
 
                     if (callStepSiblings == true && this._stepSiblings != null) {
                         foreach (Json stepSibling in _stepSiblings) {
@@ -184,63 +190,74 @@ namespace Starcounter {
 		/// <param name="session">The session to report to</param>
 		private void LogObjectValueChangesWithDatabase(Session session, bool callStepSiblings = true) {
             this.Scope<Session, Json, bool>((s, json, css) => {
-                var template = (TObject)json.Template;
+                var template = (TValue)json.Template;
                 if (template == null)
                     return;
 
-                var exposed = template.Properties.ExposedProperties;
+                if (json.IsObject) {
+                    var exposed = ((TObject)template).Properties.ExposedProperties;
+                    if (json._Dirty) {
+                        for (int t = 0; t < exposed.Count; t++) {
+                            if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
+                                if (s != null) {
+                                    if (json.IsArray) {
+                                        throw new NotImplementedException();
+                                    } else {
+                                        var childTemplate = (TValue)exposed[t];
+                                        s.UpdateValue(json, childTemplate);
 
-                if (json._Dirty) {
-                    for (int t = 0; t < exposed.Count; t++) {
-                        if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
-                            if (s != null) {
-                                if (json.IsArray) {
-                                    throw new NotImplementedException();
-                                } else {
-                                    var childTemplate = (TValue)exposed[t];
-                                    s.UpdateValue(json, childTemplate);
-
-                                    TContainer container = childTemplate as TContainer;
-                                    if (container != null) {
-                                        var childJson = container.GetValue(json);
-                                        if (childJson != null) {
-                                            childJson.SetBoundValuesInTuple();
-                                            childJson.CheckpointChangeLog();
+                                        TContainer container = childTemplate as TContainer;
+                                        if (container != null) {
+                                            var childJson = container.GetValue(json);
+                                            if (childJson != null) {
+                                                childJson.SetBoundValuesInTuple();
+                                                childJson.CheckpointChangeLog();
+                                            }
                                         }
                                     }
                                 }
+                                json.CheckpointAt(exposed[t].TemplateIndex);
+                            } else {
+                                var p = exposed[t];
+                                if (p is TContainer) {
+                                    var c = ((TContainer)p).GetValue(json);
+                                    if (c != null)
+                                        c.LogValueChangesWithDatabase(s, true);
+                                } else {
+                                    if (json.IsArray)
+                                        throw new NotImplementedException();
+                                    else
+                                        ((TValue)p).CheckAndSetBoundValue(json, true);
+                                }
                             }
-                            json.CheckpointAt(exposed[t].TemplateIndex);
-                        } else {
-                            var p = exposed[t];
-                            if (p is TContainer) {
-                                var c = ((TContainer)p).GetValue(json);
+                        }
+                        json._Dirty = false;
+                    } else if (_checkBoundProperties) {
+                        for (int t = 0; t < exposed.Count; t++) {
+                            if (exposed[t] is TContainer) {
+                                var c = ((TContainer)exposed[t]).GetValue(json);
                                 if (c != null)
                                     c.LogValueChangesWithDatabase(s, true);
                             } else {
-                                if (json.IsArray)
+                                if (json.IsArray) {
                                     throw new NotImplementedException();
-                                else
-                                    ((TValue)p).CheckAndSetBoundValue(json, true);
+                                } else {
+                                    var p = exposed[t] as TValue;
+                                    p.CheckAndSetBoundValue(json, true);
+                                }
                             }
+
                         }
                     }
-                    json._Dirty = false;
-                } else if (_checkBoundProperties) {
-                    for (int t = 0; t < exposed.Count; t++) {
-                        if (exposed[t] is TContainer) {
-                            var c = ((TContainer)exposed[t]).GetValue(json);
-                            if (c != null)
-                                c.LogValueChangesWithDatabase(s, true);
+                } else {
+                    if (json._Dirty) {
+                        if (json.WasReplacedAt(template.TemplateIndex)) {
+                            if (s != null)
+                                s.UpdateValue(json, null);
+                            json.CheckpointAt(template.TemplateIndex);
                         } else {
-                            if (json.IsArray) {
-                                throw new NotImplementedException();
-                            } else {
-                                var p = exposed[t] as TValue;
-                                p.CheckAndSetBoundValue(json, true);
-                            }
+                            template.CheckAndSetBoundValue(json, true);
                         }
-
                     }
                 }
 
@@ -267,20 +284,25 @@ namespace Starcounter {
 				}
 			} else {
                 this.Scope<Json>((json) => {
-                    TObject tobj = (TObject)json.Template;
-                    if (tobj != null) {
-                        for (int i = 0; i < tobj.Properties.Count; i++) {
-                            var t = tobj.Properties[i];
+                    TValue tval = (TValue)json.Template;
+                    if (tval != null) {
+                        if (json.IsObject) {
+                            var tobj = (TObject)tval;
+                            for (int i = 0; i < tobj.Properties.Count; i++) {
+                                var t = tobj.Properties[i];
 
-                            if (t is TContainer) {
-                                var childJson = ((TContainer)t).GetValue(json);
-                                if (childJson != null)
-                                    childJson.SetBoundValuesInTuple();
-                            } else {
-                                var vt = t as TValue;
-                                if (vt != null)
-                                    vt.CheckAndSetBoundValue(json, false);
+                                if (t is TContainer) {
+                                    var childJson = ((TContainer)t).GetValue(json);
+                                    if (childJson != null)
+                                        childJson.SetBoundValuesInTuple();
+                                } else {
+                                    var vt = t as TValue;
+                                    if (vt != null)
+                                        vt.CheckAndSetBoundValue(json, false);
+                                }
                             }
+                        } else {
+                            tval.CheckAndSetBoundValue(json, false);
                         }
                     }
 
@@ -383,13 +405,15 @@ namespace Starcounter {
                     child.CleanupOldVersionLogs(toVersion);
                 }
             } else {
-                var tobj = (TObject)Template;
-                foreach (Template t in tobj.Properties) {
-                    var tcontainer = t as TContainer;
-                    if (tcontainer != null) {
-                        var json = (Json)tcontainer.GetUnboundValueAsObject(this);
-                        if (json != null)
-                            json.CleanupOldVersionLogs(toVersion);
+                if (IsObject) {
+                    var tobj = (TObject)Template;
+                    foreach (Template t in tobj.Properties) {
+                        var tcontainer = t as TContainer;
+                        if (tcontainer != null) {
+                            var json = (Json)tcontainer.GetUnboundValueAsObject(this);
+                            if (json != null)
+                                json.CleanupOldVersionLogs(toVersion);
+                        }
                     }
                 }
             }
@@ -446,16 +470,21 @@ namespace Starcounter {
                 }
             } else {
                 if (Template != null) {
-                    var tobj = (TObject)Template;
-                    _SetFlag = new List<bool>(tobj.Properties.Count);
-                    foreach (Template tChild in tobj.Properties) {
-                        _SetFlag.Add(false);
-                        var container = tChild as TContainer;
-                        if (container != null) {
-                            var childJson = (Json)container.GetUnboundValueAsObject(this);
-                            if (childJson != null)
-                                childJson.OnAddedToViewmodel(true);
+                    if (IsObject) {
+                        var tobj = (TObject)Template;
+                        _SetFlag = new List<bool>(tobj.Properties.Count);
+                        foreach (Template tChild in tobj.Properties) {
+                            _SetFlag.Add(false);
+                            var container = tChild as TContainer;
+                            if (container != null) {
+                                var childJson = (Json)container.GetUnboundValueAsObject(this);
+                                if (childJson != null)
+                                    childJson.OnAddedToViewmodel(true);
+                            }
                         }
+                    } else {
+                        _SetFlag = new List<bool>(1);
+                        _SetFlag.Add(false);
                     }
                 }
             }
@@ -483,12 +512,14 @@ namespace Starcounter {
                 }
             } else {
                 if (Template != null) {
-                    foreach (Template tChild in ((TObject)Template).Properties) {
-                        var container = tChild as TContainer;
-                        if (container != null) {
-                            var childJson = (Json)container.GetUnboundValueAsObject(this);
-                            if (childJson != null)
-                                childJson.OnRemovedFromViewmodel(true);
+                    if (IsObject) {
+                        foreach (Template tChild in ((TObject)Template).Properties) {
+                            var container = tChild as TContainer;
+                            if (container != null) {
+                                var childJson = (Json)container.GetUnboundValueAsObject(this);
+                                if (childJson != null)
+                                    childJson.OnRemovedFromViewmodel(true);
+                            }
                         }
                     }
                 }

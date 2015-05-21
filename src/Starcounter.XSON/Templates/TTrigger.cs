@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Starcounter.Templates {
 
@@ -18,6 +19,8 @@ namespace Starcounter.Templates {
     /// the schema template for that property becomes an TTrigger.
     /// </remarks>
     public class TTrigger : TValue {
+        private static byte[] jsonValueAsBytes = new byte[] { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
+
         private Func<Json, TValue, Input> _inputEventCreator;
         private Action<Json, Input> _inputHandler;
 
@@ -137,8 +140,12 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 		}
 
-        internal override string ValueToJsonString(Json parent) {
-            return "null";
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Trigger; }
+        }
+
+        internal override Type DefaultInstanceType {
+            get { return null; }
         }
     }
 }

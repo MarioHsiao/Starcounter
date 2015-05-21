@@ -32,8 +32,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// Gets the template.
         /// </summary>
         /// <value>The template.</value>
-        public TContainer Template {
-            get { return (TContainer)(NTemplateClass.Template); }
+        public TValue Template {
+            get { return (TValue)(NTemplateClass.Template); }
         }
 
         public override string Generics {
@@ -103,8 +103,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     return "";
                 var template = NTemplateClass.Template;
                 string className = null;
-                if (template is TObject) {
-                    className = (template as TObject).ClassName;
+                if (template.ClassName != null) {
+                    className = template.ClassName;
                 }
                 if (className == null) {
                     className = template.PropertyName;

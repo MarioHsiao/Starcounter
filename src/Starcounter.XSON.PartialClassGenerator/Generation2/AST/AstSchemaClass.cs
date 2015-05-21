@@ -41,7 +41,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                     return BindingStrategy.Auto;
 				if (acn.CodebehindClass == null) {
                     string value;
-                    if (!((TObject)acn.NTemplateClass.Template).CodegenMetadata.TryGetValue(Gen2DomGenerator.InstanceDataTypeName, out value))
+                    if (!acn.NTemplateClass.Template.CodegenMetadata.TryGetValue(Gen2DomGenerator.InstanceDataTypeName, out value))
 						return BindingStrategy.Auto;
 					return BindingStrategy.Bound;
 				}

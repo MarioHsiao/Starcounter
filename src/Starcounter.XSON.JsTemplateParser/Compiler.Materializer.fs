@@ -124,8 +124,14 @@ module public Materializer =
             | _ -> failedExpectation1 "Adorner function Class, Include, Namespace, Editable, Bind, Unbound or OnUpdate" identifier
 
         let createPrimitiveTemplateObject (parent:obj) (name:string) (ast:Ast.Tree) (factory:ITemplateFactory)  =
-            let dollarPrefix = (name.Chars(0) = '$')
-            let dollarSuffix = (name.Chars(name.Length-1) = '$')
+            let dollarPrefix = if (name = null) then 
+                                   false
+                               else
+                                   (name.Chars(0) = '$')
+            let dollarSuffix = if (name = null) then 
+                                   false
+                               else
+                                   (name.Chars(name.Length-1) = '$')
             let legalName = if (dollarPrefix) then name.Substring(1) else name;
             if dollarPrefix then
                 match ast with // TODO: Can we assume that metadata is always treated as an Ast.Object?
@@ -235,7 +241,7 @@ module public Materializer =
                        begin
                            fun ( expression ) ->
 //                               Console.WriteLine( "Adding element " + name );
-                               materializePropertyOfParent newObj ast "<Element>" expression factory |> ignore
+                               materializePropertyOfParent newObj ast null expression factory |> ignore
                        end
                    newObj
                | _ ->
@@ -262,7 +268,7 @@ module public Materializer =
                 | _ -> failedExpectation restrictToDesigntimeVariable "var" var
             | _ ->
                 if (not restrictToDesigntimeVariable) then
-                   let parent = materializePropertyOfParent null (Ast.Null( DebugInfo(0,0,""))) "viewmodel" assignBlockOrObject factory                                // Heureka! Here is the Javascript like object expression creating the template
+                   let parent = materializePropertyOfParent null (Ast.Null( DebugInfo(0,0,""))) null assignBlockOrObject factory                                // Heureka! Here is the Javascript like object expression creating the template
                    parent
                 else
                    null
