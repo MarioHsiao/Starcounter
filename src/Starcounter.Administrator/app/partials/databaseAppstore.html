@@ -49,8 +49,9 @@
             <table class="table">
 
                 <tbody>
+                    <!--<tr ng-repeat="item in store.Applications | orderBy:['-IsDeployed','DisplayName'] ">-->
 
-                    <tr ng-repeat="item in store.Applications | orderBy:['-IsInstalled','DisplayName'] ">
+                    <tr ng-repeat="item in store.Applications | orderBy:['DisplayName'] ">
 
                         <td class="vert-align" style="width: 41px; padding-left: 15px">
                             <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
@@ -60,14 +61,32 @@
 
                         <td class="vert-align" style="width: 95px;">
                             <div>
+                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="item.IsDeployed" ng-click="btnDeleteApplication(item)" title="Delete">Delete</button>
                                 <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
+
+<!--                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnInstallApplication(item)" title="Install">Install</button>
                                 <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Open</button>
+                                <a style="min-width: 80px"  ng-show="item.IsDeployed && item.IsRunning" class="btn btn-default btn-sm btn-success" href="http://localhost:8080/{{item.AppName}}" target="_blank" role="button" title="Open Application">Open</a>
+                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsInstalled && !item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Restart</button>-->
                             </div>
                         </td>
 
                         <!--                        <td class="vert-align">
                                 <div>{{item.StatusText}}</div>
                         </td>-->
+
+                <!-- Error message -->
+                <td class="vert-align">
+
+                    <!-- Status Text -->
+                    {{item.StatusText}}
+                   
+                    <span ng-show="item.HasErrorMessage">{{item.ErrorMessage.Message}}
+                        <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+                    </span>
+
+                </td>
 
                         <td>
                             <span style="display: inline">

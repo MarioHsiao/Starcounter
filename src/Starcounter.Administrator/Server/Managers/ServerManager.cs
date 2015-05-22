@@ -36,6 +36,17 @@ namespace Administrator.Server.Managers {
                 return 513; // 513 Message Too Large
             });
 
+            //Handle.CUSTOM("OPTIONS /api/servermodel", (Request request) => {
+
+               
+            //    // Create response
+            //    Response response = new Response();
+            //    response["Access-Control-Allow-Origin"] = "http://localhost:8080";
+            //    response["Access-Control-Expose-Headers"] = "Location, X-Location";
+            //    response["Access-Control-Allow-Headers"] = "X-Referer";
+            //    return response;
+            //});
+
             Handle.GET("/api/servermodel", (Request request) => {
 
                 // Create view-model
@@ -56,6 +67,7 @@ namespace Administrator.Server.Managers {
 
                 response["Access-Control-Allow-Origin"] = "http://localhost:8080";
                 response["Access-Control-Expose-Headers"] = "Location, X-Location";
+                //response["Access-Control-Allow-Headers"] = "X-Referer";
                 return response;
             });
 

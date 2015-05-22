@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Server.PublicModel.Commands;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.Server.PublicModel {
 
@@ -133,5 +134,12 @@ namespace Starcounter.Server.PublicModel {
         /// of the current state for each database maintained by the server
         /// being queried.</returns>
         DatabaseInfo[] GetDatabases();
+
+        /// <summary>
+        /// Get database configuration
+        /// </summary>
+        /// <param name="databaseName"></param>
+        /// <returns></returns>
+        DatabaseConfiguration GetDatabaseConfiguration(string databaseName);
     }
 }

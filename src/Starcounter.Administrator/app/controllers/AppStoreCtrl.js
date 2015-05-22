@@ -17,6 +17,26 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
     }
 
     /**
+     * Delete Application
+     * @param {object} application Application
+     */
+    $scope.btnDeleteApplication = function (application) {
+
+        application.Delete$++;
+    }
+    
+
+    /**
+     * Install Application
+     * this will download/install and start the application
+     * @param {object} application Application
+     */
+    $scope.btnInstallApplication = function (application) {
+
+        application.Install$++;
+    }
+
+    /**
      * Open Application
      * @param {object} application Application
      */

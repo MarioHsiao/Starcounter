@@ -22,14 +22,6 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="admin">The AdminAPI providing the context.</param>
         public static void Bootstrap(ushort port, ServerEngine engine, IServerRuntime server, string resourceFolder) {
 
-            // TODO: Get the AppStore url
-//#if LOCAL_APPSTORE
-//            string appStoreHost = "http://127.0.0.1:8787";
-//#else
-//            string appStoreHost = "http://appstore.polyjuice.com:8787";
-//#endif
-
-
             // TODO: Add an "apps" folder to the Server Configuration
             //ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
             //string appsRootFolder = System.IO.Path.Combine(serverInfo.Configuration.EnginesDirectory, "apps");

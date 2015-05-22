@@ -322,7 +322,7 @@ namespace Administrator.Server.Model {
                 }
                 else {
 
-                    if (this._CouldNotDelete == false && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
+                    if (this.CouldNotDelete == false && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
                         this.DeleteApplication(); // Async
                     }
                 }
@@ -527,8 +527,9 @@ namespace Administrator.Server.Model {
                     this.OnCommandError(command.Description, msg.Brief, msg.Helplink);
                 }
                 else {
-                    this.Evaluate();
+                    //this.Evaluate();
                 }
+                this.Evaluate();
 
             });
 
@@ -559,7 +560,7 @@ namespace Administrator.Server.Model {
         /// <param name="message"></param>
         private void OnCommandError(string title, string message, string helpLink) {
             // TODO: Append errors to notification list
-        //    this.StatusText = message;
+            //    this.StatusText = message;
 
             this.ErrorMessage.Title = title;
             this.ErrorMessage.Message = message;
@@ -714,7 +715,6 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(AppInfo item, string databaseName) {
 
-            var versionInfo = FileVersionInfo.GetVersionInfo(item.FilePath);
 
             Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
@@ -726,11 +726,21 @@ namespace Administrator.Server.Model {
             application.Channel = string.Empty;
             application.DisplayName = item.Name;
             application.AppName = item.Name;
-            application.Description = versionInfo.FileDescription;
-            application.Version = versionInfo.FileVersion;
+
+            try {
+                var versionInfo = FileVersionInfo.GetVersionInfo(item.FilePath);
+                application.Description = versionInfo.FileDescription;
+                application.Version = versionInfo.FileVersion;
+                application.Company = versionInfo.CompanyName;
+            }
+            catch (Exception) {
+                application.Description = string.Empty;
+                application.Version = string.Empty;
+                application.Company = string.Empty;
+            }
+
             application.VersionDate = File.GetLastWriteTimeUtc(item.FilePath);
             application.ResourceFolder = item.WorkingDirectory;
-            application.Company = versionInfo.CompanyName;
             application.ImageUri = string.Empty; // TODO: Use default image?
             application.Executable = item.FilePath;
             application.Arguments = string.Empty; // TODO:
@@ -738,6 +748,8 @@ namespace Administrator.Server.Model {
             application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
             return application;
+
+
         }
 
         #region INotifyPropertyChanged Members

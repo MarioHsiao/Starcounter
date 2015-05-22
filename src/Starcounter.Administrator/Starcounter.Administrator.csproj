@@ -497,6 +497,9 @@
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\AppStoreStoreJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Model\AppStoreStoreJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>

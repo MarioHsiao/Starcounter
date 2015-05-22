@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System.Threading;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.Server {
 
@@ -201,6 +202,15 @@ namespace Starcounter.Server {
                 databases.Values.CopyTo(copy, 0);
                 return copy;
             }
+        }
+
+        public DatabaseConfiguration GetDatabaseConfiguration(string databaseName) {
+
+            if (this.engine.Databases.ContainsKey(databaseName)) {
+                Database database = this.engine.Databases[databaseName];
+                return database.Configuration;
+            }
+            return null;
         }
     }
 }

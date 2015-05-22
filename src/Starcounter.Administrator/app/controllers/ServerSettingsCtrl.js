@@ -73,7 +73,7 @@ adminModule.controller('ServerSettingsCtrl', ['$scope', '$log', '$location', 'No
         ServerService.saveSettings(settings, function (settings) {
 
             // Success
-            $scope.WarnMessage = "The new settings will be used the next time the server is started.";
+            $scope.WarnMessage = "The new settings will be used the next time the server starts.";
 
 //            NoticeFactory.ShowNotice({ type: "success", msg: "Settings saved. The new settings will be used at the next start of the server" });
 

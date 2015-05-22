@@ -50,26 +50,26 @@ namespace Administrator.Server.Managers {
                         throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
                     }
 
-                    Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
-                    remoteAppStoreItems.PopulateFromJson(response.Body);
+                    //Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
+                    //remoteAppStoreItems.PopulateFromJson(response.Body);
 
-                    IList<AppStoreApplication> applications = new List<AppStoreApplication>();
+                    //IList<AppStoreApplication> applications = new List<AppStoreApplication>();
 
-                    foreach (var remoteStore in remoteAppStoreItems.Stores) {
+                    //foreach (var remoteStore in remoteAppStoreItems.Stores) {
 
-                        string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
-                        if (store.ID != id) continue;
+                    //    string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
+                    //    if (store.ID != id) continue;
 
-                        foreach (var remoteApp in remoteStore.Items) {
+                    //    foreach (var remoteApp in remoteStore.Items) {
 
-                            AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
-                            application.Database = database;
-                            applications.Add(application);
-                        }
-                    }
+                    //        AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
+                    //        application.Database = database;
+                    //        applications.Add(application);
+                    //    }
+                    //}
 
                     if (completionCallback != null) {
-                        completionCallback(applications);
+                        completionCallback(PopulateApplicationsFromResponse(database, store, response));
                     }
                 }
                 catch (InvalidOperationException e) {
@@ -78,6 +78,46 @@ namespace Administrator.Server.Managers {
                     }
                 }
             });
+        }
+
+        public static IList<AppStoreApplication> GetApplications(Administrator.Server.Model.Database database, AppStoreStore store, out string message) {
+
+            IList<AppStoreApplication> applications = new List<AppStoreApplication>();
+            // TODO:
+            message = null;
+
+            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, 10000);
+
+            if (!response.IsSuccessStatusCode) {
+                message = "At the moment The App Store Service is not avaiable. Try again later.";
+                return null;
+            }
+
+            return PopulateApplicationsFromResponse(database, store, response);
+
+        }
+
+        private static IList<AppStoreApplication> PopulateApplicationsFromResponse(Administrator.Server.Model.Database database, AppStoreStore store, Response response) {
+
+            Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
+            remoteAppStoreItems.PopulateFromJson(response.Body);
+
+            IList<AppStoreApplication> applications = new List<AppStoreApplication>();
+
+            foreach (var remoteStore in remoteAppStoreItems.Stores) {
+
+                string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
+                if (store.ID != id) continue;
+
+                foreach (var remoteApp in remoteStore.Items) {
+
+                    AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
+                    application.Database = database;
+                    applications.Add(application);
+                }
+            }
+
+            return applications;
         }
 
         /// <summary>
@@ -146,24 +186,58 @@ namespace Administrator.Server.Managers {
                     return;
                 }
 
-                Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
-                remoteAppStoreItems.PopulateFromJson(response.Body);
+                //Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
+                //remoteAppStoreItems.PopulateFromJson(response.Body);
 
-                IList<AppStoreStore> stores = new List<AppStoreStore>();
+                //IList<AppStoreStore> stores = new List<AppStoreStore>();
 
-                foreach (var remoteStore in remoteAppStoreItems.Stores) {
+                //foreach (var remoteStore in remoteAppStoreItems.Stores) {
 
-                    AppStoreStore store = new AppStoreStore();
-                    store.Database = database;
-                    store.ID = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
-                    store.DisplayName = remoteStore.DisplayName;
-                    stores.Add(store);
-                }
+                //    AppStoreStore store = new AppStoreStore();
+                //    store.Database = database;
+                //    store.ID = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
+                //    store.DisplayName = remoteStore.DisplayName;
+                //    stores.Add(store);
+                //}
 
                 if (completionCallback != null) {
-                    completionCallback(stores);
+                    completionCallback(PopulateStoresFromResponse(database, response));
                 }
             });
+        }
+
+        public static IList<AppStoreStore> GetStores(Administrator.Server.Model.Database database, out string message) {
+            IList<AppStoreStore> stores = new List<AppStoreStore>();
+            // TODO:
+            message = null;
+
+            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, 10000);
+
+            if (!response.IsSuccessStatusCode) {
+                message = "At the moment The App Store Service is not avaiable. Try again later.";
+                return null;
+            }
+
+            return PopulateStoresFromResponse(database, response);
+        }
+
+        private static IList<AppStoreStore> PopulateStoresFromResponse(Administrator.Server.Model.Database database, Response response) {
+
+            Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
+            remoteAppStoreItems.PopulateFromJson(response.Body);
+
+            IList<AppStoreStore> stores = new List<AppStoreStore>();
+
+            foreach (var remoteStore in remoteAppStoreItems.Stores) {
+
+                AppStoreStore store = new AppStoreStore();
+                store.Database = database;
+                store.ID = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
+                store.DisplayName = remoteStore.DisplayName;
+                stores.Add(store);
+            }
+
+            return stores;
         }
 
         /// <summary>
@@ -215,7 +289,7 @@ namespace Administrator.Server.Managers {
             application.Namespace = remoteApp.Namespace;
             application.Channel = remoteApp.Channel;
             application.DisplayName = remoteApp.DisplayName;
-            application.AppName = string.Empty;
+            //application.AppName = string.Empty;
             application.Description = remoteApp.Description;
             application.Version = remoteApp.Version;
             application.VersionDate = DateTime.Parse(remoteApp.VersionDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
