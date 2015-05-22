@@ -84,7 +84,7 @@ namespace UdpClientCs {
 
         static Int32 Main(string[] args) {
 
-            Int32 numWorkers = 3;
+            Int32 numWorkers = 2;
             UInt16 datagramSize = 1000;
             Int32 numEchoes = 100000;
             String serverIp = "127.0.0.1";
