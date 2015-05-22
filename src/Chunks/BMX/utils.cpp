@@ -107,8 +107,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
 }
 
 // Writing all chunks data to given buffer.
-EXTERN_C uint32_t __stdcall sc_bmx_copy_all_chunks(
-    starcounter::core::chunk_index chunk_index,
+EXTERN_C uint32_t __stdcall sc_bmx_copy_from_chunks_and_release_trailing(
     uint8_t* first_smc,
     int32_t first_chunk_offset,
     int32_t total_copy_bytes,

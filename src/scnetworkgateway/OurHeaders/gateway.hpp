@@ -308,6 +308,9 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[6] - SOCKET_DATA_OFFSET_BLOB
 };
 
+// Maximum size of UDP datagram.
+const int32_t MAX_UDP_DATAGRAM_SIZE = GatewayChunkDataSizes[3];
+
 inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
 {
     for (int32_t i = 0; i < NumGatewayChunkSizes; i++)

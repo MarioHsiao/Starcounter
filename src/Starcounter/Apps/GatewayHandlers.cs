@@ -103,13 +103,12 @@ namespace Starcounter
                     fixed (Byte* fixedBuf = dataBytes) {
 
                         // Copying all chunks data.
-                        errorCode = bmx.sc_bmx_copy_all_chunks(
-                            chunkIndex,
+                        errorCode = bmx.sc_bmx_copy_from_chunks_and_release_trailing(
                             rawChunk,
-                            (UInt32) MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA),
-                            (UInt32) dataBytes.Length,
+                            MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA),
+                            dataBytes.Length,
                             fixedBuf,
-                            (UInt32) dataBytes.Length);
+                            dataBytes.Length);
 
                         if (errorCode != 0)
                             throw ErrorCode.ToException(errorCode);
