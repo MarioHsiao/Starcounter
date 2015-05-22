@@ -483,12 +483,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Checking scheduler id validity.
     if (INVALID_SCHEDULER_ID == sched_id)
     {
-        // TODO: Fix race condition on codehost!
-        if (sd->GetPortNumber() == g_gateway.get_setting_internal_system_port()) {
-            sched_id = 0;
-        } else {
-            sched_id = GenerateSchedulerId();
-        }
+        sched_id = GenerateSchedulerId();
 
         ipc_sd->set_scheduler_id(sched_id);
     }
