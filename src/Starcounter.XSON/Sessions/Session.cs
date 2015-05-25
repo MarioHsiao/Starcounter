@@ -305,8 +305,13 @@ namespace Starcounter {
                 int stateIndex;
                 string appName;
 
-                if (value != null && value.Parent != null)
-                    throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+                if (value != null) {
+                    if (value.Parent != null)
+                        throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+
+                    if (value._Session != null && value._Session != this)
+                        throw ErrorCode.ToException(Error.SCERRJSONSETONOTHERSESSION);
+                }
 
                 appName = StarcounterEnvironment.AppName;
                 if (appName != null) {
@@ -319,9 +324,6 @@ namespace Starcounter {
                     }
 
                     if (value != null) {
-                        if (value._Session != null)
-                            value._Session.Data = null;
-
                         value._Session = this;
                         value.OnSessionSet();
 

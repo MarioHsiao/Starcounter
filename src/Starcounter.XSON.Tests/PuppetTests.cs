@@ -37,6 +37,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsTrue(session == root.Session);
             Assert.IsTrue(root == session.Data);
 
+            root.Session = null;
             StarcounterEnvironment.AppName = "SingleApp2";
             session2.Data = root;
 
