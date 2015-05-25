@@ -209,10 +209,11 @@ namespace Starcounter.Rest
                 if (userDelegate_ == null)
                     return null;
 
-                try {
+                // Increasing calling level for internal calls.
+                Int32 savedCallLevel = Handle.CallLevel;
+                Handle.CallLevel++;
 
-                    // Increasing calling level for internal calls.
-                    Handle.CallLevel++;
+                try {
 
                     Response subsResp = null;
 
@@ -299,8 +300,8 @@ namespace Starcounter.Rest
 
                 } finally {
 
-                    // Decreasing calling level for internal calls.
-                    Handle.CallLevel--;
+                    // Restoring calling level for internal calls.
+                    Handle.CallLevel = savedCallLevel;
                 }
             }
 
