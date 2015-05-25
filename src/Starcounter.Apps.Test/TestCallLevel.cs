@@ -26,9 +26,9 @@ namespace Starcounter.Internal.Test {
         [Test]
         public void TestCallLevels() {
 
-            Handle.GET("/level4", (Request req) => {
+            Handle.GET("/level8", (Request req) => {
 
-                Assert.IsTrue(Handle.CallLevel == 4);
+                Assert.IsTrue(Handle.CallLevel == 8);
 
                 return 200;
             });
@@ -37,8 +37,13 @@ namespace Starcounter.Internal.Test {
 
                 Assert.IsTrue(Handle.CallLevel == 3);
 
-                Response resp = Self.GET("/level4");
+                Handle.CallLevel = Handle.CallLevel + 4;
+                Assert.IsTrue(Handle.CallLevel == 7);
+
+                Response resp = Self.GET("/level8");
                 Assert.AreEqual(resp.IsSuccessStatusCode, true);
+
+                Assert.IsTrue(Handle.CallLevel == 7);
 
                 return 200;
             });
