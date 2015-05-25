@@ -318,7 +318,7 @@ namespace Administrator.Server.Model {
 
                 // If application is running or starting then try to stop it.
                 if (this.IsRunning || this.Status.HasFlag(ApplicationStatus.Starting)) {
-                    this.WantRunning = false; // Will trigger Eveluate()
+                    this.WantRunning = false; // Will trigger Evaluate()
                 }
                 else {
 
@@ -464,7 +464,7 @@ namespace Administrator.Server.Model {
         /// <summary>
         /// Delete deployed application from server
         /// </summary>
-        private void DeleteApplication() {
+        public void DeleteApplication() {
 
             this.ResetErrorMessage();
 
@@ -715,7 +715,6 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         public static DatabaseApplication ToApplication(AppInfo item, string databaseName) {
 
-
             Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
 
             Trace.Assert(database != null, "Database not found: " + databaseName);
@@ -748,8 +747,6 @@ namespace Administrator.Server.Model {
             application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
             return application;
-
-
         }
 
         #region INotifyPropertyChanged Members

@@ -343,12 +343,11 @@ namespace Administrator.Server.Managers {
                     freshApplication = GetApplication(runningApplicationID, freshApplications);
                     if (freshApplication == null) {
                         freshApplication = DatabaseApplication.ToApplication(appInfo, databaseName);
-                        if (freshApplication != null) {
-                            freshApplications.Add(freshApplication);
-                            freshApplication.IsRunning = true;
-                            freshApplication.WantRunning = true;
-                        }
                     }
+
+                    freshApplications.Add(freshApplication);
+                    freshApplication.IsRunning = true;
+                    freshApplication.WantRunning = true;
                 }
             }
 

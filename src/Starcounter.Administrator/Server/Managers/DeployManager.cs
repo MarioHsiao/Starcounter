@@ -145,13 +145,6 @@ namespace Administrator.Server.Managers {
                     return;
                 }
 
-                if (application.Status != ApplicationStatus.None) {
-                    if (errorCallback != null) {
-                        errorCallback("Can not delete occupied application");
-                    }
-                    return;
-                }
-
                 DeployedConfigFile config = DeployManager.GetItemFromApplication(application);
 
                 if (config == null) {

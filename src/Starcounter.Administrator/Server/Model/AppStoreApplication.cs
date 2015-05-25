@@ -30,9 +30,7 @@ namespace Administrator.Server.Model {
                 return string.Empty;
             }
         }
-
         public string DisplayName;
-
         public string AppName {
             get {
 
@@ -43,8 +41,6 @@ namespace Administrator.Server.Model {
                 return string.Empty;
             }
         }
-
-
         public string Description;
         public string Version;
         public DateTime VersionDate;
@@ -80,6 +76,11 @@ namespace Administrator.Server.Model {
         private ApplicationStatus _Status;
         public ApplicationStatus Status {
             get {
+
+                if (this.HasDatabaseAppliction) {
+                    return this.DatabaseApplication.Status;
+                }
+
                 return this._Status;
             }
             set {
@@ -92,6 +93,11 @@ namespace Administrator.Server.Model {
         private string _StatusText;
         public string StatusText {
             get {
+
+                if (this.HasDatabaseAppliction) {
+                    return this.DatabaseApplication.StatusText;
+                }
+
                 return this._StatusText;
             }
             set {
@@ -214,6 +220,8 @@ namespace Administrator.Server.Model {
                 this.OnPropertyChanged("IsDeployed");
                 this.OnPropertyChanged("ErrorMessage");
                 this.OnPropertyChanged("HasErrorMessage");
+                this.OnPropertyChanged("Status");
+                this.OnPropertyChanged("StatusText");
             }
         }
 
@@ -246,6 +254,12 @@ namespace Administrator.Server.Model {
                 }
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsDeployed") {
                     this.OnPropertyChanged("IsDeployed");
+                }
+                if (((PropertyChangedEventArgs)e).PropertyName == "Status") {
+                    this.OnPropertyChanged("Status");
+                }
+                if (((PropertyChangedEventArgs)e).PropertyName == "StatusText") {
+                    this.OnPropertyChanged("StatusText");
                 }
 
             }
@@ -309,10 +323,17 @@ namespace Administrator.Server.Model {
                 }
                 else {
 
-                    // Delete
-                    if (!this.DeployError && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
-                        this.DeleteApplication();
+
+                    if (this.HasDatabaseAppliction) {
+                        DatabaseApplication databaseApplication = this.DatabaseApplication;
+                        databaseApplication.WantDeleted = true;
                     }
+
+
+                    //// Delete
+                    //if (!this.DeployError && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
+                    //    this.DeleteApplication();
+                    //}
                 }
             }
 
@@ -369,29 +390,29 @@ namespace Administrator.Server.Model {
         /// <summary>
         /// Delete deployed application from server
         /// </summary>
-        private void DeleteApplication() {
+        //private void DeleteApplication() {
 
-            this.ResetErrorMessage();
+        //    this.ResetErrorMessage();
 
-            this.Status |= ApplicationStatus.Deleting;
-            this.StatusText = "Deleting";
+        //    this.Status |= ApplicationStatus.Deleting;
+        //    this.StatusText = "Deleting";
 
-            DeployManager.Delete(this.DatabaseApplication, (application) => {
+        //    DeployManager.Delete(this.DatabaseApplication, (application) => {
 
-                this.Status &= ~ApplicationStatus.Deleting; // Remove status
-                this.StatusText = string.Empty;
-                this.Evaluate();
-            }, (message) => {
+        //        this.Status &= ~ApplicationStatus.Deleting; // Remove status
+        //        this.StatusText = string.Empty;
+        //        this.Evaluate();
+        //    }, (message) => {
 
-                this.DeployError = true;
-                this.Status &= ~ApplicationStatus.Deleting; // Remove status
-                this.StatusText = string.Empty;
+        //        this.DeployError = true;
+        //        this.Status &= ~ApplicationStatus.Deleting; // Remove status
+        //        this.StatusText = string.Empty;
 
-                this.OnCommandError("Deleting Application", message, null);
+        //        this.OnCommandError("Deleting Application", message, null);
 
-                this.Evaluate();
-            });
-        }
+        //        this.Evaluate();
+        //    });
+        //}
 
         /// <summary>
         /// 
