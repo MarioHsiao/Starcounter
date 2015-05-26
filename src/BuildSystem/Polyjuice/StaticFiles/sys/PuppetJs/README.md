@@ -98,6 +98,16 @@ puppet.obj.some="change";
 ```
 The JSON Patch request will be send to the remote.
 
+### Two-way data binding frameworks
+
+PuppetJs works superbly with with frameworks that allow for two-way data binding, such as Polymer and Angular. These frameworks have the ability to bind an `<input>` element to a JavaScript data model in a way that the object updates after each keystroke. In consequence, PuppetJs sends a patch the server after each keystroke. 
+
+If you want to opt-out from such behavior, you need to force your framework to update the data model after the element is unfocused (`blur` event). Depending on the framework:
+
+- In Polymer 0.5 it is only possible with a Custom Element that extends the native `<input>`, similarly but not exactly how [`core-input`](https://github.com/Polymer/core-input/blob/master/core-input.html) is dome
+- In Polymer 0.9+, use built-in `<input value="{{bindValue::blur}}">`
+- In Angular 1.3+, use built-in `<input type="text" ng-model="name" ng-model-options="{updateOn: 'blur'}" />`
+
 ### Ignoring local changes (`ignoreAdd`)
 
 If you want to create a property in the observed object that will remain local, there is an `ignoreAdd` option and property that
@@ -134,7 +144,12 @@ puppet.useWebSocket = false;
 
 ### Dependencies
 
-PuppetJs is dependent on [Starcounter-Jack/JSON-Patch](https://github.com/Starcounter-Jack/JSON-Patch) to observe changes in local scope, generate patches to be sent to the server and apply changes received from the server.
+PuppetJs is dependent on [Starcounter-Jack/JSON-Patch](https://github.com/Starcounter-Jack/JSON-Patch) to observe changes in local scope, generate patches to be sent to the server and apply changes received from the server. 
+
+It also, uses [URL API](http://www.w3.org/TR/url/), if your environment does not support it (IE, Node), you need to use shim, for example [Polymer/URL](https://github.com/Polymer/URL).
+```shell
+bower install Polymer/URL
+```
 
 ### Development
 
@@ -242,21 +257,6 @@ Attribute   | Type          | Description
 ---         | ---           | ---
 `unlisten`  | *HTMLElement* | Stop listening to DOM events
 `listen`    | *HTMLElement* | Start listening to DOM events
-
-### Sending client changes to server
-
-PuppetJs detects changes to the observed object in real time. However, change patches are
-queued and not sent to the server until a `blur` event occurs. It is because normally there is no business need to save
-a partially filled field and in many cases it may be harmful to data integrity. Another benefit is performance
- improvement due to reduced number of requests.
-
-To force sending changes on each key stroke (for example to implement live search), you can configure it
-per input field (given that this field is bound to observed object):
-
-```html
-<input update-on="blur"><!-- default behavior: update server on blur -->
-<input update-on="input"><!-- update server on key stroke -->
-```
 
 ### Browser history
 

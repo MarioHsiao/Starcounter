@@ -1,4 +1,4 @@
-/*! puppet-dom.js version: 1.0.2
+/*! puppet-dom.js version: 1.1.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -14,11 +14,9 @@
     options || (options={});
     var onDataReady = options.callback;
     this.element = options.listenTo || document.body;
-    var old= this.clickHandler;
-    var that =this;
+    this.clickHandler;
     var clickHandler = this.clickHandler.bind(this);
-    var historyHandler = this.historyHandler = this.historyHandler.bind(this);
-    var clickAndBlurCallback = this.clickAndBlurCallback = this.clickAndBlurCallback.bind(this);
+    this.historyHandler = this.historyHandler.bind(this);
 
     //TODO: do not change given object
     options.callback = function addDOMListeners(obj){
@@ -31,7 +29,6 @@
       this.element.addEventListener('click', clickHandler);
       window.addEventListener('popstate', this.historyHandler); //better here than in constructor, because Chrome triggers popstate on page load
       this.element.addEventListener('puppet-redirect-pushstate', this.historyHandler);
-      this.element.addEventListener('blur', this.clickAndBlurCallback, true);
 
       this.addShadowRootClickListeners(clickHandler);
     };
@@ -41,7 +38,6 @@
       this.element.removeEventListener('click', clickHandler);
       window.removeEventListener('popstate', this.historyHandler); //better here than in constructor, because Chrome triggers popstate on page load
       this.element.removeEventListener('puppet-redirect-pushstate', this.historyHandler);
-      this.element.removeEventListener('blur', this.clickAndBlurCallback, true);
 
       this.removeShadowRootClickListeners(clickHandler);
     };
@@ -154,23 +150,10 @@
     else if (target.type === 'submit') {
       event.preventDefault();
     }
-    else {
-      this.clickAndBlurCallback(); //needed for checkbox
-    }
   };
 
   PuppetDOM.prototype.historyHandler = function (/*event*/) {
     this.network.changeState(location.href);
-  };
-
-  PuppetDOM.prototype.clickAndBlurCallback = function (ev) {
-    if (ev && (ev.target === document.body || ev.target.nodeName === "BODY")) { //Polymer warps ev.target so it is not exactly document.body
-      return; //IE triggers blur event on document.body. This is not what we need
-    }
-    var patches = jsonpatch.generate(this.observer); // calls also observe callback -> #filterChangedCallback
-    if(patches.length){
-      this.handleLocalChange(patches);
-    }
   };
 
   /**
