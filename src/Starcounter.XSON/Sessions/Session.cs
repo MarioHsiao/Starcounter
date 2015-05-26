@@ -39,7 +39,11 @@ namespace Starcounter {
 
         private static JsonPatch jsonPatch_ = new JsonPatch();​
 
-        private Action<Session> _sessionDestroyUserDelegate;
+        /// <summary>
+        /// Event which is called when session is being destroyed (timeout, manual, etc).
+        /// </summary>
+        public event EventHandler Destroyed;
+
         private bool _brandNew;
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
@@ -416,22 +420,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Set user destroy callback.  
-        /// </summary>
-        /// <param name="destroy_user_delegate"></param>
-        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod) {
-            _sessionDestroyUserDelegate = userDestroyMethod;
-        }
-
-        /// <summary>
-        /// Gets destroy callback if it was supplied before.
-        /// </summary>
-        /// <returns></returns>
-        public Action<Session> GetDestroyCallback() {
-            return _sessionDestroyUserDelegate;
-        }
-
-        /// <summary>
         /// Gets the public viewmodel
         /// </summary>
         /// <returns></returns>
@@ -664,9 +652,9 @@ namespace Starcounter {
             }
 
             // Checking if destroy callback is supplied.
-            if (null != _sessionDestroyUserDelegate) {
-                _sessionDestroyUserDelegate(this);
-                _sessionDestroyUserDelegate = null;
+            if (null != Destroyed) {
+                Destroyed(this, null);
+                Destroyed = null;
             }
 
             // Checking if there is an active WebSocket.

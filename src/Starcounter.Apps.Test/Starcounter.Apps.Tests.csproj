@@ -89,6 +89,7 @@
     <Compile Include="NodeRelatedTests.cs" />
     <Compile Include="Polyjuice.Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SessionUsages.cs" />
     <Compile Include="TestApp.cs" />
     <Compile Include="TestCallLevel.cs" />
   </ItemGroup>
