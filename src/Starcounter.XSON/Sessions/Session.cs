@@ -180,11 +180,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running the given action on each active session.
+        /// Running asynchronously the given action on each active session on each owning scheduler.
         /// </summary>
-        /// <param name="action">The user procedure to be performed on each session.</param>
-        public static void ForEach(Action<Session> action) {
-            ForEach(UInt64.MaxValue, action);
+        /// <param name="action">The action to be performed on each session.</param>
+        public static void ForAll(Action<Session> action) {
+            ForAll(UInt64.MaxValue, action);
         }
 
         /// <summary>
@@ -233,11 +233,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running the given action on each active session.
+        /// Running asynchronously the given action on each active session on each owning scheduler.
         /// </summary>
         /// <param name="action">The user procedure to be performed on each session.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void ForEach(UInt64 cargoId, Action<Session> action) {
+        public static void ForAll(UInt64 cargoId, Action<Session> action) {
 
             String appName = StarcounterEnvironment.AppName;
 
