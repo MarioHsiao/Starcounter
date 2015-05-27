@@ -596,12 +596,20 @@ namespace Starcounter.XSON {
 					// What format should be used and how much information?
 					// "u": datetime universal sortable format.
 					newExpr = Expression.Call(expr, dateTimeToStringInfo, Expression.Constant("u"));
-				}
+                } else if (from.IsEnum) {
+                    newExpr = Expression.Call(expr, from.GetMethod("ToString", new Type[0]));
+                }
 			} else if (to.Equals(typeof(DateTime))) {
 				if (from.Equals(typeof(string))) {
 					newExpr = Expression.Call(null, dateTimeParseInfo, expr);
 				}
-			}
+            } else if (to.IsEnum) {
+                if (from.Equals(typeof(string))) {
+                    var mi = typeof(Enum).GetMethod("Parse", new Type[]{ typeof(Type), typeof(String) });
+                    newExpr = Expression.Call(null, mi, Expression.Constant(to), expr);
+                    newExpr = Expression.Convert(newExpr, to);
+                }
+            }
 
 			if (newExpr == null) {
 				try {
