@@ -1125,7 +1125,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 
     // Deleting session.
-    sd->DeleteGlobalSession();
+    sd->ResetGlobalSession();
 
     // Checking if it was an accepting socket.
     if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper())

@@ -960,37 +960,21 @@ public:
     // Setting new unique socket number.
     void GenerateUniqueSocketInfoIds(GatewayWorker* gw);
 
-    // Gets session data by index.
-    void SetGlobalSessionCopy(ScSessionStruct session_copy)
+    // Sets global session data from local.
+    void SetGlobalSessionFromLocal()
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
 
         // Fetching the session by index.
-        socket_info_->session_ = session_copy;
+        socket_info_->session_ = session_;
     }
 
-    // Deletes global session.
-    void DeleteGlobalSession()
+    // Resets the global session.
+    void ResetGlobalSession()
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);
 
         socket_info_->session_.Reset();
-    }
-
-    // Sets session if socket is correct.
-    void SetGlobalSessionIfEmpty()
-    {
-        // Checking unique socket id and session.
-        if (!IsGlobalSessionActive())
-            SetGlobalSessionCopy(session_);
-    }
-
-    // Checks if global session data is active.
-    bool IsGlobalSessionActive()
-    {
-        GW_ASSERT_DEBUG(NULL != socket_info_);
-
-        return socket_info_->session_.IsActive();
     }
 
     // Gets session data by index.
