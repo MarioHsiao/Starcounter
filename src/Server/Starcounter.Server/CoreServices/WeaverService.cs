@@ -101,7 +101,7 @@ namespace Starcounter.Server {
 
             retriedWithoutCache = false;
             weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
-            arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, disableEditionLibraries);
+            arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, disableEditionLibraries, true);
 
             runweaver:
             try {
@@ -114,7 +114,7 @@ namespace Starcounter.Server {
                     // a better way to solve this.
                     log.LogNotice("Weaving {0} failed with code {1}. Retrying without the cache.", givenAssembly, e.ExitCode);
                     retriedWithoutCache = true;
-                    arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, false);
+                    arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, disableEditionLibraries, false);
                     goto runweaver;
                 }
 
@@ -132,7 +132,7 @@ namespace Starcounter.Server {
             string givenAssembly,
             string outputDirectory,
             bool disableEditionLibraries, 
-            bool useCache = true) {
+            bool useCache) {
 
             var arguments = string.Format(
                 "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"",
