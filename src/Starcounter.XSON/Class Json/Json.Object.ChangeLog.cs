@@ -333,15 +333,17 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    newJson.Data = value;
+                    newJson._data = value;
                     ((IList)this).Add(newJson);
+                    newJson.Data = value;
                     hasChanged = true;
                 } else {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        newJson.Data = value;
+                        newJson._data = value;
                         ((IList)this)[index] = newJson;
+                        newJson.Data = value;
                         oldJson.SetParent(null);
                         hasChanged = true;
                     }
