@@ -261,5 +261,21 @@ namespace Starcounter.Internal.XSON.Tests {
             session.GenerateChangeLog();
             session.GenerateChangeLog();
         }
+
+        [Test]
+        public static void TestConversionToAndFromEnumAndString() {
+            dynamic json = new Json();
+            var dataObj = new ObjWithEnum() { TestEnum = TestEnum.Second };
+
+            json.TestEnum = ""; // Creating property
+
+            json.Data = dataObj;
+            Assert.AreEqual("Second", json.TestEnum);
+
+            json.TestEnum = "Third";
+            Assert.AreEqual(TestEnum.Third, dataObj.TestEnum);
+
+            Assert.Throws<ArgumentException>(() => { json.TestEnum = "NonExisting"; });
+        }
     }
 }

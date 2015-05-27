@@ -61,7 +61,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 						AstClassAlias alias;
 						int variant;
 						var id = "__" + cls.CalculateClassAliasIdentifier(8) + "__";
-						if (used.TryGetValue(id, out variant)) {
+						while (used.TryGetValue(id, out variant)) {
 							variant++;
 							used[id] = variant;
 							id = id.Substring(0, id.Length - 2) + variant + "__";
