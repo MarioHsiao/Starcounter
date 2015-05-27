@@ -140,7 +140,7 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 1000;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 100;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
@@ -155,7 +155,7 @@ const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
 const int32_t MAX_PROXIED_URIS = 32;
 
 // Number of sockets to increase the accept roof.
-const int32_t ACCEPT_ROOF_STEP_SIZE = 16;
+const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Maximum number of cached URI matchers.
 const int32_t MAX_CACHED_URI_MATCHERS = 32;
