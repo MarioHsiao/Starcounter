@@ -116,7 +116,7 @@ namespace Starcounter.Internal {
 
                 if (session == null)
                     return CreateErrorResponse(404, "No session found for the specified uri.");
-                root = session.Data;
+                root = session.PublicViewModel;
                 if (root == null)
                     return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
