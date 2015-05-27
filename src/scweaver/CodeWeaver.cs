@@ -245,7 +245,9 @@ namespace Starcounter.Weaver {
                 postSharpSettings.OverwriteAssemblyNames = false;
                 postSharpSettings.DisableReflection = true;
                 postSharpSettings.SearchDirectories.Add(this.InputDirectory);
-                postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
+                if (!this.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
+                    postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
+                }
                 postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
 
                 // Move all assemblies in the cached weaver schema to that of the
