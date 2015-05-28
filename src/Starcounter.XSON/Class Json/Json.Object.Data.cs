@@ -44,7 +44,7 @@ namespace Starcounter {
                         if (j.Template == null) {
                             j.CreateDynamicTemplate(); // If there is no template, we'll create a template
                         }
-                        j.InternalSetData(v, (TObject)j.Template, false);
+                        j.InternalSetData(v, (TValue)j.Template, false);
                     }
                 },
                 this, value);
@@ -52,7 +52,7 @@ namespace Starcounter {
         }
 
         internal void AttachData(object data) {
-            InternalSetData(data, (TObject)Template, true);
+            InternalSetData(data, (TValue)Template, true);
         }
 
         /// <summary>
@@ -74,24 +74,29 @@ namespace Starcounter {
         /// public Data-property does.
         /// </summary>
         /// <param name="data">The bound data object (usually an Entity)</param>
-        protected virtual void InternalSetData(object data, TObject template, bool readOperation ) {
+        protected virtual void InternalSetData(object data, TValue template, bool readOperation) {
             this._data = data;
 
-			if (template != null) {
+            if (template == null)
+                return;
+
+			if (template.TemplateTypeId == TemplateTypeEnum.Object) {
 				if (template.BindingStrategy != BindingStrategy.Unbound) {
 					var parent = ((Json)this.Parent);
-					if (!readOperation && parent != null 
-						&& template.UseBinding(parent) 
-						&& template.BoundSetter != null) {
-						template.BoundSetter(parent, data);
+					if (!readOperation && parent != null && template.UseBinding(parent)) {
+                        var tobj = (TObject)template;
+                        
+						if (tobj.BoundSetter != null) 
+						    tobj.BoundSetter(parent, data);
 					}
 				}
+            }
 
-                if (_data == null)
-                    ClearBoundValues(template);
+            if (_data == null)
+                ClearBoundValues(template);
 
-				InitBoundArrays(template);
-			}
+            InitBoundArrays(template);
+			
             OnData();
         }
 
@@ -102,40 +107,49 @@ namespace Starcounter {
         /// if it exists.
         /// </summary>
         /// <param name="template"></param>
-        private void ClearBoundValues(TObject template) {
-            TValue child;
-
-            for (Int32 i = 0; i < template.Properties.Count; i++) {
-                child = template.Properties[i] as TValue;
-
-                if (child is TTrigger)
-                    continue;
-
-                if (child.BindingStrategy != BindingStrategy.Unbound && !child.isVerifiedUnbound) {
-                    child.InvalidateBoundGetterAndSetter();
-                    child.SetDefaultValue(this);
-                    if (this.HasBeenSent)
-                        MarkAsReplaced(child);
+        private void ClearBoundValues(TValue template) {
+            if (template.TemplateTypeId == TemplateTypeEnum.Object) {
+                var tobj = (TObject)template;
+                for (Int32 i = 0; i < tobj.Properties.Count; i++) {
+                    ClearBoundValue((TValue)tobj.Properties[i]);
                 }
+            } else {
+                ClearBoundValue(template);
+            }
+        }
+
+        private void ClearBoundValue(TValue child) {
+            if (child is TTrigger)
+                return;
+
+            if (child.BindingStrategy != BindingStrategy.Unbound && !child.isVerifiedUnbound) {
+                child.InvalidateBoundGetterAndSetter();
+                child.SetDefaultValue(this);
+                if (this.HasBeenSent)
+                    MarkAsReplaced(child);
             }
         }
 
         /// <summary>
         /// Initializes bound arrays when a new dataobject is set.
         /// </summary>
-        private void InitBoundArrays(TObject template) {
+        private void InitBoundArrays(TValue template) {
             TObjArr child;
-            for (Int32 i = 0; i < template.Properties.Count; i++) {
-                child = template.Properties[i] as TObjArr;
-                if (child != null && child.BindingStrategy != BindingStrategy.Unbound) {
-					if (_data != null) {
-						if (child.UseBinding(this))
-							Refresh(child);
-					} else {
-                        var thisj = AssertIsObject();
-						var arr = (Json)child.Getter(thisj);
-						((IList)arr).Clear();
-					}
+
+            if (template.TemplateTypeId == TemplateTypeEnum.Object) {
+                var tobj = (TObject)template;
+                for (Int32 i = 0; i < tobj.Properties.Count; i++) {
+                    child = tobj.Properties[i] as TObjArr;
+                    if (child != null && child.BindingStrategy != BindingStrategy.Unbound) {
+                        if (_data != null) {
+                            if (child.UseBinding(this))
+                                Refresh(child);
+                        } else {
+                            var thisj = AssertIsObject();
+                            var arr = (Json)child.Getter(thisj);
+                            ((IList)arr).Clear();
+                        }
+                    }
                 }
             }
         }

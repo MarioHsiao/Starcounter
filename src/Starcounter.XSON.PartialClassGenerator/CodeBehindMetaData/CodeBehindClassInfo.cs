@@ -40,6 +40,7 @@ namespace Starcounter.XSON.Metadata {
                 }
  */
                 switch (BaseClassName) {
+                    case "":
                     case "Json":
                     case "Starcounter.Json":
                         cls = true;
