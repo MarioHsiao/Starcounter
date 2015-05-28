@@ -480,8 +480,9 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Setting number of chunks.
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
-    // Checking scheduler id validity.
-    if (INVALID_SCHEDULER_ID == sched_id)
+    // NOTE: We specifically checking for value more or equal than number of schedulers
+    // because, for example, incoming session string can be tempered and arbitrary values can occur here.
+    if (sched_id >= num_schedulers_)
     {
         sched_id = GenerateSchedulerId();
 
