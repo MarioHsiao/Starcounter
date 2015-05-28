@@ -277,5 +277,12 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.Throws<ArgumentException>(() => { json.TestEnum = "NonExisting"; });
         }
+
+        [Test]
+        public static void TestSettingDataObjectOnSingleValue() {
+            Json json = new Json();
+            json.Template = new TString();
+            json.Data = new Person();
+        }
     }
 }
