@@ -27,7 +27,8 @@ struct HttpResponse
     // Resets this instance of request.
     void Reset()
     {
-        memset(this, 0, sizeof(HttpResponse));
+        // NOTE: Not zeroing last 8 bytes used for padding.
+        memset(this, 0, sizeof(HttpResponse) - 8);
     }
 };
 
