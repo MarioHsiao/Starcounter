@@ -132,7 +132,7 @@ namespace WebSocketsTestServer {
 
                     try {
 
-                        Session.ForEach((Session s) => {
+                        Session.ForAll((Session s) => {
 
                             try {
 

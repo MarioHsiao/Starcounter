@@ -480,15 +480,11 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
     // Setting number of chunks.
     ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
     
-    // Checking scheduler id validity.
-    if (INVALID_SCHEDULER_ID == sched_id)
+    // NOTE: We specifically checking for value more or equal than number of schedulers
+    // because, for example, incoming session string can be tempered and arbitrary values can occur here.
+    if (sched_id >= num_schedulers_)
     {
-        // TODO: Fix race condition on codehost!
-        if (sd->GetPortNumber() == g_gateway.get_setting_internal_system_port()) {
-            sched_id = 0;
-        } else {
-            sched_id = GenerateSchedulerId();
-        }
+        sched_id = GenerateSchedulerId();
 
         ipc_sd->set_scheduler_id(sched_id);
     }

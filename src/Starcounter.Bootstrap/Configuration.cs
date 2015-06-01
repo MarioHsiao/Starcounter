@@ -257,7 +257,7 @@ namespace StarcounterInternal.Bootstrap
                     chunksNumber = uint.Parse(chunksNumberStr);
 
                     // Checking if number of chunks is correct.
-                    if ((chunksNumber < 128) || (chunksNumber > 4096 * 128))
+                    if ((chunksNumber < 128) || (chunksNumber > 4096 * 512))
                     {
                         throw ErrorCode.ToException(Starcounter.Error.SCERRBADCHUNKSNUMBERCONFIG);
                     }

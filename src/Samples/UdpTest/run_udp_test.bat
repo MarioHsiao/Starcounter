@@ -7,10 +7,20 @@ staradmin kill all
 :: Starting NetworkIoTest in background.
 star.exe s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
 
-:: Starting the client part of the test.
-UdpTest.exe
+:: Doing the client part of the test.
+UdpTest.exe --DatagramSize=10
+IF ERRORLEVEL 1 GOTO TESTFAILED
 
-:: Checking exit code.
+UdpTest.exe --DatagramSize=100
+IF ERRORLEVEL 1 GOTO TESTFAILED
+
+UdpTest.exe --DatagramSize=1000
+IF ERRORLEVEL 1 GOTO TESTFAILED
+
+UdpTest.exe --DatagramSize=10000
+IF ERRORLEVEL 1 GOTO TESTFAILED
+
+UdpTest.exe --DatagramSize=30000
 IF ERRORLEVEL 1 GOTO TESTFAILED
 
 :: Success message.

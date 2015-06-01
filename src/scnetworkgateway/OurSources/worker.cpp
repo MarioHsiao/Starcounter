@@ -378,7 +378,7 @@ uint32_t GatewayWorker::CreateUdpSockets(port_index_type port_index) {
     }
 
     // Creating new socket data.
-    err_code = CreateSocketData(new_socket_index, new_sd);
+    err_code = CreateSocketData(new_socket_index, new_sd, MAX_UDP_DATAGRAM_SIZE);
 
     if (err_code)
     {
@@ -1125,7 +1125,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 
     // Deleting session.
-    sd->DeleteGlobalSession();
+    sd->ResetGlobalSession();
 
     // Checking if it was an accepting socket.
     if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper())
@@ -1901,10 +1901,11 @@ uint32_t GatewayWorker::CreateSocketData(
 {
     // Obtaining chunk from gateway private memory.
     // Checking if its an aggregation socket.
-    if (IsAggregatingPort(socket_info_index))
+    if (IsAggregatingPort(socket_info_index)) {
         out_sd = worker_chunks_.ObtainChunk(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]);
-    else
+    } else {
         out_sd = worker_chunks_.ObtainChunk(data_len);
+    }
 
     // Checking if couldn't obtain chunk.
     if (NULL == out_sd)

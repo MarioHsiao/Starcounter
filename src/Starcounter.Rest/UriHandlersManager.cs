@@ -209,10 +209,11 @@ namespace Starcounter.Rest
                 if (userDelegate_ == null)
                     return null;
 
-                try {
+                // Increasing calling level for internal calls.
+                Int32 savedCallLevel = Handle.CallLevel;
+                Handle.CallLevel++;
 
-                    // Increasing calling level for internal calls.
-                    Handle.CallLevel++;
+                try {
 
                     Response subsResp = null;
 
@@ -299,8 +300,8 @@ namespace Starcounter.Rest
 
                 } finally {
 
-                    // Decreasing calling level for internal calls.
-                    Handle.CallLevel--;
+                    // Restoring calling level for internal calls.
+                    Handle.CallLevel = savedCallLevel;
                 }
             }
 
@@ -382,14 +383,14 @@ namespace Starcounter.Rest
                 if (ho.ProxyDelegateTrigger) {
 
                     if (proxyDelegate_ != null) {
-                        throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate: " + ProcessedUriInfo);
+                        throw new ArgumentOutOfRangeException("Can't add a proxy delegate to a handler that already contains a proxy delegate: " + ProcessedUriInfo + " on port " + Port);
                     } else {
                         proxyDelegate_ = userDelegate;
                         typeOfHandler_ = ho.TypeOfHandler;
                     }
 
                 } else {
-                    throw new ArgumentException("Trying to add a delegate to an already existing handler: " + ProcessedUriInfo);
+                    throw new ArgumentException("Trying to add a delegate to an already existing handler: " + ProcessedUriInfo + " on port " + Port);
                 }
             }
         }

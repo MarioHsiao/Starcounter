@@ -295,8 +295,8 @@ inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* s
     // Setting the session offset.
     http_request_.session_string_offset_ = static_cast<uint16_t>(session_id_start - (char*)sd);
 
-    // Checking if we have session related socket.
-    sd->SetGlobalSessionIfEmpty();
+    // Setting global session from just parsed.
+    sd->SetGlobalSessionFromLocal();
 }
 
 inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)

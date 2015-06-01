@@ -42,7 +42,12 @@ namespace Starcounter.Advanced.XSON {
 
         public override int EstimateSizeBytes(Json json) {
             return json.Scope<TypedJsonSerializer, Json, int>((TypedJsonSerializer tjs, Json j) => {
-                return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null);
+                if (j.Template != null) {
+                    return estimatePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null);
+                } else {
+                    // No template defined. Assuming object.
+                    return EstimateObject(this, j);
+                }
             },
             this,
             json);
@@ -59,7 +64,12 @@ namespace Starcounter.Advanced.XSON {
 
         public override int Serialize(Json json, IntPtr dest, int destSize) {
             return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
-                return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
+                if (j.Template != null) {
+                    return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
+                } else {
+                    // No template defined. Assuming object.
+                    return SerializeObject(this, j, d, ds);
+                }
             },
             this,
             json, 
@@ -142,7 +152,7 @@ namespace Starcounter.Advanced.XSON {
             string htmlUriMerged = null;
 
             if (json.Template == null) {
-                sizeBytes += 1; // 1 for "}".
+                sizeBytes = 2; // 2 for "{}".
                 return sizeBytes;
             }
 

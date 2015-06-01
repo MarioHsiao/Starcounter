@@ -257,8 +257,13 @@ uint32_t SocketDataChunk::CloneToReceive(GatewayWorker *gw)
 
     SocketDataChunk* sd_clone = NULL;
 
-    // NOTE: Cloning to receive only on database 0 chunks.
-    uint32_t err_code = gw->CreateSocketData(socket_info_index_, sd_clone);
+    uint32_t err_code;
+    if (IsUdp()) {
+        err_code = gw->CreateSocketData(socket_info_index_, sd_clone, MAX_UDP_DATAGRAM_SIZE);
+    } else {
+        err_code = gw->CreateSocketData(socket_info_index_, sd_clone);
+    }
+    
     if (err_code)
         return err_code;
 

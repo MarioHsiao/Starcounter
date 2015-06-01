@@ -1,0 +1,45 @@
+<!--
+imported-template.html v0.0.9
+(c) 2013 Joachim Wester
+MIT license
+https://github.com/Juicy/imported-template
+-->
+<link rel="import" href="../imported-template/imported-template.html">
+<script>
+  (function () {
+    var PolyjuiceIncludePrototype = Object.create(HTMLElement.prototype);
+
+    PolyjuiceIncludePrototype.partial = null;
+    PolyjuiceIncludePrototype.createdCallback = function () {
+      //d console.log("polyjuice-partial created");
+      //this.partial = /*this.partial ||*/ {};
+
+      var div = document.createElement("div");
+      var importedTemplate = document.createElement("template","imported-template");
+      this.importedTemplate = importedTemplate;
+      this.appendChild(importedTemplate);
+    };
+    PolyjuiceIncludePrototype.attachedCallback = function () {
+      var partial = this.partial || this.templateInstance && this.templateInstance.model;
+      // IDEA: tomalec move to partial property (Object.)observer
+      this.importedTemplate.setAttribute("content",partial.Html);
+      //d console.log("polyjuice-partial attached");
+    };
+    PolyjuiceIncludePrototype.detachedCallback = function(){
+      //d console.log("polyjuice-partial detached");
+    };
+    PolyjuiceIncludePrototype.attributeChangedCallback = function(name, oldVal, newVal){
+      //d console.log("polyjuice-partial attr changed");
+      // if(this.isAttached && (name === "content" || name === "iframe")) {
+      //   debugger
+      // }
+    };
+
+    document.registerElement('polyjuice-include', {
+      prototype: PolyjuiceIncludePrototype
+    });
+
+
+   
+  })();
+</script>

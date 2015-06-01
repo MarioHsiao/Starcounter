@@ -80,6 +80,11 @@ namespace Starcounter {
                             tobj = template.ElementType;
                         }
                         newApp = (Json)tobj.CreateInstance(this);
+
+                        // Setting only the reference to the data first to allow bindings 
+                        // and other stuff be handled then setting the property data after 
+                        // the new item have been added to have the callback to usercode.
+                        newApp._data = entity;
                         ((IList)this).Add(newApp);
                         newApp.Data = entity;
                     }

@@ -33,7 +33,7 @@ const std::size_t chunk_size = MixedCodeConstants::SHM_CHUNK_SIZE; // 4K chunks.
 // exceed 32, because chunk_index is 32-bit and sometimes both the chunk_index
 // and the channel shared the same 32-bit word. This means that
 // chunks_total_number_max can not be more than 1 << 24 when channel_bits = 8.
-const std::size_t chunks_total_number_max = 1 << 20;
+const std::size_t chunks_total_number_max = 1 << 21;
 
 // The number of channels.
 const std::size_t channel_bits = 8;

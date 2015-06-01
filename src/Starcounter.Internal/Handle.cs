@@ -329,7 +329,7 @@ namespace Starcounter {
                 return callLevel_;
             }
 
-            internal set {
+            set {
                 callLevel_ = value;
             }
         }

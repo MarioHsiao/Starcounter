@@ -30,6 +30,9 @@ namespace Starcounter.Internal {
         /// <param name="ws"></param>
         static void HandleWebSocketJson(Byte[] bs, WebSocket ws) {
 
+            // Incrementing the initial call level for handles.
+            Handle.CallLevel++;
+
             Json root = null;
             Session session = (Session) ws.Session;
 
@@ -79,6 +82,9 @@ namespace Starcounter.Internal {
             Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session, Request request) => {
                 Json root = null;
 
+                // Incrementing the initial call level for handles.
+                Handle.CallLevel++;
+
                 try {
                     if (session == null)
                         return CreateErrorResponse(404, "No session found for the specified uri.");
@@ -110,7 +116,7 @@ namespace Starcounter.Internal {
 
                 if (session == null)
                     return CreateErrorResponse(404, "No session found for the specified uri.");
-                root = session.Data;
+                root = session.PublicViewModel;
                 if (root == null)
                     return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 

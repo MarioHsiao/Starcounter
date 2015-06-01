@@ -65,6 +65,7 @@
     <Compile Include="DataObjects\Company.cs" />
     <Compile Include="DataObjects\Database.cs" />
     <Compile Include="DataObjects\Entity.cs" />
+    <Compile Include="DataObjects\ObjWithEnum.cs" />
     <Compile Include="DataObjects\Person.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
     <Compile Include="ExpandoTests.cs" />

@@ -1,4 +1,4 @@
-/*! puppet.js version: 1.0.2
+/*! puppet.js version: 1.1.0
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -79,7 +79,7 @@
     if(remoteUrl){
       url = new URL(remoteUrl, window.location);
     } else {
-      url = new URL(window.location);
+      url = new URL(window.location.href);
     }
     // use exactly same URL, switch only protocols
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
@@ -215,7 +215,7 @@
         this.referer.replace(/(\/?)__([^\/]*)\//g, "/__$2/wsupgrade/"), 
         this.wsURL
         )
-      ).toString();
+      ).href;
     // ws[s]://[user[:pass]@]remote.host[:port]/__[sessionid]/wsupgrade/
 
     that._ws = new WebSocket(upgradeURL);
@@ -489,15 +489,8 @@
 
   Puppet.prototype.filterChangedCallback = function (patches) {
     this.filterIgnoredPatches(patches);
-    // do nothing for empty change
-    if(patches.length){
-      // TODO: Find out nicer solution, as currently `.activeElement` does not necessarily matches changed node (tomalec)
-      if ((document.activeElement.nodeName !== 'INPUT' && document.activeElement.nodeName !== 'TEXTAREA') || document.activeElement.getAttribute('update-on') === 'input') {
-        this.handleLocalChange(patches);
-        // Clear already processed patch sequence, 
-        // as `jsonpatch.generate` may return this object to for example `#clickAndBlurCallback`
-        patches.length = 0; 
-      }
+    if(patches.length) {
+      this.handleLocalChange(patches);
     }
   };
 
@@ -533,7 +526,7 @@
 
   Puppet.prototype.handleLocalChange = function (patches) {
     var that = this;
-    
+
     if(this.debug) {
       this.validateSequence(this.remoteObj, patches);
     }

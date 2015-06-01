@@ -39,7 +39,11 @@ namespace Starcounter {
 
         private static JsonPatch jsonPatch_ = new JsonPatch();​
 
-        private Action<Session> _sessionDestroyUserDelegate;
+        /// <summary>
+        /// Event which is called when session is being destroyed (timeout, manual, etc).
+        /// </summary>
+        public event EventHandler Destroyed;
+
         private bool _brandNew;
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
@@ -176,11 +180,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running the given action on each active session.
+        /// Running asynchronously the given action on each active session on each owning scheduler.
         /// </summary>
-        /// <param name="action">The user procedure to be performed on each session.</param>
-        public static void ForEach(Action<Session> action) {
-            ForEach(UInt64.MaxValue, action);
+        /// <param name="action">The action to be performed on each session.</param>
+        public static void ForAll(Action<Session> action) {
+            ForAll(UInt64.MaxValue, action);
         }
 
         /// <summary>
@@ -229,11 +233,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running the given action on each active session.
+        /// Running asynchronously the given action on each active session on each owning scheduler.
         /// </summary>
         /// <param name="action">The user procedure to be performed on each session.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void ForEach(UInt64 cargoId, Action<Session> action) {
+        public static void ForAll(UInt64 cargoId, Action<Session> action) {
 
             String appName = StarcounterEnvironment.AppName;
 
@@ -305,8 +309,13 @@ namespace Starcounter {
                 int stateIndex;
                 string appName;
 
-                if (value != null && value.Parent != null)
-                    throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+                if (value != null) {
+                    if (value.Parent != null)
+                        throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+
+                    if (value._Session != null && value._Session != this)
+                        throw ErrorCode.ToException(Error.SCERRJSONSETONOTHERSESSION);
+                }
 
                 appName = StarcounterEnvironment.AppName;
                 if (appName != null) {
@@ -319,9 +328,6 @@ namespace Starcounter {
                     }
 
                     if (value != null) {
-                        if (value._Session != null)
-                            value._Session.Data = null;
-
                         value._Session = this;
                         value.OnSessionSet();
 
@@ -411,22 +417,6 @@ namespace Starcounter {
         /// <returns></returns>
         public Boolean IsAlive() {
             return (InternalSession != null) && (InternalSession.IsAlive());
-        }
-
-        /// <summary>
-        /// Set user destroy callback.  
-        /// </summary>
-        /// <param name="destroy_user_delegate"></param>
-        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod) {
-            _sessionDestroyUserDelegate = userDestroyMethod;
-        }
-
-        /// <summary>
-        /// Gets destroy callback if it was supplied before.
-        /// </summary>
-        /// <returns></returns>
-        public Action<Session> GetDestroyCallback() {
-            return _sessionDestroyUserDelegate;
         }
 
         /// <summary>
@@ -662,9 +652,9 @@ namespace Starcounter {
             }
 
             // Checking if destroy callback is supplied.
-            if (null != _sessionDestroyUserDelegate) {
-                _sessionDestroyUserDelegate(this);
-                _sessionDestroyUserDelegate = null;
+            if (null != Destroyed) {
+                Destroyed(this, null);
+                Destroyed = null;
             }
 
             // Checking if there is an active WebSocket.

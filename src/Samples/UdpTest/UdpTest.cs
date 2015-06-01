@@ -18,6 +18,7 @@ namespace UdpClientCs {
             public Int32[] WorkersRPS;
             public Int32[] WorkerExitCodes;
             public Int32 NumEchoes;
+            public UInt16 DatagramSize;
             public String ServerIp;
             public UInt16 ServerPort;
         };
@@ -26,14 +27,17 @@ namespace UdpClientCs {
 
             try {
 
-                String echoString = "Here is my loooooooong echo string!";
+                // Constructing random data array.
+                Random rand = new Random();
 
-                // Sends a message to the host to which you have connected.
-                Byte[] sendBytes = Encoding.ASCII.GetBytes(echoString);
+                Byte[] sendBytes = new Byte[settings.DatagramSize];
+                for (Int32 i = 0; i < sendBytes.Length; i++) {
+                    sendBytes[i] = (Byte) (48 + rand.Next(9));
+                }
 
                 //IPEndPoint object will allow us to read datagrams sent from any source.
                 EndPoint returnedEndpoint = (EndPoint)new IPEndPoint(IPAddress.Any, 0);
-                Byte[] recvData = new Byte[2048];
+                Byte[] recvData = new Byte[100000];
                 IPEndPoint serverEndpoint = new IPEndPoint(IPAddress.Parse(settings.ServerIp), settings.ServerPort);
 
                 // This constructor arbitrarily assigns the local port number.
@@ -45,11 +49,17 @@ namespace UdpClientCs {
 
                     // Blocks until a message returns on this socket from a remote host.
                     Int32 numRecvBytes = s.ReceiveFrom(recvData, ref returnedEndpoint);
-                    String returnData = Encoding.ASCII.GetString(recvData, 0, numRecvBytes);
+                    if (numRecvBytes != sendBytes.Length) {
+                        throw new ArgumentOutOfRangeException("Wrong size of UDP echo received: " + numRecvBytes);
+                    }
 
-                    // Checking echo correctness.
-                    if (returnData != echoString) {
-                        throw new ArgumentOutOfRangeException("Wrong UDP echo received: " + returnData);
+                    // Checking every byte.
+                    for (Int32 k = 0; k < sendBytes.Length; k++) {
+
+                        // Checking echo correctness.
+                        if (sendBytes[k] != recvData[k]) {
+                            throw new ArgumentOutOfRangeException("Wrong UDP echo data received.");
+                        }
                     }
 
                     settings.WorkersRPS[workerId]++;
@@ -74,22 +84,47 @@ namespace UdpClientCs {
 
         static Int32 Main(string[] args) {
 
-            Int32 numWorkers = 3;
+            Int32 numWorkers = 2;
+            UInt16 datagramSize = 1000;
+            Int32 numEchoes = 100000;
+            String serverIp = "127.0.0.1";
+            UInt16 serverPort = 8787;
 
-            if (args.Length > 0) {
-                numWorkers = Int32.Parse(args[0]);
+            foreach (String arg in args) {
+                if (arg.StartsWith("--DatagramSize=")) {
+                    datagramSize = UInt16.Parse(arg.Substring("--DatagramSize=".Length));
+                } else if (arg.StartsWith("--NumWorkers=")) {
+                    numWorkers = Int32.Parse(arg.Substring("--NumWorkers=".Length));
+                } else if (arg.StartsWith("--NumEchoes=")) {
+                    numEchoes = Int32.Parse(arg.Substring("--NumEchoes=".Length));
+                } else if (arg.StartsWith("--ServerPort=")) {
+                    serverPort = UInt16.Parse(arg.Substring("--ServerPort=".Length));
+                } else if (arg.StartsWith("--ServerIp=")) {
+                    serverIp = arg.Substring("--ServerIp=".Length);
+                }
             }
+
+            Console.WriteLine("Usage: UdpTest.exe --ServerIp={0} --ServerPort={1} --NumWorkers={2} --NumEchoes={3} --DatagramSize={4}",
+                serverIp,
+                serverPort,
+                numWorkers,
+                numEchoes,
+                datagramSize);
+
+            Console.WriteLine();
 
             WorkerSettings settings = new WorkerSettings() {
                 WaitForAllWorkersEvent = new CountdownEvent(numWorkers),
                 WorkersRPS = new Int32[numWorkers],
                 WorkerExitCodes = new Int32[numWorkers],
-                NumEchoes = 500000,
-                ServerIp = "127.0.0.1",
-                ServerPort = 8787
+                NumEchoes = numEchoes,
+                DatagramSize = datagramSize,
+                ServerIp = serverIp,
+                ServerPort = serverPort
             };
 
-            Console.WriteLine("Starting UDP echo test with workers: " + numWorkers);
+            Console.WriteLine("Starting UDP echo test with {0} workers, {1} echoes of size {2}.",
+                numWorkers, settings.NumEchoes, settings.DatagramSize);
 
             Stopwatch timer = new Stopwatch();
             timer.Start();

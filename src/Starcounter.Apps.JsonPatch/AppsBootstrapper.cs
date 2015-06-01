@@ -195,9 +195,20 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Adding static files directory.
         /// </summary>
-        /// <param name="port">Port number.</param>
         /// <param name="webResourcesDir">Path to static files directory.</param>
-        public static void AddStaticFileDirectory(UInt16 port, String webResourcesDir) {
+        /// <param name="port">Port number.</param>
+        public static void AddStaticFileDirectory(String webResourcesDir,
+            UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort) {
+
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
+
             InternalAddStaticFileDirectory(port, webResourcesDir, StarcounterEnvironment.AppName);
         }
 

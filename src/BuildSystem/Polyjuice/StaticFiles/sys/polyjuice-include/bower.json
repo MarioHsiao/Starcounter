@@ -1,0 +1,27 @@
+{
+  "name": "polyjuice-include",
+  "authors": [
+    "Tomek Wytrebowicz <tomalecpub@gmail.com>"
+  ],
+  "homepage": "https://github.com/Polyjuice/polyjuice-include",
+  "description": "Custom Element to include HTML partials/templates from Polyjuice",
+  "main": "polyjuice-include.html",
+  "keywords": [
+    "template",
+    "partial",
+    "polyjuice",
+    "imported-template"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "StaticFiles/sys",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "imported-template": "~0.0.9"
+  }
+}

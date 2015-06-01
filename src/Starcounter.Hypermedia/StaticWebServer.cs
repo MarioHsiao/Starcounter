@@ -68,13 +68,9 @@ namespace Starcounter.Internal.Web {
             // Adding only if does not contain this path already.
             if (!fileDirectories_.Contains(path)) {
 
-                Debug("Adding directory \"" + path + "\" to static web server.");
                 fileDirectories_.Add(path);
                 appNames_.Add(appName);
 
-            } else {
-
-                Debug("Directory \"" + path + "\" already exists in static web server.");
             }
         }
 
@@ -98,8 +94,6 @@ namespace Starcounter.Internal.Web {
         /// Empties the cache.
         /// </summary>
         public void ClearCache() {
-
-            Debug("Clearing static web server cache.");
 
             cacheOnUri_ = new ConcurrentDictionary<string, Response>();
             cacheOnFilePath_ = new ConcurrentDictionary<string, Response>();
