@@ -269,10 +269,12 @@ namespace Administrator.Server.Managers {
             //        socket.Send(changes);
             //    }
             //});
-
-            Session.ForEach(4, (s) => {
+            
+           
+            Session.ForAll( (s) => {
 
                 try {
+                    
                     if (s.ActiveWebSocket != null) {
                         string changes = s.PublicViewModel.ChangeLog.GetChanges();
                         if (changes != "[]") {
@@ -281,7 +283,8 @@ namespace Administrator.Server.Managers {
                         }
                     }
                 }
-                catch (Exception) { }
+                catch (Exception) { 
+                }
             });
 
 
