@@ -373,9 +373,17 @@ namespace Starcounter {
 
                 Byte* chunk_data = http_request_struct_->socket_data_ - MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
+                UInt32 upgradeResponsePartLength = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_UPGRADE_PART_BYTES);
+                UInt32 upgradeRequestLenBytes = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
+                UInt32 upgradeRequestOffset = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+
                 // Checking if we should copy the WebSocket handshake data.
-                Byte[] wsHandshakeResp = new Byte[*(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
-                Marshal.Copy(new IntPtr(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
+                Byte[] wsHandshakeResp = new Byte[upgradeResponsePartLength];
+                Marshal.Copy(
+                    new IntPtr(http_request_struct_->socket_data_ + upgradeRequestOffset + upgradeRequestLenBytes - wsHandshakeResp.Length),
+                    wsHandshakeResp,
+                    0,
+                    wsHandshakeResp.Length);
 
                 WsGroupInfo wsGroupInfo = AllWsGroups.WsManager.FindGroup(PortNumber, groupName);
 
@@ -586,7 +594,7 @@ namespace Starcounter {
                     return new IntPtr(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
                 }
 
-                return new IntPtr(http_request_struct_->params_info_ptr_);
+                throw new ArgumentException("Trying to get raw HTTP parameters in wrong way.");
             }
         }
 
@@ -603,7 +611,7 @@ namespace Starcounter {
                     return *(MixedCodeConstants.UserDelegateParamInfo*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
                 }
 
-                return *(MixedCodeConstants.UserDelegateParamInfo*)(http_request_struct_->params_info_ptr_);
+                throw new ArgumentException("Trying to get HTTP parameters in wrong way.");
             }
         }
 
@@ -1423,21 +1431,9 @@ namespace Starcounter {
         internal Byte http_method_;
         internal Byte gzip_accepted_;
 
+        // TODO: Should be changed!
         // Socket data pointer.
         public unsafe Byte* socket_data_;
-
-        // Pointer to parameters structure.
-        public unsafe Byte* params_info_ptr_;
-
-        /// <summary>
-        /// Gets the raw request.
-        /// </summary>
-        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
-
-            ptr = new IntPtr(socket_data_ + request_offset_);
-
-            sizeBytes = request_len_bytes_;
-        }
 
         /// <summary>
         /// Gets the content raw pointer.

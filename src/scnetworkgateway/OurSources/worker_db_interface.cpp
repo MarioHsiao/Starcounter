@@ -234,7 +234,7 @@ READY_SOCKET_DATA:
                 continue;
             }
 
-            GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
+            GW_ASSERT(sd->get_num_available_network_bytes() > 0);
 
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);
@@ -291,7 +291,7 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
     *actual_written_bytes = buf_len_bytes;
 
     // Setting the number of written bytes.
-    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_NUM_BYTES) = buf_len_bytes;
 
     // Checking if the original chunk is sufficient.
     if (0 == num_extra_chunks)

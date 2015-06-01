@@ -18,7 +18,7 @@ void SocketDataChunk::Init(
 {
     flags_ = 0;
 
-    ResetUserDataOffset();
+    SetUserData(get_data_blob_start(), get_accumulated_len_bytes());
 
     set_socket_info_index(gw, socket_info_index);
     
@@ -58,9 +58,9 @@ uint32_t SocketDataChunk::ReceiveTcp(GatewayWorker *gw, uint32_t *num_bytes)
     DWORD* flags = (DWORD*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD));
     *flags = 0;
 
-    accum_buf_.CheckSpaceLeftForReceive();
+    CheckSpaceLeftForReceive();
 
-    return WSARecv(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, &ovl_, NULL);
+    return WSARecv(GetSocket(), GetWSABUF(), 1, (LPDWORD)num_bytes, flags, &ovl_, NULL);
 }
 
 // Start sending on socket.
@@ -69,13 +69,13 @@ uint32_t SocketDataChunk::SendTcp(GatewayWorker* gw, uint32_t *numBytes)
     // Checking correct unique socket.
     GW_ASSERT(true == CompareUniqueSocketId());
 
-    GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
+    GW_ASSERT(get_num_available_network_bytes() > 0);
 
     set_type_of_network_oper(SEND_SOCKET_OPER);
 
     memset(&ovl_, 0, OVERLAPPED_SIZE);
 
-    return WSASend(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
+    return WSASend(GetSocket(), GetWSABUF(), 1, (LPDWORD)numBytes, 0, &ovl_, NULL);
 }
 
 // Start receiving on socket.
@@ -91,15 +91,15 @@ uint32_t SocketDataChunk::ReceiveUdp(GatewayWorker *gw, uint32_t *num_bytes)
     int32_t* from_length = (int32_t*)(accept_or_params_or_temp_data_ + MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES - sizeof(DWORD) - sizeof(int32_t));
     *from_length = sizeof(SOCKADDR);
 
-    accum_buf_.CheckSpaceLeftForReceive();
+    CheckSpaceLeftForReceive();
 
-    return WSARecvFrom(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)num_bytes, flags, (SOCKADDR*) accept_or_params_or_temp_data_, from_length, &ovl_, NULL);
+    return WSARecvFrom(GetSocket(), GetWSABUF(), 1, (LPDWORD)num_bytes, flags, (SOCKADDR*) accept_or_params_or_temp_data_, from_length, &ovl_, NULL);
 }
 
 // Start sending on UDP socket.
 uint32_t SocketDataChunk::SendUdp(GatewayWorker* gw, uint32_t *numBytes)
 {
-    GW_ASSERT(accum_buf_.get_chunk_num_available_bytes() > 0);
+    GW_ASSERT(get_num_available_network_bytes() > 0);
 
     set_type_of_network_oper(SEND_SOCKET_OPER);
 
@@ -107,7 +107,7 @@ uint32_t SocketDataChunk::SendUdp(GatewayWorker* gw, uint32_t *numBytes)
 
     SOCKADDR* sockaddr = (SOCKADDR*) accept_or_params_or_temp_data_;
 
-    return WSASendTo(GetSocket(), (WSABUF *)&accum_buf_, 1, (LPDWORD)numBytes, 0, sockaddr, sizeof(SOCKADDR), &ovl_, NULL);
+    return WSASendTo(GetSocket(), GetWSABUF(), 1, (LPDWORD)numBytes, 0, sockaddr, sizeof(SOCKADDR), &ovl_, NULL);
 }
 
 // Start accepting on socket.
@@ -312,13 +312,11 @@ uint32_t SocketDataChunk::CreateSocketDataFromBigBuffer(
         return err_code;
     }
 
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
     // Checking if data fits inside chunk.
-    GW_ASSERT(data_len <= (int32_t)accum_buf->get_chunk_num_available_bytes());
+    GW_ASSERT(data_len <= (int32_t)sd->get_num_available_network_bytes());
 
     // Checking if message should be copied.
-    memcpy(accum_buf->get_chunk_orig_buf_ptr(), data, data_len);
+    memcpy(sd->get_data_blob_start(), data, data_len);
 
     *new_sd = sd;
 
@@ -407,10 +405,10 @@ uint32_t SocketDataChunk::ChangeToBigger(
 // Clone current socket data to push it.
 uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_sd)
 {
-    GW_ASSERT(static_cast<int32_t>(get_accum_buf()->get_accum_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
+    GW_ASSERT(static_cast<int32_t>(get_accumulated_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
 
     // Taking the chunk where accumulated buffer fits.
-    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(get_accum_buf()->get_accum_len_bytes());
+    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(get_accumulated_len_bytes());
 
     // Checking if couldn't obtain chunk.
     if (NULL == (*new_sd))
@@ -428,8 +426,8 @@ uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_s
 // Clone current socket data to simply send it.
 uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
     GatewayWorker*gw,
-    int32_t payload_len,
     uint8_t* payload,
+    int32_t payload_len,
     SocketDataChunk** new_sd)
 {
     // Taking the chunk where accumulated buffer fits.
@@ -442,19 +440,17 @@ uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
     // First copying socket data headers.
     sd->PlainCopySocketDataInfoHeaders(this);
 
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
     // Checking if data fits inside chunk.
-    GW_ASSERT(payload_len <= (int32_t)accum_buf->get_chunk_num_available_bytes());
+    GW_ASSERT(payload_len <= (int32_t)sd->get_num_available_network_bytes());
 
     // Checking if message should be copied.
-    memcpy(accum_buf->get_chunk_orig_buf_ptr(), payload, payload_len);
+    memcpy(sd->get_data_blob_start(), payload, payload_len);
 
     // Setting proper payload offset.
-    sd->get_ws_proto()->get_frame_info()->payload_offset_ = static_cast<uint16_t>(accum_buf->get_chunk_orig_buf_ptr() - (uint8_t*) sd);
+    sd->set_user_data_offset_in_socket_data(static_cast<uint16_t>(sd->get_data_blob_start() - (uint8_t*) sd));
 
     // Adjusting the accumulative buffer.
-    accum_buf->AddAccumulatedBytes(payload_len);
+    AddAccumulatedBytes(payload_len);
 
     // This socket becomes unattached.
     sd->reset_socket_representer_flag();
@@ -469,15 +465,15 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
     WorkerDbInterface* worker_db,
     SocketDataChunk* ipc_sd)
 {
-    int32_t data_bytes_offset = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - ipc_sd->get_user_data_offset_in_socket_data(),
-        bytes_left = ipc_sd->get_user_data_length_bytes() - data_bytes_offset;
+    // Copying first chunk data.
+    CopyFromOneChunkIPCSocketData(ipc_sd, MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
+
+    int32_t bytes_left = ipc_sd->get_user_data_length_bytes() - MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES,
+        data_bytes_offset = MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES;
 
     // Checking that number of left bytes in linked chunks is correct.
-    GW_ASSERT(bytes_left >= 0);
+    GW_ASSERT(bytes_left > 0);
     GW_ASSERT(bytes_left <= MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS);
-
-    // Copying first chunk.
-    CopyFromOneChunkIPCSocketData(ipc_sd, data_bytes_offset);
 
     // Number of bytes to copy from IPC chunk.
     uint32_t cur_chunk_data_size = bytes_left;
@@ -495,7 +491,7 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
         ipc_smc = worker_db->GetSharedMemoryChunkFromIndex(cur_chunk_index);
 
         // Copying current IPC chunk.
-        memcpy(data_blob_ + data_bytes_offset, ipc_smc, cur_chunk_data_size);
+        memcpy(get_data_blob_start() + data_bytes_offset, ipc_smc, cur_chunk_data_size);
 
         // Decreasing number of bytes left to be processed.
         data_bytes_offset += cur_chunk_data_size;
@@ -535,8 +531,8 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 
     // Copying data buffer separately.
     err_code = worker_db->WriteBigDataToIPCChunks(
-        get_accum_buf()->get_chunk_orig_buf_ptr(),
-        get_accum_buf()->get_accum_len_bytes(),
+        GetUserData(),
+        get_user_data_length_bytes(),
         *db_chunk_index,
         MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB,
         &actual_written_bytes,
@@ -550,7 +546,10 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
         return err_code;
     }
 
-    GW_ASSERT(actual_written_bytes == get_accum_buf()->get_accum_len_bytes());
+    GW_ASSERT(actual_written_bytes == get_user_data_length_bytes());
+
+    // NOTE: Adjusting the user data offset because we copy directly to start of the blob.
+    (*new_ipc_sd)->set_user_data_offset_in_socket_data(SOCKET_DATA_OFFSET_BLOB);
 
     return err_code;
 }

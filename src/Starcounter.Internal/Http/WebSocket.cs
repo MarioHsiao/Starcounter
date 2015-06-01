@@ -351,7 +351,7 @@ namespace Starcounter
             (*(UInt64*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketStruct_.SocketUniqueId;
             (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketStruct_.GatewayWorkerId;
 
-            (*(UInt16*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+            (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             // Checking if we have text or binary WebSocket frame.

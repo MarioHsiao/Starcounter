@@ -97,7 +97,7 @@ uint32_t UdpPortProcessData(
         sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_UDP);
 
         // Resetting user data parameters.
-        sd->ResetUserDataOffset();
+        sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
         // Setting matched URI index.
         sd->SetDestDbIndex(hl->get_db_index());
@@ -106,7 +106,7 @@ uint32_t UdpPortProcessData(
         if (sd->GetPortNumber() == 55555) {
 
             // Prepare buffer to send outside.
-            sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+            sd->PrepareForSend(sd->GetUserData(), sd->get_user_data_length_bytes());
 
             // Posting cloning receive since all data is accumulated.
             err_code = gw->Send(sd);
@@ -144,7 +144,7 @@ uint32_t UdpPortProcessData(
         sd->UdpChangeIPv4ByteOrder();
 
         // Prepare buffer to send outside.
-        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+        sd->PrepareForSend(sd->GetUserData(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);
@@ -197,7 +197,7 @@ uint32_t TcpPortProcessData(
         sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
 
         // Resetting user data parameters.
-        sd->ResetUserDataOffset();
+        sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
         // Setting matched URI index.
         sd->SetDestDbIndex(hl->get_db_index());
@@ -225,7 +225,7 @@ uint32_t TcpPortProcessData(
             return SCERRGWDISCONNECTFLAG;
 
         // Prepare buffer to send outside.
-        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+        sd->PrepareForSend(sd->GetUserData(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);

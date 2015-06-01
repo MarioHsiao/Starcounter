@@ -95,7 +95,7 @@ namespace Starcounter
                 // Determining if chunk is single.
                 Boolean isSingleChunk = ((taskInfo->flags & 0x01) == 0);
 
-                Byte[] dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+                Byte[] dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES)];
 
                 // Checking if we need to process linked chunks.
                 if (!isSingleChunk) {
@@ -105,7 +105,7 @@ namespace Starcounter
                         // Copying all chunks data.
                         errorCode = bmx.sc_bmx_copy_from_chunks_and_release_trailing(
                             rawChunk,
-                            MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA),
+                            MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA),
                             dataBytes.Length,
                             fixedBuf,
                             dataBytes.Length);
@@ -117,7 +117,7 @@ namespace Starcounter
                 } else {
 
                     // Copying single chunk data into managed buffer.
-                    Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+                    Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
                 }
 
                 // Getting client IP.
@@ -234,9 +234,9 @@ namespace Starcounter
                 // Checking if its a socket disconnect.
                 if (((*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) & (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_JUST_PUSH_DISCONNECT) == 0) {
 
-                    dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES)];
+                    dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES)];
 
-                    Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+                    Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
 
                 } else {
 
@@ -620,9 +620,9 @@ namespace Starcounter
                 {
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY:
                     {
-                        Byte[] dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
+                        Byte[] dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES)];
 
-                        Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), dataBytes, 0, dataBytes.Length);
+                        Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
 
                         ws = new WebSocket(dataStream, socketStruct, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
@@ -632,9 +632,9 @@ namespace Starcounter
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT:
                     {
                         String dataString = new String(
-                            (SByte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)),
+                            (SByte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)),
                             0,
-                            *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN),
+                            *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES),
                             Encoding.UTF8);
 
                         ws = new WebSocket(dataStream, socketStruct, dataString, null, true, WebSocket.WsHandlerType.StringMessage);

@@ -29,6 +29,19 @@ class SocketDataChunk
     // Reference to socket info structure.
     ScSocketInfoStruct* socket_info_;
 
+    // Starcounter session information.
+    ScSessionStruct session_;
+
+    /////////////////////////
+    // Networking data.
+    /////////////////////////
+
+    // Available bytes number for networking operation (send/receive).
+    uint32_t num_available_network_bytes_;
+
+    // Current network buffer pointer in chunk.
+    uint8_t* cur_network_buf_ptr_;
+
     /////////////////////////
     // 4 bytes aligned data.
     /////////////////////////
@@ -42,13 +55,14 @@ class SocketDataChunk
     // Aggregation unique index.
     uint32_t unique_aggr_index_;
 
-    /////////////////////////
-    // 2 bytes aligned data.
-    /////////////////////////
+    // Offset in bytes from the beginning of the socket data to user data.
+    uint32_t user_data_offset_in_socket_data_;
 
-    // Offset in bytes from the beginning of the socket data to place
-    // where user data should be written.
-    uint16_t user_data_offset_in_socket_data_;
+    // Length of user data in bytes.
+    uint32_t user_data_length_bytes_;
+
+    // Total number of bytes accumulated.
+    uint32_t accumulated_len_bytes_;
 
     /////////////////////////
     // 1 bytes aligned data.
@@ -63,29 +77,133 @@ class SocketDataChunk
     // Gateway chunk store index.
     chunk_store_type chunk_store_index_;
 
+    // WebSocket related data.
+    WsProto ws_proto_;
+
     /////////////////////////
     // Data structures.
     /////////////////////////
 
-    // Accumulative buffer chunk.
-    AccumBuffer accum_buf_;
-
     // HTTP protocol instance.
     HttpProto http_proto_;
-
-    // WebSocket related data.
-    WsProto ws_proto_;
-
-    // Starcounter session information.
-    ScSessionStruct session_;
 
     // Accept or parameters or temporary data.
     uint8_t accept_or_params_or_temp_data_[MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES];
 
-    // Blob buffer itself.
-    uint8_t data_blob_[1];
+    // Start of the data blob.
+    uint8_t data_blob_start__;
 
 public:
+
+    void SetWebSocketUpgradeResponsePartLength(uint32_t len_bytes) {
+        num_available_network_bytes_ = len_bytes;
+    }
+
+    WSABUF* GetWSABUF() {
+        return (WSABUF *)&num_available_network_bytes_;
+    }
+
+    // Checking there are enough space for receive.
+    void CheckSpaceLeftForReceive() {
+        GW_ASSERT(num_available_network_bytes_ > 0);
+        GW_ASSERT(cur_network_buf_ptr_ + num_available_network_bytes_ <= get_data_blob_start() + get_data_blob_size());
+    }
+
+    uint8_t* get_data_blob_start() {
+        return (uint8_t*)this + SOCKET_DATA_OFFSET_BLOB;
+    }
+
+    // Moves data in accumulative buffer to top.
+    uint8_t* MoveDataToTopAndContinueReceive(uint8_t* cur_data_ptr, int32_t num_copy_bytes)
+    {
+        uint8_t* data_orig_ptr = get_data_blob_start();
+
+        // Checking if we have anything to move.
+        if ((cur_data_ptr > data_orig_ptr) &&
+            (cur_data_ptr + num_copy_bytes <= data_orig_ptr + get_data_blob_size()))
+        {
+            memmove(data_orig_ptr, cur_data_ptr, num_copy_bytes);
+
+            cur_network_buf_ptr_ = data_orig_ptr + num_copy_bytes;
+            num_available_network_bytes_ = get_data_blob_size() - num_copy_bytes;
+
+            accumulated_len_bytes_ = num_copy_bytes;
+        }
+
+        return data_orig_ptr;
+    }
+
+    // Initializes accumulative buffer.
+    void SetAccumulation(
+        uint32_t buf_total_len_bytes,
+        uint32_t orig_buf_ptr_shift_bytes)
+    {
+        num_available_network_bytes_ -= orig_buf_ptr_shift_bytes;
+        cur_network_buf_ptr_ = get_data_blob_start() + orig_buf_ptr_shift_bytes;
+        accumulated_len_bytes_ = buf_total_len_bytes;
+    }
+
+    uint32_t get_num_available_network_bytes()
+    {
+        return num_available_network_bytes_;
+    }
+
+    void set_num_available_network_bytes(uint32_t value)
+    {
+        num_available_network_bytes_ = value;
+    }
+
+    void RevertBeforeSend()
+    {
+        num_available_network_bytes_ = get_data_blob_size() - num_available_network_bytes_;
+    }
+
+    uint32_t get_data_blob_size()
+    {
+        return GatewayChunkDataSizes[chunk_store_index_];
+    }
+
+    void WriteBytesToSend(void* data, uint32_t data_len)
+    {
+        memcpy(get_data_blob_start() + get_data_blob_size() - num_available_network_bytes_, data, data_len);
+        num_available_network_bytes_ -= data_len;
+    }
+
+    // Resets to original state.
+    void ResetToOriginalState()
+    {
+        cur_network_buf_ptr_ = get_data_blob_start();
+        num_available_network_bytes_ = get_data_blob_size();
+        accumulated_len_bytes_ = 0;
+    }
+
+    // Adds accumulated bytes.
+    void AddAccumulatedBytes(int32_t num_bytes)
+    {
+        accumulated_len_bytes_ += num_bytes;
+        cur_network_buf_ptr_ += num_bytes;
+        num_available_network_bytes_ -= num_bytes;
+    }
+
+    // Prepare buffer to proxy outside.
+    void PrepareToSendOnProxy()
+    {
+        cur_network_buf_ptr_ = get_data_blob_start();
+        num_available_network_bytes_ = accumulated_len_bytes_;
+        accumulated_len_bytes_ = 0;
+    }
+
+    // Returns the size in bytes of accumulated data.
+    uint32_t get_accumulated_len_bytes()
+    {
+        return accumulated_len_bytes_;
+    }
+
+    // Checks if accumulating buffer is filled.
+    bool IsNetworkBufferFull()
+    {
+        return 0 == num_available_network_bytes_;
+    }
 
     // Converting UDP port byte order.
     void UdpChangePortByteOrder() {
@@ -114,7 +232,7 @@ public:
     void InvalidateWhenReturning()
     {
         chunk_store_index_ = -1;
-        accum_buf_.Invalidate();
+        cur_network_buf_ptr_ = NULL;
     }
 
     chunk_store_type get_chunk_store_index()
@@ -156,14 +274,12 @@ public:
         // First copying socket data headers.
         PlainCopySocketDataInfoHeaders(sd);
 
-        AccumBuffer* ab = sd->get_accum_buf();
+        GW_ASSERT(static_cast<int32_t>(sd->get_accumulated_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
 
-        GW_ASSERT(static_cast<int32_t>(ab->get_accum_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
-
-        memcpy(data_blob_, ab->get_chunk_orig_buf_ptr(), ab->get_accum_len_bytes());
+        memcpy(get_data_blob_start(), sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
         // Adjusting the accumulative buffer.
-        accum_buf_.AddAccumulatedBytes(ab->get_accum_len_bytes());
+        AddAccumulatedBytes(sd->get_accumulated_len_bytes());
     }
 
     void CopyFromOneChunkIPCSocketData(SocketDataChunk* ipc_sd, int32_t num_bytes_to_copy)
@@ -172,12 +288,9 @@ public:
         PlainCopySocketDataInfoHeaders(ipc_sd);
 
         // Setting some specific accumulative buffer fields.
-        set_total_user_data_length_bytes(ipc_sd->get_total_user_data_length_bytes());
         set_user_data_length_bytes(ipc_sd->get_user_data_length_bytes());
 
-        memcpy(data_blob_, (uint8_t*)ipc_sd + ipc_sd->get_user_data_offset_in_socket_data(), num_bytes_to_copy);
-
-        set_user_data_offset_in_socket_data(static_cast<uint16_t>(data_blob_ - (uint8_t*)this));
+        memcpy(get_data_blob_start(), ipc_sd->get_data_blob_start(), num_bytes_to_copy);
     }
 
     // Get Http protocol instance.
@@ -205,13 +318,16 @@ public:
     // Gets socket data accumulated data offset.
     uint32_t GetAccumOrigBufferSocketDataOffset()
     {
-        return static_cast<uint32_t>(accum_buf_.get_chunk_orig_buf_ptr() - (uint8_t*)this);
+        return static_cast<uint32_t>(get_data_blob_start() - (uint8_t*)this);
     }
 
     // Prepare buffer to send outside.
     void PrepareForSend(uint8_t *data, uint32_t num_bytes)
     {
-        accum_buf_.PrepareForSend(data, num_bytes);
+        num_available_network_bytes_ = num_bytes;
+        cur_network_buf_ptr_ = data;
+        accumulated_len_bytes_ = 0;
+
         set_user_data_offset_in_socket_data(static_cast<uint32_t>(data - (uint8_t*)this));
     }
 
@@ -239,23 +355,21 @@ public:
         std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
         std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
         std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
-        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)accum_buf_.get_accumulated_len_bytes_addr() - sd) << std::endl;
+        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&accumulated_len_bytes_ - sd) << std::endl;
         std::cout << "offset flags_ = "<< ((uint8_t*)&flags_ - sd) << std::endl;
         std::cout << "offset unique_aggr_index_ = "<< ((uint8_t*)&unique_aggr_index_ - sd) << std::endl;
         std::cout << "offset num_ipc_chunks_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
         std::cout << "offset user_data_offset_in_socket_data_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
         std::cout << "offset type_of_network_oper_ = "<< ((uint8_t*)&type_of_network_oper_ - sd) << std::endl;
         std::cout << "offset type_of_network_protocol_ = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
-        std::cout << "offset accum_buf_ = "<< ((uint8_t*)&accum_buf_ - sd) << std::endl;
         std::cout << "offset http_proto_ = "<< ((uint8_t*)&http_proto_ - sd) << std::endl;
         std::cout << "offset ws_proto_ = "<< ((uint8_t*)&ws_proto_ - sd) << std::endl;
         std::cout << "offset accept_or_params_or_temp_data_ = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
-        std::cout << "offset data_blob_ = "<< ((uint8_t*)&data_blob_ - sd) << std::endl;
+        std::cout << "offset data_blob_ = "<< ((uint8_t*)&data_blob_start__ - sd) << std::endl;
 
         std::cout << std::endl;
         std::cout << std::endl;
 
-        std::cout << "sizeof AccumBuffer = "<< sizeof(AccumBuffer) << std::endl;
         std::cout << "sizeof HttpProto = "<< sizeof(HttpProto) << std::endl;
         std::cout << "sizeof WsProto = "<< sizeof(WsProto) << std::endl;
         std::cout << "sizeof accept_or_params_or_temp_data_ = "<< sizeof(accept_or_params_or_temp_data_) << std::endl;
@@ -268,39 +382,39 @@ public:
         std::cout << std::endl;
         std::cout << std::endl;
 
-        std::cout << "SOCKET_DATA_OFFSET_SESSION = " << ((uint8_t*)&session_ - sd) << std::endl;
-        std::cout << "CHUNK_OFFSET_SESSION = " << ((uint8_t*)&session_ - smc) << std::endl;
-        std::cout << "CHUNK_OFFSET_SESSION_SCHEDULER_ID = "<< (&session_.scheduler_id_ - smc) << std::endl;
-        std::cout << "CHUNK_OFFSET_SESSION_LINEAR_INDEX = "<< ((uint8_t*)&session_.linear_index_ - smc) << std::endl;
-        std::cout << "CHUNK_OFFSET_SESSION_RANDOM_SALT = "<< ((uint8_t*)&session_.random_salt_ - smc) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_PARAMS_INFO = "<< (accept_or_params_or_temp_data_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_BLOB = "<< (data_blob_ - sd) << std::endl;
-        std::cout << "CHUNK_OFFSET_NUM_IPC_CHUNKS = "<< ((uint8_t*)&ovl_ - smc) << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_SESSION = " << ((uint8_t*)&session_ - sd) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_SESSION = " << ((uint8_t*)&session_ - smc) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = "<< (&session_.scheduler_id_ - smc) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = "<< ((uint8_t*)&session_.linear_index_ - smc) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = "<< ((uint8_t*)&session_.random_salt_ - smc) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_PARAMS_INFO = "<< (accept_or_params_or_temp_data_ - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_BLOB = "<< ((uint8_t*)&data_blob_start__ - sd) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_NUM_IPC_CHUNKS = "<< ((uint8_t*)&ovl_ - smc) << ";" << std::endl;
 
-        std::cout << "CHUNK_OFFSET_SOCKET_FLAGS = "<< ((uint8_t*)&flags_ - smc) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_CLIENT_IP = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_HTTP_REQUEST = "<< ((uint8_t*)get_http_proto()->get_http_request() - sd) << std::endl;
-        std::cout << "SOCKET_DATA_NUM_CLONE_BYTES = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
-        std::cout << "CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - smc) << std::endl;
-        std::cout << "CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = "<< ((uint8_t*)accum_buf_.get_desired_accum_bytes_addr() - smc) << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_SOCKET_FLAGS = "<< ((uint8_t*)&flags_ - smc) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_CLIENT_IP = "<< ((uint8_t*)&client_ip_info_ - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = "<< ((uint8_t*)get_http_proto()->get_http_request() - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_NUM_CLONE_BYTES = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - smc) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_USER_DATA_NUM_BYTES = "<< ((uint8_t*)&user_data_length_bytes_ - smc) << ";" << std::endl;
 
-        std::cout << "CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = "<< ((uint8_t*)accum_buf_.get_accumulated_len_bytes_addr() - smc) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_WS_OPCODE = "<< (&get_ws_proto()->get_frame_info()->opcode_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_BOUND_WORKER_ID = "<< ((uint8_t*)&(session_.gw_worker_id_) - sd) << std::endl;
-        std::cout << "CHUNK_OFFSET_WS_PAYLOAD_LEN = "<< ((uint8_t*)&(ws_proto_.get_frame_info()->payload_len_) - smc) << std::endl;
-        std::cout << "CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = "<< ((uint8_t*)&(ws_proto_.get_frame_info()->payload_offset_) - smc) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_WS_CHANNEL_ID = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = "<< ((uint8_t*)&unique_socket_id_ - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = "<< ((uint8_t*)&socket_info_index_ - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_WS_OPCODE = "<< (get_ws_proto()->get_opcode_addr() - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = "<< ((uint8_t*)&(session_.gw_worker_id_) - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << ";" << std::endl;
 
         sockaddr_in* sock_addr = (sockaddr_in*)accept_or_params_or_temp_data_;
 
-        std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = "<< ((uint8_t*)&(sock_addr->sin_addr.s_addr) - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = "<< ((uint8_t*)&(sock_addr->sin_port) - sd) << std::endl;
-        std::cout << "SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = "<< ((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = "<< ((uint8_t*)&(sock_addr->sin_addr.s_addr) - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = "<< ((uint8_t*)&(sock_addr->sin_port) - sd) << ";" << std::endl;
+        std::cout << "public const int SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = "<< ((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) << ";" << std::endl;
 
+        std::cout << "public const int CHUNK_OFFSET_UPGRADE_PART_BYTES = "<< ((uint8_t*)&num_available_network_bytes_ - smc) << ";" << std::endl;
+
+        GW_ASSERT(1 == sizeof(WsProto));
         GW_ASSERT(8 == sizeof(SOCKET));
         GW_ASSERT(8 == sizeof(random_salt_type));
         GW_ASSERT(8 == sizeof(BMX_HANDLER_TYPE));
@@ -320,7 +434,7 @@ public:
 
         GW_ASSERT((accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_PARAMS_INFO);
 
-        GW_ASSERT((data_blob_ - sd) == SOCKET_DATA_OFFSET_BLOB);
+        GW_ASSERT(((uint8_t*)&data_blob_start__ - sd) == SOCKET_DATA_OFFSET_BLOB);
 
         GW_ASSERT(((uint8_t*)&ovl_ - smc) == MixedCodeConstants::CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
@@ -336,21 +450,15 @@ public:
 
         GW_ASSERT(((uint8_t*)&user_data_offset_in_socket_data_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
-        GW_ASSERT(((uint8_t*)accum_buf_.get_desired_accum_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH);
-
-        GW_ASSERT(((uint8_t*)accum_buf_.get_accumulated_len_bytes_addr() - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES);
+        GW_ASSERT(((uint8_t*)&user_data_length_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_NUM_BYTES);
 
         GW_ASSERT(((uint8_t*)&unique_socket_id_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID);
 
         GW_ASSERT(((uint8_t*)&socket_info_index_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER);
 
-        GW_ASSERT((&get_ws_proto()->get_frame_info()->opcode_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
+        GW_ASSERT((get_ws_proto()->get_opcode_addr() - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_OPCODE);
 
         GW_ASSERT(((uint8_t*)&(session_.gw_worker_id_) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_BOUND_WORKER_ID);
-
-        GW_ASSERT(((uint8_t*)&(ws_proto_.get_frame_info()->payload_len_) - smc) == MixedCodeConstants::CHUNK_OFFSET_WS_PAYLOAD_LEN);
-
-        GW_ASSERT(((uint8_t*)&(ws_proto_.get_frame_info()->payload_offset_) - smc) == MixedCodeConstants::CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD);
 
         GW_ASSERT(((uint8_t*)&accept_or_params_or_temp_data_ - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_WS_CHANNEL_ID);
 
@@ -361,6 +469,8 @@ public:
         GW_ASSERT(((uint8_t*)&(sock_addr->sin_port) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT);
 
         GW_ASSERT(((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_SOURCE_PORT);
+
+        GW_ASSERT(((uint8_t*)&num_available_network_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_UPGRADE_PART_BYTES);
 
         GW_ASSERT(sizeof(sockaddr_in) == 16);
 
@@ -795,52 +905,34 @@ public:
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
-    void set_user_data_offset_in_socket_data(uint16_t user_data_offset_in_socket_data)
+    void set_user_data_offset_in_socket_data(uint32_t user_data_offset_in_socket_data)
     {
         user_data_offset_in_socket_data_ = user_data_offset_in_socket_data;
     }
 
     // Offset in bytes from the beginning of the chunk to place
     // where user data should be written.
-    uint16_t get_user_data_offset_in_socket_data()
+    uint32_t get_user_data_offset_in_socket_data()
     {
         return user_data_offset_in_socket_data_;
     }
 
     // Size in bytes of written user data.
-    uint32_t get_user_data_length_bytes()
-    {
-        return accum_buf_.get_accum_len_bytes();
+    uint32_t get_user_data_length_bytes() {
+        return user_data_length_bytes_;
     }
 
     // Size in bytes of written user data.
-    void set_user_data_length_bytes(uint32_t value)
-    {
-        accum_buf_.set_accum_len_bytes(value);
-    }
-
-    // Size in bytes of written user data.
-    void set_total_user_data_length_bytes(uint32_t value)
-    {
-        accum_buf_.set_desired_accum_bytes(value);
-    }
-
-    // Size in bytes of written user data.
-    uint32_t get_total_user_data_length_bytes()
-    {
-        return accum_buf_.get_desired_accum_bytes();
-    }
-
-    // Data buffer chunk.
-    AccumBuffer* get_accum_buf()
-    {
-        return &accum_buf_;
+    void set_user_data_length_bytes(uint32_t value) {
+        user_data_length_bytes_ = value;
     }
 
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
-        accum_buf_.Init(GatewayChunkDataSizes[chunk_store_index_], data_blob_, true);
+        num_available_network_bytes_ = get_data_blob_size();
+        cur_network_buf_ptr_ = get_data_blob_start();
+        accumulated_len_bytes_ = 0;
     }
 
     // Exchanges sockets during proxying.
@@ -861,15 +953,16 @@ public:
     void ResetWhenDisconnectIsDone(GatewayWorker *gw);
 
     // Returns pointer to the beginning of user data.
-    uint8_t* UserDataBuffer()
+    uint8_t* GetUserData()
     {
         return (uint8_t*)this + user_data_offset_in_socket_data_;
     }
 
-    // Resets user data offset.
-    void ResetUserDataOffset()
+    // Resets user data.
+    void SetUserData(uint8_t* data_ptr, uint32_t data_len)
     {
-        user_data_offset_in_socket_data_ = static_cast<uint32_t> (data_blob_ - (uint8_t*)this);
+        user_data_offset_in_socket_data_ = static_cast<uint32_t> (data_ptr - (uint8_t*)this);
+        user_data_length_bytes_ = data_len;
     }
 
     // Start receiving on socket.
@@ -930,8 +1023,8 @@ public:
     // Extract socket data from a bigger WebSocket frame.
     uint32_t CreateWebSocketDataFromBigBuffer(
         GatewayWorker*gw,
-        int32_t payload_len,
         uint8_t* payload,
+        int32_t payload_len,
         SocketDataChunk** new_sd);
 
     // Attaches session to socket data.

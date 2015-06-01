@@ -1641,6 +1641,7 @@ namespace Starcounter
 
         internal Byte session_string_len_bytes_;
 
+        // TODO: Should be changed!
         // Socket data pointer.
         public unsafe Byte* socket_data_;
 

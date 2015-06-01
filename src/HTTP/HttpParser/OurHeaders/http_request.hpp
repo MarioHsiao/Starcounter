@@ -23,6 +23,9 @@ struct HttpRequest
     uint8_t http_method_;
     uint8_t gzip_accepted_;
 
+    // TODO: Should be removed!
+    uint64_t socket_data_padding_;
+
     // Resets this instance of request.
     void Reset()
     {

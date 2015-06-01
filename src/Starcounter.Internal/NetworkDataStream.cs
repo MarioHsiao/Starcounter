@@ -83,7 +83,7 @@ namespace Starcounter
         {
             get
             {
-                return *((Int32*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES));
+                return *((Int32*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES));
             }
         }
 
@@ -109,7 +109,7 @@ namespace Starcounter
                     throw new ArgumentException("Not enough space to write user data.");
 
                 // Reading user data offset.
-                UInt16* user_data_offset_in_socket_data = (UInt16*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+                UInt32* user_data_offset_in_socket_data = (UInt32*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
                 // Copying the data to user buffer.
                 Marshal.Copy(
@@ -129,7 +129,7 @@ namespace Starcounter
             unsafe
             {
                 // Reading user data offset.
-                UInt16* user_data_offset_in_socket_data = (UInt16*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+                UInt32* user_data_offset_in_socket_data = (UInt32*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 
                 // Returning scalar value.
                 return *(UInt64*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data + offset);

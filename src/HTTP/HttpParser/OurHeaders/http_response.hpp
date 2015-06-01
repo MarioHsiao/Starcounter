@@ -21,6 +21,9 @@ struct HttpResponse
 
     uint8_t session_string_len_bytes_;
 
+    // TODO: Should be removed!
+    uint64_t socket_data_padding_;
+
     // Resets this instance of request.
     void Reset()
     {

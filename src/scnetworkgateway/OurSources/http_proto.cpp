@@ -506,13 +506,13 @@ uint32_t HttpProto::HttpUriDispatcher(
             return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
 
         // Obtaining method and URI.
-        char* method_space_uri_space = (char*) sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+        char* method_space_uri_space = (char*) sd->get_data_blob_start();
         uint32_t method_space_uri_space_len, uri_offset;
 
         // Getting method and URI information.
         uint32_t err_code = GetMethodAndUri(
             method_space_uri_space,
-            sd->get_accum_buf()->get_accum_len_bytes(),
+            sd->get_accumulated_len_bytes(),
             &method_space_uri_space_len,
             &uri_offset,
             MixedCodeConstants::MAX_URI_STRING_LEN);
@@ -701,9 +701,6 @@ uint32_t HttpProto::AppsHttpWsProcessData(
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
-        // Getting reference to accumulative buffer.
-        AccumBuffer* accum_buf = sd->get_accum_buf();
-
         // Checking if we are in fill-up mode.
         if (sd->get_complete_header_flag())
             goto ALL_DATA_ACCUMULATED;
@@ -723,8 +720,8 @@ uint32_t HttpProto::AppsHttpWsProcessData(
         size_t bytes_parsed = http_parser_execute(
             &g_ts_http_parser_,
             &g_httpParserSettings,
-            (const char *)accum_buf->get_chunk_orig_buf_ptr(),
-            accum_buf->get_accum_len_bytes());
+            (const char *)sd->get_data_blob_start(),
+            sd->get_accumulated_len_bytes());
 
         // Checking if we should continue receiving the headers.
         if (!sd->get_complete_header_flag())
@@ -733,7 +730,7 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             // That is why we just extend the chunk to next bigger one, without specifying the size.
 
             // Checking if any space left in chunk.
-            if (sd->get_accum_buf()->get_chunk_num_available_bytes() <= 0)
+            if (sd->get_num_available_network_bytes() <= 0)
             {
                 err_code = SocketDataChunk::ChangeToBigger(gw, sd);
 
@@ -766,9 +763,9 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             return WsProto::DoHandshake(gw, sd, handler_id, is_handled);
         }
         // Handle error. Usually just close the connection.
-        else if (bytes_parsed != (accum_buf->get_accum_len_bytes()))
+        else if (bytes_parsed != (sd->get_accumulated_len_bytes()))
         {
-            GW_ASSERT(bytes_parsed < accum_buf->get_accum_len_bytes());
+            GW_ASSERT(bytes_parsed < sd->get_accumulated_len_bytes());
 
             GW_COUT << "HTTP packet has incorrect data!" << GW_ENDL;
             return SCERRGWHTTPINCORRECTDATA;
@@ -823,7 +820,7 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                 GW_ASSERT(http_request_.content_offset_ > http_request_.headers_offset_);
 
                 // Checking if we need to continue receiving the content.
-                if (http_request_.request_len_bytes_ > accum_buf->get_accum_len_bytes())
+                if (http_request_.request_len_bytes_ > sd->get_accumulated_len_bytes())
                 {
                     // Checking for maximum supported HTTP request content size.
                     if (http_request_.content_len_bytes_ > g_gateway.setting_maximum_receive_content_length())
@@ -846,7 +843,7 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                     err_code = gw->StartAccumulation(
                         sd,
                         http_request_.request_len_bytes_,
-                        accum_buf->get_accum_len_bytes());
+                        sd->get_accumulated_len_bytes());
 
                     if (err_code)
                         return err_code;
@@ -886,7 +883,7 @@ ALL_DATA_ACCUMULATED:
 #else
 
             // Resetting user data parameters.
-            sd->ResetUserDataOffset();
+            sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
             // Push chunk to corresponding channel/scheduler.
             err_code = gw->PushSocketDataToDb(sd, handler_id);
@@ -897,7 +894,7 @@ ALL_DATA_ACCUMULATED:
 
             // Printing the outgoing packet.
 #ifdef GW_HTTP_DIAG
-            GW_COUT << sd->get_accum_buf()->get_chunk_orig_buf_ptr() << GW_ENDL;
+            GW_COUT << sd->get_accum_buf()->get_data_blob_start() << GW_ENDL;
 #endif
         }
 
@@ -922,7 +919,7 @@ ALL_DATA_ACCUMULATED:
             return SCERRGWDISCONNECTFLAG;
 
         // Prepare buffer to send outside.
-        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+        sd->PrepareForSend(sd->GetUserData(), sd->get_user_data_length_bytes());
 
         // Sending data.
         err_code = gw->Send(sd);
@@ -985,7 +982,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
         sd->ExchangeToProxySocket(gw);
 
         // Setting number of bytes to send.
-        sd->get_accum_buf()->PrepareToSendOnProxy();
+        sd->PrepareToSendOnProxy();
 
         // Sending data to user.
         return gw->Send(sd);
@@ -1002,7 +999,7 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 #endif
 
         // Setting number of bytes to send.
-        sd->get_accum_buf()->PrepareToSendOnProxy();
+        sd->PrepareToSendOnProxy();
 
         // Getting proxy information.
         ReverseProxyInfo* proxy_info = hl->get_reverse_proxy_info();
