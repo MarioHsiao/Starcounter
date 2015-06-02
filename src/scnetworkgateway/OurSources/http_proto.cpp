@@ -30,9 +30,10 @@ const int32_t kHttpServiceUnavailableLength = static_cast<int32_t> (strlen(kHttp
 const char* const kHttpTooBigUpload =
     "HTTP/1.1 413 Request Entity Too Large\r\n"
     "Content-Type: text/html; charset=UTF-8\r\n"
-    "Content-Length: 50\r\n"
+    "Content-Length: 146\r\n"
     "\r\n"
-    "Maximum supported HTTP request content size is 32 Mb!";
+    "HTTP request content is too large. "
+    "Maximum supported HTTP request content size is defined in MaximumReceiveContentLength in gateway configuration.";
 
 const int32_t kHttpTooBigUploadLength = static_cast<int32_t> (strlen(kHttpTooBigUpload));
 
@@ -830,10 +831,6 @@ uint32_t HttpProto::AppsHttpWsProcessData(
 
                         // Setting disconnect after send flag.
                         sd->set_disconnect_after_send_flag();
-
-#ifdef GW_WARNINGS_DIAG
-                        GW_COUT << "Maximum supported HTTP request content size is 32 Mb!" << GW_ENDL;
-#endif
 
                         // Sending corresponding HTTP response.
                         return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);

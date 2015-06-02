@@ -111,18 +111,6 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd, MixedCodeConsta
         break;
     }
 
-    int32_t on_flag = 1;
-
-    // Does not block close waiting for unsent data to be sent.
-    if (setsockopt(new_connect_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
-    {
-        GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
-
-        closesocket(new_connect_socket);
-
-        return PrintLastError();
-    }
-
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
     // Skipping completion port if operation is already successful.
     SetFileCompletionNotificationModes((HANDLE)new_connect_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
@@ -459,16 +447,6 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
         if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, (char *)&on_flag, sizeof(on_flag)))
         {
             GW_PRINT_WORKER << "Can't set TCP_NODELAY on socket." << GW_ENDL;
-
-            closesocket(new_socket);
-
-            return PrintLastError();
-        }
-
-        // Does not block close waiting for unsent data to be sent.
-        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, sizeof(on_flag)))
-        {
-            GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
 
             closesocket(new_socket);
 
@@ -819,8 +797,9 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // Checking disconnect state.
-    if (sd->get_disconnect_after_send_flag())
+    if (sd->get_disconnect_after_send_flag()) {
         return SCERRGWDISCONNECTAFTERSENDFLAG;
+    }
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -2073,8 +2052,9 @@ uint32_t GatewayWorker::SendPredefinedMessage(
     }
 
     // Checking if message should be copied.
-    if (message)
+    if (message) {
         memcpy(sd->get_data_blob_start(), message, message_len);
+    }
 
     // Prepare buffer to send outside.
     sd->PrepareForSend(sd->get_data_blob_start(), message_len);
