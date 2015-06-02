@@ -1404,7 +1404,7 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
-    sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
+    sd->SetUserData(sd->get_data_blob_start(), kHttpGenericHtmlHeaderLength + body_len);
 
     // Prepare buffer to send outside.
     sd->AddAccumulatedBytes(kHttpGenericHtmlHeaderLength + body_len);
