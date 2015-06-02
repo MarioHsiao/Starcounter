@@ -151,7 +151,8 @@ namespace Starcounter.Internal
         public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = 156;
         public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = 154;
         public const int SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = 168;
-        public const int CHUNK_OFFSET_UPGRADE_PART_BYTES = 104;
+        public const int CHUNK_OFFSET_UPGRADE_PART_BYTES_TO_DB = 104;
+        public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB = 140;
 
         // Invalid WebSocket channel ID.
         public const int INVALID_WS_CHANNEL_ID = 0;

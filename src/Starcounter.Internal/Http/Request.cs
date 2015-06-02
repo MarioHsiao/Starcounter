@@ -373,7 +373,7 @@ namespace Starcounter {
 
                 Byte* chunk_data = http_request_struct_->socket_data_ - MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
-                UInt32 upgradeResponsePartLength = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_UPGRADE_PART_BYTES);
+                UInt32 upgradeResponsePartLength = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_UPGRADE_PART_BYTES_TO_DB);
                 UInt32 upgradeRequestLenBytes = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
                 UInt32 upgradeRequestOffset = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
 

@@ -440,6 +440,9 @@ uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
     // First copying socket data headers.
     sd->PlainCopySocketDataInfoHeaders(this);
 
+    // Resetting the accumulative buffer because it was overwritten.
+    sd->ResetAccumBuffer();
+
     // Checking if data fits inside chunk.
     GW_ASSERT(payload_len <= (int32_t)sd->get_num_available_network_bytes());
 

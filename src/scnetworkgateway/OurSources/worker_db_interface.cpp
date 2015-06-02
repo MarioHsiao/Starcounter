@@ -234,8 +234,6 @@ READY_SOCKET_DATA:
                 continue;
             }
 
-            GW_ASSERT(sd->get_num_available_network_bytes() > 0);
-
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);
 

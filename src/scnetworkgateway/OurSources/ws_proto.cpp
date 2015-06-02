@@ -403,7 +403,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     uint8_t* orig_payload = payload;
 
     // Length of user data in bytes.
-    uint32_t total_payload_len = sd->get_user_data_length_bytes();
+    uint32_t total_payload_len = sd->GetTotalUserDataLengthFromDb();
     uint32_t cur_payload_len = sd->get_user_data_length_bytes();
 
     // Checking if we are sending last frame.

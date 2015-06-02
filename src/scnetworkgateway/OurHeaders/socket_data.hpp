@@ -169,14 +169,6 @@ public:
         num_available_network_bytes_ -= data_len;
     }
 
-    // Resets to original state.
-    void ResetToOriginalState()
-    {
-        cur_network_buf_ptr_ = get_data_blob_start();
-        num_available_network_bytes_ = get_data_blob_size();
-        accumulated_len_bytes_ = 0;
-    }
-
     // Adds accumulated bytes.
     void AddAccumulatedBytes(int32_t num_bytes)
     {
@@ -257,29 +249,29 @@ public:
         session_.gw_worker_id_ = worker_id;
     }
 
-    void PlainCopySocketDataInfoHeaders(SocketDataChunk* sd)
+    void PlainCopySocketDataInfoHeaders(SocketDataChunk* sd_from)
     {
         // NOTE:
         // Saving new chunk store index, otherwise it would be overwritten.
         chunk_store_type saved_new_store_index = chunk_store_index_;
-        memcpy(this, sd, sizeof(SocketDataChunk));
+        memcpy(this, sd_from, sizeof(SocketDataChunk));
         chunk_store_index_ = saved_new_store_index;
+    }
+
+    void CopyFromAnotherSocketData(SocketDataChunk* sd_from)
+    {
+        // First copying socket data headers.
+        PlainCopySocketDataInfoHeaders(sd_from);
 
         // Resetting the accumulative buffer because it was overwritten.
         ResetAccumBuffer();
-    }
 
-    void CopyFromAnotherSocketData(SocketDataChunk* sd)
-    {
-        // First copying socket data headers.
-        PlainCopySocketDataInfoHeaders(sd);
+        GW_ASSERT(static_cast<int32_t>(sd_from->get_accumulated_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
 
-        GW_ASSERT(static_cast<int32_t>(sd->get_accumulated_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
-
-        memcpy(get_data_blob_start(), sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
+        memcpy(get_data_blob_start(), sd_from->get_data_blob_start(), sd_from->get_accumulated_len_bytes());
 
         // Adjusting the accumulative buffer.
-        AddAccumulatedBytes(sd->get_accumulated_len_bytes());
+        AddAccumulatedBytes(sd_from->get_accumulated_len_bytes());
     }
 
     void CopyFromOneChunkIPCSocketData(SocketDataChunk* ipc_sd, int32_t num_bytes_to_copy)
@@ -287,8 +279,8 @@ public:
         // First copying socket data headers.
         PlainCopySocketDataInfoHeaders(ipc_sd);
 
-        // Setting some specific accumulative buffer fields.
-        set_user_data_length_bytes(ipc_sd->get_user_data_length_bytes());
+        // Resetting the WSABUF data pointer.
+        cur_network_buf_ptr_ = get_data_blob_start();
 
         memcpy(get_data_blob_start(), ipc_sd->get_data_blob_start(), num_bytes_to_copy);
     }
@@ -339,6 +331,10 @@ public:
         reset_complete_header_flag();
     }
 
+    uint32_t GetTotalUserDataLengthFromDb() {
+        return accumulated_len_bytes_;
+    }
+
     void ResetAllFlags()
     {
         flags_ = 0;
@@ -349,26 +345,6 @@ public:
     {
         uint8_t* sd = (uint8_t*) this;
         uint8_t* smc = (uint8_t*) this - MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
-
-        std::cout << "offset ovl_ = "<< ((uint8_t*)&ovl_ - sd) << std::endl;
-        std::cout << "offset session_ = "<< ((uint8_t*)&session_ - sd) << std::endl;
-        std::cout << "offset unique_socket_id_ = "<< ((uint8_t*)&unique_socket_id_ - sd) << std::endl;
-        std::cout << "offset client_ip_info_ = "<< ((uint8_t*)&client_ip_info_ - sd) << std::endl;
-        std::cout << "offset socket_info_index_ = "<< ((uint8_t*)&socket_info_index_ - sd) << std::endl;
-        std::cout << "offset user_data_written_bytes_ = "<< ((uint8_t*)&accumulated_len_bytes_ - sd) << std::endl;
-        std::cout << "offset flags_ = "<< ((uint8_t*)&flags_ - sd) << std::endl;
-        std::cout << "offset unique_aggr_index_ = "<< ((uint8_t*)&unique_aggr_index_ - sd) << std::endl;
-        std::cout << "offset num_ipc_chunks_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
-        std::cout << "offset user_data_offset_in_socket_data_ = "<< ((uint8_t*)&user_data_offset_in_socket_data_ - sd) << std::endl;
-        std::cout << "offset type_of_network_oper_ = "<< ((uint8_t*)&type_of_network_oper_ - sd) << std::endl;
-        std::cout << "offset type_of_network_protocol_ = "<< ((uint8_t*)&type_of_network_protocol_ - sd) << std::endl;
-        std::cout << "offset http_proto_ = "<< ((uint8_t*)&http_proto_ - sd) << std::endl;
-        std::cout << "offset ws_proto_ = "<< ((uint8_t*)&ws_proto_ - sd) << std::endl;
-        std::cout << "offset accept_or_params_or_temp_data_ = "<< ((uint8_t*)&accept_or_params_or_temp_data_ - sd) << std::endl;
-        std::cout << "offset data_blob_ = "<< ((uint8_t*)&data_blob_start__ - sd) << std::endl;
-
-        std::cout << std::endl;
-        std::cout << std::endl;
 
         std::cout << "sizeof HttpProto = "<< sizeof(HttpProto) << std::endl;
         std::cout << "sizeof WsProto = "<< sizeof(WsProto) << std::endl;
@@ -413,6 +389,7 @@ public:
         std::cout << "public const int SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = "<< ((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) << ";" << std::endl;
 
         std::cout << "public const int CHUNK_OFFSET_UPGRADE_PART_BYTES = "<< ((uint8_t*)&num_available_network_bytes_ - smc) << ";" << std::endl;
+        std::cout << "public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB = "<< ((uint8_t*)&accumulated_len_bytes_ - smc) << ";" << std::endl;
 
         GW_ASSERT(1 == sizeof(WsProto));
         GW_ASSERT(8 == sizeof(SOCKET));
@@ -470,7 +447,9 @@ public:
 
         GW_ASSERT(((uint8_t*)sock_addr + sizeof(sockaddr_in) - sd) == MixedCodeConstants::SOCKET_DATA_OFFSET_UDP_SOURCE_PORT);
 
-        GW_ASSERT(((uint8_t*)&num_available_network_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_UPGRADE_PART_BYTES);
+        GW_ASSERT(((uint8_t*)&num_available_network_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_UPGRADE_PART_BYTES_TO_DB);
+
+        GW_ASSERT(((uint8_t*)&accumulated_len_bytes_ - smc) == MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB);
 
         GW_ASSERT(sizeof(sockaddr_in) == 16);
 

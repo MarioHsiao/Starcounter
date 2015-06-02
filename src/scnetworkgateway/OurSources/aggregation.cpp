@@ -223,7 +223,7 @@ uint32_t PortAggregator(
     }
 
     // Returning socket to original receiving state.
-    aggr_sd->ResetToOriginalState();
+    aggr_sd->ResetAccumBuffer();
     return gw->Receive(aggr_sd);
 }
 

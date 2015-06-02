@@ -471,6 +471,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     _SC_ASSERT(NULL != cur_chunk_buf);
     _SC_ASSERT(shared_memory_chunk::link_terminator != *the_chunk_index);    
 
+    // Setting total data length.
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB) = buf_len_bytes;
+
     // Points to user data offset in chunk.
     uint32_t chunk_user_data_offset = starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + starcounter::MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
