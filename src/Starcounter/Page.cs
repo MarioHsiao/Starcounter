@@ -33,7 +33,13 @@ namespace Starcounter {
 
         public string Html {
             get { return Template.Html.Getter(this); }
-            set { Template.Html.Setter(this, value); }
+            set {
+                // Checking that Html value starts with slash.
+                if ((value != null) && (value.Length > 0) && (value[0] != '/')) {
+                    throw new ArgumentOutOfRangeException("Page Html property should start with a slash resembling a resource URI.");
+                }
+
+                Template.Html.Setter(this, value); }
         }
 
         public override byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType, Request request = null) {
