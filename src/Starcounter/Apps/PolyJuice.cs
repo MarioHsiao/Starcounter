@@ -13,9 +13,9 @@ namespace PolyjuiceNamespace {
     public class Polyjuice {
 
         /// <summary>
-        /// Set to true if database with SO should be emulated (unit tests).
+        /// Set to true if database class hierarchy should be emulated (unit tests).
         /// </summary>
-        internal static Boolean EmulateSoDatabase = true;
+        internal static Boolean EmulateSoDatabase = false;
 
         /// <summary>
         /// Global tree.
@@ -38,7 +38,7 @@ namespace PolyjuiceNamespace {
         const String PolyjuiceMappingUri = "/polyjuice/";
 
         /// <summary>
-        /// Handler information for mapped SO type.
+        /// Handler information for related class type.
         /// </summary>
         public class HandlerForSoType {
 
@@ -53,12 +53,12 @@ namespace PolyjuiceNamespace {
             public UInt16 HandlerId;
 
             /// <summary>
-            /// Conversion delegate to SO.
+            /// Conversion delegate to the destination class type.
             /// </summary>
             public Func<String, String> ConverterToSo;
 
             /// <summary>
-            /// Conversion delegate from SO.
+            /// Conversion delegate from the destination class type.
             /// </summary>
             public Func<String, String> ConverterFromSo;
 
@@ -89,7 +89,7 @@ namespace PolyjuiceNamespace {
             public SoType Inherits;
 
             /// <summary>
-            /// Name of the SO type.
+            /// Name of the class type.
             /// </summary>
             public String Name;
 
@@ -186,9 +186,9 @@ namespace PolyjuiceNamespace {
         }
 
         /// <summary>
-        /// Gets type name from Society Objects URI.
+        /// Gets type name from class URI.
         /// </summary>
-        static String GetTypeNameFromSoUri(String soSubUri) {
+        static String GetClassNameFromUri(String soSubUri) {
 
             // Until first slash.
             Int32 slashOffset = 0;
@@ -197,7 +197,7 @@ namespace PolyjuiceNamespace {
                 slashOffset++;
             }
 
-            // Skipping "/so/" in the beginning and "/@s" at the end.
+            // Skipping the prefix in the beginning and "/@s" at the end.
             return soSubUri.Substring(0, slashOffset);
         }
 
@@ -397,8 +397,8 @@ namespace PolyjuiceNamespace {
                     throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
                 }
 
-                // Adding handler to SO type.
-                HandlerForSoType handler = AddHandlerToSoType(
+                // Basically creating and attaching handler to class type.
+                HandlerForSoType handler = AddHandlerToClass(
                     null,
                     handlerId,
                     appProcessedUri,
@@ -466,7 +466,7 @@ namespace PolyjuiceNamespace {
                 // Checking if we have any parameters.
                 if (numParams1 > 0) {
 
-                    // Registering the SO handler as a map to corresponding application URI.
+                    // Registering the class type handler as a map to corresponding application URI.
                     String hs = appProcessedUri.Replace(EndsWithStringParam, "{?}");
 
                     Handle.CUSTOM(method + " " + hs, (Request req, String stringParam) => {
@@ -566,26 +566,43 @@ namespace PolyjuiceNamespace {
                     throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
                 }
 
-                // Getting string representation for the SO type.
-                String typeName = GetTypeNameFromSoUri(soProcessedUri.Substring("/so/".Length));
+                // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
+                String typeName = GetClassNameFromUri(soProcessedUri.Substring("/db/".Length));
 
                 SoType soType = null;
 
-                // Checking if we emulate the database with SO.
                 if (EmulateSoDatabase) {
 
                     soType = tree_.Find(typeName);
 
+                    if (null == soType) {
+                        throw new ArgumentException("Can not find class type in hierarchy: " + typeName);
+                    }
+
                 } else {
-                    soType = (SoType)Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
+
+                    // First trying to find the handlers for this type.
+                    soType = tree_.Find(typeName);
+
+                    // If the type is not found.
+                    if (null == soType) {
+
+                        // Checking if there is such class in database.
+                        Starcounter.Metadata.Table classInfo = 
+                            Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", typeName).First;
+
+                        if (classInfo == null) {
+                            throw new ArgumentException("Can not find selected database class: " + typeName);
+                        }
+
+                        // NOTE: Using database class name because of case sensitivity.
+                        tree_.Add(classInfo.Name);
+                        soType = tree_.Find(classInfo.Name);
+                    }
                 }
 
-                if (null == soType) {
-                    throw new ArgumentException("Can not find Society Objects type in hierarchy: " + typeName);
-                }
-
-                // Adding handler to SO type.
-                HandlerForSoType handler = AddHandlerToSoType(
+                // Basically attaching a class handler to class.
+                HandlerForSoType handler = AddHandlerToClass(
                     soType,
                     handlerId,
                     appProcessedUri,
@@ -594,7 +611,7 @@ namespace PolyjuiceNamespace {
                     converterToSo,
                     converterFromSo);
 
-                // Registering the SO handler as a map to corresponding application URI.
+                // Registering the handler as a map to corresponding application URI.
                 String hs = appProcessedUri.Replace(EndsWithStringParam, "{?}");
                 Handle.GET(hs, (Request req, String appObjectId) => {
 
@@ -610,7 +627,8 @@ namespace PolyjuiceNamespace {
                             return null;
                     }
 
-                    Response resp = Self.GET("/so/" + typeName + "/" + soObjectId, null, req.HandlerOpts);
+                    // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
+                    Response resp = Self.GET(soProcessedUri.Substring(0, "/db/".Length) + typeName + "/" + soObjectId, null, req.HandlerOpts);
 
                     return resp;
 
@@ -620,11 +638,70 @@ namespace PolyjuiceNamespace {
                 });
             }
         }
+
+        /// <summary>
+        /// Traverses from current class info up in class hierarchy, trying to find handlers.
+        /// </summary>
+        /// <param name="currentClassInfo">Current class from which the search starts.</param>
+        /// <returns></returns>
+        static SoType FindHandlersInClassHierarchy(ref Starcounter.Metadata.Table currentClassInfo) {
+
+            // Going up in class hierarchy until we find the handlers.
+            SoType soType = tree_.Find(currentClassInfo.Name);
+            if (soType != null)
+                return soType;
+
+            while (true) {
+
+                // Going up in class inheritance tree.
+                currentClassInfo = currentClassInfo.Inherits;
+
+                // If there is a parent.
+                if (currentClassInfo != null) {
+
+                    // Checking if there are handlers attached to this class.
+                    soType = tree_.Find(currentClassInfo.Name);
+                    if (soType != null) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            return soType;
+        }
         
         /// <summary>
-        /// Calling all handlers in SO hierarchy.
+        /// Calling all handlers in class hierarchy.
         /// </summary>
-        static List<Response> CallAllHandlersInTypeHierarchy(Request req, SoType soType, String paramStr) {
+        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String typeName, String paramStr) {
+
+            // Checking if there is such class in database.
+            Starcounter.Metadata.Table classInfo = null;
+            SoType soType = null;
+
+            if (EmulateSoDatabase) {
+
+                soType = tree_.Find(typeName);
+
+            } else {
+
+                // Finding the class with specified name.
+                classInfo =
+                    Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", typeName).First;
+
+                if (classInfo == null) {
+                    throw new ArgumentException("Can not find selected database class: " + typeName);
+                }
+
+                // Finding the handler based on type name.
+                soType = FindHandlersInClassHierarchy(ref classInfo);
+            }
+
+            if (null == soType) {
+                throw new ArgumentException("Can not find the following class type in hierarchy: " + typeName);
+            }
 
             List<Response> resps = new List<Response>();
 
@@ -646,12 +723,17 @@ namespace PolyjuiceNamespace {
 
             } else if (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) {
 
+                // NOTE: Since we are being called from an app, we need to check if
+                // there is at least one handler belonging to this app in the 
+                // class hierarchy.
+
                 Boolean currentAppHasHandler = false;
 
                 SoType soTypeTemp = soType;
+                Starcounter.Metadata.Table tempClassInfo = classInfo;
 
-                // Until we reach the root of the SO tree.
-                while ((soTypeTemp != null) && (false == currentAppHasHandler)) {
+                // Until we reach the root of the class tree.
+                while (soTypeTemp != null) {
 
                     // Checking if application handler is presented in the hierarchy.
                     foreach (HandlerForSoType x in soTypeTemp.Handlers) {
@@ -663,29 +745,52 @@ namespace PolyjuiceNamespace {
                         }
                     }
 
-                    soTypeTemp = soTypeTemp.Inherits;
+                    // Checking if we found handler belonging to current application.
+                    if (currentAppHasHandler)
+                        break;
+
+                    if (EmulateSoDatabase) {
+
+                        soTypeTemp = soTypeTemp.Inherits;
+
+                    } else {
+
+                        // Finding the handler based on type name.
+                        tempClassInfo = tempClassInfo.Inherits;
+                        soTypeTemp = FindHandlersInClassHierarchy(ref tempClassInfo);
+                    }
                 }
 
-                // Checking if application is not found.
+                // Checking if there are no handlers found that belong to this application.
                 if (!currentAppHasHandler) {
                     return resps;
                 }
             }
 
-            // Until we reach the root of the SO tree.
+            // Now we have to call all existing handlers up the class hierarchy.
             while (soType != null) {
 
-                CallAllHandlersForSingleType(resps, soType, paramStr, alreadyCalledHandlers);
-                soType = soType.Inherits;
+                CallAllHandlersForClass(resps, soType, paramStr, alreadyCalledHandlers);
+
+                if (EmulateSoDatabase) {
+
+                    soType = soType.Inherits;
+
+                } else {
+
+                    // Finding the handler based on type name.
+                    classInfo = classInfo.Inherits;
+                    soType = FindHandlersInClassHierarchy(ref classInfo);
+                }
             }
 
             return resps;
         }
 
         /// <summary>
-        /// Adding existing handler to SO type tree.
+        /// Adding existing handler to class.
         /// </summary>
-        static HandlerForSoType AddHandlerToSoType(
+        static HandlerForSoType AddHandlerToClass(
             SoType soType,
             UInt16 handlerId,
             String handlerProcessedUri,
@@ -696,7 +801,6 @@ namespace PolyjuiceNamespace {
 
             HandlerForSoType x = new HandlerForSoType();
 
-            // Checking if we emulate the database with SO.
             if (EmulateSoDatabase) {
 
                 x.TheType = soType;
@@ -713,6 +817,19 @@ namespace PolyjuiceNamespace {
 
             } else {
 
+                x.TheType = soType;
+                x.HandlerId = handlerId;
+                x.HandlerProcessedUri = handlerProcessedUri;
+                x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
+                x.AppName = appName;
+                x.ConverterToSo = converterToSo;
+                x.ConverterFromSo = converterFromSo;
+
+                if (soType != null) {
+                    soType.Handlers.Add(x);
+                }
+
+                /*
                 // Adding handler id to the type.
                 Db.Transact(() => {
                     x.TheType = soType;
@@ -722,7 +839,7 @@ namespace PolyjuiceNamespace {
                     x.AppName = appName;
                     x.ConverterToSo = converterToSo;
                     x.ConverterFromSo = converterFromSo;
-                });
+                });*/
             }
 
             return x;
@@ -731,7 +848,7 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Calling all handlers associated with a given type.
         /// </summary>
-        static void CallAllHandlersForSingleType(
+        static void CallAllHandlersForClass(
             List<Response> resps,
             SoType type,
             String stringParam,
@@ -776,7 +893,6 @@ namespace PolyjuiceNamespace {
 
             };
 
-            // Checking if we emulate the database with SO.
             if (EmulateSoDatabase) {
 
                 foreach (HandlerForSoType x in type.Handlers) {
@@ -793,9 +909,10 @@ namespace PolyjuiceNamespace {
                     // Adding this handler since its already called.
                     alreadyCalledHandlers.Add(x.HandlerId);
                 }
+
             } else {
 
-                foreach (HandlerForSoType x in Db.SQL("SELECT x FROM HandlerForType x WHERE x.TheType = ?", type)) {
+                foreach (HandlerForSoType x in type.Handlers) {
 
                     // Going through each skipped handler.
                     foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
@@ -809,158 +926,179 @@ namespace PolyjuiceNamespace {
                     // Adding this handler since its already called.
                     alreadyCalledHandlers.Add(x.HandlerId);
                 }
+
+                /*
+                foreach (HandlerForSoType x in Db.SQL("SELECT x FROM HandlerForType x WHERE x.TheType = ?", type)) {
+
+                    // Going through each skipped handler.
+                    foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
+                        if (x.HandlerId == skipHandlerId) {
+                            continue;
+                        }
+                    }
+
+                    processHandler(x);
+
+                    // Adding this handler since its already called.
+                    alreadyCalledHandlers.Add(x.HandlerId);
+                }*/
             }
         }
 
         /// <summary>
-        /// Populating SO tree.
+        /// Populating class emulation tree.
         /// </summary>
-        static void PopulateSoTree() {
+        static void PopulateSoTree(Boolean emulateDatabase) {
+
+            EmulateSoDatabase = emulateDatabase;
 
             tree_ = new Tree();
 
-            tree_.Connect("something", "attribute");
-            tree_.Connect("attribute", "role");
-            tree_.Connect("role", "relation");
-            tree_.Connect("relation", "participatingthing");
-            tree_.Connect("participatingthing", "participant");
-            tree_.Connect("participant", "responsible");
-            tree_.Connect("participant", "modifier");
-            tree_.Connect("participatingthing", "messagerecipient");
-            tree_.Connect("participatingthing", "transfered");
-            tree_.Connect("transfered", "moved");
-            tree_.Connect("transfered", "traded");
-            tree_.Connect("participatingthing", "modified");
-            tree_.Connect("participatingthing", "inserted");
-            tree_.Connect("relation", "systemusergroupmember");
-            tree_.Connect("relation", "publisher");
-            tree_.Connect("relation", "somebodiesrelation");
-            tree_.Connect("somebodiesrelation", "subsidiary");
-            tree_.Connect("somebodiesrelation", "personrole");
-            tree_.Connect("personrole", "affiliatedperson");
-            tree_.Connect("affiliatedperson", "employee");
-            tree_.Connect("somebodiesrelation", "affiliatedorganization");
-            tree_.Connect("somebodiesrelation", "consumer");
-            tree_.Connect("somebodiesrelation", "creator");
-            tree_.Connect("relation", "personcategorymember");
-            tree_.Connect("relation", "companycategorymember");
-            tree_.Connect("relation", "vendible");
-            tree_.Connect("relation", "address");
-            tree_.Connect("address", "digitaladdress");
-            tree_.Connect("digitaladdress", "url");
-            tree_.Connect("digitaladdress", "uripath");
-            tree_.Connect("digitaladdress", "uri");
-            tree_.Connect("digitaladdress", "port");
-            tree_.Connect("digitaladdress", "emailaddress");
-            tree_.Connect("digitaladdress", "internetaddress");
-            tree_.Connect("address", "telephonenumber");
-            tree_.Connect("address", "nowhere");
-            tree_.Connect("relation", "addressrelation");
-            tree_.Connect("addressrelation", "abstractcrossreference");
-            tree_.Connect("abstractcrossreference", "hyperlink");
-            tree_.Connect("addressrelation", "webaddress");
-            tree_.Connect("webaddress", "homepageurl");
-            tree_.Connect("addressrelation", "emailrelation");
-            tree_.Connect("addressrelation", "telephonenumberrelation");
-            tree_.Connect("telephonenumberrelation", "officephonenumber");
-            tree_.Connect("telephonenumberrelation", "mobilephonenumber");
-            tree_.Connect("telephonenumberrelation", "homephonenumber");
-            tree_.Connect("telephonenumberrelation", "faxphonenumber");
-            tree_.Connect("addressrelation", "placement");
-            tree_.Connect("placement", "negativeplacement");
-            tree_.Connect("placement", "positiveplacement");
-            tree_.Connect("relation", "definedquantification");
-            tree_.Connect("relation", "groupmember");
-            tree_.Connect("relation", "eventrole");
-            tree_.Connect("eventrole", "eventsubset");
-            tree_.Connect("eventsubset", "eventshare");
-            tree_.Connect("relation", "wordsense");
-            tree_.Connect("role", "systemuser");
-            tree_.Connect("role", "contentbearingobject");
-            tree_.Connect("contentbearingobject", "digitalasset");
-            tree_.Connect("digitalasset", "softwareapplication");
-            tree_.Connect("role", "somebody");
-            tree_.Connect("somebody", "legalentity");
-            tree_.Connect("legalentity", "organization");
-            tree_.Connect("organization", "company");
-            tree_.Connect("legalentity", "person");
-            tree_.Connect("somebody", "group");
-            tree_.Connect("group", "everybody");
-            tree_.Connect("attribute", "modifiedattribute");
-            tree_.Connect("something", "event");
-            tree_.Connect("event", "projectevent");
-            tree_.Connect("event", "message");
-            tree_.Connect("event", "transfer");
-            tree_.Connect("transfer", "move");
-            tree_.Connect("transfer", "trade");
-            tree_.Connect("event", "objectchange");
-            tree_.Connect("objectchange", "modification");
-            tree_.Connect("objectchange", "insertion");
-            tree_.Connect("objectchange", "deletion");
-            tree_.Connect("event", "agreement");
-            tree_.Connect("something", "configurationparameter");
-            tree_.Connect("something", "configuration");
-            tree_.Connect("configuration", "applicationconfiguration");
-            tree_.Connect("configuration", "computerconfiguration");
-            tree_.Connect("something", "digitalsource");
-            tree_.Connect("something", "encoding");
-            tree_.Connect("something", "digitalassetsource");
-            tree_.Connect("digitalassetsource", "datafile");
-            tree_.Connect("something", "artifact");
-            tree_.Connect("artifact", "literarywork");
-            tree_.Connect("artifact", "computersystem");
-            tree_.Connect("artifact", "right");
-            tree_.Connect("artifact", "monetary");
-            tree_.Connect("monetary", "currency");
-            tree_.Connect("something", "systemusergroup");
-            tree_.Connect("something", "category");
-            tree_.Connect("category", "personcategory");
-            tree_.Connect("category", "companycategory");
-            tree_.Connect("category", "vendiblecategory");
-            tree_.Connect("something", "level");
-            tree_.Connect("level", "categorylevel");
-            tree_.Connect("categorylevel", "vendiblelevel");
-            tree_.Connect("level", "addresslevel");
-            tree_.Connect("something", "packagetemplate");
-            tree_.Connect("something", "paymentterms");
-            tree_.Connect("something", "transfercondition");
-            tree_.Connect("something", "deliverymethod");
-            tree_.Connect("something", "identifier");
-            tree_.Connect("identifier", "barcode");
-            tree_.Connect("something", "scheme");
-            tree_.Connect("something", "societyobjectsworkspace");
-            tree_.Connect("something", "societyobjectsring");
-            tree_.Connect("something", "sequence");
-            tree_.Connect("something", "country");
-            tree_.Connect("something", "unitofmeasure");
-            tree_.Connect("unitofmeasure", "temperatureunit");
-            tree_.Connect("unitofmeasure", "lengthunit");
-            tree_.Connect("lengthunit", "metriclengthunit");
-            tree_.Connect("metriclengthunit", "millimetre");
-            tree_.Connect("metriclengthunit", "metre");
-            tree_.Connect("metriclengthunit", "kilometre");
-            tree_.Connect("metriclengthunit", "decimetre");
-            tree_.Connect("metriclengthunit", "centimetre");
-            tree_.Connect("unitofmeasure", "volumeunit");
-            tree_.Connect("volumeunit", "metricvolumeunit");
-            tree_.Connect("metricvolumeunit", "millilitre");
-            tree_.Connect("metricvolumeunit", "litre");
-            tree_.Connect("metricvolumeunit", "decilitre");
-            tree_.Connect("metricvolumeunit", "centilitre");
-            tree_.Connect("unitofmeasure", "massunit");
-            tree_.Connect("massunit", "metricmassunit");
-            tree_.Connect("metricmassunit", "kilogram");
-            tree_.Connect("metricmassunit", "hectogram");
-            tree_.Connect("metricmassunit", "gram");
-            tree_.Connect("unitofmeasure", "energymeasure");
-            tree_.Connect("something", "physicalobject");
-            tree_.Connect("something", "condition");
-            tree_.Connect("something", "illustration");
-            tree_.Connect("something", "word");
-            tree_.Connect("something", "placementpackagetobemovedtoextension");
-            tree_.Connect("something", "language");
-            tree_.Connect("something", "eventinfo");
-            tree_.Connect("something", "fixedtype");
+            if (EmulateSoDatabase) {
+
+                tree_.Connect("something", "attribute");
+                tree_.Connect("attribute", "role");
+                tree_.Connect("role", "relation");
+                tree_.Connect("relation", "participatingthing");
+                tree_.Connect("participatingthing", "participant");
+                tree_.Connect("participant", "responsible");
+                tree_.Connect("participant", "modifier");
+                tree_.Connect("participatingthing", "messagerecipient");
+                tree_.Connect("participatingthing", "transfered");
+                tree_.Connect("transfered", "moved");
+                tree_.Connect("transfered", "traded");
+                tree_.Connect("participatingthing", "modified");
+                tree_.Connect("participatingthing", "inserted");
+                tree_.Connect("relation", "systemusergroupmember");
+                tree_.Connect("relation", "publisher");
+                tree_.Connect("relation", "somebodiesrelation");
+                tree_.Connect("somebodiesrelation", "subsidiary");
+                tree_.Connect("somebodiesrelation", "personrole");
+                tree_.Connect("personrole", "affiliatedperson");
+                tree_.Connect("affiliatedperson", "employee");
+                tree_.Connect("somebodiesrelation", "affiliatedorganization");
+                tree_.Connect("somebodiesrelation", "consumer");
+                tree_.Connect("somebodiesrelation", "creator");
+                tree_.Connect("relation", "personcategorymember");
+                tree_.Connect("relation", "companycategorymember");
+                tree_.Connect("relation", "vendible");
+                tree_.Connect("relation", "address");
+                tree_.Connect("address", "digitaladdress");
+                tree_.Connect("digitaladdress", "url");
+                tree_.Connect("digitaladdress", "uripath");
+                tree_.Connect("digitaladdress", "uri");
+                tree_.Connect("digitaladdress", "port");
+                tree_.Connect("digitaladdress", "emailaddress");
+                tree_.Connect("digitaladdress", "internetaddress");
+                tree_.Connect("address", "telephonenumber");
+                tree_.Connect("address", "nowhere");
+                tree_.Connect("relation", "addressrelation");
+                tree_.Connect("addressrelation", "abstractcrossreference");
+                tree_.Connect("abstractcrossreference", "hyperlink");
+                tree_.Connect("addressrelation", "webaddress");
+                tree_.Connect("webaddress", "homepageurl");
+                tree_.Connect("addressrelation", "emailrelation");
+                tree_.Connect("addressrelation", "telephonenumberrelation");
+                tree_.Connect("telephonenumberrelation", "officephonenumber");
+                tree_.Connect("telephonenumberrelation", "mobilephonenumber");
+                tree_.Connect("telephonenumberrelation", "homephonenumber");
+                tree_.Connect("telephonenumberrelation", "faxphonenumber");
+                tree_.Connect("addressrelation", "placement");
+                tree_.Connect("placement", "negativeplacement");
+                tree_.Connect("placement", "positiveplacement");
+                tree_.Connect("relation", "definedquantification");
+                tree_.Connect("relation", "groupmember");
+                tree_.Connect("relation", "eventrole");
+                tree_.Connect("eventrole", "eventsubset");
+                tree_.Connect("eventsubset", "eventshare");
+                tree_.Connect("relation", "wordsense");
+                tree_.Connect("role", "systemuser");
+                tree_.Connect("role", "contentbearingobject");
+                tree_.Connect("contentbearingobject", "digitalasset");
+                tree_.Connect("digitalasset", "softwareapplication");
+                tree_.Connect("role", "somebody");
+                tree_.Connect("somebody", "legalentity");
+                tree_.Connect("legalentity", "organization");
+                tree_.Connect("organization", "company");
+                tree_.Connect("legalentity", "person");
+                tree_.Connect("somebody", "group");
+                tree_.Connect("group", "everybody");
+                tree_.Connect("attribute", "modifiedattribute");
+                tree_.Connect("something", "event");
+                tree_.Connect("event", "projectevent");
+                tree_.Connect("event", "message");
+                tree_.Connect("event", "transfer");
+                tree_.Connect("transfer", "move");
+                tree_.Connect("transfer", "trade");
+                tree_.Connect("event", "objectchange");
+                tree_.Connect("objectchange", "modification");
+                tree_.Connect("objectchange", "insertion");
+                tree_.Connect("objectchange", "deletion");
+                tree_.Connect("event", "agreement");
+                tree_.Connect("something", "configurationparameter");
+                tree_.Connect("something", "configuration");
+                tree_.Connect("configuration", "applicationconfiguration");
+                tree_.Connect("configuration", "computerconfiguration");
+                tree_.Connect("something", "digitalsource");
+                tree_.Connect("something", "encoding");
+                tree_.Connect("something", "digitalassetsource");
+                tree_.Connect("digitalassetsource", "datafile");
+                tree_.Connect("something", "artifact");
+                tree_.Connect("artifact", "literarywork");
+                tree_.Connect("artifact", "computersystem");
+                tree_.Connect("artifact", "right");
+                tree_.Connect("artifact", "monetary");
+                tree_.Connect("monetary", "currency");
+                tree_.Connect("something", "systemusergroup");
+                tree_.Connect("something", "category");
+                tree_.Connect("category", "personcategory");
+                tree_.Connect("category", "companycategory");
+                tree_.Connect("category", "vendiblecategory");
+                tree_.Connect("something", "level");
+                tree_.Connect("level", "categorylevel");
+                tree_.Connect("categorylevel", "vendiblelevel");
+                tree_.Connect("level", "addresslevel");
+                tree_.Connect("something", "packagetemplate");
+                tree_.Connect("something", "paymentterms");
+                tree_.Connect("something", "transfercondition");
+                tree_.Connect("something", "deliverymethod");
+                tree_.Connect("something", "identifier");
+                tree_.Connect("identifier", "barcode");
+                tree_.Connect("something", "scheme");
+                tree_.Connect("something", "societyobjectsworkspace");
+                tree_.Connect("something", "societyobjectsring");
+                tree_.Connect("something", "sequence");
+                tree_.Connect("something", "country");
+                tree_.Connect("something", "unitofmeasure");
+                tree_.Connect("unitofmeasure", "temperatureunit");
+                tree_.Connect("unitofmeasure", "lengthunit");
+                tree_.Connect("lengthunit", "metriclengthunit");
+                tree_.Connect("metriclengthunit", "millimetre");
+                tree_.Connect("metriclengthunit", "metre");
+                tree_.Connect("metriclengthunit", "kilometre");
+                tree_.Connect("metriclengthunit", "decimetre");
+                tree_.Connect("metriclengthunit", "centimetre");
+                tree_.Connect("unitofmeasure", "volumeunit");
+                tree_.Connect("volumeunit", "metricvolumeunit");
+                tree_.Connect("metricvolumeunit", "millilitre");
+                tree_.Connect("metricvolumeunit", "litre");
+                tree_.Connect("metricvolumeunit", "decilitre");
+                tree_.Connect("metricvolumeunit", "centilitre");
+                tree_.Connect("unitofmeasure", "massunit");
+                tree_.Connect("massunit", "metricmassunit");
+                tree_.Connect("metricmassunit", "kilogram");
+                tree_.Connect("metricmassunit", "hectogram");
+                tree_.Connect("metricmassunit", "gram");
+                tree_.Connect("unitofmeasure", "energymeasure");
+                tree_.Connect("something", "physicalobject");
+                tree_.Connect("something", "condition");
+                tree_.Connect("something", "illustration");
+                tree_.Connect("something", "word");
+                tree_.Connect("something", "placementpackagetobemovedtoextension");
+                tree_.Connect("something", "language");
+                tree_.Connect("something", "eventinfo");
+                tree_.Connect("something", "fixedtype");
+            }
         }
 
         /// <summary>
@@ -1070,11 +1208,32 @@ namespace PolyjuiceNamespace {
         }
 
         /// <summary>
+        /// Handler used to call all handlers in class hierarchy.
+        /// </summary>
+        static Response ClassHierarchyCallProxy(Request req, String typeName, String paramStr) {
+
+            // Collecting all responses in the tree.
+            List<Response> resps = CallAllHandlersInTypeHierarchy(req, typeName, paramStr);
+
+            if (resps.Count > 0) {
+
+                // Creating merged response.
+                return Response.ResponsesMergerRoutine_(req, null, resps);
+
+            } else {
+
+                // If there is no merged response - return null.
+                return null;
+            }
+
+        }
+
+        /// <summary>
         /// Initializes everything needed for Polyjuice.
         /// </summary>
-        public static void Init() {
+        public static void Init(Boolean emulateDatabase) {
 
-            PopulateSoTree();
+            PopulateSoTree(emulateDatabase);
 
             customMaps_ = new Dictionary<string, List<HandlerForSoType>>();
 
@@ -1083,40 +1242,14 @@ namespace PolyjuiceNamespace {
             String savedAppName = StarcounterEnvironment.AppName;
             StarcounterEnvironment.AppName = null;
 
-            // Registering ubiquitous SocietyObjects handler.
-            Handle.GET("/so/{?}/{?}", (Request req, String typeName, String paramStr) => {
+            // Registering proxy Society Objects handler.
+            Handle.GET<Request, String, String>("/so/{?}/{?}", ClassHierarchyCallProxy, new HandlerOptions() {
+                ProxyDelegateTrigger = true,
+                TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
+            });
 
-                SoType soType = null;
-
-                // Checking if we emulate the database with SO.
-                if (EmulateSoDatabase) {
-
-                    soType = tree_.Find(typeName);
-
-                } else {
-
-                    soType = (SoType)Db.SQL("SELECT T FROM SoType T WHERE Name = ?", typeName).First;
-                }
-
-                if (null == soType) {
-                    throw new ArgumentException("Can not find Society Objects type in hierarchy: " + typeName);
-                }
-
-                // Collecting all responses in the tree.
-                List<Response> resps = CallAllHandlersInTypeHierarchy(req, soType, paramStr);
-
-                if (resps.Count > 0) {
-
-                    // Creating merged response.
-                    return Response.ResponsesMergerRoutine_(req, null, resps);
-
-                } else {
-
-                    // If there is no merged response - return null.
-                    return null;
-                }
-
-            }, new HandlerOptions() {
+            // Registering proxy arbitrary database classes handler.
+            Handle.GET<Request, String, String>("/db/{?}/{?}", ClassHierarchyCallProxy, new HandlerOptions() {
                 ProxyDelegateTrigger = true,
                 TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
             });

@@ -141,7 +141,7 @@ namespace Starcounter.Internal.Tests
             allObjWrappedRef.FacebookApp = new Json() { Template = facebookProfileTemplate };
             allObjWrappedRef.GoogleMapsApp = new Json() { Template = googleMapsTemplate };
 
-            PolyjuiceNamespace.Polyjuice.Init();
+            PolyjuiceNamespace.Polyjuice.Init(true);
             
             StarcounterEnvironment.AppName = GoogleMapsAppName;
 
@@ -365,7 +365,7 @@ namespace Starcounter.Internal.Tests
         [Test]
         public static void OrdinaryMapsTests() {
 
-            Polyjuice.Init();
+            Polyjuice.Init(true);
 
             StarcounterEnvironment.AppName = "SomeApp";
 
