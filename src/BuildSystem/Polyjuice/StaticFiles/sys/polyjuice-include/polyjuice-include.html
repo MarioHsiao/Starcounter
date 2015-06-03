@@ -1,8 +1,8 @@
 <!--
-imported-template.html v0.0.9
-(c) 2013 Joachim Wester
+polyjuice-include.html
 MIT license
-https://github.com/Juicy/imported-template
+https://github.com/Polyjuice/polyjuice-include
+version: 0.0.2
 -->
 <link rel="import" href="../imported-template/imported-template.html">
 <script>
@@ -10,35 +10,100 @@ https://github.com/Juicy/imported-template
     var PolyjuiceIncludePrototype = Object.create(HTMLElement.prototype);
 
     PolyjuiceIncludePrototype.partial = null;
+    PolyjuiceIncludePrototype.isAttached = false;
+    /**
+     * Define partial setter, stamp inner `imported-template`
+     */
     PolyjuiceIncludePrototype.createdCallback = function () {
       //d console.log("polyjuice-partial created");
       //this.partial = /*this.partial ||*/ {};
+      var partial = undefined;
+      var polyjuiceInclude = this;
+      // define a setter for partial attribute, 
+      // so it could be change by VanillaJs without Polymer Template Binding
+      Object.defineProperty(this,"partial",{
+        set: function(newValue){
+          console.log("partial set");
+          partial = newValue;
+          polyjuiceInclude.partialChanged(partial);
+        },
+        get: function(){
+          return partial;
+        }
+      });
 
       var div = document.createElement("div");
       var importedTemplate = document.createElement("template","imported-template");
       this.importedTemplate = importedTemplate;
       this.appendChild(importedTemplate);
     };
+
     PolyjuiceIncludePrototype.attachedCallback = function () {
-      var partial = this.partial || this.templateInstance && this.templateInstance.model;
-      // IDEA: tomalec move to partial property (Object.)observer
-      this.importedTemplate.setAttribute("content",partial.Html);
+      this.isAttached = true;
       //d console.log("polyjuice-partial attached");
+      this.partialChanged();
     };
+
     PolyjuiceIncludePrototype.detachedCallback = function(){
+      this.isAttached = false;
       //d console.log("polyjuice-partial detached");
     };
+
     PolyjuiceIncludePrototype.attributeChangedCallback = function(name, oldVal, newVal){
       //d console.log("polyjuice-partial attr changed");
       // if(this.isAttached && (name === "content" || name === "iframe")) {
       //   debugger
       // }
     };
+    /**
+     * Updates inner `imported-template` with partial data given (if applicable)
+     * @param  {Object} newVal new partial value
+     */
+    PolyjuiceIncludePrototype.partialChanged = function(newVal){
+      var html = this.partial && this.partial.Html;
+      !html && console.warn("partial.Html for", this, "is missing.");
+      if(this.isAttached && html){
+        this.importedTemplate.setAttribute("content", html);
+        this.importedTemplate.model = this.partial;
+      }
+    };
+    /**
+     * Support for Polymers object to attribute binding
+     * @param  {String} name       [description]
+     * @param  {Object} observable [description]
+     * @param  {Boolean} oneTime   [description]
+     * @return {Object}            observer
+     */
+    PolyjuiceIncludePrototype.bind = function(name, observable, oneTime) {
+      if (name === 'partial') {
+        // observable callback
+        var self = this;
+        function updateValue(value) {
+          console.log(name, "updated");
+          self[name] = value;
+        }
+        // resolve initial value
+        var value = observable.open(updateValue);
+        updateValue(value);
+        // register and return observable
+        var observer = {
+          close: function() {
+            observable.close();
+          }
+        };
+        this[name+"Observer"] = observer;
+        return observer;
+      }
+      else {
+         return HTMLElement.prototype.bind.call(
+          this, name, observable, oneTime
+        );
+      }
+    };
 
     document.registerElement('polyjuice-include', {
       prototype: PolyjuiceIncludePrototype
     });
-
 
    
   })();
