@@ -276,8 +276,10 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
 
     // Number of chunks to use.
     int32_t num_extra_chunks = 0;
-    if (buf_len_bytes > num_bytes_left_first_chunk)
+    if (buf_len_bytes > num_bytes_left_first_chunk) {
         num_extra_chunks = ((buf_len_bytes - num_bytes_left_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
+        GW_ASSERT(num_extra_chunks <= MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS);
+    }
 
     // Getting chunk memory address.
     uint8_t* cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
@@ -315,6 +317,8 @@ uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
     // Writing to first chunk.
     memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
     left_bytes_to_write -= num_bytes_left_first_chunk;
+
+    GW_ASSERT(left_bytes_to_write <= MixedCodeConstants::MAX_BYTES_EXTRA_LINKED_IPC_CHUNKS);
 
     // Checking how many bytes to write next time.
     if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)

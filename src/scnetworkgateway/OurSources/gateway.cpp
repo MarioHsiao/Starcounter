@@ -937,8 +937,6 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
-    GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
-
     int64_t sum = 0;
     for (int32_t i = 0; i < NumGatewayChunkSizes; i++) {
         sum += GatewayChunkStoresSizes[i];
