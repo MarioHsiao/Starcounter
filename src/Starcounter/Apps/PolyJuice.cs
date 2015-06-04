@@ -569,6 +569,9 @@ namespace PolyjuiceNamespace {
                 // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
                 String typeName = GetClassNameFromUri(soProcessedUri.Substring("/db/".Length));
 
+                // Getting mapped URI prefix.
+                String mappedUriPrefix = soProcessedUri.Substring(0, "/db/".Length);
+
                 SoType soType = null;
 
                 if (EmulateSoDatabase) {
@@ -594,6 +597,15 @@ namespace PolyjuiceNamespace {
                         if (classInfo == null) {
                             throw new ArgumentException("Can not find selected database class: " + typeName);
                         }
+
+                        // Checking if we are in Society Objects mapping.
+                        /*if (mappedUriPrefix.ToLowerInvariant() == "/so/") {
+
+                            if (!classInfo.FullName.ToLowerInvariant().StartsWith("concepts.ring")) {
+
+                                throw new ArgumentException("When using \"/so/\" mapping only Society Objects classes can be used: " + typeName);
+                            }
+                        }*/
 
                         // NOTE: Using database class name because of case sensitivity.
                         tree_.Add(classInfo.Name);
@@ -628,7 +640,7 @@ namespace PolyjuiceNamespace {
                     }
 
                     // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
-                    Response resp = Self.GET(soProcessedUri.Substring(0, "/db/".Length) + typeName + "/" + soObjectId, null, req.HandlerOpts);
+                    Response resp = Self.GET(mappedUriPrefix + typeName + "/" + soObjectId, null, req.HandlerOpts);
 
                     return resp;
 
