@@ -2,7 +2,7 @@
 polyjuice-include.html
 MIT license
 https://github.com/Polyjuice/polyjuice-include
-version: 0.0.2
+version: 0.0.4
 -->
 <link rel="import" href="../imported-template/imported-template.html">
 <script>
@@ -11,6 +11,20 @@ version: 0.0.2
 
     PolyjuiceIncludePrototype.partial = null;
     PolyjuiceIncludePrototype.isAttached = false;
+
+    /**
+     * Read the `partial` attribute of given element, 
+     * filter if it's not Polymer's mustaches, and set it to `partial` property.
+     * @param  {HTMLElement} element 
+     */
+    function partialAttributeToProperty(element){
+      var attrVal = element.getAttribute("partial");
+      // no value, or Polymer binding
+      if(!attrVal || attrVal.match(/\{\{.*\}\}|\[\[.*\]\]/)){
+        return;
+      }
+      element.partial = JSON.parse(attrVal);
+    }
     /**
      * Define partial setter, stamp inner `imported-template`
      */
@@ -23,7 +37,7 @@ version: 0.0.2
       // so it could be change by VanillaJs without Polymer Template Binding
       Object.defineProperty(this,"partial",{
         set: function(newValue){
-          console.log("partial set");
+          //d console.log("partial set");
           partial = newValue;
           polyjuiceInclude.partialChanged(partial);
         },
@@ -39,6 +53,7 @@ version: 0.0.2
     };
 
     PolyjuiceIncludePrototype.attachedCallback = function () {
+      partialAttributeToProperty(this);
       this.isAttached = true;
       //d console.log("polyjuice-partial attached");
       this.partialChanged();
@@ -50,10 +65,8 @@ version: 0.0.2
     };
 
     PolyjuiceIncludePrototype.attributeChangedCallback = function(name, oldVal, newVal){
+      partialAttributeToProperty(this);
       //d console.log("polyjuice-partial attr changed");
-      // if(this.isAttached && (name === "content" || name === "iframe")) {
-      //   debugger
-      // }
     };
     /**
      * Updates inner `imported-template` with partial data given (if applicable)
