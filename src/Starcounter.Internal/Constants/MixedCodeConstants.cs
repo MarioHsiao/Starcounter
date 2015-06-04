@@ -170,7 +170,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunk size.
         /// </summary>
-        public const int SHM_CHUNK_SIZE = 512;
+        public const int SHM_CHUNK_SIZE = 1024;
 
         /// <summary>
         /// Shared memory chunks default number.
