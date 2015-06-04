@@ -306,6 +306,12 @@ namespace Starcounter {
 
                     if (value != null) {
                         value._Session = this;
+
+                        ViewModelVersion version = null;
+                        if (CheckOption(SessionOptions.PatchVersioning)) {
+                            version = new ViewModelVersion();
+                        }
+                        value.ChangeLog = new ChangeLog(value, version);
                         value.OnSessionSet();
 
                         if (publicViewModelIndex == -1)
