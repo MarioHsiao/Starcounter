@@ -511,16 +511,32 @@ namespace Starcounter.XSON {
                 unsafe {
                     reader = new JsonReader(patchArrayPtr, patchArraySize);
                     JsonToken token = JsonToken.Null;
+                    token = reader.ReadNext();
 
                     while (token != JsonToken.End) {
-                        token = reader.ReadNext();
-
                         switch (token) {
                             case JsonToken.StartArray:
+                                if (member == JsonPatchMember.Value) {
+                                    // In case the last read property is the value, we assume that
+                                    // this array is part of the value of the patch, and not
+                                    // the start of a new batch of patches.
+                                    token = JsonToken.Value;
+                                    continue;
+                                }
+                                reader.Skip(1);
+                                break;
                             case JsonToken.EndArray:
                                 reader.Skip(1);
                                 break;
                             case JsonToken.StartObject:
+                                if (member == JsonPatchMember.Value) {
+                                    // In case the last read property is the value, we assume that
+                                    // this object is part of the value of the patch, and not
+                                    // the start of a new patch.
+                                    token = JsonToken.Value;
+                                    continue;
+                                }
+
                                 member = JsonPatchMember.Invalid;
                                 pointer = null;
                                 valuePtr = IntPtr.Zero;
@@ -612,8 +628,10 @@ namespace Starcounter.XSON {
                                         }
                                     }
                                 }
+                                member = JsonPatchMember.Invalid;
                                 break;
                         }
+                        token = reader.ReadNext();
                     }
 
                     if (patchCount != -1) {
