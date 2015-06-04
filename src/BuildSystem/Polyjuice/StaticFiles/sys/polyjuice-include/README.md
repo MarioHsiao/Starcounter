@@ -89,6 +89,10 @@ Or [download as ZIP](https://github.com/Polyjuice/polyjuice-include/archive/mast
     ```js
     document.querySelector("polyjuice-include").partial = ViewModel;
     ```
+    or with inline JSON:
+    ```js
+    <polyjuice-include partial="{&quot;Html&quot;: &quot;/path/to/file.html&quot;, &quot;some&quot;: &quot;data&quot;}"></polyjuice-include>
+    ```
 
 ## Test suite
 
