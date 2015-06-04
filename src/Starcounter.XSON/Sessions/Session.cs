@@ -44,10 +44,9 @@ namespace Starcounter {
         /// </summary>
         public event EventHandler Destroyed;
 
-        private bool _brandNew;
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
-        private List<Change> _changes; // The log of Json tree changes pertaining to the session data
+       
         private List<Json> _stateList;
         private SessionOptions sessionOptions;
         private int publicViewModelIndex;
@@ -59,32 +58,29 @@ namespace Starcounter {
         /// </summary>
         private List<TransactionRef> transactions;
 
-        /// <summary>
-        /// Array of queued patches in order from the current clientversion.
-        /// </summary>
-        private List<Byte[]> patchQueue;
+        
 
-        /// <summary>
-        /// Versioning for local and remote version of the viewmodel
-        /// </summary>
-        private long clientVersion;
-        private long serverVersion;
+        ///// <summary>
+        ///// Versioning for local and remote version of the viewmodel
+        ///// </summary>
+        //private long clientVersion;
+        //private long serverVersion;
 
-        /// <summary>
-        /// The clients current serverversion. Used to check if OT is needed.
-        /// </summary>
-        private long clientServerVersion;
+        ///// <summary>
+        ///// The clients current serverversion. Used to check if OT is needed.
+        ///// </summary>
+        //private long clientServerVersion;
 
         public Session() : this(SessionOptions.Default) {
         }
 
         public Session(SessionOptions options, bool? includeNamespaces = null) {
-            _brandNew = true;
-            _changes = new List<Change>();
+//            _brandNew = true;
+//            _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<Json>();
             sessionOptions = options;
-            clientServerVersion = serverVersion;
+//            clientServerVersion = serverVersion;
             transactions = new List<TransactionRef>();
             publicViewModelIndex = -1;
 
@@ -112,44 +108,25 @@ namespace Starcounter {
             return (sessionOptions & option) == option;
         }
 
-        internal void EnqueuePatch(byte[] patchArray, int index) {
-            if (patchQueue == null)
-                patchQueue = new List<byte[]>(8);
+        ///// <summary>
+        ///// Gets the versionnumber for the remote version of the viewmodel.
+        ///// </summary>
+        //public long ClientVersion {
+        //    get { return clientVersion; }
+        //    internal set { clientVersion = value; }
+        //}
 
-            for (int i = patchQueue.Count; i < index + 1; i++)
-                patchQueue.Add(null);
-            
-            patchQueue[index] = patchArray;
-        }
+        ///// <summary>
+        ///// Gets the versionnumber for the local version of the viewmodel.
+        ///// </summary>
+        //public long ServerVersion {
+        //    get { return serverVersion; }
+        //}
 
-        internal byte[] GetNextEnqueuedPatch() {
-            byte[] ret = null;
-            if (patchQueue != null && patchQueue.Count > 0) {
-                ret = patchQueue[0];
-                patchQueue.RemoveAt(0);
-            }
-            return ret;
-        }
-
-        /// <summary>
-        /// Gets the versionnumber for the remote version of the viewmodel.
-        /// </summary>
-        public long ClientVersion {
-            get { return clientVersion; }
-            internal set { clientVersion = value; }
-        }
-
-        /// <summary>
-        /// Gets the versionnumber for the local version of the viewmodel.
-        /// </summary>
-        public long ServerVersion {
-            get { return serverVersion; }
-        }
-
-        internal long ClientServerVersion {
-            get { return clientServerVersion; }
-            /*internal*/ set { clientServerVersion = value; }
-        }
+        //internal long ClientServerVersion {
+        //    get { return clientServerVersion; }
+        //    /*internal*/ set { clientServerVersion = value; }
+        //}
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
@@ -170,7 +147,7 @@ namespace Starcounter {
             // Calculating the patch.
             Byte[] patch;
             Int32 sizeBytes = jsonPatch_.CreateJsonPatchBytes(
-                this, 
+                PublicViewModel, 
                 true, 
                 CheckOption(SessionOptions.IncludeNamespaces), 
                 out patch);
@@ -448,7 +425,6 @@ namespace Starcounter {
         internal static void End() {
             if (_current != null) {
                 _current.DisposeUnreferencedTransactions();
-                _current.ClearChangeLog();
                 Session._current = null;
             }
         }
@@ -468,69 +444,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Adds an value update change.
-        /// </summary>
-        /// <param name="obj">The json containing the value.</param>
-        /// <param name="property">The property to update</param>
-        internal void UpdateValue(Json obj, TValue property) {
-            _changes.Add(Change.Update(obj, property));
-            if (property != null)
-                property.Checkpoint(obj);
-        }
-
-        /// <summary>
-        /// Adds a list of changes to the log
-        /// </summary>
-        /// <param name="toAdd"></param>
-        internal void AddChange(Change change) {
-            _changes.Add(change);
-        }
-
-        internal List<Change> GetChanges() {
-            return _changes;
-        }
-
-        /// <summary>
-        /// Clears all changes.
-        /// </summary>
-        internal void ClearChangeLog() {
-            _changes.Clear();
-        }
-
-        /// <summary>
-        /// Returns the number of changes in the log.
-        /// </summary>
-        /// <value></value>
-        public Int32 ChangeCount { get { return _changes.Count; } }
-
-        /// <summary>
-        /// Logs all changes since the last JSON-Patch update. This method generates the log
-        /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
-        /// </summary>
-        public void GenerateChangeLog() {
-            Json root = PublicViewModel;
-
-            serverVersion++;
-            if (_brandNew) {
-                // TODO: 
-                // might be array.
-                if (root != null) {
-                    _changes.Add(Change.Add(root));
-                    root.CheckpointChangeLog();
-                }
-                _brandNew = false;
-            } else {
-                if (root != null) {
-                    if (DatabaseHasBeenUpdatedInCurrentTask) {
-                        root.LogValueChangesWithDatabase(this, true);
-                    } else {
-                        root.LogValueChangesWithoutDatabase(this, true);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         public bool DatabaseHasBeenUpdatedInCurrentTask {
@@ -543,28 +456,6 @@ namespace Starcounter {
         /// 
         /// </summary>
         public bool HaveAddedOrRemovedObjects { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void CheckpointChangeLog() {
-            Json root = PublicViewModel;
-            if (root != null)
-                root.CheckpointChangeLog();
-            _brandNew = false;
-        }
-
-        public bool BrandNew {
-            get {
-                return _brandNew;
-            }
-        }
-
-        internal void CleanupOldVersionLogs() {
-            var root = this.PublicViewModel;
-            if (root != null)
-                root.CleanupOldVersionLogs(ClientServerVersion);
-        }
 
         internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;

@@ -32,23 +32,22 @@ namespace Starcounter.Internal {
                     var root = (Json)r;
                     ret = root.ToJsonUtf8();
 
-                    s = root.Session;
-                    if (s != null) {
+                    if (root.ChangeLog != null) {
                         // Make sure that we regard all changes as being sent to the client.
                         // Calculate patches from here on.
-                        s.CheckpointChangeLog();
+                        root.ChangeLog.Checkpoint();
                     }
                     break;
                 case MimeType.Application_JsonPatch__Json:
                     resultingMimeType = MimeType.Application_JsonPatch__Json;
 
                     s = Session.Current;
-                    if (s == null) {
+                    if (s == null || s.PublicViewModel == null) {
                         throw new UnsupportedMimeTypeException(
                             String.Format("Cannot supply mime-type {0} for the JSON resource. There is no session, so no JSON-Patch message can be generated.", mimeType.ToString()));
                     }
 
-                    int size = jsonPatch.CreateJsonPatchBytes(s, true, s.CheckOption(SessionOptions.IncludeNamespaces), out ret);
+                    int size = jsonPatch.CreateJsonPatchBytes(s.PublicViewModel, true, s.CheckOption(SessionOptions.IncludeNamespaces), out ret);
                     if (ret.Length != size) {
                         byte[] tmp = new byte[size];
                         Buffer.BlockCopy(ret, 0, tmp, 0, size);

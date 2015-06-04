@@ -47,7 +47,7 @@ namespace Starcounter.Templates {
 					|| (boundValue != null && !boundValue.Equals(oldValue))) {
 					UnboundSetter(parent, boundValue);
 					if (addToChangeLog)
-						parent.Session.UpdateValue(parent, this);
+						parent.ChangeLog.UpdateValue(parent, this);
 				}
 			}	
 		}

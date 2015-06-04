@@ -176,7 +176,7 @@ namespace Starcounter.Templates {
 				if (!boundValue.Equals(oldValue)) {
 					UnboundSetter(parent, boundValue);
 					if (addToChangeLog)
-						parent.Session.UpdateValue(parent, this);
+						parent.ChangeLog.UpdateValue(parent, this);
 				}
 			}
 		}

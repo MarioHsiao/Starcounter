@@ -55,11 +55,11 @@ namespace Starcounter {
                 if (Parent != null) {
                     return ((IndexInParent != -1) && (!Parent.WasReplacedAt(IndexInParent)));
                 } else {
-                    var s = Session;
-                    if (s == null) {
+                    var log = ChangeLog;
+                    if (log == null) {
                         return false;
                     }
-                    return !s.BrandNew;
+                    return !log.BrandNew;
                 }
             }
         }

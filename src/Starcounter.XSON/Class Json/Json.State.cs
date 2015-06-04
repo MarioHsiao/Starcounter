@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using Starcounter.XSON;
 
 namespace Starcounter {
     partial class Json {
@@ -66,6 +67,11 @@ namespace Starcounter {
         /// 
         /// </summary>
         internal List<ArrayVersionLog> versionLog = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private ChangeLog changeLog;
 
         /// <summary>
         /// Implementation field used to cache the Metadata property.
