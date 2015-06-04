@@ -112,7 +112,7 @@ namespace Starcounter.Advanced.XSON {
 
         private void SkipObjectOrArray(byte startToken, byte endToken) {
             byte current;
-            int nrOfTokens = 1;
+            int nrOfTokens = 0;
             bool keepLooking = true;
 
             while (keepLooking) {
@@ -228,6 +228,16 @@ namespace Starcounter.Advanced.XSON {
 
         public int Size {
             get { return streamSize; }
+        }
+
+        public JsonReader Clone() {
+            var reader = new JsonReader((IntPtr)pStream, streamSize);
+            reader.position = position;
+            reader.currentToken = currentToken;
+            reader.propertyNamePtr = propertyNamePtr;
+            reader.nextIsPropertyName = nextIsPropertyName;
+            reader.objectCount = objectCount;
+            return reader;
         }
 
         private string CurrentPropertyName {
