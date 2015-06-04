@@ -258,8 +258,8 @@ namespace Starcounter.Internal.XSON.Tests {
             simple.Data = new TestData() { Name = "Apapapa" };
             simple.Session = session;
 
-            session.GenerateChangeLog();
-            session.GenerateChangeLog();
+            simple.ChangeLog.Generate();
+            simple.ChangeLog.Generate();
         }
 
         [Test]
