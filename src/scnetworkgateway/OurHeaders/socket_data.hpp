@@ -934,6 +934,9 @@ public:
     // Returns pointer to the beginning of user data.
     uint8_t* GetUserData()
     {
+        GW_ASSERT(user_data_offset_in_socket_data_ > 0);
+        GW_ASSERT(user_data_offset_in_socket_data_ < (SOCKET_DATA_OFFSET_BLOB + get_data_blob_size()));
+
         return (uint8_t*)this + user_data_offset_in_socket_data_;
     }
 

@@ -265,7 +265,7 @@ enum GatewayTestingMode
     MODE_GATEWAY_UNKNOWN = 6
 };
 
-const int32_t NumGatewayChunkSizes = 7;
+const int32_t NumGatewayChunkSizes = 6;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
@@ -274,17 +274,15 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     8 * 1024,
     32 * 1024,
     128 * 1024,
-    512 * 1024,
-    4096 * 1024
+    1024 * 1024
 };
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     100000,
     500000, // Default chunk size.
     100000,
-    50000,
-    50000,
-    1000,
+    30000,
+    10000,
     100
 };
 
@@ -293,9 +291,8 @@ const int32_t MAX_WORKER_CHUNKS =
     100000 +
     500000 + // Default chunk size.
     100000 +
-    50000 +
-    50000 +
-    1000 +
+    30000 +
+    10000 +
     100;
 
 const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
@@ -304,8 +301,7 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[6] - SOCKET_DATA_OFFSET_BLOB
+    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
 };
 
 // Maximum size of UDP datagram.
@@ -313,9 +309,12 @@ const int32_t MAX_UDP_DATAGRAM_SIZE = GatewayChunkDataSizes[3];
 
 inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
 {
-    for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
-        if (data_size <= GatewayChunkDataSizes[i])
+    for (int32_t i = 0; i < NumGatewayChunkSizes; i++) {
+
+        if (data_size <= GatewayChunkDataSizes[i]) {
             return i;
+        }
+    }
 
     GW_ASSERT(false);
     return INVALID_CHUNK_STORE_INDEX;
