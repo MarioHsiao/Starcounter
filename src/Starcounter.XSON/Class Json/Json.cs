@@ -8,6 +8,7 @@ using System;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.Templates;
+using Starcounter.XSON;
 
 namespace Starcounter {
     /// <summary>
@@ -120,6 +121,44 @@ namespace Starcounter {
         /// </summary>
         protected void _InitializeValues() {
             InitializeCache();
+        }
+
+        /// <summary>
+        /// Gets the ChangeLog object from the closest parent that have one attached.
+        /// </summary>
+        /// <param name="lookInStepSiblings"></param>
+        /// <returns></returns>
+        private ChangeLog GetChangeLog(bool lookInStepSiblings) {
+            var log = changeLog;
+
+            if (log != null)
+                return log;
+
+            if (Parent != null)
+                log = Parent.GetChangeLog(true);
+
+            if (log == null && lookInStepSiblings && _stepSiblings != null) {
+                foreach (var stepSibling in _stepSiblings) {
+                    if (stepSibling == this)
+                        continue;
+                    log = stepSibling.GetChangeLog(false);
+                    if (log != null)
+                        break;
+                }
+            }
+            return log;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public ChangeLog ChangeLog {
+            get {
+                return GetChangeLog(true);
+            }
+            set {
+                changeLog = value;
+            }
         }
 
         /// <summary>

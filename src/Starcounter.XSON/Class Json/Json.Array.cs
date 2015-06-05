@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
 
 namespace Starcounter {
     public partial class Json {
@@ -98,16 +99,14 @@ namespace Starcounter {
             _cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
 
-        internal int TransformIndex(long fromVersion, int orgIndex) {
+        internal int TransformIndex(ViewModelVersion version, long fromVersion, int orgIndex) {
             int transformedIndex;
-            Session s;
             long currentVersion;
             
             if ((_Dirty == false) && (versionLog == null || versionLog.Count == 0))
                 return orgIndex;
 
-            s = Session;
-            currentVersion = s.ServerVersion;
+            currentVersion = version.LocalVersion;
             transformedIndex = orgIndex;
 
             if (versionLog != null) {

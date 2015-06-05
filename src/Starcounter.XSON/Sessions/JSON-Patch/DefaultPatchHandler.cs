@@ -6,18 +6,18 @@ using Starcounter.Internal;
 
 namespace Starcounter.XSON {
     internal static class DefaultPatchHandler {
-        internal static void Handle(Session session, JsonPatchOperation patchOp, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
+        internal static void Handle(Json root, JsonPatchOperation patchOp, JsonPointer pointer, IntPtr valuePtr, int valueSize) {
             string origAppName;
             Debug.WriteLine("Handling patch for: " + pointer.ToString());
 
-            if (session == null) return;
+            if (root == null) return;
 
             if (patchOp != JsonPatchOperation.Replace)
                 throw new JsonPatchException("Unsupported patch operation in patch.");
 
             origAppName = StarcounterEnvironment.AppName;
             try {
-                var aat = JsonProperty.Evaluate(pointer, session.PublicViewModel);
+                var aat = JsonProperty.Evaluate(pointer, root);
 
                 if (!aat.Property.Editable) {
                     throw new JsonPatchException(
