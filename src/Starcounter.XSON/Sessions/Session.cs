@@ -307,9 +307,10 @@ namespace Starcounter {
                     if (value != null) {
                         value._Session = this;
 
-                        if (publicViewModelIndex == -1) {
+                        if (publicViewModelIndex == -1)
                             publicViewModelIndex = stateIndex;
 
+                        if (stateIndex == publicViewModelIndex) {
                             ViewModelVersion version = null;
                             if (CheckOption(SessionOptions.PatchVersioning)) {
                                 version = new ViewModelVersion();

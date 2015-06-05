@@ -113,13 +113,13 @@ namespace Starcounter.Internal.XSON.Tests {
             tmp = json.LastName;
 
             // Resetting dirtyflags.
-            string patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            string patch = jsonPatch.CreateJsonPatch(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
             data.FirstName = "Bengt";
-            patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            patch = jsonPatch.CreateJsonPatch(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");

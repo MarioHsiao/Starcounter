@@ -98,7 +98,7 @@ namespace Starcounter.XSON {
         /// <param name="changeLog"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        internal int CreatePatches(ChangeLog changeLog, bool includeNamespace, out byte[] patches) {
+        private int CreatePatches(ChangeLog changeLog, bool includeNamespace, out byte[] patches) {
             byte[] buffer;
             int size;
             Utf8Writer writer;

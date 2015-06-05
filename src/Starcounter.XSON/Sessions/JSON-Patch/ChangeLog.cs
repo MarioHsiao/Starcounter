@@ -17,9 +17,10 @@ namespace Starcounter.XSON {
         public ChangeLog(Json employer) {
             this.changes = new List<Change>();
             this.employer = employer;
+            this.brandNew = true;
         }
 
-        public ChangeLog(Json employer, ViewModelVersion version) : base() {
+        public ChangeLog(Json employer, ViewModelVersion version) : this(employer) {
             this.version = version;
         }
 
