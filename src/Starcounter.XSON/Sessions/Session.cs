@@ -146,7 +146,7 @@ namespace Starcounter {
 
             // Calculating the patch.
             Byte[] patch;
-            Int32 sizeBytes = jsonPatch_.CreateJsonPatchBytes(
+            Int32 sizeBytes = jsonPatch_.Generate(
                 PublicViewModel, 
                 true, 
                 CheckOption(SessionOptions.IncludeNamespaces), 

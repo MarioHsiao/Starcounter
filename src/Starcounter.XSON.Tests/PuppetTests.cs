@@ -113,13 +113,13 @@ namespace Starcounter.Internal.XSON.Tests {
             tmp = json.LastName;
 
             // Resetting dirtyflags.
-            string patch = jsonPatch.CreateJsonPatch(json, true, false);
+            string patch = jsonPatch.Generate(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
             data.FirstName = "Bengt";
-            patch = jsonPatch.CreateJsonPatch(json, true, false);
+            patch = jsonPatch.Generate(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
@@ -223,14 +223,14 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Data = data;
             json.Session = new Session();
 
-            var patch = jsonPatch.CreateJsonPatch(json, true, false);
+            var patch = jsonPatch.Generate(json, true, false);
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
             item.Recursives.Add(subItem);
             data.Recursives.Add(item);
 
-            patch = jsonPatch.CreateJsonPatch(json, true, false);
+            patch = jsonPatch.Generate(json, true, false);
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
@@ -238,7 +238,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(expected, patch);
             
             data.Recursives[0].Recursives.Add(subItem);
-            patch = jsonPatch.CreateJsonPatch(json, true, false);
+            patch = jsonPatch.Generate(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
@@ -277,13 +277,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // Flush all current changes.
             json.ChangeLog.Generate();
-            jsonPatch.CreateJsonPatch(json, true, false);
+            jsonPatch.Generate(json, true, false);
 
             // Call handler with no change of input value.
             tvalue1.ProcessInput(json, "Incoming");
 
             json.ChangeLog.Generate();
-            string patch = jsonPatch.CreateJsonPatch(json, true, false);
+            string patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Incoming", tvalue1.Getter(json));
             Assert.AreEqual("[]", patch);
@@ -292,7 +292,7 @@ namespace Starcounter.Internal.XSON.Tests {
             tvalue2.ProcessInput(json, "Incoming");
 
             json.ChangeLog.Generate();
-            patch = jsonPatch.CreateJsonPatch(json, true, false);
+            patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Changed", tvalue2.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Changed""}]", patch);
@@ -329,13 +329,13 @@ namespace Starcounter.Internal.XSON.Tests {
             tvalue1.Setter(json, "Value1");
             tvalue2.Setter(json, "Value2");
             json.ChangeLog.Generate();
-            jsonPatch.CreateJsonPatch(json, true, false);
+            jsonPatch.Generate(json, true, false);
 
             // Call handler with different incoming value as on the server, value should be sent back to client.
             tvalue1.ProcessInput(json, "Incoming");
 
             json.ChangeLog.Generate();
-            string patch = jsonPatch.CreateJsonPatch(json, true, false);
+            string patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Value1", tvalue1.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/VirtualValue$"",""value"":""Value1""}]", patch);
@@ -344,7 +344,7 @@ namespace Starcounter.Internal.XSON.Tests {
             tvalue2.ProcessInput(json, "Value2");
 
             json.ChangeLog.Generate();
-            patch = jsonPatch.CreateJsonPatch(json, true, false);
+            patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Value2", tvalue2.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Value2""}]", patch);

@@ -65,9 +65,9 @@ namespace Starcounter.XSON {
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public string CreateJsonPatch(Json json, bool flushLog, bool includeNamespace) {
+        public string Generate(Json json, bool flushLog, bool includeNamespace) {
             byte[] patchArr;
-            int size = CreateJsonPatchBytes(json, flushLog, includeNamespace, out patchArr);
+            int size = Generate(json, flushLog, includeNamespace, out patchArr);
             return Encoding.UTF8.GetString(patchArr, 0, size);
         }
 
@@ -76,7 +76,7 @@ namespace Starcounter.XSON {
         /// </summary>
         /// <param name="flushLog">If true, the change log will be reset</param>
         /// <returns>The JSON-Patch string (see RFC6902)</returns>
-        public int CreateJsonPatchBytes(Json json, bool flushLog, bool includeNamespace, out byte[] patches) {
+        public int Generate(Json json, bool flushLog, bool includeNamespace, out byte[] patches) {
             int patchSize;
             ChangeLog changeLog = json.ChangeLog;
 
@@ -85,7 +85,7 @@ namespace Starcounter.XSON {
             }
 
             changeLog.Generate();
-            patchSize = CreatePatches(changeLog, includeNamespace, out patches);
+            patchSize = Generate(changeLog, includeNamespace, out patches);
             if (flushLog)
                 changeLog.Clear();
         
@@ -98,7 +98,7 @@ namespace Starcounter.XSON {
         /// <param name="changeLog"></param>
         /// <param name="buffer"></param>
         /// <returns></returns>
-        private int CreatePatches(ChangeLog changeLog, bool includeNamespace, out byte[] patches) {
+        private int Generate(ChangeLog changeLog, bool includeNamespace, out byte[] patches) {
             byte[] buffer;
             int size;
             Utf8Writer writer;
@@ -443,12 +443,12 @@ namespace Starcounter.XSON {
         ///// <param name="root">The root json</param>
         ///// <param name="patchArray">The bytearray containing all patches.</param>
         ///// <returns>The number of patches evaluated.</returns>
-        public int EvaluatePatches(Json root, byte[] patchArray) {
+        public int Apply(Json root, byte[] patchArray) {
             int patchCount;
 
             unsafe {
                 fixed (byte* pBody = patchArray) {
-                    patchCount = EvaluatePatches(root, (IntPtr)pBody, patchArray.Length);
+                    patchCount = Apply(root, (IntPtr)pBody, patchArray.Length);
                 }
             }
             return patchCount;
@@ -461,7 +461,7 @@ namespace Starcounter.XSON {
         /// <param name="patchArrayPtr">The pointer to the content for the patches.</param>
         /// <param name="patchArraySize">The size of the content.</param>
         /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued.</returns>
-        public int EvaluatePatches(Json root, IntPtr patchArrayPtr, int patchArraySize) {
+        public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize) {
             int patchCount = 0;
             int patchStart = -1;
             int rejectedPatches = 0;
@@ -620,7 +620,7 @@ namespace Starcounter.XSON {
                     if (version != null && patchCount != -1) {
                         byte[] enqueuedPatch = version.GetNextEnqueuedPatch();
                         if (enqueuedPatch != null) {
-                            patchCount += EvaluatePatches(root, enqueuedPatch);
+                            patchCount += Apply(root, enqueuedPatch);
                         }
                     }
                 }
