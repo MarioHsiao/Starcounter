@@ -163,10 +163,13 @@ namespace Starcounter.Advanced.XSON {
             List<Template> exposedProperties;
             Template tProperty;
 
-            if (session != null && json == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
-                // add serverversion and clientversion to the serialized json if we have a root.
-                sizeBytes += Starcounter.XSON.JsonPatch.ClientVersionPropertyName.Length + 35;
-                sizeBytes += Starcounter.XSON.JsonPatch.ServerVersionPropertyName.Length + 35;
+            if (session != null && json == session.PublicViewModel) {
+                var patchVersion = (json.ChangeLog != null) ? json.ChangeLog.Version : null;
+                if (patchVersion != null) {
+                    // add serverversion and clientversion to the serialized json if we have a root.
+                    sizeBytes += patchVersion.RemoteVersionPropertyName.Length + 35;
+                    sizeBytes += patchVersion.LocalVersionPropertyName.Length + 35;
+                }
             }
 
             exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
@@ -435,31 +438,34 @@ namespace Starcounter.Advanced.XSON {
 
                 exposedProperties = ((TObject)json.Template).Properties.ExposedProperties;
 
-                if (session != null && json == session.PublicViewModel && session.CheckOption(SessionOptions.PatchVersioning)) {
-                    // add serverversion and clientversion to the serialized json if we have a root.
-                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, Starcounter.XSON.JsonPatch.ClientVersionPropertyName);
-                    used += valueSize;
-                    pfrag += valueSize;
-                    *pfrag++ = (byte)':';
-                    used++;
-                    valueSize = JsonHelper.WriteInt((IntPtr)pfrag, destSize - used, session.ClientVersion);
-                    used += valueSize;
-                    pfrag += valueSize;
-                    *pfrag++ = (byte)',';
-                    used++;
-
-                    valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, Starcounter.XSON.JsonPatch.ServerVersionPropertyName);
-                    used += valueSize;
-                    pfrag += valueSize;
-                    *pfrag++ = (byte)':';
-                    used++;
-                    valueSize = JsonHelper.WriteInt((IntPtr)pfrag, destSize - used, session.ServerVersion);
-                    used += valueSize;
-                    pfrag += valueSize;
-
-                    if (exposedProperties.Count > 0) {
+                if (session != null && json == session.PublicViewModel) {
+                    var patchVersion = (json.ChangeLog != null) ? json.ChangeLog.Version : null;
+                    if (patchVersion != null) {
+                        // add serverversion and clientversion to the serialized json if we have a root.
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, patchVersion.RemoteVersionPropertyName);
+                        used += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)':';
+                        used++;
+                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, destSize - used, patchVersion.RemoteVersion);
+                        used += valueSize;
+                        pfrag += valueSize;
                         *pfrag++ = (byte)',';
                         used++;
+
+                        valueSize = JsonHelper.WriteStringAsIs((IntPtr)pfrag, destSize - used, patchVersion.LocalVersionPropertyName);
+                        used += valueSize;
+                        pfrag += valueSize;
+                        *pfrag++ = (byte)':';
+                        used++;
+                        valueSize = JsonHelper.WriteInt((IntPtr)pfrag, destSize - used, patchVersion.LocalVersion);
+                        used += valueSize;
+                        pfrag += valueSize;
+
+                        if (exposedProperties.Count > 0) {
+                            *pfrag++ = (byte)',';
+                            used++;
+                        }
                     }
                 }
 
