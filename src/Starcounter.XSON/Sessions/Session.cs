@@ -7,12 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Starcounter.Internal;
-using Starcounter.Internal.XSON;
-using Starcounter.Templates;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 using Starcounter.XSON;
-using System.Threading;
 
 namespace Starcounter {
     [Flags]
@@ -58,29 +55,13 @@ namespace Starcounter {
         /// </summary>
         private List<TransactionRef> transactions;
 
-        
-
-        ///// <summary>
-        ///// Versioning for local and remote version of the viewmodel
-        ///// </summary>
-        //private long clientVersion;
-        //private long serverVersion;
-
-        ///// <summary>
-        ///// The clients current serverversion. Used to check if OT is needed.
-        ///// </summary>
-        //private long clientServerVersion;
-
         public Session() : this(SessionOptions.Default) {
         }
 
         public Session(SessionOptions options, bool? includeNamespaces = null) {
-//            _brandNew = true;
-//            _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<Json>();
             sessionOptions = options;
-//            clientServerVersion = serverVersion;
             transactions = new List<TransactionRef>();
             publicViewModelIndex = -1;
 
@@ -107,26 +88,6 @@ namespace Starcounter {
         public bool CheckOption(SessionOptions option) {
             return (sessionOptions & option) == option;
         }
-
-        ///// <summary>
-        ///// Gets the versionnumber for the remote version of the viewmodel.
-        ///// </summary>
-        //public long ClientVersion {
-        //    get { return clientVersion; }
-        //    internal set { clientVersion = value; }
-        //}
-
-        ///// <summary>
-        ///// Gets the versionnumber for the local version of the viewmodel.
-        ///// </summary>
-        //public long ServerVersion {
-        //    get { return serverVersion; }
-        //}
-
-        //internal long ClientServerVersion {
-        //    get { return clientServerVersion; }
-        //    /*internal*/ set { clientServerVersion = value; }
-        //}
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.

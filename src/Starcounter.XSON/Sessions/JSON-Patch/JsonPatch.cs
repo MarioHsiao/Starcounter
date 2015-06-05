@@ -31,8 +31,6 @@ namespace Starcounter.XSON {
 
         private Action<Json, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = DefaultPatchHandler.Handle;
 
-        private bool strictPatchRejection;
-        
         private enum JsonPatchMember {
             Invalid,
             Op,
@@ -50,10 +48,6 @@ namespace Starcounter.XSON {
         }
 
         public JsonPatch() {
-        }
-
-        public JsonPatch(bool strictPatchRejection) {
-            this.strictPatchRejection = strictPatchRejection;
         }
 
         public void SetPatchHandler(Action<Json, JsonPatchOperation, JsonPointer, IntPtr, int> handler) {
@@ -443,12 +437,12 @@ namespace Starcounter.XSON {
         ///// <param name="root">The root json</param>
         ///// <param name="patchArray">The bytearray containing all patches.</param>
         ///// <returns>The number of patches evaluated.</returns>
-        public int Apply(Json root, byte[] patchArray) {
+        public int Apply(Json root, byte[] patchArray, bool strictPatchRejection = true) {
             int patchCount;
 
             unsafe {
                 fixed (byte* pBody = patchArray) {
-                    patchCount = Apply(root, (IntPtr)pBody, patchArray.Length);
+                    patchCount = Apply(root, (IntPtr)pBody, patchArray.Length, strictPatchRejection);
                 }
             }
             return patchCount;
@@ -461,7 +455,7 @@ namespace Starcounter.XSON {
         /// <param name="patchArrayPtr">The pointer to the content for the patches.</param>
         /// <param name="patchArraySize">The size of the content.</param>
         /// <returns>The number of patches evaluated, or -1 if versioncheck is enabled and patches were queued.</returns>
-        public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize) {
+        public int Apply(Json root, IntPtr patchArrayPtr, int patchArraySize, bool strictPatchRejection = true) {
             int patchCount = 0;
             int patchStart = -1;
             int rejectedPatches = 0;
@@ -620,7 +614,7 @@ namespace Starcounter.XSON {
                     if (version != null && patchCount != -1) {
                         byte[] enqueuedPatch = version.GetNextEnqueuedPatch();
                         if (enqueuedPatch != null) {
-                            patchCount += Apply(root, enqueuedPatch);
+                            patchCount += Apply(root, enqueuedPatch, strictPatchRejection);
                         }
                     }
                 }

@@ -33,17 +33,17 @@ namespace Starcounter.Internal.XSON.Tests {
             dynamic json = new Json() { Template = schema };
             var session = new Session();
             session.Data = json;
-            softJsonPatch.Generate(json, true, false);
+            jsonPatch.Generate(json, true, false);
 
             json.Total = 1L;
             patch = string.Format(Helper.PATCH_REPLACE, "/Total", "invalid");
             patchArr = System.Text.Encoding.UTF8.GetBytes(patch);
-            number = softJsonPatch.Apply(json, patchArr);
+            number = jsonPatch.Apply(json, patchArr, false);
             Assert.AreEqual(number, 1);
             Assert.AreEqual(1L, json.Total);
 
-            patch = softJsonPatch.Generate(json, true, false);
-            Assert.AreEqual(   string.Format(Helper.ONE_PATCH_ARR, "/Total", 1), patch);
+            patch = jsonPatch.Generate(json, true, false);
+            Assert.AreEqual(string.Format(Helper.ONE_PATCH_ARR, "/Total", 1), patch);
         }
 
         [Test]
@@ -760,21 +760,21 @@ namespace Starcounter.Internal.XSON.Tests {
 
             var version = json.ChangeLog.Version;
 
-            outgoingPatch = softJsonPatch.Generate(json, true, false); // ServerVersion: 1
+            outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 1
             json.Items.Add(itemDummy); // index 0
-            outgoingPatch = softJsonPatch.Generate(json, true, false); // ServerVersion: 2
+            outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 2
             json.Items.Insert(0, itemA);
-            outgoingPatch = softJsonPatch.Generate(json, true, false); // ServerVersion: 3
+            outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 3
             json.Items.Insert(0, itemC); // itemA -> index 1
-            outgoingPatch = softJsonPatch.Generate(json, true, false); // ServerVersion: 4
+            outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 4
             json.Items.Insert(0, itemB); // itemA -> index 2
             json.Items.Remove(itemA); // itemA -> invalid
-            outgoingPatch = softJsonPatch.Generate(json, true, false); // ServerVersion: 5
+            outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 5
 
             // Several versions behind, index 0 should be 1
             incomingPatch = GetVersioningPatch(version, 1, 3, string.Format(Helper.PATCH_REPLACE, "/Items/0/Description$", @"""A:Change"""));
 
-            evaluatedCount = softJsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch));
+            evaluatedCount = jsonPatch.Apply(json, Encoding.UTF8.GetBytes(incomingPatch), false);
 
             Assert.AreEqual(1, version.RemoteVersion);
             Assert.AreEqual(5, version.LocalVersion);
@@ -783,7 +783,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("B", itemB.Description);
             Assert.AreEqual("Dummy", itemDummy.Description);
 
-            outgoingPatch = softJsonPatch.Generate(json, true, false); // ServerVersion: 6
+            outgoingPatch = jsonPatch.Generate(json, true, false); // ServerVersion: 6
         }
 
 

@@ -52,7 +52,7 @@ namespace Starcounter.Internal {
                 }
 
                 // Running patches evaluation.
-                int patchCount = jsonPatch.Apply(root, bs);
+                int patchCount = jsonPatch.Apply(root, bs, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                 // -1 means that the patch was queued due to clientversion mismatch. We send no response.
                 if (patchCount != -1) { 
@@ -96,7 +96,7 @@ namespace Starcounter.Internal {
                     IntPtr bodyPtr;
                     uint bodySize;
                     request.GetBodyRaw(out bodyPtr, out bodySize);
-                    int patchCount = jsonPatch.Apply(root, bodyPtr, (int)bodySize);
+                    int patchCount = jsonPatch.Apply(root, bodyPtr, (int)bodySize, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                     if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
                         return new Response() {

@@ -11,8 +11,7 @@ using XSONModule = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
     public class GenerateJsonPatchTests {
-        internal static JsonPatch jsonPatch = new JsonPatch(true);
-        internal static JsonPatch softJsonPatch = new JsonPatch();
+        internal static JsonPatch jsonPatch = new JsonPatch();
         private static string oldAppName = null;
 
         /// <summary>
