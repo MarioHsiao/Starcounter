@@ -567,7 +567,7 @@ namespace PolyjuiceNamespace {
                 }
 
                 // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
-                String typeName = GetClassNameFromUri(soProcessedUri.Substring("/db/".Length));
+                String className = GetClassNameFromUri(soProcessedUri.Substring("/db/".Length));
 
                 // Getting mapped URI prefix.
                 String mappedUriPrefix = soProcessedUri.Substring(0, "/db/".Length);
@@ -576,40 +576,59 @@ namespace PolyjuiceNamespace {
 
                 if (EmulateSoDatabase) {
 
-                    soType = tree_.Find(typeName);
+                    soType = tree_.Find(className);
 
                     if (null == soType) {
-                        throw new ArgumentException("Can not find class type in hierarchy: " + typeName);
+                        throw new ArgumentException("Can not find class type in hierarchy: " + className);
                     }
 
                 } else {
 
-                    // First trying to find the handlers for this type.
-                    soType = tree_.Find(typeName);
+                    String foundFullClassName = null;
 
-                    // If the type is not found.
-                    if (null == soType) {
+                    // Checking if we have a Society Objects registration.
+                    if (mappedUriPrefix.ToLowerInvariant() == "/so/") {
 
                         // Checking if there is such class in database.
-                        Starcounter.Metadata.Table classInfo = 
-                            Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", typeName).First;
+                        foreach (Starcounter.Metadata.Table classInfo in
+                            Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", className)) {
 
-                        if (classInfo == null) {
-                            throw new ArgumentException("Can not find selected database class: " + typeName);
+                            // Checking that its a class starting with Society Objects namespace.
+                            if (classInfo.FullName.ToLowerInvariant().StartsWith("concepts.ring")) {
+
+                                foundFullClassName = classInfo.FullName;
+                                break;
+                            }
                         }
 
-                        // Checking if we are in Society Objects mapping.
-                        /*if (mappedUriPrefix.ToLowerInvariant() == "/so/") {
+                        // Checking if class was not found.
+                        if (null == foundFullClassName) {
+                            throw new ArgumentException("Can not find specified Society Objects database class: " + className);
+                        }
 
-                            if (!classInfo.FullName.ToLowerInvariant().StartsWith("concepts.ring")) {
+                    } else {
 
-                                throw new ArgumentException("When using \"/so/\" mapping only Society Objects classes can be used: " + typeName);
-                            }
-                        }*/
+                        // Assuming that full class name was specified.
+                        Starcounter.Metadata.Table classInfo =
+                            Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
 
-                        // NOTE: Using database class name because of case sensitivity.
-                        tree_.Add(classInfo.Name);
-                        soType = tree_.Find(classInfo.Name);
+                        if (classInfo != null) {
+
+                            // An arbitrary class mapping should have a full name specified.
+                            foundFullClassName = classInfo.FullName;
+
+                        } else {
+
+                            throw new ArgumentException("Can not find specified database class: " + className +
+                                ". Note that fully-namespaced class name has to be specified in ordinary mapping!");
+                        }
+                    }
+
+                    // NOTE: Using database full class name because of case sensitivity.
+                    soType = tree_.Find(foundFullClassName);
+                    if (null == soType) {
+                        tree_.Add(foundFullClassName);
+                        soType = tree_.Find(foundFullClassName);
                     }
                 }
 
@@ -640,7 +659,7 @@ namespace PolyjuiceNamespace {
                     }
 
                     // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
-                    Response resp = Self.GET(mappedUriPrefix + typeName + "/" + soObjectId, null, req.HandlerOpts);
+                    Response resp = Self.GET(mappedUriPrefix + className + "/" + soObjectId, null, req.HandlerOpts);
 
                     return resp;
 
@@ -659,7 +678,7 @@ namespace PolyjuiceNamespace {
         static SoType FindHandlersInClassHierarchy(ref Starcounter.Metadata.Table currentClassInfo) {
 
             // Going up in class hierarchy until we find the handlers.
-            SoType soType = tree_.Find(currentClassInfo.Name);
+            SoType soType = tree_.Find(currentClassInfo.FullName);
             if (soType != null)
                 return soType;
 
@@ -672,7 +691,7 @@ namespace PolyjuiceNamespace {
                 if (currentClassInfo != null) {
 
                     // Checking if there are handlers attached to this class.
-                    soType = tree_.Find(currentClassInfo.Name);
+                    soType = tree_.Find(currentClassInfo.FullName);
                     if (soType != null) {
                         break;
                     }
@@ -687,7 +706,7 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Calling all handlers in class hierarchy.
         /// </summary>
-        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String typeName, String paramStr) {
+        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String className, String paramStr, Boolean isSoClass) {
 
             // Checking if there is such class in database.
             Starcounter.Metadata.Table classInfo = null;
@@ -695,24 +714,43 @@ namespace PolyjuiceNamespace {
 
             if (EmulateSoDatabase) {
 
-                soType = tree_.Find(typeName);
+                soType = tree_.Find(className);
 
             } else {
 
-                // Finding the class with specified name.
-                classInfo =
-                    Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", typeName).First;
+                // Checking if we have SO or arbitrary mapping.
+                if (isSoClass) {
 
+                    // Checking if there is such class in database.
+                    foreach (Starcounter.Metadata.Table ci in
+                        Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", className)) {
+
+                        // Checking that its a class starting with Society Objects namespace.
+                        if (ci.FullName.ToLowerInvariant().StartsWith("concepts.ring")) {
+
+                            classInfo = ci;
+                            break;
+                        }
+                    }
+
+                } else {
+
+                    // NOTE: We are searching by full name in arbitrary mapping.
+                    classInfo = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
+                }
+
+                // Checking if class was found.
                 if (classInfo == null) {
-                    throw new ArgumentException("Can not find selected database class: " + typeName);
+                    throw new ArgumentException("Can not find specified database class: " + className);
                 }
 
                 // Finding the handler based on type name.
                 soType = FindHandlersInClassHierarchy(ref classInfo);
             }
 
+            // Checking if handlers were found.
             if (null == soType) {
-                throw new ArgumentException("Can not find the following class type in hierarchy: " + typeName);
+                throw new ArgumentException("Can not find the handlers in hierarchy for class type: " + className);
             }
 
             List<Response> resps = new List<Response>();
@@ -1222,10 +1260,10 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Handler used to call all handlers in class hierarchy.
         /// </summary>
-        static Response ClassHierarchyCallProxy(Request req, String typeName, String paramStr) {
+        static Response ClassHierarchyCallProxy(Request req, String className, String paramStr, Boolean isSoClass) {
 
             // Collecting all responses in the tree.
-            List<Response> resps = CallAllHandlersInTypeHierarchy(req, typeName, paramStr);
+            List<Response> resps = CallAllHandlersInTypeHierarchy(req, className, paramStr, isSoClass);
 
             if (resps.Count > 0) {
 
@@ -1255,16 +1293,26 @@ namespace PolyjuiceNamespace {
             StarcounterEnvironment.AppName = null;
 
             // Registering proxy Society Objects handler.
-            Handle.GET<Request, String, String>("/so/{?}/{?}", ClassHierarchyCallProxy, new HandlerOptions() {
-                ProxyDelegateTrigger = true,
-                TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
-            });
+            Handle.GET<Request, String, String>("/so/{?}/{?}", 
+                (Request req, String className, String paramStr) => {
+                    return ClassHierarchyCallProxy(req, className, paramStr, true); 
+                }, 
+                new HandlerOptions() {
+                    ProxyDelegateTrigger = true,
+                    TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping 
+                }
+            );
 
             // Registering proxy arbitrary database classes handler.
-            Handle.GET<Request, String, String>("/db/{?}/{?}", ClassHierarchyCallProxy, new HandlerOptions() {
-                ProxyDelegateTrigger = true,
-                TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
-            });
+            Handle.GET<Request, String, String>("/db/{?}/{?}",
+                (Request req, String className, String paramStr) => {
+                    return ClassHierarchyCallProxy(req, className, paramStr, false);
+                },                
+                new HandlerOptions() {
+                    ProxyDelegateTrigger = true,
+                    TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
+                }
+             );
 
             // Merges HTML partials according to provided URLs.
             Handle.GET(StarcounterConstants.PolyjuiceHtmlMergerPrefix + "{?}", (String s) => {
