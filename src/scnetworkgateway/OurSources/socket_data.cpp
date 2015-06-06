@@ -516,45 +516,94 @@ uint32_t SocketDataChunk::CopyIPCChunksToGatewayChunk(
 uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     WorkerDbInterface* worker_db,
     SocketDataChunk** new_ipc_sd,
-    core::chunk_index* db_chunk_index,
-    uint16_t* num_ipc_chunks)
+    core::chunk_index* ipc_first_chunk_index)
 {
-    shared_memory_chunk* ipc_smc;
+    // Maximum number of bytes that will be written in this call.
+    int32_t cur_chunk_num_copy_bytes = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
 
-    uint32_t err_code = worker_db->GetOneChunkFromPrivatePool(db_chunk_index, &ipc_smc);
-    if (err_code)
+    int32_t data_len_bytes = get_user_data_length_bytes();
+
+    uint8_t* data = GetUserData();
+
+    // Number of IPC chunks to use.
+    int32_t num_chunks = 1, total_num_copied_bytes = 0;
+
+    // Checking if data does not fit in the first chunk.
+    if (data_len_bytes > cur_chunk_num_copy_bytes) {
+
+        num_chunks += ((data_len_bytes - cur_chunk_num_copy_bytes) / MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
+        //GW_ASSERT(num_chunks <= MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1);
+
+    } else {
+
+        // For the case of one chunk.
+        cur_chunk_num_copy_bytes = data_len_bytes;
+    }
+    
+    // Acquiring linked chunks.
+    starcounter::core::chunk_index cur_chunk_index;
+    uint32_t err_code = worker_db->GetMultipleChunksFromPrivatePool(&cur_chunk_index, num_chunks);
+    if (0 != err_code)
         return err_code;
 
-    *new_ipc_sd = (SocketDataChunk*)((uint8_t*)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
+    // Setting first chunk index.
+    (*ipc_first_chunk_index) = cur_chunk_index;
+
+    // Offset in the first chunks is always to the beginning of data blob.
+    int32_t cur_offset_in_chunk = MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB;
+
+    // Getting chunk memory address.
+    uint8_t* cur_chunk_buf = (uint8_t *) &(worker_db->get_shared_int()->chunk(cur_chunk_index));
+
+    // Getting IPC socket data.
+    (*new_ipc_sd) = (SocketDataChunk*)(cur_chunk_buf + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
     // Copying only socket data info without data buffer.
     memcpy(*new_ipc_sd, this, SOCKET_DATA_OFFSET_BLOB);
 
-    int32_t actual_written_bytes = 0;
-
-    // Copying data buffer separately.
-    err_code = worker_db->WriteBigDataToIPCChunks(
-        GetUserData(),
-        get_user_data_length_bytes(),
-        *db_chunk_index,
-        MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + SOCKET_DATA_OFFSET_BLOB,
-        &actual_written_bytes,
-        num_ipc_chunks);
-
-    if (0 != err_code) {
-
-        // Releasing management chunks.
-        worker_db->ReturnLinkedChunksToPool(*db_chunk_index);
-
-        return err_code;
-    }
-
-    GW_ASSERT(actual_written_bytes == get_user_data_length_bytes());
+    // Setting number of IPC chunks.
+    (*new_ipc_sd)->SetNumberOfIPCChunks(num_chunks);
 
     // NOTE: Adjusting the user data offset because we copy directly to start of the blob.
     (*new_ipc_sd)->set_user_data_offset_in_socket_data(SOCKET_DATA_OFFSET_BLOB);
 
-    return err_code;
+    // Copying all data.
+    for (int32_t i = 0; i < num_chunks; i++) {
+
+        // Writing to first chunk.
+        memcpy(cur_chunk_buf + cur_offset_in_chunk, data, cur_chunk_num_copy_bytes);
+
+        // Adjusting the data pointer.
+        data += cur_chunk_num_copy_bytes;
+        total_num_copied_bytes += cur_chunk_num_copy_bytes;
+
+        // All subsequent chunks are getting zero offset.
+        cur_offset_in_chunk = 0;
+        cur_chunk_num_copy_bytes = MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
+        
+        // Checking if we are copying to the last chunk.
+        if ((data_len_bytes - total_num_copied_bytes) < MixedCodeConstants::CHUNK_MAX_DATA_BYTES) {
+            cur_chunk_num_copy_bytes = data_len_bytes - total_num_copied_bytes;
+        }
+
+        GW_ASSERT(cur_chunk_num_copy_bytes <= MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+
+        // Getting current chunk index.
+        cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
+
+        // Getting chunk memory address (checking for the last chunk).
+        if (INVALID_CHUNK_INDEX != cur_chunk_index) {
+            cur_chunk_buf = (uint8_t *) &(worker_db->get_shared_int()->chunk(cur_chunk_index));
+        }
+    }
+    
+    // Checking that we wrote correctly.
+    GW_ASSERT(0 == cur_chunk_num_copy_bytes);
+    GW_ASSERT(total_num_copied_bytes == get_user_data_length_bytes());
+    GW_ASSERT(INVALID_CHUNK_INDEX == cur_chunk_index);
+    GW_ASSERT(total_num_copied_bytes == (data - GetUserData()));
+
+    return 0;
 }
 
 } // namespace network

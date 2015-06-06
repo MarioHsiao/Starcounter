@@ -855,8 +855,7 @@ public:
     uint32_t CopyGatewayChunkToIPCChunks(
         WorkerDbInterface* worker_db,
         SocketDataChunk** new_ipc_sd,
-        core::chunk_index* db_chunk_index,
-        uint16_t* num_ipc_chunks);
+        core::chunk_index* db_chunk_index);
 
     // Overlapped structure used for WinSock.
     OVERLAPPED* get_ovl()
