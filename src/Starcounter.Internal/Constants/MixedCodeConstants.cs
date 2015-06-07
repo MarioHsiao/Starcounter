@@ -281,7 +281,6 @@ namespace Starcounter.Internal
         /// </summary>
         public enum NetworkProtocolType
         {
-            PROTOCOL_RAW_PORT,
             PROTOCOL_HTTP1,
             PROTOCOL_WEBSOCKETS,
             PROTOCOL_HTTP2,

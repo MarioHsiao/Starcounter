@@ -194,7 +194,7 @@ uint32_t TcpPortProcessData(
     if (sd->get_to_database_direction_flag())
     {
         // Its a raw socket protocol.
-        sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT);
+        sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP);
 
         // Resetting user data parameters.
         sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());

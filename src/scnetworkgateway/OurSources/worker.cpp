@@ -933,7 +933,7 @@ void GatewayWorker::PushDisconnectIfNeeded(SocketDataChunkRef sd) {
             break;
         }
 
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP: {
             SendRawSocketDisconnectToDb(sd);
             break;
         }

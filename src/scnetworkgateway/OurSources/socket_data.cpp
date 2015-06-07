@@ -334,7 +334,6 @@ void SocketDataChunk::BindSocketToScheduler(GatewayWorker* gw, WorkerDbInterface
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT:
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP2: {
 
             // Checking scheduler id validity.
@@ -361,7 +360,7 @@ void SocketDataChunk::ResetSessionBasedOnProtocol(GatewayWorker* gw)
             break;
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS:
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT:
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP:
             session_ = GetGlobalSessionCopy();
             break;
 

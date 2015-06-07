@@ -319,13 +319,13 @@ namespace Starcounter
 
                 // Creating network data stream object.
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream.Init(chunkIndex, socketStruct_.GatewayWorkerId);
             }
             else
             {
                 dataStream = DataStream;
                 chunkIndex = dataStream.ChunkIndex;
-                chunkMem = dataStream.RawChunk;
+                chunkMem = dataStream.GetChunkMemory();
             }
 
             Byte* socketDataBegin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
