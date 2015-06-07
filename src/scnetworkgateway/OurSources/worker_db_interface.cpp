@@ -154,23 +154,17 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             }
 
             // Checking if its one or several chunks.
-            if (ipc_smc->is_terminated())
-            {
+            if (ipc_smc->is_terminated()) {
+
+                GW_ASSERT(ipc_sd->get_user_data_length_bytes() <= MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
+
                 sd->CopyFromOneChunkIPCSocketData(ipc_sd, ipc_sd->get_user_data_length_bytes());
-            }
-            else
-            {
-                err_code = sd->CopyIPCChunksToGatewayChunk(this, ipc_sd);
 
-                if (err_code) {
+            } else {
 
-                    // Releasing IPC chunks.
-                    ReturnLinkedChunksToPool(ipc_first_chunk_index);
-                    ipc_smc = NULL;
-                    ipc_sd = NULL;
+                GW_ASSERT(ipc_sd->get_user_data_length_bytes() > MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
 
-                    continue;
-                }
+                sd->CopyIPCChunksToGatewayChunk(this, ipc_sd);
             }
 
             // Releasing IPC chunks.

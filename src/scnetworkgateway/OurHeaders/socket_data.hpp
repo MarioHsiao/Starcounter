@@ -847,7 +847,7 @@ public:
     }
 
     // Copies IPC chunks to gateway chunk.
-    uint32_t CopyIPCChunksToGatewayChunk(
+    void CopyIPCChunksToGatewayChunk(
         WorkerDbInterface* worker_db,
         SocketDataChunk* sd);
 

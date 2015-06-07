@@ -140,7 +140,7 @@ namespace Starcounter
                 UInt32 err = bmx.sc_bmx_release_linked_chunks(chunkIndex);
                 Debug.Assert(0 == err);
 
-                // Needs to be called before the stackallocated array is cleared and after the session is ended.
+                // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();
 
                 // Reset managed task state before exiting managed task entry point.
