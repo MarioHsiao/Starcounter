@@ -33,6 +33,7 @@ To produce
 
 ### [`<imported-template>` Demo/Example](https://github.com/Juicy/imported-template#demoexamples)
 
+### [Test/Use cases](http://polyjuice.github.io/polyjuice-include/tests)
 
 ## Features
 
@@ -88,7 +89,15 @@ Or [download as ZIP](https://github.com/Polyjuice/polyjuice-include/archive/mast
     ```js
     document.querySelector("polyjuice-include").partial = ViewModel;
     ```
+    or with inline JSON:
+    ```js
+    <polyjuice-include partial="{&quot;Html&quot;: &quot;/path/to/file.html&quot;, &quot;some&quot;: &quot;data&quot;}"></polyjuice-include>
+    ```
 
+## Test suite
+
+ - local browser `./tests/index.html`
+ - [online](http://polyjuice.github.io/polyjuice-include/tests)
 
 ## Contributing
 

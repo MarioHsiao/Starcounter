@@ -57,7 +57,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binding\BindingInfo.cs" />
-    <Compile Include="Class Json\ChangeLog.cs" />
     <Compile Include="Class Json\Json.IList.cs" />
     <Compile Include="Class Json\Json.cs" />
     <Compile Include="Class Json\Json.State.cs" />
@@ -92,6 +91,7 @@
     <Compile Include="Class Json\Json.Debug.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="Serializer\FTJ\FasterThanJsonSerializer.cs" />
+    <Compile Include="Sessions\JSON-Patch\ChangeLog.cs" />
     <Compile Include="Sessions\JSON-Patch\DefaultPatchHandler.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatchException.cs" />
     <Compile Include="Sessions\JSON-Patch\JsonPatchOperation.cs" />

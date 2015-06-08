@@ -6,18 +6,9 @@ using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
 
 namespace Starcounter {
-    internal struct ArrayVersionLog {
-        internal long Version;
-        internal List<Change> Changes;
-
-        internal ArrayVersionLog(long version, List<Change> changes) {
-            Version = version;
-            Changes = changes;
-        }
-    }
-
 	partial class Json {
 		/// <summary>
 		/// 
@@ -104,23 +95,23 @@ namespace Starcounter {
 		/// <summary>
 		/// Logs all property changes made to this object or its bound data object
 		/// </summary>
-		/// <param name="session">The session (for faster access)</param>
-		internal void LogValueChangesWithDatabase(Session session, bool callStepSiblings) {
+		/// <param name="changeLog">Log of changes</param>
+		internal void LogValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings) {
             if (!_trackChanges)
                 return;
 
 			if (this.IsArray) {
-				LogArrayChangesWithDatabase(session, callStepSiblings);
+				LogArrayChangesWithDatabase(changeLog, callStepSiblings);
 			} else {
-				LogObjectValueChangesWithDatabase(session, callStepSiblings);
+				LogObjectValueChangesWithDatabase(changeLog, callStepSiblings);
 			}
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="session"></param>
-		private void LogArrayChangesWithDatabase(Session session, bool callStepSiblings = true) {
+		/// <param name="changeLog"></param>
+		private void LogArrayChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
             bool logChanges;
             Json item;
 
@@ -128,7 +119,7 @@ namespace Starcounter {
                 for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
                     var change = ArrayAddsAndDeletes[i];
 
-                    session.AddChange(change);
+                    changeLog.Add(change);
                     var index = change.Item._cacheIndexInArr;
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
                         CheckpointAt(index);
@@ -149,24 +140,24 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)_list[i]).LogValueChangesWithDatabase(session, callStepSiblings);
+                        ((Json)_list[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
                      }
                 }
 
-                if (session.CheckOption(SessionOptions.PatchVersioning)) {
+                if (changeLog.Version != null) {
                     if (versionLog == null)
                         versionLog = new List<ArrayVersionLog>();
-                    versionLog.Add(new ArrayVersionLog(session.ServerVersion, ArrayAddsAndDeletes));
+                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, ArrayAddsAndDeletes));
                 }
                 ArrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < _list.Count; t++) {
                     var arrItem = ((Json)_list[t]);
                     if (this.WasReplacedAt(t)) { // A refresh of an existing row (that is not added or removed)
-                        session.AddChange(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
+                        changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
                         this.CheckpointAt(t);
                     } else {
-                        arrItem.LogValueChangesWithDatabase(session, callStepSiblings);
+                        arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
                     }
                 }
             }
@@ -178,18 +169,18 @@ namespace Starcounter {
 		/// objects. This method is much faster than the corresponding method checking
 		/// th database.
 		/// </summary>
-		/// <param name="session">The session (for faster access)</param>
-		internal void LogValueChangesWithoutDatabase(Session s, bool callStepSiblings = true) {
+		/// <param name="changeLog">The log of changes</param>
+		internal void LogValueChangesWithoutDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
 			throw new NotImplementedException();
 		}
 
 		/// <summary>
 		/// Dirty checks each value of the object and reports any changes
-		/// to the session changelog.
+		/// to the changelog.
 		/// </summary>
-		/// <param name="session">The session to report to</param>
-		private void LogObjectValueChangesWithDatabase(Session session, bool callStepSiblings = true) {
-            this.Scope<Session, Json, bool>((s, json, css) => {
+		/// <param name="changeLog">The log of changes</param>
+		private void LogObjectValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
+            this.Scope<ChangeLog, Json, bool>((clog, json, css) => {
                 var template = (TValue)json.Template;
                 if (template == null)
                     return;
@@ -199,12 +190,12 @@ namespace Starcounter {
                     if (json._Dirty) {
                         for (int t = 0; t < exposed.Count; t++) {
                             if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
-                                if (s != null) {
+                                if (clog != null) {
                                     if (json.IsArray) {
                                         throw new NotImplementedException();
                                     } else {
                                         var childTemplate = (TValue)exposed[t];
-                                        s.UpdateValue(json, childTemplate);
+                                        clog.UpdateValue(json, childTemplate);
 
                                         TContainer container = childTemplate as TContainer;
                                         if (container != null) {
@@ -222,7 +213,7 @@ namespace Starcounter {
                                 if (p is TContainer) {
                                     var c = ((TContainer)p).GetValue(json);
                                     if (c != null)
-                                        c.LogValueChangesWithDatabase(s, true);
+                                        c.LogValueChangesWithDatabase(clog, true);
                                 } else {
                                     if (json.IsArray)
                                         throw new NotImplementedException();
@@ -237,7 +228,7 @@ namespace Starcounter {
                             if (exposed[t] is TContainer) {
                                 var c = ((TContainer)exposed[t]).GetValue(json);
                                 if (c != null)
-                                    c.LogValueChangesWithDatabase(s, true);
+                                    c.LogValueChangesWithDatabase(clog, true);
                             } else {
                                 if (json.IsArray) {
                                     throw new NotImplementedException();
@@ -252,8 +243,8 @@ namespace Starcounter {
                 } else {
                     if (json._Dirty) {
                         if (json.WasReplacedAt(template.TemplateIndex)) {
-                            if (s != null)
-                                s.UpdateValue(json, null);
+                            if (clog != null)
+                                clog.UpdateValue(json, null);
                             json.CheckpointAt(template.TemplateIndex);
                         } else {
                             template.CheckAndSetBoundValue(json, true);
@@ -265,11 +256,11 @@ namespace Starcounter {
                     foreach (var stepSibling in json._stepSiblings) {
                         if (stepSibling == json)
                             continue;
-                        stepSibling.LogValueChangesWithDatabase(s, false);
+                        stepSibling.LogValueChangesWithDatabase(clog, false);
                     }
                 }
             },
-            session, 
+            changeLog, 
             this,
             callStepSiblings);
 		}
@@ -385,17 +376,16 @@ namespace Starcounter {
         /// <param name="serverVersion">The version of the viewmodel to check</param>
         /// <returns>true if this object existed in the specified version, false otherwise.</returns>
         /// <remarks>
-        /// This method is used when versioning is enabled in Session and this json belongs to a viewmodeltree.
+        /// This method is used when versioning is enabled and this json belongs to a viewmodeltree.
         /// </remarks>
         internal bool IsValidForVersion(long serverVersion) {
             return (serverVersion >= addedInVersion);
         }
 
-        internal void CleanupOldVersionLogs(long toVersion, bool callStepSiblings = true) {
+        internal void CleanupOldVersionLogs(ViewModelVersion version, long toVersion, bool callStepSiblings = true) {
             if (versionLog != null) {
-                Session session = Session;
                 for (int i = 0; i < versionLog.Count; i++) {
-                    if (versionLog[i].Version <= session.ClientServerVersion) {
+                    if (versionLog[i].Version <= version.RemoteLocalVersion) {
                         versionLog.RemoveAt(i);
                         i--;
                     }
@@ -404,7 +394,7 @@ namespace Starcounter {
 
             if (IsArray) {
                 foreach (Json child in _list) {
-                    child.CleanupOldVersionLogs(toVersion);
+                    child.CleanupOldVersionLogs(version, toVersion);
                 }
             } else {
                 if (IsObject) {
@@ -414,7 +404,7 @@ namespace Starcounter {
                         if (tcontainer != null) {
                             var json = (Json)tcontainer.GetUnboundValueAsObject(this);
                             if (json != null)
-                                json.CleanupOldVersionLogs(toVersion);
+                                json.CleanupOldVersionLogs(version, toVersion);
                         }
                     }
                 }
@@ -424,7 +414,7 @@ namespace Starcounter {
                 foreach (Json stepSibling in _stepSiblings) {
                     if (stepSibling == this)
                         continue;
-                    CleanupOldVersionLogs(toVersion, false);
+                    stepSibling.CleanupOldVersionLogs(version, toVersion, false);
                 }
             }
         }
@@ -437,7 +427,10 @@ namespace Starcounter {
             if (this.isAddedToViewmodel == true)
                 return;
 
-            this.addedInVersion = this.Session.ServerVersion;
+            var changeLog = ChangeLog;
+            if (changeLog != null && changeLog.Version != null)
+                this.addedInVersion = changeLog.Version.LocalVersion;
+
             this.isAddedToViewmodel = true;
 
             // If the transaction attached to this json is the same transaction set higher 

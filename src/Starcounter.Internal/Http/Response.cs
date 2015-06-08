@@ -825,10 +825,12 @@ namespace Starcounter
                         mimetype = secondaryChoices.Current;
                         bytes = resource_.AsMimeType(mimetype, out mimetype);
                     }
+
                     if (bytes == null) {
                         // None of the requested mime types were supported.
                         // We will have to respond with a "Not Acceptable" message.
                         statusCode_ = 406;
+                        statusDescription_ = "Not acceptable";
                     } else {
                         this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
                     }
@@ -1641,6 +1643,7 @@ namespace Starcounter
 
         internal Byte session_string_len_bytes_;
 
+        // TODO: Should be changed!
         // Socket data pointer.
         public unsafe Byte* socket_data_;
 

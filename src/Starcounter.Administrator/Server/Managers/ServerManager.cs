@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Administrator.Server.Model;
 using Starcounter.Internal;
 using Starcounter.Administrator.Server.Utilities;
+using Starcounter.XSON;
 
 namespace Administrator.Server.Managers {
     public class ServerManager {
@@ -38,7 +39,7 @@ namespace Administrator.Server.Managers {
 
             //Handle.CUSTOM("OPTIONS /api/servermodel", (Request request) => {
 
-               
+
             //    // Create response
             //    Response response = new Response();
             //    response["Access-Control-Allow-Origin"] = "http://localhost:8080";
@@ -50,8 +51,8 @@ namespace Administrator.Server.Managers {
             Handle.GET("/api/servermodel", (Request request) => {
 
                 // Create view-model
-                ServerJson serverModelJson = new ServerJson() { LogChanges = true };
-                serverModelJson.Session.CargoId = 4;
+                ServerJson serverModelJson = new ServerJson();
+                //serverModelJson.Session.CargoId = 4;
 
                 // Set data object to view-model
                 serverModelJson.Data = ServerManager.ServerInstance; // ServerManager.Server;
@@ -81,7 +82,21 @@ namespace Administrator.Server.Managers {
                 }
 
                 Json viewModel = ((Starcounter.Session)ws.Session).Data;
-                viewModel.ChangeLog.ApplyChanges(data);
+
+                ServerManager.ServerInstance.JsonPatchInstance.Apply(viewModel, data);
+
+                //viewModel.ChangeLog.ApplyChanges(data);
+            });
+
+            // Incoming patch on http
+            Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
+
+                Json json = TemporaryStorage.Find(id);
+
+                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
+
+//                json.ChangeLog.ApplyChanges(request.Body);
+                return System.Net.HttpStatusCode.OK;
             });
 
             Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (session) => {
@@ -90,14 +105,6 @@ namespace Administrator.Server.Managers {
 
                 // TODO: How to find and remove view-model from TemporaryStorage
                 //TemporaryStorage.Remove(key);
-            });
-
-            // Incoming patch on http
-            Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
-
-                Json json = TemporaryStorage.Find(id);
-                json.ChangeLog.ApplyChanges(request.Body);
-                return System.Net.HttpStatusCode.OK;
             });
 
             //Handle.POST("/api/servermodel/get-patches-and-clear-log?{?}", (Request r, string id) => {
@@ -269,21 +276,23 @@ namespace Administrator.Server.Managers {
             //        socket.Send(changes);
             //    }
             //});
-            
-           
-            Session.ForAll( (s) => {
+
+
+            Session.ForAll((s) => {
 
                 try {
-                    
+
                     if (s.ActiveWebSocket != null) {
-                        string changes = s.PublicViewModel.ChangeLog.GetChanges();
+
+                        string changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(s.PublicViewModel, true, false);
+//                        string changes = s.PublicViewModel.ChangeLog.GetChanges();
                         if (changes != "[]") {
-                            s.PublicViewModel.ChangeLog.Clear();
+                            //s.PublicViewModel.ChangeLog.Clear();
                             s.ActiveWebSocket.Send(changes);
                         }
                     }
                 }
-                catch (Exception) { 
+                catch (Exception) {
                 }
             });
 
@@ -312,6 +321,10 @@ namespace Administrator.Server.Managers {
 
         public static string Store(Json json) {
             string id = Guid.NewGuid().ToString();
+
+            Session session = new Session(SessionOptions.StrictPatchRejection);
+            session.Data = json;
+
             Storage[id] = json;
             return id;
 

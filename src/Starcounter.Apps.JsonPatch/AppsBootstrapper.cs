@@ -135,7 +135,7 @@ namespace Starcounter.Internal {
                 // Checking if we have a Polyjuice edition.
                 if (polyjuiceDatabaseFlag) {
 
-                    Polyjuice.Init();
+                    Polyjuice.Init(false);
                 }
 
                 Handle.GET(defaultSystemHttpPort, "/schedulers/" + dbName, () => {

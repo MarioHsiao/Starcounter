@@ -319,13 +319,13 @@ namespace Starcounter
 
                 // Creating network data stream object.
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream.Init(chunkIndex, socketStruct_.GatewayWorkerId);
             }
             else
             {
                 dataStream = DataStream;
                 chunkIndex = dataStream.ChunkIndex;
-                chunkMem = dataStream.RawChunk;
+                chunkMem = dataStream.GetChunkMemory();
             }
 
             Byte* socketDataBegin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
@@ -351,7 +351,7 @@ namespace Starcounter
             (*(UInt64*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketStruct_.SocketUniqueId;
             (*(Byte*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketStruct_.GatewayWorkerId;
 
-            (*(UInt16*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+            (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             // Checking if we have text or binary WebSocket frame.

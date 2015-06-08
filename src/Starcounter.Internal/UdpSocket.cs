@@ -167,7 +167,7 @@ namespace Starcounter {
             (*(UInt16*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT)) = portTo;
             (*(UInt16*)(socketDataBegin + MixedCodeConstants.SOCKET_DATA_OFFSET_UDP_SOURCE_PORT)) = portFrom;
 
-            (*(UInt16*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+            (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             // Running on current Starcounter thread.

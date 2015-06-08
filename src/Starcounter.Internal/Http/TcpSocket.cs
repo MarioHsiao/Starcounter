@@ -188,13 +188,13 @@ namespace Starcounter {
                 }
 
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream.Init(chunkIndex, socketStruct_.GatewayWorkerId);
 
             } else {
 
                 dataStream = existingDataStream;
                 chunkIndex = dataStream.ChunkIndex;
-                chunkMem = dataStream.RawChunk;
+                chunkMem = dataStream.GetChunkMemory();
             }
 
             Byte* socket_data_begin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
@@ -203,13 +203,13 @@ namespace Starcounter {
 
             (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS)) = 0;
 
-            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) MixedCodeConstants.NetworkProtocolType.PROTOCOL_RAW_PORT;
+            (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE)) = (Byte) MixedCodeConstants.NetworkProtocolType.PROTOCOL_TCP;
 
             (*(UInt32*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER)) = socketStruct_.SocketIndexNum;
             (*(UInt64*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID)) = socketStruct_.SocketUniqueId;
             (*(Byte*)(socket_data_begin + MixedCodeConstants.SOCKET_DATA_OFFSET_BOUND_WORKER_ID)) = socketStruct_.GatewayWorkerId;
 
-            (*(UInt16*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
+            (*(UInt32*)(chunkMem + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)) =
                 MixedCodeConstants.SOCKET_DATA_OFFSET_BLOB;
 
             dataStream.SendResponse(data, offset, dataLen, connFlags);

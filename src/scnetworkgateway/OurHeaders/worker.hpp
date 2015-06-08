@@ -274,16 +274,17 @@ public:
         }
 
         // Checking if data that needs accumulation fits into chunk.
-        if (sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() < total_desired_bytes)
+        if (sd->get_data_blob_size() < total_desired_bytes)
         {
             uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, total_desired_bytes);
             if (err_code)
                 return err_code;
         }
 
-        GW_ASSERT(sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() >= total_desired_bytes);
+        GW_ASSERT(sd->get_data_blob_size() >= total_desired_bytes);
 
-        sd->get_accum_buf()->StartAccumulation(total_desired_bytes, num_already_accumulated);
+        // Calculating the remaining number of bytes to accumulate.
+        sd->set_num_available_network_bytes(total_desired_bytes - num_already_accumulated);
 
         return 0;
     }

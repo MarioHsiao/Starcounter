@@ -937,8 +937,6 @@ uint32_t Gateway::AssertCorrectState()
 
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
 
-    GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
-
     int64_t sum = 0;
     for (int32_t i = 0; i < NumGatewayChunkSizes; i++) {
         sum += GatewayChunkStoresSizes[i];
@@ -1131,7 +1129,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 {
     *is_handled = true;
 
-    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
     char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
@@ -1140,7 +1138,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     // Looking for the \r\n\r\n.
     char* body_string = strstr(request_begin, "\r\n\r\n");
     GW_ASSERT(NULL != body_string);
-    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+    request_begin[sd->get_accumulated_len_bytes()] = '\0';
 
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;
@@ -1226,7 +1224,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
 
     uint32_t err_code;
 
-    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
     char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
@@ -1235,7 +1233,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     // Looking for the \r\n\r\n.
     char* body_string = strstr(request_begin, "\r\n\r\n");
     GW_ASSERT(NULL != body_string);
-    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+    request_begin[sd->get_accumulated_len_bytes()] = '\0';
 
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;
@@ -1321,7 +1319,7 @@ uint32_t RegisterWsHandler(
 {
     *is_handled = true;
 
-    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
     char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
@@ -1330,7 +1328,7 @@ uint32_t RegisterWsHandler(
     // Looking for the \r\n\r\n.
     char* body_string = strstr(request_begin, "\r\n\r\n");
     GW_ASSERT(NULL != body_string);
-    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+    request_begin[sd->get_accumulated_len_bytes()] = '\0';
 
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;

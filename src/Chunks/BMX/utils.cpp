@@ -60,10 +60,8 @@ uint32_t sc_clone_linked_chunks(starcounter::core::chunk_index first_chunk_index
 // Writing linked chunks data to a given buffer and releasing all chunks except first.
 EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     starcounter::core::chunk_index first_chunk_index,
-    uint8_t* first_chunk_data,
     uint8_t* buffer,
-    int32_t num_available_bytes
-    )
+    int32_t buf_len)
 {
     _SC_BEGIN_FUNC
 
@@ -71,7 +69,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     int32_t cur_offset = 0;
 
     uint8_t* chunk_mem;
-    shared_memory_chunk* smc = (shared_memory_chunk*) first_chunk_data;
+    shared_memory_chunk* smc;
     starcounter::core::chunk_index cur_chunk_index = first_chunk_index;
 
     do
@@ -85,15 +83,18 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
         // Copying the whole chunk data.
         memcpy(buffer + cur_offset, chunk_mem, starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         cur_offset += starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
-        _SC_ASSERT(cur_offset < num_available_bytes);
+        _SC_ASSERT(cur_offset <= buf_len);
 
         // Getting next chunk.
         cur_chunk_index = smc->get_link();
     }
     while (cur_chunk_index != shared_memory_chunk::link_terminator);
 
-    // Returning all linked chunks (except first one) to private/shared pool.
-    shared_memory_chunk* first_smc = ((shared_memory_chunk*) first_chunk_data);
+    // Returning all linked chunks (except first one) to private pool.
+    err_code = cm_get_shared_memory_chunk(first_chunk_index, &chunk_mem);
+    _SC_ASSERT(err_code == 0);
+
+    shared_memory_chunk* first_smc = (shared_memory_chunk*) chunk_mem;
     err_code = cm_release_linked_shared_memory_chunks(first_smc->get_link());
     if (err_code)
         return err_code;
@@ -108,63 +109,81 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
 
 // Writing all chunks data to given buffer.
 EXTERN_C uint32_t __stdcall sc_bmx_copy_from_chunks_and_release_trailing(
-    uint8_t* first_smc,
-    int32_t first_chunk_offset,
+    starcounter::core::chunk_index first_chunk_index,
+    uint32_t first_chunk_offset,
     int32_t total_copy_bytes,
     uint8_t* dest_buffer,
     int32_t dest_buffer_size
     )
 {
-    uint32_t err_code;
-    int32_t dest_offset = 0;
-
     // Copying first chunk data.
-    int32_t cur_chunk_data_size = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
-    memcpy(dest_buffer, first_smc + first_chunk_offset, cur_chunk_data_size);
-    dest_offset += cur_chunk_data_size;
+    int32_t cur_chunk_num_copy_bytes = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
+    if (cur_chunk_num_copy_bytes > total_copy_bytes) {
+        cur_chunk_num_copy_bytes = total_copy_bytes;
+    }
+
+    uint8_t* first_chunk_mem;
+    uint32_t err_code = cm_get_shared_memory_chunk(first_chunk_index, &first_chunk_mem);
+    _SC_ASSERT(err_code == 0);
+
+    memcpy(dest_buffer, first_chunk_mem + first_chunk_offset, cur_chunk_num_copy_bytes);
+
+    int32_t dest_offset = 0;
+    dest_offset += cur_chunk_num_copy_bytes;
 
     // Number of bytes left to copy.
-    int32_t bytes_left = total_copy_bytes - cur_chunk_data_size;
+    int32_t bytes_left = total_copy_bytes - cur_chunk_num_copy_bytes;
     _SC_ASSERT(bytes_left >= 0);
 
     // Next chunk copy size.
-    cur_chunk_data_size = bytes_left;
-    if (cur_chunk_data_size > starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
-        cur_chunk_data_size = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
+    cur_chunk_num_copy_bytes = bytes_left;
+    if (cur_chunk_num_copy_bytes > starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
+        cur_chunk_num_copy_bytes = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
 
-    uint8_t* chunk_mem;
-    shared_memory_chunk* smc = (shared_memory_chunk*) first_smc;
-    starcounter::core::chunk_index cur_chunk_index = smc->get_link();
+    uint8_t* cur_chunk_mem;
+    starcounter::core::chunk_index first_linked_chunk_index = ((shared_memory_chunk*)first_chunk_mem)->get_link();
+    starcounter::core::chunk_index cur_chunk_index = first_linked_chunk_index;
 
-    // Until we get the last chunk in chain.
-    while (cur_chunk_index != shared_memory_chunk::link_terminator)
-    {
-        // Obtaining chunk memory.
-        err_code = cm_get_shared_memory_chunk(cur_chunk_index, &chunk_mem);
-        _SC_ASSERT(err_code == 0);
+    // Checking if we had linked chunks.
+    if (first_linked_chunk_index != shared_memory_chunk::link_terminator) {
 
-        smc = (shared_memory_chunk*) chunk_mem;
+        // Until we get the last chunk in chain.
+        while (cur_chunk_index != shared_memory_chunk::link_terminator)
+        {
+            // Obtaining chunk memory.
+            err_code = cm_get_shared_memory_chunk(cur_chunk_index, &cur_chunk_mem);
+            _SC_ASSERT(err_code == 0);
 
-        // Copying.
-        memcpy(dest_buffer + dest_offset, chunk_mem, cur_chunk_data_size);
-        dest_offset += cur_chunk_data_size;
+            // Copying.
+            memcpy(dest_buffer + dest_offset, cur_chunk_mem, cur_chunk_num_copy_bytes);
+            dest_offset += cur_chunk_num_copy_bytes;
+            _SC_ASSERT(dest_offset <= total_copy_bytes);
 
-        // Decreasing number of bytes left to be processed.
-        bytes_left -= cur_chunk_data_size;
-        if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
-            cur_chunk_data_size = bytes_left;
+            // Decreasing number of bytes left to be processed.
+            bytes_left -= cur_chunk_num_copy_bytes;
+            _SC_ASSERT(bytes_left >= 0);
 
-        // Getting next chunk in chain.
-        cur_chunk_index = smc->get_link();
+            // Checking if no more bytes to copy.
+            if (bytes_left == 0) {
+                break;
+            }
+
+            // Checking if we have less than full chunk to copy.
+            if (bytes_left < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
+                cur_chunk_num_copy_bytes = bytes_left;
+
+            // Getting next chunk in chain.
+            cur_chunk_index = ((shared_memory_chunk*) cur_chunk_mem)->get_link();
+        }
+
+        // Returning all additional chunks to private pool: 
+        err_code = cm_release_linked_shared_memory_chunks(first_linked_chunk_index);
+        if (err_code)
+            return err_code;
+
+        // Terminating the first chunk.
+        ((shared_memory_chunk*) first_chunk_mem)->terminate_link();
     }
-
-    // Returning all additional chunks to private pool: 
-    err_code = cm_release_linked_shared_memory_chunks(((shared_memory_chunk*) first_smc)->get_link());
-    if (err_code)
-        return err_code;
-
-    // Terminating the first chunk.
-    ((shared_memory_chunk*) first_smc)->terminate_link();
 
     return 0;
 }
@@ -234,7 +253,7 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
         memcpy(cur_smc + first_chunk_offset, buf, buf_len_bytes);
 
         // Setting the number of written bytes.
-        *(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
+        *(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_NUM_BYTES) = buf_len_bytes;
 
         // Setting number of total written bytes.
         *actual_written_bytes = buf_len_bytes;
@@ -270,7 +289,7 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
     }
 
     // Setting the number of written bytes.
-    *(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = num_bytes_to_write;
+    *(uint32_t*)(cur_smc + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_NUM_BYTES) = num_bytes_to_write;
 
     // Going through each linked chunk and write data there.
     int32_t left_bytes_to_write = num_bytes_to_write;
@@ -349,7 +368,7 @@ uint32_t __stdcall sc_bmx_send_small_buffer(
     _SC_ASSERT(err_code == 0);
 
     // Setting number of actual user bytes written.
-    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_NUM_BYTES) = buf_len_bytes;
 
     // Copying buffer into chunk.
     memcpy(cur_chunk_buf + chunk_user_data_offset, buf, buf_len_bytes);
@@ -407,8 +426,9 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
         _SC_ASSERT(err_code == 0);
 
         shared_memory_chunk* smc = (shared_memory_chunk*)cur_chunk_buf;
-        if (last_written_bytes <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset)
+        if (last_written_bytes <= starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset) {
             _SC_ASSERT(smc->is_terminated());
+        }
 
         // Checking if we have processed everything.
         if (total_processed_bytes < buf_len_bytes)
@@ -470,14 +490,11 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     _SC_ASSERT(NULL != cur_chunk_buf);
     _SC_ASSERT(shared_memory_chunk::link_terminator != *the_chunk_index);    
 
-    // Points to user data offset in chunk.
-    uint16_t chunk_user_data_offset = *(uint16_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA) +
-        starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA;
-
     // Setting total data length.
-    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH) = buf_len_bytes;
+    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB) = buf_len_bytes;
 
-    _SC_ASSERT(chunk_user_data_offset < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
+    // Points to user data offset in chunk.
+    uint32_t chunk_user_data_offset = starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA + starcounter::MixedCodeConstants::SOCKET_DATA_OFFSET_BLOB;
 
     // Adding connection flags.
     (*(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_SOCKET_FLAGS)) |= conn_flags;
