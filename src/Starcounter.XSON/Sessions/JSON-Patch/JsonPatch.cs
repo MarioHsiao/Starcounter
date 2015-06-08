@@ -474,14 +474,16 @@ namespace Starcounter.XSON {
             byte[] tmpBuf = new byte[512];
             int usedTmpBufSize;
             long remoteVersion = -1;
-            ChangeLog changeLog;
+            ChangeLog changeLog = null;
             ViewModelVersion version = null;
 
-            changeLog = root.ChangeLog;
-            if (changeLog != null) {
-                version = changeLog.Version;
-                if (version != null) {
-                    version.RemoteLocalVersion = version.LocalVersion;
+            if (root != null) {
+                changeLog = root.ChangeLog;
+                if (changeLog != null) {
+                    version = changeLog.Version;
+                    if (version != null) {
+                        version.RemoteLocalVersion = version.LocalVersion;
+                    }
                 }
             }
             
