@@ -3,7 +3,7 @@ PUSHD "%SC_CHECKOUT_DIR%"
 
 git clone https://github.com/Starcounter/InvoiceDemo.git
 
-"%MsbuildExe%" "%SC_CHECKOUT_DIR%\InvoiceDemo\InvoiceDemo1.sln" /p:Configuration=%Configuration% %MsBuildCommonParams%
+"%MsbuildExe%" "%SC_CHECKOUT_DIR%\InvoiceDemo\InvoiceDemo1.sln" /property:Configuration=%Configuration%;ReferencePath=%StarcounterBin%
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 star --database=InvoiceDemo1Db "%SC_CHECKOUT_DIR%\InvoiceDemo\bin\%Configuration%\InvoiceDemo.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
