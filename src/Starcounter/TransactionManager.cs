@@ -624,9 +624,67 @@ namespace Starcounter.Internal {
                     // TODO: Handle triggers. Call abort commit on failure.
                     // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
 
-                    r = sccoredb.sccoredb_complete_commit(
-                            tran_locked_on_thread, detach_and_free
-                            );
+                    if (hiter != 0) {
+                        ulong oid;
+                        ulong address;
+                        ushort tableId;
+                        ulong hookType;
+                        TypeBinding binding;
+                        IObjectProxy proxy;
+                        HookKey key;
+
+                        try {
+
+                            binding = null;
+                            proxy = null;
+                            key = null;
+
+                            while (true) {
+                                unsafe {
+                                    r = sccoredb.SCIteratorNext(hiter, viter, &oid, &address, &tableId, &hookType);
+                                }
+                                if (r != 0) throw ErrorCode.ToException(r);
+                                if (oid == 0) break;
+
+                                if (HookType.IsInsertOrUpdate((uint)hookType)) {
+                                    if (binding == null || binding.TableId != tableId) {
+                                        binding = TypeRepository.GetTypeBinding(tableId);
+                                        proxy = binding.NewInstanceUninit();
+                                    }
+
+                                    proxy.Bind(address, oid, binding);
+                                }
+
+                                key = HookKey.FromTable(tableId, (uint)hookType, key);
+                                try {
+                                    switch (hookType) {
+                                        case HookType.Insert:
+                                            InvokableHook.InvokeInsert(key, proxy);
+                                            break;
+                                        case HookType.Update:
+                                            InvokableHook.InvokeUpdate(key, proxy);
+                                            break;
+                                        case HookType.Delete:
+                                            InvokableHook.InvokeDelete(key, oid);
+                                            break;
+                                    }
+
+                                } catch {
+                                    sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
+                                    throw;
+                                }
+                            }
+
+                        } finally {
+                            sccoredb.SCIteratorFree(hiter, viter);
+                        }
+                    }
+
+                    if (r == 0) {
+                        r = sccoredb.sccoredb_complete_commit(
+                                tran_locked_on_thread, detach_and_free
+                                );
+                    }
                     if (r == 0) break;
                 }
 
