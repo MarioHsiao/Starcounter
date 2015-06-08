@@ -82,7 +82,7 @@ namespace Administrator.Server.Model {
                 string.IsNullOrEmpty(this.ErrorMessage.Message) &&
                 string.IsNullOrEmpty(this.ErrorMessage.HelpLink));
 
-             
+
                 //return this.ErrorMessage != null;
             }
         }
@@ -397,9 +397,6 @@ namespace Administrator.Server.Model {
                     this.OnStopped();
                 }
             }
-            //else if (e.PropertyName == "IsDeleted" && this.IsDeleted == true) {
-            //    this.OnDeleted();
-            //}
         }
 
         private void OnChanged(object sender, EventArgs e) {
@@ -413,6 +410,14 @@ namespace Administrator.Server.Model {
         /// Event when database is started
         /// </summary>
         private void OnStarted() {
+
+
+            // TODO: Only auto-start apps if the database was started with the the administrator
+            // This is due to a bug in the inner mechanism in combination with Visual Studio Starcounter Extention.
+            //this.RunPlayList();
+        }
+
+        private void RunPlayList() {
 
             // Playlist
             foreach (DatabaseApplication application in this.Applications) {
@@ -721,6 +726,10 @@ namespace Administrator.Server.Model {
 
                 this.IsRunning = this.DatabaseRunningState();
 
+                if (this.IsRunning) {
+                    this.RunPlayList();
+                }
+
                 this.StatusText = string.Empty;
 
                 if (commandInfo.HasError) {
@@ -729,7 +738,7 @@ namespace Administrator.Server.Model {
                     this.OnCommandError(command.Description, msg.Brief, msg.Helplink);
                 }
                 else {
-//                    this.StatusText = string.Empty;
+                    //                    this.StatusText = string.Empty;
                     this.Evaluate();
                 }
             });
