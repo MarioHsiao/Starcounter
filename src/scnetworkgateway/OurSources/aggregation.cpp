@@ -281,7 +281,7 @@ uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCode
 
     uint32_t total_num_bytes = data_len_bytes + AggregationStructSizeBytes;
 
-    AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
+    AggregationStruct* aggr_struct = (AggregationStruct*) (sd->GetUserData() - AggregationStructSizeBytes);
     aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
     aggr_struct->size_bytes_ = data_len_bytes;
     aggr_struct->socket_info_index_ = sd->get_socket_info_index();
