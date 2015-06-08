@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Diagnostics;
 using Starcounter.Hosting;
+using Administrator.Server.Managers;
 
 namespace Starcounter.Administrator.Server {
 
@@ -25,6 +26,8 @@ namespace Starcounter.Administrator.Server {
 
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
+
+        public static string ResourceFolder;
 
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
@@ -44,11 +47,11 @@ namespace Starcounter.Administrator.Server {
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH
-            string resourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
+            Program.ResourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
 #else
-            string resourceFolder = "scadmin";
+            Program.ResourceFolder = "scadmin";
 #endif
-            
+
             // Create a Server Engine
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Program.ServerEngine.Setup();
@@ -62,17 +65,19 @@ namespace Starcounter.Administrator.Server {
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
 
+            ServerManager.Init();
+
             // Registering Default handlers.
             RegisterHandlers();
 
             // Bootstrapping the application.
             AppsBootstrapper.Bootstrap(
                 StarcounterEnvironment.Default.SystemHttpPort,
-                resourceFolder,
+                Program.ResourceFolder,
                 StarcounterEnvironment.AppName);
 
             // Bootstrap Admin API handlers
-            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, resourceFolder);
+            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, Program.ResourceFolder);
 
             // Start User Tracking (Send data to tracking server each hour and crash reports)
             if (serverInfo.Configuration.SendUsageAndCrashReports) {

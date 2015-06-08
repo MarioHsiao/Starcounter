@@ -28,7 +28,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// This name of edition for this version.
         /// </summary>
-        public static readonly String EditionName = "Starcounter";
+        public static readonly String EditionName = "Polyjuice";
 
         /// <summary>
         /// This Starcounter version date.

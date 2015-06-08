@@ -1,0 +1,31 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+	"ID": "", 
+	"AppName": "", // Used for navigating to app
+	"DisplayName": "", 
+	"ImageUri" : "",
+	"Version" : "",
+	"VersionDate" : "",
+	"Description": "",
+	"Company" : "",
+	"DatabaseName" : "",
+    "Heading" :"",
+	"SourceUrl" : "",
+
+	"Rating":0,
+	"Size" : 0,
+
+	"Store" : { "$" : { "Reuse" : "Administrator.Server.Model.AppStoreStoreJson" } },
+
+	"IsDeployed" : false,
+	"IsRunning" : false,
+	"IsInstalled" : false,
+	"Status" : 0,
+	"StatusText" : "",
+	"ErrorMessage" : { "$" : { "Reuse" : "Administrator.Server.Model.ErrorMessageJson" } },
+	"HasErrorMessage" : false,
+	"Install$": 0,
+	"Delete$": 0,
+	"Download$" : 0,
+	"Open$" : 0
+}

@@ -1,49 +1,205 @@
-﻿<div class="panel panel panel-primary">
+﻿<!-- Database -->
+<div class="panel panel-default" ng-show="database">
+
+    <table class="table">
+
+        <tbody>
+
+            <tr>
+
+                <!-- Status -->
+                <td class="vert-align" style="width: 41px; padding-left: 15px">
+
+                    <div style="margin-top: 5px;">
+                        <span ng-show="!database.HasErrorMessage && database.IsRunning && database.Status==0 && (database.Applications|filter:appsFilter).length == 0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
+                        <span ng-show="!database.HasErrorMessage && database.IsRunning && database.Status==0 && (database.Applications|filter:appsFilter).length > 0" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not all installed applications is running." tooltip="Not all installed applications is running."></span>
+                        <span ng-show="!database.HasErrorMessage && !database.IsRunning && database.Status==0" style="font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Stopped" tooltip="Stopped"></span>
+                        <span ng-show="database.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{database.ErrorMessage.Message}}" title="{{database.ErrorMessage.Message}}" tooltip="{{database.ErrorMessage.Message}}"></span>
+                        <span ng-show="database.Status!=0" style="margin-top: -2px" title="{{database.StatusText}}" class="spinner tiny"></span>
+                    </div>
+
+                </td>
+
+                <td class="vert-align" style="width: 180px; background: rgba(0, 0, 0, 0.0)">
+                    <div class="btn-group-sm">
+                        <button style="min-width: 80px" class="btn btn-success" ng-hide="database.IsRunning" ng-click="btnStartDatabase(database)" title="Start Database">Start</button>
+                        <button style="min-width: 80px" class="btn btn-default" ng-show="database.IsRunning" ng-click="btnStopDatabase(database)" title="Stop Database">Stop...</button>
+                        <button style="min-width: 80px" class="btn btn-default" ng-disabled="database.IsRunning || database.Status!=0" ng-click="btnDeleteDatabase(database)" title="Delete Database">Delete...</button>
+                    </div>
+                </td>
+
+                <!-- Error message -->
+                <td class="vert-align">
+
+                    <!-- Status Text -->
+                    {{database.StatusText}}
+
+                    <span ng-show="database.HasErrorMessage">{{database.ErrorMessage.Message}}
+                        <a ng-show="database.ErrorMessage.HelpLink" href="{{database.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+                    </span>
+
+                    <!-- Application error(s) -->
+                    <span ng-show="database.HasErrorMessage == false && database.IsRunning && database.Status==0 && (database.Applications|filter:appsFilter).length > 0" style="color: #d9534f">
+                        <!--<a class="popupButton popupButton_warning" href="#/databases/{{database.ID}}" title="Not all installed applications is running"><span style="top: 3px;" class="glyphicon glyphicon-exclamation-sign"></span></a>-->
+                        Not all installed applications is running.
+                    </span>
+
+                </td>
+
+                <td class="vert-align">
+
+
+
+                    <div ng-show="database && database.Applications.length > 0" data-toggle="buttons-radio" style="margin-left: 20px">
+
+                        <div class="btn-group pull-right btn-group-sm" data-toggle="buttons">
+                            <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'list'" title="List view"><span class="glyphicon glyphicon-list" aria-hidden="true"></span></button>
+                            <button type="button" class="btn btn-default" ng-model="viewmode" btn-radio="'card'" title="Card view"><span class="glyphicon glyphicon-th" aria-hidden="true"></span></button>
+                        </div>
+
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- No applications -->
+<div class="panel panel-default" ng-show="database && database.Applications.length == 0">
+
     <div class="panel-heading">
-        Database - {{model.database.name}}
-
-       <strong>
-           <span ng-show="model.database.running" class="label label-success" title="Database is running">Running</span>
-           <span ng-hide="model.database.running" class="label label-danger" title="Database is not running">Stopped</span>
-       </strong>
-
-        <div class="btn-group pull-right">
-            <a class="btn btn-default btn-xs" href="#/databases" title="Show Databases"><i class="glyphicon glyphicon-resize-small"></i></a>
-        </div>
-
-
+        Applications
     </div>
+
     <div class="panel-body">
+        <p>Visit the <a href="#/databases/{{database.ID}}/appstore">App store</a> to install applications. Or start an executable by clicking the menu choise <a href="#/databases/tracker/executabeStart"><i>Start Executable</i></a></p>
+    </div>
+</div>
 
-        <div class="btn-toolbar">
-            <div class="btn-group">
-                <button ng-disabled='model.database.running == true || model.database.task != null' class="btn btn-default btn-success" ng-click="btnStartDatabase(model.database)" title="Start Database">Start</button>
-                <button ng-disabled='model.database.running == false || model.database.task != null' class="btn btn-default  btn-danger" ng-click="btnStopDatabase(model.database)" title="Stop Database">Stop</button>
+<!-- Application List view -->
+<div class="panel panel-default" ng-show="database && database.Applications.length > 0 && viewmode=='list'">
+
+    <div class="panel-heading">Applications</div>
+
+    <table class="table">
+
+        <tbody>
+
+            <tr ng-repeat="application in database.Applications | orderBy:['DisplayName']">
+
+                <!-- Status -->
+                <td class="vert-align" style="width: 41px; padding-left: 15px">
+
+                    <div style="margin-top: 5px;">
+                        <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
+                        <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Stopped" tooltip="Stopped"></span>
+                        <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not running" tooltip="Not running"></span>
+                        <span ng-show="application.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}" tooltip="{{application.ErrorMessage.Message}}"></span>
+                        <span ng-show="application.Status!=0" style="margin-top: -2px" title="{{application.StatusText}}" class="spinner tiny"></span>
+                    </div>
+                </td>
+
+                <!-- Buttons -->
+                <td class="vert-align" style="width: 300px; background: rgba(0, 0, 0, 0.0)">
+
+                    <div class="btn-group-sm">
+                        <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
+                        <button style="min-width: 80px" class="btn btn-default" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
+                        <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Start Application when database starts">Auto-Start (OFF)</button>
+                        <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Start Application when database starts">Auto-Start (ON)</button>
+                        <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
+                    </div>
+                </td>
+
+                <!-- Image and App name -->
+                <td class="vert-align">
+                    <img ng-src="{{application.ImageUri}}" err-src="/app/images/EXE-32.png" style="margin-right: 10px; height: 40px; width: 40px; min-width: 32px; max-width: 32px; max-height: 32px;" />
+                    <a href="#/databases/{{application.DatabaseName}}/applications/{{application.ID}}">{{application.DisplayName}}</a>
+                </td>
+
+                <!-- Error message -->
+                <td class="vert-align">
+
+                    <span style="color: #d9534f" ng-show="application.HasErrorMessage">
+                        <!--                        <span style="margin-top: 5px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
+                        <!--<span style="position:relative; top: 4px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
+
+                        {{application.ErrorMessage.Message}}
+
+                        <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+
+                    </span>
+                    <!-- Status Text -->
+                    {{application.StatusText}}
+                </td>
+
+                <!-- Version -->
+                <td class="vert-align text-right">{{application.Version}} ({{application.VersionDate | fixdate:'medium'}})</td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Application card view -->
+<div ng-show="database && database.Applications.length > 0 && viewmode=='card'">
+
+    <ul id="applicationIconList" class="list-group">
+
+        <li ng-repeat="application in database.Applications | filter:filterApplications | orderBy: 'DisplayName' track by $index" ng-controller="ApplicationItemCtrl">
+
+            <div class="btn-toolbar">
+
+                <div class="btn-group btn-group-sm">
+                    <img ng-src="{{application.ImageUri}}" err-src="/app/images/EXE-32.png" style="margin-right: 5px; height: 30px; width: 30px; min-width: 30px; max-width: 30px; max-height: 30px;" />
+                    <a href="#/databases/{{application.DatabaseName}}/applications/{{application.ID}}">{{application.DisplayName}}</a>
+                </div>
+
+                <div class="btn-group btn-group-sm pull-right">
+
+                    <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
+                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" tooltip="Stopped" title="Stopped"></span>
+                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="top: 3px; font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" tooltip="Not running" title="Not running"></span>
+                    <span ng-show="application.HasErrorMessage" style="top: 3px; font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}" tooltip="{{application.ErrorMessage.Message}}"></span>
+                    <span ng-show="application.Status!=0" title="{{application.StatusText}}" class="spinner tiny"></span>
+                </div>
             </div>
 
-            <div class="btn-group">
+            <div class="btn-toolbar" style="margin-top: 15px">
 
-                <a class="btn btn-default btn-primary" href="#/databases/{{model.database.name}}/settings" title="Database Settings">Settings</a>
-                <button ng-disabled='model.database.running == true|| model.database.task != null' class="btn btn-default btn-danger" ng-click="btnDeleteDatabase(model.database)" title="Delete Database">Delete</button>
+                <button style="min-width: 80px" class="btn btn-success btn-sm" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
+                <button style="min-width: 80px" class="btn btn-default btn-sm" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
+
+                <span ng-show="application.Status!=0" class="btn-group_" style="margin-top: 5px">
+                    <span title="{{application.StatusText}}" class="spinner tiny"></span>
+                    <div style="vertical-align: middle; display: inline-block; width: 170px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">{{application.StatusText}}</div>
+
+                </span>
             </div>
 
-            <div class="btn-group">
-                <div style="margin-top:7px" ng-show="model.database.task.Text" title="{{model.database.task.Text}}" class="spinner tiny"></div>
+            <div>
+
+                <div ng-show="application.HasErrorMessage" style="margin-top: 15px; color: #d9534f">
+                    <!--<span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
+                    {{application.ErrorMessage.Message}}
+                <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                    View the <a href="#/server/log">log</a> for more details.
+                </div>
             </div>
 
-        </div>
-
-        <div class="btn-toolbar">
-            <div class="btn-group pull-right">
-                <button title="Refresh console" ng-show="model.database.consoleManualMode == true" class="btn btn-default btn-xs" ng-click="btnGetConsoleOutput(model.database)"><i class="glyphicon glyphicon-refresh"></i></button>
+            <div ng-class="{'consoleAppIsNotRunning': application.Status!=0 || application.IsRunning==false}" ng-show="!application.HasErrorMessage" ng-style="{'height':'187px', 'width':'100%'}" title="Console output">
+                <consolewindow ng-model="consoleText"></consolewindow>
             </div>
-        </div>
+        </li>
+    </ul>
+</div>
 
-        <div class="row">
-            <div title="Console output" style="margin-top:15px;margin-bottom:-15px" id="console" ng-style="sizeStyle()">
-                <consolewindow ng-model="model.database.console"></consolewindow>
-            </div>
-        </div>
+<div ng-hide="database" class="panel panel-default">
+    <div class="panel-heading">
+        Database not found. <a href="/#/databases">Continue.</a>
     </div>
 </div>
 

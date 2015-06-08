@@ -225,6 +225,9 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     // Setting group id.
     sd_push_to_db->FetchWebSocketGroupIdFromSocket();
 
+	// NOTE: There is no used data when disconnecting.
+	sd_push_to_db->set_user_data_length_bytes(0);
+
     // Push chunk to corresponding channel/scheduler.
     err_code = gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
 

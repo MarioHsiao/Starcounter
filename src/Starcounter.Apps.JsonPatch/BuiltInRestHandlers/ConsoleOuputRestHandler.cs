@@ -31,7 +31,9 @@ namespace Starcounter.Internal {
         /// <summary>
         /// All active console web sockets.
         /// </summary>
-        static LinkedList<UInt64> ConsoleWebSockets = new LinkedList<UInt64>();
+        //static LinkedList<UInt64> ConsoleWebSockets = new LinkedList<UInt64>();
+
+        static Dictionary<string, IList<ulong>> ConsoleWebSockets = new Dictionary<string, IList<ulong>>();
 
         /// <summary>
         /// Registers the built in REST handlers.
@@ -49,10 +51,23 @@ namespace Starcounter.Internal {
                     WebSocket ws = req.SendUpgrade(ConsoleWebSocketGroupName);
 
                     lock (ConsoleWebSocketGroupName) {
-                        ConsoleWebSockets.AddFirst(ws.ToUInt64());
+
+                        IList<ulong> connections;
+
+                        if (ConsoleWebSockets.ContainsKey("")) {
+                            connections = ConsoleWebSockets[""];
+                        }
+                        else {
+                            connections = new List<ulong>();
+                            ConsoleWebSockets.Add("", connections);
+                        }
+
+                        connections.Add(ws.ToUInt64());
+
+                        //ConsoleWebSockets.AddFirst(ws.ToUInt64());
                     }
 
-                    ConsoleEvents consoleEvents = GetConsoleEvents();
+                    ConsoleEvents consoleEvents = GetConsoleEvents(null);
 
                     // Pushing current console buffer.
                     ws.Send(consoleEvents.ToJson());
@@ -61,7 +76,53 @@ namespace Starcounter.Internal {
                 }
 
                 // Get and return the console buffer
-                return ConsoleOuputRestHandler.GetConsoleResponse();
+                return ConsoleOuputRestHandler.GetConsoleResponse(null);
+            });
+
+
+            // Handle Console connections (Socket and non socket)
+            Handle.GET(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "console/{?}", (string appName, Request req) => {
+
+                // Check if the request was a WebSocket request.
+                if (req.WebSocketUpgrade) {
+
+                    appName = appName.ToLower();
+
+                    WebSocket ws = req.SendUpgrade(ConsoleWebSocketGroupName);
+
+                    lock (ConsoleWebSocketGroupName) {
+
+                        IList<ulong> connections;
+
+                        if (ConsoleWebSockets.ContainsKey(appName)) {
+                            connections = ConsoleWebSockets[appName];
+                        }
+                        else {
+                            connections = new List<ulong>();
+                            ConsoleWebSockets.Add(appName, connections);
+                        }
+
+                        connections.Add(ws.ToUInt64());
+
+                        //ConsoleWebSockets.AddFirst(ws.ToUInt64());
+                    }
+
+                    ConsoleEvents consoleEvents = GetConsoleEvents(appName);
+
+                    // Pushing current console buffer.
+                    ws.Send(consoleEvents.ToJson());
+
+                    return HandlerStatus.Handled;
+                }
+
+                // Get and return the console buffer
+                return ConsoleOuputRestHandler.GetConsoleResponse(appName);
+            });
+
+
+            // Socket incoming message event
+            Handle.WebSocket(defaultSystemHttpPort, ConsoleWebSocketGroupName, (String s, WebSocket ws) => {
+                // We don't use incoming client messages.
             });
 
             // Socket channel disconnected event
@@ -71,9 +132,20 @@ namespace Starcounter.Internal {
 
                     UInt64 wsId = ws.ToUInt64();
 
-                    if (ConsoleWebSockets.Contains(wsId))
-                        ConsoleWebSockets.Remove(wsId);
-                }                
+                    foreach (KeyValuePair<string, IList<ulong>> entry in ConsoleWebSockets) {
+
+                        for (int i = 0; i < entry.Value.Count; i++)
+
+                            if (wsId == entry.Value[i]) {
+                                // Found it.
+                                entry.Value.RemoveAt(i);
+                                return;
+                            }
+                    }
+
+                    //if (ConsoleWebSockets.Contains(wsId))
+                    //    ConsoleWebSockets.Remove(wsId);
+                }
             });
 
             // Socket incoming message event
@@ -117,23 +189,39 @@ namespace Starcounter.Internal {
                 // Collect and create console events
                 foreach (ConsoleEventArgs consoleEventArg in e.NewItems) {
 
+                    if (string.IsNullOrEmpty(consoleEventArg.ApplicationName)) {
+                        // If there is no app name then ignore it.
+                        continue;
+                    }
+
                     ConsoleEvents consoleEvents = new ConsoleEvents();
                     var consoleEvent = consoleEvents.Items.Add();
                     consoleEvent.databaseName = consoleEventArg.DatabaseName;
                     consoleEvent.applicationName = consoleEventArg.ApplicationName;
                     consoleEvent.text = consoleEventArg.Text;
                     consoleEvent.time = consoleEventArg.Time.ToString("s", CultureInfo.InvariantCulture);
-                    
+
                     string s = consoleEvents.ToJson();
 
                     // Getting sessions for current scheduler.
                     new DbSession().RunAsync(() => {
 
                         lock (ConsoleWebSocketGroupName) {
-                            foreach (UInt64 wsId in ConsoleWebSockets) {
+
+                            if( !ConsoleWebSockets.ContainsKey(consoleEvent.applicationName.ToLower())) {
+                                return;
+                            }
+
+                            foreach (ulong wsId in ConsoleWebSockets[consoleEvent.applicationName.ToLower()]) {
                                 WebSocket ws = new WebSocket(wsId);
                                 ws.Send(s);
                             }
+
+
+                            //foreach (UInt64 wsId in ConsoleWebSockets) {
+                            //    WebSocket ws = new WebSocket(wsId);
+                            //    ws.Send(s);
+                            //}
                         }
                     });
                 }
@@ -163,10 +251,10 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        private static Response GetConsoleResponse() {
+        private static Response GetConsoleResponse(string appName) {
 
             try {
-                return GetConsoleEvents();
+                return GetConsoleEvents(appName);
             }
             catch (Exception e) {
 
@@ -179,15 +267,23 @@ namespace Starcounter.Internal {
             }
         }
 
-
         /// <summary>
         /// Get console events
         /// </summary>
         /// <returns>ConsoleEvents</returns>
-        private static ConsoleEvents GetConsoleEvents() {
+        private static ConsoleEvents GetConsoleEvents(string appName) {
             ConsoleEvents list = new ConsoleEvents();
 
             foreach (ConsoleEventArgs item in ConsoleWriteEvents) {
+
+                if (appName != null && !appName.Equals(item.ApplicationName, StringComparison.InvariantCultureIgnoreCase) ) {
+                    continue;
+                }
+
+                //if (appName != null && appName != item.ApplicationName) {
+                //    continue;
+                //}
+
                 var consoleEvent = list.Items.Add();
                 consoleEvent.databaseName = item.DatabaseName;
                 consoleEvent.applicationName = item.ApplicationName;
@@ -197,6 +293,7 @@ namespace Starcounter.Internal {
 
             return list;
         }
+
 
     }
 

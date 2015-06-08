@@ -1,0 +1,13 @@
+﻿{
+	"$": { Namespace: "Representations.JSON" },
+	"Deployed" : [
+		{
+			"$" : { "Reuse" : "Representations.JSON.PlayListDeployedItem" }
+		}
+	],
+	"Local" : [
+		{
+			"$" : { "Reuse" : "Representations.JSON.PlayListLocalItem" }
+		}
+	]
+}

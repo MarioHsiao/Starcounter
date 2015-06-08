@@ -1,137 +1,130 @@
-﻿/**
+/**
  * ----------------------------------------------------------------------------
  * Application page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routeParams', 'UserMessageFactory', 'NoticeFactory', 'HostModelService', 'ApplicationService', function ($scope, $log, $sce, $routeParams, UserMessageFactory, NoticeFactory, HostModelService, ApplicationService) {
+adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routeParams', '$location', 'UserMessageFactory', 'NoticeFactory', 'HostModelService', 'DatabaseService', function ($scope, $log, $sce, $routeParams, $location, UserMessageFactory, NoticeFactory, HostModelService, DatabaseService) {
 
-    var self = this;
+    $scope.application = null;
+    $scope.database = null;
 
-    this.application = null;
+    $scope.socket = null;
+    $scope.consoleText = "";
 
-    /**
-     * Get Console output
-     * @param {object} application aplication
-     */
-    this.btnGetConsoleOutput = function (application) {
-
-        ApplicationService.refreshConsoleOuput(application, function () {
-
-        }, function (messageObject) {
-
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-        });
-
-    }
+    //var self = this;
 
     /**
      * Start Application
      * @param {object} application Application
      */
-    $scope.btnStart = function (application) {
+    $scope.btnStartApplication = function (application) {
 
-        ApplicationService.startApplication(application, function () {
-
-            // Success
-
-        }, function (messageObject) {
-
-            // Error
-
-            if (messageObject.isError) {
-                UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-            }
-            else {
-                NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-            }
-
-        });
-
+        application.Start$++;
     }
-
 
     /**
      * Stop Application
      * @param {object} application Application
      */
-    $scope.btnStop = function (application) {
+    $scope.btnStopApplication = function (application) {
 
-        var title = "Stop application";
-        var message = "Do you want to stop the application " + application.Name;
-        var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
-
-        UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
-
-            if (result == 0) {
-
-                ApplicationService.stopApplication(application, function () { },
-                    function (messageObject) {
-                        // Error
-
-                        if (messageObject.isError) {
-                            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                        }
-                        else {
-                            NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                        }
-
-                    });
-            }
-
-        });
+        application.Stop$++;
     }
-
 
     /**
-     * Restart Application
+     * Install Application
      * @param {object} application Application
      */
-    $scope.btnRestart = function (application) {
+    $scope.btnInstallApplication = function (application) {
 
-        var title = "Restart application";
-        var message = "Do you want to restart the application " + application.Name;
-        var buttons = [{ result: 0, label: 'Restart', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+        application.Install$++;
+    }
+
+    /**
+     * Uninstall Application
+     * @param {object} application Application
+     */
+    $scope.btnUninstallApplication = function (application) {
+
+        application.Uninstall$++;
+    }
+
+    /**
+     * Delete Application
+     * @param {object} application Application
+     */
+    $scope.btnDeleteApplication = function (application) {
+
+        var title = "Delete application";
+        var message = "Do you want to delete the application " + application.DisplayName;
+        var buttons = [{ result: 0, label: 'Delete', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
             if (result == 0) {
 
-                ApplicationService.restartApplication(application, function () {
-                    // Success
-
-                }, function (messageObject) {
-                    // Error
-
-                    if (messageObject.isError) {
-                        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                    }
-                    else {
-                        NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                    }
-
-
-                });
+                application.Delete$++;
             }
-
         });
     }
 
+    /**
+     * Register console output listener
+     */
+    $scope.registerConsoleOutPutListeners = function () {
 
+        $scope.socket = new WebSocket("ws://" + location.host + "/__" + $scope.database.ID + "/console/" + $scope.application.AppName);
 
-    // Init
-    // Refresh host model
-    HostModelService.refreshHostModel(function () {
+        // Socket Open
+        $scope.socket.onopen = function (evt) {
 
-        // Success
-        self.application = HostModelService.getApplication($routeParams.dbName, $routeParams.name);
+            $log.info("Successfully connected to application (" + $scope.application.DisplayName + ")");
+        };
 
-    }, function (messageObject) {
+        // Socket closed
+        $scope.socket.onclose = function (evt) {
 
-        // Error
-        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+            $log.info("Diconnected from application (" + $scope.application.DisplayName + ")");
+        };
+
+        // Socket Message
+        $scope.socket.onmessage = function (evt) {
+
+//            $log.info("OnMessage from application (" + $scope.application.DisplayName + ")");
+
+            $scope.$apply(function () {
+                var result = JSON.parse(evt.data);
+
+                var text = "";
+                for (var i = 0; i < result.Items.length ; i++) {
+                    text = text + result.Items[i].text;
+                }
+
+                $scope.consoleText = $scope.consoleText + text;
+            });
+        }
+
+        // Socket Error
+        $scope.socket.onerror = function (evt) {
+
+            $log.error(evt);
+        };
+    }
+
+    $scope.$on("$destroy", function handler() {
+
+        if ($scope.socket != null) {
+            $scope.socket.close();
+        }
     });
 
+    // Set Data
+    $scope.database = HostModelService.getDatabase($routeParams.name);
+    $scope.application = HostModelService.getApplication($scope.database, $routeParams.appid);
+
+    if ($scope.application != null) {
+        $scope.registerConsoleOutPutListeners();
+    }
 
     // Console fixe the height.
     var $window = $(window);
@@ -162,5 +155,4 @@ adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routePara
     $scope.sizeStyle = function () {
         return { "height": $scope.calcHeight() + "px", "background-color": "#ff0000" };
     }
-
 }]);

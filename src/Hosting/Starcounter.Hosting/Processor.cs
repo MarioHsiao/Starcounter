@@ -59,6 +59,13 @@ namespace StarcounterInternal.Hosting
                                 break;
 
                             case sccorelib_ext.TYPE_RUN_TASK:
+
+
+                                lock (TaskSchedulerImpl.myLock) {
+                                    TaskSchedulerImpl.cnt--;
+                                }
+
+
                                 RunTask((IntPtr)task_data.Output3);
                                 break;
 

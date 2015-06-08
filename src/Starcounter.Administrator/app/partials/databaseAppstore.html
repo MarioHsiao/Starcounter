@@ -1,0 +1,121 @@
+﻿<style>
+    .fixedwidth {
+        max-width: 500px;
+        /*white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;*/
+    }
+
+    ul {
+        list-style-type: none;
+        padding: 0px;
+        margin: 0px;
+    }
+
+    li > h1 {
+        font-size: 18px;
+        color: #ffffff;
+        margin-top: 0px;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        background: rgba(0, 0, 0, 0.42);
+    }
+</style>
+
+<div ng-show="database && database.HasErrorMessage" class="panel panel-default">
+
+    <div class="panel-heading">
+        <span style="top: 3px; font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{database.ErrorMessage.Message}}"></span>
+        {{database.ErrorMessage.Message}}
+        <a ng-show="database.ErrorMessage.HelpLink" href="{{database.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+        View the <a href="#/server/log">log</a> for more details.
+
+        <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-click="btnRefreshAppStoreStores()" title="Refresh">Refresh</button>
+
+
+    </div>
+</div>
+
+<div ng-show="database" class="panel panel-default">
+
+    <div class="panel-heading">AppStore, visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications.</div>
+
+    <ul>
+        <li ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
+            <h1>{{store.DisplayName}} store</h1>
+
+            <table class="table">
+
+                <tbody>
+                    <!--<tr ng-repeat="item in store.Applications | orderBy:['-IsDeployed','DisplayName'] ">-->
+
+                    <tr ng-repeat="item in store.Applications | orderBy:['DisplayName'] ">
+
+                        <td class="vert-align" style="width: 41px; padding-left: 15px">
+                            <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
+                            <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Not installed" title="Not downloaded"></span>
+                            <span ng-show="item.Status!=0" title="{{item.StatusText}}" tooltip="{{item.StatusText}}" class="spinner tiny" style="margin: 0px; padding: 0px"></span>
+                        </td>
+
+                        <td class="vert-align" style="width: 95px;">
+                            <div>
+                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="item.IsDeployed" ng-click="btnDeleteApplication(item)" title="Delete">Delete</button>
+                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
+
+<!--                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnInstallApplication(item)" title="Install">Install</button>
+                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Open</button>
+                                <a style="min-width: 80px"  ng-show="item.IsDeployed && item.IsRunning" class="btn btn-default btn-sm btn-success" href="http://localhost:8080/{{item.AppName}}" target="_blank" role="button" title="Open Application">Open</a>
+                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsInstalled && !item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Restart</button>-->
+                            </div>
+                        </td>
+
+                        <!--                        <td class="vert-align">
+                                <div>{{item.StatusText}}</div>
+                        </td>-->
+
+                <!-- Error message -->
+                <td class="vert-align">
+
+                    <!-- Status Text -->
+                    {{item.StatusText}}
+                   
+                    <span ng-show="item.HasErrorMessage">{{item.ErrorMessage.Message}}
+                        <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                        View the <a href="#/server/log">log</a> for more details.
+                    </span>
+
+                </td>
+
+                        <td>
+                            <span style="display: inline">
+                                <img style="margin-right: 10px; vertical-align: baseline; height: 32px; width: 32px; max-width: 32px; max-height: 32px;" ng-src="{{item.ImageUri}}" />
+                                <span style="display: inline-block">
+                                    <a target="_blank" href="{{item.SourceUrl}}"><span ng-hide="item.Heading">{{item.DisplayName}}</span>{{item.Heading}}</a>
+                                    <div>{{item.Company}}</div>
+                                </span>
+                            </span>
+                        </td>
+
+                        <td class="vert-align">
+                            <div class="fixedwidth">
+                                {{item.Description}}
+                            </div>
+                        </td>
+
+                        <td class="vert-align text-right">{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </li>
+    </ul>
+</div>
+
+<div ng-hide="database" class="panel panel-default">
+    <div class="panel-heading">
+        Database not found. <a href="/#/databases">Continue.</a>
+    </div>
+</div>

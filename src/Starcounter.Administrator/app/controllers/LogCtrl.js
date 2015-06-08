@@ -3,7 +3,10 @@
  * Log page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 'UserMessageFactory', function ($scope, $location, $log, LogService, UserMessageFactory) {
+adminModule.controller('LogCtrl', ['$scope', '$rootScope', '$location', '$log', 'LogService', 'UserMessageFactory', function ($scope, $rootScope, $location, $log, LogService, UserMessageFactory) {
+
+    $scope.multipleDemo = {};
+    $scope.multipleDemo.list_of_string = [];
 
     // The model
     $scope.model = {
@@ -19,16 +22,11 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
         isWebsocketSupport: LogService.isWebsocketSupport
     };
 
-    // True is websockets is supported by current browser
-
-    $scope.list_of_string = []
-
     $scope.select2Options = {
         'multiple': true,
         'simple_tags': true,
         'tags': []
     };
-
 
     // Socket log event listener
     var socketEventListener = {
@@ -43,42 +41,67 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
 
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
         }
-
     }
-
 
     // Destructor
     $scope.$on('$destroy', function iVeBeenDismissed() {
+
         LogService.unregisterEventListener(socketEventListener);
     })
-
 
     // Register log listener
     LogService.registerEventListener(socketEventListener);
 
-
     // Set the filters from the address bar parameters to the controller
-    $scope.model.filter = $location.search();
+    //$scope.model.filter = $location.search();
+    var searchObj = $location.search()
+    if (searchObj.debug != null) {
+        $scope.model.filter.debug = searchObj.debug;
+    }
+    if (searchObj.notice != null) {
+        $scope.model.filter.notice = searchObj.notice;
+    }
+    if (searchObj.warning != null) {
+        $scope.model.filter.warning = searchObj.warning;
+    }
+    if (searchObj.error != null) {
+        $scope.model.filter.error = searchObj.error;
+    }
+    if (searchObj.source != null) {
+        $scope.model.filter.source = searchObj.source;
+    }
+    if (searchObj.maxitems != null) {
+        $scope.model.filter.maxitems = searchObj.maxitems;
+    }
 
     // Watch for changes in the filer
-    $scope.$watch('model.filter', function () {
+    $scope.$watch('model.filter', function (newValue, oldValue) {
+  
+        if (newValue !== oldValue) {
+            // do whatever you were going to do
+
+        //console.log("model.filter changed:"+JSON.stringify(newvalue)+"=>"+JSON.stringify(oldvalue));
         // Filter changed, update the address bar
         $location.search($scope.model.filter);
+
+        $scope.getLog();
+        }
+
     }, true);
 
     // Watch for changes in the filer
-    $scope.$watch('list_of_string', function () {
+    $scope.$watch('multipleDemo.list_of_string', function () {
         // Filter changed, update the address bar
         var sourceFilter = "";
-        for (var i = 0 ; i < $scope.list_of_string.length; i++) {
+        for (var i = 0 ; i < $scope.multipleDemo.list_of_string.length; i++) {
             if (sourceFilter != "") sourceFilter += ";";
 
             // Special handling, sometime the list_of_string can be objects and some othertimes it's string. no clue why!?!
-            if ($scope.list_of_string[i].hasOwnProperty('id')) {
-                sourceFilter += $scope.list_of_string[i].id;
+            if ($scope.multipleDemo.list_of_string[i].hasOwnProperty('id')) {
+                sourceFilter += $scope.multipleDemo.list_of_string[i].id;
             }
             else {
-                sourceFilter += $scope.list_of_string[i];
+                sourceFilter += $scope.multipleDemo.list_of_string[i];
             }
         }
 
@@ -89,23 +112,26 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
 
     }, true);
 
-
     var arr = $scope.model.filter.source.split(';');
-    for (var i = 0 ; i < arr.length; i++) {
-        if (arr[i] == "") continue;
-        $scope.list_of_string.push(arr[i]);
+    for (var x = 0 ; x < arr.length; x++) {
+        if (arr[x] == "") continue;
+        $scope.multipleDemo.list_of_string.push(arr[x]);
     }
+    
 
     /**
      * Retrieve log information
      */
     $scope.getLog = function () {
 
-        $scope.select2Options.tags.length = 0;
 
         // Get log entries from the Log Service
         LogService.getLogEntries($scope.model.filter, function (response) {
             // Success
+
+            $scope.select2Options.tags.length = 0;
+            $scope.select2Options.tags = [];
+
             $scope.model.LogEntries = response.LogEntries;
             var filterSourceOptions = response.FilterSource.split(";");
             for (var i = 0; i < filterSourceOptions.length ; i++) {
@@ -116,9 +142,7 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
             // Error
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
         });
-
     }
-
 
     /**
      * Refresh log entries
@@ -131,5 +155,4 @@ adminModule.controller('LogCtrl', ['$scope', '$location', '$log', 'LogService', 
     $scope.getLog();
 
     $scope.afterRender = scrollRefresh;
-
 }]);

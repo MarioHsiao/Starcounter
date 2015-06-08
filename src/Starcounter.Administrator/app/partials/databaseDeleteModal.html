@@ -15,16 +15,19 @@
         <div class="form-group " ng-class="{'has-error': myForm.enteredDatabaseName.$invalid, 'has-feedback': myForm.enteredDatabaseName.$invalid}">
             <label for="enteredDatabaseName">Enter database name</label>
             <div>
-                <input class="form-control" ng-pattern='{{model.pattern}}' type="text" name="enteredDatabaseName" id="enteredDatabaseName" placeholder="Database name" ng-model="model.enteredDatabaseName" required>
+                <input class="form-control" pattern="{{model.pattern}}" type="text" name="enteredDatabaseName" id="enteredDatabaseName" placeholder="Database name" ng-model="model.enteredDatabaseName" required>
                 <span class="help-block error" ng-show="myForm.enteredDatabaseName.$error.validationError">Invalid format</span>
                 <span class="help-block error" ng-show="myForm.enteredDatabaseName.$error.required">Required</span>
+                <span class="help-block error" ng-show="myForm.enteredDatabaseName.$error.pattern">Pattern</span>
                 <span class="glyphicon glyphicon-remove form-control-feedback" ng-show="myForm.enteredDatabaseName.$error.validationError||myForm.enteredDatabaseName.$error.required"></span>
             </div>
         </div>
+
     </form>
 </div>
 
 <div class="modal-footer">
+
     <div class="btn-group">
         <button ng-disabled="myForm.$invalid && button.result==0" ng-class="'btn btn-default {{button.cssClass}}'" ng-click="btnClick(button)" ng-repeat="button in model.buttons">{{button.label}}</button>
     </div>

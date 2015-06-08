@@ -1,32 +1,17 @@
-﻿/**
+/**
  * ----------------------------------------------------------------------------
  * Databases page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'HostModelService', 'DatabaseService', 'UserMessageFactory', function ($scope, $log, NoticeFactory, HostModelService, DatabaseService, UserMessageFactory) {
+adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'HostModelService', '$sce', 'NoticeFactory', 'UserMessageFactory', function ($scope, $log, HostModelService, $sce, NoticeFactory, UserMessageFactory) {
 
-    // List of databases
-    $scope.databases = HostModelService.databases;
+    $scope.data = HostModelService.data;
+    $scope.viewmode = "list";
 
+    $scope.appsFilter = function (application) {
 
-
-    /**
-     * Get Console output
-     * @param {object} database Database
-     */
-    $scope.btnGetConsoleOutput = function (database) {
-
-        DatabaseService.refreshConsoleOuput(database, function () {
-
-            // Success
-        }, function (messageObject) {
-            // Error
-            UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-
-        });
-
+        return application.IsInstalled && (application.HasErrorMessage || application.IsRunning == false);
     }
-
 
     /**
      * Start database
@@ -34,19 +19,30 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
      */
     $scope.btnStartDatabase = function (database) {
 
-        DatabaseService.startDatabase(database, function () { },
-            function (messageObject) {
-                // Error
-                if (messageObject.isError) {
-                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                }
-                else {
-                    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                }
-
-            });
+        database.Start$++;
     }
 
+    /**
+      * Delete database
+      * @param {object} database Database
+      */
+    $scope.btnDeleteDatabase = function (database) {
+
+        var title = "Delete database";
+
+        var message = $sce.trustAsHtml("This will delete the database <strong>'" + database.ID + "'</strong> <strong>permantely!</strong>.</br>All data will be completly deleted, with no ways to recover it.</br>This action is not possible to reverse.");
+        var buttons = [{ result: 0, label: 'Delete Database', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
+        var model = { "title": title, "message": message, "buttons": buttons, enteredDatabaseName: "" };
+        model.pattern = database.ID;
+//        model.pattern = "/^" + database.ID + "$/";
+        UserMessageFactory.showModal('app/partials/databaseDeleteModal.html', 'UserErrorMessageCtrl', model, function (result) {
+
+            if (result == 0) {
+
+                database.Delete$++;
+            }
+        });
+    }
 
     /**
      * Stop Database
@@ -55,60 +51,36 @@ adminModule.controller('DatabasesCtrl', ['$scope', '$log', 'NoticeFactory', 'Hos
     $scope.btnStopDatabase = function (database) {
 
         var title = "Stop database";
-        var message = "Do you want to stop the database " + database.name;
+        var message = "Do you want to stop the database " + database.DisplayName;
         var buttons = [{ result: 0, label: 'Stop', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
 
         UserMessageFactory.showMessageBox(title, message, buttons, function (result) {
 
             if (result == 0) {
 
-                DatabaseService.stopDatabase(database, function () { },
-                      function (messageObject) {
-                          // Error
-                          if (messageObject.isError) {
-                              UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                          }
-                          else {
-                              NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                          }
-
-                      });
+                database.Stop$++;
             }
-
         });
-
-
-
-
     }
 
+    /**
+     * Badges filter
+     * @param {object} application Application
+     */
+    $scope.filterByState = function (application) {
 
+        return application.IsInstalled || application.IsRunning;
+    };
 
-    // Init
-    // Refresh host model
-    HostModelService.refreshHostModel(function () {
-    }, function (messageObject) {
-        // Error
-        UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+    $scope.$watch('viewmode', function (newValue, oldValue) {
+
+        // Save user state
+        localStorage.setItem('databasesviewmode', newValue);
     });
-
 
     // Get user state
-    if (localStorage.getItem('databaseViewMode') != null) {
-        $scope.view = localStorage.getItem('databaseViewMode');
+    if (localStorage.getItem('databasesviewmode') != null) {
+
+        $scope.viewmode = localStorage.getItem('databasesviewmode');
     }
-    else {
-        $scope.view = "icon";
-    }
-
-    $scope.$watch('view', function (newValue, oldValue) {
-        // Save user state
-        localStorage.setItem('databaseViewMode', newValue);
-    });
-
-    $scope.change = function (database) {
-        $log.warn("console changed");
-    }
-
-
 }]);

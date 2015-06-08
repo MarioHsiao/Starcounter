@@ -448,6 +448,12 @@ namespace Starcounter.XSON {
             return patchCount;
         }
 
+
+        public int Apply(Json root, string patch, bool strictPatchRejection = true) {
+
+            byte[] patchArray = System.Text.Encoding.UTF8.GetBytes(patch);
+            return this.Apply(root, patchArray, strictPatchRejection);
+        }
         /// <summary>
         /// Evaluates the patches and calls the appropriate inputhandler.
         /// </summary>

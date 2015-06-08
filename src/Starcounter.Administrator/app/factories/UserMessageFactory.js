@@ -18,7 +18,7 @@ adminModule.factory('UserMessageFactory', ['$modal', '$log', 'NoticeFactory', fu
         var buttons = [{ result: 0, label: 'Close', cssClass: 'btn-primary' }];
 
         var modalInstance = $modal.open({
-            templateUrl: 'app/partials/errorMessage.html',
+            templateUrl: 'app/partials/messageError.html',
             controller: 'UserErrorMessageCtrl',
             resolve: {
                 model: function () {

@@ -1,126 +1,101 @@
 ﻿/**
  * ----------------------------------------------------------------------------
  * Host model Service
- * Refreshes the databases model and the applications model
+ * Refreshes the server model
  * ----------------------------------------------------------------------------
  */
-adminModule.service('HostModelService', ['$http', '$log', 'UtilsFactory', 'DatabaseService', 'ApplicationService', 'InstalledApplicationService', function ($http, $log, UtilsFactory, DatabaseService, ApplicationService, InstalledApplicationService) {
+adminModule.service('HostModelService', ['$http', '$q', '$rootScope', '$log', function ($http, $q, $rootScope, $log) {
 
-    // List of databases
-    // {
-    //     "Name":"tracker",
-    //     "Uri":"http://machine:1234/api/databases/mydatabase",
-    //     "HostUri":"http://machine:1234/api/engines/mydatabase/db",
-    //     "Running":true,
-    //     "console":"",
-    //      consoleManualMode : false
-    // }
-    this.databases = DatabaseService.databases;
-
-
-    // List of applications
-    //  {
-    //      "Uri": "http://example.com/api/executables/foo/foo.exe-123456789",
-    //      "Path": "C:\\path\to\\the\\exe\\foo.exe",
-    //      "ApplicationFilePath" : "C:\\optional\\path\to\\the\\input\\file.cs",
-    //      "Name" : "Name of the application",
-    //      "Description": "Implements the Foo module",
-    //      "Arguments": [{"dummy":""}],
-    //      "DefaultUserPort": 1,
-    //      "ResourceDirectories": [{"dummy":""}],
-    //      "WorkingDirectory": "C:\\path\\to\\default\\resource\\directory",
-    //      "IsTool":false,
-    //      "StartedBy": "Per Samuelsson, per@starcounter.com",
-    //      "Engine": {
-    //          "Uri": "http://example.com/api/executables/foo"
-    //      },
-    //      "RuntimeInfo": {
-    //         "LoadPath": "\\relative\\path\\to\\weaved\\server\\foo.exe",
-    //         "Started": "ISO-8601, e.g. 2013-04-25T06.24:32",
-    //         "LastRestart": "ISO-8601, e.g. 2013-04-25T06.49:01"
-    //      },
-    //      databaseName : "default",
-    //      key : "foo.exe-123456789",
-    //      console : "console output",
-    //      consoleManualMode : false
-    //  }
-    this.applications = ApplicationService.applications;
-
-
-    // Installed applications
-    this.installedApplications = InstalledApplicationService.applications;
-
-    /**
-     * Get Application
-     * @param {string} databaseName Database name
-     * @param {string} applicationName Application name
-     * @return {object} Application or null
-     */
-    this.getApplication = function (databaseName, applicationName) {
-        return ApplicationService.getApplication(databaseName, applicationName);
+    this.data = {
+        model: {},
+        selectedDatabase: null
     }
 
+    var self = this;
+    this.IsLoaded = false;
+
+    this._wantedSelectedDatabaseName = "";
+
+    this._deferred = $q.defer();
+    this.serverStatus = new Puppet({
+        remoteUrl: "/api/servermodel",
+        useWebSocket: true,
+        ignoreAdd: /./,
+        callback: function () {
+            $rootScope.$apply();
+            self.data.model = self.serverStatus.obj;
+            self.IsLoaded = true;
+            self.data.selectedDatabase = self.getDatabase(self._wantedSelectedDatabaseName);
+            self._deferred.resolve('loaded');
+        }
+    });
+
+    this.serverStatus.onRemoteChange = function (patches) {
+
+        if (patches.length) { //if server replied with some non-empty sequence of patches
+            $rootScope.$apply();
+        }
+    }
+
+    Puppet.isApplicationLink = function () {
+        return false;
+    }
+
+    this.waitForModel = function () {
+
+        if (self.IsLoaded == true) {
+            self._deferred.resolve('loaded');
+        }
+        return self._deferred.promise;
+    }
+
+    this.setDatabase = function (databaseName) {
+
+        var deferred = $q.defer();
+
+        this.waitForModel().then(function () {
+
+            var database = self.getDatabase(databaseName);
+            if (database != null) {
+                self.data.selectedDatabase = database;
+                deferred.resolve({ success: true, result: "database set" });
+            }
+            else {
+                deferred.reject({ success: false, result: "database not found", databaseNotFound: true });
+            }
+        });
+        return deferred.promise;
+    }
 
     /**
      * Get database
-     * @param {string} databaseName Database name
-     * @return {object} Database or null
+     * @param {string} id Databasename
      */
-    this.getDatabase = function (databaseName) {
-        return DatabaseService.getDatabase(databaseName);
-    }
+    this.getDatabase = function (id) {
 
+        for (var i = 0; i < this.serverStatus.obj.Databases.length ; i++) {
+            if (this.serverStatus.obj.Databases[i].ID == id) {
+                return this.serverStatus.obj.Databases[i];
+            }
+        }
+        return null;
+    }
 
     /**
-     * Refresh host model (Databases and Applications)
-     * @param {function} successCallback Success Callback function
-     * @param {function} errorCallback Error Callback function
+     * Get database
+     * @param {object} database Database
+     * @param {string} appid Application ID
+     * @return {object} Application or null
      */
-    this.refreshHostModel = function (successCallback, errorCallback) {
+    this.getApplication = function (database, appid) {
 
-        DatabaseService.refreshDatabases(function () {
+        if (database == null) return null;
 
-            // Success
-            ApplicationService.refreshApplications(function () {
-
-                // Success
-                if (typeof (successCallback) == "function") {
-                    successCallback();
-                }
-
-            }, function (messageObject) {
-
-                // Error
-                if (typeof (errorCallback) == "function") {
-                    errorCallback(messageObject);
-                }
-
-            });
-
-        }, function (messageObject) {
-
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
+        for (var i = 0; i < database.Applications.length ; i++) {
+            if (database.Applications[i].ID == appid) {
+                return database.Applications[i];
             }
-        });
-
-
-        InstalledApplicationService.refreshApplications(function () {
-
-            // Success
-            if (typeof (successCallback) == "function") {
-                successCallback();
-            }
-
-        }, function (messageObject) {
-
-            // Error
-            if (typeof (errorCallback) == "function") {
-                errorCallback(messageObject);
-            }
-
-        });
+        }
+        return null;
     }
-
 }]);
