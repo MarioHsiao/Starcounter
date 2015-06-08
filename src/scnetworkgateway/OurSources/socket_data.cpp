@@ -529,6 +529,7 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     int32_t cur_chunk_num_copy_bytes = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
 
     int32_t data_len_bytes = get_user_data_length_bytes();
+	GW_ASSERT(data_len_bytes >= 0);
 
     uint8_t* data = GetUserData();
 
@@ -573,6 +574,12 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
 
     // NOTE: Adjusting the user data offset because we copy directly to start of the blob.
     (*new_ipc_sd)->set_user_data_offset_in_socket_data(SOCKET_DATA_OFFSET_BLOB);
+
+	// Checking if there are any bytes to copy at all.
+	if (0 == data_len_bytes) {
+		GW_ASSERT(1 == num_chunks);
+		return 0;
+	}
 
     // Copying all data.
     for (int32_t i = 0; i < num_chunks; i++) {
