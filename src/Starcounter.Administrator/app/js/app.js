@@ -94,16 +94,6 @@ var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHands
         }
     });
 
-    $routeProvider.when('/messages', {
-        templateUrl: '/app/partials/messages.html',
-        controller: 'MessagesCtrl',
-        resolve: {
-            assureHostModel: function (HostModelService, $route) {
-                return HostModelService.waitForModel();
-            }
-        }
-    });
-
     $routeProvider.when('/server/log', {
         templateUrl: '/app/partials/serverLog.html',
         controller: 'LogCtrl',
@@ -178,11 +168,10 @@ adminModule.prepData = function ($q, $timeout) {
  * Navbar Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'SubmenuService', 'MessageService', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, SubmenuService, MessageService, HostModelService) {
+adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location', '$log', 'NoticeFactory', 'SubmenuService', 'HostModelService', function ($scope, $rootScope, $location, $log, NoticeFactory, SubmenuService, HostModelService) {
 
     $scope.subMenu = SubmenuService.model;
     $scope.newVersion = null;
-    $scope.messages = MessageService.messages;
     //$scope.serverModel = HostModelService.serverStatus.obj;
     $scope.data = HostModelService.data;
 
