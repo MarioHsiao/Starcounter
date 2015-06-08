@@ -648,6 +648,32 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_rollback();
 
+        #region Commit hook signatures and symbols
+
+        // Flags correlating to kernel configuration
+        // flags, using in hookMask in star_set_commit_hooks
+        //#define STAR_HOOKS_ON_COMMIT_DELETE 0x0100
+        //#define STAR_HOOKS_ON_COMMIT_INSERT 0x0200
+        //#define STAR_HOOKS_ON_COMMIT_UPDATE 0x0400
+
+        public const uint CommitHookConfigDelete = 0x0100;
+        public const uint CommitHookConfigInsert = 0x0200;
+        public const uint CommitHookConfigUpdate = 0x0400;
+
+        // Flags used by the kernel when a commit hook interator
+        // is consumed in SCIteratorNext.
+        //#define SC_HOOKTYPE_COMMIT_DELETE 0x00
+        //#define SC_HOOKTYPE_COMMIT_INSERT 0x01
+        //#define SC_HOOKTYPE_COMMIT_UPDATE 0x02
+        public const uint CommitHookTypeDelete = 0x00;
+        public const uint CommitHookTypeInsert = 0x01;
+        public const uint CommitHookTypeUpdate = 0x02;
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        public extern static uint star_set_commit_hooks(uint transactionFlags, ushort tableId, uint hookMask);
+
+        #endregion
+
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
