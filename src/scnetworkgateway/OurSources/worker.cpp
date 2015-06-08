@@ -887,7 +887,7 @@ uint32_t GatewayWorker::ReceiveOnSocket(socket_index_type socket_index)
 }
 
 // Send disconnect to database.
-uint32_t GatewayWorker::SendRawSocketDisconnectToDb(SocketDataChunk* sd)
+uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
 {
     SocketDataChunk* sd_push_to_db = NULL;
     uint32_t err_code = sd->CloneToPush(this, &sd_push_to_db);
@@ -938,7 +938,7 @@ void GatewayWorker::PushDisconnectIfNeeded(SocketDataChunkRef sd) {
         }
 
         case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP: {
-            SendRawSocketDisconnectToDb(sd);
+            SendTcpSocketDisconnectToDb(sd);
             break;
         }
     }
