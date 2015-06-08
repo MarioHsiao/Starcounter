@@ -5,7 +5,7 @@ git clone https://github.com/Starcounter/InvoiceDemo.git
 
 "%MsbuildExe%" "%SC_CHECKOUT_DIR%\InvoiceDemo\InvoiceDemo1.sln" /property:Configuration=%Configuration%;ReferencePath=%StarcounterBin%
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
-star --database=InvoiceDemo1Db "%SC_CHECKOUT_DIR%\InvoiceDemo\bin\%Configuration%\InvoiceDemo.exe"
+star --database=InvoiceDemo1Db "%SC_CHECKOUT_DIR%\InvoiceDemo\src\InvoiceDemo1\bin\%Configuration%\InvoiceDemo.exe"
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
