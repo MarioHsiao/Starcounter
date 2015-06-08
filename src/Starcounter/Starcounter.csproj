@@ -99,7 +99,6 @@
     <Compile Include="CommitHooks\HookDelegateList.cs" />
     <Compile Include="CommitHooks\HookDelegateListEntry.cs" />
     <Compile Include="CommitHooks\HookKey.cs" />
-    <Compile Include="CommitHooks\HookTest.cs" />
     <Compile Include="CommitHooks\HookType.cs" />
     <Compile Include="CommitHooks\InvokableHook.cs" />
     <Compile Include="ConstraintViolationException.cs" />
