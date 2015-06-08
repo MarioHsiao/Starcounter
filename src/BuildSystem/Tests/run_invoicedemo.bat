@@ -1,7 +1,7 @@
 
 PUSHD "%SC_CHECKOUT_DIR%"
 
-git clone git@github.com:Starcounter/InvoiceDemo.git
+git clone https://github.com/Starcounter/InvoiceDemo.git
 
 "%MsbuildExe%" "%SC_CHECKOUT_DIR%\InvoiceDemo\InvoiceDemo1.sln" /p:Configuration=%Configuration% %MsBuildCommonParams%
 IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
