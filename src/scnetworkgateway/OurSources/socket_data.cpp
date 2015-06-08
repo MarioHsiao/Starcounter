@@ -465,12 +465,13 @@ uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
 // Copies IPC chunks to gateway chunk.
 void SocketDataChunk::CopyIPCChunksToGatewayChunk(
     WorkerDbInterface* worker_db,
-    SocketDataChunk* ipc_sd)
+    SocketDataChunk* ipc_sd,
+    int32_t user_data_len_bytes)
 {
     // Copying first chunk data.
     CopyFromOneChunkIPCSocketData(ipc_sd, MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
 
-    int32_t bytes_left = ipc_sd->get_user_data_length_bytes() - MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES,
+    int32_t bytes_left = user_data_len_bytes - MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES,
         data_bytes_offset = MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES;
 
     // Checking that number of left bytes in linked chunks is correct.
@@ -516,7 +517,7 @@ void SocketDataChunk::CopyIPCChunksToGatewayChunk(
 
     // Checking that maximum number of WSABUFs in chunk is correct.
     GW_ASSERT(0 == bytes_left);
-    GW_ASSERT(ipc_sd->get_user_data_length_bytes() == data_bytes_offset);
+    GW_ASSERT(user_data_len_bytes == data_bytes_offset);
 }
 
 // Copies gateway chunk to IPC chunks.
@@ -529,7 +530,6 @@ uint32_t SocketDataChunk::CopyGatewayChunkToIPCChunks(
     int32_t cur_chunk_num_copy_bytes = MixedCodeConstants::SOCKET_DATA_MAX_SIZE - SOCKET_DATA_OFFSET_BLOB;
 
     int32_t data_len_bytes = get_user_data_length_bytes();
-	GW_ASSERT(data_len_bytes >= 0);
 
     uint8_t* data = GetUserData();
 
