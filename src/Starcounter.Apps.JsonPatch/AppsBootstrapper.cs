@@ -291,25 +291,23 @@ namespace Starcounter.Internal {
             }
 
             // Initializing based on the edition and codehost type.
-            if (StarcounterEnvironment.IsAdministratorApp) {
 
-                // Checking if its a Polyjuice edition and then adding Polyjuice specific static files directory.
-                String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
+            // Adding Starcounter specific static files directory (but loaded for both polyjuice and nonpolyjuice databases).
+            // TODO:
+            // Since this is loaded for both polyjuice and non-polyjuice databases we should probably rename the folder from 'Polyjuice'
+            String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
+            if (Directory.Exists(polyjuiceStatic)) {
 
-                // The following directory exists only in Polyjuice edition.
-                if (Directory.Exists(polyjuiceStatic)) {
+                String body =
+                    appName + StarcounterConstants.NetworkConstants.CRLF +
+                    StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
+                    StarcounterEnvironment.Default.UserHttpPort + StarcounterConstants.NetworkConstants.CRLF +
+                    polyjuiceStatic;
 
-                    String body =
-                        appName + StarcounterConstants.NetworkConstants.CRLF +
-                        StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
-                        StarcounterEnvironment.Default.UserHttpPort + StarcounterConstants.NetworkConstants.CRLF +
-                        polyjuiceStatic;
+                Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
 
-                    Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
-
-                    if ("Success!" != resp.Body) {
-                        throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
-                    }
+                if ("Success!" != resp.Body) {
+                    throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
                 }
             }
         }
