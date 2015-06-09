@@ -849,7 +849,8 @@ public:
     // Copies IPC chunks to gateway chunk.
     void CopyIPCChunksToGatewayChunk(
         WorkerDbInterface* worker_db,
-        SocketDataChunk* sd);
+        SocketDataChunk* sd,
+        int32_t user_data_len_bytes);
 
     // Copies gateway chunk to IPC chunks.
     uint32_t CopyGatewayChunkToIPCChunks(
@@ -897,6 +898,15 @@ public:
 
     // Size in bytes of written user data.
     uint32_t get_user_data_length_bytes() {
+
+        GW_ASSERT(user_data_length_bytes_ <= get_data_blob_size());
+
+        return user_data_length_bytes_;
+    }
+
+    // Size in bytes of written user data.
+    uint32_t get_user_data_length_bytes_icp_chunk() {
+
         return user_data_length_bytes_;
     }
 

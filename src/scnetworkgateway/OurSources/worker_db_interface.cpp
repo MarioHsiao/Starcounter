@@ -142,7 +142,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
             SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_length_bytes());
+            uint32_t user_data_len_bytes = ipc_sd->get_user_data_length_bytes_icp_chunk();
+
+            sd = gw->GetWorkerChunks()->ObtainChunk(user_data_len_bytes);
 
             // Checking if couldn't obtain chunk.
             if (NULL == sd) {
@@ -156,15 +158,15 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             // Checking if its one or several chunks.
             if (ipc_smc->is_terminated()) {
 
-                GW_ASSERT(ipc_sd->get_user_data_length_bytes() <= MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
+                GW_ASSERT(user_data_len_bytes <= MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
 
-                sd->CopyFromOneChunkIPCSocketData(ipc_sd, ipc_sd->get_user_data_length_bytes());
+                sd->CopyFromOneChunkIPCSocketData(ipc_sd, user_data_len_bytes);
 
             } else {
 
-                GW_ASSERT(ipc_sd->get_user_data_length_bytes() > MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
+                GW_ASSERT(user_data_len_bytes > MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
 
-                sd->CopyIPCChunksToGatewayChunk(this, ipc_sd);
+                sd->CopyIPCChunksToGatewayChunk(this, ipc_sd, user_data_len_bytes);
             }
 
             // Releasing IPC chunks.

@@ -282,8 +282,14 @@ uint32_t WsProto::ProcessWsDataToDb(
         // Processing current frame.
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
+        // Payload size after all parsing.
+        uint32_t payload_len;
+
+        // Header length.
+        uint8_t header_len;
+
         // Obtaining frame info.
-        bool complete_header = ParseFrameInfo(sd, cur_data_ptr, orig_data_ptr + num_accum_bytes, &mask);
+        bool complete_header = ParseFrameInfo(cur_data_ptr, orig_data_ptr + num_accum_bytes, &mask, &payload_len, &header_len);
 
         // Checking if header is not complete.
         if (!complete_header) {
@@ -295,14 +301,8 @@ uint32_t WsProto::ProcessWsDataToDb(
             return gw->Receive(sd);
         }
 
-        // Pointer to actual frame payload.
-        uint8_t* payload = sd->GetUserData();
-
-        // Calculating number of bytes processed.
-        int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
-
         int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
-        int32_t header_plus_payload_bytes = header_len + sd->get_user_data_length_bytes();
+        int32_t header_plus_payload_bytes = header_len + payload_len;
 
         // Checking if complete frame does not fit in current accumulated data.
         if (header_plus_payload_bytes > num_remaining_bytes) {
@@ -321,6 +321,12 @@ uint32_t WsProto::ProcessWsDataToDb(
             // Returning socket to receiving state.
             return gw->Receive(sd);
         }
+
+        // Pointer to actual frame payload.
+        uint8_t* payload = cur_data_ptr + header_len;
+
+        // Setting size and offset of user data.
+        sd->SetUserData(payload, payload_len);
 
         // Adding whole frame as processed.
         num_processed_bytes += header_plus_payload_bytes;
@@ -595,8 +601,15 @@ void WsProto::UnMaskPayload(
 #define swap64(y) ((static_cast<uint64_t>(ntohl(static_cast<uint32_t>(y))) << 32) | ntohl(static_cast<uint32_t>(y >> 32)))
 
 // Parses WebSockets frame info.
-bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit, uint32_t* out_mask)
+bool WsProto::ParseFrameInfo(
+    uint8_t* data,
+    uint8_t* limit,
+    uint32_t* out_mask, 
+    uint32_t* out_payload_len,
+    uint8_t* out_header_len)
 {
+    uint8_t* data_orig = data;
+
     // Getting final fragment bit.
     //is_final_ = ((*data & 0x80) != 0);
 
@@ -615,7 +628,7 @@ bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
         // 16 bits.
         case 126:
         {
-            sd->set_user_data_length_bytes(ntohs(*(uint16_t *)(data + 1)));
+            *out_payload_len = ntohs(*(uint16_t *)(data + 1));
             *out_mask = *(uint32_t *)(data + 3);
             data += 7;
             break;
@@ -624,7 +637,7 @@ bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
         // 64 bits.
         case 127:
         {
-            sd->set_user_data_length_bytes(swap64(*(uint64_t *)(data + 1)));
+            *out_payload_len = swap64(*(uint64_t *)(data + 1));
             *out_mask = *(uint32_t *)(data + 9);
             data += 13;
             break;
@@ -633,17 +646,14 @@ bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
         // 7 bits.
         default:
         {
-            sd->set_user_data_length_bytes(*data);
+            *out_payload_len = *data;
             *out_mask = *(uint32_t *)(data + 1);
             data += 5;
         }
     }
 
-    // Calculating payload offset relatively to socket data.
-    sd->set_user_data_offset_in_socket_data(static_cast<uint32_t> (data - (uint8_t*)sd));
-
     // Increasing limit by one if payload length is 0.
-    if (0 == sd->get_user_data_length_bytes()) {
+    if (0 == *out_payload_len) {
         limit++;
     }
 
@@ -652,6 +662,9 @@ bool WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limi
         return false;
     }
     
+    // Calculating header length.
+    *out_header_len = static_cast<uint8_t>(data - data_orig);
+
     return true;
 }
 

@@ -498,7 +498,7 @@ public:
     void PushDisconnectIfNeeded(SocketDataChunkRef sd);
 
     // Send disconnect to database.
-    uint32_t SendRawSocketDisconnectToDb(SocketDataChunk* sd);
+    uint32_t SendTcpSocketDisconnectToDb(SocketDataChunk* sd);
 
     // Initiates receive on arbitrary socket.
     uint32_t ReceiveOnSocket(socket_index_type socket_index);
