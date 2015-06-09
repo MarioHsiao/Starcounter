@@ -67,13 +67,9 @@ namespace WebSocketsTestServer {
                 }
             }
 
-            lock (WsTestGroupName) {
+            // Incrementing the number of received messages.
+            wss.NumMessagesReceived++;
 
-                // Incrementing the number of received messages.
-                wss.NumMessagesReceived++;
-
-            }
-                
             // Pushing messages on this WebSocket.
             PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
         }
@@ -217,17 +213,14 @@ namespace WebSocketsTestServer {
 
             WebSocketState wss = allWebSockets_[ws.ToUInt64()];
 
-            lock (WsTestGroupName) {
+            // Checking if have sent everything.
+            if ((wss.NumMessagesReceived > 0) && (wss.NumMessagesSent < wss.NumMessagesToSend)) {
 
-                // Checking if have sent everything.
-                if ((wss.NumMessagesReceived > 0) && (wss.NumMessagesSent < wss.NumMessagesToSend)) {
+                // Sending the message.
+                ws.Send(message);
 
-                    // Sending the message.
-                    ws.Send(message);
-
-                    // Incrementing the number of received messages.
-                    wss.NumMessagesSent++;
-                }
+                // Incrementing the number of received messages.
+                wss.NumMessagesSent++;
             }
         }
 
@@ -365,11 +358,7 @@ namespace WebSocketsTestServer {
                     return;
                 }
 
-                lock (WsTestGroupName) {
-
-                    wss.HasDisconnected = true;
-                }
-                
+                wss.HasDisconnected = true;
             });
 
             Handle.WebSocket(WsTestGroupName, (String message, WebSocket ws) => {
@@ -437,8 +426,8 @@ namespace WebSocketsTestServer {
             //Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(); });
             //broadcastSessionsThread.Start();
 
-            Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(); });
-            broadcastWebSocketsThread.Start();
+            //Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(); });
+            //broadcastWebSocketsThread.Start();
 
             return 0;
         }

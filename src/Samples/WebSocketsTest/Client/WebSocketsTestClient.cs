@@ -205,9 +205,6 @@ namespace WebSocketsTestClient {
 
             //Debugger.Launch();
 
-            Console.WriteLine("Usage: WebSocketsTestClient.exe --ServerIp=127.0.0.1 --ServerPort=8080 --NumMessagesPerWebSocket=10000 --MessageSizeBytes=10 --NumSockets=10000");
-            Console.WriteLine();
-
             // Parsing parameters.
             foreach (String arg in args) {
                 if (arg.StartsWith("--ServerIp=")) {
@@ -222,6 +219,10 @@ namespace WebSocketsTestClient {
                     NumSockets = Int32.Parse(arg.Substring("--NumSockets=".Length));
                 }
             }
+
+            Console.WriteLine("WebSocketsTestClient.exe --ServerIp={0} --ServerPort={1} --NumMessagesPerWebSocket={2} --MessageSizeBytes={3} --NumSockets={4}",
+                ServerIp, ServerPort, NumMessagesPerWebSocket, MessageSizeBytes, NumSockets);
+            Console.WriteLine();
 
             Console.WriteLine(String.Format("Starting WebSocket test on {0}:{1}.", ServerIp, ServerPort));
 
