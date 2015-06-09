@@ -164,7 +164,7 @@ namespace Starcounter {
                 }
 
                 dataStream = new NetworkDataStream();
-                dataStream.Init(chunkMem, chunkIndex, socketContainer_.GatewayWorkerId, false);
+                dataStream.Init(chunkMem, chunkIndex, socketContainer_.GatewayWorkerId);
 
             } else {
 

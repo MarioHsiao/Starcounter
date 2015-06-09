@@ -21,7 +21,6 @@ namespace Starcounter.Tools.Service.Task {
 
             string url = string.Format("http://{0}:{1}{2}", service.IPAddress, service.Port, "/api/admin/applications");
 
-            Response response;
             // Example JSON response
             //{
             //  "Executables":[
@@ -48,7 +47,8 @@ namespace Starcounter.Tools.Service.Task {
             //      }
             //  ]
             //}
-            Http.GET(url, out response, null, 10000);
+
+            Response response = Http.GET(url, null, 10000);
 
             if (response.IsSuccessStatusCode) {
                 applications = new Executables();

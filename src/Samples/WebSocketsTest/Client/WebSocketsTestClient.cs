@@ -16,7 +16,9 @@ namespace WebSocketsTestClient {
 
         static UInt16 ServerPort = 8080;
          
-        static Int32 NumMessagesPerWebSocket = 1000;
+        static Int32 NumMessagesPerWebSocket = 10000;
+
+        static Int32 NumSockets = 100;
 
         static Int32 GlobalErrorCode = 0;
 
@@ -98,6 +100,8 @@ namespace WebSocketsTestClient {
 
                         try {
 
+                            Int32 c = 0;
+
                             // Sending and receiving messages.
                             for (Int32 n = 0; n < numMessages; n++) {
 
@@ -130,6 +134,13 @@ namespace WebSocketsTestClient {
                                         totalReceived += result.Count;
                                     }
                                 }
+
+                                if (c == 10000) {
+                                    Console.WriteLine(n);
+                                    c = 0;
+                                }
+
+                                c++;
                             }
 
                         } catch (Exception exc) {
@@ -403,16 +414,6 @@ namespace WebSocketsTestClient {
                     Thread.Sleep(1000);
                 }
 
-                Response globalStats = Http.GET("http://localhost:8080/WsGlobalStatus");
-
-                if (200 != globalStats.StatusCode) {
-
-                    Console.Error.WriteLine("Global status returned non-200 response.");
-
-                    GlobalErrorCode = 12;
-                    return GlobalErrorCode;
-                }
-
             } catch (Exception exc) {
 
                 Console.Error.WriteLine(exc.ToString());
@@ -446,8 +447,6 @@ namespace WebSocketsTestClient {
 
             Stopwatch sw = new Stopwatch();
 
-            const Int32 NumSockets = 100;
-
             for (Int32 i = 0; i < NumSockets; i++) {
 
                 sw.Restart();
@@ -474,13 +473,17 @@ namespace WebSocketsTestClient {
                 Int32 numDisconnects = Int32.Parse(globalStats.Body);
 
                 if (numDisconnects == NumSockets) {
+
+                    Console.WriteLine("WebSockets test finished successfully!");
+
                     return 0;
+
                 } else {
-                    Console.Error.WriteLine("Wrong number of disconnects.");
+                    Console.WriteLine("Wrong number of disconnects: " + numDisconnects);
                     GlobalErrorCode = 14;
                 }
             } else {
-                Console.Error.WriteLine("Wrong global statistics response.");
+                Console.WriteLine("Wrong global statistics response.");
                 GlobalErrorCode = 15;
             }
 

@@ -23,7 +23,7 @@ namespace WebSocketsTestServer {
 
         const String WsTestChannelName = "WsTestChannel";
 
-        const Int32 PushSleepInterval = 100;
+        const Int32 PushSleepInterval = 10;
 
         static UInt64 GlobalUniqueWsId = 0;
 
@@ -70,7 +70,7 @@ namespace WebSocketsTestServer {
                 wss.NumMessagesReceived++;
             });
 
-            //PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+            PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
         }
 
         /// <summary>
@@ -103,7 +103,9 @@ namespace WebSocketsTestServer {
                                 }
 
                                 // Pushing message on this WebSocket.
-                                PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+                                for (Int32 i = 0; i < 5; i++) {
+                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+                                }
 
                             } catch (Exception exc) {
 
@@ -146,8 +148,10 @@ namespace WebSocketsTestServer {
                                     return;
                                 }
 
-                                // Pushing message on this WebSocket.
-                                PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+                                // Pushing messages on this WebSocket.
+                                for (Int32 i = 0; i < 5; i++) {
+                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws, wss);
+                                }
 
                             } catch (Exception exc) {
 
@@ -205,6 +209,8 @@ namespace WebSocketsTestServer {
                         Int32 numMessagesToSend = Int32.Parse(req["NumMessagesToSend"]);
                         Int32 messageSize = Int32.Parse(req["MessageSize"]);
                         Int32 messageLetter = (Int32)req["MessageLetter"][0];
+
+                        GlobalErrorCode = 0;
 
                         UInt64 cargoId;
 
@@ -325,13 +331,16 @@ namespace WebSocketsTestServer {
                     };
                 }
 
+                Int32 totalNumDisconnects = GlobalNumberOfDisconnects;
+                GlobalNumberOfDisconnects = 0;
+
                 return new Response() {
-                    Body = String.Format("{0}", GlobalNumberOfDisconnects)
+                    Body = String.Format("{0}", totalNumDisconnects)
                 };
             });
 
-            Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(10); });
-            broadcastSessionsThread.Start();
+            //Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(10); });
+            //broadcastSessionsThread.Start();
 
             Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(10); });
             broadcastWebSocketsThread.Start();
