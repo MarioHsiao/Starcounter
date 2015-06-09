@@ -217,13 +217,17 @@ namespace Starcounter.InstallerWPF {
                 elem.InnerText = personalServer.DefaultSystemHttpPort.ToString();
                 subRootElem.AppendChild(elem);
 
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_AggregationPort);
+                elem.InnerText = personalServer.DefaultAggregationPort.ToString();
+                subRootElem.AppendChild(elem);
+
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_DefaultPersonalPrologSqlProcessPort);
                 elem.InnerText = personalServer.DefaultPrologSqlProcessPort.ToString();
                 subRootElem.AppendChild(elem);
 
                 // Send usage statistics and crash reports
                 elem = xmlDoc.CreateElement(ConstantsBank.Setting_SendUsageAndCrashReports);
-                elem.InnerText = personalServer.SendUsageAndCrashReports.ToString();
+                elem.InnerText = installationBase.SendUsageAndCrashReports.ToString();
                 subRootElem.AppendChild(elem);
 
                 // Personal server Desktop shortcuts.

@@ -65,6 +65,43 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("Wester", lastName.Getter(tim));
         }
 
+        [Test]
+        public static void TestJsonWithSingleValue() {
+            string jsonStr = @"19";
+            TLong template = Template.CreateFromMarkup(jsonStr) as TLong;
+
+            Assert.IsNotNull(template);
+            var json = (Json)template.CreateInstance();
+            Assert.AreEqual(19, json.Get<long>(template));
+
+            json.Set<long>(template, 666);
+            Assert.AreEqual(666, json.Get<long>(template));
+
+            jsonStr = json.ToJson();
+        }
+
+        [Test]
+        public static void TestJsonWithSingleArray() {
+            string jsonStr = @"[{""Apa"":""Papa""}]";
+            TObjArr template = Template.CreateFromMarkup(jsonStr) as TObjArr;
+
+            Assert.IsNotNull(template);
+            var json = (Json)template.CreateInstance();
+
+            jsonStr = json.ToJson();
+        }
+
+        [Test]
+        public static void TestJsonWithSingleUntypedArray() {
+            string jsonStr = @"[]";
+            TObjArr template = Template.CreateFromMarkup(jsonStr) as TObjArr;
+
+            Assert.IsNotNull(template);
+            var json = (Json)template.CreateInstance();
+
+            jsonStr = json.ToJson();
+        }
+
         /// <summary>
         /// Tests dynamic.
         /// </summary>
@@ -487,7 +524,7 @@ namespace Starcounter.Internal.XSON.Tests {
         [Test]
         public static void TestDataBindingWithDifferentClasses() {
             // Bound to SimpleBase datatype.
-            TObject tSimple = Helper.CreateJsonTemplateFromFile("simple.json");
+            TValue tSimple = Helper.CreateJsonTemplateFromFile("simple.json");
             dynamic json = tSimple.CreateInstance();
 
             var o = new SubClass1();

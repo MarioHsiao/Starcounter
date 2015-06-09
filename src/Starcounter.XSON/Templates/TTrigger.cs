@@ -4,8 +4,10 @@
 // </copyright>
 // ***********************************************************************
 
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Starcounter.Templates {
 
@@ -18,8 +20,11 @@ namespace Starcounter.Templates {
     /// the schema template for that property becomes an TTrigger.
     /// </remarks>
     public class TTrigger : TValue {
+        private static byte[] jsonValueAsBytes = new byte[] { (byte)'n', (byte)'u', (byte)'l', (byte)'l' };
+
         private Func<Json, TValue, Input> _inputEventCreator;
         private Action<Json, Input> _inputHandler;
+        private String _appName; // To which application this input handler belongs.
 
         /// <summary>
         /// 
@@ -72,6 +77,24 @@ namespace Starcounter.Templates {
                                Action<Json, Input> handler) {
             _inputEventCreator = createInputEvent;
             _inputHandler = handler;
+            _appName = StarcounterEnvironment.AppName;
+        }
+
+        /// <summary>
+        /// Invoking user provided input handler respecting application name.
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="input"></param>
+        Input InvokeHandler(Json obj) {
+
+            // Setting the application name of the input handler owner.
+            String savedAppName = StarcounterEnvironment.AppName;
+            try {
+                StarcounterEnvironment.AppName = _appName;
+                return _inputEventCreator.Invoke(obj, this);
+            } finally {
+                StarcounterEnvironment.AppName = savedAppName;
+            }
         }
 
         /// <summary>
@@ -81,8 +104,9 @@ namespace Starcounter.Templates {
         public void ProcessInput(Json obj) {
             Input input = null;
 
-            if (_inputEventCreator != null)
-                input = _inputEventCreator.Invoke(obj, this);
+            if (_inputEventCreator != null) {
+                input = InvokeHandler(obj);
+            }
 
             if (input != null && _inputHandler != null) {
                 _inputHandler.Invoke(obj, input);
@@ -96,8 +120,9 @@ namespace Starcounter.Templates {
         internal void ProcessInput(Json obj, Input existingInput) {
             Input input = null;
 
-            if (_inputEventCreator != null)
-                input = _inputEventCreator.Invoke(obj, this);
+            if (_inputEventCreator != null) {
+                input = InvokeHandler(obj);
+            }
 
             if (input != null && _inputHandler != null) {
                 _inputHandler.Invoke(obj, input);
@@ -137,8 +162,12 @@ namespace Starcounter.Templates {
 		internal override void CopyValueDelegates(Template toTemplate) {
 		}
 
-        internal override string ValueToJsonString(Json parent) {
-            return "null";
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Trigger; }
+        }
+
+        internal override Type DefaultInstanceType {
+            get { return null; }
         }
     }
 }

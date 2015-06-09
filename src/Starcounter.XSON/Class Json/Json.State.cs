@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal;
+using Starcounter.XSON;
 
 namespace Starcounter {
     partial class Json {
@@ -68,6 +69,11 @@ namespace Starcounter {
         internal List<ArrayVersionLog> versionLog = null;
 
         /// <summary>
+        /// 
+        /// </summary>
+        private ChangeLog changeLog;
+
+        /// <summary>
         /// Implementation field used to cache the Metadata property.
         /// </summary>
         private ObjMetadata<TObject, Json> _Metadata = null;
@@ -91,6 +97,8 @@ namespace Starcounter {
         private List<Json> _stepSiblings;
 
         internal String _appName;
+
+        internal String _activeAppName;
 
         /// <summary>
         /// If set to true, additional features for keeping track of changes and getting a log of changes 

@@ -31,7 +31,7 @@ namespace Starcounter.Rest
         /// </summary>
         public void RegisterWsHandler(ushort port, string channel, Action<Byte[], WebSocket> handler)
         {
-            AllWsChannels.WsManager.RegisterWsDelegate(port, channel, handler);
+            AllWsGroups.WsManager.RegisterWsDelegate(port, channel, handler);
         }
 
         /// <summary>
@@ -39,15 +39,15 @@ namespace Starcounter.Rest
         /// </summary>
         public void RegisterWsHandler(ushort port, string channel, Action<String, WebSocket> handler)
         {
-            AllWsChannels.WsManager.RegisterWsDelegate(port, channel, handler);
+            AllWsGroups.WsManager.RegisterWsDelegate(port, channel, handler);
         }
 
         /// <summary>
         /// Registers a disconnect handler for a WebSocket.
         /// </summary>
-        public void RegisterWsDisconnectHandler(ushort port, string channel, Action<UInt64, IAppsSession> handler)
+        public void RegisterWsDisconnectHandler(ushort port, string groupName, Action<WebSocket> handler)
         {
-            AllWsChannels.WsManager.RegisterWsDisconnectDelegate(port, channel, handler);
+            AllWsGroups.WsManager.RegisterWsDisconnectDelegate(port, groupName, handler);
         }
 
         /// <summary>

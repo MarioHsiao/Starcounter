@@ -111,18 +111,6 @@ uint32_t GatewayWorker::CreateProxySocket(SocketDataChunkRef sd, MixedCodeConsta
         break;
     }
 
-    int32_t on_flag = 1;
-
-    // Does not block close waiting for unsent data to be sent.
-    if (setsockopt(new_connect_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, 4))
-    {
-        GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
-
-        closesocket(new_connect_socket);
-
-        return PrintLastError();
-    }
-
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
     // Skipping completion port if operation is already successful.
     SetFileCompletionNotificationModes((HANDLE)new_connect_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
@@ -378,7 +366,7 @@ uint32_t GatewayWorker::CreateUdpSockets(port_index_type port_index) {
     }
 
     // Creating new socket data.
-    err_code = CreateSocketData(new_socket_index, new_sd);
+    err_code = CreateSocketData(new_socket_index, new_sd, MAX_UDP_DATAGRAM_SIZE);
 
     if (err_code)
     {
@@ -465,16 +453,6 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
             return PrintLastError();
         }
 
-        // Does not block close waiting for unsent data to be sent.
-        if (setsockopt(new_socket, SOL_SOCKET, SO_DONTLINGER, (char *)&on_flag, sizeof(on_flag)))
-        {
-            GW_PRINT_WORKER << "Can't set SO_DONTLINGER on socket." << GW_ENDL;
-
-            closesocket(new_socket);
-
-            return PrintLastError();
-        }
-
 #ifdef GW_IOCP_IMMEDIATE_COMPLETION
         // Skipping completion port if operation is already successful.
         SetFileCompletionNotificationModes((HANDLE)new_socket, FILE_SKIP_COMPLETION_PORT_ON_SUCCESS);
@@ -555,18 +533,6 @@ START_RECEIVING_AGAIN:
 #endif
 
     uint32_t numBytes, err_code;
-
-#ifdef GW_DEV_DEBUG
-
-    AccumBuffer* ab = sd->get_accum_buf();
-
-    // Checking that accumulative buffer is fine.
-    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() < (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
-    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
-
-#endif
 
     // Checking if its a UDP socket.
     if (sd->IsUdp()) {
@@ -665,22 +631,8 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     // Updating connection timestamp.
     sd->UpdateSocketTimeStamp();
 
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
     // Adding to accumulated bytes.
-    accum_buf->AddAccumulatedBytes(num_bytes_received);
-
-#ifdef GW_DEV_DEBUG
-
-    AccumBuffer* ab = sd->get_accum_buf();
-
-    // Checking that accumulative buffer is fine.
-    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() <= (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
-    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
-
-#endif
+    sd->AddAccumulatedBytes(num_bytes_received);
 
     // Incrementing statistics.
     worker_stats_bytes_received_ += num_bytes_received;
@@ -708,7 +660,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         sd->ExchangeToProxySocket(this);
 
         // Setting number of bytes to send.
-        sd->get_accum_buf()->PrepareToSendOnProxy();
+        sd->PrepareToSendOnProxy();
 
         // Sending data to user.
         return Send(sd);
@@ -718,7 +670,7 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
     if (sd->get_accumulating_flag())
     {
         // Checking if we have not accumulated everything yet.
-        if (!sd->get_accum_buf()->IsAccumulationComplete())
+        if (!sd->IsNetworkBufferFull())
         {
             // Checking if we are called already from Receive to avoid recursiveness.
             if (!called_from_receive)
@@ -766,18 +718,6 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     // Checking that socket arrived on correct worker.
     GW_ASSERT(sd->get_bound_worker_id() == worker_id_);
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
-
-#ifdef GW_DEV_DEBUG
-
-    AccumBuffer* ab = sd->get_accum_buf();
-
-    // Checking that accumulative buffer is fine.
-    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() < (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
-    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
-
-#endif
 
     // Checking if aggregation is involved.
     if (sd->GetSocketAggregatedFlag())
@@ -857,20 +797,9 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     GW_ASSERT(sd->GetBoundWorkerId() == worker_id_);
 
     // Checking disconnect state.
-    if (sd->get_disconnect_after_send_flag())
+    if (sd->get_disconnect_after_send_flag()) {
         return SCERRGWDISCONNECTAFTERSENDFLAG;
-
-#ifdef GW_DEV_DEBUG
-
-    AccumBuffer* ab = sd->get_accum_buf();
-
-    // Checking that accumulative buffer is fine.
-    GW_ASSERT(ab->get_chunk_num_available_bytes() <= ab->get_chunk_orig_buf_len_bytes());
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() >= (ab->get_chunk_orig_buf_ptr() - MixedCodeConstants::PARAMS_INFO_MAX_SIZE_BYTES));
-    GW_ASSERT(ab->get_chunk_cur_buf_ptr() < (ab->get_chunk_orig_buf_ptr() + ab->get_chunk_orig_buf_len_bytes()));
-    GW_ASSERT(ab->get_chunk_orig_buf_len_bytes() >= ab->get_chunk_num_available_bytes() + ab->get_accum_len_bytes());
-
-#endif
+    }
 
     // If we received 0 bytes, the remote side has close the connection.
     if (0 == num_bytes_sent)
@@ -882,10 +811,8 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
         return SCERRGWSOCKETCLOSEDBYPEER;
     }
 
-    AccumBuffer* accum_buf = sd->get_accum_buf();
-
     // Checking that we processed correct number of bytes.
-    GW_ASSERT(num_bytes_sent == accum_buf->get_chunk_num_available_bytes());
+    GW_ASSERT(num_bytes_sent == sd->get_num_available_network_bytes());
 
     // Updating connection timestamp.
     sd->UpdateSocketTimeStamp();
@@ -900,7 +827,7 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
     if (sd->get_socket_representer_flag())
     {
         // Resets data buffer offset.
-        sd->ResetUserDataOffset();
+        sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes());
 
         // Resetting buffer information.
         sd->ResetAccumBuffer();
@@ -960,7 +887,7 @@ uint32_t GatewayWorker::ReceiveOnSocket(socket_index_type socket_index)
 }
 
 // Send disconnect to database.
-uint32_t GatewayWorker::SendRawSocketDisconnectToDb(SocketDataChunk* sd)
+uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
 {
     SocketDataChunk* sd_push_to_db = NULL;
     uint32_t err_code = sd->CloneToPush(this, &sd_push_to_db);
@@ -968,7 +895,11 @@ uint32_t GatewayWorker::SendRawSocketDisconnectToDb(SocketDataChunk* sd)
         return err_code;
 
     sd_push_to_db->ResetAllFlags();
+
     sd_push_to_db->set_just_push_disconnect_flag();
+
+    // NOTE: There is no used data when disconnecting.
+	sd_push_to_db->set_user_data_length_bytes(0);
 
     // Searching for server port and corresponding raw port handler.
     ServerPort* sp = g_gateway.get_server_port(sd->GetPortIndex());
@@ -1006,8 +937,8 @@ void GatewayWorker::PushDisconnectIfNeeded(SocketDataChunkRef sd) {
             break;
         }
 
-        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_RAW_PORT: {
-            SendRawSocketDisconnectToDb(sd);
+        case MixedCodeConstants::NetworkProtocolType::PROTOCOL_TCP: {
+            SendTcpSocketDisconnectToDb(sd);
             break;
         }
     }
@@ -1125,7 +1056,7 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     GW_ASSERT(sd->get_type_of_network_oper() != UNKNOWN_SOCKET_OPER);
 
     // Deleting session.
-    sd->DeleteGlobalSession();
+    sd->ResetGlobalSession();
 
     // Checking if it was an accepting socket.
     if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper())
@@ -1437,10 +1368,10 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
 
-    GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_accum_buf()->get_chunk_orig_buf_len_bytes());
+    GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_data_blob_size());
 
     // Getting user data pointer.
-    uint8_t* dest_data = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
+    uint8_t* dest_data = sd->get_data_blob_start();
 
     // Copying predefined header.
     memcpy(dest_data, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
@@ -1456,10 +1387,10 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
-    sd->ResetUserDataOffset();
+    sd->SetUserData(sd->get_data_blob_start(), kHttpGenericHtmlHeaderLength + body_len);
 
     // Prepare buffer to send outside.
-    sd->get_accum_buf()->AddAccumulatedBytes(kHttpGenericHtmlHeaderLength + body_len);
+    sd->AddAccumulatedBytes(kHttpGenericHtmlHeaderLength + body_len);
 
     // Running the handlers.
     uint32_t err_code = RunFromDbHandlers(sd);
@@ -1901,10 +1832,11 @@ uint32_t GatewayWorker::CreateSocketData(
 {
     // Obtaining chunk from gateway private memory.
     // Checking if its an aggregation socket.
-    if (IsAggregatingPort(socket_info_index))
+    if (IsAggregatingPort(socket_info_index)) {
         out_sd = worker_chunks_.ObtainChunk(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]);
-    else
+    } else {
         out_sd = worker_chunks_.ObtainChunk(data_len);
+    }
 
     // Checking if couldn't obtain chunk.
     if (NULL == out_sd)
@@ -1952,9 +1884,6 @@ uint32_t GatewayWorker::PushSocketDataToDb(SocketDataChunkRef sd, BMX_HANDLER_TY
 
         // Always storing the handler id.
         sd->set_handler_id(handler_id);
-
-        // Binding socket to a specific scheduler, depending on protocol.
-        sd->BindSocketToScheduler(this, db);
 
         // Checking if there is a non-empty overflow queue, so putting in it.
         if (IsOverflowed()) {
@@ -2119,7 +2048,7 @@ uint32_t GatewayWorker::SendPredefinedMessage(
     sd->ResetAccumBuffer();
 
     // Checking if data fits inside chunk.
-    if (message_len > (int32_t)sd->get_accum_buf()->get_chunk_num_available_bytes())
+    if (message_len > (int32_t)sd->get_num_available_network_bytes())
     {
         uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, message_len);
         if (err_code)
@@ -2127,11 +2056,12 @@ uint32_t GatewayWorker::SendPredefinedMessage(
     }
 
     // Checking if message should be copied.
-    if (message)
-        memcpy(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), message, message_len);
+    if (message) {
+        memcpy(sd->get_data_blob_start(), message, message_len);
+    }
 
     // Prepare buffer to send outside.
-    sd->PrepareForSend(sd->get_accum_buf()->get_chunk_orig_buf_ptr(), message_len);
+    sd->PrepareForSend(sd->get_data_blob_start(), message_len);
 
     // Sending data.
     return Send(sd);

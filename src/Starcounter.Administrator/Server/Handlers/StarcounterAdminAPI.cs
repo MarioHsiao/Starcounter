@@ -1,9 +1,9 @@
-﻿
-using Starcounter.Administrator.API.Handlers;
+﻿using Administrator.Server.Managers;
+using Starcounter.Logging;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
-using Starcounter.Server.Rest;
 using System;
+using System.Net;
 
 namespace Starcounter.Administrator.Server.Handlers {
     /// <summary>
@@ -13,6 +13,7 @@ namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
         private static Object LOCK = new Object();
+        static LogSource AdministratorLogSource = new LogSource("Administrator");
 
         /// <summary>
         /// Prepares the admin server REST API for use, mainly registering
@@ -21,32 +22,53 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// <param name="admin">The AdminAPI providing the context.</param>
         public static void Bootstrap(ushort port, ServerEngine engine, IServerRuntime server, string resourceFolder) {
 
-            // TODO: Get the AppStore url
-#if ANDWAH
-            string appStoreHost = "http://127.0.0.1:8787";
-#else
-            string appStoreHost = "http://appstore.polyjuice.com:8787";
-#endif
-
-
             // TODO: Add an "apps" folder to the Server Configuration
-            ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
-            string appsRootFolder = System.IO.Path.Combine(serverInfo.Configuration.EnginesDirectory, "apps");
+            //ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
+            //string appsRootFolder = System.IO.Path.Combine(serverInfo.Configuration.EnginesDirectory, "apps");
 
+            //string appsRootFolder = DeployManager.GetDeployFolder();
             // Where AppStore Item images will be saved and shared
-            string appImagesSubFolder = "appImages";
+            string appImagesSubFolder = DeployManager.GetAppImagesFolder();
             string imageResourceFolder = System.IO.Path.Combine(resourceFolder, appImagesSubFolder);
 
             StarcounterAdminAPI.Application_GET();
-            StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder, appImagesSubFolder);
-            StarcounterAdminAPI.InstalledApplicationTask_POST(port, appsRootFolder, appStoreHost, imageResourceFolder);
-            StarcounterAdminAPI.InstalledApplication_PUT(port, appsRootFolder, appStoreHost, imageResourceFolder);
+            //StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder, appImagesSubFolder);
 
-            StarcounterAdminAPI.AppStore_GET(port, appStoreHost);
+            // Read Advanced settings file
+#if REMOTE_CONTROL
+            string advSettingsFile = System.IO.Path.Combine(appsRootFolder, "advancedsettings.json");
+            if (System.IO.File.Exists(advSettingsFile)) {
+                AdministratorLogSource.LogNotice("Reading advancedsettings.json");
 
-            StarcounterAdminAPI.Database_GET(port, server);
+                try {
+                    Representations.JSON.AdvancedSettings settings = new Representations.JSON.AdvancedSettings();
+                    settings.PopulateFromJson(System.IO.File.ReadAllText(advSettingsFile));
+
+                    if (settings.RemoteAccess) {
+                        if (settings.RemoteAccessPort >= IPEndPoint.MinPort && settings.RemoteAccessPort <= IPEndPoint.MaxPort && settings.RemoteAccessPort != port) {
+                            // NOTE! This allows a remote computer to install/uninstall/update and start/stop applications
+                            StarcounterAdminAPI.ServerTaskHandler_POST((ushort)settings.RemoteAccessPort, appStoreHost, imageResourceFolder);
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    AdministratorLogSource.LogException(e);
+                }
+            }
+
+            StarcounterAdminAPI.ServerTaskHandler_POST(port, appStoreHost, imageResourceFolder);
+#endif
+            //StarcounterAdminAPI.InstalledApplication_PUT(port, appsRootFolder, appStoreHost, imageResourceFolder);
+
+            StarcounterAdminAPI.AppStore_GET(port);
+
+            //StarcounterAdminAPI.Database_GET(port, server);
 
             StarcounterAdminAPI.DatabaseSettings_GET(port, server);
+            StarcounterAdminAPI.Applications_GET(port, appImagesSubFolder);
+            //StarcounterAdminAPI.Messages_GET(port, appsRootFolder, appImagesSubFolder);
+            //StarcounterAdminAPI.Messages_DELETE(port, appsRootFolder, appImagesSubFolder);
+            //StarcounterAdminAPI.DatabaseTask_POST(port, appsRootFolder, appImagesSubFolder);
 
             StarcounterAdminAPI.Database_PUT(port, server);
             StarcounterAdminAPI.Database_POST(port, server);

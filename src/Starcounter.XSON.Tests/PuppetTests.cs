@@ -37,6 +37,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsTrue(session == root.Session);
             Assert.IsTrue(root == session.Data);
 
+            root.Session = null;
             StarcounterEnvironment.AppName = "SingleApp2";
             session2.Data = root;
 
@@ -112,13 +113,13 @@ namespace Starcounter.Internal.XSON.Tests {
             tmp = json.LastName;
 
             // Resetting dirtyflags.
-            string patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            string patch = jsonPatch.Generate(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
             data.FirstName = "Bengt";
-            patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            patch = jsonPatch.Generate(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
@@ -141,9 +142,9 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tname, "Hans Brix");
             
             // Resetting dirtyflags.
-            json.Session.GenerateChangeLog();
-            json.Session.CheckpointChangeLog();
-            json.Session.ClearChangeLog();
+            json.ChangeLog.Generate();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             json.Set(tname, "Apa Papa");
             Assert.IsTrue(json.IsDirty(tname));
@@ -154,8 +155,8 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tarr, new Arr<Json>(json, tarr));
             Assert.IsTrue(json.IsDirty(tarr));
 
-            json.Session.GenerateChangeLog();
-            Assert.AreEqual(3, json.Session.GetChanges().Count);
+            json.ChangeLog.Generate();
+            Assert.AreEqual(3, json.ChangeLog.GetChanges().Count);
         }
        
         [Test]
@@ -180,9 +181,9 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tname, "Hans Brix");
 
             // Resetting dirtyflags.
-            json.Session.GenerateChangeLog();
-            json.Session.CheckpointChangeLog();
-            json.Session.ClearChangeLog();
+            json.ChangeLog.Generate();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             json.Set(tname, "Apa Papa");
             Assert.IsTrue(json.IsDirty(tname));
@@ -193,8 +194,8 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tarr, new Arr<Json>(json, tarr));
             Assert.IsTrue(json.IsDirty(tarr));
 
-            json.Session.GenerateChangeLog();
-            Assert.AreEqual(3, json.Session.GetChanges().Count);
+            json.ChangeLog.Generate();
+            Assert.AreEqual(3, json.ChangeLog.GetChanges().Count);
         }
 
         [Test]
@@ -222,14 +223,14 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Data = data;
             json.Session = new Session();
 
-            var patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            var patch = jsonPatch.Generate(json, true, false);
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
             item.Recursives.Add(subItem);
             data.Recursives.Add(item);
 
-            patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            patch = jsonPatch.Generate(json, true, false);
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
 
@@ -237,7 +238,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(expected, patch);
             
             data.Recursives[0].Recursives.Add(subItem);
-            patch = jsonPatch.CreateJsonPatch(json.Session, true, false);
+            patch = jsonPatch.Generate(json, true, false);
 
             Helper.ConsoleWriteLine(patch);
             Helper.ConsoleWriteLine("");
@@ -275,14 +276,14 @@ namespace Starcounter.Internal.XSON.Tests {
             );
 
             // Flush all current changes.
-            session.GenerateChangeLog();
-            jsonPatch.CreateJsonPatch(session, true, false);
+            json.ChangeLog.Generate();
+            jsonPatch.Generate(json, true, false);
 
             // Call handler with no change of input value.
             tvalue1.ProcessInput(json, "Incoming");
 
-            session.GenerateChangeLog();
-            string patch = jsonPatch.CreateJsonPatch(session, true, false);
+            json.ChangeLog.Generate();
+            string patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Incoming", tvalue1.Getter(json));
             Assert.AreEqual("[]", patch);
@@ -290,8 +291,8 @@ namespace Starcounter.Internal.XSON.Tests {
             // Call handler that changes input value.
             tvalue2.ProcessInput(json, "Incoming");
 
-            session.GenerateChangeLog();
-            patch = jsonPatch.CreateJsonPatch(session, true, false);
+            json.ChangeLog.Generate();
+            patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Changed", tvalue2.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Changed""}]", patch);
@@ -327,14 +328,14 @@ namespace Starcounter.Internal.XSON.Tests {
             // Set initial values and flush all current changes.
             tvalue1.Setter(json, "Value1");
             tvalue2.Setter(json, "Value2");
-            session.GenerateChangeLog();
-            jsonPatch.CreateJsonPatch(session, true, false);
+            json.ChangeLog.Generate();
+            jsonPatch.Generate(json, true, false);
 
             // Call handler with different incoming value as on the server, value should be sent back to client.
             tvalue1.ProcessInput(json, "Incoming");
 
-            session.GenerateChangeLog();
-            string patch = jsonPatch.CreateJsonPatch(session, true, false);
+            json.ChangeLog.Generate();
+            string patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Value1", tvalue1.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/VirtualValue$"",""value"":""Value1""}]", patch);
@@ -342,8 +343,8 @@ namespace Starcounter.Internal.XSON.Tests {
             // Call handler with same input-value as on the server, value still should be sent back.
             tvalue2.ProcessInput(json, "Value2");
 
-            session.GenerateChangeLog();
-            patch = jsonPatch.CreateJsonPatch(session, true, false);
+            json.ChangeLog.Generate();
+            patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Value2", tvalue2.Getter(json));
             Assert.AreEqual(@"[{""op"":""replace"",""path"":""/AbstractValue$"",""value"":""Value2""}]", patch);
@@ -361,7 +362,7 @@ namespace Starcounter.Internal.XSON.Tests {
             // Dirtycheck enabled when adding to session.
             Session session = new Session();
             session.Data = json;
-            session.CheckpointChangeLog();
+            json.ChangeLog.Checkpoint();
 
             json.Value = "B";
             Assert.IsTrue(json.IsDirty(tobj.Properties[0]));
@@ -377,13 +378,13 @@ namespace Starcounter.Internal.XSON.Tests {
             // Dirtycheck enabled when adding to session.
             Session session = new Session();
             session.Data = json;
-            session.CheckpointChangeLog();
+            json.ChangeLog.Checkpoint();
 
             // No dirtycheck enabled for page.
             Assert.IsFalse(page.IsDirty(tobj.Properties[0]));
 
             json.Page = page;
-            session.CheckpointChangeLog();
+            json.ChangeLog.Checkpoint();
 
             json.Page.Value = "B";
             Assert.IsTrue(page.IsDirty(tobj.Properties[0]));
@@ -403,51 +404,54 @@ namespace Starcounter.Internal.XSON.Tests {
            
             Session session = new Session();
             session.Data = json;
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             Assert.AreEqual("A", json.FirstName);
 
             // First test that the autocheck works.
             person.FirstName = "Changed";
-            session.GenerateChangeLog();
-            var changes = session.GetChanges();
+            json.ChangeLog.Generate();
+            var changes = json.ChangeLog.GetChanges();
            
             Assert.AreEqual(1, changes.Count);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
 
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             // Then disable it and change value again.
             json.AutoRefreshBoundProperties = false;
             person.FirstName = "ChangedAgain";
-            session.GenerateChangeLog();
-            changes = session.GetChanges();
+
+            json.ChangeLog.Generate();
+            changes = json.ChangeLog.GetChanges();
             
             Assert.AreEqual(0, changes.Count);
 
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             // Last, manual refresh
             json.Refresh(tJson.Properties[0]);
-            session.GenerateChangeLog();
-            changes = session.GetChanges();
+            json.ChangeLog.Generate();
+            changes = json.ChangeLog.GetChanges();
             
             Assert.AreEqual(1, changes.Count);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
 
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
         }
 
         [Test]
         public static void TestArrayDisableCheckBoundProperties() {
             var schema = new TObject();
             var tarr = schema.Add<TArray<Json>>("Recursives");
-            tarr.ElementType = new TObject();
-            tarr.ElementType.Add<TString>("Name");
+
+            var elementType = new TObject();
+            elementType.Add<TString>("Name");
+            tarr.ElementType = elementType;
 
             dynamic json = new Json() { Template = schema };
             
@@ -458,28 +462,28 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Session session = new Session();
             session.Data = json;
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
             recursive.Recursives.Add(new Recursive() { Name = "R3" });
             Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
 
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             json.AutoRefreshBoundProperties = false;
             recursive.Recursives.Add(new Recursive() { Name = "R4" });
 
             Assert.AreNotEqual(recursive.Recursives.Count, json.Recursives.Count);
 
-            session.GenerateChangeLog();
-            var changes = session.GetChanges();
+            json.ChangeLog.Generate();
+            var changes = json.ChangeLog.GetChanges();
 
             Assert.AreEqual(0, changes.Count);
 
-            session.CheckpointChangeLog();
-            session.ClearChangeLog();
+            json.ChangeLog.Checkpoint();
+            json.ChangeLog.Clear();
 
             json.Refresh(tarr);
             Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);

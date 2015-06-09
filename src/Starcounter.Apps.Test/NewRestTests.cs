@@ -49,6 +49,9 @@ namespace Starcounter.Internal.Test
             // Initializing system profilers.
             Profiler.Init(true);
 
+            // Initializing global sessions.
+            GlobalSessions.InitGlobalSessions(1);
+
             Handle.CallLevel = 0;
         }
     }

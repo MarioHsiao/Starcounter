@@ -286,6 +286,11 @@ namespace Starcounter.Internal
             public const string DefaultSessionTimeoutMinutes = "DefaultSessionTimeoutMinutes";
 
             /// <summary>
+            /// Polyjuice database.
+            /// </summary>
+            public const string PolyjuiceDatabaseFlag = "PolyjuiceDatabaseFlag";
+
+            /// <summary>
             /// Default HTTP port for system code.
             /// </summary>
             public const string DefaultSystemHttpPort = "DefaultSystemHttpPort";

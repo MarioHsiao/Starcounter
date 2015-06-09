@@ -61,7 +61,7 @@ typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
 typedef int8_t chunk_store_type;
-typedef uint32_t ws_channel_id_type;
+typedef uint32_t ws_group_id_type;
 
 // Statistics macros.
 //#define GW_DETAILED_STATISTICS
@@ -78,7 +78,7 @@ typedef uint32_t ws_channel_id_type;
 //#define GW_SESSIONS_DIAG
 //#define GW_IOCP_IMMEDIATE_COMPLETION
 //#define WORKER_NO_SLEEP
-#define LEAST_USED_SCHEDULING
+//#define LEAST_USED_SCHEDULING
 #define CASE_INSENSITIVE_URI_MATCHER
 
 #ifdef GW_DEV_DEBUG
@@ -140,7 +140,7 @@ const int32_t MAX_RAW_HANDLERS_PER_PORT = 256;
 const int32_t MAX_URI_HANDLERS_PER_PORT = 16;
 
 // Maximum number of chunks to pop at once.
-const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 1000;
+const int32_t MAX_CHUNKS_TO_POP_AT_ONCE = 100;
 
 // Maximum number of fetched OVLs at once.
 const int32_t MAX_FETCHED_OVLS = 10;
@@ -155,7 +155,7 @@ const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
 const int32_t MAX_PROXIED_URIS = 32;
 
 // Number of sockets to increase the accept roof.
-const int32_t ACCEPT_ROOF_STEP_SIZE = 16;
+const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
 // Maximum number of cached URI matchers.
 const int32_t MAX_CACHED_URI_MATCHERS = 32;
@@ -265,7 +265,7 @@ enum GatewayTestingMode
     MODE_GATEWAY_UNKNOWN = 6
 };
 
-const int32_t NumGatewayChunkSizes = 7;
+const int32_t NumGatewayChunkSizes = 6;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
@@ -274,17 +274,15 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     8 * 1024,
     32 * 1024,
     128 * 1024,
-    512 * 1024,
-    4096 * 1024
+    1024 * 1024
 };
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     100000,
     500000, // Default chunk size.
     100000,
-    50000,
-    50000,
-    1000,
+    30000,
+    10000,
     100
 };
 
@@ -293,9 +291,8 @@ const int32_t MAX_WORKER_CHUNKS =
     100000 +
     500000 + // Default chunk size.
     100000 +
-    50000 +
-    50000 +
-    1000 +
+    30000 +
+    10000 +
     100;
 
 const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
@@ -304,15 +301,20 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[6] - SOCKET_DATA_OFFSET_BLOB
+    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
 };
+
+// Maximum size of UDP datagram.
+const int32_t MAX_UDP_DATAGRAM_SIZE = GatewayChunkDataSizes[3];
 
 inline chunk_store_type ObtainGatewayChunkType(int32_t data_size)
 {
-    for (int32_t i = 0; i < NumGatewayChunkSizes; i++)
-        if (data_size <= GatewayChunkDataSizes[i])
+    for (int32_t i = 0; i < NumGatewayChunkSizes; i++) {
+
+        if (data_size <= GatewayChunkDataSizes[i]) {
             return i;
+        }
+    }
 
     GW_ASSERT(false);
     return INVALID_CHUNK_STORE_INDEX;
@@ -654,228 +656,6 @@ public:
     }
 };
 
-// Accumulative buffer.
-class AccumBuffer
-{
-    // Available bytes number in chunk.
-    uint32_t chunk_num_available_bytes_;
-
-    // Current buffer pointer in chunk.
-    uint8_t* chunk_cur_buf_ptr_;
-
-    // Initial data pointer in chunk.
-    uint8_t* chunk_orig_buf_ptr_;
-
-    // Original chunk total length.
-    uint32_t chunk_orig_buf_len_bytes_;
-
-    // Total number of bytes accumulated.
-    uint32_t accumulated_len_bytes_;
-
-    // Desired number of bytes to accumulate.
-    uint32_t desired_accum_bytes_;
-
-public:
-
-    uint32_t* get_desired_accum_bytes_addr()
-    {
-        return &desired_accum_bytes_;
-    }
-
-    uint32_t* get_accumulated_len_bytes_addr()
-    {
-        return &accumulated_len_bytes_;
-    }
-
-    // Makes accumulative buffer non-usable.
-    void Invalidate()
-    {
-        chunk_cur_buf_ptr_ = NULL;
-        chunk_orig_buf_ptr_ = NULL;
-    }
-
-    // Moves data in accumulative buffer to top.
-    uint8_t* MoveDataToTopAndContinueReceive(uint8_t* cur_data_ptr, int32_t num_copy_bytes)
-    {
-        // Checking if we have anything to move.
-        if ((cur_data_ptr > chunk_orig_buf_ptr_) &&
-            (cur_data_ptr + num_copy_bytes <= chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_))
-        {
-            memmove(chunk_orig_buf_ptr_, cur_data_ptr, num_copy_bytes);
-            chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_ + num_copy_bytes;
-
-            chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_ - num_copy_bytes;
-            accumulated_len_bytes_ = num_copy_bytes;
-        }
-
-        return chunk_orig_buf_ptr_;
-    }
-
-    // Initializes accumulative buffer.
-    void Init(
-        uint32_t buf_total_len_bytes,
-        uint8_t* orig_buf_ptr,
-        bool reset_accum_len)
-    {
-        chunk_orig_buf_len_bytes_ = buf_total_len_bytes;
-        chunk_num_available_bytes_ = buf_total_len_bytes;
-        chunk_orig_buf_ptr_ = orig_buf_ptr;
-        chunk_cur_buf_ptr_ = orig_buf_ptr;
-
-        // Checking if we need to reset accumulated length.
-        if (reset_accum_len)
-        {
-            desired_accum_bytes_ = 0;
-            accumulated_len_bytes_ = 0;
-        }
-        else
-        {
-            uint32_t remaining = desired_accum_bytes_ - accumulated_len_bytes_;
-            if (chunk_num_available_bytes_ > remaining)
-                chunk_num_available_bytes_ = remaining;
-        }
-    }
-
-    // Initializes accumulative buffer.
-    void Init(
-        uint32_t buf_total_len_bytes,
-        uint32_t orig_buf_ptr_shift_bytes)
-    {
-        chunk_orig_buf_len_bytes_ = buf_total_len_bytes;
-        chunk_num_available_bytes_ = buf_total_len_bytes;
-        chunk_orig_buf_ptr_ = chunk_orig_buf_ptr_ + orig_buf_ptr_shift_bytes;
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
-        desired_accum_bytes_ = buf_total_len_bytes;
-        accumulated_len_bytes_ = buf_total_len_bytes;
-    }
-
-    // Initializes accumulative buffer.
-    void SetAccumulation(
-        uint32_t buf_total_len_bytes,
-        uint32_t orig_buf_ptr_shift_bytes)
-    {
-        chunk_orig_buf_len_bytes_ -= orig_buf_ptr_shift_bytes;
-        chunk_num_available_bytes_ -= orig_buf_ptr_shift_bytes;
-        chunk_orig_buf_ptr_ += orig_buf_ptr_shift_bytes;
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
-        desired_accum_bytes_ = buf_total_len_bytes;
-        accumulated_len_bytes_ = buf_total_len_bytes;
-    }
-
-    uint32_t get_chunk_num_available_bytes()
-    {
-        return chunk_num_available_bytes_;
-    }
-
-    void RevertBeforeSend()
-    {
-        chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_;
-    }
-
-    uint32_t get_chunk_orig_buf_len_bytes()
-    {
-        return chunk_orig_buf_len_bytes_;
-    }
-
-    void WriteBytesToSend(void* data, uint32_t data_len)
-    {
-        memcpy(chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - chunk_num_available_bytes_, data, data_len);
-        chunk_num_available_bytes_ -= data_len;
-    }
-
-    // Get buffer length.
-    uint32_t GetNumLeftBytesInChunk(uint8_t* cur_ptr)
-    {
-        return static_cast<uint32_t> (chunk_orig_buf_ptr_ + chunk_orig_buf_len_bytes_ - cur_ptr);
-    }
-
-    uint32_t get_desired_accum_bytes()
-    {
-        return desired_accum_bytes_;
-    }
-
-    void set_desired_accum_bytes(uint32_t desired_num_bytes)
-    {
-        desired_accum_bytes_ = desired_num_bytes;
-    }
-
-    // Resets to original state.
-    void ResetToOriginalState()
-    {
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
-        chunk_num_available_bytes_ = chunk_orig_buf_len_bytes_;
-        accumulated_len_bytes_ = 0;
-        desired_accum_bytes_ = 0;
-    }
-
-    // Adds accumulated bytes.
-    void AddAccumulatedBytes(int32_t num_bytes)
-    {
-        accumulated_len_bytes_ += num_bytes;
-        chunk_cur_buf_ptr_ += num_bytes;
-        chunk_num_available_bytes_ -= num_bytes;
-    }
-
-    // Prepare buffer to send outside.
-    void PrepareForSend(uint8_t *data, uint32_t num_bytes)
-    {
-        chunk_num_available_bytes_ = num_bytes;
-        chunk_cur_buf_ptr_ = data;
-        accumulated_len_bytes_ = 0;
-    }
-
-    // Prepare buffer to proxy outside.
-    void PrepareToSendOnProxy()
-    {
-        chunk_cur_buf_ptr_ = chunk_orig_buf_ptr_;
-        chunk_num_available_bytes_ = accumulated_len_bytes_;
-
-        GW_ASSERT_DEBUG(0 == desired_accum_bytes_);
-        accumulated_len_bytes_ = 0;
-    }
-
-    // Starting accumulation.
-    void StartAccumulation(uint32_t total_desired_bytes, uint32_t num_already_accumulated)
-    {
-        desired_accum_bytes_ = total_desired_bytes;
-        accumulated_len_bytes_ = num_already_accumulated;
-    }
-
-    // Returns pointer to original data buffer.
-    uint8_t* get_chunk_orig_buf_ptr()
-    {
-        return chunk_orig_buf_ptr_;
-    }
-
-    // Getting current chunk buffer.
-    uint8_t* get_chunk_cur_buf_ptr() {
-        return chunk_cur_buf_ptr_;
-    }
-
-    // Returns the size in bytes of accumulated data.
-    uint32_t get_accum_len_bytes()
-    {
-        return accumulated_len_bytes_;
-    }
-
-    void set_accum_len_bytes(uint32_t value)
-    {
-        accumulated_len_bytes_ = value;
-    }
-
-    // Checks if accumulating buffer is filled.
-    bool IsBufferFilled()
-    {
-        return 0 == chunk_num_available_bytes_;
-    }
-
-    // Checking if all needed bytes are accumulated.
-    bool IsAccumulationComplete()
-    {
-        return accumulated_len_bytes_ == desired_accum_bytes_;
-    }
-};
-
 // Represents a session in terms of gateway/Apps.
 struct ScSessionStruct
 {
@@ -974,8 +754,8 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     // Number of bytes left for accumulation.
     uint32_t accum_data_bytes_left_;
 
-    // WebSockets channel id.
-    ws_channel_id_type ws_channel_id_;
+    // WebSockets group id.
+    ws_group_id_type ws_group_id_;
 
     //////////////////////////////
     //////// 16 bits data ////////
@@ -996,7 +776,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 
     // Network protocol flag.
     uint8_t type_of_network_protocol_;
-
 
     // Disconnecting given socket handle.
     void DisconnectSocket() {
@@ -1080,11 +859,12 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         dest_db_index_ = INVALID_DB_INDEX;
         proxy_socket_info_index_ = INVALID_SOCKET_INDEX;
         aggr_socket_info_index_ = INVALID_SOCKET_INDEX;
-        ws_channel_id_ = MixedCodeConstants::INVALID_WS_CHANNEL_ID;
+        ws_group_id_ = MixedCodeConstants::INVALID_WS_CHANNEL_ID;
     }
 
     bool IsReset() {
-        return (INVALID_SESSION_SALT == unique_socket_id_);
+        return (INVALID_SESSION_SALT == unique_socket_id_) && 
+            (INVALID_SCHEDULER_ID == session_.scheduler_id_);
     }
 };
 
@@ -1258,7 +1038,7 @@ class HandlersList;
 class SocketDataChunk;
 class PortHandlers;
 class RegisteredUris;
-class PortWsChannels;
+class PortWsGroups;
 class RegisteredSubports;
 class ServerPort
 {
@@ -1281,7 +1061,7 @@ class ServerPort
     std::list<UriMatcherCacheEntry*> uri_matcher_cache_;
 
     // All registered WebSockets belonging to this port.
-    PortWsChannels* registered_ws_channels_;
+    PortWsGroups* registered_ws_groups_;
 
     // This port index in global array.
     port_index_type port_index_;
@@ -1375,10 +1155,10 @@ public:
         return registered_uris_;
     }
 
-    // Getting registered port WebSocket channels.
-    PortWsChannels* get_registered_ws_channels()
+    // Getting registered port WebSocket groups.
+    PortWsGroups* get_registered_ws_groups()
     {
-        return registered_ws_channels_;
+        return registered_ws_groups_;
     }
 
     // Getting registered port handlers.

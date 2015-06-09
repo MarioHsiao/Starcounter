@@ -1,6 +1,5 @@
 {
   "name": "PuppetJs",
-  "version": "0.4.0",
   "homepage": "https://github.com/PuppetJs/PuppetJs",
   "description": "Client side library that binds Web Components or AngularJs to server side view models using JSON-Patch.",
   "main": "src/puppet.js",
@@ -24,16 +23,17 @@
     "json-patch-ot": "PuppetJs/JSON-Patch-OT#gh-pages"
   },
   "devDependencies": {
-    "polymer": "Polymer/polymer",
+    "polymer": "Polymer/polymer#<0.8.0",
     "model-operations": "Polyjuice/model-operations"
   },
-  "_release": "0.4.0",
+  "version": "1.1.0",
+  "_release": "1.1.0",
   "_resolution": {
     "type": "version",
-    "tag": "0.4.0",
-    "commit": "1cd04ac5fb47fb2339ffce120bb4b6d5dd3a6d35"
+    "tag": "1.1.0",
+    "commit": "9164f544761717d9059a829215c86c178ca19e70"
   },
   "_source": "git://github.com/PuppetJs/PuppetJs.git",
-  "_target": ">=0.4.0",
+  "_target": ">=1.0.1",
   "_originalSource": "PuppetJs/PuppetJs"
 }

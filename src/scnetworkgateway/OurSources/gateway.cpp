@@ -419,7 +419,7 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, bool is_
     // Allocating needed tables.
     port_handlers_ = GwNewConstructor(PortHandlers);
     registered_uris_ = GwNewConstructor1(RegisteredUris, port_number);
-    registered_ws_channels_ = GwNewConstructor1(PortWsChannels, port_number);
+    registered_ws_groups_ = GwNewConstructor1(PortWsGroups, port_number);
 
     listening_sock_ = listening_sock;
     port_number_ = port_number;
@@ -445,7 +445,7 @@ void ServerPort::EraseDb(db_index_type db_index)
     registered_uris_->RemoveEntry(db_index);
     
     // Deleting WebSocket channels if any.
-    registered_ws_channels_->RemoveEntry(db_index);
+    registered_ws_groups_->RemoveEntry(db_index);
 }
 
 // Checking if port is unused by any database.
@@ -464,7 +464,7 @@ bool ServerPort::IsEmpty()
         return false;
 
     // Checking WebSocket channels.
-    if (registered_ws_channels_ && (!registered_ws_channels_->IsEmpty()))
+    if (registered_ws_groups_ && (!registered_ws_groups_->IsEmpty()))
         return false;
 
     // Checking connections.
@@ -513,10 +513,10 @@ void ServerPort::Erase()
         registered_uris_ = NULL;
     }
 
-    if (registered_ws_channels_)
+    if (registered_ws_groups_)
     {
-        GwDeleteSingle(registered_ws_channels_);
-        registered_ws_channels_ = NULL;
+        GwDeleteSingle(registered_ws_groups_);
+        registered_ws_groups_ = NULL;
     }
 
     port_number_ = INVALID_PORT_NUMBER;
@@ -623,7 +623,7 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 
     //port_handlers_->PrintRegisteredHandlers(global_port_statistics_stream);
     registered_uris_->PrintRegisteredUris(stats_stream);
-    registered_ws_channels_->PrintRegisteredChannels(stats_stream);
+    registered_ws_groups_->PrintRegisteredChannels(stats_stream);
     stats_stream << "}";
 }
 
@@ -639,7 +639,7 @@ ServerPort::ServerPort()
     listening_sock_ = INVALID_SOCKET;
     port_handlers_ = NULL;
     registered_uris_ = NULL;
-    registered_ws_channels_ = NULL;
+    registered_ws_groups_ = NULL;
 
     Erase();
 }
@@ -752,7 +752,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
             return SCERRBADGATEWAYCONFIG;
         }
 
-        node_elem = root_elem->first_node("InternalSystemPort");
+        node_elem = root_elem->first_node(MixedCodeConstants::GatewayInternalSystemPortSettingName);
         if (!node_elem)
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Can't read InternalSystemPort property.");
@@ -767,7 +767,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         }
 
         // Getting aggregation port number.
-        node_elem = root_elem->first_node("AggregationPort");
+        node_elem = root_elem->first_node(MixedCodeConstants::GatewayAggregationPortSettingName);
         if (node_elem)
         {
             setting_aggregation_port_ = (uint16_t)atoi(node_elem->value());
@@ -936,8 +936,6 @@ uint32_t Gateway::AssertCorrectState()
     GW_ASSERT(sizeof(ScSessionStruct) == MixedCodeConstants::SESSION_STRUCT_SIZE);
 
     GW_ASSERT(0 == (sizeof(ScSocketInfoStruct) % MEMORY_ALLOCATION_ALIGNMENT));
-
-    GW_ASSERT(GatewayChunkSizes[NumGatewayChunkSizes - 1] > (MixedCodeConstants::MAX_EXTRA_LINKED_IPC_CHUNKS + 1) * MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
 
     int64_t sum = 0;
     for (int32_t i = 0; i < NumGatewayChunkSizes; i++) {
@@ -1131,7 +1129,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 {
     *is_handled = true;
 
-    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
     char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
@@ -1140,7 +1138,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     // Looking for the \r\n\r\n.
     char* body_string = strstr(request_begin, "\r\n\r\n");
     GW_ASSERT(NULL != body_string);
-    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+    request_begin[sd->get_accumulated_len_bytes()] = '\0';
 
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;
@@ -1226,7 +1224,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
 
     uint32_t err_code;
 
-    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
     char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
@@ -1235,7 +1233,7 @@ uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChun
     // Looking for the \r\n\r\n.
     char* body_string = strstr(request_begin, "\r\n\r\n");
     GW_ASSERT(NULL != body_string);
-    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+    request_begin[sd->get_accumulated_len_bytes()] = '\0';
 
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;
@@ -1321,7 +1319,7 @@ uint32_t RegisterWsHandler(
 {
     *is_handled = true;
 
-    char* request_begin = (char*)(sd->get_accum_buf()->get_chunk_orig_buf_ptr());
+    char* request_begin = (char*)(sd->get_data_blob_start());
 
     // Looking for the \r\n\r\n\r\n\r\n.
     char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
@@ -1330,14 +1328,14 @@ uint32_t RegisterWsHandler(
     // Looking for the \r\n\r\n.
     char* body_string = strstr(request_begin, "\r\n\r\n");
     GW_ASSERT(NULL != body_string);
-    request_begin[sd->get_accum_buf()->get_accum_len_bytes()] = '\0';
+    request_begin[sd->get_accumulated_len_bytes()] = '\0';
 
     std::stringstream ss(body_string);
     BMX_HANDLER_TYPE handler_info;
     uint16_t port;
     std::string db_name;
     std::string app_name;
-    ws_channel_id_type ws_channel_id;
+    ws_group_id_type ws_channel_id;
     std::string ws_channel_name;
 
     ss >> db_name;
@@ -1384,12 +1382,12 @@ uint32_t RegisterWsHandler(
     }
 
     // Searching existing WebSocket handler with the same channel name.
-    if (INVALID_URI_INDEX != server_port->get_registered_ws_channels()->FindRegisteredChannelName(ws_channel_name.c_str()))
+    if (INVALID_URI_INDEX != server_port->get_registered_ws_groups()->FindRegisteredChannelName(ws_channel_name.c_str()))
         err_code = SCERRHANDLERALREADYREGISTERED;
 
     if (0 == err_code)
     {
-        server_port->get_registered_ws_channels()->AddNewEntry(
+        server_port->get_registered_ws_groups()->AddNewEntry(
             handler_info,
             app_name.c_str(),
             ws_channel_id,

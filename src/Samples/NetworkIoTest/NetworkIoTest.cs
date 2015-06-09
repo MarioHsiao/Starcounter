@@ -11,8 +11,8 @@ using Starcounter.Advanced;
 using Codeplex.Data;
 using System.Net;
 
-namespace NetworkIoTestApp
-{
+namespace NetworkIoTestApp {
+
     /// <summary>
     /// Some Apps handlers.
     /// </summary>
@@ -295,15 +295,6 @@ namespace NetworkIoTestApp
                     break;
                 }
 
-                case TestTypes.MODE_APPS_URIS:
-                {
-                    AppsBootstrapper.Bootstrap(StarcounterEnvironment.AppName, "c:\\pics", StarcounterEnvironment.Default.UserHttpPort);
-
-                    AppsClass.InitAppHandlers();
-
-                    break;
-                }
-
                 case TestTypes.MODE_APPS_URIS_SESSION:
                 {
                     AppsClass.InitAppHandlersSession();
@@ -410,7 +401,7 @@ namespace NetworkIoTestApp
                         ws.Send(bs);
                     });
 
-                    Handle.WebSocketDisconnect(8080, "echotestws", (UInt64 cargoId, IAppsSession session) =>
+                    Handle.WebSocketDisconnect(8080, "echotestws", (WebSocket ws) =>
                     {
                         Interlocked.Increment(ref WsDisconnectsCounter);
 
@@ -636,91 +627,12 @@ namespace NetworkIoTestApp
 
                 case TestTypes.MODE_WEBSOCKETS_URIS:
                 {
-                    for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
-                        WebSocketSessions[i] = new Dictionary<UInt64, WebSocket>();
-
-                    Random rand = new Random();
-                    DbSession dbSession = new DbSession();
-                    Int32 interval = 5000;
-                    WebSocketSessionsTimer = new Timer((state) =>
-                    {
-                        // Schedule a job to check once for inactive sessions on each scheduler.
-                        for (Byte i = 0; i < Db.Environment.SchedulerCount; i++)
-                        {
-                            // NOTE: Very important to make a copy of looped variable here!
-                            Byte k = i;
-
-                            // Getting sessions for current scheduler.
-                            dbSession.RunAsync(() =>
-                            {
-                                // NOTE: Very important to make a copy of looped variable here!
-                                Byte sched = k;
-
-                                foreach (KeyValuePair<UInt64, WebSocket> ws in WebSocketSessions[sched])
-                                {
-                                    String pushMsg = "Scheduler: " + sched + ", seconds: " + TimerSeconds + " and weight: " + new String('A', 1 + rand.Next(20000));
-                                    ws.Value.Send(pushMsg); // Log has changed
-                                }
-
-                            }, i);
-                        }
-                        TimerSeconds += 1;
-
-                    }, null, interval, interval);
-
-                    // Registering WebSocket handler.
-                    Handle.GET("/ws", (Request req) =>
-                    {
-                        // Checking for client IP address.
-                        String clientIp = req.ClientIpAddress.ToString();
-                        if (clientIp != "127.0.0.1")
-                            throw new Exception("Wrong client IP address: " + clientIp);
-
-                        if (req.WebSocketUpgrade)
-                        {
-                            Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                            UniqueWebSocketIdentifier[schedId]++;
-
-                            WebSocket ws = req.SendUpgrade("test", UniqueWebSocketIdentifier[schedId]);
-                            WebSocketSessions[schedId].Add(UniqueWebSocketIdentifier[schedId], ws);
-
-                            return HandlerStatus.Handled;
-                        }
-
-                        return new Response()
-                        {
-                            StatusCode = 500,
-                            StatusDescription = "WebSocket upgrade on " + req.Uri + " was not approved."
-                        };
-                    });
-
-                    Handle.WebSocket("test", (String s, WebSocket ws) => {
-                        ws.Send(s);
-                    });
-
-                    Handle.WebSocket("test", (Byte[] s, WebSocket ws) => {
-                        ws.Send(s);
-                    });
-
-                    Handle.WebSocketDisconnect("test", (UInt64 cargoId, IAppsSession session) =>
-                    {
-                        Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
-                        if (WebSocketSessions[schedId].ContainsKey(cargoId))
-                            WebSocketSessions[schedId].Remove(cargoId);
-                    });
+                    
 
                     break;
                 }
             }
         }
-
-        static Dictionary<UInt64, WebSocket>[] WebSocketSessions = new Dictionary<UInt64, WebSocket>[Db.Environment.SchedulerCount];
-        static UInt64[] UniqueWebSocketIdentifier = new UInt64[Db.Environment.SchedulerCount];
-
-        static volatile Int32 TimerSeconds = 0;
-
-        // NOTE: Timer should be static, otherwise its garbage collected.
-        static Timer WebSocketSessionsTimer = null;
 
         private static void OnTcpSocket(TcpSocket tcpSocket, Byte[] incomingData)
         {

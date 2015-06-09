@@ -113,13 +113,13 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
 
         var errorHeader = "Failed to save server settings";
 
-        var job = { message: "Saving server settings" };
-        JobFactory.AddJob(job);
+//        var job = { message: "Saving server settings" };
+//        JobFactory.AddJob(job);
 
         $http.put('/api/admin/servers/personal/settings', settings).then(function (response) {
 
             // success
-            JobFactory.RemoveJob(job);
+//            JobFactory.RemoveJob(job);
 
             if (successCallback != null) {
                 successCallback(response.data);
@@ -128,7 +128,7 @@ adminModule.service('ServerService', ['$http', '$log', '$rootScope', 'UtilsFacto
         }, function (response) {
 
             // Error
-            JobFactory.RemoveJob(job);
+//            JobFactory.RemoveJob(job);
             var messageObject;
 
             $log.error(errorHeader, response);

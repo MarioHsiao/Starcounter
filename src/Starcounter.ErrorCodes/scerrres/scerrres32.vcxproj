@@ -106,7 +106,7 @@
   </ImportGroup>
   
   <!-- Building error codes manually. -->
-  <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll;scerrres.h">
+  <Target Name="AfterBuild" Inputs="..\errorcodes.xml;format.cpp;format.h;format.def" Outputs="$(OutDir)\$(AssemblyName).dll">
     <MakeDir Directories="$(OutDir)" />
     <Exec Command="..\ErrorCodeCompiler\scerrcc.exe ..\errorcodes.xml -mc $(OutDir)\$(AssemblyName).mc" />
     <Exec Command="&quot;$(FrameworkSdkDir)\Bin\x64\mc.exe&quot; -r $(OutDir) -v $(OutDir)\$(AssemblyName).mc" />

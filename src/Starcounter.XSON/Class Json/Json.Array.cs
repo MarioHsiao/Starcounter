@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
 
 namespace Starcounter {
     public partial class Json {
@@ -80,6 +81,11 @@ namespace Starcounter {
                             tobj = template.ElementType;
                         }
                         newApp = (Json)tobj.CreateInstance(this);
+
+                        // Setting only the reference to the data first to allow bindings 
+                        // and other stuff be handled then setting the property data after 
+                        // the new item have been added to have the callback to usercode.
+                        newApp._data = entity;
                         ((IList)this).Add(newApp);
                         newApp.Data = entity;
                     }
@@ -93,16 +99,14 @@ namespace Starcounter {
             _cacheIndexInArr = ((IList)Parent).IndexOf(this);
         }
 
-        internal int TransformIndex(long fromVersion, int orgIndex) {
+        internal int TransformIndex(ViewModelVersion version, long fromVersion, int orgIndex) {
             int transformedIndex;
-            Session s;
             long currentVersion;
             
             if ((_Dirty == false) && (versionLog == null || versionLog.Count == 0))
                 return orgIndex;
 
-            s = Session;
-            currentVersion = s.ServerVersion;
+            currentVersion = version.LocalVersion;
             transformedIndex = orgIndex;
 
             if (versionLog != null) {

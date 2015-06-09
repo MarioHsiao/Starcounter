@@ -226,6 +226,21 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Polyjuice database flag.
+        /// </summary>
+        public Boolean PolyjuiceDatabaseFlag {
+            get {
+                Boolean polyjuiceDatabaseFlag = (CurrentVersion.EditionName == "Polyjuice");
+                String s;
+                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag, out s)) {
+                    polyjuiceDatabaseFlag = Boolean.Parse(s);
+                }
+
+                return polyjuiceDatabaseFlag;
+            }
+        }
+
+        /// <summary>
         /// Gets the chunks number.
         /// </summary>
         /// <value>The chunks number.</value>
@@ -242,7 +257,7 @@ namespace StarcounterInternal.Bootstrap
                     chunksNumber = uint.Parse(chunksNumberStr);
 
                     // Checking if number of chunks is correct.
-                    if ((chunksNumber < 128) || (chunksNumber > 4096 * 128))
+                    if ((chunksNumber < 128) || (chunksNumber > 4096 * 512))
                     {
                         throw ErrorCode.ToException(Starcounter.Error.SCERRBADCHUNKSNUMBERCONFIG);
                     }

@@ -57,35 +57,41 @@ namespace Starcounter.XSON {
         public static JsonProperty Evaluate(JsonPointer pointer, Json root) {
             var property = new JsonProperty();
             property.DoEvaluate(pointer, root);
+
+            if (property.Property == null && (!root.IsObject)) {
+                property.current = (TValue)root.Template;
+            }
             return property;
         }
 
         private void DoEvaluate(JsonPointer pointer, Json root) {
             bool nextIsIndex = false;
-            bool otEnabled = Session.Current.CheckOption(SessionOptions.PatchVersioning);
+            ViewModelVersion version = null;
+
+            if (root.ChangeLog != null)
+                version = root.ChangeLog.Version;
             json = root;
            
             while (pointer.MoveNext()) {
                 // TODO: 
                 // Check if this can be improved. Searching for transaction and execute every
                 // step in a new action is not the most efficient way.
-                nextIsIndex = json.Scope<JsonProperty, JsonPointer, bool, bool, bool>(
-                    (prop, ptr, ot, isIndex) => {
-                        prop.EvalutateCurrent(ptr, ot, ref isIndex);
+                nextIsIndex = json.Scope<JsonProperty, JsonPointer, ViewModelVersion, bool, bool>(
+                    (prop, ptr, pv, isIndex) => {
+                        prop.EvalutateCurrent(ptr, pv, ref isIndex);
                         return isIndex;
                     }, 
                     this, 
                     pointer,
-                    otEnabled, 
+                    version, 
                     nextIsIndex);
             }
 
         }
 
-        private void EvalutateCurrent(JsonPointer ptr, bool otEnabled, ref bool nextIsIndex) {
+        private void EvalutateCurrent(JsonPointer ptr, ViewModelVersion version, ref bool nextIsIndex) {
             int index;
-            long clientServerVersion;
-
+            
             if (nextIsIndex) {
                 // Previous object was a Set. This token should be an index
                 // to that Set. If not, it's an invalid patch.
@@ -94,14 +100,13 @@ namespace Starcounter.XSON {
 
                 var tObjArr = current as TObjArr;
                 Json list = tObjArr.Getter(json);
-                clientServerVersion = Session.Current.ClientServerVersion;
 
-                if (otEnabled) {
-                    if (clientServerVersion != Session.Current.ServerVersion || (list._Dirty == true)) {
-                        if (!list.IsValidForVersion(clientServerVersion))
+                if (version != null) {
+                    if (version.RemoteLocalVersion != version.LocalVersion || (list._Dirty == true)) {
+                        if (!list.IsValidForVersion(version.RemoteLocalVersion))
                             throw new JsonPatchException("The array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
 
-                        int transformedIndex = list.TransformIndex(clientServerVersion, index);
+                        int transformedIndex = list.TransformIndex(version, version.RemoteLocalVersion, index);
                         if (transformedIndex == -1)
                             throw new JsonPatchException("The object at index " + index + " in array '" + tObjArr.TemplateName + "' in path has been replaced or removed and is no longer valid.");
                         index = transformedIndex;
@@ -112,7 +117,7 @@ namespace Starcounter.XSON {
                 var tobj = current as TObject;
                 if (tobj != null) {
                     json = tobj.Getter(json);
-                    if (otEnabled && !json.IsValidForVersion(Session.Current.ClientServerVersion))
+                    if ((version != null) && !json.IsValidForVersion(version.RemoteLocalVersion))
                         throw new JsonPatchException("The object '" + tobj.TemplateName + "' in path has been replaced or removed and is no longer valid.");
                 }
                 if (json.IsArray) {

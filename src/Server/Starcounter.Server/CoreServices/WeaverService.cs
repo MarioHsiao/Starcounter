@@ -90,15 +90,18 @@ namespace Starcounter.Server {
         /// weaved result should be stored. This directory can possibly include
         /// cached (and up-to-date) assemblies weaved from previous rounds.
         /// </param>
+        /// <param name="disableEditionLibraries">Should edition libraries directory
+        /// be used to load assemblies from there.
+        /// </param>
         /// <returns>The full path to the corresponding, weaved assembly.</returns>
-        internal string Weave(string givenAssembly, string runtimeDirectory) {
+        internal string Weave(string givenAssembly, string runtimeDirectory, bool disableEditionLibraries) {
             string weaverExe;
             string arguments;
             bool retriedWithoutCache;
 
             retriedWithoutCache = false;
             weaverExe = Path.Combine(engine.InstallationDirectory, StarcounterConstants.ProgramNames.ScWeaver + ".exe");
-            arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory);
+            arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, disableEditionLibraries, true);
 
             runweaver:
             try {
@@ -111,7 +114,7 @@ namespace Starcounter.Server {
                     // a better way to solve this.
                     log.LogNotice("Weaving {0} failed with code {1}. Retrying without the cache.", givenAssembly, e.ExitCode);
                     retriedWithoutCache = true;
-                    arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, false);
+                    arguments = CreateWeaverCommandLine(givenAssembly, runtimeDirectory, disableEditionLibraries, false);
                     goto runweaver;
                 }
 
@@ -125,12 +128,22 @@ namespace Starcounter.Server {
             return error == Error.SCERRWEAVERCANTUSECACHE || error == Error.SCERRUNHANDLEDWEAVEREXCEPTION;
         }
 
-        string CreateWeaverCommandLine(string givenAssembly, string outputDirectory, bool useCache = true) {
+        string CreateWeaverCommandLine(
+            string givenAssembly,
+            string outputDirectory,
+            bool disableEditionLibraries, 
+            bool useCache) {
+
             var arguments = string.Format(
-                "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"", 
+                "--maxerrors=1 --ErrorParcelId={0} Weave \"{1}\" --outdir=\"{2}\"",
                 WeaverErrorParcelId, givenAssembly, outputDirectory);
+
             if (!useCache) {
                 arguments = "--nocache " + arguments;
+            }
+
+            if (disableEditionLibraries) {
+                arguments = "--FLAG:DisableEditionLibraries " + arguments;
             }
 
             return arguments;

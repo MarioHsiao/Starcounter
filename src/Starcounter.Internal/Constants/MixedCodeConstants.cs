@@ -126,33 +126,33 @@ namespace Starcounter.Internal
         /// <summary>
         /// Offsets in socket data and chunk.
         /// </summary>
-        public const int SOCKET_DATA_OFFSET_SESSION = 160;
-        public const int CHUNK_OFFSET_SESSION = 192;
-        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 204;
-        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 200;
-        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 192;
-        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 176;
-        public const int SOCKET_DATA_OFFSET_BLOB = 240;
+
+        public const int SOCKET_DATA_OFFSET_SESSION = 56;
+        public const int CHUNK_OFFSET_SESSION = 88;
+        public const int CHUNK_OFFSET_SESSION_SCHEDULER_ID = 100;
+        public const int CHUNK_OFFSET_SESSION_LINEAR_INDEX = 96;
+        public const int CHUNK_OFFSET_SESSION_RANDOM_SALT = 88;
+        public const int SOCKET_DATA_OFFSET_PARAMS_INFO = 152;
+        public const int SOCKET_DATA_OFFSET_BLOB = 216;
         public const int CHUNK_OFFSET_NUM_IPC_CHUNKS = 32;
-        public const int CHUNK_OFFSET_SOCKET_FLAGS = 92;
-        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 71;
+        public const int CHUNK_OFFSET_SOCKET_FLAGS = 124;
+        public const int SOCKET_DATA_OFFSET_NETWORK_PROTO_TYPE = 113;
         public const int SOCKET_DATA_OFFSET_CLIENT_IP = 40;
         public const int SOCKET_DATA_OFFSET_HTTP_REQUEST = 120;
-        public const int SOCKET_DATA_NUM_CLONE_BYTES = 176;
-        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 100;
-        public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH = 144;
-        public const int CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES = 140;
+        public const int SOCKET_DATA_NUM_CLONE_BYTES = 152;
+        public const int CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA = 132;
+        public const int CHUNK_OFFSET_USER_DATA_NUM_BYTES = 136;
         public const int SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID = 32;
-        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 56;
-        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 159;
-        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 173;
-        public const int CHUNK_OFFSET_WS_PAYLOAD_LEN = 184;
-        public const int CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD = 188;
-        public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 176;
-        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR = 176;
-        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR + 4;
-        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR + 2;
-        public const int SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR + 16;
+        public const int SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER = 88;
+        public const int SOCKET_DATA_OFFSET_WS_OPCODE = 115;
+        public const int SOCKET_DATA_OFFSET_BOUND_WORKER_ID = 69;
+        public const int SOCKET_DATA_OFFSET_WS_CHANNEL_ID = 152;
+        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_SOCKADDR = 152;
+        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_IP = 156;
+        public const int SOCKET_DATA_OFFSET_UDP_DESTINATION_PORT = 154;
+        public const int SOCKET_DATA_OFFSET_UDP_SOURCE_PORT = 168;
+        public const int CHUNK_OFFSET_UPGRADE_PART_BYTES_TO_DB = 104;
+        public const int CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB = 140;
 
         // Invalid WebSocket channel ID.
         public const int INVALID_WS_CHANNEL_ID = 0;
@@ -170,7 +170,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Shared memory chunk size.
         /// </summary>
-        public const int SHM_CHUNK_SIZE = 512;
+        public const int SHM_CHUNK_SIZE = 1024;
 
         /// <summary>
         /// Shared memory chunks default number.
@@ -221,7 +221,7 @@ namespace Starcounter.Internal
         public const int MAX_URI_STRING_LEN = 1024;
 
         // Session parameter type number in user delegate.
-        public const int REST_ARG_SESSION = 10;
+        public const int REST_ARG_SESSION = 12;
 
         // Bad server log handler.
         public const int INVALID_SERVER_LOG_HANDLE = 0;
@@ -235,6 +235,16 @@ namespace Starcounter.Internal
         /// Name of Administrator application.
         /// </summary>
         public const String AdministratorAppName = "Administrator";
+
+        /// <summary>
+        /// Gateway internal system port setting name.
+        /// </summary>
+        public const String GatewayInternalSystemPortSettingName = "InternalSystemPort";
+
+        /// <summary>
+        /// Gateway aggregation port setting name.
+        /// </summary>
+        public const String GatewayAggregationPortSettingName = "AggregationPort";
 
         /// <summary>
         /// Name of session cookie.
@@ -271,13 +281,11 @@ namespace Starcounter.Internal
         /// </summary>
         public enum NetworkProtocolType
         {
-            PROTOCOL_RAW_PORT,
             PROTOCOL_HTTP1,
             PROTOCOL_WEBSOCKETS,
             PROTOCOL_HTTP2,
             PROTOCOL_TCP,
             PROTOCOL_UDP,
-            PROTOCOL_UNKNOWN,
             PROTOCOL_COUNT
         };
 

@@ -29,7 +29,7 @@ namespace Starcounter.Templates {
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(string); }
         }
 
@@ -47,23 +47,13 @@ namespace Starcounter.Templates {
 					|| (boundValue != null && !boundValue.Equals(oldValue))) {
 					UnboundSetter(parent, boundValue);
 					if (addToChangeLog)
-						parent.Session.UpdateValue(parent, this);
+						parent.ChangeLog.UpdateValue(parent, this);
 				}
 			}	
 		}
 
-		internal override string ValueToJsonString(Json parent) {
-			string value = Getter(parent);
-			if (!string.IsNullOrEmpty(value)) {
-				byte[] buffer = new byte[value.Length * 4];
-				unsafe {
-					fixed (byte* p = buffer) {
-						int size = JsonHelper.WriteString((IntPtr)p, buffer.Length, value);
-						return System.Text.Encoding.UTF8.GetString(buffer, 0, size);
-					}
-				}
-			}
-			return "\"\"";
-		}
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.String; }
+        }
     }
 }

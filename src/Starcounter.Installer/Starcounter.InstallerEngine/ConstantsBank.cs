@@ -33,14 +33,13 @@ namespace Starcounter.InstallerEngine
         public const String Setting_PersonalServerPath = "PersonalServerPath";
         public const String Setting_DefaultPersonalServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort_String;
         public const String Setting_DefaultPersonalServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort_String;
+        public const String Setting_AggregationPort = MixedCodeConstants.GatewayAggregationPortSettingName;
         public const String Setting_DefaultPersonalPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort_String;
 
         public const String Setting_SystemServerPath = "SystemServerPath";
         public const String Setting_DefaultSystemServerUserHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerUserHttpPort_String;
         public const String Setting_DefaultSystemServerSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultSystemServerSystemHttpPort_String;
         public const String Setting_DefaultSystemPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultSystemPrologSqlProcessPort_String;
-
-        public const String GatewayInternalSystemPort = "InternalSystemPort";
 
         public const String Setting_True = "True";
 

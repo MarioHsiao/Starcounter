@@ -9,6 +9,8 @@ using Starcounter.Internal;
 using Starcounter.Internal.Web;
 using Starcounter.Administrator.API.Utilities;
 using Starcounter.Administrator.Server.Utilities;
+using System.IO;
+using Administrator.Server.Utilities;
 
 namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
@@ -17,7 +19,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// Register Server Settings PUT
         /// </summary>
         public static void ServerSettings_PUT(ushort port, IServerRuntime server) {
-            
+
             // Save server settings
             Handle.PUT("/api/admin/servers/{?}/settings", (string name, ServerSettings settings, Request req) => {
                 lock (LOCK) {
@@ -42,6 +44,20 @@ namespace Starcounter.Administrator.Server.Handlers {
                         serverInfo.Configuration.SystemHttpPort = (ushort)settings.SystemHttpPort;
                         serverInfo.Configuration.Save(serverInfo.ServerConfigurationPath);
 
+                        string serverDir = Path.GetDirectoryName(serverInfo.Configuration.ConfigurationFilePath);
+
+
+                        // Overwriting server config values.
+                        Utils.ReplaceXMLParameterInFile(
+                            Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName),
+                            MixedCodeConstants.GatewayInternalSystemPortSettingName,
+                            settings.SystemHttpPort.ToString());
+
+                        Utils.ReplaceXMLParameterInFile(
+                            Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName),
+                            MixedCodeConstants.GatewayAggregationPortSettingName,
+                            settings.AggregationPort.ToString());
+
                         // Return new settings
                         serverInfo = Program.ServerInterface.GetServerInfo();
                         if (serverInfo == null) {
@@ -63,4 +79,8 @@ namespace Starcounter.Administrator.Server.Handlers {
             });
         }
     }
+
+
+
+  
 }

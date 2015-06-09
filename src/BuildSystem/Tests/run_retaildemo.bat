@@ -37,19 +37,22 @@ ECHO Building RetailDemo solution.
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Starting the host to be able to delete database.
-ECHO Deleting existing database %DB_NAME%
 
+ECHO Starting %RetailServerExe% on database %DB_NAME%
 star.exe -database=%DB_NAME% %RetailServerExe%
 IF ERRORLEVEL 1 GOTO FAILED
 
+ECHO Stopping existing database %DB_NAME%
 staradmin --database=%DB_NAME% stop db
 IF ERRORLEVEL 1 GOTO FAILED
 
+ECHO Deleting existing database %DB_NAME%
 staradmin --database=%DB_NAME% delete --force db
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Starting server application.
 
+ECHO Starting %RetailServerExe% on database %DB_NAME%
 star.exe -database=%DB_NAME% %RetailServerExe%
 IF ERRORLEVEL 1 GOTO FAILED
 

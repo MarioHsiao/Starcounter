@@ -1,60 +1,82 @@
-﻿<div class="panel panel panel-primary">
+﻿
+
+
+<div ng-show="application" class="panel panel-default">
+
     <div class="panel-heading">
-        Application - {{applicationCtrl1.application.Name}}
-            <div class="btn-group pull-right">
-                <a class="btn btn-default btn-xs" href="#/applications"><i class="glyphicon glyphicon-resize-small"></i></a>
-            </div>
+
+        <img style="vertical-align: top; margin-top: 5px; margin-right: 10px; height: auto; width: auto; max-width: 128px; max-height: 128px;" ng-src="{{application.ImageUri}}" />
+        <span style="display: inline-block;">
+            <h4>{{application.DisplayName}}</h4>
+            <span>{{application.Description}}
+            <h6>{{application.Version}} ({{application.VersionDate | fixdate:'medium'}})</h6>
+            </span>
+        </span>
+
 
     </div>
 
-    <div class="panel-body">
+        <table class="table">
 
-        <dl class="dl-horizontal">
-            <dt>Status</dt>
-            <dd>
-                <span ng-show="applicationCtrl1.application.running" class="label label-success" title="Application is running">Running</span>
-                <span ng-hide="applicationCtrl1.application.running" class="label label-danger" title="Application is not running">Stopped</span>
-            </dd>
+            <tbody>
+                <tr >
+                    <!-- Status -->
+                    <td class="vert-align" style="width: 41px; padding-left: 15px">
 
-            <dt>Database</dt>
-            <dd>{{applicationCtrl1.application.databaseName}}</dd>
+                        <div style="margin-top: 5px;">
+                            <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
+                            <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Stopped" tooltip="Stopped"></span>
+                            <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not running" tooltip="Not running"></span>
+                            <span ng-show="application.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}" tooltip="{{application.ErrorMessage.Message}}"></span>
+                            <span ng-show="application.Status!=0" style="margin-top: -2px" title="{{application.StatusText}}" class="spinner tiny"></span>
+                        </div>
+                    </td>
 
+                    <!-- Buttons -->
+                    <td class="vert-align" style="width: 300px; background: rgba(0, 0, 0, 0.0)">
 
-            <dt>Started</dt>
-            <dd>{{applicationCtrl1.application.RuntimeInfo.Started | date:'medium'}}</dd>
-            <dt>FilePath</dt>
-            <dd>{{applicationCtrl1.application.Path}}</dd>
-            <dt>Argument</dt>
-            <dd>
-                <div class="muted" ng-repeat="argument in applicationCtrl1.application.Arguments">
-                    {{argument.dummy}}&nbsp;
-                </div>
-            </dd>
-        </dl>
+                        <div class="btn-group-sm">
+                            <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
+                            <button style="min-width: 80px" class="btn btn-default" ng-hide="!application.IsRunning" ng-click="btnStopApplication(application)" title="Stop Application">Stop</button>
+                            <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Start Application when database starts">Auto-Start (OFF)</button>
+                            <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Start Application when database starts">Auto-Start (ON)</button>
+                            <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
+                        </div>
+                    </td>
 
-        <div class="btn-toolbar">
+                    <!-- Error message -->
+                    <td class="vert-align">
 
-            <div class="btn-group">
-                <button class="btn btn-default btn-success" ng-disabled="applicationCtrl1.application.running || applicationCtrl1.application.task" ng-click="btnStart(applicationCtrl1.application)" title="Start Application">Start</button>
-                <button class="btn btn-default  btn-primary" ng-disabled="!applicationCtrl1.application.running || applicationCtrl1.application.task" ng-click="btnRestart(applicationCtrl1.application)" title="Restart Application">Restart</button>
-                <button class="btn btn-default  btn-danger" ng-disabled="!applicationCtrl1.application.running || applicationCtrl1.application.task" ng-click="btnStop(applicationCtrl1.application)" title="Stop Application">Stop</button>
-            </div>
-            <div class="btn-group">
-                <div style="margin-top:7px" ng-show="applicationCtrl1.application.task.Text" title="{{applicationCtrl1.application.task.Text}}" class="spinner tiny"></div>
-            </div>
+                        <span style="color: #d9534f" ng-show="application.HasErrorMessage">
+                            <!--                        <span style="margin-top: 5px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
+                            <!--<span style="position:relative; top: 4px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
 
-            <div class="btn-group pull-right">
-                <button title="Refresh console" ng-show="applicationCtrl1.application.consoleManualMode == true" class="btn btn-default btn-xs" ng-click="applicationCtrl1.btnGetConsoleOutput(applicationCtrl1.application)"><i class="glyphicon glyphicon-refresh"></i></button>
-            </div>
-        </div>
+                            {{application.ErrorMessage.Message}}
 
-        <div class="row">
-            <div title="Console output" style='margin-top:15px;margin-bottom:-15px' id="console" ng-style="sizeStyle()">
-                <consolewindow ng-model="applicationCtrl1.application.console"></consolewindow>
-            </div>
+                            <a ng-show="application.ErrorMessage.HelpLink" href="{{application.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                            View the <a href="#/server/log">log</a> for more details.
+
+                        </span>
+                        <!-- Status Text -->
+                        {{application.StatusText}}
+                    </td>
+
+                </tr>
+            </tbody>
+        </table>
+
+    <div class="panel-body" style="padding:0px">
+
+        <div  ng-class="{'consoleAppIsNotRunning': application.Status!=0 || application.IsRunning==false}" title="Console output" id="console" ng-style="sizeStyle()">
+            <consolewindow ng-model="consoleText"></consolewindow>
         </div>
     </div>
 </div>
 
+<div ng-hide="application" class="panel panel-default">
+    <div class="panel-heading">
+        Application not found. <a href="/#/databases/{{database.ID}}/applications">Continue.</a>
+    </div>
 
+</div>
 

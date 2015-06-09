@@ -6,18 +6,9 @@ using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
+using Starcounter.XSON;
 
 namespace Starcounter {
-    internal struct ArrayVersionLog {
-        internal long Version;
-        internal List<Change> Changes;
-
-        internal ArrayVersionLog(long version, List<Change> changes) {
-            Version = version;
-            Changes = changes;
-        }
-    }
-
 	partial class Json {
 		/// <summary>
 		/// 
@@ -54,16 +45,22 @@ namespace Starcounter {
 				}
 			} else {
 				if (Template != null) {
-                    this.Scope<TObject>( 
-                        (tjson) => {
-                            for (int i = 0; i < tjson.Properties.ExposedProperties.Count; i++) {
-                                var property = tjson.Properties.ExposedProperties[i] as TValue;
-                                if (property != null) {
-                                    property.Checkpoint(this);
+                    this.Scope<Json, TValue>( 
+                        (parent, tjson) => {
+                            if (parent.IsObject) {
+                                TObject tobj = (TObject)tjson;
+                                for (int i = 0; i < tobj.Properties.ExposedProperties.Count; i++) {
+                                    var property = tobj.Properties.ExposedProperties[i] as TValue;
+                                    if (property != null) {
+                                        property.Checkpoint(parent);
+                                    }
                                 }
+                            } else {
+                                tjson.Checkpoint(parent);
                             }
                         },
-                        (TObject)Template);
+                        this,
+                        (TValue)Template);
 
                     if (callStepSiblings == true && this._stepSiblings != null) {
                         foreach (Json stepSibling in _stepSiblings) {
@@ -98,23 +95,23 @@ namespace Starcounter {
 		/// <summary>
 		/// Logs all property changes made to this object or its bound data object
 		/// </summary>
-		/// <param name="session">The session (for faster access)</param>
-		internal void LogValueChangesWithDatabase(Session session, bool callStepSiblings) {
+		/// <param name="changeLog">Log of changes</param>
+		internal void LogValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings) {
             if (!_trackChanges)
                 return;
 
 			if (this.IsArray) {
-				LogArrayChangesWithDatabase(session, callStepSiblings);
+				LogArrayChangesWithDatabase(changeLog, callStepSiblings);
 			} else {
-				LogObjectValueChangesWithDatabase(session, callStepSiblings);
+				LogObjectValueChangesWithDatabase(changeLog, callStepSiblings);
 			}
 		}
 
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="session"></param>
-		private void LogArrayChangesWithDatabase(Session session, bool callStepSiblings = true) {
+		/// <param name="changeLog"></param>
+		private void LogArrayChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
             bool logChanges;
             Json item;
 
@@ -122,7 +119,7 @@ namespace Starcounter {
                 for (int i = 0; i < ArrayAddsAndDeletes.Count; i++) {
                     var change = ArrayAddsAndDeletes[i];
 
-                    session.AddChange(change);
+                    changeLog.Add(change);
                     var index = change.Item._cacheIndexInArr;
                     if (change.ChangeType != Change.REMOVE && index >= 0 && index < list.Count) {
                         CheckpointAt(index);
@@ -143,19 +140,25 @@ namespace Starcounter {
                     }
 
                     if (logChanges) {
-                        ((Json)_list[i]).LogValueChangesWithDatabase(session, callStepSiblings);
+                        ((Json)_list[i]).LogValueChangesWithDatabase(changeLog, callStepSiblings);
                      }
                 }
 
-                if (session.CheckOption(SessionOptions.PatchVersioning)) {
+                if (changeLog.Version != null) {
                     if (versionLog == null)
                         versionLog = new List<ArrayVersionLog>();
-                    versionLog.Add(new ArrayVersionLog(session.ServerVersion, ArrayAddsAndDeletes));
+                    versionLog.Add(new ArrayVersionLog(changeLog.Version.LocalVersion, ArrayAddsAndDeletes));
                 }
                 ArrayAddsAndDeletes = null;
             } else {
                 for (int t = 0; t < _list.Count; t++) {
-                    ((Json)_list[t]).LogValueChangesWithDatabase(session, callStepSiblings);
+                    var arrItem = ((Json)_list[t]);
+                    if (this.WasReplacedAt(t)) { // A refresh of an existing row (that is not added or removed)
+                        changeLog.Add(Change.Update(this.Parent, (TValue)this.Template, t, arrItem));
+                        this.CheckpointAt(t);
+                    } else {
+                        arrItem.LogValueChangesWithDatabase(changeLog, callStepSiblings);
+                    }
                 }
             }
 		}
@@ -166,79 +169,85 @@ namespace Starcounter {
 		/// objects. This method is much faster than the corresponding method checking
 		/// th database.
 		/// </summary>
-		/// <param name="session">The session (for faster access)</param>
-		internal void LogValueChangesWithoutDatabase(Session s, bool callStepSiblings = true) {
+		/// <param name="changeLog">The log of changes</param>
+		internal void LogValueChangesWithoutDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
 			throw new NotImplementedException();
 		}
 
 		/// <summary>
 		/// Dirty checks each value of the object and reports any changes
-		/// to the session changelog.
+		/// to the changelog.
 		/// </summary>
-		/// <param name="session">The session to report to</param>
-		private void LogObjectValueChangesWithDatabase(Session session, bool callStepSiblings = true) {
-            this.Scope<Session, Json, bool>((s, json, css) => {
-                var template = (TObject)json.Template;
+		/// <param name="changeLog">The log of changes</param>
+		private void LogObjectValueChangesWithDatabase(ChangeLog changeLog, bool callStepSiblings = true) {
+            this.Scope<ChangeLog, Json, bool>((clog, json, css) => {
+                var template = (TValue)json.Template;
                 if (template == null)
                     return;
 
-                var exposed = template.Properties.ExposedProperties;
+                if (json.IsObject) {
+                    var exposed = ((TObject)template).Properties.ExposedProperties;
+                    if (json._Dirty) {
+                        for (int t = 0; t < exposed.Count; t++) {
+                            if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
+                                if (clog != null) {
+                                    if (json.IsArray) {
+                                        throw new NotImplementedException();
+                                    } else {
+                                        var childTemplate = (TValue)exposed[t];
+                                        clog.UpdateValue(json, childTemplate);
 
-                if (json._Dirty) {
-                    for (int t = 0; t < exposed.Count; t++) {
-                        if (json.WasReplacedAt(exposed[t].TemplateIndex)) {
-                            if (s != null) {
-                                if (json.IsArray) {
-                                    throw new NotImplementedException();
-                                } else {
-                                    var childTemplate = (TValue)exposed[t];
-                                    s.UpdateValue(json, childTemplate);
-
-                                    TContainer container = childTemplate as TContainer;
-                                    if (container != null) {
-                                        var childJson = container.GetValue(json);
-                                        if (childJson != null) {
-                                            childJson.SetBoundValuesInTuple();
-                                            childJson.CheckpointChangeLog();
+                                        TContainer container = childTemplate as TContainer;
+                                        if (container != null) {
+                                            var childJson = container.GetValue(json);
+                                            if (childJson != null) {
+                                                childJson.SetBoundValuesInTuple();
+                                                childJson.CheckpointChangeLog();
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            json.CheckpointAt(exposed[t].TemplateIndex);
-                        } else {
-                            var p = exposed[t];
-                            if (p is TContainer) {
-                                var c = ((TContainer)p).GetValue(json);
-                                if (c != null)
-                                    c.LogValueChangesWithDatabase(s, true);
+                                json.CheckpointAt(exposed[t].TemplateIndex);
                             } else {
-                                if (json.IsArray)
-                                    throw new NotImplementedException();
-                                else
-                                    ((TValue)p).CheckAndSetBoundValue(json, true);
+                                var p = exposed[t];
+                                if (p is TContainer) {
+                                    var c = ((TContainer)p).GetValue(json);
+                                    if (c != null)
+                                        c.LogValueChangesWithDatabase(clog, true);
+                                } else {
+                                    if (json.IsArray)
+                                        throw new NotImplementedException();
+                                    else
+                                        ((TValue)p).CheckAndSetBoundValue(json, true);
+                                }
                             }
                         }
-                    }
-                    json._Dirty = false;
-                } else if (_checkBoundProperties && template.HasAtLeastOneBoundProperty) {
-                    for (int t = 0; t < exposed.Count; t++) {
-                        if (exposed[t] is TContainer) {
-                            var c = ((TContainer)exposed[t]).GetValue(json);
-                            if (c != null)
-                                c.LogValueChangesWithDatabase(s, true);
-                        } else {
-                            if (json.IsArray) {
-                                throw new NotImplementedException();
+                        json._Dirty = false;
+                    } else if (_checkBoundProperties) {
+                        for (int t = 0; t < exposed.Count; t++) {
+                            if (exposed[t] is TContainer) {
+                                var c = ((TContainer)exposed[t]).GetValue(json);
+                                if (c != null)
+                                    c.LogValueChangesWithDatabase(clog, true);
                             } else {
-                                var p = exposed[t] as TValue;
-                                p.CheckAndSetBoundValue(json, true);
+                                if (json.IsArray) {
+                                    throw new NotImplementedException();
+                                } else {
+                                    var p = exposed[t] as TValue;
+                                    p.CheckAndSetBoundValue(json, true);
+                                }
                             }
+
                         }
                     }
                 } else {
-                    foreach (var e in json.list) {
-                        if (e is Json) {
-                            ((Json)e).LogValueChangesWithDatabase(s, true);
+                    if (json._Dirty) {
+                        if (json.WasReplacedAt(template.TemplateIndex)) {
+                            if (clog != null)
+                                clog.UpdateValue(json, null);
+                            json.CheckpointAt(template.TemplateIndex);
+                        } else {
+                            template.CheckAndSetBoundValue(json, true);
                         }
                     }
                 }
@@ -247,11 +256,11 @@ namespace Starcounter {
                     foreach (var stepSibling in json._stepSiblings) {
                         if (stepSibling == json)
                             continue;
-                        stepSibling.LogValueChangesWithDatabase(s, false);
+                        stepSibling.LogValueChangesWithDatabase(clog, false);
                     }
                 }
             },
-            session, 
+            changeLog, 
             this,
             callStepSiblings);
 		}
@@ -266,20 +275,25 @@ namespace Starcounter {
 				}
 			} else {
                 this.Scope<Json>((json) => {
-                    TObject tobj = (TObject)json.Template;
-                    if (tobj != null) {
-                        for (int i = 0; i < tobj.Properties.Count; i++) {
-                            var t = tobj.Properties[i];
+                    TValue tval = (TValue)json.Template;
+                    if (tval != null) {
+                        if (json.IsObject) {
+                            var tobj = (TObject)tval;
+                            for (int i = 0; i < tobj.Properties.Count; i++) {
+                                var t = tobj.Properties[i];
 
-                            if (t is TContainer) {
-                                var childJson = ((TContainer)t).GetValue(json);
-                                if (childJson != null)
-                                    childJson.SetBoundValuesInTuple();
-                            } else {
-                                var vt = t as TValue;
-                                if (vt != null)
-                                    vt.CheckAndSetBoundValue(json, false);
+                                if (t is TContainer) {
+                                    var childJson = ((TContainer)t).GetValue(json);
+                                    if (childJson != null)
+                                        childJson.SetBoundValuesInTuple();
+                                } else {
+                                    var vt = t as TValue;
+                                    if (vt != null)
+                                        vt.CheckAndSetBoundValue(json, false);
+                                }
                             }
+                        } else {
+                            tval.CheckAndSetBoundValue(json, false);
                         }
                     }
 
@@ -310,15 +324,17 @@ namespace Starcounter {
             foreach (object value in boundValue) {
                 if (_list.Count <= index) {
                     newJson = (Json)tArr.ElementType.CreateInstance();
-                    newJson.Data = value;
+                    newJson._data = value;
                     ((IList)this).Add(newJson);
+                    newJson.Data = value;
                     hasChanged = true;
                 } else {
                     oldJson = (Json)_list[index];
                     if (!CompareDataObjects(oldJson.Data, value)) {
                         newJson = (Json)tArr.ElementType.CreateInstance();
-                        newJson.Data = value;
+                        newJson._data = value;
                         ((IList)this)[index] = newJson;
+                        newJson.Data = value;
                         oldJson.SetParent(null);
                         hasChanged = true;
                     }
@@ -360,17 +376,16 @@ namespace Starcounter {
         /// <param name="serverVersion">The version of the viewmodel to check</param>
         /// <returns>true if this object existed in the specified version, false otherwise.</returns>
         /// <remarks>
-        /// This method is used when versioning is enabled in Session and this json belongs to a viewmodeltree.
+        /// This method is used when versioning is enabled and this json belongs to a viewmodeltree.
         /// </remarks>
         internal bool IsValidForVersion(long serverVersion) {
             return (serverVersion >= addedInVersion);
         }
 
-        internal void CleanupOldVersionLogs(long toVersion, bool callStepSiblings = true) {
+        internal void CleanupOldVersionLogs(ViewModelVersion version, long toVersion, bool callStepSiblings = true) {
             if (versionLog != null) {
-                Session session = Session;
                 for (int i = 0; i < versionLog.Count; i++) {
-                    if (versionLog[i].Version <= session.ClientServerVersion) {
+                    if (versionLog[i].Version <= version.RemoteLocalVersion) {
                         versionLog.RemoveAt(i);
                         i--;
                     }
@@ -379,16 +394,18 @@ namespace Starcounter {
 
             if (IsArray) {
                 foreach (Json child in _list) {
-                    child.CleanupOldVersionLogs(toVersion);
+                    child.CleanupOldVersionLogs(version, toVersion);
                 }
             } else {
-                var tobj = (TObject)Template;
-                foreach (Template t in tobj.Properties) {
-                    var tcontainer = t as TContainer;
-                    if (tcontainer != null) {
-                        var json = (Json)tcontainer.GetUnboundValueAsObject(this);
-                        if (json != null)
-                            json.CleanupOldVersionLogs(toVersion);
+                if (IsObject) {
+                    var tobj = (TObject)Template;
+                    foreach (Template t in tobj.Properties) {
+                        var tcontainer = t as TContainer;
+                        if (tcontainer != null) {
+                            var json = (Json)tcontainer.GetUnboundValueAsObject(this);
+                            if (json != null)
+                                json.CleanupOldVersionLogs(version, toVersion);
+                        }
                     }
                 }
             }
@@ -397,7 +414,7 @@ namespace Starcounter {
                 foreach (Json stepSibling in _stepSiblings) {
                     if (stepSibling == this)
                         continue;
-                    CleanupOldVersionLogs(toVersion, false);
+                    stepSibling.CleanupOldVersionLogs(version, toVersion, false);
                 }
             }
         }
@@ -410,7 +427,10 @@ namespace Starcounter {
             if (this.isAddedToViewmodel == true)
                 return;
 
-            this.addedInVersion = this.Session.ServerVersion;
+            var changeLog = ChangeLog;
+            if (changeLog != null && changeLog.Version != null)
+                this.addedInVersion = changeLog.Version.LocalVersion;
+
             this.isAddedToViewmodel = true;
 
             // If the transaction attached to this json is the same transaction set higher 
@@ -445,16 +465,21 @@ namespace Starcounter {
                 }
             } else {
                 if (Template != null) {
-                    var tobj = (TObject)Template;
-                    _SetFlag = new List<bool>(tobj.Properties.Count);
-                    foreach (Template tChild in tobj.Properties) {
-                        _SetFlag.Add(false);
-                        var container = tChild as TContainer;
-                        if (container != null) {
-                            var childJson = (Json)container.GetUnboundValueAsObject(this);
-                            if (childJson != null)
-                                childJson.OnAddedToViewmodel(true);
+                    if (IsObject) {
+                        var tobj = (TObject)Template;
+                        _SetFlag = new List<bool>(tobj.Properties.Count);
+                        foreach (Template tChild in tobj.Properties) {
+                            _SetFlag.Add(false);
+                            var container = tChild as TContainer;
+                            if (container != null) {
+                                var childJson = (Json)container.GetUnboundValueAsObject(this);
+                                if (childJson != null)
+                                    childJson.OnAddedToViewmodel(true);
+                            }
                         }
+                    } else {
+                        _SetFlag = new List<bool>(1);
+                        _SetFlag.Add(false);
                     }
                 }
             }
@@ -482,12 +507,14 @@ namespace Starcounter {
                 }
             } else {
                 if (Template != null) {
-                    foreach (Template tChild in ((TObject)Template).Properties) {
-                        var container = tChild as TContainer;
-                        if (container != null) {
-                            var childJson = (Json)container.GetUnboundValueAsObject(this);
-                            if (childJson != null)
-                                childJson.OnRemovedFromViewmodel(true);
+                    if (IsObject) {
+                        foreach (Template tChild in ((TObject)Template).Properties) {
+                            var container = tChild as TContainer;
+                            if (container != null) {
+                                var childJson = (Json)container.GetUnboundValueAsObject(this);
+                                if (childJson != null)
+                                    childJson.OnRemovedFromViewmodel(true);
+                            }
                         }
                     }
                 }
