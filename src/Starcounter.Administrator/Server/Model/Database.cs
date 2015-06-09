@@ -6,6 +6,7 @@ using Starcounter.Administrator.Server;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Representations.JSON;
+using Starcounter.XSON;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,6 +23,8 @@ namespace Administrator.Server.Model {
     /// Database
     /// </summary>
     public class Database : INotifyPropertyChanged {
+
+        internal JsonPatch JsonPatchInstance;
 
         #region Properties
         private string _ID;
@@ -253,6 +256,8 @@ namespace Administrator.Server.Model {
             this.Applications.CollectionChanged += DatabaseApplications_CollectionChanged;
             //this.AppStoreApplications.CollectionChanged += AppStoreApplications_CollectionChanged;
             this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
+            this.JsonPatchInstance = new JsonPatch();
+
         }
 
         void AppStoreStores_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {

@@ -6,13 +6,14 @@ using Administrator.Server.Model;
 using Starcounter.Internal;
 using Starcounter.Administrator.Server.Utilities;
 using Starcounter.XSON;
+using System.Collections.Concurrent;
 
 namespace Administrator.Server.Managers {
     public class ServerManager {
 
-        private const string SocketChannelName = "servermodel";
-
         public static Model.Server ServerInstance;
+        private static ConcurrentDictionary<ulong, Database> databaseModelSockets;
+        static Object lockObject_ = new Object();
 
         /// <summary>
         /// Initilized and register handlers
@@ -23,39 +24,42 @@ namespace Administrator.Server.Managers {
             ServerManager.ServerInstance.Init();
             ServerManager.ServerInstance.Changed += ServerModel_Changed;
 
+            ServerManager.databaseModelSockets = new ConcurrentDictionary<ulong, Database>();
+
             ServerManager.RegisterInternalModelApi();
+            ServerManager.RegisterFullModelApi();
+            ServerManager.RegisterDatabaseModelApi();
+
+            //Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (session) => {
+            //});
+        }
+
+        /// <summary>
+        /// Register handlers for the full model api
+        /// </summary>
+        private static void RegisterFullModelApi() {
+
+            string socketChannelName = "servermodel";
 
             Handle.GET("/api/servermodel/{?}/{?}", (string key, Session session, Request request) => {
 
                 // Check if the request was a WebSocket request.
                 if (request.WebSocketUpgrade) {
 
-                    WebSocket ws = request.SendUpgrade(ServerManager.SocketChannelName, null, null, session);
+                    WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
                     return HandlerStatus.Handled;
                 }
 
                 return 513; // 513 Message Too Large
             });
 
-            //Handle.CUSTOM("OPTIONS /api/servermodel", (Request request) => {
-
-
-            //    // Create response
-            //    Response response = new Response();
-            //    response["Access-Control-Allow-Origin"] = "http://localhost:8080";
-            //    response["Access-Control-Expose-Headers"] = "Location, X-Location";
-            //    response["Access-Control-Allow-Headers"] = "X-Referer";
-            //    return response;
-            //});
-
             Handle.GET("/api/servermodel", (Request request) => {
 
                 // Create view-model
                 ServerJson serverModelJson = new ServerJson();
-                //serverModelJson.Session.CargoId = 4;
 
                 // Set data object to view-model
-                serverModelJson.Data = ServerManager.ServerInstance; // ServerManager.Server;
+                serverModelJson.Data = ServerManager.ServerInstance;
 
                 // Store the view-model 
                 string id = TemporaryStorage.Store(serverModelJson);
@@ -72,9 +76,16 @@ namespace Administrator.Server.Managers {
                 return response;
             });
 
+            // Incoming patch on http
+            Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
+
+                Json json = TemporaryStorage.Find(id);
+                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
+                return System.Net.HttpStatusCode.OK;
+            });
 
             // Incoming patch on socket
-            Handle.WebSocket(ServerManager.SocketChannelName, (string data, WebSocket ws) => {
+            Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
 
                 if (ws.Session == null) {
                     ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
@@ -82,38 +93,89 @@ namespace Administrator.Server.Managers {
                 }
 
                 Json viewModel = ((Starcounter.Session)ws.Session).Data;
-
                 ServerManager.ServerInstance.JsonPatchInstance.Apply(viewModel, data);
+            });
 
-                //viewModel.ChangeLog.ApplyChanges(data);
+            Handle.WebSocketDisconnect(socketChannelName, (ws) => {
+                // Remove ws.
+            });
+        }
+
+        /// <summary>
+        /// Register handlers for the database model api
+        /// </summary>
+        private static void RegisterDatabaseModelApi() {
+
+            string socketChannelName = "databaseGroupName";
+
+            Handle.GET("/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
+
+                // Check if the request was a WebSocket request.
+                if (request.WebSocketUpgrade) {
+                    Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    if (database != null) {
+                        WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
+                        databaseModelSockets[ws.ToUInt64()] = database;
+                        return HandlerStatus.Handled;
+                    }
+                    else {
+                        // TODO:
+                    }
+                }
+
+                return 513; // 513 Message Too Large
+            });
+
+            Handle.GET("/api/servermodel/{?}", (string databaseName, Request request) => {
+
+                // Create view-model
+                DatabaseJson databaseJson = new DatabaseJson();
+
+                // Set data object to view-model
+                databaseJson.Data = ServerManager.ServerInstance.GetDatabase(databaseName);
+
+                // Store the view-model 
+                string id = TemporaryStorage.Store(databaseJson);
+
+                // Create response
+                Response response = new Response();
+                response.Resource = databaseJson;
+                response["Set-Cookie"] = request.Uri + "/" + id;
+                response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+
+                response["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
+                response["Access-Control-Expose-Headers"] = "Location, X-Location";
+                //response["Access-Control-Allow-Headers"] = "X-Referer";
+                return response;
+            });
+
+            // Incoming patch on socket
+            Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
+
+                if (ws.Session == null) {
+                    ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
+                    return;
+                }
+
+                Database database;
+                if (databaseModelSockets.TryGetValue(ws.ToUInt64(), out database)) {
+                    Json viewModel = ((Starcounter.Session)ws.Session).Data;
+                    database.JsonPatchInstance.Apply(viewModel, data);
+                }
             });
 
             // Incoming patch on http
-            Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
+            Handle.PATCH("/api/servermodel/{?}/{?}/{?}", (string databaseName, string id, Session session, Request request) => {
 
-                Json json = TemporaryStorage.Find(id);
-
-                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
-
-//                json.ChangeLog.ApplyChanges(request.Body);
-                return System.Net.HttpStatusCode.OK;
+                //                Json json = TemporaryStorage.Find(id);
+                //                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
+                return System.Net.HttpStatusCode.NotImplemented;
             });
-
-            Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (session) => {
-
-                Console.WriteLine("WebSocketDisconnect");
-
-                // TODO: How to find and remove view-model from TemporaryStorage
-                //TemporaryStorage.Remove(key);
+            Handle.WebSocketDisconnect(socketChannelName, (ws) => {
+                // Remove ws.
+                Database database;
+                databaseModelSockets.TryRemove(ws.ToUInt64(), out database);
             });
-
-            //Handle.POST("/api/servermodel/get-patches-and-clear-log?{?}", (Request r, string id) => {
-
-            //      var serverStatusJson = TemporaryStorage.Find(id);
-            //      var patches = serverStatusJson.ChangeLog.GetChanges();
-            //      serverStatusJson.ChangeLog.Clear();
-            //      return patches;
-            //  });
         }
 
         /// <summary>
@@ -122,7 +184,6 @@ namespace Administrator.Server.Managers {
         /// </summary>
         private static void RegisterInternalModelApi() {
 
-            #region Internal API
             Handle.POST("/__internal_api/databases", (Request request) => {
                 // Database added
                 ServerManager.ServerInstance.InvalidateDatabases();
@@ -243,10 +304,7 @@ namespace Administrator.Server.Managers {
                 catch (Exception e) {
                     return RestUtils.CreateErrorResponse(e);
                 }
-
             });
-
-            #endregion
         }
 
         /// <summary>
@@ -266,49 +324,59 @@ namespace Administrator.Server.Managers {
         /// </summary>
         private static void PushchangesToListeners() {
 
-            //WebSocket.ForEach(ServerManager.SocketChannelName, (WebSocket socket) => {
+            //// Database model listeners
+            //foreach (var item in databaseModelSockets) {
 
-            //    Json model = ((Starcounter.Session)socket.Session).PublicViewModel;
-            //    string changes = model.ChangeLog.GetChanges();
+            //    Database ws = item.Value;
+            //    Json viewModel = ((Starcounter.Session)ws.Session).Data;
+            //    Database db;
+            //    string changes = db.JsonPatchInstance.Generate(viewModel, true, false);
             //    if (changes != "[]") {
-            //        WriteToLog(changes);
-            //        model.ChangeLog.Clear();
-            //        socket.Send(changes);
+            //        ws.Send(changes);
             //    }
-            //});
+            //    //Console.WriteLine(display.Value);
+            //}
 
 
-            Session.ForAll((s) => {
+            Session.ForAll((session) => {
+                lock (lockObject_) {
 
-                try {
+                    try {
 
-                    if (s.ActiveWebSocket != null) {
+                        if (session.ActiveWebSocket != null) {
 
-                        string changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(s.PublicViewModel, true, false);
-//                        string changes = s.PublicViewModel.ChangeLog.GetChanges();
-                        if (changes != "[]") {
-                            //s.PublicViewModel.ChangeLog.Clear();
-                            s.ActiveWebSocket.Send(changes);
+                            string changes = string.Empty;
+
+                            if (session.PublicViewModel is DatabaseJson) {
+
+                                Database database;
+                                if (databaseModelSockets.TryGetValue(session.ActiveWebSocket.ToUInt64(), out database)) {
+                                    changes = database.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+                                }
+                                else {
+                                    // Error, failed to get database
+                                    //TODO:
+                                }
+
+                            }
+                            else if (session.PublicViewModel is ServerJson) {
+                                changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+                            }
+                            else {
+                                // TODO: Unknown?
+                            }
+
+                            //string changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(s.PublicViewModel, true, false);
+                            if (!string.IsNullOrEmpty(changes) || changes != "[]") {
+                                session.ActiveWebSocket.Send(changes);
+                            }
                         }
                     }
+                    catch (Exception) {
+                    }
                 }
-                catch (Exception) {
-                }
+
             });
-
-
-            //lock (ServerManager.Server) {
-
-            //    string changes = ServerModel.ChangeLog.GetChanges();
-            //    ServerModel.ChangeLog.Clear();
-
-            //    if (changes == "[]") return;
-
-            //    // Broadcast message to all listeners
-            //    WebSocket.ForEach(ServerManager.SocketChannelName, (WebSocket socket) => {
-            //        socket.Send(changes);
-            //    });
-            //}
         }
     }
 
