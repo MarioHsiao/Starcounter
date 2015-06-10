@@ -367,7 +367,7 @@ namespace Administrator.Server.Managers {
                             }
 
                             //string changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(s.PublicViewModel, true, false);
-                            if (!string.IsNullOrEmpty(changes) || changes != "[]") {
+                            if (!string.IsNullOrEmpty(changes) && changes != "[]") {
                                 session.ActiveWebSocket.Send(changes);
                             }
                         }

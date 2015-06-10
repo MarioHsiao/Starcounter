@@ -145,7 +145,7 @@ namespace Administrator.Server.Model {
                 // Reset error state
                 this.DeployError = false;
                 //this.CouldnotDelete = false;
-
+                this.ResetErrorMessage();
                 this.OnPropertyChanged("WantDeployed");
                 this.Evaluate();
             }
@@ -365,7 +365,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         private void DeployApplication() {
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             this.Status |= ApplicationStatus.Downloading;
             this.StatusText = "Downloading";
