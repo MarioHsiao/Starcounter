@@ -70,7 +70,7 @@ namespace Administrator.Server.Managers {
                 response["Set-Cookie"] = request.Uri + "/" + id;
                 response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
 
-                response["Access-Control-Allow-Origin"] = "http://localhost:8080";
+                response["Access-Control-Allow-Origin"] = "*";  //"http://localhost:8080";
                 response["Access-Control-Expose-Headers"] = "Location, X-Location";
                 //response["Access-Control-Allow-Headers"] = "X-Referer";
                 return response;
