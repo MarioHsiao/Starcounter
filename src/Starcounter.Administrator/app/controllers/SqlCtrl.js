@@ -138,7 +138,12 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
             $scope.isBusy = false;
 
             $scope.rememberQuery({ statement: query, databaseName: databaseName });
-            $scope.database._queryState.columns = response.columns;
+            // Fill columns keeping reference to old array
+            $scope.database._queryState.columns.length = 0;
+            angular.forEach(response.columns, function(column) {
+              column.data = column.value;
+              $scope.database._queryState.columns.push(column);
+            });
             $scope.database._queryState.rows = response.rows.rows;
 
             // Make all columns readonly

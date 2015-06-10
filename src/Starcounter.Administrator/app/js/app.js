@@ -3,7 +3,7 @@
  * Starcounter Administrator module
  * ----------------------------------------------------------------------------
  */
-var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'uiHandsontable', 'ui', 'ui.config', 'ngSanitize', 'ui.select'], function ($routeProvider) {
+var adminModule = angular.module('scadmin', ['ngRoute', 'ui.bootstrap', 'ngHandsontable', 'ui', 'ui.config', 'ngSanitize', 'ui.select'], function ($routeProvider) {
 
     $routeProvider.when('/databases', {
         templateUrl: '/app/partials/databases.html',
@@ -277,29 +277,36 @@ function scrollRefresh() {
     if (!window.virtualScroller) {
         createHorizontalScrollbar();
     }
-    var wt = $('.handsontable:eq(0)').handsontable('getInstance').view.wt;
-    if (wt.wtScrollbars.horizontal) {
-        var width = Handsontable.Dom.outerWidth(wt.wtScrollbars.instance.wtTable.holder.parentNode);
-        var scrolledWidth = wt.wtScrollbars.instance.wtViewport.getWorkspaceActualWidth();
-        if (scrolledWidth > width) {
-            var box = wt.wtScrollbars.horizontal.scrollHandler.getBoundingClientRect();
-            if (box.bottom > document.documentElement.clientHeight && wt.wtScrollbars.horizontal.scrollHandler.scrollLeft !== void 0) {
-                virtualScroller.DIV.style.display = 'block';
-                virtualScroller.DIV.style.top = '';
-                virtualScroller.DIV.style.bottom = 0;
-                virtualScroller.DIV.style.left = parseInt(box.left, 10) + 1 + 'px';
-                virtualScroller.setPositionPx(wt.wtScrollbars.horizontal.windowScrollPosition);
-                virtualScroller.setWidth(width);
-                virtualScroller.setScrolledWidth(scrolledWidth);
-            }
-            else {
-                virtualScroller.DIV.style.display = 'none';
-            }
-        }
-        else {
-            virtualScroller.DIV.style.display = 'none';
-        }
+    var hot = angular.element(document.querySelector('#handsontable')).isolateScope().hotInstance;
+
+    if (!hot) {
+      return;
     }
+    var wt = hot.view.wt;
+
+    // In newest version of Hot we don't have scrollbars
+    //if (wt.wtScrollbars.horizontal) {
+    //    var width = Handsontable.Dom.outerWidth(wt.wtScrollbars.instance.wtTable.holder.parentNode);
+    //    var scrolledWidth = wt.wtScrollbars.instance.wtViewport.getWorkspaceActualWidth();
+    //    if (scrolledWidth > width) {
+    //        var box = wt.wtScrollbars.horizontal.scrollHandler.getBoundingClientRect();
+    //        if (box.bottom > document.documentElement.clientHeight && wt.wtScrollbars.horizontal.scrollHandler.scrollLeft !== void 0) {
+    //            virtualScroller.DIV.style.display = 'block';
+    //            virtualScroller.DIV.style.top = '';
+    //            virtualScroller.DIV.style.bottom = 0;
+    //            virtualScroller.DIV.style.left = parseInt(box.left, 10) + 1 + 'px';
+    //            virtualScroller.setPositionPx(wt.wtScrollbars.horizontal.windowScrollPosition);
+    //            virtualScroller.setWidth(width);
+    //            virtualScroller.setScrolledWidth(scrolledWidth);
+    //        }
+    //        else {
+    //            virtualScroller.DIV.style.display = 'none';
+    //        }
+    //    }
+    //    else {
+    //        virtualScroller.DIV.style.display = 'none';
+    //    }
+    //}
 }
 
 

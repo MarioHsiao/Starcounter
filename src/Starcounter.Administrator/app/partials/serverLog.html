@@ -47,8 +47,8 @@
         </div>
 
         <div>
-            <div id="handsontableContainer" style="overflow-x: auto; margin-top: 15px; margin-bottom: 0px; overflow-y: visible">
-                <ui-handsontable
+            <div id="handsontableContainer" style="margin-top: 15px; margin-bottom: 0px">
+                <hot-table
                     id="handsontable"
                     stretchh="'last'"
                     selectedindex="SelectedIndex"
@@ -56,22 +56,20 @@
                     selectedindex="currentSelection"
                     minsparerows="0"
                     startrows="0"
-                    datarows="row in model.LogEntries"
+                    datarows="model.LogEntries"
                     currentrowclassname="'currentRow'"
                     manualcolumnmove="false"
                     manualcolumnresize="false"
                     columnsorting="false"
-                    nativescrollbars="true"
                     afterrender="afterRender"
                     fragmentselection="true">
 
-                    <datacolumn readOnly="true" value="row.DateTimeStr" title="'Date'"></datacolumn>
-                    <datacolumn readOnly="true" value="row.TypeStr" title="'Type'"></datacolumn>
-                    <datacolumn readOnly="true" value="row.HostName" title="'Host'"></datacolumn>
-                    <datacolumn readOnly="true" value="row.Source" title="'Source'"></datacolumn>
-                    <datacolumn readOnly="true" value="row.Message" title="'Message'"></datacolumn>
-
-                </ui-handsontable>
+                    <hot-column readOnly="true" data="DateTimeStr" title="'Date'"></hot-column>
+                    <hot-column readOnly="true" data="TypeStr" title="'Type'"></hot-column>
+                    <hot-column readOnly="true" data="HostName" title="'Host'"></hot-column>
+                    <hot-column readOnly="true" data="Source" title="'Source'"></hot-column>
+                    <hot-column readOnly="true" data="Message" title="'Message'"></hot-column>
+                </hot-table>
             </div>
         </div>
     </div>

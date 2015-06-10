@@ -41,26 +41,25 @@
 
             <tabset>
                 <tab heading="Result">
-                  <div id="handsontableContainer" style="overflow-x: auto; overflow-y: visible">
-                    <ui-handsontable
-                        id="handsontable"
-                        stretchh="'last'"
-                        selectedindex="SelectedIndex"
-                        outsideclickdeselects="false"
-                        selectedindex="currentSelection"
-                        columns="database._queryState.columns"
-                        minsparerows="0"
-                        startrows="0"
-                        datarows="row in database._queryState.rows"
-                        currentrowclassname="'currentRow'"
-                        manualcolumnmove="false"
-                        manualcolumnresize="true"
-                        columnsorting="false"
-                        nativescrollbars="true"
-                        afterrender="afterRender"
-                        fragmentselection="true">
-                    </ui-handsontable>
-                  </div>
+                    <div id="handsontableContainer">
+                        <hot-table
+                                id="handsontable"
+                                stretchh="'last'"
+                                selectedindex="SelectedIndex"
+                                outsideclickdeselects="false"
+                                selectedindex="currentSelection"
+                                columns="database._queryState.columns"
+                                minsparerows="0"
+                                startrows="0"
+                                datarows="database._queryState.rows"
+                                currentrowclassname="'currentRow'"
+                                manualcolumnmove="false"
+                                manualcolumnresize="true"
+                                columnsorting="false"
+                                afterrender="afterRender"
+                                fragmentselection="true">
+                        </hot-table>
+                    </div>
                 </tab>
 
                 <tab heading="Queryplan">
