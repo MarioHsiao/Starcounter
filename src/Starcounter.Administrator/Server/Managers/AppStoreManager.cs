@@ -263,7 +263,9 @@ namespace Administrator.Server.Managers {
 
             // Get App Store items (external source)
             HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
-            X.GET(uri, out response, null, 10000, opt);
+
+            response = Http.GET(uri, null, 30000, opt);
+
             if (!response.IsSuccessStatusCode) {
 
                 ErrorResponse errorResponse = new ErrorResponse();
