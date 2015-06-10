@@ -517,7 +517,7 @@ namespace Starcounter.Rest
 
                 String[] s = methodAndUriInfo.Split(null);
                 String originalUriInfo = null;
-                String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
+                String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
 
                 // Checking if consists of method and URI.
                 if (s.Length > 1) {
