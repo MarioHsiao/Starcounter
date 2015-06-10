@@ -67,7 +67,7 @@ namespace Administrator.Server.Managers {
         /// <returns></returns>
         static private bool IsDatabaseRunning(string databaseName) {
 
-            Response response = Node.LocalhostSystemPortNode.GET("/api/engines/" + databaseName, 0);
+            Response response = Self.GET("/api/engines/" + databaseName);
             return response.IsSuccessStatusCode;
         }
 
@@ -85,7 +85,7 @@ namespace Administrator.Server.Managers {
             EngineCollection.EnginesElementJson item = new EngineCollection.EnginesElementJson();
             item.Name = databaseName.ToLower();
 
-            response = Node.LocalhostSystemPortNode.POST("/api/engines", item.ToJsonUtf8(), null, 0);
+            response = Self.POST("/api/engines", null, item.ToJsonUtf8());
             return response.IsSuccessStatusCode;
         }
 
@@ -97,7 +97,7 @@ namespace Administrator.Server.Managers {
         /// <returns></returns>
         public static bool StopExecutable(string uri, out Response response) {
 
-            response = Node.LocalhostSystemPortNode.DELETE(uri, string.Empty, null, 0);
+            response = Self.DELETE(uri, string.Empty);
             return response.IsSuccessStatusCode;
         }
 

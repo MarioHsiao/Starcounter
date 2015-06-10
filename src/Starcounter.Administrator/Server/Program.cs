@@ -98,7 +98,7 @@ namespace Starcounter.Administrator.Server {
             // Redirecting root to index.html.
             Handle.GET("/", () => {
                 // Returns this response to original request.
-                return Node.LocalhostSystemPortNode.GET("/index.html", null);
+                return Self.GET("/index.html", null);
             });
 
             // Register a static resource folder
