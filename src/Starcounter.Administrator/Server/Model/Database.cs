@@ -265,23 +265,25 @@ namespace Administrator.Server.Model {
             switch (e.Action) {
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Add:
 
-                    foreach (AppStoreStore item in e.NewItems) {
+                    foreach (AppStoreStore store in e.NewItems) {
 
-                        item.Changed -= AppStoreStore_Changed;
-                        item.Changed += AppStoreStore_Changed;
+                        store.Changed -= AppStoreStore_Changed;
+                        store.Changed += AppStoreStore_Changed;
 
-                        AppStoreManager.GetApplications(this, item, (remoteApplications) => {
+                        this.UpdateAppStoreItems(store);
 
-                            item.Applications.Clear();// TODO: Merge lists.
+                        //AppStoreManager.GetApplications(this, item, (remoteApplications) => {
 
-                            foreach (AppStoreApplication remoteApplication in remoteApplications) {
-                                item.Applications.Add(remoteApplication);
-                            }
+                        //    item.Applications.Clear();// TODO: Merge lists.
 
-                        }, (errorMessage) => {
+                        //    foreach (AppStoreApplication remoteApplication in remoteApplications) {
+                        //        item.Applications.Add(remoteApplication);
+                        //    }
 
-                            this.OnCommandError("AppStore", errorMessage, null);
-                        });
+                        //}, (errorMessage) => {
+
+                        //    this.OnCommandError("AppStore", errorMessage, null);
+                        //});
 
                     }
                     break;
@@ -304,6 +306,25 @@ namespace Administrator.Server.Model {
 
             this.OnChanged(sender, e);
         }
+
+        private void UpdateAppStoreItems(AppStoreStore store) {
+
+            AppStoreManager.GetApplications(this, store, (remoteApplications) => {
+
+                this.UpdateAppStoreApplications(store, remoteApplications);
+
+                //store.Applications.Clear();// TODO: Merge lists.
+
+                //foreach (AppStoreApplication remoteApplication in remoteApplications) {
+                //    store.Applications.Add(remoteApplication);
+                //}
+
+            }, (errorMessage) => {
+
+                this.OnCommandError("AppStore", errorMessage, null);
+            });
+        }
+
 
         void AppStoreStore_Changed(object sender, EventArgs e) {
 
@@ -458,6 +479,39 @@ namespace Administrator.Server.Model {
         }
 
         /// <summary>
+        /// Get Store
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private AppStoreStore GetStore(string id) {
+
+            foreach (AppStoreStore store in this.AppStoreStores) {
+
+                if (store.ID == id) {
+                    return store;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get AppStore Application
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private AppStoreApplication GetAppStoreApplication(AppStoreStore store, string id) {
+
+            foreach (AppStoreApplication dbApp in store.Applications) {
+
+                if (dbApp.ID == id) {
+                    return dbApp;
+                }
+            }
+            return null;
+        }
+
+
+        /// <summary>
         /// Get Application
         /// </summary>
         /// <param name="id"></param>
@@ -575,15 +629,99 @@ namespace Administrator.Server.Model {
 
             AppStoreManager.GetStores(this, (stores) => {
 
-                this.AppStoreStores.Clear(); // TODO: Merge lists.
-                foreach (AppStoreStore appStore in stores) {
-                    this.AppStoreStores.Add(appStore);
-                }
+                this.UpdateAppStoreList(stores);
             }, (errorMessage) => {
 
                 this.OnCommandError("AppStore", errorMessage, null);
             });
         }
+
+        private void UpdateAppStoreList(IList<AppStoreStore> freshStores) {
+
+            // Add new stores
+            IList<AppStoreStore> newStoresList = new List<AppStoreStore>();
+
+            foreach (AppStoreStore freshStore in freshStores) {
+
+                AppStoreStore store = this.GetStore(freshStore.ID);
+                if (store == null) {
+                    // Add store.
+                    newStoresList.Add(freshStore);
+                }
+                else {
+                    this.UpdateAppStoreItems(store);
+                }
+            }
+
+            foreach (AppStoreStore freshStore in newStoresList) {
+                this.AppStoreStores.Add(freshStore);
+            }
+
+            // Remove removed stores
+            bool bExist;
+            IList<AppStoreStore> removeStoresList = new List<AppStoreStore>();
+            foreach (AppStoreStore store in this.AppStoreStores) {
+
+                bExist = false;
+
+                foreach (AppStoreStore freshStore in freshStores) {
+                    if (store.ID == freshStore.ID) {
+                        bExist = true;
+                        break;
+                    }
+                }
+
+                if (bExist == false) {
+                    removeStoresList.Add(store);
+                }
+            }
+
+            foreach (AppStoreStore store in removeStoresList) {
+                this.AppStoreStores.Remove(store);
+            }
+        }
+
+        private void UpdateAppStoreApplications(AppStoreStore store, IList<AppStoreApplication> freshAppStoreApplications) {
+
+            // Add new stores
+            //IList<AppStoreApplication> newList = new List<AppStoreApplication>();
+
+            foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
+
+                AppStoreApplication app = this.GetAppStoreApplication(store, freshApp.ID);
+                if (app == null) {
+
+                    store.Applications.Add(freshApp);
+                }
+                else {
+                    // TODO: update app
+                }
+            }
+
+            // Remove removed stores
+            bool bExist;
+            IList<AppStoreApplication> removeList = new List<AppStoreApplication>();
+            foreach (AppStoreApplication app in store.Applications) {
+
+                bExist = false;
+
+                foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
+                    if (app.ID == freshApp.ID) {
+                        bExist = true;
+                        break;
+                    }
+                }
+
+                if (bExist == false) {
+                    removeList.Add(app);
+                }
+            }
+
+            foreach (AppStoreApplication app in removeList) {
+                store.Applications.Remove(app);
+            }
+        }
+
 
         #endregion
 

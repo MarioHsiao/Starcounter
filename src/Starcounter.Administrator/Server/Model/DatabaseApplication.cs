@@ -142,6 +142,8 @@ namespace Administrator.Server.Model {
                 this.CouldNotStart = false;
                 this.CouldNotStop = false;
 
+                this.ResetErrorMessage();
+
                 this.OnPropertyChanged("WantRunning");
                 this.Evaluate();
             }
@@ -159,6 +161,7 @@ namespace Administrator.Server.Model {
                 // Reset error state
                 this.CouldNotInstall = false;
                 this.CouldNotUninstall = false;
+                this.ResetErrorMessage();
 
                 this.OnPropertyChanged("WantInstalled");
                 this.Evaluate();
@@ -175,6 +178,7 @@ namespace Administrator.Server.Model {
 
                 // Reset error state
                 this._CouldNotDelete = false;
+                this.ResetErrorMessage();
 
                 this.OnPropertyChanged("WantDeleted");
                 this.Evaluate();
@@ -356,7 +360,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         private void InstallApplication() {
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             try {
                 this.Status |= ApplicationStatus.Installing;
@@ -379,7 +383,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         private void UninstallApplication() {
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             try {
                 this.Status |= ApplicationStatus.Uninstalling;
@@ -401,7 +405,7 @@ namespace Administrator.Server.Model {
         /// <param name="application"></param>
         private void StartApplication() {
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             DatabaseApplication app = ApplicationManager.GetApplication(this.DatabaseName, this.ID);
             if (app == null) {
@@ -432,7 +436,7 @@ namespace Administrator.Server.Model {
         /// <param name="application"></param>
         private void StopApplication() {
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             DatabaseApplication app = ApplicationManager.GetApplication(this.DatabaseName, this.ID);
             if (app == null) {
@@ -466,7 +470,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         public void DeleteApplication() {
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             this.Status |= ApplicationStatus.Deleting;
             this.StatusText = "Deleting";
