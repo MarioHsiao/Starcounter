@@ -237,7 +237,8 @@ namespace Starcounter.Internal {
                     fullPathToResourcesDir;
 
                 // Sending REST POST request to Administrator to register static resources directory.
-                Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
+                Response resp = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                    StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
 
                 if ("Success!" != resp.Body) {
                     throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
@@ -304,7 +305,8 @@ namespace Starcounter.Internal {
                     StarcounterEnvironment.Default.UserHttpPort + StarcounterConstants.NetworkConstants.CRLF +
                     polyjuiceStatic;
 
-                Response resp = Node.LocalhostSystemPortNode.POST(StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
+                Response resp = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort +
+                    StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
 
                 if ("Success!" != resp.Body) {
                     throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));

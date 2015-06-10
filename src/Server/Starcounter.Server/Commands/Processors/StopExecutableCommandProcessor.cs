@@ -93,7 +93,6 @@ namespace Starcounter.Server.Commands {
 
                 WithinTask(Task.RestartExecutables, (task) => {
 
-                    var node = Engine.LocalHostSystemNode;
                     var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                     string clientContextId;
@@ -126,9 +125,15 @@ namespace Starcounter.Server.Commands {
                         Log.Debug("Restarting executable \"{0}\" in database \"{1}\"", fellow.Info.BinaryFilePath, database.Name);
 
                         if (exe.RunEntrypointAsynchronous) {
-                            node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+
+                            Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                                serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+
                         } else {
-                            var response = node.POST(serviceUris.Executables, exe.ToJson(), null);
+
+                            var response = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                                serviceUris.Executables, exe.ToJson(), null);
+
                             response.FailIfNotSuccess();
                         }
 

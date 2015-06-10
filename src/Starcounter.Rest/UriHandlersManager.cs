@@ -469,7 +469,6 @@ namespace Starcounter.Rest
             registerUriHandlerNative_ = registerUriHandlerNative;
             processExternalRequest_ = processExternalRequest;
             runDelegateAndProcessResponse_ = runDelegateAndProcessResponse;
-            X.SetRunDelegateAndProcessResponse(runDelegateAndProcessResponse);
         }
 
         /// <summary>

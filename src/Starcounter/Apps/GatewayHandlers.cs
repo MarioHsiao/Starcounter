@@ -487,7 +487,8 @@ namespace Starcounter
 
             Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-            Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/uri", uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
+            Response r = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/handler/uri", 
+                uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
             if (!r.IsSuccessStatusCode) {
 
@@ -726,7 +727,8 @@ namespace Starcounter
 
                 Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
 
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/ws", uriHandlerInfoBytes, null, 0,
+                Response r = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                    "/gw/handler/ws", uriHandlerInfoBytes, null, 0,
                     new HandlerOptions() { CallExternalOnly = true });
 
                 if (!r.IsSuccessStatusCode) {
@@ -826,7 +828,8 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostSystemPortNode.POST("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
+                Response r = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                    "/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
                 if (!r.IsSuccessStatusCode) {
 
@@ -860,7 +863,8 @@ namespace Starcounter
 
                 Byte[] portInfoBytes = ASCIIEncoding.ASCII.GetBytes(portInfo);
 
-                Response r = Node.LocalhostSystemPortNode.DELETE("/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
+                Response r = Http.DELETE("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                    "/gw/handler/port", portInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
 
                 if (!r.IsSuccessStatusCode) {
 
