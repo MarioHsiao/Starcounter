@@ -35,12 +35,12 @@ namespace Starcounter.Internal.Test {
                 return "/handler2";
             });
 
-            Polyjuice.Map("/handler1", "/map1");
+            Polyjuice.Map("/handler1", "/polyjuice/map1");
 
             Response resp = Self.GET("/handler1");
             Assert.AreEqual(resp.Body, "/handler1");
 
-            resp = Self.GET("/map1");
+            resp = Self.GET("/polyjuice/map1");
             Assert.AreEqual(resp.Body, "/handler1");
         }
     }
