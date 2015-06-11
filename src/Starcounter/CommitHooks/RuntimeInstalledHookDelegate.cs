@@ -1,8 +1,11 @@
 ﻿
+using Starcounter.Internal;
+
 namespace Starcounter {
     /// <summary>
     /// Pairs a HookDelegateList<T> with an index, and support invoking
-    /// the delegate method being adressed.
+    /// the delegate method being adressed within a specified application
+    /// context.
     /// </summary>
     /// <typeparam name="T"></typeparam>
     internal class RuntimeInstalledHookDelegate<T> : InvokableHook {
@@ -29,7 +32,10 @@ namespace Starcounter {
         /// <param name="triggeringObject">Carry to be passed to the
         /// delegate.</param>
         public override void Invoke(object triggeringObject) {
-            Delegates.Get(Index).Invoke((T)triggeringObject);
+            var d = Delegates.Get(Index);
+            using (new AppScope(ApplicationName)) {
+                d.Invoke((T)triggeringObject);
+            }
         }
     }
 }
