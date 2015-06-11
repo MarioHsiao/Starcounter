@@ -6,6 +6,16 @@ namespace Starcounter {
     /// A key identifying a triggering hook type, including its
     /// identity and the operation being hooked (e.g. Insert);
     /// </summary>
+    /// <example>
+    /// Here, the <see cref="HookKey"/> will contain a TypeID
+    /// that is the table ID of the "Foo" table (e.g 25), and
+    /// the TypeOfHook will have a value equal to the 
+    /// <see cref="HookType.Insert"/> constant.
+    /// <code>
+    /// // Register an insertion hook on class/table Foo
+    /// Hook{Foo}.OnInsert(f => {...});
+    /// </code>
+    /// </example>
     internal sealed class HookKey {
         class DefaultEqualityComparer : IEqualityComparer<HookKey> {
 

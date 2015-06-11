@@ -97,7 +97,7 @@
     <Compile Include="CommitHooks\Hook.cs" />
     <Compile Include="CommitHooks\HookConfiguration.cs" />
     <Compile Include="CommitHooks\HookDelegateList.cs" />
-    <Compile Include="CommitHooks\HookDelegateListEntry.cs" />
+    <Compile Include="CommitHooks\RuntimeInstalledHookDelegate.cs" />
     <Compile Include="CommitHooks\HookKey.cs" />
     <Compile Include="CommitHooks\HookType.cs" />
     <Compile Include="CommitHooks\InvokableHook.cs" />
@@ -107,6 +107,8 @@
     <Compile Include="Entity.Implementation.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
+    <Compile Include="Internal\Map.cs" />
+    <Compile Include="Internal\MapInvoke.cs" />
     <Compile Include="Internal\SetValueCallbackInvoke.cs" />
     <Compile Include="Internal\SystemEntity.cs" />
     <Compile Include="Hosting\AssemblySpecification.cs" />
