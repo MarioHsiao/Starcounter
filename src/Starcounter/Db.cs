@@ -412,7 +412,9 @@ namespace Starcounter
             //
             // When should this be called? Before or after OnDelete?
             // TODO:
-            MapInvoke.DELETE(proxy.TypeBinding.Name, oid);
+            if (MapConfig.Enabled) {
+                MapInvoke.DELETE(proxy.TypeBinding.Name, oid);
+            }
 
             try {
                 InvokeOnDelete(proxy);

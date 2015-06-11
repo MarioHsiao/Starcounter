@@ -595,7 +595,7 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
-                var emitMapCall = true;
+                var emitMapCall = MapConfig.Enabled;
 
                 if (!emitSetValueCall && !emitMapCall) {
                     // We can make a tail call since it is the last instruction in the method.
@@ -1016,27 +1016,31 @@ namespace Starcounter.Internal.Weaver {
             _writer.EmitInstructionField(OpCodeNumber.Ldflda, typeSpecification.ThisHandle);
             _writer.EmitInstructionMethod(OpCodeNumber.Call,
                 _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("Insert"), BindingOptions.Default));
-            
-            // Setup and call MapInvoke.POST
-            // This implementation is very much temporary. There are several
-            // better alternatives, where one really simple one that should
-            // perform better than this is to use TypeBinding.Name (the binding
-            // is one of the parameters) instead of object.GetType().FullName.
-            // This one works as a proof-of-concept though.
 
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectGetType);
-            _writer.EmitInstructionMethod(OpCodeNumber.Callvirt, _typeGetFullName);
-            _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, fullNameVariable);
-            _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-            var idField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
-            _writer.EmitInstructionField(OpCodeNumber.Ldfld, idField);
-            _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, keyVariable);
-            _writer.EmitInstruction(OpCodeNumber.Ldloc_0);
-            _writer.EmitInstruction(OpCodeNumber.Ldloc_1);
+            var emitMapCall = MapConfig.Enabled;
 
-            var post = _module.FindMethod(typeof(MapInvoke).GetMethod("POST"), BindingOptions.Default);
-            _writer.EmitInstructionMethod(OpCodeNumber.Call, post);
+            if (emitMapCall) {
+                // Setup and call MapInvoke.POST
+                // This implementation is very much temporary. There are several
+                // better alternatives, where one really simple one that should
+                // perform better than this is to use TypeBinding.Name (the binding
+                // is one of the parameters) instead of object.GetType().FullName.
+                // This one works as a proof-of-concept though.
+
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectGetType);
+                _writer.EmitInstructionMethod(OpCodeNumber.Callvirt, _typeGetFullName);
+                _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, fullNameVariable);
+                _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                var idField = typeDef.Fields.GetByName(TypeSpecification.ThisIdName);
+                _writer.EmitInstructionField(OpCodeNumber.Ldfld, idField);
+                _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, keyVariable);
+                _writer.EmitInstruction(OpCodeNumber.Ldloc_0);
+                _writer.EmitInstruction(OpCodeNumber.Ldloc_1);
+
+                var post = _module.FindMethod(typeof(MapInvoke).GetMethod("POST"), BindingOptions.Default);
+                _writer.EmitInstructionMethod(OpCodeNumber.Call, post);
+            }
 
             _writer.EmitInstruction(OpCodeNumber.Ret);
             _writer.DetachInstructionSequence();
