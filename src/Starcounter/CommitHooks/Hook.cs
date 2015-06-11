@@ -86,7 +86,11 @@ namespace Starcounter {
             }
 
             var index = delegates.Add(callback);
-            return new RuntimeInstalledHookDelegate<T>() { Delegates = delegates, Index = index };
+            return new RuntimeInstalledHookDelegate<T>() {
+                Delegates = delegates, 
+                Index = index,
+                ApplicationName = StarcounterEnvironment.AppName
+            };
         }
 
         static void InstallHook(Type t, uint hookConfiguration, InvokableHook entry) {

@@ -18,6 +18,12 @@ namespace Starcounter {
         public int Index { get; set; }
 
         /// <summary>
+        /// The application name that defines in what scope the
+        /// current delegate should execute when triggered.
+        /// </summary>
+        public string ApplicationName { get; set; }
+
+        /// <summary>
         /// Invokes the referenced delegate with the given argument.
         /// </summary>
         /// <param name="triggeringObject">Carry to be passed to the
