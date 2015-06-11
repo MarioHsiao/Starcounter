@@ -191,13 +191,15 @@ namespace NodeTest {
                 ReadGETUrlsFromFile(urlsFileName);
             }
 
+            Int32 errCode;
+            
             // Running with async node.
-            Int32 errCode = RunTest(false);
+            errCode = RunTest(false);
             if (0 != errCode)
                 return errCode;
 
             // Running with aggregation.
-            RunTest(true);
+            errCode = RunTest(true);
             if (0 != errCode)
                 return errCode;
 

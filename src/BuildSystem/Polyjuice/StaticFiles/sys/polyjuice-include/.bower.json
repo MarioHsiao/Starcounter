@@ -1,0 +1,41 @@
+{
+  "name": "polyjuice-include",
+  "authors": [
+    "Tomek Wytrebowicz <tomalecpub@gmail.com>"
+  ],
+  "homepage": "https://github.com/Polyjuice/polyjuice-include",
+  "description": "Custom Element to include HTML partials/templates from Polyjuice",
+  "main": "polyjuice-include.html",
+  "keywords": [
+    "template",
+    "partial",
+    "polyjuice",
+    "imported-template"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "StaticFiles/sys",
+    "Gruntfile.js",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "imported-template": "~0.0.9"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#~3.1.3"
+  },
+  "version": "0.0.4",
+  "_release": "0.0.4",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.0.4",
+    "commit": "a0c6e36d73c0d9672293488779c1c1459f5e8d1d"
+  },
+  "_source": "git://github.com/Polyjuice/polyjuice-include.git",
+  "_target": "~0.0.4",
+  "_originalSource": "Polyjuice/polyjuice-include"
+}

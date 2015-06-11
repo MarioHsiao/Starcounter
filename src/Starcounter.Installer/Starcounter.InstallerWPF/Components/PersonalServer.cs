@@ -27,17 +27,17 @@ namespace Starcounter.InstallerWPF.Components {
             }
         }
 
-        private bool _SendUsageAndCrashReports;
-        public bool SendUsageAndCrashReports {
-            get {
-                return this._SendUsageAndCrashReports;
-            }
-            set {
-                if (this._SendUsageAndCrashReports == value) return;
-                this._SendUsageAndCrashReports = value;
-                this.OnPropertyChanged("SendUsageAndCrashReports");
-            }
-        }
+        //private bool _SendUsageAndCrashReports;
+        //public bool SendUsageAndCrashReports {
+        //    get {
+        //        return this._SendUsageAndCrashReports;
+        //    }
+        //    set {
+        //        if (this._SendUsageAndCrashReports == value) return;
+        //        this._SendUsageAndCrashReports = value;
+        //        this.OnPropertyChanged("SendUsageAndCrashReports");
+        //    }
+        //}
 
         private readonly string[] _Dependencys = new string[] { InstallationBase.Identifier };
         public override string[] Dependencys {
@@ -53,12 +53,13 @@ namespace Starcounter.InstallerWPF.Components {
             this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.PersonalServer];
 #endif
 
-            this.SendUsageAndCrashReports = true;
+            //this.SendUsageAndCrashReports = true;
 
             this.Path = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), ConstantsBank.SCProductName);
 
             this.DefaultUserHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerUserHttpPort;
             this.DefaultSystemHttpPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerSystemHttpPort;
+            this.DefaultAggregationPort = StarcounterConstants.NetworkPorts.DefaultPersonalServerAggregationPort;
             this.DefaultPrologSqlProcessPort = StarcounterConstants.NetworkPorts.DefaultPersonalPrologSqlProcessPort;
 
             switch (this.Command) {
@@ -122,6 +123,21 @@ namespace Starcounter.InstallerWPF.Components {
 
                 this._DefaultSystemHttpPort = value;
                 this.OnPropertyChanged("DefaultSystemHttpPort");
+            }
+        }
+
+        private UInt16 _DefaultAggregationPort;
+        public UInt16 DefaultAggregationPort {
+            get {
+                return _DefaultAggregationPort;
+            }
+
+            set {
+                if (_DefaultAggregationPort == value)
+                    return;
+
+                this._DefaultAggregationPort = value;
+                this.OnPropertyChanged("DefaultAggregationPort");
             }
         }
 

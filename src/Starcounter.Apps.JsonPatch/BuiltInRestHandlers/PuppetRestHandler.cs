@@ -21,7 +21,7 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Name of the WebSocket Json-Patch channel.
         /// </summary>
-        static String JsonPatchWebSocketChannelName = "jsonpatchws";
+        static String JsonPatchWebSocketGroupName = "jsonpatchws";
 
         /// <summary>
         /// Handles incoming WebSocket byte data.
@@ -29,6 +29,9 @@ namespace Starcounter.Internal {
         /// <param name="bs"></param>
         /// <param name="ws"></param>
         static void HandleWebSocketJson(Byte[] bs, WebSocket ws) {
+
+            // Incrementing the initial call level for handles.
+            Handle.CallLevel++;
 
             Json root = null;
             Session session = (Session) ws.Session;
@@ -49,13 +52,13 @@ namespace Starcounter.Internal {
                 }
 
                 // Running patches evaluation.
-                int patchCount = jsonPatch.EvaluatePatches(session, bs);
+                int patchCount = jsonPatch.Apply(root, bs, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                 // -1 means that the patch was queued due to clientversion mismatch. We send no response.
                 if (patchCount != -1) { 
                     // Getting changes from the root.
                     Byte[] patchResponse;
-                    Int32 sizeBytes = jsonPatch.CreateJsonPatchBytes(session, true, session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
+                    Int32 sizeBytes = jsonPatch.Generate(root, true, session.CheckOption(SessionOptions.IncludeNamespaces), out patchResponse);
 
                     // Sending the patch bytes to the client.
                     ws.Send(patchResponse, sizeBytes, ws.IsText);
@@ -79,6 +82,9 @@ namespace Starcounter.Internal {
             Handle.PATCH(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session, Request request) => {
                 Json root = null;
 
+                // Incrementing the initial call level for handles.
+                Handle.CallLevel++;
+
                 try {
                     if (session == null)
                         return CreateErrorResponse(404, "No session found for the specified uri.");
@@ -90,7 +96,7 @@ namespace Starcounter.Internal {
                     IntPtr bodyPtr;
                     uint bodySize;
                     request.GetBodyRaw(out bodyPtr, out bodySize);
-                    int patchCount = jsonPatch.EvaluatePatches(session, bodyPtr, (int)bodySize);
+                    int patchCount = jsonPatch.Apply(root, bodyPtr, (int)bodySize, session.CheckOption(SessionOptions.StrictPatchRejection));
 
                     if (patchCount == -1) { // -1 means that the patch was queued due to clientversion mismatch.
                         return new Response() {
@@ -110,7 +116,7 @@ namespace Starcounter.Internal {
 
                 if (session == null)
                     return CreateErrorResponse(404, "No session found for the specified uri.");
-                root = session.Data;
+                root = session.PublicViewModel;
                 if (root == null)
                     return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
@@ -127,7 +133,7 @@ namespace Starcounter.Internal {
                 if (req.WebSocketUpgrade) {
 
                     // Sending an upgrade (note that we attach the existing session).
-                    req.SendUpgrade(JsonPatchWebSocketChannelName, 0, null, null, session);
+                    req.SendUpgrade(JsonPatchWebSocketGroupName, null, null, session);
 
                     return HandlerStatus.Handled;
                 }
@@ -136,7 +142,7 @@ namespace Starcounter.Internal {
             });
 
             // Handling WebSocket JsonPatch string message.
-            Handle.WebSocket(port, JsonPatchWebSocketChannelName, (String s, WebSocket ws) => {
+            Handle.WebSocket(port, JsonPatchWebSocketGroupName, (String s, WebSocket ws) => {
                 
                 Byte[] dataBytes = Encoding.UTF8.GetBytes(s);
 
@@ -145,10 +151,10 @@ namespace Starcounter.Internal {
             });
 
             // Handling WebSocket JsonPatch byte array.
-            Handle.WebSocket(port, JsonPatchWebSocketChannelName, HandleWebSocketJson);
+            Handle.WebSocket(port, JsonPatchWebSocketGroupName, HandleWebSocketJson);
 
             // Handling JsonPatch WebSocket disconnect here.
-            Handle.WebSocketDisconnect(port, JsonPatchWebSocketChannelName, (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect(port, JsonPatchWebSocketGroupName, (WebSocket ws) => {
 
                 // Do nothing!
             });

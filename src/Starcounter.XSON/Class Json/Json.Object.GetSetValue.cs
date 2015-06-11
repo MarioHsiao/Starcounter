@@ -4,6 +4,7 @@
 //// </copyright>
 //// ***********************************************************************
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using Starcounter.Internal.XSON;
@@ -111,13 +112,13 @@ namespace Starcounter {
 		/// <param name="value">The value to set.</param>
 		public void Set(TString property, string value) { Set<string>(property, value); }
 
-		/// <summary>
-		/// Gets the value for the specified template. If the property
-		/// is bound the value will be retrived from the underlying dataobject.
-		/// </summary>
-		/// <param name="property">The template to retrieve the value for.</param>
-		/// <returns>The value.</returns>
-		public ulong Get(TOid property) { return Get<ulong>(property); }
+        ///// <summary>
+        ///// Gets the value for the specified template. If the property
+        ///// is bound the value will be retrived from the underlying dataobject.
+        ///// </summary>
+        ///// <param name="property">The template to retrieve the value for.</param>
+        ///// <returns>The value.</returns>
+        //public ulong Get(TOid property) { return Get<ulong>(property); }
 
 		/// <summary>
 		/// 
@@ -239,7 +240,9 @@ namespace Starcounter {
 				Dirtyfy();
                 item.SetBoundValuesInTuple();
 			}
-			Parent.ChildArrayHasAddedAnElement(tarr, index);
+
+            if (Parent != null)
+			    Parent.ChildArrayHasAddedAnElement(tarr, index);
 		}
 
         /// <summary>
@@ -257,7 +260,9 @@ namespace Starcounter {
                 Dirtyfy();
                 item.SetBoundValuesInTuple();
             }
-            Parent.ChildArrayHasReplacedAnElement(tarr, index);
+
+            if (Parent != null)
+                Parent.ChildArrayHasReplacedAnElement(tarr, index);
         }
 
 		/// <summary>
@@ -274,7 +279,9 @@ namespace Starcounter {
 				ArrayAddsAndDeletes.Add(Change.Remove(this.Parent, tarr, index, item));
 				Dirtyfy();
 			}
-			Parent.ChildArrayHasRemovedAnElement(tarr, index);
+
+            if (Parent != null)
+			    Parent.ChildArrayHasRemovedAnElement(tarr, index);
 		}
 
 		/// <summary>
@@ -284,7 +291,9 @@ namespace Starcounter {
 		internal void CallHasChanged(TObjArr property, int index) {
             if (_trackChanges)
                 this.Dirtyfy();
-			this.Parent.ChildArrayHasReplacedAnElement(property, index);
+
+            if (Parent != null)
+			    this.Parent.ChildArrayHasReplacedAnElement(property, index);
 		}
 
         /// <summary>
@@ -297,5 +306,105 @@ namespace Starcounter {
             this.HasChanged(property);
         }
 
+        public bool BoolValue {
+            get {
+                if (!IsBool)
+                    throw new InvalidOperationException("This instance does not have a bool value.");
+                return Get((TBool)Template);
+            }
+            set {
+                if (!IsBool)
+                    throw new InvalidOperationException("This instance does not have a bool value.");
+                Set((TBool)Template, value);
+            }
+        }
+
+        public decimal DecimalValue {
+            get {
+                if (!IsDecimal)
+                    throw new InvalidOperationException("This instance does not have a decimal value.");
+                return Get((TDecimal)Template);
+            }
+            set {
+                if (!IsDecimal)
+                    throw new InvalidOperationException("This instance does not have a decimal value.");
+                Set((TDecimal)Template, value);
+            }
+        }
+
+        public double DoubleValue {
+            get {
+                if (!IsDouble)
+                    throw new InvalidOperationException("This instance does not have a double value.");
+                return Get((TDouble)Template);
+            }
+            set {
+                if (!IsDouble)
+                    throw new InvalidOperationException("This instance does not have a double value.");
+                Set((TDouble)Template, value);
+            }
+        }
+
+        public long IntegerValue {
+            get {
+                if (!IsInteger)
+                    throw new InvalidOperationException("This instance does not have a integer value.");
+                return Get((TLong)Template);
+            }
+            set {
+                if (!IsInteger)
+                    throw new InvalidOperationException("This instance does not have a integer value.");
+                Set((TLong)Template, value);
+            }
+        }
+
+        public string StringValue {
+            get {
+                if (!IsString)
+                    throw new InvalidOperationException("This instance does not have a string value.");
+                return Get((TString)Template);
+            }
+            set {
+                if (!IsString)
+                    throw new InvalidOperationException("This instance does not have a string value.");
+                Set((TString)Template, value);
+            }
+        }
+
+        public bool IsBool { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Bool); 
+            } 
+        }
+
+        public bool IsDecimal { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Decimal); 
+            } 
+        }
+
+        public bool IsDouble { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Double); 
+            } 
+        }
+
+        public bool IsInteger { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Long); 
+            } 
+        }
+
+        public bool IsString { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.String); 
+            } 
+        }
+
+        public bool IsObject { 
+            get { 
+                return (Template != null) && (Template.TemplateTypeId == TemplateTypeEnum.Object); 
+            } 
+        }
 	}
 }

@@ -124,30 +124,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Represents this Starcounter node.
-        /// </summary>
-        [ThreadStatic]
-        static Node LocalhostSystemPortNode_ = null;
-
-        /// <summary>
-        /// Creates an instance of localhost system node.
-        /// </summary>
-        public static Node LocalhostSystemPortNode
-        {
-            get
-            {
-                // Checking if Node instance is already created for this thread.
-                if (null != LocalhostSystemPortNode_)
-                    return LocalhostSystemPortNode_;
-
-                // Creating new node instance.
-                LocalhostSystemPortNode_ = new Node("127.0.0.1", StarcounterEnvironment.Default.SystemHttpPort);
-
-                return LocalhostSystemPortNode_;
-            }
-        }
-
-        /// <summary>
         /// Static constructor to automatically initialize REST.
         /// </summary>
         static Node()

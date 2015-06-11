@@ -142,7 +142,9 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
             SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
-            sd = gw->GetWorkerChunks()->ObtainChunk(ipc_sd->get_user_data_length_bytes());
+            uint32_t user_data_len_bytes = ipc_sd->get_user_data_length_bytes_icp_chunk();
+
+            sd = gw->GetWorkerChunks()->ObtainChunk(user_data_len_bytes);
 
             // Checking if couldn't obtain chunk.
             if (NULL == sd) {
@@ -154,23 +156,17 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             }
 
             // Checking if its one or several chunks.
-            if (ipc_smc->is_terminated())
-            {
-                sd->CopyFromOneChunkIPCSocketData(ipc_sd, ipc_sd->get_user_data_length_bytes());
-            }
-            else
-            {
-                err_code = sd->CopyIPCChunksToGatewayChunk(this, ipc_sd);
+            if (ipc_smc->is_terminated()) {
 
-                if (err_code) {
+                GW_ASSERT(user_data_len_bytes <= MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
 
-                    // Releasing IPC chunks.
-                    ReturnLinkedChunksToPool(ipc_first_chunk_index);
-                    ipc_smc = NULL;
-                    ipc_sd = NULL;
+                sd->CopyFromOneChunkIPCSocketData(ipc_sd, user_data_len_bytes);
 
-                    continue;
-                }
+            } else {
+
+                GW_ASSERT(user_data_len_bytes > MixedCodeConstants::SOCKET_DATA_BLOB_SIZE_BYTES);
+
+                sd->CopyIPCChunksToGatewayChunk(this, ipc_sd, user_data_len_bytes);
             }
 
             // Releasing IPC chunks.
@@ -234,8 +230,6 @@ READY_SOCKET_DATA:
                 continue;
             }
 
-            GW_ASSERT(sd->get_accum_buf()->get_chunk_num_available_bytes() > 0);
-
             // Put the chunk into from database queue.
             err_code = gw->RunFromDbHandlers(sd);
 
@@ -259,98 +253,6 @@ READY_SOCKET_DATA:
     // Checking if any chunks were popped.
     if (num_popped_chunks > 0)
         *next_sleep_interval_ms = 0;
-
-    return 0;
-}
-
-// Writes given big linear buffer into obtained linked chunks.
-uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
-    uint8_t* buf,
-    int32_t buf_len_bytes,
-    starcounter::core::chunk_index cur_chunk_index,
-    int32_t first_chunk_offset,
-    int32_t* actual_written_bytes,
-    uint16_t* num_ipc_chunks
-    )
-{
-    // Maximum number of bytes that will be written in this call.
-    int32_t num_bytes_left_first_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES - first_chunk_offset;
-
-    // Number of chunks to use.
-    int32_t num_extra_chunks = 0;
-    if (buf_len_bytes > num_bytes_left_first_chunk)
-        num_extra_chunks = ((buf_len_bytes - num_bytes_left_first_chunk) / starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES) + 1;
-
-    // Getting chunk memory address.
-    uint8_t* cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
-
-    // Setting total number of IPC chunks.
-    *num_ipc_chunks = num_extra_chunks + 1;
-
-    // Setting number of total written bytes.
-    *actual_written_bytes = buf_len_bytes;
-
-    // Setting the number of written bytes.
-    *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES) = buf_len_bytes;
-
-    // Checking if the original chunk is sufficient.
-    if (0 == num_extra_chunks)
-    {
-        memcpy(cur_chunk_buf + first_chunk_offset, buf, buf_len_bytes);
-
-        return 0;
-    }
-
-    // Acquiring linked chunks.
-    starcounter::core::chunk_index new_chunk_index;
-    uint32_t err_code = GetMultipleChunksFromPrivatePool(&new_chunk_index, num_extra_chunks);
-    if (0 != err_code)
-        return err_code;
-
-    // Linking to the first chunk.
-    ((shared_memory_chunk*)cur_chunk_buf)->set_link(new_chunk_index);
-
-    // Going through each linked chunk and write data there.
-    int32_t left_bytes_to_write = buf_len_bytes;
-    int32_t num_bytes_to_write_in_chunk = starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
-
-    // Writing to first chunk.
-    memcpy(cur_chunk_buf + first_chunk_offset, buf, num_bytes_left_first_chunk);
-    left_bytes_to_write -= num_bytes_left_first_chunk;
-
-    // Checking how many bytes to write next time.
-    if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
-    {
-        // Checking if we copied everything.
-        if (left_bytes_to_write <= 0)
-            return 0;
-
-        num_bytes_to_write_in_chunk = left_bytes_to_write;
-    }
-
-    // Processing until have some bytes to write.
-    while (true)
-    {
-        // Getting next chunk in chain.
-        cur_chunk_index = ((shared_memory_chunk*)cur_chunk_buf)->get_link();
-
-        // Getting chunk memory address.
-        cur_chunk_buf = (uint8_t *)(&shared_int_.chunk(cur_chunk_index));
-
-        // Copying memory.
-        memcpy(cur_chunk_buf, buf + buf_len_bytes - left_bytes_to_write, num_bytes_to_write_in_chunk);
-        left_bytes_to_write -= num_bytes_to_write_in_chunk;
-
-        // Checking how many bytes to write next time.
-        if (left_bytes_to_write < starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES)
-        {
-            // Checking if we copied everything.
-            if (left_bytes_to_write <= 0)
-                break;
-
-            num_bytes_to_write_in_chunk = left_bytes_to_write;
-        }
-    }
 
     return 0;
 }
@@ -460,13 +362,15 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         return 0;
     }
 
+    // Binding socket to scheduler.
+    sd->BindSocketToScheduler(gw, this);
+
     // Obtaining the current scheduler id.
     scheduler_id_type sched_id = sd->get_scheduler_id();
 
-    uint16_t num_ipc_chunks;
     core::chunk_index ipc_first_chunk_index;
     SocketDataChunk* ipc_sd;
-    uint32_t err_code = sd->CopyGatewayChunkToIPCChunks(this, &ipc_sd, &ipc_first_chunk_index, &num_ipc_chunks);
+    uint32_t err_code = sd->CopyGatewayChunkToIPCChunks(this, &ipc_sd, &ipc_first_chunk_index);
 
     if (0 != err_code) {
 
@@ -474,13 +378,12 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         return err_code;
     }
 
-    // Setting number of chunks.
-    ipc_sd->SetNumberOfIPCChunks(num_ipc_chunks);
-    
-    // Checking scheduler id validity.
+    // NOTE: We specifically checking for value more or equal than number of schedulers
+    // because, for example, incoming session string can be tempered and arbitrary values can occur here.
     if (sched_id >= num_schedulers_)
     {
         sched_id = GenerateSchedulerId();
+
         ipc_sd->set_scheduler_id(sched_id);
     }
 

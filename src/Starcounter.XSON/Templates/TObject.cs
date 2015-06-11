@@ -32,7 +32,6 @@ namespace Starcounter.Templates {
 		private PropertyList _PropertyTemplates;
 
 		private BindingStrategy bindChildren = BindingStrategy.Auto;
-		protected Type _JsonType;
 		public bool HasAtLeastOneBoundProperty = true; // TODO!
 		
 		/// <summary>
@@ -40,7 +39,6 @@ namespace Starcounter.Templates {
 		/// </summary>
 		static TObject() {
 			HelperFunctions.PreLoadCustomDependencies();
-			Starcounter.Internal.XSON.Modules.Starcounter_XSON.Initialize();
 		}
 
 		/// <summary>
@@ -88,7 +86,7 @@ namespace Starcounter.Templates {
 		internal override Json GetValue(Json parent) {
 			var json = UnboundGetter(parent);
 
-            if (json != null && !json._checkBoundProperties && UseBinding(parent)) {
+            if (json != null && json._checkBoundProperties && UseBinding(parent)) {
 				json.CheckBoundObject(BoundGetter(parent));
 			}
 
@@ -124,6 +122,9 @@ namespace Starcounter.Templates {
 		}
 
 		private Json BoundOrUnboundGet(Json parent) {
+            if (UnboundGetter == null)
+                return parent;
+
 			Json value = UnboundGetter(parent);
             if (parent._checkBoundProperties && value != null && UseBinding(parent))
 				value.CheckBoundObject(BoundGetter(parent));
@@ -214,38 +215,6 @@ namespace Starcounter.Templates {
         }
        
         /// <summary>
-        /// CreateFromMarkup
-        /// </summary>
-        /// <typeparam name="TypeObj"></typeparam>
-        /// <typeparam name="TypeTObj"></typeparam>
-        /// <param name="format"></param>
-        /// <param name="markup"></param>
-        /// <param name="origin"></param>
-        /// <returns></returns>
-        public static TypeTObj CreateFromMarkup<TypeObj,TypeTObj>(string format, string markup, string origin )
-            where TypeObj : Json, new()
-                    where TypeTObj : TObject, new() {
-            IXsonTemplateMarkupReader reader;
-            try {
-                reader = Starcounter.Internal.XSON.Modules.Starcounter_XSON.JsonByExample.MarkupReaders[format];
-            }
-            catch {
-                throw new Exception(String.Format("Cannot create an XSON template. No markup compiler is registred for the format {0}.", format));
-            }
-
-            return reader.CompileMarkup<TypeObj,TypeTObj>(markup,origin);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public static TObject CreateFromJson(string json) {
-            return CreateFromMarkup<Json, Json.JsonByExample.Schema>("json", json, null);
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         /// <value></value>
@@ -256,29 +225,15 @@ namespace Starcounter.Templates {
 		/// </summary>
 		/// <param name="parent">The parent for the new message (if any)</param>
 		/// <returns>The new message</returns>
-		public virtual object CreateInstance(Json parent = null) {
-			if (_JsonType != null) {
-				var msg = (Json)Activator.CreateInstance(_JsonType);
+		public override object CreateInstance(Json parent = null) {
+			if (jsonType != null) {
+				var msg = (Json)Activator.CreateInstance(jsonType);
 				msg.Template = this;
 				msg.Parent = parent;
 				return msg;
 			}
-			return new Json() { Template = this, Parent = parent };
+            return base.CreateInstance(parent);
 		}
-
-        /// <summary>
-        /// The .NET type of the instance represented by this template.
-        /// </summary>
-        /// <value>The type of the instance.</value>
-        public override Type InstanceType {
-            get {
-                if (_JsonType == null) {
-                    return typeof(Json);
-                }
-                return _JsonType;
-            }
-            set { _JsonType = value; }
-        }
 
         /// <summary>
         /// Creates a new property (template) with the specified name and type.
@@ -458,100 +413,8 @@ namespace Starcounter.Templates {
             }
         }
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <returns></returns>
-		public override string ToJson(Json json) {
-            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
-            int count = ToJsonUtf8(json, buffer, 0);
-			return Encoding.UTF8.GetString(buffer, 0, count);
-		}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public override byte[] ToJsonUtf8(Json json) {
-            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
-            int count = ToJsonUtf8(json, buffer, 0);
-
-            // Checking if we have to shrink the buffer.
-            if (count != buffer.Length) {
-                byte[] sizedBuffer = new byte[count];
-                Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
-                return sizedBuffer;
-            }
-            return buffer;
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Object; }
         }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
-            return JsonSerializer.Serialize(json, buffer, offset);
-        }
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="buffer"></param>
-		/// <returns></returns>
-		public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
-			return FTJSerializer.Serialize(json, buffer, offset);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="jsonStr"></param>
-		public override void PopulateFromJson(Json json, string jsonStr) {
-			byte[] buffer = Encoding.UTF8.GetBytes(jsonStr);
-			PopulateFromJson(json, buffer, buffer.Length);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="srcPtr"></param>
-		/// <param name="srcSize"></param>
-		/// <returns></returns>
-		public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
-			return JsonSerializer.Populate(json, srcPtr, srcSize);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="src"></param>
-		/// <param name="srcSize"></param>
-		/// <returns></returns>
-		public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
-			unsafe {
-				fixed (byte* p = src) {
-					return PopulateFromJson(json, (IntPtr)p, srcSize);
-				}
-			}
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="json"></param>
-		/// <param name="srcPtr"></param>
-		/// <param name="srcSize"></param>
-		/// <returns></returns>
-		public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
-			return FTJSerializer.Populate(json, srcPtr, srcSize);
-		}
     }
 }

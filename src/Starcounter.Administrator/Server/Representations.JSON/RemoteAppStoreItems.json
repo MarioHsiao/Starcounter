@@ -5,6 +5,6 @@
 		"DisplayName" : "",
 		"Items": [{
 			"$" : { "Reuse" : "Representations.JSON.RemoteAppStoreItem" }
-        }]
+		}]
 	}]
 }

@@ -27,8 +27,8 @@ namespace Starcounter.Templates {
 		internal Func<Json, IEnumerable> BoundGetter;
 		internal Action<Json, Json> UnboundSetter;
 		internal Func<Json, Json> UnboundGetter;
-        private Func<TObjArr, TObject> getElementType = null;
-		private TObject[] single = new TObject[0];
+        private Func<TObjArr, TValue> getElementType = null;
+		private TValue[] single = new TValue[0];
       
 		/// <summary>
 		/// 
@@ -43,7 +43,7 @@ namespace Starcounter.Templates {
             customSetter(parent, value);
         }
 
-        public void SetCustomGetElementType(Func<TObjArr, TObject> getElementType) {
+        public void SetCustomGetElementType(Func<TObjArr, TValue> getElementType) {
             ElementType = null;
             this.getElementType = getElementType;
         }
@@ -190,6 +190,9 @@ namespace Starcounter.Templates {
 		}
 
 		private Json BoundOrUnboundGet(Json parent) {
+            if (UnboundGetter == null)
+                return parent;
+
 			Json arr = UnboundGetter(parent);
 
             if (parent._checkBoundProperties && UseBinding(parent)) {
@@ -248,7 +251,7 @@ namespace Starcounter.Templates {
         /// in this object array.
         /// </summary>
         /// <value>The obj template adhering to each element in this array</value>
-        public TObject ElementType {
+        public TValue ElementType {
             get {
                 if (single.Length != 0)
                     return single[0];
@@ -256,7 +259,7 @@ namespace Starcounter.Templates {
                 if (getElementType == null) 
                     return null;
 
-                // Quick temporary hack for removing synchronization issue fopr one specific case.
+                // Quick temporary hack for removing synchronization issue for one specific case.
                 // Needs to be solved properly. #2597
                 lock (elementLockObject) {
                     if (single.Length == 0)
@@ -266,119 +269,17 @@ namespace Starcounter.Templates {
             }
             set {
                 if (value != null) {
-                    // TODO:
-                    // Check why this is needed (or if it is needed).
-                    //if (InstanceDataTypeName != null) {
-                    //    value.InstanceDataTypeName = InstanceDataTypeName;
-                    //}
-
-                    single = new TObject[1];
-                    single[0] = (TObject)value;
+                    single = new TValue[1];
+                    single[0] = value;
                 } else {
-                    single = new TObject[0];
+                    single = new TValue[0];
                 }
             }
         }
 
-        public virtual Json CreateInstance(Json parent) {
+        public override object CreateInstance(Json parent = null) {
             return new Arr<Json>(parent, this);
 		}
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public override string ToJson(Json json) {
-            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
-            int count = ToJsonUtf8(json, buffer, 0);
-            return Encoding.UTF8.GetString(buffer, 0, count);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <returns></returns>
-        public override byte[] ToJsonUtf8(Json json) {
-            byte[] buffer = new byte[JsonSerializer.EstimateSizeBytes(json)];
-            int count = ToJsonUtf8(json, buffer, 0);
-
-            // Checking if we have to shrink the buffer.
-            if (count != buffer.Length) {
-                byte[] sizedBuffer = new byte[count];
-                Buffer.BlockCopy(buffer, 0, sizedBuffer, 0, count);
-                return sizedBuffer;
-            }
-            return buffer;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override int ToJsonUtf8(Json json, byte[] buffer, int offset) {
-            return JsonSerializer.Serialize(json, buffer, offset);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public override int ToFasterThanJson(Json json, byte[] buffer, int offset) {
-            return FTJSerializer.Serialize(json, buffer, offset);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="jsonStr"></param>
-        public override void PopulateFromJson(Json json, string jsonStr) {
-            byte[] buffer = Encoding.UTF8.GetBytes(jsonStr);
-            PopulateFromJson(json, buffer, buffer.Length);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="srcPtr"></param>
-        /// <param name="srcSize"></param>
-        /// <returns></returns>
-        public override int PopulateFromJson(Json json, IntPtr srcPtr, int srcSize) {
-            return JsonSerializer.Populate(json, srcPtr, srcSize);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="src"></param>
-        /// <param name="srcSize"></param>
-        /// <returns></returns>
-        public override int PopulateFromJson(Json json, byte[] src, int srcSize) {
-            unsafe {
-                fixed (byte* p = src) {
-                    return PopulateFromJson(json, (IntPtr)p, srcSize);
-                }
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="json"></param>
-        /// <param name="srcPtr"></param>
-        /// <param name="srcSize"></param>
-        /// <returns></returns>
-        public override int PopulateFromFasterThanJson(Json json, IntPtr srcPtr, int srcSize) {
-            return FTJSerializer.Populate(json, srcPtr, srcSize);
-        }
 
         /// <summary>
         /// Autogenerates a template for a given data object given its (one dimensional) primitive fields and properties.
@@ -387,14 +288,14 @@ namespace Starcounter.Templates {
         /// </summary>
         /// <param name="entity">An instance to create the template from</param>
         internal void CreateElementTypeFromDataObject(object entity) {
-            ElementType = new TObject();
+            var elementType = new TObject();
             var type = entity.GetType();
             var props = type.GetProperties(BindingFlags.Public|BindingFlags.Instance);
             foreach (var prop in props) {
                 if (prop.CanRead) {
                     var pt = prop.PropertyType;
                     if (Template.IsSupportedType(pt)) {
-                        ElementType.Add(pt, prop.Name);
+                        elementType.Add(pt, prop.Name);
                     }
                 }
             }
@@ -402,10 +303,14 @@ namespace Starcounter.Templates {
             foreach (var field in fields) {
                 var pt = field.FieldType;
                 if (Template.IsSupportedType(pt)) {
-                    ElementType.Add(pt, field.Name);
+                    elementType.Add(pt, field.Name);
                 }
             }
+            ElementType = elementType;
+        }
 
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Array; }
         }
     }
 }

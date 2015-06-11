@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Diagnostics;
 using Starcounter.Hosting;
+using Administrator.Server.Managers;
 
 namespace Starcounter.Administrator.Server {
 
@@ -25,6 +26,8 @@ namespace Starcounter.Administrator.Server {
 
         public static IServerRuntime ServerInterface;
         public static ServerEngine ServerEngine;
+
+        public static string ResourceFolder;
 
         // Argument <path to server configuraton file> <portnumber>
         static void Main(string[] args) {
@@ -44,11 +47,11 @@ namespace Starcounter.Administrator.Server {
             Console.WriteLine("Starcounter Administrator started on port: " + adminPort);
 
 #if ANDWAH
-            string resourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
+            Program.ResourceFolder = @"c:\github\Level1\src\Starcounter.Administrator";
 #else
-            string resourceFolder = "scadmin";
+            Program.ResourceFolder = "scadmin";
 #endif
-            
+
             // Create a Server Engine
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Program.ServerEngine.Setup();
@@ -62,17 +65,19 @@ namespace Starcounter.Administrator.Server {
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
 
+            ServerManager.Init();
+
             // Registering Default handlers.
             RegisterHandlers();
 
-            // Bootstraping the application.
+            // Bootstrapping the application.
             AppsBootstrapper.Bootstrap(
-                StarcounterEnvironment.AppName,
-                resourceFolder,
-                StarcounterEnvironment.Default.SystemHttpPort);
+                StarcounterEnvironment.Default.SystemHttpPort,
+                Program.ResourceFolder,
+                StarcounterEnvironment.AppName);
 
-            // Boostrap Admin API handlers
-            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, resourceFolder);
+            // Bootstrap Admin API handlers
+            StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, Program.ResourceFolder);
 
             // Start User Tracking (Send data to tracking server each hour and crash reports)
             if (serverInfo.Configuration.SendUsageAndCrashReports) {
@@ -93,7 +98,7 @@ namespace Starcounter.Administrator.Server {
             // Redirecting root to index.html.
             Handle.GET("/", () => {
                 // Returns this response to original request.
-                return Node.LocalhostSystemPortNode.GET("/index.html", null);
+                return Self.GET("/index.html");
             });
 
             // Register a static resource folder
@@ -118,7 +123,7 @@ namespace Starcounter.Administrator.Server {
                 String path = settings[3];
 
                 // Adding static files serving directory.
-                AppsBootstrapper.AddFileServingDirectory(appName, port, path);
+                AppsBootstrapper.InternalAddStaticFileDirectory(port, path, appName);
 
                 return "Success!";
             });
@@ -229,7 +234,7 @@ namespace Starcounter.Administrator.Server {
                 ws.Send(bs);
             });
 
-            Handle.WebSocketDisconnect("echotestws", (UInt64 cargoId, IAppsSession session) => {
+            Handle.WebSocketDisconnect("echotestws", (WebSocket ws) => {
                 Interlocked.Increment(ref WsDisconnectsCounter);
 
                 // Do nothing!

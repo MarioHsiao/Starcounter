@@ -4646,11 +4646,15 @@
         The json is not a rootobject (have no parent) and cannot be used as sessiondata.
       </message>
     </code>
+    <code hex="000B" severity="Error" name="ScErrJsonSetOnOtherSession">
+      <message>
+        The json is already connected to another session.
+      </message>
+    </code>
+  </facility>
 <!--
     <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
       <message> A template needs to be specified before this object can be used. </message>
     </code>
 -->
-    </facility>
-    
 </error-codes>

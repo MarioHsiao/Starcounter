@@ -24,11 +24,9 @@ uint32_t PortAggregator(
     // Handled successfully.
     *is_handled = true;
 
-    AccumBuffer* big_accum_buf = aggr_sd->get_accum_buf();
-
     SocketDataChunk* new_sd = NULL;
-    uint8_t* orig_data_ptr = big_accum_buf->get_chunk_orig_buf_ptr();
-    int32_t num_accum_bytes = big_accum_buf->get_accum_len_bytes(), num_processed_bytes = 0;
+    uint8_t* orig_data_ptr = aggr_sd->get_data_blob_start();
+    int32_t num_accum_bytes = aggr_sd->get_accumulated_len_bytes(), num_processed_bytes = 0;
     AggregationStruct* ags;
 
     socket_index_type aggr_socket_info_index = aggr_sd->get_socket_info_index();
@@ -42,7 +40,7 @@ uint32_t PortAggregator(
         if (num_accum_bytes - num_processed_bytes < AggregationStructSizeBytes)
         {
             // Checking if we need to move current data up.
-            cur_data_ptr = big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
+            cur_data_ptr = aggr_sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
 
             // Returning socket to receiving state.
             return gw->Receive(aggr_sd);
@@ -139,7 +137,7 @@ uint32_t PortAggregator(
                 if (num_processed_bytes + ags->size_bytes_ > num_accum_bytes)
                 {
                     // Checking if we need to move current data up.
-                    big_accum_buf->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes + AggregationStructSizeBytes);
+                    aggr_sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes + AggregationStructSizeBytes);
 
                     // Returning socket to receiving state.
                     return gw->Receive(aggr_sd);
@@ -183,7 +181,7 @@ uint32_t PortAggregator(
                 new_sd->set_client_ip_info(aggr_sd->get_client_ip_info());
 
                 // Changing accumulative buffer accordingly.
-                new_sd->get_accum_buf()->SetAccumulation(ags->size_bytes_, 0);
+                new_sd->SetAccumulation(ags->size_bytes_, 0);
 
                 // Checking if its a no IPC test.
                 switch ((MixedCodeConstants::AggregationMessageFlags) ags->msg_flags_) {
@@ -225,7 +223,7 @@ uint32_t PortAggregator(
     }
 
     // Returning socket to original receiving state.
-    big_accum_buf->ResetToOriginalState();
+    aggr_sd->ResetAccumBuffer();
     return gw->Receive(aggr_sd);
 }
 
@@ -242,7 +240,7 @@ uint32_t GatewayWorker::SendAggregatedChunks()
         aggr_sds_to_send_.RemoveByIndex(i);
 
         // Reverting accumulating buffer before send.
-        aggr_sd->get_accum_buf()->RevertBeforeSend();
+        aggr_sd->RevertBeforeSend();
 
         // Sending it.
         err_code = Send(aggr_sd);
@@ -279,11 +277,11 @@ uint32_t GatewayWorker::SendOnAggregationSocket(SocketDataChunkRef sd, MixedCode
     random_salt_type aggr_unique_socket_id = sd->GetAggregationSocketUniqueId();
 
     // NOTE: Since we are sending, we need to get number of available bytes instead of user data length.
-    int32_t data_len_bytes = sd->get_accum_buf()->get_chunk_num_available_bytes();
+    int32_t data_len_bytes = sd->get_num_available_network_bytes();
 
     uint32_t total_num_bytes = data_len_bytes + AggregationStructSizeBytes;
 
-    AggregationStruct* aggr_struct = (AggregationStruct*) ((uint8_t*)sd + sd->get_user_data_offset_in_socket_data() - AggregationStructSizeBytes);
+    AggregationStruct* aggr_struct = (AggregationStruct*) (sd->GetUserData() - AggregationStructSizeBytes);
     aggr_struct->port_number_ = g_gateway.get_server_port(sd->GetPortIndex())->get_port_number();
     aggr_struct->size_bytes_ = data_len_bytes;
     aggr_struct->socket_info_index_ = sd->get_socket_info_index();
@@ -339,26 +337,25 @@ WRITE_TO_AGGR_SD:
         GW_ASSERT(aggr_sd->GetBoundWorkerId() == worker_id_);
 
         // Checking if data fits in socket data.
-        AccumBuffer* aggr_accum_buf = aggr_sd->get_accum_buf();
         uint32_t total_num_bytes = data_len;
 
         // NOTE: Asserting that maximum data to send fits in big aggregation chunk.
-        GW_ASSERT(total_num_bytes < aggr_accum_buf->get_chunk_orig_buf_len_bytes());
+        GW_ASSERT(total_num_bytes < aggr_sd->get_data_blob_size());
 
         // Checking if data fits in the current buffer space.
-        if (aggr_accum_buf->get_chunk_num_available_bytes() >= total_num_bytes)
+        if (aggr_sd->get_num_available_network_bytes() >= total_num_bytes)
         {
             // Writing given buffer to send.
-            aggr_accum_buf->WriteBytesToSend((void*)data, total_num_bytes);
+            aggr_sd->WriteBytesToSend((void*)data, total_num_bytes);
 
             // Checking if aggregation buffer is filled.
-            if (AggregationStructSizeBytes > aggr_accum_buf->get_chunk_num_available_bytes())
+            if (AggregationStructSizeBytes > aggr_sd->get_num_available_network_bytes())
             {
                 // Removing this aggregation socket data from list.
                 aggr_sds_to_send_.RemoveEntry(aggr_sd);
 
                 // Reverting accumulating buffer before send.
-                aggr_accum_buf->RevertBeforeSend();
+                aggr_sd->RevertBeforeSend();
 
                 // Sending it.
                 err_code = Send(aggr_sd);
@@ -376,7 +373,7 @@ WRITE_TO_AGGR_SD:
             aggr_sds_to_send_.RemoveEntry(aggr_sd);
 
             // Reverting accumulating buffer before send.
-            aggr_accum_buf->RevertBeforeSend();
+            aggr_sd->RevertBeforeSend();
 
             // Sending it.
             err_code = Send(aggr_sd);

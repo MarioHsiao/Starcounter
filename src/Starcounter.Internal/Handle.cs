@@ -27,6 +27,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Skip middleware filters flag.
+        /// </summary>
+        public Boolean SkipMiddlewareFilters {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Calling application name.
         /// </summary>
         internal String CallingAppName {
@@ -321,7 +329,7 @@ namespace Starcounter {
                 return callLevel_;
             }
 
-            internal set {
+            set {
                 callLevel_ = value;
             }
         }

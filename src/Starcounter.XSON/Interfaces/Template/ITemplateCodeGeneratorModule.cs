@@ -20,6 +20,6 @@ namespace Starcounter.Internal {
         /// <param name="template"></param>
         /// <param name="metadata"></param>
         /// <returns></returns>
-        ITemplateCodeGenerator CreateGenerator( Type defaultNewObjTemplateType, string lang, object template, object metadata );
+        ITemplateCodeGenerator CreateGenerator(Type defaultRootTemplateType, string lang, object template, object metadata);
     }
 }

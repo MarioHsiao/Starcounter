@@ -1,0 +1,23 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+	"ID": "", 
+	"Url": "",
+	"DisplayName": "", 
+	"Description": "",
+	"IsRunning" : false, 
+	"Status" : 0,
+	"StatusText" : "",
+	"ErrorMessage" : { "$" : { "Reuse" : "Administrator.Server.Model.ErrorMessageJson" } },
+	"HasErrorMessage" : false,
+	"Applications": [{
+		"$" : { "Reuse" : "Administrator.Server.Model.DatabaseApplicationJson" }
+		}
+	],
+	"AppStoreStores" :[{
+		"$" : { "Reuse" : "Administrator.Server.Model.AppStoreStoreJson" }
+	}],
+	"RefreshAppStoreStores$" : 0,
+	"Start$" : 0,
+	"Stop$" : 0,
+	"Delete$" : 0
+}

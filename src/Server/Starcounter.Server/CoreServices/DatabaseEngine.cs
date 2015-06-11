@@ -382,9 +382,10 @@ namespace Starcounter.Server {
             // release the reference.
 
             var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
-            var node = Server.LocalHostSystemNode;
-            
-            var response = node.DELETE(serviceUris.Host, (String)null, null); 
+
+            var response = Http.DELETE("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                serviceUris.Host, (String)null, null); 
+
             if (!response.IsSuccessStatusCode) {
                 // If the host actively refused to shut down, we never try to
                 // kill it by force. Instead, we raise an exception that will later
@@ -497,7 +498,6 @@ namespace Starcounter.Server {
 
             try {
                 var apps = databaseInfo.Engine.HostedApps;
-                var node = Server.LocalHostSystemNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
 
                 foreach (var app in apps) {
@@ -507,9 +507,11 @@ namespace Starcounter.Server {
                     var exe = restartedApp.ToExecutable();
 
                     if (exe.RunEntrypointAsynchronous) {
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+                        Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                            serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
                     } else {
-                        var response = node.POST(serviceUris.Executables, exe.ToJson(), null);
+                        var response = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                            serviceUris.Executables, exe.ToJson(), null);
                         response.FailIfNotSuccess();
                     }
 
@@ -605,6 +607,7 @@ namespace Starcounter.Server {
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes + "={0}", database.Configuration.Runtime.DefaultSessionTimeoutMinutes);
+            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag + "={0}", database.Configuration.Runtime.PolyjuiceDatabaseFlag);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);

@@ -7,12 +7,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Starcounter.Internal;
-using Starcounter.Internal.XSON;
-using Starcounter.Templates;
 using Starcounter.Advanced;
+using Starcounter.Internal;
 using Starcounter.XSON;
-using System.Threading;
 
 namespace Starcounter {
     [Flags]
@@ -37,11 +34,16 @@ namespace Starcounter {
         [ThreadStatic]
         private static Session _current;
 
-        private Action<Session> _sessionDestroyUserDelegate;
-        private bool _brandNew;
+        private static JsonPatch jsonPatch_ = new JsonPatch();​
+
+        /// <summary>
+        /// Event which is called when session is being destroyed (timeout, manual, etc).
+        /// </summary>
+        public event EventHandler Destroyed;
+
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
-        private List<Change> _changes; // The log of Json tree changes pertaining to the session data
+       
         private List<Json> _stateList;
         private SessionOptions sessionOptions;
         private int publicViewModelIndex;
@@ -53,32 +55,13 @@ namespace Starcounter {
         /// </summary>
         private List<TransactionRef> transactions;
 
-        /// <summary>
-        /// Array of queued patches in order from the current clientversion.
-        /// </summary>
-        private List<Byte[]> patchQueue;
-
-        /// <summary>
-        /// Versioning for local and remote version of the viewmodel
-        /// </summary>
-        private long clientVersion;
-        private long serverVersion;
-
-        /// <summary>
-        /// The clients current serverversion. Used to check if OT is needed.
-        /// </summary>
-        private long clientServerVersion;
-
         public Session() : this(SessionOptions.Default) {
         }
 
         public Session(SessionOptions options, bool? includeNamespaces = null) {
-            _brandNew = true;
-            _changes = new List<Change>();
             _indexPerApplication = new Dictionary<string, int>();
             _stateList = new List<Json>();
             sessionOptions = options;
-            clientServerVersion = serverVersion;
             transactions = new List<TransactionRef>();
             publicViewModelIndex = -1;
 
@@ -106,45 +89,6 @@ namespace Starcounter {
             return (sessionOptions & option) == option;
         }
 
-        internal void EnqueuePatch(byte[] patchArray, int index) {
-            if (patchQueue == null)
-                patchQueue = new List<byte[]>(8);
-
-            for (int i = patchQueue.Count; i < index + 1; i++)
-                patchQueue.Add(null);
-            
-            patchQueue[index] = patchArray;
-        }
-
-        internal byte[] GetNextEnqueuedPatch() {
-            byte[] ret = null;
-            if (patchQueue != null && patchQueue.Count > 0) {
-                ret = patchQueue[0];
-                patchQueue.RemoveAt(0);
-            }
-            return ret;
-        }
-
-        /// <summary>
-        /// Gets the versionnumber for the remote version of the viewmodel.
-        /// </summary>
-        public long ClientVersion {
-            get { return clientVersion; }
-            internal set { clientVersion = value; }
-        }
-
-        /// <summary>
-        /// Gets the versionnumber for the local version of the viewmodel.
-        /// </summary>
-        public long ServerVersion {
-            get { return serverVersion; }
-        }
-
-        internal long ClientServerVersion {
-            get { return clientServerVersion; }
-            /*internal*/ set { clientServerVersion = value; }
-        }
-
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
@@ -153,11 +97,32 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running the given action on each active session.
+        /// Calculates the patch and pushes it on WebSocket.
         /// </summary>
-        /// <param name="action">The user procedure to be performed on each session.</param>
-        public static void ForEach(Action<Session> action) {
-            ForEach(UInt64.MaxValue, action);
+        public void CalculatePatchAndPushOnWebSocket() {
+
+            // Checking if there is an active WebSocket.
+            if (ActiveWebSocket == null)
+                return;
+
+            // Calculating the patch.
+            Byte[] patch;
+            Int32 sizeBytes = jsonPatch_.Generate(
+                PublicViewModel, 
+                true, 
+                CheckOption(SessionOptions.IncludeNamespaces), 
+                out patch);
+
+            // Sending the patch bytes to the client.
+            ActiveWebSocket.Send(patch, sizeBytes, true);
+        }
+
+        /// <summary>
+        /// Running asynchronously the given action on each active session on each owning scheduler.
+        /// </summary>
+        /// <param name="action">The action to be performed on each session.</param>
+        public static void ForAll(Action<Session> action) {
+            ForAll(UInt64.MaxValue, action);
         }
 
         /// <summary>
@@ -206,18 +171,26 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running the given action on each active session.
+        /// Running asynchronously the given action on each active session on each owning scheduler.
         /// </summary>
         /// <param name="action">The user procedure to be performed on each session.</param>
         /// <param name="cargoId">Cargo ID filter.</param>
-        public static void ForEach(UInt64 cargoId, Action<Session> action) {
+        public static void ForAll(UInt64 cargoId, Action<Session> action) {
+
+            String appName = StarcounterEnvironment.AppName;
 
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
                 
                 Byte schedId = i;
 
                 ScSessionClass.DbSession.RunAsync(
-                    () => { ForEachSessionOnCurrentScheduler(cargoId, action); },
+                    () => {
+
+                        // We need to set application name when running on different schedulers.
+                        StarcounterEnvironment.AppName = appName;
+
+                        ForEachSessionOnCurrentScheduler(cargoId, action);
+                    },
                     schedId);
             }
         }
@@ -274,8 +247,13 @@ namespace Starcounter {
                 int stateIndex;
                 string appName;
 
-                if (value != null && value.Parent != null)
-                    throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+                if (value != null) {
+                    if (value.Parent != null)
+                        throw ErrorCode.ToException(Error.SCERRSESSIONJSONNOTROOT);
+
+                    if (value._Session != null && value._Session != this)
+                        throw ErrorCode.ToException(Error.SCERRJSONSETONOTHERSESSION);
+                }
 
                 appName = StarcounterEnvironment.AppName;
                 if (appName != null) {
@@ -288,14 +266,20 @@ namespace Starcounter {
                     }
 
                     if (value != null) {
-                        if (value._Session != null)
-                            value._Session.Data = null;
-
                         value._Session = this;
-                        value.OnSessionSet();
 
                         if (publicViewModelIndex == -1)
                             publicViewModelIndex = stateIndex;
+
+                        if (stateIndex == publicViewModelIndex) {
+                            ViewModelVersion version = null;
+                            if (CheckOption(SessionOptions.PatchVersioning)) {
+                                version = new ViewModelVersion();
+                            }
+                            value.ChangeLog = new ChangeLog(value, version);
+                        }
+
+                        value.OnSessionSet();
                     }
                     // Setting current session.
                     Current = this;
@@ -383,26 +367,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Set user destroy callback.  
-        /// </summary>
-        /// <param name="destroy_user_delegate"></param>
-        public void SetSessionDestroyCallback(Action<Session> userDestroyMethod) {
-            _sessionDestroyUserDelegate = userDestroyMethod;
-        }
-
-        /// <summary>
-        /// Gets destroy callback if it was supplied before.
-        /// </summary>
-        /// <returns></returns>
-        public Action<Session> GetDestroyCallback() {
-            return _sessionDestroyUserDelegate;
-        }
-
-        /// <summary>
         /// Gets the public viewmodel
         /// </summary>
         /// <returns></returns>
-        internal Json PublicViewModel {
+        public Json PublicViewModel {
             get {
                 if (publicViewModelIndex != -1)
                     return _stateList[publicViewModelIndex];
@@ -427,7 +395,6 @@ namespace Starcounter {
         internal static void End() {
             if (_current != null) {
                 _current.DisposeUnreferencedTransactions();
-                _current.ClearChangeLog();
                 Session._current = null;
             }
         }
@@ -447,68 +414,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Adds an value update change.
-        /// </summary>
-        /// <param name="obj">The json containing the value.</param>
-        /// <param name="property">The property to update</param>
-        internal void UpdateValue(Json obj, TValue property) {
-            _changes.Add(Change.Update(obj, property));
-            property.Checkpoint(obj);
-        }
-
-        /// <summary>
-        /// Adds a list of changes to the log
-        /// </summary>
-        /// <param name="toAdd"></param>
-        internal void AddChange(Change change) {
-            _changes.Add(change);
-        }
-
-        internal List<Change> GetChanges() {
-            return _changes;
-        }
-
-        /// <summary>
-        /// Clears all changes.
-        /// </summary>
-        internal void ClearChangeLog() {
-            _changes.Clear();
-        }
-
-        /// <summary>
-        /// Returns the number of changes in the log.
-        /// </summary>
-        /// <value></value>
-        public Int32 ChangeCount { get { return _changes.Count; } }
-
-        /// <summary>
-        /// Logs all changes since the last JSON-Patch update. This method generates the log
-        /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
-        /// </summary>
-        public void GenerateChangeLog() {
-            Json root = PublicViewModel;
-
-            serverVersion++;
-            if (_brandNew) {
-                // TODO: 
-                // might be array.
-                if (root != null) {
-                    _changes.Add(Change.Add(root));
-                    root.CheckpointChangeLog();
-                }
-                _brandNew = false;
-            } else {
-                if (root != null) {
-                    if (DatabaseHasBeenUpdatedInCurrentTask) {
-                        root.LogValueChangesWithDatabase(this, true);
-                    } else {
-                        root.LogValueChangesWithoutDatabase(this, true);
-                    }
-                }
-            }
-        }
-
-        /// <summary>
         /// 
         /// </summary>
         public bool DatabaseHasBeenUpdatedInCurrentTask {
@@ -521,28 +426,6 @@ namespace Starcounter {
         /// 
         /// </summary>
         public bool HaveAddedOrRemovedObjects { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public void CheckpointChangeLog() {
-            Json root = PublicViewModel;
-            if (root != null)
-                root.CheckpointChangeLog();
-            _brandNew = false;
-        }
-
-        public bool BrandNew {
-            get {
-                return _brandNew;
-            }
-        }
-
-        internal void CleanupOldVersionLogs() {
-            var root = this.PublicViewModel;
-            if (root != null)
-                root.CleanupOldVersionLogs(ClientServerVersion);
-        }
 
         internal TransactionHandle RegisterTransaction(TransactionHandle handle) {
             TransactionRef tref = null;
@@ -630,9 +513,9 @@ namespace Starcounter {
             }
 
             // Checking if destroy callback is supplied.
-            if (null != _sessionDestroyUserDelegate) {
-                _sessionDestroyUserDelegate(this);
-                _sessionDestroyUserDelegate = null;
+            if (null != Destroyed) {
+                Destroyed(this, null);
+                Destroyed = null;
             }
 
             // Checking if there is an active WebSocket.

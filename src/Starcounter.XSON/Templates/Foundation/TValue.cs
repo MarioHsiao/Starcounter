@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Threading;
+using Starcounter.Advanced.XSON;
+using Starcounter.Internal.XSON.DeserializerCompiler;
+using Module = Starcounter.Internal.XSON.Modules.Starcounter_XSON;
 
 namespace Starcounter.Templates {
 	/// <summary>
@@ -7,10 +11,15 @@ namespace Starcounter.Templates {
 	public abstract class TValue : Template {
 		private BindingStrategy strategy = BindingStrategy.UseParent;
 		private string bind;
+        protected Type jsonType;
 		internal Type dataTypeForBinding;
 		internal bool isVerifiedUnbound;
         internal bool isBoundToParent;
 		internal bool hasCustomAccessors;
+
+        private bool codeGenStarted = false;
+        private TypedJsonSerializer codegenStandardSerializer;
+        private TypedJsonSerializer codegenFTJSerializer;
 
 #if DEBUG
 		internal string DebugBoundSetter;
@@ -85,6 +94,24 @@ namespace Starcounter.Templates {
 			}
 		}
 
+
+        /// <summary>
+        /// The .NET type of the instance represented by this template.
+        /// </summary>
+        /// <value>The type of the instance.</value>
+        public override Type InstanceType {
+            get {
+                if (jsonType == null)
+                    return DefaultInstanceType;
+                return jsonType;
+            }
+            set { jsonType = value; }
+        }
+
+        internal virtual Type DefaultInstanceType {
+            get { return typeof(Json); }
+        }
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -158,9 +185,9 @@ namespace Starcounter.Templates {
 			parent.CheckpointAt(TemplateIndex);
 		}
 
-		internal virtual string ValueToJsonString(Json parent) {
-			return "";
-		}
+        public virtual object CreateInstance(Json parent = null) {
+            return new Json() { Template = this, Parent = parent };
+        }
 
 		/// <summary>
 		/// 
@@ -171,6 +198,13 @@ namespace Starcounter.Templates {
 			CopyValueDelegates(toTemplate);
 			((TValue)toTemplate).Bind = Bind;
 		}
+
+        //public abstract string ToJson(Json json);
+        //public abstract byte[] ToJsonUtf8(Json json);
+        //public abstract int ToJsonUtf8(Json json, byte[] buffer, int offset);
+        //public abstract int ToJsonUtf8(Json json, IntPtr ptr, int bufferSize);
+
+        //public abstract int EstimateUtf8SizeInBytes(Json json);
 
 		/// <summary>
 		/// 
@@ -213,5 +247,49 @@ namespace Starcounter.Templates {
 				return true;
 			return false;
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        internal TypedJsonSerializer JsonSerializer {
+            get {
+                if (Module.UseCodegeneratedSerializer) {
+                    if (codegenStandardSerializer != null)
+                        return codegenStandardSerializer;
+
+                    // This check might give the wrong answer if the same instance of this template
+                    // is used from different threads. However the worst thing that can happen
+                    // is that the serializer is generated more than once in the background, but
+                    // the fallback serializer will be used instead so it's better than locking.
+                    if (!codeGenStarted) {
+                        codeGenStarted = true;
+                        if (!Module.DontCreateSerializerInBackground)
+                            ThreadPool.QueueUserWorkItem(GenerateSerializer, true);
+                        else {
+                            GenerateSerializer(true);
+                            return codegenStandardSerializer;
+                        }
+                    }
+                }
+                return Module.GetJsonSerializer(Module.StandardJsonSerializerId);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="state"></param>
+        private void GenerateSerializer(object state) {
+            bool createStd = (bool)state;
+
+            // it doesn't really matter if setting the variable in the template is synchronized 
+            // or not since if the serializer is null a fallback serializer will be used instead.
+            if (createStd)
+                codegenStandardSerializer = SerializerCompiler.The.CreateStandardJsonSerializer((TObject)this);
+            else
+                codegenFTJSerializer = SerializerCompiler.The.CreateFTJSerializer((TObject)this);
+            codeGenStarted = false;
+        }
 	}
 }

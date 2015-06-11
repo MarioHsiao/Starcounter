@@ -28,7 +28,8 @@ namespace Starcounter.Advanced.XSON {
 
                 if (current == ',' || current == ' '
                     || current == '}' || current == '\n'
-                    || current == '\r' || current == ':')
+                    || current == '\r' || current == ':'
+                    || current == ']')
                     break;
                 index++;
             }

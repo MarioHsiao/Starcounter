@@ -26,11 +26,14 @@ namespace Starcounter.Rest
 
         public UriManagedHandlersCodegen()
         {
+            if (MixedCodeConstants.REST_ARG_SESSION != (int) RestDelegateArgumentTypes.REST_ARG_SESSION)
+                throw new Exception("Wrong value for MixedCodeConstants.REST_ARG_SESSION!");
+
             if (USER_PARAM_INFO_SIZE != 4)
                 throw new Exception("User param info size != 4");
         }
 
-        public static unsafe Int64 FastParseInt(IntPtr ptr, int numChars)
+        public static unsafe Int64 FastParseInt64(IntPtr ptr, int numChars)
         {
             Int64 mult = 1, result = 0;
             Boolean neg = false;
@@ -59,6 +62,26 @@ namespace Starcounter.Rest
             }
         }
 
+        public static unsafe UInt64 FastParseUInt64(IntPtr ptr, int numChars) {
+
+            UInt64 mult = 1, result = 0;
+
+            unsafe {
+                Byte* start = (Byte*)ptr;
+                start--;
+
+                Byte* cur = (Byte*)ptr + numChars - 1;
+                do {
+                    result += mult * (UInt64)(*cur - (Byte)'0');
+                    mult *= 10;
+                    cur--;
+                }
+                while (cur > start);
+
+                return result;
+            }
+        }
+
         public static Int32 ReadInt32Param(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
             unsafe
@@ -66,24 +89,48 @@ namespace Starcounter.Rest
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if (p.len_ > 16)
+                if (p.len_ > 11)
                     throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
-                return (Int32)FastParseInt(dataBegin + p.offset_, p.len_);
+                return (Int32)FastParseInt64(dataBegin + p.offset_, p.len_);
             }
         }
 
-        public static Int64 ReadInt64Param(Request req, IntPtr dataBegin, IntPtr paramsInfo)
+        public static UInt32 ReadUInt32Param(Request req, IntPtr dataBegin, IntPtr paramsInfo) {
+            unsafe {
+                MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
+
+                // Checking for correct handler info.
+                if (p.len_ > 11)
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
+
+                return (UInt32)FastParseUInt64(dataBegin + p.offset_, p.len_);
+            }
+        }
+
+        public static Int64 ReadInt64Param(Request req, IntPtr dataBegin, IntPtr paramsInfo) {
+            unsafe {
+                MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
+
+                // Checking for correct handler info.
+                if (p.len_ > 20)
+                    throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
+
+                return FastParseInt64(dataBegin + p.offset_, p.len_);
+            }
+        }
+
+        public static UInt64 ReadUInt64Param(Request req, IntPtr dataBegin, IntPtr paramsInfo)
         {
             unsafe
             {
                 MixedCodeConstants.UserDelegateParamInfo p = *(MixedCodeConstants.UserDelegateParamInfo*)paramsInfo;
 
                 // Checking for correct handler info.
-                if (p.len_ > 16)
+                if (p.len_ > 20)
                     throw new ArgumentOutOfRangeException(req.Uri, "Wrong arguments data format.");
 
-                return FastParseInt(dataBegin + p.offset_, p.len_);
+                return FastParseUInt64(dataBegin + p.offset_, p.len_);
             }
         }
 
@@ -246,6 +293,25 @@ namespace Starcounter.Rest
                         break;
                     }
 
+                    case RestDelegateArgumentTypes.REST_ARG_UINT32: {
+
+                        MethodCallExpression methodCall = Expression.Call(
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadUInt32Param"),
+                            req,
+                            dataBeginPtr,
+                            paramsInfoPtr);
+
+                        ParameterExpression parsedVar = Expression.Parameter(typeof(UInt32));
+                        bodyExpressions.Add(Expression.Assign(parsedVar, methodCall));
+
+                        parsedParams.Add(parsedVar);
+
+                        // Advancing the pointer to parameter data.
+                        bodyExpressions.Add(Expression.AddAssign(paramsInfoPtr, Expression.Constant(USER_PARAM_INFO_SIZE)));
+
+                        break;
+                    }
+
                     case RestDelegateArgumentTypes.REST_ARG_INT64:
                     {
                         MethodCallExpression methodCall = Expression.Call(
@@ -255,6 +321,25 @@ namespace Starcounter.Rest
                             paramsInfoPtr);
 
                         ParameterExpression parsedVar = Expression.Parameter(typeof(Int64));
+                        bodyExpressions.Add(Expression.Assign(parsedVar, methodCall));
+
+                        parsedParams.Add(parsedVar);
+
+                        // Advancing the pointer to parameter data.
+                        bodyExpressions.Add(Expression.AddAssign(paramsInfoPtr, Expression.Constant(USER_PARAM_INFO_SIZE)));
+
+                        break;
+                    }
+
+                    case RestDelegateArgumentTypes.REST_ARG_UINT64: {
+
+                        MethodCallExpression methodCall = Expression.Call(
+                            typeof(UriManagedHandlersCodegen).GetMethod("ReadUInt64Param"),
+                            req,
+                            dataBeginPtr,
+                            paramsInfoPtr);
+
+                        ParameterExpression parsedVar = Expression.Parameter(typeof(UInt64));
                         bodyExpressions.Add(Expression.Assign(parsedVar, methodCall));
 
                         parsedParams.Add(parsedVar);
@@ -417,101 +502,104 @@ namespace Starcounter.Rest
             MethodInfo userDelegateInfo,
             Expression delegExpr,
             MixedCodeConstants.NetworkProtocolType protoType,
-            HandlerOptions ho)
-        {
-            // Checking if port is not specified.
-            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
-                if (StarcounterEnvironment.IsAdministratorApp) {
-                    port = StarcounterEnvironment.Default.SystemHttpPort;
-                } else {
-                    port = StarcounterEnvironment.Default.UserHttpPort;
+            HandlerOptions ho) {
+
+            lock (user_codegen_handler_) {
+
+                // Checking if port is not specified.
+                if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                    if (StarcounterEnvironment.IsAdministratorApp) {
+                        port = StarcounterEnvironment.Default.SystemHttpPort;
+                    } else {
+                        port = StarcounterEnvironment.Default.UserHttpPort;
+                    }
                 }
-            }
 
-            String[] s = methodAndUriInfo.Split(null);
-            String originalUriInfo = null;
-            String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, /myapp/foo";
+                String[] s = methodAndUriInfo.Split(null);
+                String originalUriInfo = null;
+                String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
 
-            // Checking if consists of method and URI.
-            if (s.Length > 1) {
+                // Checking if consists of method and URI.
+                if (s.Length > 1) {
 
-                // Checking that HTTP method is upper case.
-                if ((s[0] != s[0].ToUpperInvariant())) {
-                    throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
-                }
+                    // Checking that HTTP method is upper case.
+                    if ((s[0] != s[0].ToUpperInvariant())) {
+                        throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
+                    }
 
 #if CASE_INSENSITIVE_URI_MATCHER
-                s[1] = s[1].ToLowerInvariant();
+                    s[1] = s[1].ToLowerInvariant();
 #endif
-                // Checking if its a Polyjuice application.
-                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                    // Checking if its a Polyjuice application.
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
 
-                    // Checking that its a Polyjuice handler.
-                    if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
+                        // Checking that its a Polyjuice handler.
+                        if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
-                        // Handler name should start with application name or launcher name.
-                        if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+                            // Handler name should start with application name or launcher name.
+                            if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+
+                                throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
+                            }
+                        }
+                    }
+
+                    // Constructing original URI info.
+                    originalUriInfo = s[0] + " " + s[1];
+
+                } else {
+
+                    // Checking if its a Polyjuice application.
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+
+                        // Checking that its a Polyjuice handler.
+                        if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
                             throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                         }
                     }
-                }
-
-                // Constructing original URI info.
-                originalUriInfo = s[0] + " " + s[1];
-
-            } else {
-
-                // Checking if its a Polyjuice application.
-                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
-
-                    // Checking that its a Polyjuice handler.
-                    if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
-
-                        throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
-                    }
-                }
 
 #if CASE_INSENSITIVE_URI_MATCHER
-                s[0] = s[0].ToLowerInvariant();
+                    s[0] = s[0].ToLowerInvariant();
 #endif
 
-                originalUriInfo = s[0];
+                    originalUriInfo = s[0];
+                }
+
+                // Checking if handler options is defined.
+                if (ho == null) {
+                    ho = new HandlerOptions();
+                }
+
+                // Mutually excluding handler registrations.
+                Byte[] nativeParamTypes;
+                String processedUriInfo;
+                Type argMessageType;
+                Type argSessionType;
+
+                // Generating callback.
+                Func<Request, IntPtr, IntPtr, Response> wrappedDelegate = GenerateParsingDelegateAndGetParameters(
+                    originalUriInfo,
+                    userDelegateInfo,
+                    delegExpr,
+                    out nativeParamTypes,
+                    out processedUriInfo,
+                    out argMessageType,
+                    out argSessionType);
+
+                // Registering handler with gateway and getting the id.
+                UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).RegisterUriHandler(
+                    port,
+                    originalUriInfo,
+                    processedUriInfo,
+                    nativeParamTypes,
+                    argMessageType,
+                    wrappedDelegate,
+                    protoType,
+                    ho);
+
+                return wrappedDelegate;
             }
-
-            // Checking if handler options is defined.
-            if (ho == null) {
-                ho = new HandlerOptions();
-            }
-
-            // Mutually excluding handler registrations.
-            Byte[] nativeParamTypes;
-            String processedUriInfo;
-            Type argMessageType;
-            Type argSessionType;
-
-            // Generating callback.
-            Func<Request, IntPtr, IntPtr, Response> wrappedDelegate = GenerateParsingDelegateAndGetParameters(
-                originalUriInfo,
-                userDelegateInfo,
-                delegExpr,
-                out nativeParamTypes,
-                out processedUriInfo,
-                out argMessageType,
-                out argSessionType);
-
-            // Registering handler with gateway and getting the id.
-            UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).RegisterUriHandler(
-                port,
-                originalUriInfo,
-                processedUriInfo,
-                nativeParamTypes,
-                argMessageType,
-                wrappedDelegate,
-                protoType,
-                ho);
-
-            return wrappedDelegate;
         }
 
         /// <summary>
@@ -591,6 +679,12 @@ namespace Starcounter.Rest
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT32);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_INT32);
                     userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT32);
+                } 
+                else if (p.ParameterType == typeof(UInt32))
+                {
+                    delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_UINT32);
+                    nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_UINT32);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_UINT32);
                 }
                 else if (p.ParameterType == typeof(String))
                 {
@@ -609,6 +703,12 @@ namespace Starcounter.Rest
                     delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT64);
                     nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_INT64);
                     userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_INT64);
+                } 
+                else if (p.ParameterType == typeof(UInt64))
+                {
+                    delegateArgTypes.Add(RestDelegateArgumentTypes.REST_ARG_UINT64);
+                    nativeParamsTypesList.Add((Byte)RestDelegateArgumentTypes.REST_ARG_UINT64);
+                    userParameterTypes.Add(RestDelegateArgumentTypes.REST_ARG_UINT64);
                 }
                 else if (p.ParameterType == typeof(Double))
                 {

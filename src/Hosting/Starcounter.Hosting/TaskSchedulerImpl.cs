@@ -13,6 +13,9 @@ namespace Starcounter.Hosting {
             hsched_ = hsched;
         }
 
+        public static int cnt = 0;
+        public static string myLock = "123";
+
         /// <summary>
         /// </summary>
         public void Run(ITask task, Byte schedId = Byte.MaxValue) {
@@ -20,6 +23,11 @@ namespace Starcounter.Hosting {
                 IntPtr hTask = (IntPtr)GCHandle.Alloc(task, GCHandleType.Normal);
 
                 try {
+
+                    lock (myLock) {
+                        cnt++;
+                    }
+
                     var e = sccorelib.cm2_schedule(
                         hsched_,
                         schedId,

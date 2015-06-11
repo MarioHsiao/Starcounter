@@ -84,38 +84,93 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
-    <Compile Include="Server\ApplicationContainer\AppConfig.cs" />
-    <Compile Include="Server\ApplicationContainer\AppsContainer.cs" />
-    <Compile Include="Server\ApplicationContainer\Package.cs" />
-    <Compile Include="Server\ApplicationContainer\PackageConfig.cs" />
+    <Compile Include="Server\Model\AppStoreStore.cs" />
+    <Compile Include="Server\Model\DeployedConfigFile.cs" />
+    <Compile Include="Server\Managers\PackageManager.cs" />
+    <Compile Include="Server\Model\ErrorMessage.cs" />
+    <Compile Include="Server\Model\PackageConfigFile.cs" />
+    <Compile Include="Server\Handlers\ApplicationsHandler.GET.cs" />
     <Compile Include="Server\Handlers\RunningApplicationCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\CollationFilesCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\AppStoreCollectionHandler.GET.cs" />
-    <Compile Include="Server\Handlers\InstalledApplicationTaskHandler.POST.cs" />
-    <Compile Include="Server\Handlers\InstalledApplicationCollectionHandler.PUT.cs" />
-    <Compile Include="Server\Handlers\InstalledApplicationCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\Unused_InstalledApplicationTaskHandler.POST.cs" />
+    <Compile Include="Server\Handlers\Unused_InstalledApplicationCollectionHandler.PUT.cs" />
+    <Compile Include="Server\Handlers\Unused_InstalledApplicationCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseSettingsHandler.GET.cs" />
+    <Compile Include="Server\Handlers\Unused_ServerTaskHandler.POST.cs" />
     <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseCollectionHandler.POST.cs" />
-    <Compile Include="Server\Handlers\DatabaseCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\Unused_DatabaseCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\ServerSettingsHandler.GET.cs" />
     <Compile Include="Server\Handlers\ServerSettingsHandler.PUT.cs" />
     <Compile Include="Server\Handlers\ServerLogHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseSettingsHandler.PUT.cs" />
     <Compile Include="Server\Handlers\StarcounterAdminAPI.cs" />
+    <Compile Include="Server\Managers\ApplicationManager.cs" />
+    <Compile Include="Server\Managers\AppStoreManager.cs" />
+    <Compile Include="Server\Managers\DeployManager.cs" />
+    <Compile Include="Server\Managers\PlaylistManager.cs" />
+    <Compile Include="Server\Managers\ServerManager.cs" />
+    <Compile Include="Server\Model\AppStoreApplication.cs" />
+    <Compile Include="Server\Model\Database.cs" />
+    <Compile Include="Server\Model\DatabaseApplication.cs" />
+    <Compile Include="Server\Model\Server.cs" />
     <Compile Include="Server\Utilities\RestUtils.cs" />
     <Compile Include="Server\Representations.JSON\LogApp.json.cs">
       <DependentUpon>LogApp.json</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Server\Program.cs" />
+    <Compile Include="Server\Model\ServerJson.json.cs">
+      <DependentUpon>ServerJson.json</DependentUpon>
+    </Compile>
+    <Compile Include="Server\Model\DatabaseJson.json.cs">
+      <DependentUpon>DatabaseJson.json</DependentUpon>
+    </Compile>
+    <Compile Include="Server\Model\DatabaseApplicationJson.json.cs">
+      <DependentUpon>DatabaseApplicationJson.json</DependentUpon>
+    </Compile>
+    <Compile Include="Server\Model\AppStoreApplicationJson.json.cs">
+      <DependentUpon>AppStoreApplicationJson.json</DependentUpon>
+    </Compile>
+    <Compile Include="Server\Utilities\Utils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Server\Representations.JSON\PlayListDeployedItem.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\PlayListLocalItem.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\Playlist.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\DatabaseApplicationJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\AppStoreApplicationJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Server\Model\DatabaseJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Server\Model\ServerJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
   </ItemGroup>
   <ItemGroup>
     <Content Include="app\controllers\ApplicationCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\controllers\AppStoreCtrl.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\controllers\ApplicationItemCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\controllers\DatabaseSettingsCtrl.js">
@@ -136,16 +191,13 @@
     <Content Include="app\controllers\NetworkCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\controllers\DatabaseCreateCtrl.js">
+    <Content Include="app\controllers\DatabaseNewCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\controllers\ApplicationStartCtrl.js">
+    <Content Include="app\controllers\ExecutableStartCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\controllers\DatabasesCtrl.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\controllers\ApplicationsCtrl.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\controllers\UserErrorMessageCtrl.js">
@@ -155,6 +207,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\directives\ConsoleWindow.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\directives\ErrSrc.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\directives\Jobs.js">
@@ -178,6 +233,9 @@
     <Content Include="app\filters\Truncate.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="app\images\EXE-32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\images\favicon.ico">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -199,6 +257,12 @@
     <Content Include="app\js\app.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="app\js\json-patch-duplex.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\js\puppet.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="app\js\scNullCellsPlugin.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -208,7 +272,7 @@
     <Content Include="app\partials\application.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\appStore.html">
+    <Content Include="app\partials\databaseAppstore.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\partials\databaseDeleteModal.html">
@@ -229,37 +293,28 @@
     <Content Include="app\partials\databases.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\databaseCreate.html">
+    <Content Include="app\partials\databaseNew.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\errorMessage.html">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\partials\applications.html">
+    <Content Include="app\partials\messageError.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\factories\NoticeFactory.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\applicationStart.html">
+    <Content Include="app\partials\executabeStart.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\network.html">
+    <Content Include="app\partials\serverNetwork.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\log.html">
+    <Content Include="app\partials\serverLog.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\partials\sql.html">
+    <Content Include="app\partials\databaseSql.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\services\ConsoleService.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\services\AppStoreService.js">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\services\InstalledApplicationService.js">
+    <Content Include="app\services\SubmenuService.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\services\HostModelService.js">
@@ -289,7 +344,10 @@
     <Content Include="app\vendor\angular-ui\angular-ui-0.4.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular-ui\select2.js">
+    <Content Include="app\vendor\angular-ui\select.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\angular-ui\select.min.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\angular-ui\ui-bootstrap-tpls-0.10.0.js">
@@ -298,19 +356,37 @@
     <Content Include="app\vendor\angular-ui\ui-bootstrap-tpls-0.10.0.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular\angular-resource-1.2.5.min.js">
+    <Content Include="app\vendor\angular\angular-resource.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular\angular-route-1.2.5.min.js">
+    <Content Include="app\vendor\angular\angular-resource.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\angular\angular-1.2.5.min.js">
+    <Content Include="app\vendor\angular\angular-route.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\bootstrap\bootstrap-3.1.1.min.css">
+    <Content Include="app\vendor\angular\angular-route.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\bootstrap\bootstrap-3.1.1.min.js">
+    <Content Include="app\vendor\angular\angular-sanitize.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\angular\angular-sanitize.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\angular\angular.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\angular\angular.min.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\bootstrap\bootstrap.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\bootstrap\bootstrap.min.css">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="app\vendor\bootstrap\bootstrap.min.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\codemirror\codemirror.css">
@@ -343,10 +419,7 @@
     <Content Include="app\vendor\select2\select2-spinner.gif">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="app\vendor\select2\select2-3.4.5.css">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="app\vendor\select2\select2-3.4.5.js">
+    <Content Include="app\vendor\select2\select2.css">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="app\vendor\select2\select2.png">
@@ -445,13 +518,16 @@
     </TypedJSON>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app\vendor\angular\angular-resource-1.2.5.min.js.map">
+    <None Include="app\vendor\angular\angular-resource.min.js.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="app\vendor\angular\angular-route-1.2.5.min.js.map">
+    <None Include="app\vendor\angular\angular-route.min.js.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="app\vendor\angular\angular-1.2.5.min.js.map">
+    <None Include="app\vendor\angular\angular-sanitize.min.js.map">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="app\vendor\angular\angular.min.js.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="app\vendor\fonts\glyphicons-halflings-regular.eot">
@@ -463,9 +539,30 @@
     <None Include="app\vendor\fonts\glyphicons-halflings-regular.woff">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="app\vendor\fonts\glyphicons-halflings-regular.woff2">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Representations.JSON\AppStoreStoreJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\AppStoreStoreJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\AppStoreStoresJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\ErrorMessageJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Representations.JSON\AdvancedSettings.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\DatabaseApplicationsJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Representations.JSON\AppStoreApplications.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>

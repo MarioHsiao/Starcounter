@@ -96,13 +96,16 @@ namespace Starcounter.Server.Commands {
                     weavedExecutable = CopyAllFilesToRunNoDbApplication(command.Application.BinaryFilePath, appRuntimeDirectory);
                     OnAssembliesCopiedToRuntimeDirectory();
                 } else {
-                    weavedExecutable = weaver.Weave(command.Application.BinaryFilePath, appRuntimeDirectory);
+                    weavedExecutable = weaver.Weave(
+                        command.Application.BinaryFilePath,
+                        appRuntimeDirectory,
+                        !database.Configuration.Runtime.PolyjuiceDatabaseFlag);
+
                     OnWeavingCompleted();
                 }
             });
 
             WithinTask(Task.Run, (task) => {
-                var node = Engine.LocalHostSystemNode;
                 var serviceUris = CodeHostAPI.CreateServiceURIs(database.Name);
                 
                 var databaseStateSnapshot = database.ToPublicModel();
@@ -123,9 +126,12 @@ namespace Starcounter.Server.Commands {
                 try {
 
                     if (exe.RunEntrypointAsynchronous) {
+
                         // Just make the asynchronous call and be done with it
                         // We never check anything more.
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+                        Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                            serviceUris.Executables, exe.ToJson(), null, null, (Response resp, Object userObject) => { });
+
                     } else {
                         // Make a asynchronous call, where we let the callback
                         // set the event whenever the code host is done. Until
@@ -133,7 +139,9 @@ namespace Starcounter.Server.Commands {
                         // is running periodically.
                         var confirmed = new ManualResetEvent(false);
                         Response codeHostResponse = null;
-                        node.POST(serviceUris.Executables, exe.ToJson(), null, confirmed, (Response resp, object userObject) => {
+
+                        Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
+                            serviceUris.Executables, exe.ToJson(), null, confirmed, (Response resp, object userObject) => {
                             var done = (ManualResetEvent)userObject;
                             codeHostResponse = resp;
                             done.Set();

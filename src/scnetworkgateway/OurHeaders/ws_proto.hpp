@@ -35,48 +35,18 @@ enum WS_FRAGMENT_FLAG
     WS_FRAME_LAST
 };
 
-// Frame info.
-class WsProtoFrameInfo
-{
-    // Declaring a friend class to access private fields.
-    friend class WsProto;
-    friend class SocketDataChunk;
-
-    // Masking value.
-    uint64_t mask_;
-
-    // Payload length in bytes.
-    uint32_t payload_len_;
-
-    // Payload offset in sd data blob.
-    uint16_t payload_offset_;
-
-    // Is final frame.
-    bool is_final_;
-
-    // Opcode type.
-    uint8_t opcode_;
-
-    void Reset()
-    {
-        memset(this, 0, sizeof(WsProtoFrameInfo));
-    }
-};
-
 class GatewayWorker;
 class SocketDataChunk;
 
 class WsProto
 {
-    // Frame information.
-    WsProtoFrameInfo frame_info_;
+    // Opcode type.
+    uint8_t opcode_;
 
 public:
 
-    // WebSockets frame info.
-    WsProtoFrameInfo* get_frame_info()
-    {
-        return &frame_info_;
+    uint8_t* get_opcode_addr() {
+        return &opcode_;
     }
 
     // Sets the client key.
@@ -90,7 +60,7 @@ public:
 
     void Init();
 
-    uint32_t UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id);
+    uint32_t UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, uint32_t mask);
 
     uint32_t ProcessWsDataToDb(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id, bool* is_handled);
 
@@ -110,7 +80,13 @@ public:
 
     uint8_t *WritePayload(GatewayWorker* gw, SocketDataChunkRef sd, uint8_t opcode, bool masking, WS_FRAGMENT_FLAG frame_type, uint32_t total_payload_len, uint8_t* payload, uint32_t& payload_len);
 
-    uint32_t ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit);
+    // Parses WebSockets frame info.
+    bool ParseFrameInfo(
+        uint8_t* data,
+        uint8_t* limit,
+        uint32_t* out_mask, 
+        uint32_t* out_payload_len,
+        uint8_t* out_header_len);
 };
 
 class RegisteredWsChannel
@@ -174,7 +150,7 @@ public:
     }
 };
 
-class PortWsChannels
+class PortWsGroups
 {
     // Array of all registered URIs.
     LinearList<RegisteredWsChannel, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_ws_channels_;
@@ -227,7 +203,7 @@ public:
     }
 
     // Constructor.
-    PortWsChannels(uint16_t port_number)
+    PortWsGroups(uint16_t port_number)
     {
         port_number_ = port_number;
     }
@@ -337,7 +313,7 @@ public:
     void AddNewEntry(
         BMX_HANDLER_TYPE handler_info,
         const char* app_name_string,
-        ws_channel_id_type channel_id,
+        ws_group_id_type channel_id,
         const char* channel_name,
         db_index_type db_index)
     {

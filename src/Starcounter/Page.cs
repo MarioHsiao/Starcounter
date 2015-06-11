@@ -3,7 +3,7 @@ using Starcounter.Templates;
 
 namespace Starcounter {
     // Not the right place for this class, but a temporary location to add a baseclass for
-    // polyjuice pages (with automatic return of mimetype html) and access to X.Get().
+    // polyjuice pages (with automatic return of mimetype html) and access to Self.Get().
     // Should be moved to a separate project and included in the project templates used in extension
     // for VS.
     public class Page : Json {
@@ -17,7 +17,7 @@ namespace Starcounter {
         private String __bf__Html__;
 
         public new static class JsonByExample {
-            public class Schema : Json.JsonByExample.Schema {
+            public class Schema : TObject {
                 public Schema()
                     : base() {
                     InstanceType = typeof(Page);
@@ -33,7 +33,13 @@ namespace Starcounter {
 
         public string Html {
             get { return Template.Html.Getter(this); }
-            set { Template.Html.Setter(this, value); }
+            set {
+                // Checking that Html value starts with slash.
+                if ((value != null) && (value.Length > 0) && (value[0] != '/')) {
+                    throw new ArgumentOutOfRangeException("Page Html property should start with a slash resembling a resource URI.");
+                }
+
+                Template.Html.Setter(this, value); }
         }
 
         public override byte[] AsMimeType(MimeType mimeType, out MimeType resultingMimeType, Request request = null) {

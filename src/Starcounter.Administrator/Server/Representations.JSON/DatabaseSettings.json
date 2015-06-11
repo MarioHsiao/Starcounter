@@ -8,5 +8,6 @@
     "DumpDirectory": "", // "c:\database\dump",
     "TempDirectory": "", // "c:\database\temp",
     "ImageDirectory": "", // "c:\database\image",
-	"TransactionLogDirectory": "" // "c:\database\log"
+	"TransactionLogDirectory": "", // "c:\database\log"
+	"PolyjuiceDatabaseFlag" : false
 }

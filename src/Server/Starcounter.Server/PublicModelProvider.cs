@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System.Threading;
+using Starcounter.Advanced.Configuration;
 
 namespace Starcounter.Server {
 
@@ -61,6 +62,7 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases.Add(database.Uri, info);
             }
+            Self.POST("/__internal_api/databases", database.Name, null);
             return info;
         }
 
@@ -76,6 +78,7 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases[database.Uri] = info;
             }
+            Self.PUT("/__internal_api/databases/" + database.Name, string.Empty, null);
             return info;
         }
 
@@ -92,6 +95,7 @@ namespace Starcounter.Server {
 
             if (!removed)
                 throw new ArgumentException(String.Format("Database '{0}' doesn't exist.", database.Uri));
+
         }
 
         /// <inheritdoc />
@@ -107,7 +111,7 @@ namespace Starcounter.Server {
 
         /// <inheritdoc />
         public CommandInfo Execute(
-            ServerCommand command, 
+            ServerCommand command,
             Predicate<CommandId> cancellationPredicate = null,
             Action<CommandId> completionCallback = null) {
             command.GetReadyToEnqueue();
@@ -198,6 +202,15 @@ namespace Starcounter.Server {
                 databases.Values.CopyTo(copy, 0);
                 return copy;
             }
+        }
+
+        public DatabaseConfiguration GetDatabaseConfiguration(string databaseName) {
+
+            if (this.engine.Databases.ContainsKey(databaseName)) {
+                Database database = this.engine.Databases[databaseName];
+                return database.Configuration;
+            }
+            return null;
         }
     }
 }

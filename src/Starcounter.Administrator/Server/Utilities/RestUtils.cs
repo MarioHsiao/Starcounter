@@ -5,6 +5,10 @@ using Starcounter.Server.PublicModel;
 using System.Net;
 using Starcounter.Internal;
 using System.Net.Sockets;
+using System.Text;
+using System.Security.Cryptography;
+using System.IO;
+using System.Xml;
 
 namespace Starcounter.Administrator.Server.Utilities {
     /// <summary>
@@ -53,8 +57,8 @@ namespace Starcounter.Administrator.Server.Utilities {
             settings.TempDirectory = database.Configuration.Runtime.TempDirectory;
             settings.ImageDirectory = database.Configuration.Runtime.ImageDirectory;
             settings.TransactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory;
+            settings.PolyjuiceDatabaseFlag = database.Configuration.Runtime.PolyjuiceDatabaseFlag;
             settings.CollationFile = database.CollationFile;
-
             return settings;
         }
 
@@ -70,6 +74,19 @@ namespace Starcounter.Administrator.Server.Utilities {
 
             settings.Name = server.Configuration.Name;
             settings.SystemHttpPort = server.Configuration.SystemHttpPort;
+
+            string gwConfig = Path.Combine(server.Configuration.EnginesDirectory, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+
+            XmlDocument xml = new XmlDocument();
+            xml.LoadXml(File.ReadAllText(gwConfig)); // suppose that myXmlString contains "<Names>...</Names>"
+
+            string aPort = xml.SelectSingleNode("/NetworkGateway/" + MixedCodeConstants.GatewayAggregationPortSettingName).InnerText;
+            long aggregationPort = 0;
+
+            long.TryParse(aPort, out aggregationPort);
+
+            settings.AggregationPort = aggregationPort;
+
             settings.Version = CurrentVersion.Version;
             settings.VersionDate = CurrentVersion.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
             settings.Edition = CurrentVersion.EditionName;
@@ -173,6 +190,12 @@ namespace Starcounter.Administrator.Server.Utilities {
                 validationError.Text = "invalid port number";
             }
 
+            if (settings.AggregationPort < IPEndPoint.MinPort || settings.AggregationPort > IPEndPoint.MaxPort) {
+                var validationError = validationErrors.Items.Add();
+                validationError.PropertyName = "AggregationPort";
+                validationError.Text = "invalid port number";
+            }
+
             return validationErrors;
         }
 
@@ -195,6 +218,20 @@ namespace Starcounter.Administrator.Server.Utilities {
             }
             return localIP;
         }
+
+        public static byte[] GetHash(string inputString) {
+            HashAlgorithm algorithm = MD5.Create();  //or use SHA1.Create();
+            return algorithm.ComputeHash(Encoding.UTF8.GetBytes(inputString));
+        }
+
+        public static string GetHashString(string inputString) {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in GetHash(inputString))
+                sb.Append(b.ToString("X2"));
+
+            return sb.ToString();
+        }
+
 
     }
 }

@@ -65,6 +65,7 @@
     <Compile Include="DataObjects\Company.cs" />
     <Compile Include="DataObjects\Database.cs" />
     <Compile Include="DataObjects\Entity.cs" />
+    <Compile Include="DataObjects\ObjWithEnum.cs" />
     <Compile Include="DataObjects\Person.cs" />
     <Compile Include="DataObjects\Recursive.cs" />
     <Compile Include="ExpandoTests.cs" />
@@ -92,10 +93,6 @@
       <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
       <Name>Starcounter.XSON.JsonByExample</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Starcounter.XSON.PartialClassGenerator\Starcounter.XSON.PartialClassGenerator.csproj">
-      <Project>{7824b013-943c-4cf5-b0b9-953a6d828eb6}</Project>
-      <Name>Starcounter.XSON.PartialClassGenerator</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.Tests.CompiledJson\Starcounter.XSON.Tests.CompiledJson.csproj">
       <Project>{43C7287D-816A-4C82-A0CB-188A51E6C94A}</Project>
       <Name>Starcounter.XSON.Tests.CompiledJson</Name>
@@ -106,6 +103,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Json\SingleArray.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Json\SingleValue.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Json\JsonWithFiller.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

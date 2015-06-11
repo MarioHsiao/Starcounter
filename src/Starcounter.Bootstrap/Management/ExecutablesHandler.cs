@@ -26,6 +26,7 @@ namespace Starcounter.Bootstrap.Management {
         }
 
         static unsafe Response OnPOST(Request request) {
+
             if (ManagementService.Unavailable) {
                 return 503;
             }

@@ -335,57 +335,88 @@ namespace Starcounter {
 
             // Checking if session is correct.
             GetAppsSessionInterface();
-            came_with_correct_session_ = (INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linear_index_));
+            came_with_correct_session_ = (INVALID_APPS_UNIQUE_SESSION_INDEX != (session_->linearIndex_));
+        }
+
+        /// <summary>
+        /// Getting WebSocket UInt64 id from request information.
+        /// </summary>
+        /// <returns>UInt64 representing WebSocket id.</returns>
+        public UInt64 GetWebSocketId() {
+
+            unsafe {
+                WebSocket ws = new WebSocket(
+                    *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream_.GatewayWorkerId);
+
+                return ws.ToUInt64();
+            }
         }
 
         /// <summary>
         /// Sends the WebSocket upgrade HTTP response and creates a WebSocket object.
         /// </summary>
-        /// <param name="channelName">WebSocket channel name for subsequent events on created WebSocket.</param>
+        /// <param name="groupName">WebSocket group name for subsequent events on created WebSocket.</param>
         /// <param name="cargoId">Integer identifier supplied from user that comes inside WebSocket object in subsequent events.</param>
         /// <param name="session">Session that should be attached to the created WebSocket.</param>
         /// <returns>Created WebSocket object that immediately can be used.</returns>
         public WebSocket SendUpgrade(
-            String channelName,
-            UInt64 cargoId = 0,
+            String groupName,
             List<String> cookies = null,
             Dictionary<String, String> headers = null,
             IAppsSession session = null)
         {
-            Byte[] wsHandshakeResp;
-
             unsafe {
+
                 System.Diagnostics.Debug.Assert(http_request_struct_->socket_data_ != null);
 
                 Byte* chunk_data = http_request_struct_->socket_data_ - MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
 
+                UInt32 upgradeResponsePartLength = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_UPGRADE_PART_BYTES_TO_DB);
+                UInt32 upgradeRequestLenBytes = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
+                UInt32 upgradeRequestOffset = *(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+
                 // Checking if we should copy the WebSocket handshake data.
-                wsHandshakeResp = new Byte[*(UInt32*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_LEN)];
-                Marshal.Copy(new IntPtr(http_request_struct_->socket_data_ + *(UInt16*)(chunk_data + MixedCodeConstants.CHUNK_OFFSET_WS_PAYLOAD_OFFSET_IN_SD)), wsHandshakeResp, 0, wsHandshakeResp.Length);
-            }
+                Byte[] wsHandshakeResp = new Byte[upgradeResponsePartLength];
+                Marshal.Copy(
+                    new IntPtr(http_request_struct_->socket_data_ + upgradeRequestOffset + upgradeRequestLenBytes - wsHandshakeResp.Length),
+                    wsHandshakeResp,
+                    0,
+                    wsHandshakeResp.Length);
 
-            WsChannelInfo w = AllWsChannels.WsManager.FindChannel(PortNumber, channelName);
-            if (w == null)
-                throw new Exception("Specified WebSocket channel is not registered: " + channelName);
+                WsGroupInfo wsGroupInfo = AllWsGroups.WsManager.FindGroup(PortNumber, groupName);
 
-            WebSocket ws = new WebSocket(null, null, null, false, WebSocket.WsHandlerType.Empty);
+                UInt32 groupId = 0;
 
-            Response resp = new Response();
-            resp.Cookies = cookies;
-            resp.HeadersDictionary = headers;
+                if (wsGroupInfo != null) {
+                    groupId = wsGroupInfo.GroupId;
+                }
 
-            ws.Session = session;
-            if (session != null) {
-                ws.Session.ActiveWebSocket = ws;
-            }
+                WebSocket ws = new WebSocket(
+                    *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream_.GatewayWorkerId);
 
-            resp.WsHandshakeResp = wsHandshakeResp;
+                Response resp = new Response();
+                resp.Cookies = cookies;
+                resp.HeadersDictionary = headers;
 
-            InitWebSocket(ws, w.ChannelId, cargoId);
+                ws.Session = session;
+                if (session != null) {
+                    ws.Session.ActiveWebSocket = ws;
+                }
 
-            SendResponse(resp, null);
+                resp.WsHandshakeResp = wsHandshakeResp;
 
-            return ws;
+                *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = groupId;
+                *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |=
+                    (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
+
+                SendResponse(resp, null);
+
+                return ws;
+            }            
         }
 
         /// <summary>
@@ -449,9 +480,25 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Should the request have a finalizer?
+        /// </summary>
+        /// <returns></returns>
+        internal Boolean ShouldBeFinalized() {
+
+            unsafe {
+
+                // Checking if already destroyed.
+                if (http_request_struct_ != null)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Destroys the instance of Request.
         /// </summary>
-        void Destroy(Boolean isStarcounterThread)
+        internal void Destroy(Boolean isStarcounterThread)
         {
             unsafe
             {
@@ -508,26 +555,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Initializes some WebSocket fields.
-        /// </summary>
-        /// <param name="ws"></param>
-        internal unsafe void InitWebSocket(WebSocket ws, UInt32 channelId, UInt64 cargoId) {
-
-            System.Diagnostics.Debug.Assert(http_request_struct_->socket_data_ != null);
-
-            *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID) = channelId;
-            *(UInt32*)(origChunk_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_FLAGS) |= (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_SEND | (UInt32)MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_UPGRADE_APPROVED;
-
-            ws.ConstructFromRequest(
-                portNumber_,
-                *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                dataStream_.GatewayWorkerId,
-                cargoId,
-                channelId);
-        }
-
-        /// <summary>
         /// Debugs the specified message.
         /// </summary>
         /// <param name="message">The message.</param>
@@ -567,7 +594,7 @@ namespace Starcounter {
                     return new IntPtr(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
                 }
 
-                return new IntPtr(http_request_struct_->params_info_ptr_);
+                throw new ArgumentException("Trying to get raw HTTP parameters in wrong way.");
             }
         }
 
@@ -584,7 +611,7 @@ namespace Starcounter {
                     return *(MixedCodeConstants.UserDelegateParamInfo*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_PARAMS_INFO);
                 }
 
-                return *(MixedCodeConstants.UserDelegateParamInfo*)(http_request_struct_->params_info_ptr_);
+                throw new ArgumentException("Trying to get HTTP parameters in wrong way.");
             }
         }
 
@@ -1404,21 +1431,9 @@ namespace Starcounter {
         internal Byte http_method_;
         internal Byte gzip_accepted_;
 
+        // TODO: Should be changed!
         // Socket data pointer.
         public unsafe Byte* socket_data_;
-
-        // Pointer to parameters structure.
-        public unsafe Byte* params_info_ptr_;
-
-        /// <summary>
-        /// Gets the raw request.
-        /// </summary>
-        public void GetRequestRaw(out IntPtr ptr, out UInt32 sizeBytes) {
-
-            ptr = new IntPtr(socket_data_ + request_offset_);
-
-            sizeBytes = request_len_bytes_;
-        }
 
         /// <summary>
         /// Gets the content raw pointer.

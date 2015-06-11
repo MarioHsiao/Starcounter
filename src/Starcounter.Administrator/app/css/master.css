@@ -1,4 +1,226 @@
-﻿
+body {
+    /*background-image: url("http://www.hdesktops.com/wp-content/uploads/2013/12/abstract-free-dual-monitor-wallpapers-56.jpg");*/
+    /*background-repeat: repeat;*/
+    /*background: #E5E5E5;*/
+    background: #E5E5E5;
+}
+
+
+
+
+.modal-header h3 {
+  
+    font-size: 20px;
+    margin: 0px;
+}
+
+
+.panel {
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+    box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+    border-radius: 0px;
+    border: 0px solid transparent;
+    /* margin-bottom: 20px; */
+}
+
+
+.table tbody>tr>td.vert-align{
+    vertical-align: middle;
+}
+
+.btn-group-sm > .btn, .btn-sm {
+    border-radius: 0px;
+}
+.btn-group> .btn, .btn {
+    border-radius: 0px;
+}
+
+.btn-group a:hover {
+    color: rgb(220, 221, 221);
+    text-decoration: underline;
+}
+
+.navbar-nav > li >a {
+    border-radius: 2px 2px 0px 0px;
+    margin-top:10px;
+    margin-bottom: 0px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+
+.nav-pills > li.active > a,
+.nav-pills > li.active > a:focus,
+.nav-pills > li.active > a:hover {
+    border-radius: 0px;
+}
+
+.nav-pills > li:hover {
+    border-radius: 0px;
+    background-color: transparent;
+}
+
+
+.nav-pills > li > a:focus {
+    background-color: #6192bb;
+}
+
+
+.nav-pills > li > a:hover {
+    border-radius: 0px;
+    text-decoration: underline;
+    background-color: transparent;
+}
+
+
+.navbar {
+    margin-bottom: 0px;
+}
+
+.navbar-default {
+    background: #fff;
+    border: 0px solid transparent;
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:focus,
+.navbar-default .navbar-nav > .active > a:hover {
+    color: #555;
+    color: #fff;
+    background-color: rgb(9, 81, 138);
+}
+
+.navbar-default .navbar-nav > .active > a:hover {
+    text-decoration: underline;
+}
+
+.navbar-brand > img {
+    display: inline;
+}
+
+
+.nav-pills li a {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+    /*margin-bottom: 10px;
+    margin-top: -10px;*/
+    margin-right: 5px;
+}
+
+    .nav-pills li a:hover {
+        background: #6192bb;
+        color: white;
+    }
+
+/*.nav-pills {
+    padding: 0px;
+    margin: 0px;
+}*/
+
+.navsubtitle {
+    background: white;
+    background: rgb(255, 255, 255);
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 2px;
+    padding-bottom: 3px;
+    margin-bottom: 15px;
+    color: rgb(26, 155, 204);
+}
+
+
+.accordion-toggle {
+    cursor:pointer;
+}
+
+.nav-tabs > li > a {
+    cursor:pointer;
+}
+
+.tab-content {
+    margin-top:15px;
+}
+
+/*.tab-heading-transclude {
+    cursor:pointer;
+}*/
+
+.consoleAppIsNotRunning {
+    opacity: 0.1;
+}
+
+.consoleAppIsRunning {
+    opacity: 1;
+}
+
+.pageheader {
+    /*background: rgb(9, 81, 138);*/
+    background: rgb(9, 81, 138);
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+    margin-top: 0px;
+    color: white;
+    -webkit-box-shadow: rgba(0,0,0,0.3) 0 1px 4px 0;
+    box-shadow: rgba(0,0,0,0.3) 0 1px 4px 0;
+}
+
+.pageheader a {
+    color: white;
+    margin-left: -5px;
+    margin-right: 10px;
+    padding: 5px;
+    /*background: rgba(0,0,0,0.2);*/
+}
+
+.pagecontent {
+    background: white;
+    padding: 15px;
+    padding-bottom: 20px;
+}
+
+.popover {
+    min-width: 400px;
+}
+
+.popupButton {
+    border: 0px;
+    font-size: 1.2em;
+    padding: 0px;
+    background: transparent;
+}
+
+    .popupButton:hover {
+        color: #e22822;
+    }
+
+    .popupButton:focus {
+        outline: 0;
+    }
+
+
+.popupButton_danger {
+    color: #d9534f;
+}
+
+    .popupButton_danger:hover {
+        color: #e22822;
+    }
+
+
+.popupButton_warning {
+    color: #fb7e21;
+}
+
+    .popupButton_warning:hover {
+        color: #ff5500;
+    }
+
+
 .handsontable .currentRow {
     background-color: #E7E8EF;
 }
@@ -17,7 +239,7 @@
     padding: 5px;
     margin-top: 0px;
     font-size: 100%;
-    line-height:100%;
+    line-height: 100%;
     font-family: monospace, Consolas, "Courier New", Courier, monospace;
 }
 
@@ -25,83 +247,107 @@
 
 #applicationIconList {
     list-style-type: none;
-    margin-left:0px;
-    margin-right:-15px;
-}
-
-#applicationIconList li {
-    width: 300px;
-    display: inline-block;
     margin-left: 0px;
-    margin-right: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #d4d4d4;
-    -webkit-border-radius: 6px;
-    -moz-border-radius: 6px;
-    border-radius: 6px;
-    padding:0px 10px 10px 10px;
+    margin-right: 0px;
 }
 
-#applicationIconList li .console {
-    padding: 5px;
-    margin-top: 10px;
-    font-size: 70%;
-    font-family: monospace, Consolas, "Courier New", Courier, monospace;
-}
+    #applicationIconList li {
+        width: 300px;
+        height: 290px;
+        display: inline-block;
+        -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+        box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+        border-radius: 0px;
+        border: 0px solid transparent;
+        background: white;
+        margin-left: 0px;
+        margin-right: 15px;
+        margin-bottom: 15px;
+        /*-webkit-border-radius: 6px;*/
+        /*-moz-border-radius: 6px;*/
+        /*border-radius: 4px;*/
+        padding: 10px 10px 10px 10px;
+        /*border: 1px solid #B0B0B0;*/
+        /*box-shadow: 1px 1px 3px #B8B8B8;*/
+        vertical-align: top;
+    }
+
+        #applicationIconList li .console {
+            padding: 5px;
+            margin-top: 10px;
+            font-size: 70%;
+            font-family: monospace, Consolas, "Courier New", Courier, monospace;
+        }
 
 /* Database box handling */
 
 #databaseIconList {
+    /*background: #E7E8EF;*/
     list-style-type: none;
-    margin-left:0px;
-    margin-right:-15px;
-}
-
-
-#databaseIconList li {
-    width: 300px;
-    display: inline-block;
     margin-left: 0px;
-    margin-right: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #d4d4d4;
-    -webkit-border-radius: 6px;
-    -moz-border-radius: 6px;
-    border-radius: 6px;
-    padding:0px 10px 10px 10px;
+    margin-right: -15px;
+    padding-top: 15px;
 }
 
 
-#databaseIconList li .console {
-    padding: 5px;
-    margin-top: 10px;
-    font-size: 70%;
-    font-family: monospace, Consolas, "Courier New", Courier, monospace;
-}
+    #databaseIconList li {
+        width: 300px;
+        height: 165px;
+        display: inline-block;
+        -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+        box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+        border-radius: 0px;
+        border: 0px solid transparent;
+        background: white;
+        margin-left: 0px;
+        margin-right: 15px;
+        margin-bottom: 15px;
+        /*border: 1px solid #B0B0B0;
+        -webkit-border-radius: 6px;
+        -moz-border-radius: 6px;
+        border-radius: 4px;*/
+        padding: 10px 10px 10px 10px;
+        /*box-shadow: 1px 1px 3px #B8B8B8;*/
+        vertical-align: top;
+    }
+
+
+        #databaseIconList li .console {
+            padding: 5px;
+            margin-top: 10px;
+            font-size: 70%;
+            font-family: monospace, Consolas, "Courier New", Courier, monospace;
+        }
 
 .spinner {
     background-position: center center;
     background-repeat: no-repeat;
     border-radius: 50%; /* Rounds out the halo */
     opacity: .7; /* Some subtle opacity to help blend with variable background colors */
-    display:inline-block;
-    vertical-align:middle;
+    display: inline-block;
+    vertical-align: middle;
 }
 
-.spinner.tiny {
-    height: 18px; width: 18px; /* Pixel size of the GIF you download */
-    background: url("/app/images/spiffygif_18x18.gif");
-}
-.spinner.small {
-    height: 24px; width: 24px; /* Pixel size of the GIF you download */
-    background: url("/app/images/spiffygif_28x28.gif");
-}
-.spinner.medium {
-    height: 32px; width: 32px;
-    background: url("/app/images/spiffygif_32x32.gif");
-}
-.spinner.large {
-    height: 64px; width: 64px;
-    background: url("/app/images/spiffygif_64x64.gif");
-}
+    .spinner.tiny {
+        height: 18px;
+        width: 18px; /* Pixel size of the GIF you download */
+        background: url("/app/images/spiffygif_18x18.gif");
+    }
 
+    .spinner.small {
+        height: 24px;
+        width: 24px; /* Pixel size of the GIF you download */
+        background: url("/app/images/spiffygif_28x28.gif");
+    }
+
+    .spinner.medium {
+        height: 32px;
+        width: 32px;
+        background: url("/app/images/spiffygif_32x32.gif");
+    }
+
+    .spinner.large {
+        height: 64px;
+        width: 64px;
+        background: url("/app/images/spiffygif_64x64.gif");
+    }

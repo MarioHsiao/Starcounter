@@ -20,7 +20,6 @@ adminModule.controller('NetworkCtrl', ['$scope', 'NetworkService', 'UserMessageF
             });
     }
 
-
     /**
      * Refresh Network Statistics
      */
@@ -28,8 +27,14 @@ adminModule.controller('NetworkCtrl', ['$scope', 'NetworkService', 'UserMessageF
         $scope.refreshNetworkStatistics();
     }
 
+    /**
+     * Navigate to database
+     * @param {object} database Database
+     */
+    $scope.gotoDatabase = function (database) {
+        $location.path("/databases/" + database.ID);
+    }
 
     // Init
     $scope.refreshNetworkStatistics();
-
 }]);

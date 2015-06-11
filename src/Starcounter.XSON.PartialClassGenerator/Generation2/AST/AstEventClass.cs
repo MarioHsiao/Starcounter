@@ -70,12 +70,24 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 var str = EventName + "<";
                 str += NApp.GlobalClassSpecifier;
                 str += ", ";
-                str += NTemplate.GlobalClassSpecifier;
+
+                if (NTemplate is AstSchemaClass) {
+                    // this is an event for a single primitive value. Need to take the inherited class as generic parameter for the Input.
+                    str += NTemplate.InheritedClass.GlobalClassSpecifier;
+                } else {
+                    str += NTemplate.GlobalClassSpecifier;
+                }
 
                 // Triggers have no valuetype, and uses another generic input class.
                 if (!(NMember.Template is TTrigger)) {
                     str += ", ";
-                    str += NMember.Type.GlobalClassSpecifier;
+
+                    if (NMember.Type is AstJsonClass) {
+                        // this is an event for a single primitive value. Need to take template instancetype as generic parameter for the Input.
+                        str += HelperFunctions.GetGlobalClassSpecifier(NMember.Template.InstanceType, true);
+                    } else {
+                        str += NMember.Type.GlobalClassSpecifier;
+                    }
                 }
                 
                 str += ">";

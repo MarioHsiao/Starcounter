@@ -57,7 +57,7 @@ uint32_t BmxData::RegisterPortHandler(
         NULL,
         NULL,
         0,
-        MixedCodeConstants::PROTOCOL_RAW_PORT);
+        MixedCodeConstants::PROTOCOL_TCP);
 
     if (err_code)
         return err_code;

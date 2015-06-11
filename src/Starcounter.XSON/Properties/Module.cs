@@ -23,7 +23,7 @@ namespace Starcounter.Internal.XSON.Modules {
         /// </summary>
         public static void Initialize() {
             StandardJsonSerializerId = RegisterJsonSerializer("json", new StandardJsonSerializer());
-            FTJSerializerId = RegisterJsonSerializer("ftj", new FasterThanJsonSerializer());
+//            FTJSerializerId = RegisterJsonSerializer("ftj", new FasterThanJsonSerializer());
             JsonByExample.Initialize();
         }
 
@@ -143,7 +143,7 @@ namespace Starcounter.Internal.XSON.Modules {
                 where TypeObj : Json, new()
                 where TypeTObj : TObject, new() {
 
-                return JsonByExampleTemplateReader._CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments);
+                return JsonByExampleTemplateReader.CreateFromJs<TypeObj, TypeTObj>(source, sourceReference, ignoreNonDesignTimeAssigments);
             }
 
 

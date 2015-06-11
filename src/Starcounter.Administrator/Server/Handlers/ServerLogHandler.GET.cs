@@ -17,9 +17,14 @@ namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
         /// <summary>
-        /// Server log WebSockets channel name.
+        /// Server log WebSockets group name.
         /// </summary>
-        const String ServerLogWebSocketChannelName = "logs";
+        const String ServerLogWebSocketGroupName = "logs";
+
+        /// <summary>
+        /// All active console web sockets.
+        /// </summary>
+        static LinkedList<UInt64> ServerLogWebSockets = new LinkedList<UInt64>();
 
         /// <summary>
         /// The Timer is used to eliminate multiple events from the FileSystemWatcher
@@ -102,7 +107,11 @@ namespace Starcounter.Administrator.Server.Handlers {
                 {
                     Byte schedId = StarcounterEnvironment.CurrentSchedulerId;
 
-                    WebSocket ws = req.SendUpgrade(ServerLogWebSocketChannelName);
+                    WebSocket ws = req.SendUpgrade(ServerLogWebSocketGroupName);
+
+                    lock (ServerLogWebSocketGroupName) {
+                        ServerLogWebSockets.AddFirst(ws.ToUInt64());
+                    }
 
                     return HandlerStatus.Handled;
                 }
@@ -113,12 +122,18 @@ namespace Starcounter.Administrator.Server.Handlers {
                 };
             });
 
-            Handle.WebSocketDisconnect(ServerLogWebSocketChannelName, (UInt64 cargoId, IAppsSession session) =>
+            Handle.WebSocketDisconnect(ServerLogWebSocketGroupName, (WebSocket ws) =>
             {
+                lock (ServerLogWebSocketGroupName) {
 
+                    UInt64 wsId = ws.ToUInt64();
+
+                    if (ServerLogWebSockets.Contains(wsId))
+                        ServerLogWebSockets.Remove(wsId);
+                }   
             });
 
-            Handle.WebSocket(ServerLogWebSocketChannelName, (String s, WebSocket ws) =>
+            Handle.WebSocket(ServerLogWebSocketGroupName, (String s, WebSocket ws) =>
             {
                 // We don't use client messages.
             });
@@ -176,13 +191,17 @@ namespace Starcounter.Administrator.Server.Handlers {
         /// </summary>
         static void sendLogChangedEvent() {
 
-            lock (LOCK) {
+            // Getting sessions for current scheduler.
+            new DbSession().RunAsync(() => {
 
-                WebSocket.ForEach(ServerLogWebSocketChannelName, (WebSocket ws) => {
-                    ws.Send("1"); // Log has changed.
-                });
+                lock (ServerLogWebSocketGroupName) {
 
-            }
+                    foreach (UInt64 wsId in ServerLogWebSockets) {
+                        WebSocket ws = new WebSocket(wsId);
+                        ws.Send("1");
+                    }
+                }
+            });
         }
     }
 }

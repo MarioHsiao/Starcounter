@@ -94,6 +94,13 @@
     <Compile Include="Binding\TypeDef.cs" />
     <Compile Include="Binding\TypeLoader.cs" />
     <Compile Include="Binding\UIntPropertyBinding.cs" />
+    <Compile Include="CommitHooks\Hook.cs" />
+    <Compile Include="CommitHooks\HookConfiguration.cs" />
+    <Compile Include="CommitHooks\HookDelegateList.cs" />
+    <Compile Include="CommitHooks\RuntimeInstalledHookDelegate.cs" />
+    <Compile Include="CommitHooks\HookKey.cs" />
+    <Compile Include="CommitHooks\HookType.cs" />
+    <Compile Include="CommitHooks\InvokableHook.cs" />
     <Compile Include="ConstraintViolationException.cs" />
     <Compile Include="DbException.cs" />
     <Compile Include="Entity.cs" />

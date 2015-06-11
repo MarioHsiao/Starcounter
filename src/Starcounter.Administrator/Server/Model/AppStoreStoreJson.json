@@ -1,0 +1,11 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+	"ID" : "",
+	"DisplayName": "",
+
+	"Applications" :[{
+		"$" : { "Reuse" : "Administrator.Server.Model.AppStoreApplicationJson" }
+	}],
+	"RefreshApplications$" : 0
+}
+

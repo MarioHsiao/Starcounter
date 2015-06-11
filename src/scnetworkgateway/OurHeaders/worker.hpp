@@ -274,16 +274,17 @@ public:
         }
 
         // Checking if data that needs accumulation fits into chunk.
-        if (sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() < total_desired_bytes)
+        if (sd->get_data_blob_size() < total_desired_bytes)
         {
             uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, total_desired_bytes);
             if (err_code)
                 return err_code;
         }
 
-        GW_ASSERT(sd->get_accum_buf()->get_chunk_orig_buf_len_bytes() >= total_desired_bytes);
+        GW_ASSERT(sd->get_data_blob_size() >= total_desired_bytes);
 
-        sd->get_accum_buf()->StartAccumulation(total_desired_bytes, num_already_accumulated);
+        // Calculating the remaining number of bytes to accumulate.
+        sd->set_num_available_network_bytes(total_desired_bytes - num_already_accumulated);
 
         return 0;
     }
@@ -497,7 +498,7 @@ public:
     void PushDisconnectIfNeeded(SocketDataChunkRef sd);
 
     // Send disconnect to database.
-    uint32_t SendRawSocketDisconnectToDb(SocketDataChunk* sd);
+    uint32_t SendTcpSocketDisconnectToDb(SocketDataChunk* sd);
 
     // Initiates receive on arbitrary socket.
     uint32_t ReceiveOnSocket(socket_index_type socket_index);
@@ -666,7 +667,6 @@ public:
         GW_ASSERT(unique_id != INVALID_SESSION_SALT);
 
         sockets_infos_[socket_index].unique_socket_id_ = unique_id;
-        sockets_infos_[socket_index].session_.scheduler_id_ = 0;
 
 #ifdef GW_SOCKET_DIAG
         GW_COUT << "New unique socket id " << socket_index << ":" << unique_id << GW_ENDL;

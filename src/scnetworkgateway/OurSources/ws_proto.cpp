@@ -81,8 +81,9 @@ void WsProto::SetSubProtocol(char *sub_protocol, int32_t sub_protocol_len)
 }
 
 // Resets the structure.
-void WsProto::Reset()
-{
+void WsProto::Reset() {
+    opcode_ = 0;
+
     g_ts_client_key_ = NULL;
     g_ts_client_key_len_ = 0;
 
@@ -91,25 +92,32 @@ void WsProto::Reset()
 }
 
 // Initializes the structure.
-void WsProto::Init()
-{
-    frame_info_.Reset();
+void WsProto::Init() {
     Reset();
 }
 
 // Unmasks frame and pushes it to database.
-uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE user_handler_id)
+uint32_t WsProto::UnmaskFrameAndPush(
+    GatewayWorker *gw,
+    SocketDataChunkRef sd,
+    BMX_HANDLER_TYPE user_handler_id,
+    uint32_t mask)
 {
-    uint8_t* payload = (uint8_t*) sd + frame_info_.payload_offset_;
+    uint8_t* payload = sd->GetUserData();
 
-    switch (frame_info_.opcode_)
+    // Setting group id.
+    sd->FetchWebSocketGroupIdFromSocket();
+
+    switch (opcode_)
     {
         case WS_OPCODE_CONTINUATION: // TODO: Fix full support!
         case WS_OPCODE_TEXT:
         case WS_OPCODE_BINARY:
         {
+            uint32_t payload_len = sd->get_user_data_length_bytes();
+
             // Unmasking data.
-            UnMaskPayload(gw, sd, frame_info_.payload_len_, frame_info_.mask_, payload);
+            UnMaskPayload(gw, sd, payload_len, mask, payload);
 
             // Determining user data offset.
             uint32_t user_data_offset = static_cast<uint32_t> (payload - (uint8_t *) sd);
@@ -118,16 +126,26 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
             // Profiling.
             Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsReceivedMessages);
 
+            /*
+            payload = WritePayload(gw, sd, WS_OPCODE_TEXT, false, WS_FRAME_SINGLE, payload_len, payload, payload_len);
+
+            // Prepare buffer to send outside.
+            sd->PrepareForSend(payload, payload_len);
+
+            // Sending data.
+            return gw->Send(sd);
+            */
+
             // Push chunk to corresponding channel/scheduler.
             return gw->PushSocketDataToDb(sd, user_handler_id);
         }
 
         case WS_OPCODE_CLOSE:
         {
-            uint32_t payload_len = frame_info_.payload_len_;
+            uint32_t payload_len = sd->get_user_data_length_bytes();
 
             // Send the response Close message.
-            UnMaskPayload(gw, sd, payload_len, frame_info_.mask_, payload);
+            UnMaskPayload(gw, sd, payload_len, mask, payload);
             payload = WritePayload(gw, sd, WS_OPCODE_CLOSE, false, WS_FRAME_SINGLE, payload_len, payload, payload_len);
 
             // Sending resource not found and closing the connection.
@@ -143,10 +161,10 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 		case WS_OPCODE_PONG:
         case WS_OPCODE_PING:
         {
-            uint32_t payload_len = frame_info_.payload_len_;
+            uint32_t payload_len = sd->get_user_data_length_bytes();
 
             // Send the response Pong.
-            UnMaskPayload(gw, sd, payload_len, frame_info_.mask_, payload);
+            UnMaskPayload(gw, sd, payload_len, mask, payload);
             payload = WritePayload(gw, sd, WS_OPCODE_PONG, false, WS_FRAME_SINGLE, payload_len, payload, payload_len);
 
             // Prepare buffer to send outside.
@@ -165,13 +183,13 @@ uint32_t WsProto::UnmaskFrameAndPush(GatewayWorker *gw, SocketDataChunkRef sd, B
 }
 
 // Obtains user handler info from channel name of the WebSocket.
-inline BMX_HANDLER_TYPE SearchUserHandlerInfoByChannelId(GatewayWorker *gw, SocketDataChunkRef sd)
+inline BMX_HANDLER_TYPE SearchUserHandlerInfoByGroupId(GatewayWorker *gw, SocketDataChunkRef sd)
 {
     // Getting the corresponding port number.
     ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
-    PortWsChannels* port_ws_channels = server_port->get_registered_ws_channels();
-    uint32_t channel_id = sd->GetWebSocketChannelId();
-    return port_ws_channels->FindRegisteredHandlerByChannelId(channel_id);
+    PortWsGroups* port_ws_groups = server_port->get_registered_ws_groups();
+    ws_group_id_type group_id = sd->GetWebSocketGroupId();
+    return port_ws_groups->FindRegisteredHandlerByChannelId(group_id);
 }
 
 // Send disconnect to database.
@@ -183,9 +201,15 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsDisconnects);
 
     // Obtaining handler info from channel id.
-    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
-    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
+    BMX_HANDLER_TYPE user_handler_id = SearchUserHandlerInfoByGroupId(gw, sd);
+
+    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id) {
+
+        // If there is no handler for WebSocket maybe the server is
+        // working in PUSH mode only, i.e. has no handlers for receiving
+        // WebSocket frames, in this case we simply not sending anything.
         return 0;
+    }
 
     SocketDataChunk* sd_push_to_db = NULL;
     uint32_t err_code = sd->CloneToPush(gw, &sd_push_to_db);
@@ -196,7 +220,13 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     sd_push_to_db->set_just_push_disconnect_flag();
 
     // Setting the opcode indicating socket disconnect.
-    sd_push_to_db->get_ws_proto()->get_frame_info()->opcode_ = (MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_CLOSE);
+    sd_push_to_db->get_ws_proto()->opcode_ = (MixedCodeConstants::WebSocketDataTypes::WS_OPCODE_CLOSE);
+
+    // Setting group id.
+    sd_push_to_db->FetchWebSocketGroupIdFromSocket();
+
+	// NOTE: There is no used data when disconnecting.
+	sd_push_to_db->set_user_data_length_bytes(0);
 
     // Push chunk to corresponding channel/scheduler.
     err_code = gw->PushSocketDataToDb(sd_push_to_db, user_handler_id);
@@ -222,21 +252,28 @@ uint32_t WsProto::ProcessWsDataToDb(
     // Handled successfully.
     *is_handled = true;
 
+    uint32_t mask;
     uint32_t err_code = 0;
 
-    // Obtaining handler info from channel id.
-    user_handler_id = SearchUserHandlerInfoByChannelId(gw, sd);
-    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id)
-        return SCERRGWWEBSOCKET;
+    // Obtaining handler info from group id.
+    user_handler_id = SearchUserHandlerInfoByGroupId(gw, sd);
+
+    // If there is no handler for WebSocket maybe the server is
+    // working in PUSH mode only, i.e. has no handlers for receiving
+    // WebSocket frames, in this case we simply need to continue receiving.
+    if (bmx::BMX_INVALID_HANDLER_INFO == user_handler_id) {
+
+        // Receiving from scratch.
+        sd->ResetAccumBuffer();
+
+        // Returning socket to receiving state.
+        return gw->Receive(sd);
+    }
 
     SocketDataChunk* sd_push_to_db = NULL;
-    uint8_t* orig_data_ptr = sd->get_accum_buf()->get_chunk_orig_buf_ptr();
-    uint32_t num_accum_bytes = sd->get_accum_buf()->get_accum_len_bytes();
+    uint8_t* orig_data_ptr = sd->get_data_blob_start();
+    uint32_t num_accum_bytes = sd->get_accumulated_len_bytes();
     uint32_t num_processed_bytes = 0;
-
-    // Checking if we have already parsed the frame.
-    if (sd->get_complete_header_flag())
-        goto DATA_ACCUMULATED;
 
     // Since WebSocket frames can be grouped into one network packet
     // we have to processes all of them in a loop.
@@ -245,67 +282,74 @@ uint32_t WsProto::ProcessWsDataToDb(
         // Processing current frame.
         uint8_t* cur_data_ptr = orig_data_ptr + num_processed_bytes;
 
-        // Obtaining frame info.
-        err_code = ParseFrameInfo(sd, cur_data_ptr, orig_data_ptr + num_accum_bytes);
-        if (err_code)
-            return err_code;
+        // Payload size after all parsing.
+        uint32_t payload_len;
 
-        // Checking frame information is complete.
-        if (!sd->get_complete_header_flag())
-        {
+        // Header length.
+        uint8_t header_len;
+
+        // Obtaining frame info.
+        bool complete_header = ParseFrameInfo(cur_data_ptr, orig_data_ptr + num_accum_bytes, &mask, &payload_len, &header_len);
+
+        // Checking if header is not complete.
+        if (!complete_header) {
+
             // Checking if we need to move current data up.
-            cur_data_ptr = sd->get_accum_buf()->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
+            cur_data_ptr = sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_accum_bytes - num_processed_bytes);
 
             // Returning socket to receiving state.
             return gw->Receive(sd);
         }
 
-        uint8_t* payload = (uint8_t*) sd + frame_info_.payload_offset_;
+        int32_t num_remaining_bytes = num_accum_bytes - num_processed_bytes;
+        int32_t header_plus_payload_bytes = header_len + payload_len;
 
-        // Calculating number of bytes processed.
-        int32_t header_len = static_cast<int32_t> (payload - cur_data_ptr);
-        num_processed_bytes += header_len;
+        // Checking if complete frame does not fit in current accumulated data.
+        if (header_plus_payload_bytes > num_remaining_bytes) {
 
-        // Continue accumulating data.
-        if (num_processed_bytes + frame_info_.payload_len_ > num_accum_bytes)
-        {
-            // Setting the desired number of bytes to accumulate.
-            err_code = gw->StartAccumulation(
-                sd,
-                static_cast<uint32_t>(header_len + frame_info_.payload_len_),
-                header_len + num_accum_bytes - num_processed_bytes);
+            // Checking if we need to move current data up.
+            cur_data_ptr = sd->MoveDataToTopAndContinueReceive(cur_data_ptr, num_remaining_bytes);
 
-            if (err_code)
-                return err_code;
-
-            // Checking if we have not accumulated everything yet.
-            return gw->Receive(sd);
-        }
-        // Checking if it is not the last frame.
-        else
-        {
-            // Checking if all received data processed.
-            if (num_processed_bytes + frame_info_.payload_len_ == num_accum_bytes)
+            // Checking if data that needs accumulation fits into chunk.
+            if (sd->get_num_available_network_bytes() < static_cast<uint32_t>(header_plus_payload_bytes - num_remaining_bytes))
             {
-                sd_push_to_db = NULL;
-            }
-            else
-            {
-                // Cloning chunk to push it to database.
-                err_code = sd->CloneToPush(gw, &sd_push_to_db);
+                uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, header_plus_payload_bytes);
                 if (err_code)
                     return err_code;
             }
+
+            // Returning socket to receiving state.
+            return gw->Receive(sd);
         }
 
-        // Payload size has been checked, so we can add payload as processed.
-        num_processed_bytes += static_cast<uint32_t>(frame_info_.payload_len_);
+        // Pointer to actual frame payload.
+        uint8_t* payload = cur_data_ptr + header_len;
+
+        // Setting size and offset of user data.
+        sd->SetUserData(payload, payload_len);
+
+        // Adding whole frame as processed.
+        num_processed_bytes += header_plus_payload_bytes;
+
+        // Number of processed bytes can not exceed the total accumulated number of bytes.
+        GW_ASSERT(num_processed_bytes <= num_accum_bytes);
+
+        // Checking if all received data processed.
+        if (num_processed_bytes == num_accum_bytes) {
+
+            sd_push_to_db = NULL;
+
+        } else {
+
+            // Cloning chunk to push it to database.
+            err_code = sd->CreateWebSocketDataFromBigBuffer(gw, payload, sd->get_user_data_length_bytes(), &sd_push_to_db);
+            if (err_code)
+                return err_code;
+        }
 
 #ifdef GW_WEBSOCKET_DIAG
         GW_COUT << "[" << gw->get_worker_id() << "]: " << "WS_OPCODE: " << frame_info_.opcode_ << GW_ENDL;
 #endif
-
-DATA_ACCUMULATED:
 
         // Data is complete, no more frames, creating parallel receive clone.
         if (NULL == sd_push_to_db)
@@ -319,13 +363,14 @@ DATA_ACCUMULATED:
             }
 
             // Unmasking frame and pushing to database.
-            return UnmaskFrameAndPush(gw, sd, user_handler_id);
+            return UnmaskFrameAndPush(gw, sd, user_handler_id, mask);
         }
         else
         {
             // Unmasking frame and pushing to database.
-            err_code = UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id);
+            err_code = sd_push_to_db->get_ws_proto()->UnmaskFrameAndPush(gw, sd_push_to_db, user_handler_id, mask);
 
+            // Original sd would be released automatically.
             if (err_code) {
                 
                 // Releasing the cloned chunk.
@@ -346,8 +391,9 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     *is_handled = true;
 
     // Checking if we want to disconnect the socket.
-    if (sd->get_disconnect_socket_flag())
+    if (sd->get_disconnect_socket_flag()) {
         return SCERRGWDISCONNECTFLAG;
+    }
 
     // Checking if this socket data is for send only.
     if (sd->get_socket_just_send_flag())
@@ -355,18 +401,18 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
         sd->reset_socket_just_send_flag();
 
         // Prepare buffer to send outside.
-        sd->PrepareForSend(sd->UserDataBuffer(), sd->get_user_data_length_bytes());
+        sd->PrepareForSend(sd->GetUserData(), sd->get_user_data_length_bytes());
 
         // Sending data.
         return gw->Send(sd);
     }
 
     // Getting user data.
-    uint8_t* payload = sd->UserDataBuffer();
+    uint8_t* payload = sd->GetUserData();
     uint8_t* orig_payload = payload;
 
     // Length of user data in bytes.
-    uint32_t total_payload_len = sd->get_total_user_data_length_bytes();
+    uint32_t total_payload_len = sd->GetTotalUserDataLengthFromDb();
     uint32_t cur_payload_len = sd->get_user_data_length_bytes();
 
     // Checking if we are sending last frame.
@@ -374,11 +420,11 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     {
         sd->reset_gracefully_close_flag();
         sd->set_disconnect_after_send_flag();
-        frame_info_.opcode_ = WS_OPCODE_CLOSE;
+        opcode_ = WS_OPCODE_CLOSE;
     }
 
     // Place where masked data should be written.
-    payload = WritePayload(gw, sd, frame_info_.opcode_, false, WS_FRAME_SINGLE, total_payload_len, payload, cur_payload_len);
+    payload = WritePayload(gw, sd, opcode_, false, WS_FRAME_SINGLE, total_payload_len, payload, cur_payload_len);
 
     // Profiling.
     Checkpoint(gw->get_worker_id(), utils::CheckpointEnums::NumberOfWsSends);
@@ -429,16 +475,19 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     GW_ASSERT_DEBUG(g_ts_sub_protocol_len_ < 32);
     memcpy(sub_protocol_temp, g_ts_sub_protocol_, g_ts_sub_protocol_len_);
 
-    // Checking if data that needs accumulation fits into chunk.
-    if (sd->get_accum_buf()->get_chunk_num_available_bytes() < MaxHandshakeResponseLenBytes)
+    int32_t num_remaining_bytes = (sd->get_data_blob_size() - sd->get_accumulated_len_bytes());
+    GW_ASSERT(num_remaining_bytes == sd->get_num_available_network_bytes());
+
+    // Checking if there is enough space for upgrade response data.
+    if (num_remaining_bytes < MaxHandshakeResponseLenBytes)
     {
-        uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accum_buf()->get_accum_len_bytes() + MaxHandshakeResponseLenBytes);
+        uint32_t err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accumulated_len_bytes() + MaxHandshakeResponseLenBytes);
         if (err_code)
             return err_code;
     }
 
     // Pointing to the beginning of the data.
-    uint8_t* resp_data_begin = sd->get_accum_buf()->get_chunk_orig_buf_ptr() + sd->get_accum_buf()->get_accum_len_bytes();
+    uint8_t* resp_data_begin = sd->get_data_blob_start() + sd->get_accumulated_len_bytes();
 
     // Copying initial header in response buffer.
     int32_t resp_len_bytes = InjectData(resp_data_begin, 0, kWsHsResponseStaticPart, kWsHsResponseStaticPartLen);
@@ -458,20 +507,13 @@ uint32_t WsProto::DoHandshake(GatewayWorker *gw, SocketDataChunkRef sd, BMX_HAND
     }
 
     GW_ASSERT(resp_len_bytes < MaxHandshakeResponseLenBytes);
-    
-    // Remaining empty line.
-    //resp_len_bytes = InjectData(resp_data_begin, resp_len_bytes, "\r\n", 2);
 
-    sd->get_ws_proto()->get_frame_info()->payload_len_ = resp_len_bytes;
-    sd->get_ws_proto()->get_frame_info()->payload_offset_ = static_cast<uint16_t> (resp_data_begin - (uint8_t*)sd);
-    sd->get_accum_buf()->AddAccumulatedBytes(resp_len_bytes);
+    // NOTE: We are still pointing to the original request not the upgrade response start.
+    sd->SetUserData(sd->get_data_blob_start(), sd->get_accumulated_len_bytes() + resp_len_bytes);
+    sd->SetWebSocketUpgradeResponsePartLength(resp_len_bytes);
 
     // Setting WebSocket handshake flag.
     sd->SetTypeOfNetworkProtocol(MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
-
-    // Prepare buffer to send outside.
-
-    //sd->PrepareForSend(resp_data_begin, resp_len_bytes);
 
     // Indicating for the host that WebSocket upgrade is made.
     sd->set_ws_upgrade_request_flag();
@@ -509,8 +551,9 @@ void WsProto::MaskUnMask(
     {
         int32_t num_begin_bytes = 8 - num_remaining_bytes;
 
-        for (int32_t i = 0; i < num_remaining_bytes; i++)
+        for (int32_t i = 0; i < num_remaining_bytes; i++) {
             payload[i] = payload[i] ^ (((uint8_t*)&mask_8bytes)[num_begin_bytes + i]);
+        }
 
         processed_bytes += num_remaining_bytes;
     }
@@ -522,8 +565,9 @@ void WsProto::MaskUnMask(
         if (tail_bytes_num < 8)
         {
             // Processing last bytes.
-            for (int32_t i = 0; i < tail_bytes_num; i++)
+            for (int32_t i = 0; i < tail_bytes_num; i++) {
                 payload[processed_bytes + i] = payload[processed_bytes + i] ^ (((uint8_t*)&mask_8bytes)[i]);
+            }
 
             num_remaining_bytes = 8 - tail_bytes_num;
 
@@ -557,13 +601,20 @@ void WsProto::UnMaskPayload(
 #define swap64(y) ((static_cast<uint64_t>(ntohl(static_cast<uint32_t>(y))) << 32) | ntohl(static_cast<uint32_t>(y >> 32)))
 
 // Parses WebSockets frame info.
-uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* limit)
+bool WsProto::ParseFrameInfo(
+    uint8_t* data,
+    uint8_t* limit,
+    uint32_t* out_mask, 
+    uint32_t* out_payload_len,
+    uint8_t* out_header_len)
 {
+    uint8_t* data_orig = data;
+
     // Getting final fragment bit.
-    frame_info_.is_final_ = ((*data & 0x80) != 0);
+    //is_final_ = ((*data & 0x80) != 0);
 
     // Getting operation code.
-    frame_info_.opcode_ = (*data & 0x0F);
+    opcode_ = (*data & 0x0F);
 
     // Getting mask flag.
     data++;
@@ -577,8 +628,8 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
         // 16 bits.
         case 126:
         {
-            frame_info_.payload_len_ = ntohs(*(uint16_t *)(data + 1));
-            frame_info_.mask_ = *(uint32_t *)(data + 3);
+            *out_payload_len = ntohs(*(uint16_t *)(data + 1));
+            *out_mask = *(uint32_t *)(data + 3);
             data += 7;
             break;
         }
@@ -586,8 +637,8 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
         // 64 bits.
         case 127:
         {
-            frame_info_.payload_len_ = swap64(*(uint64_t *)(data + 1));
-            frame_info_.mask_ = *(uint32_t *)(data + 9);
+            *out_payload_len = swap64(*(uint64_t *)(data + 1));
+            *out_mask = *(uint32_t *)(data + 9);
             data += 13;
             break;
         }
@@ -595,24 +646,26 @@ uint32_t WsProto::ParseFrameInfo(SocketDataChunkRef sd, uint8_t *data, uint8_t* 
         // 7 bits.
         default:
         {
-            frame_info_.payload_len_ = *data;
-            frame_info_.mask_ = *(uint32_t *)(data + 1);
+            *out_payload_len = *data;
+            *out_mask = *(uint32_t *)(data + 1);
             data += 5;
         }
     }
 
     // Increasing limit by one if payload length is 0.
-    if (0 == frame_info_.payload_len_)
+    if (0 == *out_payload_len) {
         limit++;
+    }
 
     // Checking if frame was successfully parsed.
-    if (data < limit)
-        sd->set_complete_header_flag();
+    if (data >= limit) {
+        return false;
+    }
     
-    // Calculating payload offset relatively to socket data.
-    frame_info_.payload_offset_ = static_cast<uint32_t> (data - (uint8_t*)sd);
+    // Calculating header length.
+    *out_header_len = static_cast<uint8_t>(data - data_orig);
 
-    return 0;
+    return true;
 }
 
 // Write payload data.

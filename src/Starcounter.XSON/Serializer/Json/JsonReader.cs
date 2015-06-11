@@ -1,102 +1,215 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Starcounter.Advanced.XSON {
-    public unsafe class JsonReader {
-        private byte* pBuffer;
-        private int offset;
-        private int bufferSize;
-        private byte* currentPropertyPtr;
-        private bool isArray;
+    public enum JsonToken {
+        End = 0,
+        StartObject = 1,
+        EndObject = 2,
+        StartArray = 3,
+        EndArray = 4,
+        PropertyName = 5,
+        Value = 6,
+        Null = 7
+    }
 
-        public JsonReader(IntPtr buffer, int bufferSize) {
-            this.pBuffer = (byte*)buffer;
-            this.bufferSize = bufferSize;
-            this.offset = 0;
-            this.currentPropertyPtr = null;
-            FindFirstItem();
+    public unsafe class /*Utf8*/JsonReader {
+        private byte* pStream;
+
+        private int streamSize;
+        private int position;
+
+        private JsonToken currentToken;
+        private byte* propertyNamePtr;
+        private bool nextIsPropertyName;
+        private int objectCount;
+        
+        public /*Utf8*/JsonReader(IntPtr stream, int streamSize) {
+//            System.Diagnostics.Debugger.Launch();
+
+            this.pStream = (byte*)stream;
+            this.streamSize = streamSize;
+            this.position = 0;
         }
 
-        public int Used {
-            get {
-                // The offset is zero-bound so we add one to get the correct number of bytes read.
-                return offset + 1;
+        public JsonToken ReadNext() {
+            byte current;
+            JsonToken token = JsonToken.End;
+
+            while (position < streamSize) {
+                current = *pStream;
+                switch (current) {
+                    case (byte)'{': // Object
+                        token = JsonToken.StartObject;
+                        objectCount++;
+                        nextIsPropertyName = true;
+                        break;
+                    case (byte)'}': // End Object
+                        token = JsonToken.EndObject;
+                        objectCount--;
+                        break;
+                    case (byte)'[': // Array
+                        token = JsonToken.StartArray;
+                        break;
+                    case (byte)']': // End Array
+                        token = JsonToken.EndArray;
+                        break;
+                    case (byte)',':
+                        if (objectCount > 0)
+                            nextIsPropertyName = true;
+                        break;
+                    case (byte)':':
+                        nextIsPropertyName = false;
+                        break;
+                    case (byte)'\n':
+                    case (byte)'\r':
+                    case (byte)'\t':
+                    case (byte)' ': // Skip, unless in string.
+                        break;
+                    default: // Any value
+                        if (nextIsPropertyName) {
+                            nextIsPropertyName = false;
+                            propertyNamePtr = pStream;
+                            token = JsonToken.PropertyName;
+                        } else {
+                            token = JsonToken.Value;
+                        }
+                        break;
+                }
+
+                if (token != JsonToken.End)
+                    break;
+
+                pStream++;
+                position++;
             }
+
+            currentToken = token;
+            return token;
         }
 
-        public int Size {
-            get { return this.bufferSize; }
-        }
+        public void Skip(int count) {
+            position += count;
 
-        private string CurrentPropertyName {
-            get {
-                if (currentPropertyPtr == null)
-                    return null;
-
-                string name;
-                int valueSize;
-                JsonHelper.ParseString((IntPtr)currentPropertyPtr, 256, out name, out valueSize);
-                return name;
-            }
-        }
-
-        public IntPtr CurrentPtr {
-            get { return (IntPtr)pBuffer; }
-        }
-
-        public JsonReader CreateSubReader() {
-            return new JsonReader((IntPtr)pBuffer, bufferSize - offset);
-        }
-
-        public void Skip(int value) {
-            if (value > (bufferSize - offset))
+            if (position > streamSize) {
+                position -= count;
                 JsonHelper.ThrowUnexpectedEndOfContentException();
-
-            pBuffer += value;
-            offset += value;
-        }
-
-        public int SkipValue() {
-            bool needsDecoding = false;
-            int size;
-            
-            if (*pBuffer == '"') {
-                size = JsonHelper.SizeToDelimiterOrEndString(pBuffer + 1, bufferSize - offset - 1, out needsDecoding) + 2;
-                pBuffer += size;
-                offset += size;
-            } else if (*pBuffer == '{') {
-                size = SkipObject();
-            } else if (*pBuffer == '[') {
-                size = SkipArray();
-            } else {
-                size = JsonHelper.SizeToDelimiterOrEnd(pBuffer, bufferSize - offset);
-                pBuffer += size;
-                offset += size;
             }
-            return size;
+
+            pStream += count;
         }
 
-        private int SkipObject() {
-            int before = Used;
-            while (GotoProperty()) {
-                GotoValue();
+        public void SkipCurrent() {
+            if (currentToken == JsonToken.StartObject)
+                SkipObjectOrArray((byte)'{', (byte)'}');
+            else if (currentToken == JsonToken.StartArray)
+                SkipObjectOrArray((byte)'[', (byte)']');
+            else if (currentToken == JsonToken.PropertyName || currentToken == JsonToken.Value)
                 SkipValue();
-            }
-            Skip(1); // Skip '}'
-            return (Used - before);
         }
 
-        private int SkipArray() {
-            int before = Used;
-            while (GotoNextObject())
-                SkipObject();
-            Skip(1); // Skip ']'
-            return (Used - before);
+        private void SkipObjectOrArray(byte startToken, byte endToken) {
+            byte current;
+            int nrOfTokens = 0;
+            bool keepLooking = true;
+
+            while (keepLooking) {
+                current = *pStream;
+                if (current == startToken) {
+                    nrOfTokens++;
+                }  else if (current == endToken) {
+                    nrOfTokens--;
+                    if (nrOfTokens == 0)
+                        keepLooking = false;
+                }
+
+                position++;
+                if (position >= streamSize)
+                    JsonHelper.ThrowUnexpectedEndOfContentException();
+                pStream++;
+            }
+        }
+
+        private void SkipValue() {
+            bool needsDecoding;
+            int valueSize;
+
+            if (*pStream == (byte)'"') {
+                valueSize = JsonHelper.SizeToDelimiterOrEndString(pStream + 1, streamSize - position - 1, out needsDecoding) + 2;
+            } else {
+                valueSize = JsonHelper.SizeToDelimiterOrEnd(pStream, streamSize - position);
+            }
+            pStream += valueSize;
+            position += valueSize;
+        }
+
+        public bool ReadBool() {
+            int valueSize;
+            bool value;
+
+            if (!JsonHelper.ParseBoolean((IntPtr)pStream, streamSize - position, out value, out valueSize))
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Boolean", ReadString());
+
+            position += valueSize;
+            pStream += valueSize;
+            return value;
+        }
+
+        public decimal ReadDecimal() {
+            int valueSize;
+            decimal value;
+
+            if (!JsonHelper.ParseDecimal((IntPtr)pStream, streamSize - position, out value, out valueSize))
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Decimal", ReadString());
+
+            position += valueSize;
+            pStream += valueSize;
+            return value;
+        }
+
+        public double ReadDouble() {
+            int valueSize;
+            double value;
+
+            if (!JsonHelper.ParseDouble((IntPtr)pStream, streamSize - position, out value, out valueSize))
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Double", ReadString());
+
+            position += valueSize;
+            pStream += valueSize;
+            return value;
+        }
+
+        public long ReadLong() {
+            int valueSize;
+            long value;
+
+            if (!JsonHelper.ParseInt((IntPtr)pStream, streamSize - position, out value, out valueSize))
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Int64", ReadString());
+
+            position += valueSize;
+            pStream += valueSize;
+            return value;
+        }
+
+        public string ReadString() {
+            int valueSize;
+            string value;
+
+            if (!JsonHelper.ParseString((IntPtr)pStream, streamSize - position, out value, out valueSize))
+                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "String", ReadString());
+
+            position += valueSize;
+            pStream += valueSize;
+            return value;
         }
 
         public void ReadRaw(byte[] target, out int valueSize) {
-            byte* pstart = pBuffer;
-            int size = SkipValue();
+            byte* pstart = pStream;
+            int size = position;
+            SkipCurrent();
+            size = position - size;
 
             if (size == -1 || target.Length < size)
                 JsonHelper.ThrowUnexpectedEndOfContentException();
@@ -105,204 +218,37 @@ namespace Starcounter.Advanced.XSON {
             Marshal.Copy((IntPtr)pstart, target, 0, size);
         }
 
-        public string ReadString() {
-            int valueSize;
-            string value;
-
-            if (!JsonHelper.ParseString((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "String", ReadString());
-
-            offset += valueSize;
-            if (bufferSize < offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer += valueSize;
-
-            return value;
+        public int Position {
+            get { return position; }
         }
 
-        public bool ReadBool() {
-            int valueSize;
-            bool value;
-
-            if (!JsonHelper.ParseBoolean((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Boolean", ReadString());
-
-            offset += valueSize;
-            if (bufferSize <= offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer += valueSize;
-
-            return value;
+        public IntPtr CurrentPtr {
+            get { return (IntPtr)pStream; }
         }
 
-        public decimal ReadDecimal() {
-            int valueSize;
-            decimal value;
-
-            if (!JsonHelper.ParseDecimal((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Decimal", ReadString());
-
-            offset += valueSize;
-            if (bufferSize <= offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer += valueSize;
-
-            return value;
+        public int Size {
+            get { return streamSize; }
         }
 
-        public double ReadDouble() {
-            int valueSize;
-            double value;
-
-            if (!JsonHelper.ParseDouble((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Double", ReadString());
-
-            offset += valueSize;
-            if (bufferSize <= offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer += valueSize;
-
-            return value;
+        public JsonReader Clone() {
+            var reader = new JsonReader((IntPtr)pStream, streamSize);
+            reader.position = position;
+            reader.currentToken = currentToken;
+            reader.propertyNamePtr = propertyNamePtr;
+            reader.nextIsPropertyName = nextIsPropertyName;
+            reader.objectCount = objectCount;
+            return reader;
         }
 
-        public long ReadLong() {
-            int valueSize;
-            long value;
+        private string CurrentPropertyName {
+            get {
+                if (this.propertyNamePtr == null)
+                    return null;
 
-            if (!JsonHelper.ParseInt((IntPtr)pBuffer, bufferSize - offset, out value, out valueSize))
-                JsonHelper.ThrowWrongValueTypeException(null, CurrentPropertyName, "Int64", ReadString());
-
-            offset += valueSize;
-            if (bufferSize <= offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer += valueSize;
-
-            return value;
-        }
-
-        public void PopulateObject(Json obj) {
-            int valueSize;
-            
-            valueSize = obj.PopulateFromJson((IntPtr)pBuffer, bufferSize - offset);
-            if (valueSize == -1)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-
-            offset += valueSize;
-            if (bufferSize <= offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer += valueSize;
-        }
-
-        private bool FindFirstItem() {
-            byte current;
-
-            isArray = false;
-            while (true) {
-                current = *pBuffer;
-
-                if (current == '{') {
-                    return true;
-                }
-
-                if (current == '[') {
-                    isArray = true;
-                    return true;
-                }
-
-                if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
-                    offset++;
-                    if (bufferSize <= offset)
-                        JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
-                    pBuffer++;
-                    continue;
-                } else {
-                    JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
-                }
-            }
-        }
-
-        //private bool FindObject() {
-        //    byte current;
-
-        //    while (true) {
-        //        current = *pBuffer;
-
-        //        if (current == '{') {
-        //            return true;
-        //        }
-
-        //        if (current == '\n' || current == '\r' || current == '\t' || current == ' ') {
-        //            offset++;
-        //            if (bufferSize <= offset)
-        //                JsonHelper.ThrowInvalidJsonException("Beginning of object not found ('{').");
-        //            pBuffer++;
-        //            continue;
-        //        } else {
-        //            JsonHelper.ThrowInvalidJsonException("Unexpected character found, expected '{' but found '" + (char)current + "'.");
-        //        }
-        //    }
-        //}
-
-        public bool GotoProperty() {
-            byte current;
-
-            while (true) {
-                if (bufferSize <= offset) {
-                    JsonHelper.ThrowUnexpectedEndOfContentException();
-                }
-                current = *pBuffer;
-                
-                if (current == '}') {
-                    return false;
-                }
-
-                if (current == ',' || current == ' '
-                    || current == '\n' || current == '\r'
-                    || current == '\t' || current == '{') {
-                        offset++;
-                        pBuffer++;
-                        continue;
-                }
-
-                // Start of property name
-                break;
-            }
-
-            currentPropertyPtr = pBuffer;
-            return true;
-        }
-
-        public void GotoValue() {
-            while (*pBuffer != ':') {
-                offset++;
-                if (bufferSize <= offset)
-                    JsonHelper.ThrowUnexpectedEndOfContentException();
-                pBuffer++;
-            }
-            offset++;
-            if (bufferSize <= offset)
-                JsonHelper.ThrowUnexpectedEndOfContentException();
-            pBuffer++; // Skip ':' or ','
-
-            while (*pBuffer == ' ' || *pBuffer == '\n' || *pBuffer == '\r') {
-                offset++;
-                if (bufferSize <= offset)
-                    JsonHelper.ThrowUnexpectedEndOfContentException();
-                pBuffer++;
-            }
-        }
-
-        public bool GotoNextObject() {
-            while (true) {
-                if (*pBuffer == ']' || (!isArray && *pBuffer == '}')) {
-                    return false;
-                } else if (*pBuffer == '{') {
-                    return true;
-                }
-                offset++;
-                if (bufferSize <= offset)
-                    JsonHelper.ThrowUnexpectedEndOfContentException();
-                pBuffer++;
+                string name;
+                int valueSize;
+                JsonHelper.ParseString((IntPtr)propertyNamePtr, 256, out name, out valueSize);
+                return name;
             }
         }
     }

@@ -117,16 +117,6 @@ public:
     }
 #endif // LEAST_USED_SCHEDULING
 
-    // Writes given big linear buffer into obtained linked chunks.
-    uint32_t WorkerDbInterface::WriteBigDataToIPCChunks(
-        uint8_t* buf,
-        int32_t buf_len_bytes,
-        starcounter::core::chunk_index cur_chunk_index,
-        int32_t first_chunk_offset,
-        int32_t* actual_written_bytes,
-        uint16_t* num_ipc_chunks
-        );
-
     // Sends error message.
     uint32_t PushErrorMessage(
         scheduler_id_type sched_id,

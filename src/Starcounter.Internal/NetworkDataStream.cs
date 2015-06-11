@@ -19,14 +19,9 @@ namespace Starcounter
     public unsafe class NetworkDataStream : Finalizing
     {
         /// <summary>
-        /// The unmanaged_chunk_
         /// </summary>
-        Byte* rawChunkPtr_ = null;
-        
-        /// <summary>
-        /// Raw chunk data.
-        /// </summary>
-        internal Byte* RawChunk { get { return rawChunkPtr_; } }
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static uint cm_get_shared_memory_chunk(uint chunk_index, byte** chunk_mem_out);
 
         /// <summary>
         /// The chunk_index_
@@ -49,22 +44,31 @@ namespace Starcounter
         internal Byte GatewayWorkerId { get { return gwWorkerId_; } }
 
         /// <summary>
+        /// Gets chunk memory.
+        /// </summary>
+        /// <returns></returns>
+        internal unsafe Byte* GetChunkMemory() {
+
+            // Checking if chunk is valid.
+            if (MixedCodeConstants.INVALID_CHUNK_INDEX != chunkIndex_) {
+
+                Byte* chunkMem = null;
+                cm_get_shared_memory_chunk(chunkIndex_, &chunkMem);
+                return chunkMem;
+            }
+
+            return null;
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="NetworkDataStream" /> struct.
         /// </summary>
         internal void Init(
-            Byte* rawChunk,
             UInt32 chunkIndex,
-            Byte gwWorkerId,
-            Boolean attachFinalizer)
+            Byte gwWorkerId)
         {
-            rawChunkPtr_ = rawChunk;
             chunkIndex_ = chunkIndex;
             gwWorkerId_ = gwWorkerId;
-
-            // Adding finalizer on demand (WebSockets, RawSockets).
-            if (attachFinalizer) {
-                CreateFinalizer();
-            }
         }
 
         /// <summary>
@@ -79,67 +83,6 @@ namespace Starcounter
         /// </summary>
         internal NetworkDataStream() {
             
-        }
-
-        /// <summary>
-        /// Gets the size of the payload.
-        /// </summary>
-        /// <value>The size of the payload.</value>
-        public Int32 PayloadSize
-        {
-            get
-            {
-                return *((Int32*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_WRITTEN_BYTES));
-            }
-        }
-
-        /// <summary>
-        /// Reads the specified buffer.
-        /// </summary>
-        /// <param name="buffer">The buffer.</param>
-        /// <param name="offset">The offset.</param>
-        /// <param name="length">The length.</param>
-        /// <exception cref="System.ArgumentNullException">dest</exception>
-        /// <exception cref="System.ArgumentException">Not enough free space in destination buffer.</exception>
-        public void Read(Byte[] buffer, Int32 offset, Int32 length)
-        {
-            if (buffer == null) throw new ArgumentNullException("dest");
-            if ((buffer.Length - offset) < length)
-                throw new ArgumentException("Not enough free space in destination buffer.");
-            if (length > PayloadSize)
-                throw new ArgumentException("Specified length is larger than actual size.");
-
-            unsafe
-            {
-                if (PayloadSize > length)
-                    throw new ArgumentException("Not enough space to write user data.");
-
-                // Reading user data offset.
-                UInt16* user_data_offset_in_socket_data = (UInt16*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
-
-                // Copying the data to user buffer.
-                Marshal.Copy(
-                    new IntPtr(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data),
-                    buffer,
-                    offset,
-                    PayloadSize);
-            }
-        }
-
-        /// <summary>
-        /// Copies scalar bytes from incoming buffer to variable.
-        /// </summary>
-        /// <param name="offset">The offset.</param>
-        public UInt64 ReadUInt64(Int32 offset)
-        {
-            unsafe
-            {
-                // Reading user data offset.
-                UInt16* user_data_offset_in_socket_data = (UInt16*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
-
-                // Returning scalar value.
-                return *(UInt64*)(rawChunkPtr_ + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *user_data_offset_in_socket_data + offset);
-            }
         }
 
         /// <summary>
@@ -198,7 +141,6 @@ namespace Starcounter
             Debug.Assert(ec == 0);
 
             // This data stream becomes unusable.
-            rawChunkPtr_ = null;
             chunkIndex_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
         }
 
@@ -215,6 +157,8 @@ namespace Starcounter
             return false;
         }
 
+
+
         /// <summary>
         /// Frees all data stream resources like chunks.
         /// </summary>
@@ -224,14 +168,14 @@ namespace Starcounter
             UnLinkFinalizer();
 
             // Checking if already destroyed.
-            if (chunkIndex_ == MixedCodeConstants.INVALID_CHUNK_INDEX)
+            if (IsDestroyed())
                 return;
 
             // Checking if this request is garbage collected.
             if (!isStarcounterThread)
             {
                 NetworkDataStream thisInst = this;
-                StarcounterBase._DB.RunSync(() => { thisInst.ReleaseChunk(); });
+                StarcounterBase._DB.RunAsync(() => { thisInst.ReleaseChunk(); });
                 return;
             }
 

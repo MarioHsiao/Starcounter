@@ -5,6 +5,7 @@
 // ***********************************************************************
 
 using System;
+using Starcounter.Advanced.XSON;
 using Starcounter.Internal;
 
 namespace Starcounter.Templates {
@@ -21,8 +22,12 @@ namespace Starcounter.Templates {
         /// The .NET type of the instance represented by this template.
         /// </summary>
         /// <value>The type of the instance.</value>
-        public override Type InstanceType {
+        internal override Type DefaultInstanceType {
             get { return typeof(long); }
+        }
+
+        internal override TemplateTypeEnum TemplateTypeId {
+            get { return TemplateTypeEnum.Long; }
         }
     }
 }
