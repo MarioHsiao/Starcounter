@@ -78,7 +78,7 @@ namespace Starcounter {
             }
         }
 
-        static HookDelegateListEntry<T> AddDelegate(Action<T> callback) {
+        static RuntimeInstalledHookDelegate<T> AddDelegate(Action<T> callback) {
             HookDelegateList<T> delegates;
             if (!hooksPerSignature.TryGetValue(typeof(T).FullName, out delegates)) {
                 delegates = new HookDelegateList<T>();
@@ -86,7 +86,7 @@ namespace Starcounter {
             }
 
             var index = delegates.Add(callback);
-            return new HookDelegateListEntry<T>() { Delegates = delegates, Index = index };
+            return new RuntimeInstalledHookDelegate<T>() { Delegates = delegates, Index = index };
         }
 
         static void InstallHook(Type t, uint hookConfiguration, InvokableHook entry) {

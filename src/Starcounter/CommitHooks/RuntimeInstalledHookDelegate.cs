@@ -5,7 +5,7 @@ namespace Starcounter {
     /// the delegate method being adressed.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class HookDelegateListEntry<T> : InvokableHook {
+    internal class RuntimeInstalledHookDelegate<T> : InvokableHook {
         /// <summary>
         /// The list of delegates the current entry reference.
         /// </summary>
