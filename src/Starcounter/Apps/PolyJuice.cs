@@ -25,7 +25,7 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Custom maps.
         /// </summary>
-        static Dictionary<String, List<HandlerForSoType>> customMaps_;
+        static Dictionary<String, List<HandlerInfoForUriMapping>> customMaps_ = new Dictionary<string, List<HandlerInfoForUriMapping>>();
 
         /// <summary>
         /// Supported parameter string.
@@ -37,109 +37,35 @@ namespace PolyjuiceNamespace {
         /// </summary>
         const String PolyjuiceMappingUri = "/polyjuice/";
 
-        /// <summary>
-        /// Handler information for related class type.
-        /// </summary>
-        public class HandlerForSoType {
-
-            /// <summary>
-            /// Society Objects type.
-            /// </summary>
-            public SoType TheType;
-
-            /// <summary>
-            /// Handler ID.
-            /// </summary>
-            public UInt16 HandlerId;
-
-            /// <summary>
-            /// Conversion delegate to the destination class type.
-            /// </summary>
-            public Func<String, String> ConverterToSo;
-
-            /// <summary>
-            /// Conversion delegate from the destination class type.
-            /// </summary>
-            public Func<String, String> ConverterFromSo;
-
-            /// <summary>
-            /// Processed URI for handler.
-            /// </summary>
-            public String HandlerProcessedUri;
-
-            /// <summary>
-            /// Parameter information (offset in URI).
-            /// </summary>
-            public UInt16 ParamOffset;
-
-            /// <summary>
-            /// To which application this handler belongs.
-            /// </summary>
-            public String AppName;
-        }
-
-        /// <summary>
-        /// Society Objects type.
-        /// </summary>
-        public class SoType {
-
-            /// <summary>
-            /// Parent in inheritance tree.
-            /// </summary>
-            public SoType Inherits;
-
-            /// <summary>
-            /// Name of the class type.
-            /// </summary>
-            public String Name;
-
-            /// <summary>
-            /// List of handlers.
-            /// </summary>
-            public List<HandlerForSoType> Handlers;
-
-            public SoType(string nm) {
-                Handlers = new List<Polyjuice.HandlerForSoType>();
-                Name = nm;
-                Children = new HashSet<SoType>();
-            }
-
-            public HashSet<SoType> Children;
-
-            public void AddChild(SoType n) {
-                Children.Add(n);
-            }
-        }
-
         public class Tree {
-            private Dictionary<string, SoType> nameToNodes;
+            private Dictionary<string, MappingClassInfo> nameToNodes;
 
-            private SoType Locate(string name) {
+            private MappingClassInfo Locate(string name) {
                 if (!nameToNodes.ContainsKey(name))
-                    nameToNodes.Add(name, new SoType(name));
+                    nameToNodes.Add(name, new MappingClassInfo(name));
                 return nameToNodes[name];
             }
 
             public void Connect(string nameFrom, string nameTo) {
-                SoType nodeFrom = Locate(nameFrom);
-                SoType nodeTo = Locate(nameTo);
+                MappingClassInfo nodeFrom = Locate(nameFrom);
+                MappingClassInfo nodeTo = Locate(nameTo);
                 nodeTo.Inherits = nodeFrom;
                 nodeFrom.AddChild(nodeTo);
             }
 
             public void Add(string name) {
                 if (!nameToNodes.ContainsKey(name))
-                    nameToNodes.Add(name, new SoType(name));
+                    nameToNodes.Add(name, new MappingClassInfo(name));
             }
 
-            public SoType Find(string name) {
+            public MappingClassInfo Find(string name) {
                 if (nameToNodes.ContainsKey(name))
                     return nameToNodes[name];
                 else return null;
             }
 
             public Tree() {
-                nameToNodes = new Dictionary<string, SoType>();
+                nameToNodes = new Dictionary<string, MappingClassInfo>();
             }
         }
 
@@ -177,7 +103,7 @@ namespace PolyjuiceNamespace {
             }
         }
 
-        static public void ProduceLoader(SoType node, System.IO.StreamWriter file) {
+        static public void ProduceLoader(MappingClassInfo node, System.IO.StreamWriter file) {
             foreach (var v in node.Children) {
                 file.WriteLine("tree_.Connect(\"" + node.Name + "\", \"" + v.Name + "\");");
                 file.Flush();
@@ -202,20 +128,83 @@ namespace PolyjuiceNamespace {
         }
 
         /// <summary>
-        /// Maps an existing application processed URI to another URI.
+        /// Handler information for related class type.
         /// </summary>
-        public static void Map(
-            String appProcessedUri,
-            String mapProcessedUri,
-            String method = "GET") {
+        public class HandlerInfoForUriMapping {
 
-            Map(appProcessedUri, mapProcessedUri, null, null, method);
+            /// <summary>
+            /// Society Objects type.
+            /// </summary>
+            public MappingClassInfo TheType;
+
+            /// <summary>
+            /// Handler ID.
+            /// </summary>
+            public UInt16 HandlerId;
+
+            /// <summary>
+            /// Conversion delegate to the destination class type.
+            /// </summary>
+            public Func<String, String> ConverterToSo;
+
+            /// <summary>
+            /// Conversion delegate from the destination class type.
+            /// </summary>
+            public Func<String, String> ConverterFromSo;
+
+            /// <summary>
+            /// Processed URI for handler.
+            /// </summary>
+            public String HandlerProcessedUri;
+
+            /// <summary>
+            /// Parameter information (offset in URI).
+            /// </summary>
+            public UInt16 ParamOffset;
+
+            /// <summary>
+            /// To which application this handler belongs.
+            /// </summary>
+            public String AppName;
+        }
+
+        /// <summary>
+        /// Society Objects type.
+        /// </summary>
+        public class MappingClassInfo {
+
+            /// <summary>
+            /// Parent in inheritance tree.
+            /// </summary>
+            public MappingClassInfo Inherits;
+
+            /// <summary>
+            /// Name of the class type.
+            /// </summary>
+            public String Name;
+
+            /// <summary>
+            /// List of handlers.
+            /// </summary>
+            public List<HandlerInfoForUriMapping> Handlers;
+
+            public MappingClassInfo(string nm) {
+                Handlers = new List<HandlerInfoForUriMapping>();
+                Name = nm;
+                Children = new HashSet<MappingClassInfo>();
+            }
+
+            public HashSet<MappingClassInfo> Children;
+
+            public void AddChild(MappingClassInfo n) {
+                Children.Add(n);
+            }
         }
 
         /// <summary>
         /// Mapping  handler that calls registered handlers.
         /// </summary>
-        static Response MappingHandler(Request req, List<HandlerForSoType> mappedHandlersList, String stringParam) {
+        static Response MappingHandler(Request req, List<HandlerInfoForUriMapping> mappedHandlersList, String stringParam) {
 
             HandlerOptions callingHandlerOptions = req.HandlerOpts;
 
@@ -244,7 +233,7 @@ namespace PolyjuiceNamespace {
                 Boolean currentAppHasHandler = false;
 
                 // Checking if application handler is presented.
-                foreach (HandlerForSoType x in mappedHandlersList) {
+                foreach (HandlerInfoForUriMapping x in mappedHandlersList) {
 
                     if (x.AppName == callingHandlerOptions.CallingAppName) {
 
@@ -260,7 +249,7 @@ namespace PolyjuiceNamespace {
             }
 
             // Going through a mapped handlers list.
-            foreach (HandlerForSoType x in mappedHandlersList) {
+            foreach (HandlerInfoForUriMapping x in mappedHandlersList) {
 
                 // Checking if we already called the substitute handler.
                 if (substituteHandler) {
@@ -316,13 +305,28 @@ namespace PolyjuiceNamespace {
             if (resps.Count > 0) {
 
                 // Creating merged response.
-                return Response.ResponsesMergerRoutine_(req, null, resps);
+                if (null != Response.ResponsesMergerRoutine_) {
+                    return Response.ResponsesMergerRoutine_(req, null, resps);
+                }
+
+                return resps[0];
 
             } else {
 
                 // If there is no merged response - return null.
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Maps an existing application processed URI to another URI.
+        /// </summary>
+        public static void Map(
+            String appProcessedUri,
+            String mapProcessedUri,
+            String method = "GET") {
+
+            Map(appProcessedUri, mapProcessedUri, null, null, method);
         }
 
         /// <summary>
@@ -345,18 +349,14 @@ namespace PolyjuiceNamespace {
                 throw new InvalidOperationException("HTTP method should be either GET, POST, PUT, DELETE or PATCH.");
             }
 
-            if (!StarcounterEnvironment.PolyjuiceAppsFlag) {
-                throw new InvalidOperationException("Polyjuice is not initialized!");
+            // Checking that map URI is "/" or starts with "/polyjuice/".
+            if (!mapProcessedUri.StartsWith(PolyjuiceMappingUri, StringComparison.InvariantCultureIgnoreCase)) {
+                if (mapProcessedUri != "/") {
+                    throw new ArgumentException("Application can only map to handlers starting with \"/polyjuice/\" or a root handler.");
+                }
             }
 
-            lock (tree_) {
-
-                // Checking that map URI is "/" or starts with "/polyjuice/".
-                if (!mapProcessedUri.StartsWith(PolyjuiceMappingUri, StringComparison.InvariantCultureIgnoreCase)) {
-                    if (mapProcessedUri != "/") {
-                        throw new ArgumentException("Application can only map to handlers starting with \"/polyjuice/\" or a root handler.");
-                    }
-                }
+            lock (customMaps_) {
 
                 // Checking that we have only long parameter.
                 Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
@@ -398,7 +398,7 @@ namespace PolyjuiceNamespace {
                 }
 
                 // Basically creating and attaching handler to class type.
-                HandlerForSoType handler = AddHandlerToClass(
+                HandlerInfoForUriMapping handler = AddHandlerToClass(
                     null,
                     handlerId,
                     appProcessedUri,
@@ -418,7 +418,7 @@ namespace PolyjuiceNamespace {
                     Debug.Assert(false == customMaps_.ContainsKey(mapProcessedMethodUriSpace));
 
                     // Creating a new mapping list and adding URI to it.
-                    List<HandlerForSoType> mappedHandlersList = new List<HandlerForSoType>();
+                    List<HandlerInfoForUriMapping> mappedHandlersList = new List<HandlerInfoForUriMapping>();
                     mappedHandlersList.Add(handler);
                     customMaps_.Add(mapProcessedMethodUriSpace, mappedHandlersList);
 
@@ -456,7 +456,7 @@ namespace PolyjuiceNamespace {
 
                     // Just adding this mapped handler to the existing list.
 
-                    List<HandlerForSoType> mappedList;
+                    List<HandlerInfoForUriMapping> mappedList;
                     Boolean found = customMaps_.TryGetValue(mapProcessedMethodUriSpace, out mappedList);
                     Debug.Assert(true == found);
 
@@ -572,7 +572,7 @@ namespace PolyjuiceNamespace {
                 // Getting mapped URI prefix.
                 String mappedUriPrefix = soProcessedUri.Substring(0, "/db/".Length);
 
-                SoType soType = null;
+                MappingClassInfo soType = null;
 
                 if (EmulateSoDatabase) {
 
@@ -633,7 +633,7 @@ namespace PolyjuiceNamespace {
                 }
 
                 // Basically attaching a class handler to class.
-                HandlerForSoType handler = AddHandlerToClass(
+                HandlerInfoForUriMapping handler = AddHandlerToClass(
                     soType,
                     handlerId,
                     appProcessedUri,
@@ -675,10 +675,10 @@ namespace PolyjuiceNamespace {
         /// </summary>
         /// <param name="currentClassInfo">Current class from which the search starts.</param>
         /// <returns></returns>
-        static SoType FindHandlersInClassHierarchy(ref Starcounter.Metadata.Table currentClassInfo) {
+        static MappingClassInfo FindHandlersInClassHierarchy(ref Starcounter.Metadata.Table currentClassInfo) {
 
             // Going up in class hierarchy until we find the handlers.
-            SoType soType = tree_.Find(currentClassInfo.FullName);
+            MappingClassInfo soType = tree_.Find(currentClassInfo.FullName);
             if (soType != null)
                 return soType;
 
@@ -710,7 +710,7 @@ namespace PolyjuiceNamespace {
 
             // Checking if there is such class in database.
             Starcounter.Metadata.Table classInfo = null;
-            SoType soType = null;
+            MappingClassInfo soType = null;
 
             if (EmulateSoDatabase) {
 
@@ -779,14 +779,14 @@ namespace PolyjuiceNamespace {
 
                 Boolean currentAppHasHandler = false;
 
-                SoType soTypeTemp = soType;
+                MappingClassInfo soTypeTemp = soType;
                 Starcounter.Metadata.Table tempClassInfo = classInfo;
 
                 // Until we reach the root of the class tree.
                 while (soTypeTemp != null) {
 
                     // Checking if application handler is presented in the hierarchy.
-                    foreach (HandlerForSoType x in soTypeTemp.Handlers) {
+                    foreach (HandlerInfoForUriMapping x in soTypeTemp.Handlers) {
 
                         if (x.AppName == req.HandlerOpts.CallingAppName) {
 
@@ -840,8 +840,8 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Adding existing handler to class.
         /// </summary>
-        static HandlerForSoType AddHandlerToClass(
-            SoType soType,
+        static HandlerInfoForUriMapping AddHandlerToClass(
+            MappingClassInfo soType,
             UInt16 handlerId,
             String handlerProcessedUri,
             String appProcessedMethodUriSpace,
@@ -849,7 +849,7 @@ namespace PolyjuiceNamespace {
             Func<String, String> converterToSo,
             Func<String, String> converterFromSo) {
 
-            HandlerForSoType x = new HandlerForSoType();
+            HandlerInfoForUriMapping x = new HandlerInfoForUriMapping();
 
             if (EmulateSoDatabase) {
 
@@ -900,12 +900,12 @@ namespace PolyjuiceNamespace {
         /// </summary>
         static void CallAllHandlersForClass(
             List<Response> resps,
-            SoType type,
+            MappingClassInfo type,
             String stringParam,
             List<UInt16> alreadyCalledHandlers) {
 
             // Processing specific handler.
-            Action<HandlerForSoType> processHandler = (HandlerForSoType x) => {
+            Action<HandlerInfoForUriMapping> processHandler = (HandlerInfoForUriMapping x) => {
 
                 HandlerOptions ho = new HandlerOptions();
 
@@ -945,7 +945,7 @@ namespace PolyjuiceNamespace {
 
             if (EmulateSoDatabase) {
 
-                foreach (HandlerForSoType x in type.Handlers) {
+                foreach (HandlerInfoForUriMapping x in type.Handlers) {
 
                     // Going through each skipped handler.
                     foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
@@ -962,7 +962,7 @@ namespace PolyjuiceNamespace {
 
             } else {
 
-                foreach (HandlerForSoType x in type.Handlers) {
+                foreach (HandlerInfoForUriMapping x in type.Handlers) {
 
                     // Going through each skipped handler.
                     foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
@@ -1268,7 +1268,11 @@ namespace PolyjuiceNamespace {
             if (resps.Count > 0) {
 
                 // Creating merged response.
-                return Response.ResponsesMergerRoutine_(req, null, resps);
+                if (null != Response.ResponsesMergerRoutine_) {
+                    return Response.ResponsesMergerRoutine_(req, null, resps);
+                }
+
+                return resps[0];
 
             } else {
 
@@ -1284,8 +1288,6 @@ namespace PolyjuiceNamespace {
         public static void Init(Boolean emulateDatabase) {
 
             PopulateSoTree(emulateDatabase);
-
-            customMaps_ = new Dictionary<string, List<HandlerForSoType>>();
 
             Response.ResponsesMergerRoutine_ = DefaultMerger;
 

@@ -14,40 +14,6 @@ using System.Collections.Concurrent;
 namespace Starcounter.Internal.Tests
 {
     /// <summary>
-    /// Used for tests initialization/shutdown.
-    /// </summary>
-    [SetUpFixture]
-    class TestHttpHandlersSetup {
-
-        /// <summary>
-        /// Tests initialization.
-        /// </summary>
-        [SetUp]
-        public void NewRestTestsSetupInit() {
-
-            Db.SetEnvironment(new DbEnvironment("TestLocalNode", false));
-            StarcounterEnvironment.AppName = Path.GetFileNameWithoutExtension(Assembly.GetCallingAssembly().Location);
-
-            ConcurrentDictionary<UInt16, StaticWebServer> fileServer = new ConcurrentDictionary<UInt16, StaticWebServer>();
-            AppRestServer appServer = new AppRestServer(fileServer);
-
-            UriManagedHandlersCodegen.Setup(
-                null, 
-                null, 
-                null, 
-                null, 
-                appServer.RunDelegateAndProcessResponse,
-                UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
-
-            // Initializing system profilers.
-            Profiler.Init(true);
-
-            // Not actually a merger anymore but linker of sibling Json parts.
-            Response.ResponsesMergerRoutine_ = Polyjuice.DefaultMerger;
-        }
-    }
-
-    /// <summary>
     /// 
     /// </summary>
     public class PolyjuiceTests

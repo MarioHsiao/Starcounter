@@ -1701,6 +1701,7 @@ uint32_t GatewayWorker::WorkerRoutine()
             GW_ASSERT((STATUS_USER_APC == err_code) || (STATUS_TIMEOUT == err_code));
         }
 
+        // Setting gateway to wait infinitely for network events.
         next_sleep_interval_ms = INFINITE;
 
         // Checking if we have aggregation.

@@ -92,6 +92,7 @@
     <Compile Include="SessionUsages.cs" />
     <Compile Include="TestApp.cs" />
     <Compile Include="TestCallLevel.cs" />
+    <Compile Include="TestHandlerMapping.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

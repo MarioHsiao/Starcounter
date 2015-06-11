@@ -268,22 +268,19 @@ namespace Starcounter.Internal {
                 // Obtaining full path to directory.
                 String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
 
-                // Checking if we have wwwroot folder for Polyjuice edition.
-                if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                // Path to wwwroot folder, if any exists.
+                String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
 
-                    String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
+                if (Directory.Exists(extendedResourceDirPath)) {
+
+                    fullPathToResourcesDir = extendedResourceDirPath;
+
+                } else {
+
+                    extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.PolyjuiceWebRootName);
 
                     if (Directory.Exists(extendedResourceDirPath)) {
-
                         fullPathToResourcesDir = extendedResourceDirPath;
-
-                    } else {
-
-                        extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.PolyjuiceWebRootName);
-
-                        if (Directory.Exists(extendedResourceDirPath)) {
-                            fullPathToResourcesDir = extendedResourceDirPath;
-                        }
                     }
                 }
 

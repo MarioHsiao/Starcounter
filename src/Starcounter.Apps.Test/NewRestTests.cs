@@ -17,6 +17,7 @@ using Starcounter.Templates;
 using Starcounter.Rest;
 using System.IO;
 using System.Collections.Concurrent;
+using PolyjuiceNamespace;
 
 namespace Starcounter.Internal.Test
 {
@@ -48,6 +49,9 @@ namespace Starcounter.Internal.Test
 
             // Initializing system profilers.
             Profiler.Init(true);
+
+            // Not actually a merger anymore but linker of sibling Json parts.
+            Response.ResponsesMergerRoutine_ = Polyjuice.DefaultMerger;
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(1);
