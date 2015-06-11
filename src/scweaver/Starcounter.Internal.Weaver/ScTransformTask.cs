@@ -624,17 +624,22 @@ namespace Starcounter.Internal.Weaver {
                     // is one of the parameters) instead of object.GetType().FullName.
                     // This one works as a proof-of-concept though.
 
+                    // Get name and store it in local variable
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
                     _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectGetType);
                     _writer.EmitInstructionMethod(OpCodeNumber.Callvirt, _typeGetFullName);
                     _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, fullNameVariable);
+
+                    // Load the value of the key and store it in a local variable
                     _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
-                    var idField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisIdName);
-                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, idField);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, thisIdField);
                     _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, keyVariable);
+
+                    // Load both variables in the stack
                     _writer.EmitInstruction(OpCodeNumber.Ldloc_0);
                     _writer.EmitInstruction(OpCodeNumber.Ldloc_1);
 
+                    // Make the call
                     var put = _module.FindMethod(typeof(MapInvoke).GetMethod("PUT"), BindingOptions.Default);
                     _writer.EmitInstructionMethod(OpCodeNumber.Call, put);
                 }
