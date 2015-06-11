@@ -4,3 +4,7 @@
         TD.appendChild(document.createTextNode('NULL'));
     }
 });
+// Fix for auto-scroll on cell click
+Handsontable.hooks.add('beforeSetRangeEnd', function () {
+    this.view.activeWt = null;
+});

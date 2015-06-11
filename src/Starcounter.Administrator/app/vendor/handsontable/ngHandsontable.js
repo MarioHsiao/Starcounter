@@ -201,6 +201,9 @@ angular.module('ngHandsontable.directives', [])
             if (!$rootScope.$$phase) {
               scope.$apply();
             }
+            setTimeout(function() {
+              scope.hotInstance.render();
+            }, 20);
           };
 
 
