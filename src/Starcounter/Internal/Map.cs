@@ -2,6 +2,24 @@
 using System;
 
 namespace Starcounter.Internal {
+
+    /// <summary>
+    /// Temporary class providing global on/off for mapping.
+    /// </summary>
+    public static class MapConfig {
+        /// <summary>
+        /// Indicates if mapping of applications should be enabled
+        /// or not. Configuration will probably be on another level (app
+        /// level?) in the final solution.
+        /// </summary>
+        public static bool Enabled {
+            get {
+                var value = Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING");
+                return !string.IsNullOrEmpty(value);
+            }
+        }
+    }
+
     /// <summary>
     /// Implements the actual handler layer of the mapping functionality.
     /// </summary>
