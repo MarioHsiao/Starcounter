@@ -80,7 +80,20 @@ namespace Starcounter.Internal
         /// Name of the application.
         /// </summary>
         [ThreadStatic]
-        public static string AppName;
+        static string appName_;
+
+        /// <summary>
+        /// Name of the application.
+        /// </summary>
+        public static string AppName {
+            get {
+                return appName_;
+            }
+
+            internal set {
+                appName_ = value;
+            }
+        }
 
         /// <summary>
         /// Name of the application.
