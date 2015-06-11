@@ -38,6 +38,11 @@ CALL CodePropIndex2533.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+PUSHD CommitHooksTest
+CALL CommitHooksTest.bat
+POPD
+IF ERRORLEVEL 1 GOTO err
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 
