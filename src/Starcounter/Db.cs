@@ -406,6 +406,16 @@ namespace Starcounter
             // we rollback the issued delete and pass on the thrown exception
             // to the caller.
 
+            // Invoke mapper
+            // Temporary, prototypish solution. Follow progress and see what we
+            // are planning in https://github.com/Starcounter/Starcounter/issues/2683
+            //
+            // When should this be called? Before or after OnDelete?
+            // TODO:
+            if (MapConfig.Enabled) {
+                MapInvoke.DELETE(proxy.TypeBinding.Name, oid);
+            }
+
             try {
                 InvokeOnDelete(proxy);
             } catch (Exception ex) {
