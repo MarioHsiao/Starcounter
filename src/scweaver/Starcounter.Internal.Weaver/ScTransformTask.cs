@@ -574,6 +574,10 @@ namespace Starcounter.Internal.Weaver {
                 setMethod.MethodBody.RootInstructionBlock = setMethod.MethodBody.CreateInstructionBlock();
                 sequence = setMethod.MethodBody.CreateInstructionSequence();
                 setMethod.MethodBody.RootInstructionBlock.AddInstructionSequence(sequence, NodePosition.After, null);
+
+                var fullNameVariable = setMethod.MethodBody.RootInstructionBlock.DefineLocalVariable(_module.Cache.GetIntrinsic(IntrinsicType.String), "fullName");
+                var keyVariable = setMethod.MethodBody.RootInstructionBlock.DefineLocalVariable(_module.Cache.GetIntrinsic(IntrinsicType.UInt64), "key");
+
                 _writer.AttachInstructionSequence(sequence);
 
                 _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
@@ -591,7 +595,9 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
-                if (!emitSetValueCall) {
+                var emitMapCall = true;
+
+                if (!emitSetValueCall && !emitMapCall) {
                     // We can make a tail call since it is the last instruction in the method.
                     _writer.EmitPrefix(InstructionPrefixes.Tail);
                 }
@@ -607,6 +613,30 @@ namespace Starcounter.Internal.Weaver {
 
                     _writer.EmitPrefix(InstructionPrefixes.Tail);
                     _writer.EmitInstructionMethod(OpCodeNumber.Call, setValueCallback);
+                }
+
+                if (emitMapCall) {
+
+                    // Setup and call MapInvoke.POST
+                    // This implementation is very much temporary. There are several
+                    // better alternatives, where one really simple one that should
+                    // perform better than this is to use TypeBinding.Name (the binding
+                    // is one of the parameters) instead of object.GetType().FullName.
+                    // This one works as a proof-of-concept though.
+
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call, _objectGetType);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Callvirt, _typeGetFullName);
+                    _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, fullNameVariable);
+                    _writer.EmitInstruction(OpCodeNumber.Ldarg_0);
+                    var idField = field.DeclaringType.Fields.GetByName(TypeSpecification.ThisIdName);
+                    _writer.EmitInstructionField(OpCodeNumber.Ldfld, idField);
+                    _writer.EmitInstructionLocalVariable(OpCodeNumber.Stloc, keyVariable);
+                    _writer.EmitInstruction(OpCodeNumber.Ldloc_0);
+                    _writer.EmitInstruction(OpCodeNumber.Ldloc_1);
+
+                    var put = _module.FindMethod(typeof(MapInvoke).GetMethod("PUT"), BindingOptions.Default);
+                    _writer.EmitInstructionMethod(OpCodeNumber.Call, put);
                 }
 
                 _writer.EmitInstruction(OpCodeNumber.Ret);
