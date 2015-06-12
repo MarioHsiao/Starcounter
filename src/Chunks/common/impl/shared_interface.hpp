@@ -362,6 +362,10 @@ client_interface_ptr, uint32_t timeout_milliseconds) {
 	chunks_to_acquire, client_interface_ptr, timeout_milliseconds);
 }
 
+inline std::size_t shared_interface::size() {
+	return shared_chunk_pool_->size();
+}
+
 template<typename U>
 inline std::size_t shared_interface::acquire_from_shared_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*

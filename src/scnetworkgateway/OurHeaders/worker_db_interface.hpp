@@ -83,6 +83,9 @@ class WorkerDbInterface
 
 public:
 
+    // Printing the database information.
+    void PrintInfo(std::stringstream& stats_stream);
+
 #ifndef LEAST_USED_SCHEDULING
     // Round-robin scheduler number.
     uint32_t GenerateSchedulerId()

@@ -528,6 +528,12 @@ uint32_t WorkerDbInterface::SetGatewayReadyForDbPushes()
     return 0;
 }
 
+// Printing the database information.
+void WorkerDbInterface::PrintInfo(std::stringstream& stats_stream)
+{
+    stats_stream << "\"NumAvailableChunks\":" << shared_int_.size();
+}
+
 // Handles management chunks.
 uint32_t WorkerDbInterface::HandleManagementChunks(
     scheduler_id_type sched_id,

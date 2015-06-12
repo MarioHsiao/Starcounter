@@ -630,8 +630,8 @@ void ServerPort::PrintInfo(std::stringstream& stats_stream)
 // Printing the database information.
 void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
 {
-    stats_stream << "{\"name\":\"" << db_name_ << "\",";
-    stats_stream << "\"index\":" << static_cast<int32_t>(db_index_) << "}";
+    stats_stream << "\"name\":\"" << db_name_ << "\",";
+    stats_stream << "\"index\":" << static_cast<int32_t>(db_index_);
 }
 
 ServerPort::ServerPort()
@@ -2083,7 +2083,15 @@ void Gateway::PrintDatabaseStatistics(std::stringstream& stats_stream)
                 stats_stream << ",";
             first = false;
 
+            stats_stream << "{";
+
             active_databases_[d].PrintInfo(stats_stream);
+            stats_stream << ",";
+            WorkerDbInterface* db = gw_workers_[0].GetWorkerDb(d);
+            if (NULL != db)
+                db->PrintInfo(stats_stream);
+
+            stats_stream << "}";
         }
     }
     stats_stream << "]";

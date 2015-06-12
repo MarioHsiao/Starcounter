@@ -285,6 +285,9 @@ public:
 	std::size_t acquire_from_shared_to_private(U& private_chunk_pool,
 	std::size_t chunks_to_acquire, client_interface_type* client_interface_ptr,
 	uint32_t timeout_milliseconds);
+
+    // Returns the number of available chunks.
+    std::size_t size();
 	
 	/// Acquire N (unlinked) chunks from the shared_chunk_pool to a private
 	/// chunk_pool.
