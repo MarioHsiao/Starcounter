@@ -151,6 +151,9 @@ angular.module('ngHandsontable.directives', [])
         publicHooks = Handsontable.hooks.getRegistered(),
         htOptions = publicProperties.concat(publicHooks);
 
+      htOptions.push('classname');
+      htOptions.push('className');
+
       return {
         restrict: 'EA',
         scope: settingFactory.getScopeDefinition(htOptions),
@@ -311,6 +314,9 @@ angular.module('ngHandsontable.directives', [])
 
           if (typeof attributes.readonly !== 'undefined') {
             column.readOnly = true;
+          }
+          if (typeof attributes.classname !== 'undefined') {
+            column.className = attributes.classname;
           }
 
           if (!scope.column) {

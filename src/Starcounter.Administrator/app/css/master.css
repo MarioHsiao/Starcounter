@@ -328,26 +328,43 @@ body {
     vertical-align: middle;
 }
 
-    .spinner.tiny {
-        height: 18px;
-        width: 18px; /* Pixel size of the GIF you download */
-        background: url("/app/images/spiffygif_18x18.gif");
-    }
+.spinner.tiny {
+    height: 18px;
+    width: 18px; /* Pixel size of the GIF you download */
+    background: url("/app/images/spiffygif_18x18.gif");
+}
 
-    .spinner.small {
-        height: 24px;
-        width: 24px; /* Pixel size of the GIF you download */
-        background: url("/app/images/spiffygif_28x28.gif");
-    }
+.spinner.small {
+    height: 24px;
+    width: 24px; /* Pixel size of the GIF you download */
+    background: url("/app/images/spiffygif_28x28.gif");
+}
 
-    .spinner.medium {
-        height: 32px;
-        width: 32px;
-        background: url("/app/images/spiffygif_32x32.gif");
-    }
+.spinner.medium {
+    height: 32px;
+    width: 32px;
+    background: url("/app/images/spiffygif_32x32.gif");
+}
 
-    .spinner.large {
-        height: 64px;
-        width: 64px;
-        background: url("/app/images/spiffygif_64x64.gif");
-    }
+.spinner.large {
+    height: 64px;
+    width: 64px;
+    background: url("/app/images/spiffygif_64x64.gif");
+}
+
+.handsontable td.log-message {
+    white-space: pre-wrap;
+    word-break: break-all;
+    word-wrap: break-word;
+}
+.handsontable pre {
+    border: none;
+    background-color: transparent;
+    margin: 0
+}
+.handsontable .log-message .wrapper {
+    overflow-x: auto;
+}
+.log-message-detector pre, .log-message-detector code {
+    white-space: pre;
+}
