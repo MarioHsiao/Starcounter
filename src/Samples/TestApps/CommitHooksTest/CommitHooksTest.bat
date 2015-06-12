@@ -19,6 +19,7 @@ staradmin --database=%DB_NAME% delete --force db
 star --database=%DB_NAME% CommitHooksTest.cs
 IF ERRORLEVEL 1 GOTO err
 
+staradmin --database=%DB_NAME% stop db
 
 ECHO %TEST_NAME% regression test succeeded.
 EXIT /b 0

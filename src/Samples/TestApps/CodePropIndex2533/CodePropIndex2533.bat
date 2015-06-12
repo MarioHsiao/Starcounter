@@ -19,6 +19,8 @@ ECHO Run the test
 star --database=%DB_NAME% CodePropIndex2533.cs
 IF ERRORLEVEL 1 GOTO err
 
+staradmin --database=%DB_NAME% stop db
+
 ECHO CodePropIndex2533 regression test succeeded.
 EXIT /b 0
 
