@@ -10,8 +10,6 @@
 //});
 
 // Monkey patch - fix for quotas from copied cell
-(function() {
-  Handsontable.DataMap.prototype.getCopyableText = function(start, end) {
-    return this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
-  };
-}());
+Handsontable.DataMap.prototype.getCopyableText = function(start, end) {
+  return this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
+};
