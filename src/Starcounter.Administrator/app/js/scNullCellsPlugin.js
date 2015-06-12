@@ -5,9 +5,9 @@
   }
 });
 // Fix for autoscroll on cell click
-//Handsontable.hooks.add('beforeSetRangeEnd', function () {
-//	this.view.activeWt = null;
-//});
+Handsontable.hooks.add('beforeSetRangeEnd', function () {
+	this.view.activeWt = null;
+});
 
 // Monkey patch - fix for quotas from copied cell
 Handsontable.DataMap.prototype.getCopyableText = function(start, end) {
