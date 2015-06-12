@@ -27,6 +27,7 @@ IF ERRORLEVEL 1 GOTO err
 
 REM Clean update
 DEL IndexedColumnDrop.cs
+staradmin --database=%DB_NAME% stop db
 
 ECHO IndexedColumnDrop regression test succeeded.
 EXIT /b 0

@@ -27,6 +27,7 @@ IF ERRORLEVEL 1 GOTO err
 
 REM Clean update
 DEL TestClassSchemaChange.cs
+staradmin --database=%DB_NAME% stop db
 
 ECHO TestClassSchemaChange regression test succeeded.
 EXIT /b 0
