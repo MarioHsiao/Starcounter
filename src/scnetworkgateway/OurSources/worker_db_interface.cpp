@@ -531,7 +531,18 @@ uint32_t WorkerDbInterface::SetGatewayReadyForDbPushes()
 // Printing the database information.
 void WorkerDbInterface::PrintInfo(std::stringstream& stats_stream)
 {
-    stats_stream << "\"NumAvailableChunks\":" << shared_int_.size();
+    stats_stream << "\"NumAvailableChunks\":" << shared_int_.size() << ",";
+
+    stats_stream << "\"ChunksInChannels\":\"";
+    for (int32_t s = 0; s < num_schedulers_; s++)
+    {
+        core::channel_type& the_channel = shared_int_.channel(channels_[s]);
+        stats_stream << "[" << the_channel.in.count() << "," << the_channel.out.count() << "]";
+        if (s < num_schedulers_ - 1)
+            stats_stream << " ";
+    }
+
+    stats_stream << "\"";
 }
 
 // Handles management chunks.
