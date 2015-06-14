@@ -187,8 +187,7 @@ namespace Starcounter {
                     throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
                 }
 
-                dataStream = new NetworkDataStream();
-                dataStream.Init(chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream = new NetworkDataStream(chunkIndex, socketStruct_.GatewayWorkerId);
 
             } else {
 
