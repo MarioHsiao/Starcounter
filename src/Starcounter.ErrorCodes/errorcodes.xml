@@ -3269,6 +3269,37 @@
         referenced and will be discarded. 
       </message>
     </code>
+    <code hex="0125" severity="Error" name="ScErrDataManagerUnavailable">
+      <message>
+        Failed to connect to data manager is unavailable. Occurs when data
+        manager is not started or not yet properly initialized.
+      </message>
+    </code>
+    <code hex="0126" severity="Error" name="ScErrDataManagerChannelInUse">
+      <message>
+        Failed to connect to data manager because designated channel is in use.
+        Occurs if a previous client is still connected or not yet properly
+        disconnected.
+      </message>
+    </code>
+    <code hex="0127" severity="Error" name="ScErrDataManagerUnresponsive">
+      <message>
+        Communication with data manager failed because data manager is
+        unresponsive.
+      </message>
+    </code>
+    <code hex="0128" severity="Error" name="ScErrDataManagerDisconnected">
+      <message>
+        Communication with data manager failed because client was disconnected
+        by data manager.
+      </message>
+    </code>
+    <code hex="0129" severity="Error" name="ScErrDataManagerIncoherent">
+      <message>
+        Communication with data manager failed because client is unable to
+        understand the data manager.
+      </message>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3919,6 +3950,12 @@
         The transaction was aborted after being merged into another transaction.
       </message>
     </code>
+    <code hex="0027" severity="Error" name="ScErrRecordTooLargeAbort">
+      <message>
+        The transaction was aborted because record generated exeeded the maximum
+        allowed record size.
+      </message>
+    </code>
   </facility>
 
 <!--
@@ -4231,6 +4268,12 @@
     <code hex="0028" severity="Error" name="ScErrProcessExitCodeNotAvailable">
       <message>
         The exit code of the terminating process was not available.
+      </message>
+    </code>
+    <code hex="0029" severity="Error" name="ScErrTooManyDatabases">
+      <message>
+        Creating a new database failed. The maximum number of databases that
+        can coexist on a given server have been reached.
       </message>
     </code>
   </facility>
