@@ -291,14 +291,14 @@ bool WorkerDbInterface::PushLinkedChunksToDb(
 
 // Returns given chunk to private chunk pool.
 // NOTE: This function should always succeed.
-void WorkerDbInterface::ReturnLinkedChunksToPool(core::chunk_index& first_linked_chunk)
+void WorkerDbInterface::ReturnLinkedChunksToPool(core::chunk_index& ipc_chunk_index)
 {
 #ifdef GW_CHUNKS_DIAG
-    GW_PRINT_WORKER_DB << "Returning linked chunks to pool: " << first_linked_chunk << GW_ENDL;
+    GW_PRINT_WORKER_DB << "Returning linked chunks to pool: " << ipc_chunk_index << GW_ENDL;
 #endif
 
     // Releasing chunk to private pool.
-    bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), first_linked_chunk);
+    bool success = private_chunk_pool_.release_linked_chunks(&shared_int_.chunk(0), ipc_chunk_index);
     GW_ASSERT(success == true);
 
     // Check if there are too many private chunks so
@@ -314,7 +314,7 @@ void WorkerDbInterface::ReturnLinkedChunksToPool(core::chunk_index& first_linked
         //GW_ASSERT(0 == err_code);
     }
 
-    first_linked_chunk = INVALID_CHUNK_INDEX;
+    ipc_chunk_index = INVALID_CHUNK_INDEX;
 }
 
 // Releases all private chunks to shared chunk pool.
@@ -420,8 +420,8 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     shared_memory_chunk *ipc_smc = NULL;
 
     // Getting a free chunk.
-    core::chunk_index new_chunk_index;
-    uint32_t err_code = GetOneChunkFromPrivatePool(&new_chunk_index, &ipc_smc);
+    core::chunk_index ipc_first_chunk_index;
+    uint32_t err_code = GetOneChunkFromPrivatePool(&ipc_first_chunk_index, &ipc_smc);
     if (err_code)
         return err_code;
 
@@ -441,7 +441,13 @@ uint32_t WorkerDbInterface::PushErrorMessage(
     request->write_wstring(err_msg, static_cast<uint32_t> (wcslen(err_msg)));
 
     // Pushing the chunk.
-    PushLinkedChunksToDb(new_chunk_index, sched_id, false);
+    if (!PushLinkedChunksToDb(ipc_first_chunk_index, sched_id, false)) {
+
+        // Releasing management chunks.
+        ReturnLinkedChunksToPool(ipc_first_chunk_index);
+
+        return SCERRCANTPUSHTOCHANNEL;
+    }
 
     return 0;
 }
