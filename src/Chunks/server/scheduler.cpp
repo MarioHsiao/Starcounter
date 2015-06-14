@@ -1382,10 +1382,8 @@ try_to_acquire_from_private_chunk_pool:
         // Failed to acquire the linked chunks from the private chunk_pool.
         // Try to move some chunks from the shared_chunk_pool to the private
         // chunk_pool.
-        while (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */))
-        {
-            // NOTE: Waiting until chunk is available.
-            Sleep(1);
+        if (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */)) {
+            return SCERRACQUIRELINKEDCHUNKS;
         }
 
         // Successfully moved enough chunks to the private chunk_pool.
@@ -1412,10 +1410,8 @@ try_to_acquire_from_private_chunk_pool:
     else
     {
         // Getting a bunch of chunks to private pool.
-        while (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */))
-        {
-            // NOTE: Waiting until chunk is available.
-            Sleep(1);
+        if (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */)) {
+            return SCERRACQUIRELINKEDCHUNKS;
         }
 
         // Successfully moved enough chunks to the private chunk_pool.

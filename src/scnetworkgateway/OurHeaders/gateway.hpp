@@ -213,7 +213,7 @@ const random_salt_type INVALID_UNIQUE_DB_NUMBER = 0;
 
 // Maximum number of chunks to keep in private chunk pool
 // until we release them to shared chunk pool.
-const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 1024;
+const int32_t MAX_CHUNKS_IN_PRIVATE_POOL = 128;
 const int32_t MAX_CHUNKS_IN_PRIVATE_POOL_DOUBLE = MAX_CHUNKS_IN_PRIVATE_POOL * 2;
 
 // Size of local/remove address structure.
@@ -279,8 +279,8 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     100000,
-    500000, // Default chunk size.
-    100000,
+    200000, // Default chunk size.
+    50000,
     30000,
     10000,
     100
@@ -289,8 +289,8 @@ const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
 // Maximum number of chunks for each worker.
 const int32_t MAX_WORKER_CHUNKS = 
     100000 +
-    500000 + // Default chunk size.
-    100000 +
+    200000 + // Default chunk size.
+    50000 +
     30000 +
     10000 +
     100;
