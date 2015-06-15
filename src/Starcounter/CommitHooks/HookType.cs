@@ -35,7 +35,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Gets the <see cref="HookConfiguration"/> corresponding to
+        /// Gets the <see cref="CommitHookConfiguration"/> corresponding to
         /// the given <see cref="HookType"/>.
         /// </summary>
         /// <param name="type">The configuration whose
@@ -45,13 +45,13 @@ namespace Starcounter {
             uint configuration = 0;
             switch (type) {
                 case HookType.Insert:
-                    configuration = HookConfiguration.Insert;
+                    configuration = CommitHookConfiguration.Insert;
                     break;
                 case HookType.Update:
-                    configuration = HookConfiguration.Update;
+                    configuration = CommitHookConfiguration.Update;
                     break;
                 case HookType.Delete:
-                    configuration = HookConfiguration.Delete;
+                    configuration = CommitHookConfiguration.Delete;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(

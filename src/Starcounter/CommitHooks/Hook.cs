@@ -37,7 +37,7 @@ namespace Starcounter {
                 throw new ArgumentException();
             }
             lock (HookLock.Sync) {
-                InstallHook(t, HookConfiguration.Insert, AddDelegate(callback));
+                InstallHook(t, CommitHookConfiguration.Insert, AddDelegate(callback));
             }
         }
 
@@ -62,7 +62,7 @@ namespace Starcounter {
                 throw new ArgumentException();
             }
             lock (HookLock.Sync) {
-                InstallHook(t, HookConfiguration.Update, AddDelegate(callback));
+                InstallHook(t, CommitHookConfiguration.Update, AddDelegate(callback));
             }
         }
 
@@ -74,7 +74,7 @@ namespace Starcounter {
         public static void OnDelete(Action<ulong> callback) {
             lock (HookLock.Sync) {
                 var delegateRef = Hook<ulong>.AddDelegate(callback);
-                InstallHook(typeof(T), HookConfiguration.Delete, delegateRef);
+                InstallHook(typeof(T), CommitHookConfiguration.Delete, delegateRef);
             }
         }
 
@@ -100,10 +100,10 @@ namespace Starcounter {
             var result = sccoredb.sccoredb_get_table_info_by_name(t.FullName, out tableInfo);
             if (result != 0) throw ErrorCode.ToException(result);
 
-            var hookType = HookConfiguration.ToHookType(hookConfiguration);
+            var hookType = CommitHookConfiguration.ToHookType(hookConfiguration);
             var key = HookKey.FromTable(tableInfo.table_id, hookType);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
-                var hookConfigMask = HookConfiguration.GetConfiguration(key);
+                var hookConfigMask = CommitHookConfiguration.GetConfiguration(key);
                 hookConfigMask |= hookConfiguration;
 
                 result = sccoredb.star_set_commit_hooks(0, tableInfo.table_id, hookConfigMask);

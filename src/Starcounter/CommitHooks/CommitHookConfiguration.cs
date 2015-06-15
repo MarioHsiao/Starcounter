@@ -5,9 +5,9 @@ using System;
 namespace Starcounter {
     /// <summary>
     /// Defines constants and methods relating to configuration of
-    /// hooks in the kernel.
+    /// commit hooks in the kernel.
     /// </summary>
-    internal static class HookConfiguration {
+    internal static class CommitHookConfiguration {
         /// <summary>
         /// Internal token/flag representing inserts.
         /// </summary>
@@ -23,7 +23,7 @@ namespace Starcounter {
 
         /// <summary>
         /// Gets the <see cref="HookType"/> corresponding to the given
-        /// <see cref="HookConfiguration"/>.
+        /// <see cref="CommitHookConfiguration"/>.
         /// </summary>
         /// <param name="configuration">The configuration whose
         /// corresponding type of hook to return.</param>
@@ -31,13 +31,13 @@ namespace Starcounter {
         internal static uint ToHookType(uint configuration) {
             uint type = 0;
             switch (configuration) {
-                case HookConfiguration.Insert:
+                case CommitHookConfiguration.Insert:
                     type = HookType.Insert;
                     break;
-                case HookConfiguration.Update:
+                case CommitHookConfiguration.Update:
                     type = HookType.Update;
                     break;
-                case HookConfiguration.Delete:
+                case CommitHookConfiguration.Delete:
                     type = HookType.Delete;
                     break;
                 default:
