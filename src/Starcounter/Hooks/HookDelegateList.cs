@@ -23,6 +23,20 @@ namespace Starcounter {
             return index;
         }
 
+        List<EventHandler<T>> handlers = new List<EventHandler<T>>();
+        public int Add2(EventHandler<T> h) {
+            var index = handlers.IndexOf(h);
+            if (index == -1) {
+                handlers.Add(h);
+                index = targets.Count - 1;
+            }
+            return index;
+        }
+
+        public EventHandler<T> Get2(int index) {
+            return handlers[index];
+        }
+
         /// <summary>
         /// Gets a target callback by index.
         /// </summary>

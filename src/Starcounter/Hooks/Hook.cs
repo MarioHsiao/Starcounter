@@ -1,11 +1,77 @@
 ﻿using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
+using Starcounter.Hooks;
 
 namespace Starcounter {
     
     internal static class HookLock {
         public static readonly object Sync = new object();
+    }
+
+    /// <summary>
+    /// Principal entrypoint to the Starcounter hook API Provides
+    /// a set of events allowing hooks to be registered.
+    /// </summary>
+    /// <typeparam name="T">The database type to hook.</typeparam>
+    public static class Hook2<T> {
+
+        /// <summary>
+        /// Occurs before an object of {T} is being deleted.
+        /// </summary>
+        public static event EventHandler<T> BeforeDelete {
+            add {
+                RuntimeDelegate<T>.TriggeredBy(typeof(T), false).BeforeDelete += value;
+            }
+            remove {
+                RuntimeDelegate<T>.TriggeredBy(typeof(T), false).BeforeDelete -= value;
+            }
+        }
+
+        /// <summary>
+        /// Occurs when an object of the {T} is deleted in a
+        /// transaction that is being committed.
+        /// </summary>
+        public static event EventHandler<T> CommitDelete {
+            add {
+                // Adapt to diverging signature
+                // TODO:
+                throw new NotImplementedException();
+                // RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitDelete += value;
+            }
+            remove {
+                // Adapt to diverging signature
+                // TODO:
+                throw new NotImplementedException();
+                // RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitDelete -= value;
+            }
+        }
+
+        /// <summary>
+        /// Occurs when an object of the {T} is inserted in a
+        /// transaction that is being committed.
+        /// </summary>
+        public static event EventHandler<T> CommitInsert {
+            add {
+                RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitInsert += value;
+            }
+            remove {
+                RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitInsert -= value;
+            }
+        }
+
+        /// <summary>
+        /// Occurs when an object of the {T} is updated in a
+        /// transaction that is being committed.
+        /// </summary>
+        public static event EventHandler<T> CommitUpdate {
+            add {
+                RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitUpdate += value;
+            }
+            remove {
+                RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitUpdate -= value;
+            }
+        }
     }
 
     /// <summary>
