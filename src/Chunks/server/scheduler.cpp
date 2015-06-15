@@ -1370,10 +1370,7 @@ unsigned long server_port::acquire_linked_chunk_indexes(unsigned long start_chun
 
 unsigned long server_port::acquire_one_chunk(chunk_index* out_chunk_index)
 {
-    bool already_slept = false;
-
 try_to_acquire_from_private_chunk_pool:
-
     // Try to acquire the linked chunks from the private chunk_pool.
     if (this_scheduler_interface_->chunk_pool().acquire_linked_chunks_counted(&chunk(0), *out_chunk_index, 1))
     {
@@ -1386,14 +1383,7 @@ try_to_acquire_from_private_chunk_pool:
         // Try to move some chunks from the shared_chunk_pool to the private
         // chunk_pool.
         if (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */)) {
-
-            // Checking if already slept once.
-            if (already_slept) {
-                return SCERRACQUIRELINKEDCHUNKS;
-            } else {
-                Sleep(1);
-                already_slept = true;
-            }
+            return SCERRACQUIRELINKEDCHUNKS;
         }
 
         // Successfully moved enough chunks to the private chunk_pool.
@@ -1404,7 +1394,6 @@ try_to_acquire_from_private_chunk_pool:
 
 unsigned long server_port::acquire_linked_chunk_indexes_counted(unsigned long start_chunk_index, unsigned long num_chunks)
 {
-    bool already_slept = false;
 	chunk_index head;
 	
 try_to_acquire_from_private_chunk_pool:
@@ -1422,14 +1411,7 @@ try_to_acquire_from_private_chunk_pool:
     {
         // Getting a bunch of chunks to private pool.
         if (!shared_chunk_pool_->acquire_to_chunk_pool(this_scheduler_interface_->chunk_pool(), a_bunch_of_chunks, 10000 /* timeout ms */)) {
-            
-            // Checking if already slept once.
-            if (already_slept) {
-                return SCERRACQUIRELINKEDCHUNKS;
-            } else {
-                Sleep(1);
-                already_slept = true;
-            }
+            return SCERRACQUIRELINKEDCHUNKS;
         }
 
         // Successfully moved enough chunks to the private chunk_pool.
