@@ -916,11 +916,6 @@ public:
         return user_data_length_bytes_;
     }
 
-    // Size in bytes of written user data.
-    void set_user_data_length_bytes(uint32_t value) {
-        user_data_length_bytes_ = value;
-    }
-
     // Resets accumulating buffer to its default socket data values.
     void ResetAccumBuffer()
     {
