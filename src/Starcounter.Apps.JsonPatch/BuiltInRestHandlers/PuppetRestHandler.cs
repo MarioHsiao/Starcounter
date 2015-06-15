@@ -120,10 +120,15 @@ namespace Starcounter.Internal {
                 if (root == null)
                     return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
+                if (root.ChangeLog != null)
+                    root.ChangeLog.Checkpoint();
+
                 return new Response() {
                     BodyBytes = root.ToJsonUtf8(),
                     ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
                 };
+
+                
             });
 
             // Handler to process Json-Patch WebSocket Upgrade HTTP request! :)
