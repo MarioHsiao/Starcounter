@@ -43,7 +43,7 @@ Handsontable.cellTypes.Key = Handsontable.cellTypes.text;
       Handsontable.renderers.BaseRenderer.apply(this, arguments);
       logElement = getLogTemplate(escaped);
 
-      if (escaped.length > 300) {
+      if (/\n/.test(escaped)) {
         logElement.firstChild.style.width = detectLogWidth(escaped) + 'px';
       }
       Handsontable.Dom.empty(TD);
@@ -52,16 +52,45 @@ Handsontable.cellTypes.Key = Handsontable.cellTypes.text;
     }
   };
 
+  // logHost renderer
+  Handsontable.cellTypes.logHost = {
+    renderer: function(instance, TD, row, col, prop, value, cellProperties) {
+      var escaped = Handsontable.helper.stringify(value),
+        logElement;
+
+      Handsontable.renderers.BaseRenderer.apply(this, arguments);
+      logElement = getLogHostTemplate(escaped);
+
+      Handsontable.Dom.empty(TD);
+      TD.appendChild(logElement);
+    }
+  };
+
   function getLogTemplate(logMessage) {
-    var wrapper = document.createElement('div'),
+    var tpl = document.createElement('div'),
       code = document.createElement('code'),
       pre = document.createElement('pre');
 
     pre.appendChild(code);
-    wrapper.appendChild(pre);
+    tpl.appendChild(pre);
     code.textContent = logMessage;
 
-    return wrapper;
+    return tpl;
+  }
+
+  function getLogHostTemplate(logMessage) {
+    var tpl, url;
+
+    if (logMessage[0] === '#') {
+      url = '/#/databases/' + (logMessage.replace('#/', ''));
+      tpl = document.createElement('a');
+      tpl.href = url;
+      tpl.textContent = url;
+    } else {
+      tpl = document.createTextNode(logMessage);
+    }
+
+    return tpl;
   }
 
   function detectLogWidth(logMessage) {

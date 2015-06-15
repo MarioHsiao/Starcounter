@@ -210,8 +210,5 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
 
     // bind the keypress listener
     $document.bind('keypress', onKeyPress);
-
-    $scope.afterRender = scrollRefresh;
-
     $scope.refreshQueryHistory();
 }]);

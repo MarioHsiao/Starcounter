@@ -56,6 +56,7 @@
                     selectedindex="currentSelection"
                     minsparerows="0"
                     startrows="0"
+                    fillHandle="false"
                     datarows="model.LogEntries"
                     currentrowclassname="'currentRow'"
                     manualcolumnmove="false"
@@ -66,7 +67,7 @@
 
                     <hot-column readOnly="true" data="DateTimeStr" title="'Date'"></hot-column>
                     <hot-column readOnly="true" data="TypeStr" title="'Type'"></hot-column>
-                    <hot-column readOnly="true" data="HostName" title="'Host'"></hot-column>
+                    <hot-column readOnly="true" data="HostName" title="'Host'" type="'logHost'"></hot-column>
                     <hot-column readOnly="true" data="Source" title="'Source'"></hot-column>
                     <hot-column readOnly="true" data="Message" title="'Message'" classname="log-message" type="'logMessage'"></hot-column>
                 </hot-table>
