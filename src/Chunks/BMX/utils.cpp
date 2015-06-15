@@ -31,9 +31,12 @@ uint32_t sc_clone_linked_chunks(starcounter::core::chunk_index first_chunk_index
         // Acquiring new chunk.
         uint8_t* dest_chunk_mem;
         err_code = cm_acquire_shared_memory_chunk(&dest_chunk_index, &dest_chunk_mem);
+        _SC_ASSERT(0 == err_code);
 
         if (err_code) {
+
             if (dest_smc != NULL) {
+
                 cm_release_linked_shared_memory_chunks(*out_chunk_index);
                 *out_chunk_index = shared_memory_chunk::link_terminator;
                 return err_code;
@@ -516,6 +519,8 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
 
     // Returning chunk if any error etc.
     if (shared_memory_chunk::link_terminator != *the_chunk_index) {
+
+        _SC_ASSERT(0 != err_code);
         cm_release_linked_shared_memory_chunks(*the_chunk_index);
         *the_chunk_index = shared_memory_chunk::link_terminator;
     }

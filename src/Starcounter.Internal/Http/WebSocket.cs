@@ -72,15 +72,6 @@ namespace Starcounter
         NetworkDataStream dataStream_;
 
         /// <summary>
-        /// Network data stream.
-        /// </summary>
-        internal NetworkDataStream DataStream {
-            get {
-                return dataStream_;
-            }
-        }
-
-        /// <summary>
         /// Reference to existing session if any.
         /// </summary>
         public IAppsSession Session {
@@ -310,7 +301,7 @@ namespace Starcounter
             Byte* chunkMem;
 
             // Checking if we still have the data stream with original chunk available.
-            if ((DataStream == null) || (DataStream.IsDestroyed()))
+            if ((dataStream_ == null) || (dataStream_.IsDestroyed()))
             {
                 UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
 
@@ -324,7 +315,7 @@ namespace Starcounter
             }
             else
             {
-                dataStream = DataStream;
+                dataStream = dataStream_;
                 chunkIndex = dataStream.ChunkIndex;
                 chunkMem = dataStream.GetChunkMemory();
             }
