@@ -97,6 +97,7 @@
     <Compile Include="Hooks\Hook.cs" />
     <Compile Include="Hooks\CommitHookConfiguration.cs" />
     <Compile Include="Hooks\HookDelegateList.cs" />
+    <Compile Include="Hooks\RuntimeDelegate.cs" />
     <Compile Include="Hooks\RuntimeInstalledHookDelegate.cs" />
     <Compile Include="Hooks\HookKey.cs" />
     <Compile Include="Hooks\HookType.cs" />
