@@ -437,7 +437,13 @@ namespace Administrator.Server.Model {
         /// </summary>
         private void OnStarted() {
 
+            // If the database was started be an app request we then also need to avaluate the app.
+            // Database is not started and the app want to start, it first starts the database then the app
+            foreach (DatabaseApplication application in this.Applications) {
+                application.Evaluate();
+            }
 
+            // Playlist
             // TODO: Only auto-start apps if the database was started with the the administrator
             // This is due to a bug in the inner mechanism in combination with Visual Studio Starcounter Extention.
             //this.RunPlayList();

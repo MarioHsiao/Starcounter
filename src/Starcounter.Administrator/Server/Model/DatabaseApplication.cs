@@ -178,6 +178,7 @@ namespace Administrator.Server.Model {
 
                 // Reset error state
                 this._CouldNotDelete = false;
+                this._CouldNotStop = false;
                 this.ResetErrorMessage();
 
                 this.OnPropertyChanged("WantDeleted");
@@ -294,7 +295,7 @@ namespace Administrator.Server.Model {
         /// <summary>
         /// Evaluate application wanting states
         /// </summary>
-        private void Evaluate() {
+        public void Evaluate() {
 
             if (this.Status != ApplicationStatus.None) {
                 // Work already in progres, when work is compleated it will call Evaluate()
@@ -303,8 +304,13 @@ namespace Administrator.Server.Model {
 
             if (this.WantRunning) {
 
-                if (!this.CouldNotStart && this.IsRunning == false && !this.Status.HasFlag(ApplicationStatus.Starting)) {
-                    this.StartApplication(); // Async
+                if (!this.Database.CouldnotStart && this.Database.IsRunning == false && !this.Database.Status.HasFlag(DatabaseStatus.Starting)) {
+                    this.Database.WantRunning = true;
+                }
+                else {
+                    if (!this.CouldNotStart && this.IsRunning == false && !this.Status.HasFlag(ApplicationStatus.Starting)) {
+                        this.StartApplication(); // Async
+                    }
                 }
             }
             else {
@@ -318,7 +324,8 @@ namespace Administrator.Server.Model {
                 // Work already in progres, when work is compleated it will call Evaluate()
                 return;
             }
-            if (this.WantDeleted) {
+
+            if (this.WantDeleted && !this.CouldNotStop) {
 
                 // If application is running or starting then try to stop it.
                 if (this.IsRunning || this.Status.HasFlag(ApplicationStatus.Starting)) {

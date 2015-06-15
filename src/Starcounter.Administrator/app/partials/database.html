@@ -34,7 +34,7 @@
                     <!-- Status Text -->
                     {{database.StatusText}}
 
-                    <span ng-show="database.HasErrorMessage">{{database.ErrorMessage.Message}}
+                    <span style="color: #d9534f" ng-show="database.HasErrorMessage">{{database.ErrorMessage.Message}}
                         <a ng-show="database.ErrorMessage.HelpLink" href="{{database.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                         View the <a href="#/server/log">log</a> for more details.
                     </span>
