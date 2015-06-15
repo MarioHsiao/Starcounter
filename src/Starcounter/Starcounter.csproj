@@ -95,7 +95,7 @@
     <Compile Include="Binding\TypeLoader.cs" />
     <Compile Include="Binding\UIntPropertyBinding.cs" />
     <Compile Include="CommitHooks\Hook.cs" />
-    <Compile Include="CommitHooks\HookConfiguration.cs" />
+    <Compile Include="CommitHooks\CommitHookConfiguration.cs" />
     <Compile Include="CommitHooks\HookDelegateList.cs" />
     <Compile Include="CommitHooks\RuntimeInstalledHookDelegate.cs" />
     <Compile Include="CommitHooks\HookKey.cs" />

@@ -103,7 +103,7 @@ namespace Starcounter {
             var hookType = CommitHookConfiguration.ToHookType(hookConfiguration);
             var key = HookKey.FromTable(tableInfo.table_id, hookType);
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
-                var hookConfigMask = CommitHookConfiguration.GetConfiguration(key);
+                var hookConfigMask = CommitHookConfiguration.CalculateEffectiveConfiguration(key);
                 hookConfigMask |= hookConfiguration;
 
                 result = sccoredb.star_set_commit_hooks(0, tableInfo.table_id, hookConfigMask);
