@@ -103,18 +103,13 @@ namespace Starcounter {
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "You are trying to send an empty data.");
             }
 
-            // Processing user data and sending it to gateway.
-            UInt32 ec = bmx.sc_bmx_send_buffer(
+            // NOTE: We are ignoring error here because we can't do much about it.
+            bmx.sc_bmx_send_buffer(
                 gwWorkerId,
                 dataPtr + offset,
                 lengthBytes,
                 &chunkIndex,
                 (UInt32)Response.ConnectionFlags.NoSpecialFlags);
-
-            // Checking if any error occurred.
-            if (ec != 0) {
-                throw ErrorCode.ToException(ec);
-            }
         }
 
         /// <summary>
@@ -133,8 +128,10 @@ namespace Starcounter {
 
             // Getting IPC chunk.
             UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
+
             if (0 != errCode) {
-                throw ErrorCode.ToException(errCode, "Can't obtain new chunk for UDP datagram send.");
+                // NOTE: If we can not obtain a chunk just returning because we can't do much.
+                return;
             }
 
             Byte* socketDataBegin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;

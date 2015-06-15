@@ -102,13 +102,11 @@ namespace Starcounter
 
             // Processing user data and sending it to gateway.
             UInt32 cur_chunk_index = chunkIndex_;
-            UInt32 ec = bmx.sc_bmx_send_buffer(gwWorkerId_, p + offset, length_bytes, &cur_chunk_index, (UInt32)conn_flags);
-            chunkIndex_ = cur_chunk_index;
 
-            // Checking if any error occurred.
-            if (ec != 0) {
-                throw ErrorCode.ToException(ec);
-            }
+            // NOTE: We are ignoring error here because we can't do much about it.
+            bmx.sc_bmx_send_buffer(gwWorkerId_, p + offset, length_bytes, &cur_chunk_index, (UInt32)conn_flags);
+
+            chunkIndex_ = cur_chunk_index;
 
             // Destroying data stream immediately.
             Destroy(true);

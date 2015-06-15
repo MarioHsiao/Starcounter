@@ -288,6 +288,9 @@ public:
 
     // Returns the number of available chunks.
     std::size_t size();
+
+    // Returns the total number of chunks.
+    std::size_t capacity();
 	
 	/// Acquire N (unlinked) chunks from the shared_chunk_pool to a private
 	/// chunk_pool.

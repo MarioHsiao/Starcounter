@@ -503,6 +503,9 @@ WorkerDbInterface::WorkerDbInterface(
     GW_ASSERT(true == shared_int_acquired);
 #endif
 
+    // Calculating number of chunks for gateway (half of total number of chunks).
+    max_num_icp_chunks_for_gateway_ = (shared_int_.capacity() / 2);
+
 #ifdef GW_DATABASES_DIAG
     GW_PRINT_WORKER << "Database \"" << active_db->get_db_name() <<
         "\" acquired client interface " << shared_int_.get_client_number() << " and " << num_schedulers_ << " channel(s): ";

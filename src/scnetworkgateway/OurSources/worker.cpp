@@ -899,7 +899,7 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
     sd_push_to_db->set_just_push_disconnect_flag();
 
     // NOTE: There is no used data when disconnecting.
-	sd_push_to_db->set_user_data_length_bytes(0);
+	sd_push_to_db->SetUserData(sd_push_to_db->get_data_blob_start(), 0);
 
     // Searching for server port and corresponding raw port handler.
     ServerPort* sp = g_gateway.get_server_port(sd->GetPortIndex());
