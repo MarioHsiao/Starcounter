@@ -374,5 +374,7 @@ body {
     padding: 0;
 }
 .log-message-detector pre, .log-message-detector code {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
     white-space: pre;
 }
