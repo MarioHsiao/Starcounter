@@ -366,6 +366,10 @@ inline std::size_t shared_interface::size() {
 	return shared_chunk_pool_->size();
 }
 
+inline std::size_t shared_interface::capacity() {
+    return shared_chunk_pool_->capacity();
+}
+
 template<typename U>
 inline std::size_t shared_interface::acquire_from_shared_chunk_pool(U&
 private_chunk_pool, std::size_t chunks_to_acquire, client_interface_type*
