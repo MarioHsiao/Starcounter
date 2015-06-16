@@ -39,5 +39,15 @@ namespace Starcounter {
         internal static bool IsCommitInsertOrUpdate(uint type) {
             return type == HookType.CommitInsert || type == HookType.CommitUpdate;
         }
+
+        /// <summary>
+        /// Returns true if the given type represents one of the
+        /// commit hooks; false otherwise.
+        /// </summary>
+        /// <param name="type">The type to evaluate.</param>
+        /// <returns>True the type represents a commit hook; false otherwise.</returns>
+        internal static bool IsCommitHook(uint type) {
+            return type == HookType.CommitInsert || type == HookType.CommitUpdate || type == HookType.CommitDelete;
+        }
     }
 }
