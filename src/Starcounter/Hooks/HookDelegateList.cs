@@ -15,12 +15,8 @@ namespace Starcounter {
         /// <param name="h">The handler to add.</param>
         /// <returns>The index of the added handler.</returns>
         public int Add(EventHandler<T> h) {
-            var index = handlers.IndexOf(h);
-            if (index == -1) {
-                handlers.Add(h);
-                index = handlers.Count - 1;
-            }
-            return index;
+            handlers.Add(h);
+            return handlers.Count - 1;
         }
 
         /// <summary>
