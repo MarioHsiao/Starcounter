@@ -40,6 +40,17 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Invokes all hooks installed to watch before instances of 
+        /// <paramref name="key"/> are deleted.
+        /// </summary>
+        /// <param name="key">The key to look for.</param>
+        /// <param name="proxy">The carry in the form of an proxy
+        /// to pass to the delegate.</param>
+        internal static void InvokeBeforeDelete(HookKey key, IObjectView proxy) {
+            InvokeAllWithKey(key, proxy);
+        }
+
+        /// <summary>
         /// Invokes all hooks installed to watch when instances of 
         /// <paramref name="key"/> are deleted.
         /// </summary>
