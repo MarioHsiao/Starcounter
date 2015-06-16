@@ -3,7 +3,8 @@ namespace TestCommitHooks {
     using System;
     using Starcounter;
 
-    [Database] public class Foo {
+    [Database]
+    public class Foo {
         public Foo() {
             Bar = DateTime.Now;
         }
@@ -52,46 +53,49 @@ namespace TestCommitHooks {
 
             // Insert hooks
 
-            Hook<Foo>.OnInsert(f => {
+            Hook<Foo>.CommitInsert += (s, f) => {
                 AssureAppContext();
                 AssureKey(f.GetObjectNo(), key);
                 insertHookCount++;
-            });
-            Hook<Foo>.OnInsert(f => {
+            };
+
+            Hook<Foo>.CommitInsert += (s, f) => {
                 AssureAppContext();
                 AssureKey(f.GetObjectNo(), key);
                 insertHookCount++;
-            });
+            };
 
             // Update hooks
 
-            Hook<Foo>.OnUpdate(f => {
+            Hook<Foo>.CommitUpdate += (s, f) => {
                 AssureAppContext();
                 AssureKey(f.GetObjectNo(), key);
                 updateHookCount++;
-            });
+            };
 
             // Delete hooks
 
-            Hook<Foo>.OnDelete(oid => {
+            Hook<Foo>.CommitDelete += (s, oid) => {
                 AssureAppContext();
                 AssureKey(oid, key);
                 deleteHookCount++;
-            });
-            Hook<Foo>.OnDelete(oid => {
+            };
+
+            Hook<Foo>.CommitDelete += (s, oid) => {
                 AssureAppContext();
                 AssureKey(oid, key);
                 deleteHookCount++;
-            });
-            Hook<Foo>.OnDelete(oid => {
+            };
+
+            Hook<Foo>.CommitDelete += (s, oid) => {
                 AssureAppContext();
                 AssureKey(oid, key);
                 deleteHookCount++;
-            });
+            };
 
             // Transactions to trigger them
 
-            Db.Transact(() => { 
+            Db.Transact(() => {
                 var f = new Foo();
                 key = f.GetObjectNo();
             });
