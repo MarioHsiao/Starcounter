@@ -100,6 +100,15 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "You are trying to send an empty data.");
             }
 
+            // Checking if gateway worker id is malicious.
+            if (gwWorkerId_ >= StarcounterEnvironment.Gateway.NumberOfWorkers) {
+
+                // Destroying data stream immediately.
+                Destroy(true);
+                
+                return;
+            }
+
             // Processing user data and sending it to gateway.
             UInt32 cur_chunk_index = chunkIndex_;
 

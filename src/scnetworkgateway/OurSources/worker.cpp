@@ -1731,8 +1731,9 @@ uint32_t GatewayWorker::WorkerRoutine()
 
         // Creating accepting sockets on all ports and for all databases.
         // NOTE: Ignoring error code on purpose.
-        if (0 == worker_id_)
+        if (0 == worker_id_) {
             CheckAcceptingSocketsOnAllActivePorts();
+        }
 
 #ifdef WORKER_NO_SLEEP
         next_sleep_interval_ms = 0;
