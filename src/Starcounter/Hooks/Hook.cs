@@ -32,18 +32,12 @@ namespace Starcounter {
         /// Occurs when an object of the {T} is deleted in a
         /// transaction that is being committed.
         /// </summary>
-        public static event EventHandler<T> CommitDelete {
+        public static event EventHandler<ulong> CommitDelete {
             add {
-                // Adapt to diverging signature
-                // TODO:
-                throw new NotImplementedException();
-                // RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitDelete += value;
+                RuntimeDelegate<ulong>.TriggeredBy(typeof(T), false).CommitDelete += value;
             }
             remove {
-                // Adapt to diverging signature
-                // TODO:
-                throw new NotImplementedException();
-                // RuntimeDelegate<T>.TriggeredBy(typeof(T), false).CommitDelete -= value;
+                RuntimeDelegate<ulong>.TriggeredBy(typeof(T), false).CommitDelete -= value;
             }
         }
 

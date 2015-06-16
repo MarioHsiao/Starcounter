@@ -84,12 +84,14 @@ namespace Starcounter.Hooks {
         /// Occurs when an object of the triggering type is deleted in a
         /// transaction that is being committed.
         /// </summary>
-        public event EventHandler<ulong> CommitDelete {
+        public event EventHandler<T> CommitDelete {
             add {
-                // We need a special treatment of these, since the type is
-                // force to be ULONG.
-                // TODO:
-                throw new NotImplementedException();
+                if (!(this is RuntimeDelegate<ulong>)) {
+                    throw new Exception();
+                }
+                lock (HookLock.Sync) {
+                    InstallCommitHook(triggeringTable, CommitHookConfiguration.Delete, AddDelegate(value));
+                }
             }
             remove {
                 throw new NotImplementedException();
