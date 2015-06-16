@@ -457,15 +457,15 @@ namespace Starcounter
             // getting the binding.
             // TODO:
 
-            var entityInterface = proxy as IEntity;
-            if (entityInterface != null) {
-                entityInterface.OnDelete();
+            var binding = proxy.TypeBinding as TypeBinding;
+            if ((binding.Flags & TypeBindingFlags.Callback_OnDelete) != 0) {
+                ((IEntity)proxy).OnDelete();
             }
 
-            //var typeBindingFlags = (proxy.TypeBinding as TypeBinding).Flags;
-            //if ((typeBindingFlags & TypeBindingFlags.Callback_OnDelete) != 0) {
-            //    ((IEntity)proxy).OnDelete();
-            //}
+            if ((binding.Flags & TypeBindingFlags.Hook_OnDelete) != 0) {
+                var key = HookKey.FromTable(binding.TableId, HookType.BeforeDelete);
+                InvokableHook.InvokeBeforeDelete(key, proxy);
+            }
         }
 
         private static void HandleFatalErrorInTransactionScope()

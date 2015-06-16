@@ -10,7 +10,7 @@ namespace Starcounter {
     /// Here, the <see cref="HookKey"/> will contain a TypeID
     /// that is the table ID of the "Foo" table (e.g 25), and
     /// the TypeOfHook will have a value equal to the 
-    /// <see cref="HookType.Insert"/> constant.
+    /// <see cref="HookType.CommitInsert"/> constant.
     /// <code>
     /// // Register an insertion hook on class/table Foo
     /// Hook{Foo}.OnInsert(f => {...});

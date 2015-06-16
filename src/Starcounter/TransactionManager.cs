@@ -646,7 +646,7 @@ namespace Starcounter.Internal {
                                 if (r != 0) throw ErrorCode.ToException(r);
                                 if (oid == 0) break;
 
-                                if (HookType.IsInsertOrUpdate((uint)hookType)) {
+                                if (HookType.IsCommitInsertOrUpdate((uint)hookType)) {
                                     if (binding == null || binding.TableId != tableId) {
                                         binding = TypeRepository.GetTypeBinding(tableId);
                                         proxy = binding.NewInstanceUninit();
@@ -658,13 +658,13 @@ namespace Starcounter.Internal {
                                 key = HookKey.FromTable(tableId, (uint)hookType, key);
                                 try {
                                     switch (hookType) {
-                                        case HookType.Insert:
+                                        case HookType.CommitInsert:
                                             InvokableHook.InvokeInsert(key, proxy);
                                             break;
-                                        case HookType.Update:
+                                        case HookType.CommitUpdate:
                                             InvokableHook.InvokeUpdate(key, proxy);
                                             break;
-                                        case HookType.Delete:
+                                        case HookType.CommitDelete:
                                             InvokableHook.InvokeDelete(key, oid);
                                             break;
                                     }
