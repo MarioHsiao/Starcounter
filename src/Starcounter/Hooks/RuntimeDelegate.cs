@@ -1,4 +1,5 @@
-﻿using Starcounter.Internal;
+﻿using Starcounter.Binding;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,9 +76,7 @@ namespace Starcounter.Hooks {
         public event EventHandler<T> BeforeDelete {
             add {
                 VerifyHandlerMatchTriggeringType();
-                // Not a commit hook, but rather a code host hook. We need
-                // to support this.
-                throw new NotImplementedException();
+                InstallBeforeDeleteHook(triggeringTable, AddDelegate(value));
             }
             remove {
                 throw new NotImplementedException();
@@ -160,6 +159,24 @@ namespace Starcounter.Hooks {
                 installed = new List<InvokableHook>();
                 InvokableHook.HooksPerTrigger[key] = installed;
             }
+
+            installed.Add(entry);
+        }
+
+        static void InstallBeforeDeleteHook(ushort tableId, InvokableHook entry) {
+            List<InvokableHook> installed;
+
+            var key = HookKey.FromTable(tableId, HookType.BeforeDelete);
+            if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
+                installed = new List<InvokableHook>();
+                InvokableHook.HooksPerTrigger[key] = installed;
+            }
+
+            // Optimization. Should probably be reviewed and considered
+            // further, preferably when we implement detaching of hooks.
+
+            var binding = Bindings.GetTypeBinding(tableId);
+            binding.Flags |= TypeBindingFlags.Hook_OnDelete;
 
             installed.Add(entry);
         }
