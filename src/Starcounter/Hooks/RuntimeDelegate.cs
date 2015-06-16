@@ -1,10 +1,8 @@
-﻿using Starcounter.Binding;
+﻿
+using Starcounter.Binding;
 using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.Hooks {
     internal static class HookLock {
@@ -54,20 +52,19 @@ namespace Starcounter.Hooks {
         /// <returns>A <see cref="RuntimeDelegate<T>"/> that can be
         /// used to subscribe/unsubscribe to relevant database events.</returns>
         public static RuntimeDelegate<T> TriggeredBy(string typeName, bool inherited = false) {
-            // Optimize, assuring we dont repeatadly create instances,
-            // and improve error information (i.e. add code, message).
+            // Optimize, assuring we dont repeatadly create instances.
             // TODO:
 
-            var binding = Binding.Bindings.GetTypeBinding(typeName);
-            if (binding == null) {
-                throw new ArgumentException();
+            var typeDef = Binding.Bindings.GetTypeDef(typeName);
+            if (typeDef == null) {
+                throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND, string.Format("Table: {0}", typeName));
             }
 
             if (inherited) {
-                throw new NotSupportedException();
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Inherited hooks are not yet supported");
             }
 
-            return new RuntimeDelegate<T>(binding.TableId, inherited);
+            return new RuntimeDelegate<T>(typeDef.TableDef.TableId, inherited);
         }
 
         /// <summary>
@@ -79,7 +76,7 @@ namespace Starcounter.Hooks {
                 InstallBeforeDeleteHook(triggeringTable, AddDelegate(value));
             }
             remove {
-                throw new NotImplementedException();
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Detaching hooks is not yet supported");
             }
         }
 
@@ -97,7 +94,7 @@ namespace Starcounter.Hooks {
                 }
             }
             remove {
-                throw new NotImplementedException();
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Detaching hooks is not yet supported");
             }
         }
 
@@ -113,7 +110,7 @@ namespace Starcounter.Hooks {
                 }
             }
             remove {
-                throw new NotImplementedException();
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Detaching hooks is not yet supported");
             }
         }
 
@@ -129,16 +126,15 @@ namespace Starcounter.Hooks {
                 }
             }
             remove {
-                throw new NotImplementedException();
+                throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Detaching hooks is not yet supported");
             }
         }
 
         void VerifyHandlerMatchTriggeringType() {
             var type = Binding.Bindings.GetTypeBinding(triggeringTable).TypeDef.TypeLoader.Load();
             if (!typeof(T).IsAssignableFrom(type)) {
-                // Better error information
-                // TODO:
-                throw new ArgumentException();
+                var error = string.Format("Types {0} and {1} are not compatible", typeof(T).FullName, type.FullName);
+                throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, error);
             }
         }
 
