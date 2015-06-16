@@ -406,6 +406,8 @@ uint32_t GatewayWorker::CreateUdpSockets(port_index_type port_index) {
 // Allocates a bunch of new connections.
 uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
 {
+    GW_ASSERT(0 == worker_id_);
+
     int32_t how_many_sockets_to_accept = ACCEPT_ROOF_STEP_SIZE;
     ServerPort* sp = g_gateway.get_server_port(port_index);
     GW_ASSERT(NULL != sp);
@@ -417,8 +419,6 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
     // Checking if we have not enough accepting sockets.
     if (sp->get_num_accepting_sockets() >= how_many_sockets_to_accept)
         return 0;
-
-    GW_ASSERT(0 == worker_id_);
 
     uint32_t err_code;
     int32_t curIntNum = 0;
@@ -499,8 +499,16 @@ uint32_t GatewayWorker::CreateAcceptingSockets(port_index_type port_index)
 
         // Performing accept.
         err_code = Accept(new_sd);
-        if (err_code)
-            return err_code;
+
+        // NOTE: If we have an error accepting on socket, we simply returning chunk to pool.
+        if (err_code) {
+
+            // Resetting socket representer flags.
+            new_sd->reset_socket_representer_flag();
+
+            // Returning chunks to pool.
+            ReturnSocketDataChunksToPool(new_sd);
+        }
     }
 
     return 0;
@@ -1059,8 +1067,9 @@ __forceinline uint32_t GatewayWorker::FinishDisconnect(SocketDataChunkRef sd)
     sd->ResetGlobalSession();
 
     // Checking if it was an accepting socket.
-    if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper())
+    if (ACCEPT_SOCKET_OPER == sd->get_type_of_network_oper()) {
         ChangeNumAcceptingSockets(sd->GetPortIndex(), -1);
+    }
 
     // Releasing socket resources only there weren't yet released.
     if (!sd->IsInvalidSocket()) {
@@ -1179,6 +1188,8 @@ __forceinline uint32_t GatewayWorker::FinishConnect(SocketDataChunkRef sd)
 // Running accept on socket data.
 uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 {
+    GW_ASSERT(0 == worker_id_);
+
 #ifdef GW_SOCKET_DIAG
     GW_PRINT_WORKER << "Accept: socket index " << sd->get_socket_info_index() << ":" << sd->GetSocket() << ":" << sd->get_unique_socket_id() << ":" << (uint64_t)sd << GW_ENDL;
 #endif
@@ -1190,9 +1201,6 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
     sd->set_socket_representer_flag();
 
     port_index_type port_index = sd->GetPortIndex();
-
-    // Updating number of accepting sockets.
-    ChangeNumAcceptingSockets(port_index, 1);
 
     // Adding to active sockets for this worker.
     AddToActiveSockets(port_index);
@@ -1216,6 +1224,9 @@ uint32_t GatewayWorker::Accept(SocketDataChunkRef sd)
 
         return SCERRGWFAILEDACCEPTEX;
     }
+
+    // Updating number of accepting sockets.
+    ChangeNumAcceptingSockets(port_index, 1);
 
     // NOTE: Setting socket data to null, so other
     // manipulations on it are not possible.
