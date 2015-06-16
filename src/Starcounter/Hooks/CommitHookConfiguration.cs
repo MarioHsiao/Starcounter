@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.Linq;
 
 namespace Starcounter {
     /// <summary>
@@ -85,7 +86,7 @@ namespace Starcounter {
         /// </returns>
         internal static uint CalculateEffectiveConfiguration(HookKey key) {
             uint result = 0;
-            foreach (var installedKey in InvokableHook.HooksPerTrigger.Keys) {
+            foreach (var installedKey in InvokableHook.HooksPerTrigger.Keys.Where(k => HookType.IsCommitHook(k.TypeOfHook))) {
                 if (installedKey.TypeId == key.TypeId) {
                     result |= CommitHookConfiguration.FromHookType(installedKey.TypeOfHook);
                 }
