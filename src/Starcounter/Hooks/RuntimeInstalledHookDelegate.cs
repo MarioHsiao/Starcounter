@@ -34,7 +34,7 @@ namespace Starcounter {
         public override void Invoke(object triggeringObject) {
             var d = Delegates.Get(Index);
             using (new AppScope(ApplicationName)) {
-                d.Invoke((T)triggeringObject);
+                d.Invoke(null, (T)triggeringObject);
             }
         }
     }

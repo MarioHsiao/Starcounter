@@ -6,6 +6,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Starcounter.Hooks {
+    internal static class HookLock {
+        public static readonly object Sync = new object();
+    }
+
     /// <summary>
     /// Encapsulates a delegate and a named database type and expose
     /// a set of events that can be manipulated to subscribe/unsubscribe
@@ -167,7 +171,7 @@ namespace Starcounter.Hooks {
                 hooksPerSignature[typeof(T).FullName] = delegates;
             }
 
-            var index = delegates.Add2(callback);
+            var index = delegates.Add(callback);
             return new RuntimeInstalledHookDelegate<T>() {
                 Delegates = delegates,
                 Index = index,
