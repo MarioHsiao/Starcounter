@@ -242,17 +242,15 @@ namespace Starcounter.Templates {
         /// <param name="name">The name of the new property</param>
         /// <returns>The new property template</returns>
         public T Add<T>(string name) where T : Template, new() {
-            var @new = new T() { TemplateName = name };
-            var t = Properties.GetTemplateByName(name);
+            T t = (T)Properties.GetTemplateByName(name);
             if (t == null) {
-                Properties.Add(@new);
-                return @new;
+                t = new T() { TemplateName = name };
+                Properties.Add(t);
             } else {
-                Properties.Replace(@new);
-                Properties.Expose(@new);
+                Properties.Expose(t);
             }
 
-            return @new;
+            return t;
         }
 
         /// <summary>
@@ -355,6 +353,7 @@ namespace Starcounter.Templates {
                 t = new T() { TemplateName = name, Bind = bind};
                 Properties.Add(t);
             } else {
+                t.Bind = bind;
                 Properties.Expose(t);
             }
 
@@ -376,6 +375,7 @@ namespace Starcounter.Templates {
                 t = new T() { TemplateName = name, ElementType = type, Bind = bind};
                 Properties.Add(t);
             } else {
+                t.Bind = bind;
                 Properties.Expose(t);
             }
 
