@@ -68,23 +68,20 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled) {
 
+            // First marking handler as not handled.
+            *isHandled = false;
+
             // Distribution statistics.
             SchedulerNumRequests[taskInfo->scheduler_number]++;
 
-            UInt32 chunkIndex = taskInfo->chunk_index;
-
-            // Allocate memory on the stack that can hold a few number of transactions that are fast 
-            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
-            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
-            // be invalid after.
-            unsafe {
-                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
-                TransactionManager.Init(shortListPtr);
-            }
-
             try {
 
-                *isHandled = false;
+                // Allocate memory on the stack that can hold a few number of transactions that are fast 
+                // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+                // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+                // be invalid after.
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
 
                 // Fetching the callback.
                 Action<IPAddress, UInt16, Byte[]> userCallback = udpSocketHandlers_[managedHandlerId];
@@ -103,7 +100,7 @@ namespace Starcounter
 
                         // Copying all chunks data.
                         UInt32 errorCode = bmx.sc_bmx_copy_from_chunks_and_release_trailing(
-                            chunkIndex,
+                            taskInfo->chunk_index,
                             MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA),
                             dataBytes.Length,
                             fixedBuf,
@@ -137,7 +134,7 @@ namespace Starcounter
             } finally {
 
                 // Need to return all chunks here.
-                UInt32 err = bmx.sc_bmx_release_linked_chunks(chunkIndex);
+                UInt32 err = bmx.sc_bmx_release_linked_chunks(taskInfo->chunk_index);
                 Debug.Assert(0 == err);
 
                 // Needs to be called before the stack-allocated array is cleared and after the session is ended.
@@ -159,27 +156,23 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled)
 		{
+            // First marking handler as not handled.
+            *isHandled = false;
+
             // Distribution statistics.
             SchedulerNumRequests[taskInfo->scheduler_number]++;
 
-            // Allocate memory on the stack that can hold a few number of transactions that are fast 
-            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
-            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
-            // be invalid after.
-            unsafe {
-                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
-                TransactionManager.Init(shortListPtr);
-            }
-
-            TcpSocket tcpSocket = null;
-            NetworkDataStream dataStream = new NetworkDataStream();
+            // Creating network data stream object which holds the chunk etc.
+            NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
 
             try {
 
-                *isHandled = false;
-
-                // Initializing data stream.
-                dataStream.Init(taskInfo->chunk_index, taskInfo->client_worker_id);
+                // Allocate memory on the stack that can hold a few number of transactions that are fast 
+                // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+                // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+                // be invalid after.
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
 
                 // Fetching the callback.
                 Action<TcpSocket, Byte[]> userCallback = rawSocketHandlers_[managedHandlerId];
@@ -193,7 +186,7 @@ namespace Starcounter
                     dataStream.GatewayWorkerId
                     );
 
-                tcpSocket = new TcpSocket(dataStream, socketStruct);
+                TcpSocket tcpSocket = new TcpSocket(dataStream, socketStruct);
                 Debug.Assert(null != tcpSocket);
 
                 Byte[] dataBytes = null;
@@ -277,31 +270,31 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled)
         {
+            // First marking handler as not handled.
+            *isHandled = false;
+
             // Distribution statistics.
             SchedulerNumRequests[taskInfo->scheduler_number]++;
 
-            Boolean isSingleChunk = false;
-
-            // Allocate memory on the stack that can hold a few number of transactions that are fast 
-            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
-            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
-            // be invalid after.
-            unsafe {
-                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
-                TransactionManager.Init(shortListPtr);
-            }
-
             Request req = null;
+
+            // Creating network data stream object which holds the chunk etc.
+            NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
 
             try {
 
-                *isHandled = false;
-
+                // Allocate memory on the stack that can hold a few number of transactions that are fast 
+                // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+                // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+                // be invalid after.
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
+                
                 UInt32 chunkIndex = taskInfo->chunk_index;
                 //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
 
                 // Determining if chunk is single.
-                isSingleChunk = ((taskInfo->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
+                Boolean isSingleChunk = ((taskInfo->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
 
                 // Socket data begin.
                 Byte* socketDataBegin = rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;
@@ -320,14 +313,10 @@ namespace Starcounter
 
                 SchedulerResources sr = SchedulerResources.Current;
                 req = new Request();
-                NetworkDataStream dataStream = new NetworkDataStream();
 
                 // Checking if we need to process linked chunks.
                 if (!isSingleChunk)
                 {
-                    // Creating network data stream object.
-                    dataStream.Init(taskInfo->chunk_index, taskInfo->client_worker_id);
-
                     UInt16 numChunks = *(UInt16*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_NUM_IPC_CHUNKS);
 
                     // Allocating space to copy linked chunks (freed on Request destruction).
@@ -360,9 +349,6 @@ namespace Starcounter
                 }
                 else
                 {
-                    // Creating network data stream object.
-                    dataStream.Init(taskInfo->chunk_index, taskInfo->client_worker_id);
-
                     /*if (isAggregated) {
                         data_stream.SendResponse(AggrRespBytes, 0, AggrRespBytes.Length, Response.ConnectionFlags.NoSpecialFlags);
 
@@ -407,8 +393,17 @@ namespace Starcounter
 
                     if (!req.HasFinalizer()) {
 
+                        // Destroying original chunk etc.
+                        dataStream.Destroy(true);
+
+                        // Destroying native buffers.
                         req.Destroy(true);
                     }
+
+                } else {
+
+                    // Destroying original chunk etc.
+                    dataStream.Destroy(true);
                 }
 
                 // Restoring all outgoing request fields.
@@ -520,30 +515,28 @@ namespace Starcounter
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled)
         {
+            // First marking handler as not handled.
+            *isHandled = false;
+
             // Distribution statistics.
             SchedulerNumRequests[taskInfo->scheduler_number]++;
 
             Boolean isSingleChunk = false;
             IntPtr plainChunksData = IntPtr.Zero;
 
-            // Allocate memory on the stack that can hold a few number of transactions that are fast 
-            // to allocate. The pointer to the memory will be kept on the thread. It is important that 
-            // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
-            // be invalid after.
-            unsafe {
-                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
-                TransactionManager.Init(shortListPtr);
-            }
-
-            WebSocket ws = null;
-            NetworkDataStream dataStream = new NetworkDataStream();
-
+            // Creating network data stream object.
+            NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
+            
             try {
 
-                *isHandled = false;
+                WebSocket ws = null;
 
-                UInt32 chunkIndex = taskInfo->chunk_index;
-                //Console.WriteLine("Handler called, session: " + session_id + ", chunk: " + chunk_index);
+                // Allocate memory on the stack that can hold a few number of transactions that are fast 
+                // to allocate. The pointer to the memory will be kept on the thread. It is important that 
+                // TransactionManager.Cleanup() is called before exiting this method since the pointer will 
+                // be invalid after.
+                TransactionHandle* shortListPtr = stackalloc TransactionHandle[TransactionManager.ShortListCount];
+                TransactionManager.Init(shortListPtr);
 
                 // Determining if chunk is single.
                 isSingleChunk = ((taskInfo->flags & MixedCodeConstants.LINKED_CHUNKS_FLAG) == 0);
@@ -552,9 +545,6 @@ namespace Starcounter
                     (MixedCodeConstants.WebSocketDataTypes) (*(Byte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_OPCODE));
 
                 UInt32 groupId = (*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID));
-
-                // Creating network data stream object.
-                dataStream.Init(taskInfo->chunk_index, taskInfo->client_worker_id);
 
                 SocketStruct socketStruct = new SocketStruct();
                 socketStruct.Init(
@@ -575,10 +565,7 @@ namespace Starcounter
                     Byte* plainRawPtr = (Byte*) plainChunksData.ToPointer();
 
                     // Copying all chunks data.
-                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
-                        chunkIndex,
-                        plainRawPtr,
-                        totalBytes);
+                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(taskInfo->chunk_index, plainRawPtr, totalBytes);
 
                     if (errorCode != 0)
                         throw ErrorCode.ToException(errorCode);
@@ -665,8 +652,11 @@ namespace Starcounter
                 // Cleaning the linear buffer in case of multiple chunks.
                 if (!isSingleChunk) {
 
-                    BitsAndBytes.Free(plainChunksData);
-                    plainChunksData = IntPtr.Zero;
+                    if (IntPtr.Zero != plainChunksData) {
+                        BitsAndBytes.Free(plainChunksData);
+                        plainChunksData = IntPtr.Zero;
+                    }
+
                     rawChunk = null;
                 }
 

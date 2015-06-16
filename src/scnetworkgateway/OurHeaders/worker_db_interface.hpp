@@ -40,6 +40,9 @@ class WorkerDbInterface
     // Database index.
     db_index_type db_index_;
 
+    // Number of IPC chunks available for gateway.
+    std::size_t max_num_icp_chunks_for_gateway_;
+
     // Worker id to which this interface belongs.
     worker_id_type worker_id_;
 
@@ -54,6 +57,10 @@ class WorkerDbInterface
     // Acquires needed amount of chunks from shared pool.
     uint32_t AcquireIPCChunksFromSharedPool(int32_t num_ipc_chunks)
     {
+        // Checking that gateway is not taking more chunks than it should.
+        if (shared_int_.size() < max_num_icp_chunks_for_gateway_)
+            return SCERRACQUIRELINKEDCHUNKS;
+
         // Acquire chunks from the shared chunk pool to this worker private
         // chunk pool.
         //
@@ -74,7 +81,6 @@ class WorkerDbInterface
 #ifdef GW_ERRORS_DIAG
             GW_COUT << "Problem acquiring chunks from shared chunk pool." << GW_ENDL;
 #endif
-            //Sleep(1);
             return SCERRACQUIRELINKEDCHUNKS;
         }
 

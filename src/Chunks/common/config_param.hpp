@@ -46,7 +46,7 @@ const std::size_t client_interfaces = 1 << client_interface_bits;
 // The capacity of each channels in and out queues.
 // This parameter is currently hard coded in the channel class itself
 // to use 8 = 256 elements.
-const std::size_t channel_capacity_bits = 11;
+const std::size_t channel_capacity_bits = 12;
 const std::size_t channel_capacity = 1 << channel_capacity_bits;
 
 // The max number of databases that can exist (per IPC monitor).
@@ -56,7 +56,7 @@ const std::size_t max_number_of_databases = 64;
 const std::size_t max_number_of_schedulers = 31;
 
 // The max number of clients that can exist (maybe per NUMA node).
-const std::size_t max_number_of_clients = 256;
+const std::size_t max_number_of_clients = 8;
 
 // The size of the array to hold the server name, including terminating null.
 const std::size_t server_name_size = 32;

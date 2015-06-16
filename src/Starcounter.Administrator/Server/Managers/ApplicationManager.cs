@@ -338,16 +338,19 @@ namespace Administrator.Server.Managers {
 
                 DatabaseApplication freshApplication;
                 foreach (AppInfo appInfo in databaseInfo.Engine.HostedApps) {
-
+                    bool bNew = false;
                     string runningApplicationID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(appInfo.FilePath));
                     freshApplication = GetApplication(runningApplicationID, freshApplications);
                     if (freshApplication == null) {
+                        bNew = true;
                         freshApplication = DatabaseApplication.ToApplication(appInfo, databaseName);
                     }
 
                     freshApplications.Add(freshApplication);
                     freshApplication.IsRunning = true;
-                    freshApplication.WantRunning = true;
+                    if (bNew) {
+                        freshApplication.WantRunning = true;
+                    }
                 }
             }
 
