@@ -26,6 +26,8 @@ namespace TestCommitHooks {
         int updateHookExpectedCount = 1;
         int deleteHookCount = 0;
         int deleteHookExpectedCount = 3;
+		int beforeDeleteHookCount = 0;
+        int beforeDeleteHookExpectedCount = 1;
 
         public Basics() {
             app = Application.Current;
@@ -74,6 +76,12 @@ namespace TestCommitHooks {
             };
 
             // Delete hooks
+			
+			Hook<Foo>.BeforeDelete += (s, f) => {
+				AssureAppContext();
+                AssureKey(f.GetObjectNo(), key);
+                beforeDeleteHookCount++;
+			};
 
             Hook<Foo>.CommitDelete += (s, oid) => {
                 AssureAppContext();
@@ -115,6 +123,7 @@ namespace TestCommitHooks {
             AssureCount(insertHookCount, insertHookExpectedCount, "Insert count");
             AssureCount(updateHookCount, updateHookExpectedCount, "Update count");
             AssureCount(deleteHookCount, deleteHookExpectedCount, "Delete count");
+			AssureCount(beforeDeleteHookCount, beforeDeleteHookExpectedCount, "Before delete count");
         }
     }
 }
