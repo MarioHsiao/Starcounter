@@ -341,6 +341,25 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
+        /// Check if the path is a "developer" path i.e \bin\debug where developers build to.
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static Boolean IsDeveloperFolder(string path) {
+
+            if (string.IsNullOrEmpty(path)) return false;
+
+            if (Directory.Exists(System.IO.Path.Combine(path, "S"))) {
+
+                if (File.Exists(System.IO.Path.Combine(path, "coalmine.dll"))) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Recursively checks if directory contains certain files (any of them).
         /// </summary>
         /// <param name="dirPath">Path to a directory to check.</param>

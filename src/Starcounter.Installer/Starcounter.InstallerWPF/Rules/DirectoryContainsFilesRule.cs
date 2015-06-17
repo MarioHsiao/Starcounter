@@ -6,8 +6,44 @@ using System.Windows.Controls;
 using System.Globalization;
 using System.Windows;
 using Starcounter.InstallerEngine;
+using Starcounter.Internal;
+using System.IO;
 
 namespace Starcounter.InstallerWPF.Rules {
+
+    public class InstallationFolderRule : ValidationRule {
+
+        public bool UseWarning { get; set; }
+        public bool CheckEmptyString { get; set; }
+
+        public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
+
+            if (value == null || string.IsNullOrEmpty(value.ToString()) || string.IsNullOrEmpty(value.ToString().Trim())) {
+
+                if (this.CheckEmptyString) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Please enter a folder" });
+                }
+                else {
+                    return new ValidationResult(true, null);
+                }
+            }
+
+            try {
+
+                string installationPath = System.IO.Path.Combine(value.ToString(), CurrentVersion.Version);
+
+                if (Directory.Exists(installationPath)) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Version folder (" + CurrentVersion.Version + ") already exists" });
+                }
+            }
+            catch (System.UnauthorizedAccessException e) {
+                return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid folder" + Environment.NewLine + e.Message });
+            }
+
+            return new ValidationResult(true, null);
+        }
+    }
+
     public class DirectoryContainsFilesRule : ValidationRule {
 
         public bool UseWarning { get; set; }
@@ -63,11 +99,17 @@ namespace Starcounter.InstallerWPF.Rules {
                 char[] charsToTrim = { ' ', '/', '\\' };
                 enteredPath = enteredPath.TrimEnd(charsToTrim);
 
+                // Installation path is not allowed to be in SystemServerPath or PersonalServerPath.
+                if (this.IsInFolder(this.InstallationPath, enteredPath) || this.IsInFolder(enteredPath, this.InstallationPath)) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid folder, Installation folder and server folder can not be placed inside eachothers folders"});
+                }
+
                 if (this.Type == SelfType.PersonalServerPath) {
 
-                    if (this.InstallationPath != null && string.Compare(enteredPath, this.InstallationPath.TrimEnd(charsToTrim)) == 0) {
-                        return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the main installation path" + Environment.NewLine });
-                    }
+                    //if (this.InstallationPath != null && string.Compare(enteredPath, this.InstallationPath.TrimEnd(charsToTrim), true) == 0) {
+                    //    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the main installation path" + Environment.NewLine });
+                    //}
+
 
                     //if (this.SystemServerPath != null && string.Compare(enteredPath, this.SystemServerPath.TrimEnd(charsToTrim)) == 0) {
                     //    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the system server path" + Environment.NewLine });
@@ -76,13 +118,18 @@ namespace Starcounter.InstallerWPF.Rules {
                 }
                 else if (this.Type == SelfType.SystemServerPath) {
 
-                    if (this.InstallationPath != null && string.Compare(enteredPath, this.InstallationPath.TrimEnd(charsToTrim)) == 0) {
-                        return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the main installation path" + Environment.NewLine });
+                    //if (this.InstallationPath != null && string.Compare(enteredPath, this.InstallationPath.TrimEnd(charsToTrim), true) == 0) {
+                    //    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the main installation path" + Environment.NewLine });
+                    //}
+
+                    // Installation path is not allowed to be in SystemServerPath or PersonalServerPath.
+                    if (this.IsInFolder(this.PersonalServerPath, enteredPath) || this.IsInFolder(enteredPath, this.PersonalServerPath)) {
+                        return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid folder, Installation folder and server folder can not be placed inside eachothers folders" });
                     }
 
-                    if (this.PersonalServerPath != null && string.Compare(enteredPath, this.PersonalServerPath.TrimEnd(charsToTrim)) == 0) {
-                        return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the personal server path" + Environment.NewLine });
-                    }
+                    //if (this.PersonalServerPath != null && string.Compare(enteredPath, this.PersonalServerPath.TrimEnd(charsToTrim), true) == 0) {
+                    //    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, You can not use the same path as the personal server path" + Environment.NewLine });
+                    //}
 
                 }
                 else if (this.Type == SelfType.InstallationPath) {
@@ -90,9 +137,20 @@ namespace Starcounter.InstallerWPF.Rules {
                 else {
                     // Unknown..
                 }
-
             }
             return new ValidationResult(true, null);
+        }
+
+        private bool IsInFolder(string folder1, string folder2) {
+
+            if (string.IsNullOrEmpty(folder1) || string.IsNullOrEmpty(folder2)) {
+                return false;
+            }
+
+            if ( Path.GetFullPath(folder1.ToUpperInvariant()).StartsWith(Path.GetFullPath(folder2.ToUpperInvariant())))  {
+                return true;
+            }
+            return false;
         }
     }
 

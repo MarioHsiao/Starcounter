@@ -64,9 +64,10 @@
 
                                     <TextBox x:Name="tb_MainInstallationPath" Margin="0" Loaded="IsLoadedEvent" IsVisibleChanged="IsVisibleChangedEvent"  Validation.Error="Validation_OnError" VerticalAlignment="Top">
                                         <TextBox.Text>
-                                            <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
+                                            <Binding Path="BasePath" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                 <Binding.ValidationRules>
-                                                    <rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                    <rules:InstallationFolderRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                    <!--<rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>-->
                                                     <rules:DuplicatPathCheckRule Type="{x:Static rules:DuplicatPathCheckRule+SelfType.InstallationPath}" ValidatesOnTargetUpdated="True"/>
                                                 </Binding.ValidationRules>
                                             </Binding>

@@ -107,9 +107,15 @@ namespace Starcounter.InstallerEngine
         /// </summary>
         public static void DeleteInstallationDir(Boolean dontDelete)
         {
+
             // If we need to postpone the deletion.
             if (dontDelete || InstallerMain.DontDeleteInstallDir)
                 return;
+
+            bool developerMode = Utilities.IsDeveloperFolder(InstallerMain.InstallationDir);
+            if (developerMode) {
+                return;
+            }
 
             Utilities.ReportSetupEvent("Deleting installation directory...");
 
@@ -133,12 +139,13 @@ namespace Starcounter.InstallerEngine
                 Utilities.SetNormalDirectoryAttributes(new DirectoryInfo(InstallerMain.InstallationDir));
 
                 // Checking if installer runs from the same directory as installation.
-                if (Utilities.EqualDirectories(System.Windows.Forms.Application.StartupPath, InstallerMain.InstallationDir))
+                if (Utilities.EqualDirectories(System.Windows.Forms.Application.StartupPath, InstallerMain.InstallationDir) || Utilities.EqualDirectories(System.Environment.CurrentDirectory, InstallerMain.InstallationDir))
                 {
                     // Remove the directory using scheduled remove directory task.
                     Process rmdirCmd = new Process();
                     try
                     {
+                        rmdirCmd.StartInfo.WorkingDirectory = new DirectoryInfo(System.Windows.Forms.Application.StartupPath).Parent.FullName;
                         rmdirCmd.StartInfo.FileName = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), "cmd.exe");
                         rmdirCmd.StartInfo.Arguments = "/C TIMEOUT 3 /NOBREAK & RMDIR \"" + InstallerMain.InstallationDir + "\" /S /Q";
                         rmdirCmd.StartInfo.UseShellExecute = false;

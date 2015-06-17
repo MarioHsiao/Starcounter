@@ -446,21 +446,17 @@ namespace Starcounter.InstallerWPF {
 
                 // Simulate installation....
 #if SIMULATE_INSTALLATION
-                for (int i = 0; i < 100; i++)
-                {
+                for (int i = 0; i < 100; i++) {
                     // Simulate progress
                     args.Progress++;
                     args.Text = "Installing " + i + Environment.NewLine + "item";
-                    if (progressCallback != null)
-                    {
+                    if (progressCallback != null) {
                         progressCallback(this, args);
                     }
 
                     // Simulate question
-                    if (i == 50)
-                    {
-                        if (messageboxCallback != null)
-                        {
+                    if (i == 50) {
+                        if (messageboxCallback != null) {
 
                             string message = "Test link in message box http://www.starcounter.com " + Environment.NewLine + "Do you want to cancel installation?";
 
@@ -470,18 +466,15 @@ namespace Starcounter.InstallerWPF {
 
                             WpfMessageBoxResult result = messageBoxEventArgs.MessageBoxResult;
 
-                            if (result == WpfMessageBoxResult.Yes)
-                            {
+                            if (result == WpfMessageBoxResult.Yes) {
                                 throw new InstallerEngine.InstallerAbortedException("User canceled");
                             }
                         }
                     }
 
                     // Simulate question
-                    if (i == 80)
-                    {
-                        if (messageboxCallback != null)
-                        {
+                    if (i == 80) {
+                        if (messageboxCallback != null) {
                             InstallerEngine.Utilities.MessageBoxEventArgs messageBoxEventArgs = new InstallerEngine.Utilities.MessageBoxEventArgs("Some feedback information", "Installer", WpfMessageBoxButton.OK, WpfMessageBoxImage.Information);
                             messageboxCallback(this, messageBoxEventArgs);
                         }

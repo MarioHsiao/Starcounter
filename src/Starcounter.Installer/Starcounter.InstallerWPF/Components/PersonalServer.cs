@@ -180,8 +180,12 @@ namespace Starcounter.InstallerWPF.Components {
             r.CheckEmptyString = true;
             if (r.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
 
+            MainWindow win = System.Windows.Application.Current.MainWindow as MainWindow;
+            InstallationBase installationBaseComponent = win.Configuration.Components[InstallationBase.Identifier] as InstallationBase;
+
             DuplicatPathCheckRule r2 = new DuplicatPathCheckRule();
             r2.Type = DuplicatPathCheckRule.SelfType.SystemServerPath;
+            r2.InstallationPath = installationBaseComponent.Path;
             if (r2.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
 
             PortRule pr = new PortRule();
