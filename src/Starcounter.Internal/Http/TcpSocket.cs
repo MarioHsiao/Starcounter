@@ -177,22 +177,21 @@ namespace Starcounter {
             UInt32 chunkIndex;
             Byte* chunkMem;
 
-            NetworkDataStream existingDataStream = dataStream_;
-
             // Checking if we still have the data stream with original chunk available.
-            if (existingDataStream == null || existingDataStream.IsDestroyed()) {
+            if (dataStream_ == null || dataStream_.IsDestroyed()) {
 
                 UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
+
                 if (0 != err_code) {
-                    throw ErrorCode.ToException(err_code, "Can't obtain new chunk for session push.");
+                    // NOTE: If we can not obtain a chunk just returning because we can't do much.
+                    return;
                 }
 
-                dataStream = new NetworkDataStream();
-                dataStream.Init(chunkIndex, socketStruct_.GatewayWorkerId);
+                dataStream = new NetworkDataStream(chunkIndex, socketStruct_.GatewayWorkerId);
 
             } else {
 
-                dataStream = existingDataStream;
+                dataStream = dataStream_;
                 chunkIndex = dataStream.ChunkIndex;
                 chunkMem = dataStream.GetChunkMemory();
             }

@@ -404,7 +404,7 @@ uint32_t SocketDataChunk::ChangeToBigger(
 // Clone current socket data to push it.
 uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_sd)
 {
-    GW_ASSERT(static_cast<int32_t>(get_accumulated_len_bytes()) <= GatewayChunkDataSizes[chunk_store_index_]);
+    GW_ASSERT(static_cast<int32_t>(get_accumulated_len_bytes()) <= get_data_blob_size());
 
     // Taking the chunk where accumulated buffer fits.
     (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(get_accumulated_len_bytes());
@@ -452,7 +452,7 @@ uint32_t SocketDataChunk::CreateWebSocketDataFromBigBuffer(
     sd->set_user_data_offset_in_socket_data(static_cast<uint16_t>(sd->get_data_blob_start() - (uint8_t*) sd));
 
     // Adjusting the accumulative buffer.
-    AddAccumulatedBytes(payload_len);
+    sd->AddAccumulatedBytes(payload_len);
 
     // This socket becomes unattached.
     sd->reset_socket_representer_flag();

@@ -18,11 +18,16 @@ namespace Starcounter.Binding
     [Flags]
     internal enum TypeBindingFlags
     {
+        /// <summary>
+        /// Set if the type provide a concrete OnDelete method
+        /// </summary>
+        Callback_OnDelete = 1,
 
         /// <summary>
-        /// The callback_ on delete
+        /// Set if there are at least 1 hook installed that need
+        /// to be invoked on delete
         /// </summary>
-        Callback_OnDelete = 1
+        Hook_OnDelete = 2
     }
 
     /// <summary>

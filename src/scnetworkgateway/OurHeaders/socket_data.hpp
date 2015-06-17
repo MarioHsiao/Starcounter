@@ -130,6 +130,8 @@ public:
             accumulated_len_bytes_ = num_copy_bytes;
         }
 
+        GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
+
         return data_orig_ptr;
     }
 
@@ -141,6 +143,8 @@ public:
         num_available_network_bytes_ -= orig_buf_ptr_shift_bytes;
         cur_network_buf_ptr_ = get_data_blob_start() + orig_buf_ptr_shift_bytes;
         accumulated_len_bytes_ = buf_total_len_bytes;
+
+        GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
     }
 
     uint32_t get_num_available_network_bytes()
@@ -175,6 +179,8 @@ public:
         accumulated_len_bytes_ += num_bytes;
         cur_network_buf_ptr_ += num_bytes;
         num_available_network_bytes_ -= num_bytes;
+
+        GW_ASSERT(accumulated_len_bytes_ <= get_data_blob_size());
     }
 
     // Prepare buffer to proxy outside.
@@ -908,11 +914,6 @@ public:
     uint32_t get_user_data_length_bytes_icp_chunk() {
 
         return user_data_length_bytes_;
-    }
-
-    // Size in bytes of written user data.
-    void set_user_data_length_bytes(uint32_t value) {
-        user_data_length_bytes_ = value;
     }
 
     // Resets accumulating buffer to its default socket data values.

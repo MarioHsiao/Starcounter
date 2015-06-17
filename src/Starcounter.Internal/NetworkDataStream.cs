@@ -16,7 +16,7 @@ namespace Starcounter
     /// <summary>
     /// Struct NetworkDataStream
     /// </summary>
-    public unsafe class NetworkDataStream : Finalizing
+    public unsafe class NetworkDataStream
     {
         /// <summary>
         /// </summary>
@@ -61,28 +61,11 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NetworkDataStream" /> struct.
-        /// </summary>
-        internal void Init(
-            UInt32 chunkIndex,
-            Byte gwWorkerId)
-        {
-            chunkIndex_ = chunkIndex;
-            gwWorkerId_ = gwWorkerId;
-        }
-
-        /// <summary>
-        /// Destroys the instance of Request.
-        /// </summary>
-        override internal void DestroyByFinalizer() {
-            Destroy(false);
-        }
-
-        /// <summary>
         /// Prohibiting default constructor.
         /// </summary>
-        internal NetworkDataStream() {
-            
+        internal NetworkDataStream(UInt32 chunkIndex, Byte gwWorkerId) {
+            chunkIndex_ = chunkIndex;
+            gwWorkerId_ = gwWorkerId;
         }
 
         /// <summary>
@@ -117,15 +100,22 @@ namespace Starcounter
                 throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, "You are trying to send an empty data.");
             }
 
+            // Checking if gateway worker id is malicious.
+            if (gwWorkerId_ >= StarcounterEnvironment.Gateway.NumberOfWorkers) {
+
+                // Destroying data stream immediately.
+                Destroy(true);
+                
+                return;
+            }
+
             // Processing user data and sending it to gateway.
             UInt32 cur_chunk_index = chunkIndex_;
-            UInt32 ec = bmx.sc_bmx_send_buffer(gwWorkerId_, p + offset, length_bytes, &cur_chunk_index, (UInt32)conn_flags);
-            chunkIndex_ = cur_chunk_index;
 
-            // Checking if any error occurred.
-            if (ec != 0) {
-                throw ErrorCode.ToException(ec);
-            }
+            // NOTE: We are ignoring error here because we can't do much about it.
+            bmx.sc_bmx_send_buffer(gwWorkerId_, p + offset, length_bytes, &cur_chunk_index, (UInt32)conn_flags);
+
+            chunkIndex_ = cur_chunk_index;
 
             // Destroying data stream immediately.
             Destroy(true);
@@ -157,16 +147,11 @@ namespace Starcounter
             return false;
         }
 
-
-
         /// <summary>
         /// Frees all data stream resources like chunks.
         /// </summary>
         public void Destroy(Boolean isStarcounterThread)
         {
-            // NOTE: Removing reference for finalizer so it does not call destroy again.
-            UnLinkFinalizer();
-
             // Checking if already destroyed.
             if (IsDestroyed())
                 return;

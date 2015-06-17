@@ -31,8 +31,12 @@ uint32_t sc_clone_linked_chunks(starcounter::core::chunk_index first_chunk_index
         // Acquiring new chunk.
         uint8_t* dest_chunk_mem;
         err_code = cm_acquire_shared_memory_chunk(&dest_chunk_index, &dest_chunk_mem);
+        _SC_ASSERT(0 == err_code);
+
         if (err_code) {
+
             if (dest_smc != NULL) {
+
                 cm_release_linked_shared_memory_chunks(*out_chunk_index);
                 *out_chunk_index = shared_memory_chunk::link_terminator;
                 return err_code;
@@ -201,7 +205,6 @@ uint32_t __stdcall sc_bmx_clone_chunk(
     // Acquiring new chunk.
     uint8_t* new_chunk_buf;
     err_code = cm_acquire_shared_memory_chunk(new_chunk_index, &new_chunk_buf);
-    _SC_ASSERT(err_code == 0);
     if (err_code)
         return err_code;
 
@@ -277,14 +280,7 @@ uint32_t __stdcall sc_bmx_write_to_chunks(
 
     // Acquiring linked chunks.
     err_code = cm_acquire_linked_shared_memory_chunks_counted(the_chunk_index, num_extra_chunks);
-    _SC_ASSERT(err_code == 0);
-
-    if (err_code)
-    {
-        // Releasing the original chunk.
-        uint32_t err_code2 = cm_release_linked_shared_memory_chunks(the_chunk_index);
-        _SC_ASSERT(err_code2 == 0);
-
+    if (err_code) {
         return err_code;
     }
 
@@ -435,8 +431,9 @@ uint32_t __stdcall sc_bmx_send_big_buffer(
         {
             // Obtaining a new chunk and copying the original chunk header there.
             err_code = sc_bmx_clone_chunk(the_chunk_index, 0, starcounter::MixedCodeConstants::CHUNK_NUM_CLONE_BYTES, &new_chunk_index);
-            if (err_code)
+            if (err_code) {
                 return err_code;
+            }
 
             // Sending linked chunks to client.
             err_code = cm_send_to_client(gw_worker_id, the_chunk_index);
@@ -520,8 +517,13 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
         err_code = sc_bmx_send_big_buffer(gw_worker_id, buf, buf_len_bytes, *the_chunk_index, chunk_user_data_offset);
     }
 
-    // Chunk becomes unusable.
-    *the_chunk_index = shared_memory_chunk::link_terminator;
+    // Returning chunk if any error etc.
+    if (shared_memory_chunk::link_terminator != *the_chunk_index) {
+
+        _SC_ASSERT(0 != err_code);
+        cm_release_linked_shared_memory_chunks(*the_chunk_index);
+        *the_chunk_index = shared_memory_chunk::link_terminator;
+    }
 
     return err_code;
 
