@@ -800,11 +800,14 @@ namespace Starcounter
                 Profiler.Current.Stop(ProfilerNames.GetPreferredMimeType);
 
                 try {
+
                     bytes = resource_.AsMimeType(mimetype, out mimetype);
                     this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
-                } catch (UnsupportedMimeTypeException exc) {
-                    throw new Exception(
-                        String.Format("Unsupported mime-type {0} in request Accept header. Exception: {1}", mimetype.ToString(), exc.ToString()));
+
+                } catch (UnsupportedMimeTypeException) {
+
+                    // MIME type is not strictly supported, below is a check for alternative MIME types.
+                    bytes = null;
                 }
 
                 if (bytes == null) {
