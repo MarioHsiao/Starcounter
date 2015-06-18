@@ -1,7 +1,12 @@
+<!--
+`juicy-jsoneditor element` - Polymer wrapper for josdejong/jsoneditor.
+
+@element juicy-jsoneditor
+version: 0.0.7
+-->
 <!-- Import Polymer -->
-<!-- <link rel="import" href="../../polymer/polymer.html"> -->
-<script type="text/javascript" src="../../jsoneditor/jsoneditor.js"></script>
-<script type="text/javascript" src="../../jsoneditor/asset/ace/ace.js"></script>
+<link rel="import" href="../../polymer/polymer.html">
+<script type="text/javascript" src="../../jsoneditor/dist/jsoneditor.min.js"></script>
 <script src="../../fast-json-patch/src/json-patch-duplex.js"></script>
 <!-- <script src="../../fast-json-patch/src/json-patch.js"></script> -->
 
@@ -9,7 +14,7 @@
 <!-- Define your custom element -->
 <polymer-element name="juicy-jsoneditor" attributes="json mode modes name search indentation history">
     <template>
-        <link rel="stylesheet" type="text/css" href="../../jsoneditor/jsoneditor.min.css">
+        <link rel="stylesheet" type="text/css" href="../../jsoneditor/dist/jsoneditor.min.css">
         <style>
             :host{
                 display: block;
@@ -25,7 +30,7 @@
         var JSONEditorAPI = 
             ["set","setMode","setName","setText","get","getName","getText"];
         Polymer('juicy-jsoneditor', {
-            json: {},
+            json: null,
             editor: null,
             modes:[],
             search: true,
@@ -35,9 +40,7 @@
             // observer: null,
             created: function(){
                 //prevent sharing the same Object by different instances
-                if(!this.getAttribute("json")){
-                    this.json = {};
-                }
+                this.json = {};
                 //force context for observers
                 this.refresh = this.refresh.bind(this);
             },
@@ -55,23 +58,24 @@
                         search: this.search,
                         indentation: this.indentation,
 
-                        change: function editorChanged(patch){
-                            if(that.editor){
-                                // and we would like to keep at least root json object not replaced.
-                                // josdejong/jsoneditor#87
-                                that.dispatchEvent(
-                                    new CustomEvent("change", {
-                                        detail: {
-                                            action: patch,
-                                            patch: patch
-                                        }
-                                    })
-                                );
-                                that.observer && jsonpatch.unobserve( that.json, that.observer );
-                                jsonpatch.apply(that.json, [patch]);
-                                //that.observer(that.json);
-                                that.observer = jsonpatch.observe( that.json, that.refresh );
+                        change: function editorChanged() {
+                            if (!that.editor) {
+                                return;
                             }
+
+                            var patches = jsonpatch.compare(that.json, that.editor.get());
+
+                            that.dispatchEvent(
+                                new CustomEvent("change", {
+                                    detail: {
+                                        patches: patches
+                                    }
+                                })
+                            );
+
+                            that.observer && jsonpatch.unobserve(that.json, that.observer);
+                            jsonpatch.apply(that.json, patches);
+                            that.observer = jsonpatch.observe(that.json, that.refresh);
                         }
                     };
 
@@ -103,8 +107,71 @@
                 this.observer = jsonpatch.observe( newJson, this.refresh )
                 return this.refresh();
             },
-            refresh: function refresh(){
-                return this.editor.set(this.json);
+            refresh: function refresh() {
+                var state = this.getExpandState();
+                var r = this.editor.set(this.json);
+
+                this.setExpandState(state);
+
+                return r;
+            },
+            getExpandState: function (node, focused) {
+                if (!node && !this.editor.node) {
+                    return {};
+                } else if (!node) {
+                    node = this.editor.node;
+                }
+
+                if (!focused) {
+                    focused = document.querySelector("html /deep/ :focus");
+                }
+
+                var r = {
+                    expanded: node.expanded,
+                    focused: node.dom.value && node.dom.value == focused
+                };
+
+                if (node.childs) {
+                    r.childs = [];
+
+                    for (var i = 0; i < node.childs.length; i++) {
+                        r.childs.push(this.getExpandState(node.childs[i], focused));
+                    }
+                }
+
+                return r;
+            },
+            setExpandState: function (state, node) {
+                if (!node && !this.editor.node) {
+                    return;
+                } else if (!node) {
+                    node = this.editor.node;
+                }
+
+                if (state.expanded) {
+                    node.expand(false);
+                }
+
+                if (state.focused && node.dom.value) {
+                    node.dom.value.focus();
+
+                    var range = document.createRange();
+                    var selection = window.getSelection();
+
+                    range.selectNodeContents(document.querySelector("html /deep/ :focus"));
+                    range.collapse(false);
+
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                }
+
+                if (state.childs) {
+                    for (var i = 0; i < state.childs.length; i++) {
+                        if (node.childs[i]) {
+                            this.setExpandState(state.childs[i], node.childs[i]);
+                        }
+                    }
+                }
             }
         });
 
