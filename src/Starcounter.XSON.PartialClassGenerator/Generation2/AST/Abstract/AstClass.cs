@@ -235,7 +235,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         }
 
         private string _GlobalClassSpecifier = null;
-        private string _ClassStemIdentifier = null;
+        protected string _ClassStemIdentifier = null;
 
         /// <summary>
         /// The global class specifier points out one exact type 
