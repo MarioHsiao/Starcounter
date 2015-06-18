@@ -244,8 +244,8 @@ namespace Starcounter.Templates {
                     if (value != null)
                         name = value.Replace("$", "");
                     _propertyName = name;
-                    if (Parent != null) {
-                        var parent = (TObject)Parent;
+                    var parent = Parent as TObject;
+                    if (parent != null) {
                         var props = (PropertyList)(parent.Properties);
                         props.ChildPropertyNameIsSet(this);
                         props.ChildNameIsSet(this);
@@ -265,7 +265,9 @@ namespace Starcounter.Templates {
                 if (_propertyName == null) {
                     var p = Parent;
                     if (p != null && p is TObjArr) {
-                        return Parent.PropertyName + "Element";
+                        if (p.PropertyName != null)
+                            return p.PropertyName + "Element";
+                        return null;
                     }
                 }
                 return _propertyName;

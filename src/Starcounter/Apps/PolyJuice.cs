@@ -1204,6 +1204,9 @@ namespace PolyjuiceNamespace {
                 for (Int32 i = 0; i < responses.Count; i++) {
 
                     if (mainResponseId != i) {
+                        if (responses[i] == null)
+                            continue;
+
                         siblingJson = (Json)responses[i].Resource;
 
                         // TODO:

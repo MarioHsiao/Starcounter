@@ -95,6 +95,9 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// <returns>A name that ends with the text "Json"</returns>
         public override string ClassStemIdentifier {
             get {
+                if (_ClassStemIdentifier != null)
+                    return _ClassStemIdentifier;
+
                 if (CodebehindClass != null) {
                     return CodebehindClass.ClassName;
                 }

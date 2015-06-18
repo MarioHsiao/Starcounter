@@ -93,6 +93,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                                 else {
                                     generator.AssociateTemplateWithDefaultArray(tarr);
                                 }
+                                titem = null;
                             }
 
                             GenerateProperty(
