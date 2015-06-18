@@ -822,11 +822,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
     }
 
-    void reset_disconnect_after_send_flag()
-    {
-        flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
-    }
-
     bool get_ws_close_already_sent_flag()
     {
         return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT) != 0;
@@ -836,11 +831,6 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     void set_ws_close_already_sent_flag()
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT;
-    }
-
-    void reset_ws_close_already_sent_flag()
-    {
-        flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT;
     }
 
     SOCKET get_socket() {
