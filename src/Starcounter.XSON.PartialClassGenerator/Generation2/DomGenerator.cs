@@ -51,7 +51,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             defaultObjTemplate.Namespace = "Starcounter";
             defaultObjTemplate.ClassName = "Json";
             defaultArrayTemplate = new TArray<Json>();
-            defaultArrayTemplate.ElementType = defaultObjTemplate; 
+            defaultArrayTemplate.ElementType = defaultObjTemplate;
+            defaultArrayTemplate.Namespace = "Starcounter";
             CodeBehindMetadata = metadata;
         }
 
