@@ -64,8 +64,8 @@ namespace Starcounter {
             /// <summary>
             /// Used by to support inheritance when using Json-by-example compiler
             /// </summary>
-			/// <typeparam name="SchemaType">The schema for the Json.</typeparam>
-            /// <typeparam name="JsonType">The Json instance type described by this schema</typeparam>
+            /// <typeparam name="TJson">The Json instance type described by this schema</typeparam>
+            /// <typeparam name="TTemplate">The schema for the Json.</typeparam>
             public class Metadata<TJson, TTemplate> : Starcounter.Templates.ValueMetadata<TJson, TTemplate>
                 where TTemplate : Starcounter.Templates.TValue
                 where TJson : Json {

@@ -12,8 +12,8 @@ namespace Starcounter.Advanced.XSON {
         /// <summary>
         /// Compile markup.
         /// </summary>
-        /// <typeparam name="TypeObj"></typeparam>
-        /// <typeparam name="TypeTObj"></typeparam>
+        /// <typeparam name="TJson">The Json instance type described by this schema</typeparam>
+        /// <typeparam name="TTemplate">The schema for the Json.</typeparam>
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>

@@ -12,8 +12,8 @@ namespace Starcounter.Internal.XSON.JsonByExample {
         /// <summary>
         /// Compile markup.
         /// </summary>
-        /// <typeparam name="TypeObj"></typeparam>
-        /// <typeparam name="TypeTObj"></typeparam>
+        /// <typeparam name="TJson"></typeparam>
+        /// <typeparam name="TTemplate"></typeparam>
         /// <param name="markup"></param>
         /// <param name="origin"></param>
         /// <returns></returns>
