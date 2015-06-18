@@ -1170,6 +1170,21 @@ public:
         return socket_info_->aggr_unique_socket_id_;
     }
 
+    bool GetWsCloseAlreadySentFlag()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        return socket_info_->get_ws_close_already_sent_flag();
+    }
+
+    // Indicating that we already have sent the WebSocket Close frame.
+    void SetWsCloseAlreadySentFlag()
+    {
+        GW_ASSERT_DEBUG(NULL != socket_info_);
+
+        socket_info_->set_ws_close_already_sent_flag();
+    }
+
     void SetWebSocketGroupId(ws_group_id_type ws_group_id)
     {
         GW_ASSERT_DEBUG(NULL != socket_info_);

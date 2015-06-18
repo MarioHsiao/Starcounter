@@ -12,6 +12,7 @@ using Starcounter.Advanced;
 using System.Diagnostics;
 using Starcounter.Rest;
 using System.Net;
+using Starcounter.Logging;
 
 namespace Starcounter
 {
@@ -526,10 +527,11 @@ namespace Starcounter
 
             // Creating network data stream object.
             NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
+
+            // The WebSocket object on which we perform the operations.
+            WebSocket ws = null;
             
             try {
-
-                WebSocket ws = null;
 
                 // Allocate memory on the stack that can hold a few number of transactions that are fast 
                 // to allocate. The pointer to the memory will be kept on the thread. It is important that 
@@ -641,7 +643,15 @@ namespace Starcounter
 
             } catch (Exception exc) {
 
+
+                // On exceptions we have to disconnect the WebSocket with a message.
+                if (ws != null) {
+                    ws.Disconnect("An exception occurred on the server. Please check Starcounter server log for details.", 
+                        WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
+                }
+
                 LogSources.Hosting.LogException(exc);
+
                 return Error.SCERRUNSPECIFIED;
 
             } finally {

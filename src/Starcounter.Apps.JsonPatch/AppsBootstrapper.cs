@@ -47,6 +47,11 @@ namespace Starcounter.Internal {
             Boolean noNetworkGateway,
             Boolean polyjuiceDatabaseFlag)
         {
+            // Setting host exception logging for internal.
+            Diagnostics.SetHostLogException((Exception exc) => {
+                LogSources.Hosting.LogException(exc);
+            });
+
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
             StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;

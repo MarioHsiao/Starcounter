@@ -142,6 +142,10 @@ uint32_t WsProto::UnmaskFrameAndPush(
 
         case WS_OPCODE_CLOSE:
         {
+            // Checking if we have already sent a Close frame.
+            if (sd->GetWsCloseAlreadySentFlag())
+                return SCERRGWDISCONNECTFLAG;
+
             uint32_t payload_len = sd->get_user_data_length_bytes();
 
             // Send the response Close message.
@@ -150,6 +154,9 @@ uint32_t WsProto::UnmaskFrameAndPush(
 
             // Sending resource not found and closing the connection.
             sd->set_disconnect_after_send_flag();
+
+            // Indicating that we already have sent the WebSocket Close frame.
+            sd->SetWsCloseAlreadySentFlag();
 
             // Prepare buffer to send outside.
             sd->PrepareForSend(payload, payload_len);
@@ -390,8 +397,10 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     // Handled successfully.
     *is_handled = true;
 
-    // Checking if we want to disconnect the socket.
-    if (sd->get_disconnect_socket_flag()) {
+    // Checking if we want to disconnect the socket or we are already disconnected.
+    if (sd->get_disconnect_socket_flag() ||
+        sd->GetWsCloseAlreadySentFlag()) {
+
         return SCERRGWDISCONNECTFLAG;
     }
 
@@ -419,7 +428,7 @@ uint32_t WsProto::ProcessWsDataFromDb(GatewayWorker *gw, SocketDataChunkRef sd, 
     if (sd->get_gracefully_close_flag())
     {
         sd->reset_gracefully_close_flag();
-        sd->set_disconnect_after_send_flag();
+        sd->SetWsCloseAlreadySentFlag();
         opcode_ = WS_OPCODE_CLOSE;
     }
 

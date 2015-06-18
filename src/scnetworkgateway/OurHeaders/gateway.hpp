@@ -713,7 +713,8 @@ enum SOCKET_FLAGS
 {
     SOCKET_FLAGS_AGGREGATED = 1,
     SOCKET_FLAGS_PROXY_CONNECT = 2,
-    SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1
+    SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1,
+    SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2
 };
 
 // Structure that facilitates the socket.
@@ -824,6 +825,22 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     void reset_disconnect_after_send_flag()
     {
         flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_DISCONNECT_AFTER_SEND;
+    }
+
+    bool get_ws_close_already_sent_flag()
+    {
+        return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT) != 0;
+    }
+
+    // Indicating that we already have sent the WebSocket Close frame.
+    void set_ws_close_already_sent_flag()
+    {
+        flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT;
+    }
+
+    void reset_ws_close_already_sent_flag()
+    {
+        flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT;
     }
 
     SOCKET get_socket() {

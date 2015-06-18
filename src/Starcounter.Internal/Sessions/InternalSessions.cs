@@ -720,44 +720,50 @@ namespace Starcounter.Internal
         /// Looks up for inactive sessions and kills them. A Timer will schedule this method 
         /// as a job for each scheduler.
         /// </summary>
-        public void InactiveSessionsCleanupRoutine()
-        {
-            // Incrementing global time.
-            CurrentTimeTick++;
+        public void InactiveSessionsCleanupRoutine() {
 
-            UInt32 num_checked_sessions = 0;
-            LinkedListNode<UInt32> used_session_index_node = used_session_indexes_.First;
-            while (used_session_index_node != null)
-            {
-                LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+            try {
 
-                // Getting session instance.
-                ScSessionClass s = GetAppsSessionIfAlive(used_session_index_node.Value);
+                // Incrementing global time.
+                CurrentTimeTick++;
 
-                // Checking if session is created at all.
-                if (s != null)
-                {
-                    // Checking if session is outdated.
-                    if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) 
-                    {
-                        // Destroying old session.
+                UInt32 num_checked_sessions = 0;
+                LinkedListNode<UInt32> used_session_index_node = used_session_indexes_.First;
+
+                while (used_session_index_node != null) {
+
+                    LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+
+                    // Getting session instance.
+                    ScSessionClass s = GetAppsSessionIfAlive(used_session_index_node.Value);
+
+                    // Checking if session is created at all.
+                    if (s != null) {
+
+                        // Checking if session is outdated.
+                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) {
+                            // Destroying old session.
+                            DestroySession(s.session_struct_);
+                        }
+
+                        num_checked_sessions++;
+                    } else {
+                        // NOTE: Apps session was destroyed already so deleting the wrapper.
                         DestroySession(s.session_struct_);
                     }
 
-                    num_checked_sessions++;
-                } 
-                else 
-                {
-                    // NOTE: Apps session was destroyed already so deleting the wrapper.
-                    DestroySession(s.session_struct_);
+                    // Getting next used session.
+                    used_session_index_node = next_used_session_index_node;
+
+                    // Checking if we have scanned all created sessions.
+                    if (num_checked_sessions >= used_session_indexes_.Count)
+                        break;
                 }
 
-                // Getting next used session.
-                used_session_index_node = next_used_session_index_node;
+            } catch (Exception exc) {
 
-                // Checking if we have scanned all created sessions.
-                if (num_checked_sessions >= used_session_indexes_.Count)
-                    break;
+                // Just logging the exception.
+                Diagnostics.LogHostException(exc);
             }
         }
     }

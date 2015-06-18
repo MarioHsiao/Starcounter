@@ -85,5 +85,18 @@ namespace Starcounter.Internal
                 }
             }
         }
+
+        /// <summary>
+        /// Delegate used to log host exceptions in Starcounter.Internal.
+        /// </summary>
+        internal static Action<Exception> LogHostException;
+
+        /// <summary>
+        /// Setting delegate for logging host exceptions.
+        /// </summary>
+        /// <param name="logHostException"></param>
+        internal static void SetHostLogException(Action<Exception> logHostException) {
+            LogHostException = logHostException;
+        }
     }
 }
