@@ -144,7 +144,10 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
               column.data = column.value;
               $scope.database._queryState.columns.push(column);
             });
-            $scope.database._queryState.rows = response.rows.rows;
+            $scope.database._queryState.rows.length = 0;
+            angular.forEach(response.rows.rows, function(row) {
+              $scope.database._queryState.rows.push(row);
+            });
 
             // Make all columns readonly
             for (var i = 0; i < $scope.database._queryState.columns.length ; i++) {

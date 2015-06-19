@@ -9251,8 +9251,7 @@ function AutoColumnSize() {
         samples[len].needed--;
       }
     }
-    var settings = instance.getSettings();
-    if (settings.colHeaders) {
+    if (instance.getColHeader(col) !== null) {
       instance.view.appendColHeader(col, tmp.theadTh);
     }
     dom.empty(tmp.tbody);
