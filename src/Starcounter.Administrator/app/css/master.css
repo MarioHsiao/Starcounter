@@ -356,6 +356,7 @@ body {
     white-space: pre-wrap;
     word-break: break-all;
     word-wrap: break-word;
+    padding: 0;
 }
 .handsontable pre {
     border: none;
@@ -371,7 +372,7 @@ body {
     font-size: 14px;
 }
 .log-message pre {
-    padding: 0;
+    padding: 0 4px 0 4px;
 }
 .log-message-detector pre, .log-message-detector code {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
