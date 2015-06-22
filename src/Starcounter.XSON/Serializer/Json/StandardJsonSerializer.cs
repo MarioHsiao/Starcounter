@@ -7,6 +7,7 @@ using Starcounter.Internal;
 using Starcounter.Templates;
 using System.Diagnostics;
 using System.Collections;
+using Starcounter.Logging;
 
 namespace Starcounter.Advanced.XSON {
 	public abstract class StandardJsonSerializerBase : TypedJsonSerializer {
@@ -63,7 +64,7 @@ namespace Starcounter.Advanced.XSON {
         }
 
         public override int Serialize(Json json, IntPtr dest, int destSize) {
-            return json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
+            int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
                 if (j.Template != null) {
                     return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
                 } else {
@@ -75,10 +76,13 @@ namespace Starcounter.Advanced.XSON {
             json, 
             dest, 
             destSize);
+
+            AssertWrittenSize(json, realSize, destSize);
+            return realSize;
         }
 
         public override int Serialize(Json json, Template property, IntPtr dest, int destSize) {
-            return json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
+           int realSize = json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
                 return serializePerTemplate[(int)t.TemplateTypeId](tjs, j, t, d, ds);
             },
             this,
@@ -86,6 +90,9 @@ namespace Starcounter.Advanced.XSON {
             property,
             dest,
             destSize);
+
+           AssertWrittenSize(json, realSize, destSize);
+           return realSize;
         }
 
         private static bool WrapInAppName(Session session, Json obj) {
@@ -96,6 +103,15 @@ namespace Starcounter.Advanced.XSON {
                 && !obj.calledFromStepSibling)
                 return true;
             return false;
+        }
+
+        private static void AssertWrittenSize(Json json, int realSize, int destSize) {
+            if (realSize > destSize) {
+                var errMsg = "TypedJson serializer: written size is larger than size of destination!";
+                errMsg += " (written: " + realSize + ", destination: " + destSize + ")\r\n";
+                errMsg += "Type: " + json.GetType() + ", DebugString: " + json.DebugString;
+                throw new Exception(errMsg);
+            }
         }
 
         private static int EstimateException(TypedJsonSerializer serializer, Json json, Template template) {

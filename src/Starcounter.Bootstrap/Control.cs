@@ -95,6 +95,7 @@ namespace StarcounterInternal.Bootstrap {
 
             Kernel32.SetProcessPriorityBoost(Kernel32.GetCurrentProcess(), 1);
 #endif
+                StarcounterInternal.Hosting.ExceptionManager.Init();
 
                 DatabaseExceptionFactory.InstallInCurrentAppDomain();
                 OnExceptionFactoryInstalled();
