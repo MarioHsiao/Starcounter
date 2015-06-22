@@ -18,6 +18,12 @@ namespace StarcounterInternal.Hosting
     /// </summary>
     public static class ExceptionManager
     {
+        public static void Init(){
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) => {
+                HandleUnhandledException((Exception)e.ExceptionObject);
+            };
+        }
+
         /// <summary>
         /// Handles the unhandled exception.
         /// </summary>
