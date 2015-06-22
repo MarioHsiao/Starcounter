@@ -175,6 +175,13 @@ namespace Starcounter.XSON {
                 }
             }
 
+            if (size > buffer.Length) {
+                var errMsg = "JsonPatch: Written size is larger than estimated size!";
+                errMsg += " (written: " + size + ", estimated: " + buffer.Length + ")\r\n";
+                errMsg += "Buffer (w/o data out of bounds): " + System.Text.Encoding.UTF8.GetString(buffer);
+                throw new Exception(errMsg);
+            }
+
             patches = buffer;
             return size;
         }
