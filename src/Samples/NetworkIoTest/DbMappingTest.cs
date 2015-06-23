@@ -258,7 +258,7 @@ namespace DbMappingTest {
             }
         }
 
-        public static void Main() {
+        public static void Main2() {
 
             Db.Transact(() => {
                 Db.SlowSQL("DELETE FROM DbMapInfo");
