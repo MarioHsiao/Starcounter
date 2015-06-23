@@ -646,7 +646,7 @@ namespace Starcounter
 
                 // On exceptions we have to disconnect the WebSocket with a message.
                 if (ws != null) {
-                    ws.Disconnect("An exception occurred on the server. Please check Starcounter server log for details.", 
+                    ws.Disconnect(exc.ToString().Substring(0, 120), 
                         WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                 }
 

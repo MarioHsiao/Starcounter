@@ -494,6 +494,14 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
+        /// Checks if given URI handler is registered.
+        /// </summary>
+        public static Boolean IsHandlerRegistered(String methodSpaceUriSpace, HandlerOptions ho) {
+
+            return (null != FindHandlerByProcessedUri(methodSpaceUriSpace, ho));
+        }
+
+        /// <summary>
         /// Does internal registration of delegate involving notification of gateway.
         /// </summary>
         Func<Request, IntPtr, IntPtr, Response> RegisterDelegate(

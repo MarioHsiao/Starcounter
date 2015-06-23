@@ -346,11 +346,11 @@ namespace Starcounter {
             outgoingStatusCode_ = 0;
         }
 
-        internal const String GET_METHOD = "GET";
-        internal const String PUT_METHOD = "PUT";
-        internal const String POST_METHOD = "POST";
-        internal const String DELETE_METHOD = "DELETE";
-        internal const String PATCH_METHOD = "PATCH";
+        public const String GET_METHOD = "GET";
+        public const String PUT_METHOD = "PUT";
+        public const String POST_METHOD = "POST";
+        public const String DELETE_METHOD = "DELETE";
+        public const String PATCH_METHOD = "PATCH";
 
         /// <summary>
         /// Checks if given URI is a part of 
@@ -367,6 +367,16 @@ namespace Starcounter {
             }
 
             return false;
+        }
+
+        internal static Func<String, HandlerOptions, Boolean> isHandlerRegistered_;
+
+        /// <summary>
+        /// Checks if given URI handler is registered.
+        /// </summary>
+        public static Boolean IsHandlerRegistered(String methodSpaceUriSpace, HandlerOptions ho) {
+
+            return isHandlerRegistered_(methodSpaceUriSpace, ho);
         }
 
         /// <summary>
