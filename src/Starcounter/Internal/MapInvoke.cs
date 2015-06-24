@@ -25,8 +25,7 @@ namespace Starcounter.Internal {
         }
 
         static string MakeURI(string name, ulong key) {
-            var s = name.Replace('.', '/').ToLowerInvariant();
-            return string.Format("{0}/{1}", s, key.ToString());
+            return string.Format("/{0}/{1}", name, key.ToString());
         }
     }
 }

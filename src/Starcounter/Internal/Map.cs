@@ -31,10 +31,11 @@ namespace Starcounter.Internal {
         /// <param name="uri">The unique mapping URI of the object being
         /// created.</param>
         public static void POST(string uri) {
-            // Implement logic
-            // TODO:
 
-            Console.WriteLine("MAP POST on {0}", uri);
+            Self.POST(uri, null, null, null, 0, new HandlerOptions() { 
+                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
+
+            //Console.WriteLine("MAP POST on {0}", uri);
         }
 
         /// <summary>
@@ -44,10 +45,11 @@ namespace Starcounter.Internal {
         /// <param name="uri">The unique mapping URI of the object being
         /// updated.</param>
         public static void PUT(string uri) {
-            // Implement logic
-            // TODO:
 
-            Console.WriteLine("MAP PUT on {0}", uri);
+            Self.PUT(uri, null, null, null, 0, new HandlerOptions() { 
+                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
+
+            //Console.WriteLine("MAP PUT on {0}", uri);
         }
 
         /// <summary>
@@ -57,10 +59,11 @@ namespace Starcounter.Internal {
         /// <param name="uri">The unique mapping URI of the object being
         /// deleted.</param>
         public static void DELETE(string uri) {
-            // Implement logic
-            // TODO:
 
-            Console.WriteLine("MAP DELETE on {0}", uri);
+            Self.DELETE(uri, null, null, null, 0, new HandlerOptions() { 
+                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
+
+            //Console.WriteLine("MAP DELETE on {0}", uri);
         }
     }
 }

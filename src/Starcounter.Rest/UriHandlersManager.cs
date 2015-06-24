@@ -687,7 +687,7 @@ namespace Starcounter.Rest
 
                 for (UInt16 i = 0; i < maxNumHandlersEntries_; i++) {
 
-                    if (allUriHandlers_[i].ProcessedUriInfo == processedUriInfo) {
+                    if (0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) {
                         
                         return allUriHandlers_[i];
                     }

@@ -127,10 +127,8 @@ namespace Starcounter
         void ReleaseChunk()
         {
             // Returning linked chunks to pool.
-            UInt32 ec = bmx.sc_bmx_release_linked_chunks(chunkIndex_);
-            Debug.Assert(ec == 0);
-
-            // This data stream becomes unusable.
+            UInt32 chunkIndex = chunkIndex_;
+            bmx.sc_bmx_release_linked_chunks(&chunkIndex);
             chunkIndex_ = MixedCodeConstants.INVALID_CHUNK_INDEX;
         }
 

@@ -52,6 +52,9 @@ namespace Starcounter.Internal {
                 LogSources.Hosting.LogException(exc);
             });
 
+            // Setting the check for handler registration.
+            Handle.isHandlerRegistered_ = UriManagedHandlersCodegen.IsHandlerRegistered;
+
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;
             StarcounterEnvironment.Default.SystemHttpPort = defaultSystemHttpPort;

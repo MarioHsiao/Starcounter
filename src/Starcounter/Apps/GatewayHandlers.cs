@@ -135,8 +135,7 @@ namespace Starcounter
             } finally {
 
                 // Need to return all chunks here.
-                UInt32 err = bmx.sc_bmx_release_linked_chunks(taskInfo->chunk_index);
-                Debug.Assert(0 == err);
+                bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
 
                 // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();
@@ -322,18 +321,16 @@ namespace Starcounter
 
                     // Allocating space to copy linked chunks (freed on Request destruction).
                     Int32 totalBytes = numChunks * MixedCodeConstants.SHM_CHUNK_SIZE;
+
                     IntPtr plainChunksData = BitsAndBytes.Alloc(totalBytes);
 
                     Byte* plainRawPtr = (Byte*) plainChunksData.ToPointer();
 
                     // Copying all chunks data.
-                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(
+                    bmx.sc_bmx_plain_copy_and_release_chunks(
                         chunkIndex,
                         plainRawPtr,
                         totalBytes);
-
-                    if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode);
 
                     // Obtaining Request structure.
                     req.InitExternal(
@@ -555,6 +552,9 @@ namespace Starcounter
                     dataStream.GatewayWorkerId
                     );
 
+                Int32 numDataBytes = *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
+                Int32 chunkDataOffset = MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
+
                 // Checking if we need to process linked chunks.
                 if (!isSingleChunk)
                 {
@@ -562,15 +562,18 @@ namespace Starcounter
 
                     // Allocating space to copy linked chunks (freed on Request destruction).
                     Int32 totalBytes = numChunks * MixedCodeConstants.SHM_CHUNK_SIZE;
+
+                    // Checking that we don't exceed the buffers.
+                    if (chunkDataOffset + numDataBytes > totalBytes) {
+                        throw new ArgumentOutOfRangeException("if (chunkDataOffset + numDataBytes > totalBytes)");
+                    }
+
                     plainChunksData = BitsAndBytes.Alloc(totalBytes);
 
                     Byte* plainRawPtr = (Byte*) plainChunksData.ToPointer();
 
                     // Copying all chunks data.
-                    UInt32 errorCode = bmx.sc_bmx_plain_copy_and_release_chunks(taskInfo->chunk_index, plainRawPtr, totalBytes);
-
-                    if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode);
+                    bmx.sc_bmx_plain_copy_and_release_chunks(taskInfo->chunk_index, plainRawPtr, totalBytes);
 
                     // Adjusting pointers to a new plain byte array.
                     rawChunk = plainRawPtr;
@@ -580,9 +583,9 @@ namespace Starcounter
                 {
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_BINARY:
                     {
-                        Byte[] dataBytes = new Byte[*(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES)];
+                        Byte[] dataBytes = new Byte[numDataBytes];
 
-                        Marshal.Copy(new IntPtr(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)), dataBytes, 0, dataBytes.Length);
+                        Marshal.Copy(new IntPtr(rawChunk + chunkDataOffset), dataBytes, 0, dataBytes.Length);
 
                         ws = new WebSocket(dataStream, socketStruct, null, dataBytes, false, WebSocket.WsHandlerType.BinaryData);
 
@@ -592,9 +595,9 @@ namespace Starcounter
                     case MixedCodeConstants.WebSocketDataTypes.WS_OPCODE_TEXT:
                     {
                         String dataString = new String(
-                            (SByte*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA)),
+                            (SByte*)(rawChunk + chunkDataOffset),
                             0,
-                            *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES),
+                            numDataBytes,
                             Encoding.UTF8);
 
                         ws = new WebSocket(dataStream, socketStruct, dataString, null, true, WebSocket.WsHandlerType.StringMessage);
@@ -646,7 +649,7 @@ namespace Starcounter
 
                 // On exceptions we have to disconnect the WebSocket with a message.
                 if (ws != null) {
-                    ws.Disconnect("An exception occurred on the server. Please check Starcounter server log for details.", 
+                    ws.Disconnect(exc.ToString().Substring(0, 120), 
                         WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                 }
 
