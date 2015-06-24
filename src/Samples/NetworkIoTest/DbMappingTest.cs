@@ -31,6 +31,11 @@ namespace DbMappingTest {
     }
 
     [Database]
+    public class NameClass4 {
+        public String FirstName;
+    }
+
+    [Database]
     public class DbMapInfo {
         public String ToClassFullName;
         public String ProcessedFromUri;
@@ -47,6 +52,11 @@ namespace DbMappingTest {
     }
 
     public class DbMappingTest {
+
+        /// <summary>
+        /// Non existing converter id.
+        /// </summary>
+        const Int32 NonExistingConverterId = -1;
 
         /// <summary>
         /// List of converter functions.
@@ -97,8 +107,8 @@ namespace DbMappingTest {
                     throw new ArgumentOutOfRangeException("Map for the selected URIs is already registered: handler " + processedFromUri + " and class " + toClassFullName);
                 }
 
-                Int32 deleteConverterId = -1;
-                Int32 putConverterId = -1;
+                Int32 deleteConverterId = NonExistingConverterId;
+                Int32 putConverterId = NonExistingConverterId;
 
                 if (httpMethod == Handle.POST_METHOD) {
 
@@ -133,6 +143,11 @@ namespace DbMappingTest {
 
                                     isRootHierarchy = true;
                                     touchedClasses_ = new Dictionary<String, Boolean>();
+
+                                    // Touching myself here.
+                                    if (httpMethod == Handle.POST_METHOD) {
+                                        touchedClasses_.Add(fromClassFullName, true);
+                                    }
                                 }
 
                                 try {
@@ -155,7 +170,7 @@ namespace DbMappingTest {
                                                     UInt64 toOid = dbMapconverters_[mapInfo.ConverterId](fromOid, 0);
 
                                                     // Checking if object id is real.
-                                                    if (toOid != 0) {
+                                                    if ((0 != toOid) && (UInt64.MaxValue != toOid)) {
 
                                                         // Creating a relation between two objects.
                                                         DbMappingRelation objRel = new DbMappingRelation() {
@@ -177,7 +192,7 @@ namespace DbMappingTest {
                                             foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
 
                                                 // Checking if DELETE converter is defined.
-                                                if (rel.MapInfo.DeleteConverterId == -1)
+                                                if (rel.MapInfo.DeleteConverterId == NonExistingConverterId)
                                                     continue;
 
                                                 // Checking if we already have processed this class.
@@ -204,7 +219,7 @@ namespace DbMappingTest {
                                             foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
 
                                                 // Checking if PUT converter is defined.
-                                                if (rel.MapInfo.PutConverterId == -1)
+                                                if (rel.MapInfo.PutConverterId == NonExistingConverterId)
                                                     continue;
 
                                                 // Checking if we already have processed this class.
@@ -266,6 +281,7 @@ namespace DbMappingTest {
                 Db.SlowSQL("DELETE FROM NameClass1");
                 Db.SlowSQL("DELETE FROM NameClass2");
                 Db.SlowSQL("DELETE FROM NameClass3");
+                Db.SlowSQL("DELETE FROM NameClass4");
             });
 
             //Debugger.Launch();
@@ -284,6 +300,13 @@ namespace DbMappingTest {
                 return 0;
             });
 
+            DbMap("PUT", "/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                NameClass3 src = (NameClass3)DbHelper.FromID(fromOid);
+                NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
+                dst.FirstName = "Haha" + src.FirstName;
+                return 0;
+            });
+
             DbMap("DELETE", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass2 dst = (NameClass2)DbHelper.FromID(toOid);
                 dst.Delete();
@@ -292,6 +315,12 @@ namespace DbMappingTest {
 
             DbMap("DELETE", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass3 dst = (NameClass3)DbHelper.FromID(toOid);
+                dst.Delete();
+                return 0;
+            });
+
+            DbMap("DELETE", "/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
                 dst.Delete();
                 return 0;
             });
@@ -307,11 +336,18 @@ namespace DbMappingTest {
                 NameClass3 dst = new NameClass3();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
+
+            DbMap("POST", "/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                NameClass3 src = (NameClass3)DbHelper.FromID(fromOid);
+                NameClass4 dst = new NameClass4();
+                return dst.GetObjectNo(); // Newly created object ID.
+            });
             
             Db.Transact(() => {
                 NameClass1 nc1 = new NameClass1();
                 NameClass2 nc2;
                 NameClass3 nc3;
+                NameClass4 nc4;
 
                 Debug.Assert(Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First != null);
                 Debug.Assert(Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First != null);
@@ -322,12 +358,17 @@ namespace DbMappingTest {
                 Debug.Assert(nc2.FullName == "John ");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First;
                 Debug.Assert(nc3.FirstName == "John");
+                nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
+                Debug.Assert(nc4.FirstName == "HahaJohn");
 
                 nc1.LastName = "Doe";
+
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First;
                 Debug.Assert(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First;
                 Debug.Assert(nc3.FirstName == "John");
+                nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
+                Debug.Assert(nc4.FirstName == "HahaJohn");
 
                 nc1 = new NameClass1();
                 nc1.FirstName = "Ivan";
@@ -336,8 +377,12 @@ namespace DbMappingTest {
                 Debug.Assert(nc2.FullName == "Ivan ");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "Ivan").First;
                 Debug.Assert(nc3.FirstName == "Ivan");
+                nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o WHERE o.FirstName = ?", "HahaIvan").First;
+                Debug.Assert(nc4.FirstName == "HahaIvan");
 
                 // Checking that old instances are untouched.
+                NameClass1 nc11 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
+                Debug.Assert(nc11.FirstName == "John");
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
                 Debug.Assert(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
@@ -349,11 +394,23 @@ namespace DbMappingTest {
                 Debug.Assert(nc2.FullName == "Ivan Petrov");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "Ivan").First;
                 Debug.Assert(nc3.FirstName == "Ivan");
+                nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o WHERE o.FirstName = ?", "HahaIvan").First;
+                Debug.Assert(nc4.FirstName == "HahaIvan");
+
+                // Checking that old instances are untouched.
+                nc11 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
+                Debug.Assert(nc11.FirstName == "John");
+                nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
+                Debug.Assert(nc2.FullName == "John Doe");
+                nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
+                Debug.Assert(nc3.FirstName == "John");
 
                 // Deleting the object, and all related objects.
                 nc1.Delete();
 
                 // Checking that old instances are untouched.
+                nc11 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
+                Debug.Assert(nc11.FirstName == "John");
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
                 Debug.Assert(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
@@ -366,6 +423,8 @@ namespace DbMappingTest {
                 Debug.Assert(nc2 == null);
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "Ivan").First;
                 Debug.Assert(nc3 == null);
+                nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o WHERE o.FirstName = ?", "HahaIvan").First;
+                Debug.Assert(nc4 == null);
 
                 nc1 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
                 Debug.Assert(nc1.FirstName == "John");

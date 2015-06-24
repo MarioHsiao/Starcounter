@@ -51,7 +51,7 @@ namespace Starcounter.Internal
         );
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_plain_copy_and_release_chunks(
+        public unsafe extern static void sc_bmx_plain_copy_and_release_chunks(
             UInt32 first_chunk_index,
             Byte* buffer,
             Int32 buffer_len

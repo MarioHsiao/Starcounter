@@ -62,10 +62,10 @@ uint32_t sc_clone_linked_chunks(starcounter::core::chunk_index first_chunk_index
 }
 
 // Writing linked chunks data to a given buffer and releasing all chunks except first.
-EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
-    starcounter::core::chunk_index first_chunk_index,
-    uint8_t* buffer,
-    int32_t buf_len)
+EXTERN_C void __stdcall sc_bmx_plain_copy_and_release_chunks(
+    const starcounter::core::chunk_index first_chunk_index,
+    uint8_t* const buffer,
+    const int32_t buf_len)
 {
     _SC_BEGIN_FUNC
 
@@ -73,7 +73,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
     int32_t cur_offset = 0;
 
     uint8_t* chunk_mem;
-    shared_memory_chunk* smc;
     starcounter::core::chunk_index cur_chunk_index = first_chunk_index;
 
     do
@@ -82,31 +81,26 @@ EXTERN_C uint32_t __stdcall sc_bmx_plain_copy_and_release_chunks(
         err_code = cm_get_shared_memory_chunk(cur_chunk_index, &chunk_mem);
         _SC_ASSERT(err_code == 0);
 
-        smc = (shared_memory_chunk*) chunk_mem;
-
         // Copying the whole chunk data.
         memcpy(buffer + cur_offset, chunk_mem, starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES);
         cur_offset += starcounter::MixedCodeConstants::CHUNK_MAX_DATA_BYTES;
         _SC_ASSERT(cur_offset <= buf_len);
 
         // Getting next chunk.
-        cur_chunk_index = smc->get_link();
+        cur_chunk_index = ((shared_memory_chunk*) chunk_mem)->get_link();
     }
     while (cur_chunk_index != shared_memory_chunk::link_terminator);
 
     // Returning all linked chunks (except first one) to private pool.
     err_code = cm_get_shared_memory_chunk(first_chunk_index, &chunk_mem);
-    _SC_ASSERT(err_code == 0);
+    _SC_ASSERT(0 == err_code);
 
     shared_memory_chunk* first_smc = (shared_memory_chunk*) chunk_mem;
     err_code = cm_release_linked_shared_memory_chunks(first_smc->get_link());
-    if (err_code)
-        return err_code;
+    _SC_ASSERT(0 == err_code);
 
     // Terminating the first chunk.
     first_smc->terminate_link();
-
-    return 0;
 
     _SC_END_FUNC
 }
@@ -474,6 +468,9 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
 {
     _SC_BEGIN_FUNC
 
+    _SC_ASSERT(shared_memory_chunk::link_terminator != *the_chunk_index);
+    _SC_ASSERT(buf_len_bytes >= 0);
+
     ProfilerStart(starcounter::utils::ProfilerEnums::Empty);
     ProfilerStop(starcounter::utils::ProfilerEnums::Empty);
 
@@ -482,10 +479,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     uint8_t* cur_chunk_buf;
     err_code = cm_get_shared_memory_chunk(*the_chunk_index, &cur_chunk_buf);
     _SC_ASSERT(err_code == 0);
-
-    _SC_ASSERT(buf_len_bytes >= 0);
     _SC_ASSERT(NULL != cur_chunk_buf);
-    _SC_ASSERT(shared_memory_chunk::link_terminator != *the_chunk_index);    
 
     // Setting total data length.
     *(uint32_t*)(cur_chunk_buf + starcounter::MixedCodeConstants::CHUNK_OFFSET_USER_DATA_TOTAL_LENGTH_FROM_DB) = buf_len_bytes;
