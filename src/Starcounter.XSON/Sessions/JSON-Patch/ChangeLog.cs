@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Starcounter.Internal.XSON;
 using Starcounter.Templates;
 
@@ -57,10 +54,6 @@ namespace Starcounter.XSON {
             changes.Add(change);
         }
 
-        internal List<Change> GetChanges() {
-            return changes;
-        }
-
         /// <summary>
         /// Clears all changes.
         /// </summary>
@@ -73,16 +66,10 @@ namespace Starcounter.XSON {
         }
 
         /// <summary>
-        /// Returns the number of changes in the log.
-        /// </summary>
-        /// <value></value>
-        public Int32 Count { get { return changes.Count; } }
-
-        /// <summary>
         /// Logs all changes since the last JSON-Patch update. This method generates the log
         /// for the dirty flags and the added/removed logs of the JSON tree in the session data.
         /// </summary>
-        public void Generate() {
+        public Change[] Generate(bool flushLog) {
             if (version != null)
                 version.LocalVersion++;
 
@@ -101,6 +88,11 @@ namespace Starcounter.XSON {
 //                    employer.LogValueChangesWithoutDatabase(this, true);
 //                }
             }
+
+            var arr = changes.ToArray();
+            if (flushLog)
+                changes.Clear();
+            return arr;
         }
 
         /// <summary>
