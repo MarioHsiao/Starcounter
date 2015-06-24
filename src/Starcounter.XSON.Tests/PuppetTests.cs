@@ -134,6 +134,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var tname = schema.Add<TString>("Name", bind: null);
             var tpage = schema.Add<TObject>("Page", bind: null);
             var tarr = schema.Add<TArray<Json>>("Items", bind: null);
+            Change[] changeArr;
 
             Json json = new Json() { 
                 Template = schema 
@@ -142,9 +143,8 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tname, "Hans Brix");
             
             // Resetting dirtyflags.
-            json.ChangeLog.Generate();
+            changeArr = json.ChangeLog.Generate(true);
             json.ChangeLog.Checkpoint();
-            json.ChangeLog.Clear();
 
             json.Set(tname, "Apa Papa");
             Assert.IsTrue(json.IsDirty(tname));
@@ -155,8 +155,8 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tarr, new Arr<Json>(json, tarr));
             Assert.IsTrue(json.IsDirty(tarr));
 
-            json.ChangeLog.Generate();
-            Assert.AreEqual(3, json.ChangeLog.GetChanges().Count);
+            changeArr = json.ChangeLog.Generate(true);
+            Assert.AreEqual(3, changeArr.Length);
         }
        
         [Test]
@@ -165,6 +165,7 @@ namespace Starcounter.Internal.XSON.Tests {
             var tname = schema.Add<TString>("Name", bind: null);
             var tpage = schema.Add<TObject>("Page", bind: null);
             var tarr = schema.Add<TArray<Json>>("Items", bind: null);
+            Change[] changeArr;
 
             Json bf_page = null;
             string bf_name = null;
@@ -181,7 +182,7 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tname, "Hans Brix");
 
             // Resetting dirtyflags.
-            json.ChangeLog.Generate();
+            changeArr = json.ChangeLog.Generate(true);
             json.ChangeLog.Checkpoint();
             json.ChangeLog.Clear();
 
@@ -194,8 +195,8 @@ namespace Starcounter.Internal.XSON.Tests {
             json.Set(tarr, new Arr<Json>(json, tarr));
             Assert.IsTrue(json.IsDirty(tarr));
 
-            json.ChangeLog.Generate();
-            Assert.AreEqual(3, json.ChangeLog.GetChanges().Count);
+            changeArr = json.ChangeLog.Generate(true);
+            Assert.AreEqual(3, changeArr.Length);
         }
 
         [Test]
