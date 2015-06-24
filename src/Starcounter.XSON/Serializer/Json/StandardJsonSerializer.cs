@@ -64,35 +64,47 @@ namespace Starcounter.Advanced.XSON {
         }
 
         public override int Serialize(Json json, IntPtr dest, int destSize) {
-            int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
-                if (j.Template != null) {
-                    return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
-                } else {
-                    // No template defined. Assuming object.
-                    return SerializeObject(this, j, d, ds);
-                }
-            },
-            this,
-            json, 
-            dest, 
-            destSize);
+            bool oldValue = json._checkBoundProperties;
+            try {
+                json._checkBoundProperties = false;
+                int realSize = json.Scope<TypedJsonSerializer, Json, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, IntPtr d, int ds) => {
+                    if (j.Template != null) {
+                        return serializePerTemplate[(int)j.Template.TemplateTypeId](tjs, j, null, d, ds);
+                    } else {
+                        // No template defined. Assuming object.
+                        return SerializeObject(this, j, d, ds);
+                    }
+                },
+                this,
+                json,
+                dest,
+                destSize);
 
-            AssertWrittenSize(json, realSize, destSize);
-            return realSize;
+                AssertWrittenSize(json, realSize, destSize);
+                return realSize;
+            } finally {
+                json._checkBoundProperties = oldValue;
+            }
         }
 
         public override int Serialize(Json json, Template property, IntPtr dest, int destSize) {
-           int realSize = json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
-                return serializePerTemplate[(int)t.TemplateTypeId](tjs, j, t, d, ds);
-            },
-            this,
-            json,
-            property,
-            dest,
-            destSize);
+            bool oldValue = json._checkBoundProperties;
+            try {
+                json._checkBoundProperties = false;
+                int realSize = json.Scope<TypedJsonSerializer, Json, Template, IntPtr, int, int>((TypedJsonSerializer tjs, Json j, Template t, IntPtr d, int ds) => {
+                    return serializePerTemplate[(int)t.TemplateTypeId](tjs, j, t, d, ds);
+                },
+                 this,
+                 json,
+                 property,
+                 dest,
+                 destSize);
 
-           AssertWrittenSize(json, realSize, destSize);
-           return realSize;
+                AssertWrittenSize(json, realSize, destSize);
+                return realSize;
+            } finally {
+                json._checkBoundProperties = oldValue;
+            }
         }
 
         private static bool WrapInAppName(Session session, Json obj) {
