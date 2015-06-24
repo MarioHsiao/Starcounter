@@ -277,13 +277,11 @@ namespace Starcounter.Internal.XSON.Tests {
             );
 
             // Flush all current changes.
-            json.ChangeLog.Generate();
             jsonPatch.Generate(json, true, false);
 
             // Call handler with no change of input value.
             tvalue1.ProcessInput(json, "Incoming");
 
-            json.ChangeLog.Generate();
             string patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Incoming", tvalue1.Getter(json));
@@ -292,7 +290,6 @@ namespace Starcounter.Internal.XSON.Tests {
             // Call handler that changes input value.
             tvalue2.ProcessInput(json, "Incoming");
 
-            json.ChangeLog.Generate();
             patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Changed", tvalue2.Getter(json));
@@ -329,13 +326,11 @@ namespace Starcounter.Internal.XSON.Tests {
             // Set initial values and flush all current changes.
             tvalue1.Setter(json, "Value1");
             tvalue2.Setter(json, "Value2");
-            json.ChangeLog.Generate();
             jsonPatch.Generate(json, true, false);
 
             // Call handler with different incoming value as on the server, value should be sent back to client.
             tvalue1.ProcessInput(json, "Incoming");
 
-            json.ChangeLog.Generate();
             string patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Value1", tvalue1.Getter(json));
@@ -344,7 +339,6 @@ namespace Starcounter.Internal.XSON.Tests {
             // Call handler with same input-value as on the server, value still should be sent back.
             tvalue2.ProcessInput(json, "Value2");
 
-            json.ChangeLog.Generate();
             patch = jsonPatch.Generate(json, true, false);
 
             Assert.AreEqual("Value2", tvalue2.Getter(json));
@@ -412,37 +406,31 @@ namespace Starcounter.Internal.XSON.Tests {
 
             // First test that the autocheck works.
             person.FirstName = "Changed";
-            json.ChangeLog.Generate();
-            var changes = json.ChangeLog.GetChanges();
+            Change[] changes = json.ChangeLog.Generate(true);
            
-            Assert.AreEqual(1, changes.Count);
+            Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
 
             json.ChangeLog.Checkpoint();
-            json.ChangeLog.Clear();
+            
 
             // Then disable it and change value again.
             json.AutoRefreshBoundProperties = false;
             person.FirstName = "ChangedAgain";
 
-            json.ChangeLog.Generate();
-            changes = json.ChangeLog.GetChanges();
-            
-            Assert.AreEqual(0, changes.Count);
-
+            changes = json.ChangeLog.Generate(true);
+            Assert.AreEqual(0, changes.Length);
             json.ChangeLog.Checkpoint();
-            json.ChangeLog.Clear();
+            
 
             // Last, manual refresh
             json.Refresh(tJson.Properties[0]);
-            json.ChangeLog.Generate();
-            changes = json.ChangeLog.GetChanges();
+            changes = json.ChangeLog.Generate(true);
             
-            Assert.AreEqual(1, changes.Count);
+            Assert.AreEqual(1, changes.Length);
             Assert.AreEqual(tJson.Properties[0], changes[0].Property);
 
             json.ChangeLog.Checkpoint();
-            json.ChangeLog.Clear();
         }
 
         [Test]
@@ -478,13 +466,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
             Assert.AreNotEqual(recursive.Recursives.Count, json.Recursives.Count);
 
-            json.ChangeLog.Generate();
-            var changes = json.ChangeLog.GetChanges();
-
-            Assert.AreEqual(0, changes.Count);
-
+            Change[] changes = json.ChangeLog.Generate(true);
+            Assert.AreEqual(0, changes.Length);
             json.ChangeLog.Checkpoint();
-            json.ChangeLog.Clear();
 
             json.Refresh(tarr);
             Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
