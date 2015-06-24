@@ -18,12 +18,42 @@
   <Target Name="DoAfterBuild">
     <!-- Creating copied files lists. -->
     <ItemGroup>
-      <All32BitDllsToCopy Include=" $(OutputPath)\FasterThanJson.dll; $(OutputPath)\Starcounter.BitsAndBytes.dll; $(OutputPath)\Starcounter.BitsAndBytes.Unsafe.dll; $(OutputPath)\Starcounter.Internal.dll; $(OutputPath)\Starcounter.Logging.dll; $(OutputPath)\Starcounter.XSON.dll; $(OutputPath)\Mono.CSharp.dll; $(OutputPath)\Mono.Cecil.dll" />
-      <PublicAssemblies Include=" $(OutputPath)\Starcounter.ClientResolver.dll; $(OutputPath)\Starcounter.dll; $(OutputPath)\Starcounter.Bootstrap.dll; $(OutputPath)\Starcounter.Apps.JsonPatch.dll; $(OutputPath)\Starcounter.Internal.dll; $(OutputPath)\Starcounter.Logging.dll; $(OutputPath)\Starcounter.HyperMedia.dll; $(OutputPath)\Starcounter.Node.dll; $(OutputPath)\Starcounter.XSON.dll" />
+      <All32BitDllsToCopy Include="
+        $(OutputPath)\FasterThanJson.dll;
+        $(OutputPath)\Starcounter.BitsAndBytes.dll;
+        $(OutputPath)\Starcounter.BitsAndBytes.Unsafe.dll;
+        $(OutputPath)\Starcounter.Internal.dll;
+        $(OutputPath)\Starcounter.Logging.dll;
+        $(OutputPath)\Starcounter.XSON.dll;
+        $(OutputPath)\Mono.CSharp.dll;
+        $(OutputPath)\Mono.Cecil.dll
+      "/>
+      <PublicAssemblies Include="
+        $(OutputPath)\Starcounter.ClientResolver.dll;
+        $(OutputPath)\Starcounter.dll;
+        $(OutputPath)\Starcounter.Bootstrap.dll;
+        $(OutputPath)\Starcounter.Apps.JsonPatch.dll;
+        $(OutputPath)\Starcounter.Internal.dll;
+        $(OutputPath)\Starcounter.Logging.dll;
+        $(OutputPath)\Starcounter.HyperMedia.dll;
+        $(OutputPath)\Starcounter.Node.dll;
+        $(OutputPath)\Starcounter.XSON.dll;
+      "/>
+      <PublicAssembliesHelp Include="
+        $(OutputPath)\Starcounter.XML;
+        $(OutputPath)\Starcounter.Bootstrap.XML;
+        $(OutputPath)\Starcounter.Apps.JsonPatch.XML;
+        $(OutputPath)\Starcounter.Internal.XML;
+        $(OutputPath)\Starcounter.Logging.XML;
+        $(OutputPath)\Starcounter.Hypermedia.XML;
+        $(OutputPath)\Starcounter.Node.XML;
+        $(OutputPath)\Starcounter.XSON.XML;
+      "/>
     </ItemGroup>
     <!-- Coyping selected files. -->
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(All32BitDllsToCopy)" DestinationFolder="$(OutputPath)\32BitComponents" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PublicAssemblies)" DestinationFolder="$(OutputPath)\Public Assemblies" />
+    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PublicAssembliesHelp)" DestinationFolder="$(OutputPath)\Public Assemblies" Condition="'$(Configuration)'=='Release'" />
   </Target>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Target Name="Build" DependsOnTargets="DoAfterBuild" />
