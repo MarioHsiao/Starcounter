@@ -135,8 +135,7 @@ namespace Starcounter
             } finally {
 
                 // Need to return all chunks here.
-                UInt32 err = bmx.sc_bmx_release_linked_chunks(taskInfo->chunk_index);
-                Debug.Assert(0 == err);
+                bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
 
                 // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();

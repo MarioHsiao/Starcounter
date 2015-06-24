@@ -242,7 +242,7 @@ uint32_t BmxData::RegisterWsHandler(
 
 // Unregisters certain handler.
 uint32_t BmxData::UnregisterHandler(
-    BMX_HANDLER_INDEX_TYPE handler_index,
+    const BMX_HANDLER_INDEX_TYPE handler_index,
     GENERIC_HANDLER_CALLBACK user_handler,
     bool* is_empty_handler)
 {
@@ -282,7 +282,7 @@ uint32_t BmxData::UnregisterHandler(
 
 // Finds certain handler.
 bool BmxData::IsHandlerExist(
-    BMX_HANDLER_INDEX_TYPE handler_index)
+    const BMX_HANDLER_INDEX_TYPE handler_index)
 {
     // Checking all registered handlers.
     for (BMX_HANDLER_INDEX_TYPE i = 0; i < max_num_entries_; i++)
@@ -301,7 +301,7 @@ bool BmxData::IsHandlerExist(
 
 // Finds certain handler.
 uint32_t BmxData::FindUriHandler(
-    uint16_t port_num,
+    const uint16_t port_num,
     const char* processed_uri_info,
     BMX_HANDLER_INDEX_TYPE* handler_index)
 {
@@ -328,7 +328,7 @@ uint32_t BmxData::FindUriHandler(
 }
 
 uint32_t BmxData::FindWsHandler(
-    uint16_t port_num,
+    const uint16_t port_num,
     const char* channel_name,
     BMX_HANDLER_INDEX_TYPE* handler_index)
 {
@@ -356,7 +356,7 @@ uint32_t BmxData::FindWsHandler(
 
 // Finds certain handler.
 uint32_t BmxData::FindPortHandler(
-    uint16_t port_num,
+    const uint16_t port_num,
     BMX_HANDLER_INDEX_TYPE* handler_index)
 {
     // Checking all registered handlers.
@@ -379,7 +379,7 @@ uint32_t BmxData::FindPortHandler(
 }
 
 // Unregisters certain handler.
-uint32_t BmxData::UnregisterHandler(BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler)
+uint32_t BmxData::UnregisterHandler(const BMX_HANDLER_INDEX_TYPE handler_index, bool* is_empty_handler)
 {
     return UnregisterHandler(handler_index, NULL, is_empty_handler);
 }
