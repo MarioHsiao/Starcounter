@@ -199,9 +199,9 @@ namespace NodeTest {
                 return errCode;
 
             // Running with aggregation.
-            errCode = RunTest(true);
+            /*errCode = RunTest(true);
             if (0 != errCode)
-                return errCode;
+                return errCode;*/
 
             return errCode;
         }
