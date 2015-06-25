@@ -104,6 +104,9 @@ namespace NodeTest {
                         counter++;
                         if (10000 == counter) {
 
+                            // Sleeping some time so the server is able to process requests.
+                            Thread.Sleep(1);
+
                             lock (RequestsToTest) {
 
                                 Console.WriteLine(String.Format("Responses HTTP 2XX: {0}, NOT 2XX: {1}, RPS: {2}.",
@@ -199,9 +202,9 @@ namespace NodeTest {
                 return errCode;
 
             // Running with aggregation.
-            /*errCode = RunTest(true);
+            errCode = RunTest(true);
             if (0 != errCode)
-                return errCode;*/
+                return errCode;
 
             return errCode;
         }
