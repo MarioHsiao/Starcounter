@@ -105,7 +105,7 @@ namespace NodeTest {
                         if (10000 == counter) {
 
                             // Sleeping some time so the server is able to process requests.
-                            Thread.Sleep(1);
+                            Thread.Sleep(50);
 
                             lock (RequestsToTest) {
 
