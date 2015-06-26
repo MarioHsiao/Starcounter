@@ -432,7 +432,7 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, bool is_
 // Resets the number of created sockets and active connections.
 void ServerPort::Reset()
 {
-    InterlockedAnd64(&(num_accepting_sockets_unsafe_), 0);
+    InterlockedAnd64(&num_accepting_sockets_unsafe_, 0);
 }
 
 // Removes this port.
@@ -1361,7 +1361,9 @@ uint32_t RegisterWsHandler(
     ServerPort* server_port = g_gateway.FindServerPort(port);
 
     // Checking if port exist or if its empty.
-    if ((NULL == server_port) || (server_port->get_port_handlers()->IsEmpty()))
+    if ((NULL == server_port) ||
+        (server_port->IsEmpty()) ||
+        (server_port->get_port_handlers()->IsEmpty()))
     {
         // Registering handler on active database.
         err_code = g_gateway.AddPortHandler(
@@ -1381,13 +1383,17 @@ uint32_t RegisterWsHandler(
         GW_ASSERT(NULL != server_port);
     }
 
+    PortWsGroups* ws_groups = server_port->get_registered_ws_groups();
+
+    GW_ASSERT(NULL != ws_groups);
+
     // Searching existing WebSocket handler with the same channel name.
-    if (INVALID_URI_INDEX != server_port->get_registered_ws_groups()->FindRegisteredChannelName(ws_channel_name.c_str()))
+    if (INVALID_URI_INDEX != ws_groups->FindRegisteredChannelName(ws_channel_name.c_str()))
         err_code = SCERRHANDLERALREADYREGISTERED;
 
     if (0 == err_code)
     {
-        server_port->get_registered_ws_groups()->AddNewEntry(
+        ws_groups->AddNewEntry(
             handler_info,
             app_name.c_str(),
             ws_channel_id,
@@ -3098,7 +3104,9 @@ uint32_t Gateway::AddUriHandler(
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
 
     // Checking if port exists.
-    if ((NULL == server_port) || (server_port->get_port_handlers()->IsEmpty()))
+    if ((NULL == server_port) ||
+        (server_port->IsEmpty()) ||
+        (server_port->get_port_handlers()->IsEmpty()))
     {
         // Registering handler on active database.
         err_code = g_gateway.AddPortHandler(
@@ -3119,6 +3127,7 @@ uint32_t Gateway::AddUriHandler(
     }
 
     RegisteredUris* port_uris = server_port->get_registered_uris();
+    GW_ASSERT(NULL != port_uris);
 
     // Searching for existing URI handler on this port.
     uri_index_type uri_index = port_uris->FindRegisteredUri(processed_uri_info);
@@ -3215,7 +3224,7 @@ uint32_t Gateway::AddPortHandler(
     ServerPort* server_port = g_gateway.FindServerPort(port_num);
 
     // Checking if there are no handlers.
-    if (NULL != server_port) {
+    if ((NULL != server_port) && (!server_port->IsEmpty())) {
 
         if (!server_port->get_port_handlers()->IsEmpty()) {
             return SCERRHANDLERALREADYREGISTERED;
