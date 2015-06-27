@@ -24,7 +24,7 @@ namespace WebSocketsTestClient {
 
         static Int32 GlobalErrorCode = 0;
 
-        static Int32 RunOneWebSocketTestNetFramework(
+        static void RunOneWebSocketTestNetFramework(
             Int32 numMessages, 
             Int32 messageSize,
             Char messageLetter) {
@@ -81,6 +81,10 @@ namespace WebSocketsTestClient {
                             // Sending and receiving messages.
                             for (Int32 n = 0; n < numMessages; n++) {
 
+                                while (sendRecvRatio > 10000) {
+                                    Thread.Sleep(1);
+                                }
+
                                 ArraySegment<Byte> bytesToSend = new ArraySegment<Byte>(sendBytes);
 
                                 // Sending data in preferred format: text or binary.
@@ -103,7 +107,7 @@ namespace WebSocketsTestClient {
                             }
 
                         } catch (Exception exc) {
-                            GlobalErrorCode = 2;
+                            GlobalErrorCode = 1;
                             Console.WriteLine(exc);
                         }
 
@@ -133,6 +137,22 @@ namespace WebSocketsTestClient {
 
                                 } while (!result.EndOfMessage);
 
+                                // Checking the length of received message.
+                                if (respMessage.Length != messageSize) {
+                                    GlobalErrorCode = 2;
+                                    return;
+                                }
+
+                                // Checking the contents of received message.
+                                for (Int32 i = 0; i < messageSize; i++) {
+
+                                    if (respMessage[i] != sendBytes[i])  {
+
+                                        GlobalErrorCode = 3;
+                                        return;
+                                    }
+                                }
+
                                 Interlocked.Decrement(ref sendRecvRatio);
 
                                 if (c == 10000) {
@@ -144,7 +164,7 @@ namespace WebSocketsTestClient {
                             }
 
                         } catch (Exception exc) {
-                            GlobalErrorCode = 3;
+                            GlobalErrorCode = 4;
                             Console.WriteLine(exc);
                         }
 
@@ -156,7 +176,7 @@ namespace WebSocketsTestClient {
                     recvThread.Join();
 
                     if (GlobalErrorCode != 0)
-                        return GlobalErrorCode;
+                        return;
 
                     t = ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Just closing.", CancellationToken.None);
                     t.Wait();
@@ -181,8 +201,8 @@ namespace WebSocketsTestClient {
                         } else if (i == 29) {
 
                             Console.WriteLine(String.Format("Wrong socket stats: \"{0}\" VS \"{1}\"", correctStats, resp.Body));
-                            GlobalErrorCode = 4;
-                            return GlobalErrorCode;
+                            GlobalErrorCode = 5;
+                            return;
                         }
 
                         Thread.Sleep(1000);
@@ -194,11 +214,9 @@ namespace WebSocketsTestClient {
             } catch (Exception exc) {
 
                 Console.Error.WriteLine(exc.ToString());
-                GlobalErrorCode = 5;
-                return GlobalErrorCode;
+                GlobalErrorCode = 6;
+                return;
             }
-
-            return 0;
         }
         
         static Int32 Main(string[] args) {
@@ -232,15 +250,17 @@ namespace WebSocketsTestClient {
 
                 sw.Restart();
 
-                Int32 errCode = RunOneWebSocketTestNetFramework(NumMessagesPerWebSocket, MessageSizeBytes, 'A');
+                RunOneWebSocketTestNetFramework(NumMessagesPerWebSocket, MessageSizeBytes, 'A');
 
                 sw.Stop();
 
-                if (errCode != 0) {
-                    GlobalErrorCode = errCode;
-                    Console.WriteLine("Error on socket {0}: error code {1}.", i, errCode);
+                if (GlobalErrorCode != 0) {
+
+                    Console.WriteLine("Error on socket {0}: error code {1}.", i, GlobalErrorCode);
                     break;
+
                 } else {
+
                     Console.WriteLine("Done socket {0} with {1} messages took {2} ms.", i, NumMessagesPerWebSocket, sw.ElapsedMilliseconds);
                 }
             }
@@ -250,7 +270,7 @@ namespace WebSocketsTestClient {
             if (200 != globalStats.StatusCode) {
 
                 Console.WriteLine("Wrong global statistics response: " + globalStats.Body);
-                GlobalErrorCode = 15;
+                GlobalErrorCode = 7;
             }
 
             if (GlobalErrorCode == 0) {
