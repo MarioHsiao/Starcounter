@@ -15,7 +15,8 @@
         <Edition>Pro</Edition>
         <Edition>Premium</Edition>
         <Edition>Ultimate</Edition>
-		<Edition>Community</Edition>
+        <Edition>Community</Edition>
+        <Edition>Enterprise</Edition>
       </VisualStudio>
     </SupportedProducts>
     <SupportedFrameworkRuntimeEdition MinVersion="4.0" MaxVersion="4.5"/>
