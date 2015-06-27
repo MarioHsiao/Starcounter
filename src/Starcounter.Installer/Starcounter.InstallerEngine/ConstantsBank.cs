@@ -24,6 +24,7 @@ namespace Starcounter.InstallerEngine
         public const String Setting_InstallVS2010Integration = "InstallVS2010Integration";
         public const String Setting_InstallVS2012Integration = "InstallVS2012Integration";
         public const String Setting_InstallVS2013Integration = "InstallVS2013Integration";
+        public const String Setting_InstallVS2015Integration = "InstallVS2015Integration";
 
         public const String Setting_SendUsageAndCrashReports = "SendUsageAndCrashReports";
 
@@ -50,6 +51,7 @@ namespace Starcounter.InstallerEngine
         public const String Setting_RemoveVS2010Integration = "RemoveVS2010Integration";
         public const String Setting_RemoveVS2012Integration = "RemoveVS2012Integration";
         public const String Setting_RemoveVS2013Integration = "RemoveVS2013Integration";
+        public const String Setting_RemoveVS2015Integration = "RemoveVS2015Integration";
 
         // Other constants.
         public const String SCIconFilename = "sc.ico";
@@ -115,6 +117,11 @@ namespace Starcounter.InstallerEngine
         internal static string VS2013InstallationDirectory { get { return VSIntegration.GetVisualStudioInstallationDirectory("12.0"); } }
 
         /// <summary>
+        /// Gets the path to the Visual Studio 2015 (14.0) installation directory.
+        /// </summary>
+        internal static string VS2015InstallationDirectory { get { return VSIntegration.GetVisualStudioInstallationDirectory("14.0"); } }
+
+        /// <summary>
         /// Gets the path to the Visual Studio 2012 (11.0) IDE directory.
         /// </summary>
         internal static string VS2012IDEDirectory { get { return Path.Combine(VS2012InstallationDirectory, @"Common7\IDE"); } }
@@ -123,6 +130,11 @@ namespace Starcounter.InstallerEngine
         /// Gets the path to the Visual Studio 2013 (12.0) IDE directory.
         /// </summary>
         internal static string VS2013IDEDirectory { get { return Path.Combine(VS2013InstallationDirectory, @"Common7\IDE"); } }
+
+        /// <summary>
+        /// Gets the path to the Visual Studio 2015 (14.0) IDE directory.
+        /// </summary>
+        internal static string VS2015IDEDirectory { get { return Path.Combine(VS2015InstallationDirectory, @"Common7\IDE"); } }
 
         /// <summary>
         /// Gets the path to the Visual Studio 2012 (11.0) exception assistant content
@@ -143,6 +155,11 @@ namespace Starcounter.InstallerEngine
         /// Gets the path to the Visual Studio 2013 (12.0) IDE executable file (i.e. "devenv.exe")
         /// </summary>
         internal static string VS2013DevEnvPath { get { return Path.Combine(VS2013IDEDirectory, "devenv.exe"); } }
+
+        /// <summary>
+        /// Gets the path to the Visual Studio 2015 (14.0) IDE executable file (i.e. "devenv.exe")
+        /// </summary>
+        internal static string VS2015DevEnvPath { get { return Path.Combine(VS2015IDEDirectory, "devenv.exe"); } }
 
         /// <summary>
         /// Gets the name of the VSIX installer executable file (i.e. currently "VSIXInstaller.exe").
