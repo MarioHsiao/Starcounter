@@ -118,56 +118,6 @@ namespace WebSocketsTestServer {
         }
 
         /// <summary>
-        /// Broadcasts on active sessions.
-        /// </summary>
-        static void BroadcastSessions(Int32 numForEachesPerRound) {
-
-            while (true) {
-
-                for (Int32 k = 0; k < numForEachesPerRound; k++) {
-
-                    try {
-
-                        Session.ForAll((Session s) => {
-
-                            try {
-
-                                // Getting active attached WebSocket.
-                                WebSocket ws = s.ActiveWebSocket;
-                                if (ws == null) {
-                                    s.Destroy();
-                                }
-
-                                WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
-
-                                // Checking if there is no such WebSocket.
-                                if (wss == null) {
-                                    GlobalErrorCode = 4;
-                                    return;
-                                }
-
-                                // Pushing message on this WebSocket.
-                                for (Int32 i = 0; i < 5; i++) {
-                                    PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
-                                }
-
-                            } catch (Exception exc) {
-
-                                GlobalErrorCode = 5;
-                            }
-                        });
-
-                    } catch (Exception exc) {
-
-                        GlobalErrorCode = 6;
-                    }
-                }
-
-                Thread.Sleep(PushSleepInterval);
-            }
-        }
-
-        /// <summary>
         /// Push a message to WebSocket.
         /// </summary>
         static void PushOnWebSocket(String message, WebSocket ws) {
@@ -211,16 +161,73 @@ namespace WebSocketsTestServer {
         /// </summary>
         static void PushOnWebSocket(String message, WebSocket ws) {
 
-            WebSocketState wss = allWebSockets_[ws.ToUInt64()];
+            lock (allWebSockets_) {
+                
+                WebSocketState wss = allWebSockets_[ws.ToUInt64()];
 
-            // Checking if have sent everything.
-            if ((wss.NumMessagesReceived > 0) && (wss.NumMessagesSent < wss.NumMessagesToSend)) {
+                // Checking if have sent everything.
+                if ((wss.NumMessagesReceived > 0) && (wss.NumMessagesSent < wss.NumMessagesToSend)) {
 
-                // Sending the message.
-                ws.Send(message);
+                    // Sending the message.
+                    ws.Send(message);
 
-                // Incrementing the number of received messages.
-                wss.NumMessagesSent++;
+                    // Incrementing the number of received messages.
+                    wss.NumMessagesSent++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Broadcasts on active sessions.
+        /// </summary>
+        static void BroadcastSessions() {
+
+            while (true) {
+
+                try {
+
+                    Session.ForAll((Session s) => {
+
+                        try {
+
+                            // Getting active attached WebSocket.
+                            WebSocket ws = s.ActiveWebSocket;
+                            if (ws == null) {
+                                s.Destroy();
+                            }
+
+                            // Checking if we have a WebSocket.
+                            if (!allWebSockets_.ContainsKey(ws.ToUInt64()))
+                                return;
+
+                            //WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
+                            WebSocketState wss = allWebSockets_[ws.ToUInt64()];
+
+                            // Checking if there is no such WebSocket.
+                            if (wss == null) {
+                                GlobalErrorCode = 4;
+                                return;
+                            }
+
+                            // Pushing message on this WebSocket.
+                            for (Int32 i = 0; i < 5; i++) {
+                                PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
+                            }
+
+                        } catch (Exception exc) {
+
+                            GlobalErrorMessage = exc.ToString();
+                            GlobalErrorCode = 5;
+                        }
+                    });
+
+                } catch (Exception exc) {
+
+                    GlobalErrorMessage = exc.ToString();
+                    GlobalErrorCode = 6;
+                }
+
+                Thread.Sleep(PushSleepInterval);
             }
         }
 
@@ -267,7 +274,7 @@ namespace WebSocketsTestServer {
                     } catch (Exception exc) {
 
                         GlobalErrorMessage = exc.ToString();
-                        GlobalErrorCode = 4;
+                        GlobalErrorCode = 7;
                     }
                 }
 
@@ -332,7 +339,7 @@ namespace WebSocketsTestServer {
                         return HandlerStatus.Handled;
                     }
 
-                    GlobalErrorCode = 5;
+                    GlobalErrorCode = 8;
 
                     return new Response() {
                         StatusCode = 500,
@@ -342,7 +349,7 @@ namespace WebSocketsTestServer {
                 } catch (Exception exc) {
 
                     GlobalErrorMessage = exc.ToString();
-                    GlobalErrorCode = 6;
+                    GlobalErrorCode = 9;
 
                     return 500;
                 }
@@ -354,7 +361,12 @@ namespace WebSocketsTestServer {
                 WebSocketState wss = allWebSockets_[ws.ToUInt64()];
 
                 if (wss == null) {
-                    GlobalErrorCode = 7;
+                    GlobalErrorCode = 10;
+                    return;
+                }
+
+                if (wss.HasDisconnected == true) {
+                    GlobalErrorCode = 11;
                     return;
                 }
 
