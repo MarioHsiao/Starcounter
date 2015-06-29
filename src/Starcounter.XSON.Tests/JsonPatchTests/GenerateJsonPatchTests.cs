@@ -33,7 +33,8 @@ namespace Starcounter.Internal.XSON.Tests {
 		[TearDown]
 		public static void AfterEachTest() {
 			// Making sure that we are ending the session even if the test failed.
-			Session.End();
+            if (Session.Current != null)
+                Session.Current.StopUsing();
             StarcounterEnvironment.AppName = oldAppName;
 		}
 
@@ -49,7 +50,7 @@ namespace Starcounter.Internal.XSON.Tests {
             string patch;
             string path;
             Session session = new Session();
-            Session.Start(session);
+            session.StartUsing();
             try {
                 // ["op":"replace","path":"","value":"ApaPapa"]
                 path = "";
@@ -190,7 +191,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 expectedSize = patch.Length + 2;
                 Assert.AreEqual(expectedSize, patchSize);
             } finally {
-                Session.End();
+                session.StopUsing();
             }
 
         }
@@ -208,7 +209,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Age = 43;
             j.Length = 184.7;
 
-            Session.Current = new Session() { Data = j };
+            (new Session() { Data = j }).StartUsing();
 
             j.FirstName = "Douglas";
 
@@ -254,7 +255,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Length = 184.7;
             j.Friends = new List<Json>() { nicke };
 
-            Session.Current = new Session() { Data = j };
+            (new Session() { Data = j }).StartUsing();
 
             j.Friends.Add(henrik);
 
@@ -312,7 +313,7 @@ namespace Starcounter.Internal.XSON.Tests {
             jockeJson.Length = 184.7;
             jockeJson.Friends = new List<Json>() { nickeJson };
 
-            Session.Current = new Session() { Data = jockeJson };
+            (new Session() { Data = jockeJson }).StartUsing();
 
             jockeJson.Friends.Add(henrikJson);
 
@@ -362,7 +363,7 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Length = 184.7;
             j.Friends = new List<Json>() { nicke };
 
-            Session.Current = new Session() { Data = j };
+            (new Session() { Data = j }).StartUsing();
 
             var before = ((Json)j).DebugString;
 
@@ -415,7 +416,7 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
             var json = (Json)j;
 
-            Session.Current = new Session() { Data = j };
+            (new Session() { Data = j }).StartUsing();
             
             var start = json.DebugString;
 
@@ -467,7 +468,7 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-            Session.Current = new Session() { Data = j };
+            (new Session() { Data = j }).StartUsing();
             Assert.NotNull(Session.Current);
 
             j.FirstName = "Jack";

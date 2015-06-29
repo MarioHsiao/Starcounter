@@ -747,9 +747,6 @@ namespace Starcounter.Internal
                         }
 
                         num_checked_sessions++;
-                    } else {
-                        // NOTE: Apps session was destroyed already so deleting the wrapper.
-                        DestroySession(s.session_struct_);
                     }
 
                     // Getting next used session.
