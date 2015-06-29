@@ -243,21 +243,23 @@ namespace Starcounter
         /// <summary>
         /// Start the session that came with request.
         /// </summary>
-        static void StartSessionThatCameWithRequest(Request req) {
+        static Session StartSessionThatCameWithRequest(Request req) {
+            Session s = null;
 
             // Checking if we are in session already.
             if (req.CameWithCorrectSession) {
 
                 // Obtaining session.
-                Session s = (Session) req.GetAppsSessionInterface();
+                s = (Session) req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
                 if (null != s) {
 
                     // Starting session.
-                    Session.Start(s);
+                    s.StartUsing();
                 }
             }
+            return s;
         }
 
         /// <summary>
@@ -280,6 +282,8 @@ namespace Starcounter
 
             // Creating network data stream object which holds the chunk etc.
             NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
+
+            Session session = null;
 
             try {
 
@@ -371,7 +375,7 @@ namespace Starcounter
                     TransactionManager.CreateImplicitAndSetCurrent(true);
 
                 // Starting the session that came with request.
-                StartSessionThatCameWithRequest(req);
+                session = StartSessionThatCameWithRequest(req);
 
                 // Setting the incoming request.
                 Handle.IncomingRequest = req;
@@ -408,8 +412,8 @@ namespace Starcounter
                 Handle.ResetAllOutgoingFields();
 
                 // Clearing current session.
-                Session.End();
-
+                Session.Current = null;
+                
                 // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();
 
@@ -527,6 +531,8 @@ namespace Starcounter
 
             // The WebSocket object on which we perform the operations.
             WebSocket ws = null;
+
+            Session session = null;
             
             try {
 
@@ -629,9 +635,9 @@ namespace Starcounter
                 // Starting session.
                 if (appsSession != null)
                 {
-                    Session session = (Session)appsSession;
+                    session = (Session)appsSession;
                     session.ActiveWebSocket = ws;
-                    Session.Start(session);
+                    session.StartUsing();
                 }
 
                 // Setting statically available current WebSocket.
@@ -674,7 +680,7 @@ namespace Starcounter
                 }
 
                 // Clearing current session.
-                Session.End();
+                Session.Current = null;
 
                 // Needs to be called before the stack-allocated array is cleared and after the session is ended.
                 TransactionManager.Cleanup();                

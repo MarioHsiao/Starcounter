@@ -3331,6 +3331,12 @@
     <code hex="0006" severity="Error" name="ScErrSessionManagerDied">
       <message>Scheduler session manager has died.</message>
     </code>
+    <code hex="0007" severity="Error" name="ScErrAnotherSessionActive">
+      <message>Another session for this thread is already active.</message>
+    </code>
+    <code hex="0008" severity="Error" name="ScErrAcquireSessionTimeout">
+      <message>Exclusive access to the session could not be obtained.</message>
+    </code>
   </facility>
 
   <!-- Internal error codes. -->

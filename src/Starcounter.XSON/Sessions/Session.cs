@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using Starcounter.XSON;
@@ -48,6 +49,8 @@ namespace Starcounter {
         private SessionOptions sessionOptions;
         private int publicViewModelIndex;
 
+        private AutoResetEvent waitObj;
+
         /// <summary>
         /// Array of transactions that is managed by this session. All transaction here 
         /// will be cleaned up when either a json with transaction attached is removed 
@@ -79,6 +82,8 @@ namespace Starcounter {
            
             if (errCode != 0)
                 throw ErrorCode.ToException(errCode);
+
+            waitObj = new AutoResetEvent(true);
         }
 
         public SessionOptions Options {
@@ -132,6 +137,7 @@ namespace Starcounter {
 
             // Saving current session since we are going to set other.
             Session origCurrentSession = Session.Current;
+            Session._current = null;
 
             try {
                 SchedulerSessions ss = 
@@ -152,11 +158,15 @@ namespace Starcounter {
 
                             Session session = (Session)s.apps_session_int_;
 
-                            // Setting new current session.
-                            Session.Current = session;
-
-                            // Running user delegate with session as parameter.
-                            action(session);
+                            try {
+                                // Setting new current session.
+                                session.StartUsing();
+                                
+                                // Running user delegate with session as parameter.
+                                action(session);
+                            } finally {
+                                session.StopUsing();
+                            }
                         }
                     }
 
@@ -165,9 +175,8 @@ namespace Starcounter {
                 }
             } finally {
                 // Restoring original current session.
-                Session.Current = origCurrentSession;
+                Session._current = origCurrentSession;
             }
-
         }
 
         /// <summary>
@@ -220,9 +229,11 @@ namespace Starcounter {
             get {
                 return _current;
             }
-
             set {
-                _current = value;
+                if (value != null)
+                    value.StartUsing();
+                else if (_current != null)
+                    _current.StopUsing();
             }
         }
 
@@ -281,8 +292,10 @@ namespace Starcounter {
 
                         value.OnSessionSet();
                     }
-                    // Setting current session.
-                    Current = this;
+
+                    if (_current == null) {
+                        StartUsing();
+                    }
                 }
             }
         }
@@ -348,14 +361,34 @@ namespace Starcounter {
         /// Start using specific session.
         /// </summary>
         public void StartUsing() {
+            if (_current == this)
+                return;
+
+            if (_current != null) {
+                throw ErrorCode.ToException(Error.SCERRANOTHERSESSIONACTIVE);
+            }
+
+            if (!waitObj.WaitOne(60 * 1000)) {
+                throw ErrorCode.ToException(Error.SCERRACQUIRESESSIONTIMEOUT);
+            }
+
             _isInUse = true;
+            Session._current = this;
         }
 
         /// <summary>
         /// Stop using specific session.
         /// </summary>
         public void StopUsing() {
-            _isInUse = false;
+            try {
+                Debug.Assert(_current == this);
+
+                DisposeUnreferencedTransactions();
+                Session._current = null;
+                _isInUse = false;
+            } finally {
+                waitObj.Set();
+            }
         }
 
         /// <summary>
@@ -375,41 +408,6 @@ namespace Starcounter {
                 if (publicViewModelIndex != -1)
                     return _stateList[publicViewModelIndex];
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// Start usage of given session.
-        /// </summary>
-        /// <param name="session"></param>
-        internal static void Start(Session session) {
-            Debug.Assert(_current == null);
-            Debug.Assert(session != null);
-
-            Session._current = session;
-        }
-
-        /// <summary>
-        /// Finish usage of current session.
-        /// </summary>
-        internal static void End() {
-            if (_current != null) {
-                _current.DisposeUnreferencedTransactions();
-                Session._current = null;
-            }
-        }
-
-        /// <summary>
-        /// Executes the specified action inside the Session
-        /// </summary>
-        /// <param name="session"></param>
-        /// <param name="action"></param>
-        internal static void Execute(Session session, Action action) {
-            try {
-                Start(session);
-                action();
-            } finally {
-                End();
             }
         }
 
