@@ -171,6 +171,11 @@ public class CPersonalServer : CComponentBase
         if (vsComponent13.IsInstalled() || vsComponent13.ShouldBeInstalled()) {
             setup.StartupType = Server.Windows.StartupType.Manual;
         }
+
+        var vsComponent15 = InstallerMain.VS2015IntegrationComponent;
+        if (vsComponent15.IsInstalled() || vsComponent15.ShouldBeInstalled()) {
+            setup.StartupType = Server.Windows.StartupType.Manual;
+        }
         
         Utilities.ReportSetupEvent("Adding Starcounter server service...");
         setup.Execute();
@@ -182,9 +187,11 @@ public class CPersonalServer : CComponentBase
 
         var vsComponent2012 = InstallerMain.VS2012IntegrationComponent;
         var vsComponent2013 = InstallerMain.VS2013IntegrationComponent;
+        var vsComponent2015 = InstallerMain.VS2015IntegrationComponent;
 
         if (!(vsComponent2012.IsInstalled() || vsComponent2012.ShouldBeInstalled() ||
-            vsComponent2013.IsInstalled() || vsComponent2013.ShouldBeInstalled())) {
+            vsComponent2013.IsInstalled() || vsComponent2013.ShouldBeInstalled() ||
+            vsComponent2015.IsInstalled() || vsComponent2015.ShouldBeInstalled())) {
 
             var service = ServerService.Find();
 

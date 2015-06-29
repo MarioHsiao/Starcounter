@@ -79,6 +79,47 @@ namespace Starcounter.InstallerEngine.VsSetup {
         }
 
         /// <summary>
+        /// Installs the Starcounter VS extension in VS 2015.
+        /// </summary>
+        /// <param name="binDirectory">Full path to the Starcounter
+        /// installation folder.</param>
+        public static void InstallVs2015(string binDirectory) {
+            InstallUsingVSIXInstaller(
+                Path.Combine(ConstantsBank.VS2015IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
+                Path.Combine(binDirectory, VSIXPackageInfo.VS2015.FileName),
+                VisualStudioVersion.VS2015.BuildNumber,
+                "Community"
+                );
+        }
+
+        /// <summary>
+        /// Uninstalls the Starcounter VS extension from VS 2015.
+        /// </summary>
+        /// <param name="binDirectory">Full path to the Starcounter
+        /// installation folder.</param>
+        public static void UninstallVs2015(string binDirectory) {
+            UninstallUsingVSIXInstaller(
+                Path.Combine(ConstantsBank.VS2015IDEDirectory, ConstantsBank.VSIXInstallerEngineExecutable),
+                VSIXPackageInfo.VS2015.ExtensionIdentity,
+                VisualStudioVersion.VS2015.BuildNumber,
+                "Community"
+                );
+
+            // Delete the folder with the extension files, since it seems
+            // like Microsoft have delayed this in VS 2013.
+            var manifestFile = VSIXUtilities.FindManifestFile(VSIntegration.GetUserExtensionsRootFolder(VisualStudioVersion.VS2015), VSIXPackageInfo.VS2015.ExtensionIdentity);
+            if (File.Exists(manifestFile)) {
+                var extensionDirectory = Path.GetDirectoryName(manifestFile);
+                try {
+                    Utilities.LogMessage(string.Format("Debug: deleting VS extension directory \"{0}\".", extensionDirectory));
+                    Directory.Delete(extensionDirectory, true);
+                } catch (Exception e) {
+                    Utilities.LogMessage(string.Format("Warning: failed deleting VS extension directory, message \"{0}\".", e.Message));
+                }
+            }
+        }
+
+        /// <summary>
         /// Installs a VSIX package using the Visual Studio VSIX installer engine.
         /// </summary>
         /// <param name="installerEnginePath">
