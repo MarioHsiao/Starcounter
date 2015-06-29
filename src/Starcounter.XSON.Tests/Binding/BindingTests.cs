@@ -31,7 +31,8 @@ namespace Starcounter.Internal.XSON.Tests {
         [TearDown]
         public static void AfterEachTest() {
             // Making sure that we are ending the session even if the test failed.
-            Session.End();
+            if (Session.Current != null)
+                Session.Current.StopUsing();
             StarcounterEnvironment.AppName = oldAppName;
         }
 
