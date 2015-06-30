@@ -123,6 +123,8 @@
     <Compile Include="Components\Demo.cs" />
     <Compile Include="Components\VisualStudio2012.cs" />
     <Compile Include="Components\VisualStudio2012Integration.cs" />
+    <Compile Include="Components\VisualStudio2015.cs" />
+    <Compile Include="Components\VisualStudio2015Integration.cs" />
     <Compile Include="Converters\IsCheckedConverter.cs" />
     <Compile Include="Converters\ScrollBarVisibilityToPadding.cs" />
     <Compile Include="DemoSequence\BaseDemoControl.cs" />

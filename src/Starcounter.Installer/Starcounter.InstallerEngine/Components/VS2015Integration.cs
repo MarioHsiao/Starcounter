@@ -134,24 +134,33 @@ namespace Starcounter.InstallerEngine {
         /// <inheritdoc/>
         public override Boolean IsInstalled() {
 
-            if (!DependenciesCheck.VStudio2015Installed())
-                return false;
+            // Temporary thing, because of how the WPF installer behave.
+            // This component can not be installed at this moment.
+            return false;
 
-            var manifest = VSIXUtilities.FindManifestFile(
-                GetUserExtensionsRootFolder(VisualStudioVersion.VS2015),
-                VSIXPackageInfo.VS2015.ExtensionIdentity);
+            //if (!DependenciesCheck.VStudio2015Installed())
+            //    return false;
 
-            return manifest != null;
+            //var manifest = VSIXUtilities.FindManifestFile(
+            //    GetUserExtensionsRootFolder(VisualStudioVersion.VS2015),
+            //    VSIXPackageInfo.VS2015.ExtensionIdentity);
+
+            //return manifest != null;
         }
 
         /// <inheritdoc/>
         public override Boolean CanBeInstalled() {
-            if (!DependenciesCheck.VStudio2015Installed()) {
-                throw ErrorCode.ToException(Error.SCERRINSTALLERVS2012NOTFOUND,
-                    "Microsoft Visual Studio 2015 is required to install the Starcounter integration.");
-            }
 
-            return true;
+            // Temporary thing, because of how the WPF installer behave.
+            // This component can not be installed at this moment.
+            return false;
+
+            //if (!DependenciesCheck.VStudio2015Installed()) {
+            //    throw ErrorCode.ToException(Error.SCERRINSTALLERVS2012NOTFOUND,
+            //        "Microsoft Visual Studio 2015 is required to install the Starcounter integration.");
+            //}
+
+            //return true;
         }
 
         /// <inheritdoc/>
@@ -161,12 +170,19 @@ namespace Starcounter.InstallerEngine {
 
         /// <inheritdoc/>
         public override Boolean ShouldBeInstalled() {
-            return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallVS2015Integration, ConstantsBank.Setting_True);
+            // Temporary thing, because of how the WPF installer behave.
+            // This component can not be installed at this moment.
+            return false;
+
+            // return InstallerMain.InstallationSettingCompare(ConstantsBank.Setting_InstallVS2015Integration, ConstantsBank.Setting_True);
         }
 
         /// <inheritdoc/>
         public override Boolean ShouldBeRemoved() {
-            return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveVS2015Integration, ConstantsBank.Setting_True);
+            // Temporary thing, because of how the WPF installer behave.
+            // This component can not be installed at this moment.
+            return false;
+            // return UninstallEngine.UninstallationSettingCompare(ConstantsBank.Setting_RemoveVS2015Integration, ConstantsBank.Setting_True);
         }
     }
 }
