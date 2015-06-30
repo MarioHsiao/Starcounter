@@ -79,13 +79,14 @@ Handsontable.cellTypes.Key = Handsontable.cellTypes.text;
   }
 
   function getLogHostTemplate(logMessage) {
-    var tpl, url;
+    var tpl, url, dbPath;
 
     if (logMessage[0] === '#') {
-      url = '/#/databases/' + (logMessage.replace('#/', ''));
+      dbPath = logMessage.split('/');
+      url = '/#/databases/' + dbPath[3] + '/' + dbPath[4];
       tpl = document.createElement('a');
       tpl.href = url;
-      tpl.textContent = url;
+      tpl.textContent = dbPath[4];
     } else {
       tpl = document.createTextNode(logMessage);
     }
