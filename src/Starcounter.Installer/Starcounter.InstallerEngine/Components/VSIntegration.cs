@@ -74,8 +74,7 @@ namespace Starcounter.InstallerEngine
             {
                 VisualStudioVersion.VS2010,
                 VisualStudioVersion.VS2012,
-                VisualStudioVersion.VS2013,
-                VisualStudioVersion.VS2015
+                VisualStudioVersion.VS2013
             };
 
             // No matter the OS, and despite us being a 64-bit application, we request
@@ -148,10 +147,6 @@ namespace Starcounter.InstallerEngine
         {
             get
             {
-                if (string.Equals(BuildNumber, "14.0", StringComparison.InvariantCultureIgnoreCase)) {
-                    return Path.GetFullPath(ConstantsBank.VS2015DevEnvPath);
-                }
-
                 if (string.Equals(BuildNumber, "12.0", StringComparison.InvariantCultureIgnoreCase)) {
                     return Path.GetFullPath(ConstantsBank.VS2013DevEnvPath);
                 }

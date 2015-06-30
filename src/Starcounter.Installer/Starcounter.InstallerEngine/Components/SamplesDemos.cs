@@ -165,8 +165,6 @@ public class CSamplesDemos : CComponentBase
             (!InstallerMain.VS2012IntegrationComponent.IsInstalled()) &&
             (!InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled()) &&
             (!InstallerMain.VS2013IntegrationComponent.IsInstalled()) &&
-            (!InstallerMain.VS2015IntegrationComponent.ShouldBeInstalled()) &&
-            (!InstallerMain.VS2015IntegrationComponent.IsInstalled()) &&
             (!Utilities.RunningOnBuildServer()))
         {
             sampleDbNames = new String[] { ConstantsBank.SCDemoDbName };
@@ -343,11 +341,6 @@ public class CSamplesDemos : CComponentBase
             InstallerMain.VS2013IntegrationComponent.IsInstalled()) {
             vsNumberVersion = "12.0";
             vsYearVersion = "2013";
-        } 
-        else if (InstallerMain.VS2015IntegrationComponent.ShouldBeInstalled() ||
-          InstallerMain.VS2015IntegrationComponent.IsInstalled()) {
-            vsNumberVersion = "14.0";
-            vsYearVersion = "2015";
         }
         else
         {
@@ -382,8 +375,6 @@ public class CSamplesDemos : CComponentBase
             (InstallerMain.VS2012IntegrationComponent.IsInstalled()) ||
             (InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled()) ||
             (InstallerMain.VS2013IntegrationComponent.IsInstalled()) ||
-            (InstallerMain.VS2015IntegrationComponent.ShouldBeInstalled()) ||
-            (InstallerMain.VS2015IntegrationComponent.IsInstalled()) ||
             (Utilities.RunningOnBuildServer()))
         {
             return;
@@ -432,9 +423,6 @@ public class CSamplesDemos : CComponentBase
 
         if (installedComponents[(Int32)ComponentsCheck.Components.VS2013Integration])
             remainingComponents[(Int32)ComponentsCheck.Components.VS2013Integration] = true;
-
-        if (installedComponents[(Int32)ComponentsCheck.Components.VS2015Integration])
-            remainingComponents[(Int32)ComponentsCheck.Components.VS2015Integration] = true;
 
         try
         {
@@ -534,8 +522,7 @@ public class CSamplesDemos : CComponentBase
     {
         return (InstallerMain.PersonalServerComponent.ShouldBeInstalled() ||
             InstallerMain.VS2012IntegrationComponent.ShouldBeInstalled() ||
-            InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled() ||
-            InstallerMain.VS2015IntegrationComponent.ShouldBeInstalled());
+            InstallerMain.VS2013IntegrationComponent.ShouldBeInstalled());
     }
 
     /// <summary>

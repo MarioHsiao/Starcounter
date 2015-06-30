@@ -488,7 +488,6 @@ namespace Starcounter.InstallerEngine
         public static CPersonalServer PersonalServerComponent = new CPersonalServer();
         public static VS2012Integration VS2012IntegrationComponent = new VS2012Integration();
         public static VS2013Integration VS2013IntegrationComponent = new VS2013Integration();
-        public static VS2015Integration VS2015IntegrationComponent = new VS2015Integration();
 
         /// <summary>
         /// Array of all Starcounter components ordered for uninstallation purpose.
@@ -498,7 +497,6 @@ namespace Starcounter.InstallerEngine
             PersonalServerComponent,
             VS2012IntegrationComponent,
             VS2013IntegrationComponent,
-            VS2015IntegrationComponent,
             SamplesDemosComponent,
             InstallationBaseComponent
         };
@@ -512,8 +510,7 @@ namespace Starcounter.InstallerEngine
             PersonalServerComponent,
             SamplesDemosComponent,
             VS2012IntegrationComponent,
-            VS2013IntegrationComponent,
-            VS2015IntegrationComponent
+            VS2013IntegrationComponent
         };
 
         /// <summary>
@@ -756,7 +753,6 @@ namespace Starcounter.InstallerEngine
                     // Mapping boolean flags to settings.
                     if (VS2012IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (VS2013IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
-                    if (VS2015IntegrationComponent.ShouldBeInstalled()) AddComponentToProgress();
                     if (PersonalServerComponent.ShouldBeInstalled())
                     {
                         AddComponentToProgress();

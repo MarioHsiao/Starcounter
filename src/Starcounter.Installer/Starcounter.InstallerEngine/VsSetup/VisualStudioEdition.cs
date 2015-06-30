@@ -14,13 +14,7 @@ namespace Starcounter.InstallerEngine.VsSetup
         /// <summary>
         /// Contains the names of some Visual Studio editions.
         /// </summary>
-        public static readonly string[] NamedEditions = new string[] { 
-            "Pro", 
-            "Premium", 
-            "Ultimate",
-            "Community",
-            "Enterprise"
-        };
+        public static readonly string[] NamedEditions = new string[] { "Pro", "Premium", "Ultimate" };
 
         /// <summary>
         /// Gets or sets the <see cref="VisualStudioVersion"/> this edition represent.
