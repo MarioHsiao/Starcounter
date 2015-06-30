@@ -46,7 +46,8 @@ namespace Starcounter.InstallerEngine
             PersonalServer,
             SystemServer,
             VS2012Integration,
-            VS2013Integration
+            VS2013Integration,
+            VS2015Integration
         };
 
         public static readonly Int32 NumComponents = Enum.GetValues(typeof(Components)).Length;
@@ -90,6 +91,9 @@ namespace Starcounter.InstallerEngine
             if (InstallerMain.VS2013IntegrationComponent.IsInstalled())
                 cachedInstalledComponents[(Int32)Components.VS2013Integration] = true;
 
+            if (InstallerMain.VS2015IntegrationComponent.IsInstalled())
+                cachedInstalledComponents[(Int32)Components.VS2015Integration] = true;
+
             // In case if there are no components installed, returns 'false' array.
             return cachedInstalledComponents;
         }
@@ -110,6 +114,8 @@ namespace Starcounter.InstallerEngine
             if (installedComponents[(Int32)ComponentsCheck.Components.PersonalServer]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.SystemServer]) return true;
             if (installedComponents[(Int32)ComponentsCheck.Components.VS2012Integration]) return true;
+            if (installedComponents[(Int32)ComponentsCheck.Components.VS2013Integration]) return true;
+            if (installedComponents[(Int32)ComponentsCheck.Components.VS2015Integration]) return true;
 
             return false;
         }
