@@ -204,5 +204,19 @@ namespace Starcounter.InstallerEngine
 
             return false;
         }
+
+        /// <summary>
+        /// Simply checks if Visual Studio 2015 is installed.
+        /// </summary>
+        /// <returns></returns>
+        public static Boolean VStudio2015Installed() {
+
+            foreach (var installedEditon in VSIntegration.GetInstalledVSEditionsSupported()) {
+                if (installedEditon.Version.BuildNumber.Equals(VisualStudioVersion.VS2015.BuildNumber))
+                    return true;
+            }
+
+            return false;
+        }
      }
 }

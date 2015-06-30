@@ -3331,6 +3331,12 @@
     <code hex="0006" severity="Error" name="ScErrSessionManagerDied">
       <message>Scheduler session manager has died.</message>
     </code>
+    <code hex="0007" severity="Error" name="ScErrAnotherSessionActive">
+      <message>Another session for this thread is already active.</message>
+    </code>
+    <code hex="0008" severity="Error" name="ScErrAcquireSessionTimeout">
+      <message>Exclusive access to the session could not be obtained.</message>
+    </code>
   </facility>
 
   <!-- Internal error codes. -->
@@ -3954,6 +3960,18 @@
       <message>
         The transaction was aborted because record generated exeeded the maximum
         allowed record size.
+      </message>
+    </code>
+    <code hex="0028" severity="Error" name="ScErrLayoutLimitReachedAbort">
+      <message>
+        The transaction was aborted because of an attempt to create a new record
+        layout while the limit of the number of record layouts had been reached.
+      </message>
+    </code>
+    <code hex="0029" severity="Error" name="ScErrIndexLimitReachedAbort">
+      <message>
+        The transaction was aborted because of an attempt to create a new index
+        while the limit of the number of indexes had been reached.
       </message>
     </code>
   </facility>

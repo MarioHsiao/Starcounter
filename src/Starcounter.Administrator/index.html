@@ -9,7 +9,7 @@
 
     <link rel="shortcut icon" href="/app/images/favicon.ico">
 
-    <link rel="stylesheet" media="screen" href="/app/vendor/handsontable/angular-ui-handsontable-0.3.17.full.css">
+    <link rel="stylesheet" media="screen" href="/app/vendor/handsontable/handsontable.full.css">
 
     <!-- CodeMirror -->
     <link rel="stylesheet" type="text/css" href="/app/vendor/codemirror/codemirror.css">
@@ -23,8 +23,6 @@
 
     <!-- Bootstrap, Used by: Global -->
     <script src="/app/vendor/bootstrap/bootstrap.min.js"></script>
-
-    <script src="/app/vendor/handsontable/very-native-scrollbar-0.0.20131217.js"></script>
 
     <!-- Angular, Used by: Global -->
     <script src="/app/vendor/angular/angular.min.js"></script>
@@ -52,7 +50,8 @@
     <script src="/app/vendor/angular-ui/ui-bootstrap-tpls-0.10.0.min.js"></script>
 
     <!-- Handsontable, Used in: Log and Sql window -->
-    <script src="/app/vendor/handsontable/angular-ui-handsontable-0.3.17.full.js"></script>
+    <script src="/app/vendor/handsontable/handsontable.full.js"></script>
+    <script src="/app/vendor/handsontable/ngHandsontable.js"></script>
 
     <!-- Type conversion from Starcounter DbTypeCode to HandsonTable types. See https://gist.github.com/warpech/c33eabf2b72741eb927b -->
     <script src="/app/js/scTypesPlugin.js"></script>
@@ -107,6 +106,7 @@
 
     <!-- Filters -->
     <script src="/app/filters/Truncate.js"></script>
+    <script src="/app/filters/LogMessageHost.js"></script>
 
     <!-- Angular localisation -->
     <script type='text/javascript'>
