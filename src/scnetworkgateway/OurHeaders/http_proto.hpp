@@ -17,8 +17,8 @@ class RegisteredUri
     // Is a gateway URI handler.
     bool is_gateway_uri_;
 
-    // Unique handler lists.
-    LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
+    // URI handler.
+    HandlersList* handler_;
 
 public:
 
@@ -39,118 +39,86 @@ public:
         uint8_t* param_types,
         uint8_t* num_params)
     {
-        // TODO: Make the investigation about same URI handlers.
-        //GW_ASSERT(1 == handler_lists_.get_num_entries());
+        GW_ASSERT(NULL != handler_);
 
-        HandlersList* handlers_list = handler_lists_[0];
+        memcpy(param_types, handler_->get_param_types(), MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
 
-        // TODO: This constrain is not needed.
-        GW_ASSERT(1 == handlers_list->get_num_entries());
-
-        memcpy(param_types, handlers_list->get_param_types(), MixedCodeConstants::MAX_URI_CALLBACK_PARAMS);
-        *num_params = handlers_list->get_num_params();
-    }
-
-    // Getting number of native parameters in user delegate.
-    uint8_t GetNumberOfNativeParameters()
-    {
-        return handler_lists_[0]->get_num_params();
-    }
-
-    // Getting number of handler lists.
-    uint32_t GetHandlersListsNumber()
-    {
-        return handler_lists_.get_num_entries();
+        *num_params = handler_->get_num_params();
     }
 
     // Getting registered URI.
     char* get_original_uri_info()
     {
-        return handler_lists_[0]->get_original_uri_info();
+        GW_ASSERT(NULL != handler_);
+
+        return handler_->get_original_uri_info();
     }
 
     // Getting registered URI.
     char* get_processed_uri_info()
     {
-        return handler_lists_[0]->get_processed_uri_info();
+        GW_ASSERT(NULL != handler_);
+
+        return handler_->get_processed_uri_info();
     }
 
     // Getting application name.
     char* get_app_name()
     {
-        return handler_lists_[0]->get_app_name();
+        GW_ASSERT(NULL != handler_);
+
+        return handler_->get_app_name();
     }
 
     // Constructor.
     RegisteredUri()
     {
-        Reset();
+        handler_ = NULL;
+        session_param_index_ = INVALID_PARAMETER_INDEX;
+        is_gateway_uri_ = false;
     }
 
     // Checking if handlers list is empty.
     bool IsEmpty()
     {
-        return handler_lists_.IsEmpty();
+        if (NULL == handler_)
+            return true;
+
+        return handler_->IsEmpty();
     }
 
     // Removes certain entry.
-    bool RemoveEntry(HandlersList* handlers_list)
-    {
-        return handler_lists_.RemoveEntry(handlers_list);
+    bool ContainsDb(db_index_type db_index) {
+
+        GW_ASSERT(NULL != handler_);
+
+        return handler_->get_db_index() == db_index;
     }
 
     // Removes certain entry.
-    bool ContainsDb(db_index_type db_index)
-    {
-        return (FindDb(db_index) >= 0);
+    db_index_type GetFirstDbIndex() {
+
+        GW_ASSERT(NULL != handler_);
+
+        return handler_->get_db_index();
     }
 
     // Removes certain entry.
-    db_index_type GetFirstDbIndex()
+    bool RemoveEntry(const db_index_type db_index)
     {
-        return handler_lists_[0]->get_db_index();
-    }
+        GW_ASSERT(NULL != handler_);
 
-    // Removes certain entry.
-    db_index_type FindDb(db_index_type db_index)
-    {
-        // Going through all handler list.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-        {
-            if (handler_lists_[i]->get_db_index() == db_index)
-            {
-                return i;
-            }
+        // Checking if database index is the same.
+        if (db_index == handler_->get_db_index()) {
+
+            // Deleting the entry.
+            GwDeleteSingle(handler_);
+            handler_ = NULL;
+
+            return true;
         }
 
-        return INVALID_DB_INDEX;
-    }
-
-    // Removes certain entry.
-    bool RemoveEntry(db_index_type db_index)
-    {
-        bool removed = false;
-
-        // Going through all handler list.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-        {
-            // Checking if database index is the same.
-            if (handler_lists_[i]->get_db_index() == db_index)
-            {
-                // Deleting the entry.
-                GwDeleteSingle(handler_lists_[i]);
-                handler_lists_[i] = NULL;
-
-                handler_lists_.RemoveByIndex(i);
-                i--;
-
-                removed = true;
-
-                // Not stopping, going through all entries.
-            }
-        }
-
-        return removed;
+        return false;
     }
 
     // Initializing the entry.
@@ -161,7 +129,7 @@ public:
         bool is_gateway_uri)
     {
         // Creating and pushing new handlers list.
-        handler_lists_.Add(handlers_list);
+        handler_ = handlers_list;
 
         session_param_index_ = session_param_index;
 
@@ -171,14 +139,10 @@ public:
     // Resetting entry.
     void Reset()
     {
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++) {
-            // Deleting the entry.
-            GwDeleteSingle(handler_lists_[i]);
-            handler_lists_[i] = NULL;
-        }
+        GW_ASSERT(NULL != handler_);
 
-        // Removing all handlers lists.
-        handler_lists_.Clear();
+        GwDeleteSingle(handler_);
+        handler_ = NULL;
 
         session_param_index_ = INVALID_PARAMETER_INDEX;
 
@@ -370,14 +334,7 @@ public:
     }
 
     // Adding new entry.
-    void AddNewUri(RegisteredUri& new_entry)
-    {
-        // Adding new entry to the back.
-        reg_uris_.Add(new_entry);
-
-        // Invalidating URI matcher.
-        InvalidateUriMatcher();
-    }
+    void AddNewUri(RegisteredUri& new_entry);
 
     // Checking if registered URIs is empty.
     bool IsEmpty()
@@ -393,32 +350,6 @@ public:
 
         // Invalidating URI matcher.
         InvalidateUriMatcher();
-    }
-
-    // Removing certain entry.
-    bool RemoveEntry(HandlersList* handlers_list)
-    {
-        bool removed = false;
-
-        // Going through all entries.
-        for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++)
-        {
-            if (reg_uris_[i].RemoveEntry(handlers_list))
-            {
-                if (reg_uris_[i].IsEmpty())
-                {
-                    // Removing entry.
-                    RemoveUriByIndex(i);
-                    --i;
-                }
-
-                removed = true;
-
-                // Not stopping, going through all entries.
-            }
-        }
-
-        return removed;
     }
 
     // Removing certain entry.
@@ -488,20 +419,7 @@ public:
     }
 
     // Find certain URI entry.
-    uri_index_type FindRegisteredUri(const char* method_uri_space)
-    {
-        // Going through all entries.
-        for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++) {
-
-            // Doing exact comparison.
-            if (0 == strcmp(method_uri_space, reg_uris_[i].get_processed_uri_info())) {
-                return i;
-            }
-        }
-
-        // Returning negative if nothing is found.
-        return INVALID_URI_INDEX;
-    }
+    uri_index_type FindRegisteredUri(const char* method_uri_space);
 
     // Find certain URI entry.
     uri_index_type FindRegisteredUri(const char* method_uri_space, const int32_t method_uri_space_len)

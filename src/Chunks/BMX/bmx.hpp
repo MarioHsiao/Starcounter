@@ -77,7 +77,7 @@ namespace bmx
     const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INFO = MakeHandlerInfo(bmx::BMX_MANAGEMENT_HANDLER_INDEX, 1);
 
     // Maximum total number of registered handlers.
-    const uint32_t MAX_TOTAL_NUMBER_OF_HANDLERS = 256;
+    const uint32_t MAX_TOTAL_NUMBER_OF_HANDLERS = 2048;
 
     // Maximum number of the same handlers in a list.
     const uint32_t MAX_NUMBER_OF_HANDLERS_IN_LIST = 8;

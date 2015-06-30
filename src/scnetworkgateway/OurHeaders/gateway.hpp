@@ -522,12 +522,16 @@ public:
 
     void Add(T& new_elem)
     {
+        GW_ASSERT(num_entries_ < MaxElems - 1);
+
         elems_[num_entries_] = new_elem;
         num_entries_++;
     }
 
     uint32_t AddEmpty()
     {
+        GW_ASSERT(num_entries_ < MaxElems - 1);
+
         num_entries_++;
 
         return num_entries_;

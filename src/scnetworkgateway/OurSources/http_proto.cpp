@@ -126,24 +126,43 @@ RegisteredUris::~RegisteredUris()
     uri_matcher_entry_ = NULL;
 }
 
+// Adding new entry.
+void RegisteredUris::AddNewUri(RegisteredUri& new_entry)
+{
+    // Adding new entry to the back.
+    reg_uris_.Add(new_entry);
+
+    // Invalidating URI matcher.
+    InvalidateUriMatcher();
+}
+
+// Find certain URI entry.
+uri_index_type RegisteredUris::FindRegisteredUri(const char* method_uri_space)
+{
+    // Going through all entries.
+    for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++) {
+
+        // Doing exact comparison.
+        GW_ASSERT(false == reg_uris_[i].IsEmpty());
+        if (0 == strcmp(method_uri_space, reg_uris_[i].get_processed_uri_info())) {
+            return i;
+        }
+    }
+
+    // Returning negative if nothing is found.
+    return INVALID_URI_INDEX;
+}
+
 // Running all registered handlers.
 uint32_t RegisteredUri::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
 {
-    uint32_t err_code;
+    GW_ASSERT(NULL != handler_);
 
-    // Going through all handler list.
-    for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-    {
-        // Ensuring that initial database is zero.
-        //GW_ASSERT(0 == sd->get_db_index());
+    uint32_t err_code = handler_->RunHandlers(gw, sd, is_handled);
 
-        // Running handlers.
-        err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
-
-        // Checking if information was handled and no errors occurred.
-        if (*is_handled || err_code)
-            return err_code;
-    }
+    // Checking if information was handled and no errors occurred.
+    if (*is_handled || err_code)
+        return err_code;
 
     return 0;
 }

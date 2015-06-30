@@ -451,8 +451,12 @@ void ServerPort::EraseDb(db_index_type db_index)
 // Checking if port is unused by any database.
 bool ServerPort::IsEmpty()
 {
-    // Checks port index first.
+    // Checks port index.
     if (INVALID_PORT_INDEX == port_index_)
+        return true;
+
+    // Checks port number.
+    if (INVALID_PORT_NUMBER == port_number_)
         return true;
 
     // Checking port handlers.
@@ -3170,7 +3174,7 @@ uint32_t Gateway::AddUriHandler(
         // Adding the actual handler procedure.
         hl->AddHandler(handler_proc);
 
-        // Creating totally new URI entry.
+        // NOTE: Since RegisteredUri has no explicit destructor and we pass it by value, its fine.
         RegisteredUri new_entry(
             session_param_index,
             db_index,
@@ -3188,18 +3192,6 @@ uint32_t Gateway::AddUriHandler(
 
         // Disallowing handler duplicates.
         return SCERRHANDLERALREADYREGISTERED;
-
-        /*
-        // Obtaining existing URI entry.
-        RegisteredUri* reg_uri = port_uris->GetEntryByIndex(uri_index);
-
-        // Checking if there is no database for this URI.
-        if (!reg_uri->ContainsDb(db_index))
-        {
-            // Adding new handler list for this database to the URI.
-            reg_uri->Add(handlers_table->get_handler_list(handler_index));
-        }
-        */
     }
 
     if (err_code)
