@@ -271,10 +271,12 @@ namespace Starcounter.InstallerWPF {
                 subRootElem.AppendChild(elem);
 
                 // VisualStudio2015
-                VisualStudio2015Integration visualStudio2015Integration = this.GetComponent(VisualStudio2015Integration.Identifier) as VisualStudio2015Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2015Integration);
-                elem.InnerText = visualStudio2015Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                // Temporary thing, because of how the WPF installer behave.
+                // This component can not be installed at this moment.
+                //VisualStudio2015Integration visualStudio2015Integration = this.GetComponent(VisualStudio2015Integration.Identifier) as VisualStudio2015Integration;
+                //elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2015Integration);
+                //elem.InnerText = visualStudio2015Integration.ExecuteCommand.ToString();
+                //subRootElem.AppendChild(elem);
 
             }
             else {
@@ -307,10 +309,12 @@ namespace Starcounter.InstallerWPF {
                 subRootElem.AppendChild(elem);
 
                 // VisualStudio2015Integration
-                VisualStudio2015Integration visualStudio2015Integration = this.GetComponent(VisualStudio2015Integration.Identifier) as VisualStudio2015Integration;
-                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2015Integration);
-                elem.InnerText = visualStudio2015Integration.ExecuteCommand.ToString();
-                subRootElem.AppendChild(elem);
+                // Temporary thing, because of how the WPF installer behave.
+                // This component can not be installed at this moment.
+                //VisualStudio2015Integration visualStudio2015Integration = this.GetComponent(VisualStudio2015Integration.Identifier) as VisualStudio2015Integration;
+                //elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2015Integration);
+                //elem.InnerText = visualStudio2015Integration.ExecuteCommand.ToString();
+                //subRootElem.AppendChild(elem);
             }
 
             // Saving setup setting to file.
