@@ -270,6 +270,12 @@ namespace Starcounter.InstallerWPF {
                 elem.InnerText = visualStudio2013Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
 
+                // VisualStudio2015
+                VisualStudio2015Integration visualStudio2015Integration = this.GetComponent(VisualStudio2015Integration.Identifier) as VisualStudio2015Integration;
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_InstallVS2015Integration);
+                elem.InnerText = visualStudio2015Integration.ExecuteCommand.ToString();
+                subRootElem.AppendChild(elem);
+
             }
             else {
                 XmlElement subRootElem = xmlDoc.CreateElement(ConstantsBank.SettingsSection_Uninstall);
@@ -300,6 +306,11 @@ namespace Starcounter.InstallerWPF {
                 elem.InnerText = visualStudio2013Integration.ExecuteCommand.ToString();
                 subRootElem.AppendChild(elem);
 
+                // VisualStudio2015Integration
+                VisualStudio2015Integration visualStudio2015Integration = this.GetComponent(VisualStudio2015Integration.Identifier) as VisualStudio2015Integration;
+                elem = xmlDoc.CreateElement(ConstantsBank.Setting_RemoveVS2015Integration);
+                elem.InnerText = visualStudio2015Integration.ExecuteCommand.ToString();
+                subRootElem.AppendChild(elem);
             }
 
             // Saving setup setting to file.
