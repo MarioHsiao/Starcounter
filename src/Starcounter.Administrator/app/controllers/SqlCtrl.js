@@ -138,8 +138,16 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
             $scope.isBusy = false;
 
             $scope.rememberQuery({ statement: query, databaseName: databaseName });
-            $scope.database._queryState.columns = response.columns;
-            $scope.database._queryState.rows = response.rows.rows;
+            // Fill columns keeping reference to old array
+            $scope.database._queryState.columns.length = 0;
+            angular.forEach(response.columns, function(column) {
+              column.data = column.value;
+              $scope.database._queryState.columns.push(column);
+            });
+            $scope.database._queryState.rows.length = 0;
+            angular.forEach(response.rows.rows, function(row) {
+              $scope.database._queryState.rows.push(row);
+            });
 
             // Make all columns readonly
             for (var i = 0; i < $scope.database._queryState.columns.length ; i++) {
@@ -205,8 +213,5 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
 
     // bind the keypress listener
     $document.bind('keypress', onKeyPress);
-
-    $scope.afterRender = scrollRefresh;
-
     $scope.refreshQueryHistory();
 }]);

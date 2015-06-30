@@ -68,3 +68,6 @@ src/Samples/WeaverTests/**/*.pdb
 
 # Deleted
 src/Starcounter/Query/prologbeans/*
+
+#editor config
+.idea

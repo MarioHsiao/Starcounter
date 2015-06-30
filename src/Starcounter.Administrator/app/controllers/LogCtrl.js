@@ -3,7 +3,8 @@
  * Log page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('LogCtrl', ['$scope', '$rootScope', '$location', '$log', 'LogService', 'UserMessageFactory', function ($scope, $rootScope, $location, $log, LogService, UserMessageFactory) {
+adminModule.controller('LogCtrl', ['$scope', '$rootScope', '$location', '$log', '$filter', 'LogService', 'UserMessageFactory',
+        function ($scope, $rootScope, $location, $log, $filter, LogService, UserMessageFactory) {
 
     $scope.multipleDemo = {};
     $scope.multipleDemo.list_of_string = [];
@@ -76,7 +77,7 @@ adminModule.controller('LogCtrl', ['$scope', '$rootScope', '$location', '$log', 
 
     // Watch for changes in the filer
     $scope.$watch('model.filter', function (newValue, oldValue) {
-  
+
         if (newValue !== oldValue) {
             // do whatever you were going to do
 
@@ -117,27 +118,27 @@ adminModule.controller('LogCtrl', ['$scope', '$rootScope', '$location', '$log', 
         if (arr[x] == "") continue;
         $scope.multipleDemo.list_of_string.push(arr[x]);
     }
-    
+
 
     /**
      * Retrieve log information
      */
     $scope.getLog = function () {
-
-
         // Get log entries from the Log Service
         LogService.getLogEntries($scope.model.filter, function (response) {
-            // Success
-
             $scope.select2Options.tags.length = 0;
             $scope.select2Options.tags = [];
 
-            $scope.model.LogEntries = response.LogEntries;
+            $scope.model.LogEntries = response.LogEntries.map(function(log) {
+              log.HostName = $filter('logMessageHost')(log.HostName);
+
+              return log;
+            });
             var filterSourceOptions = response.FilterSource.split(";");
+
             for (var i = 0; i < filterSourceOptions.length ; i++) {
                 $scope.select2Options.tags.push(filterSourceOptions[i]);
             }
-
         }, function (messageObject) {
             // Error
             UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
@@ -153,6 +154,4 @@ adminModule.controller('LogCtrl', ['$scope', '$rootScope', '$location', '$log', 
 
     // Init
     $scope.getLog();
-
-    $scope.afterRender = scrollRefresh;
 }]);

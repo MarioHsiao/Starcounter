@@ -9,7 +9,7 @@ body {
 
 
 .modal-header h3 {
-  
+
     font-size: 20px;
     margin: 0px;
 }
@@ -109,10 +109,10 @@ body {
     margin-right: 5px;
 }
 
-    .nav-pills li a:hover {
-        background: #6192bb;
-        color: white;
-    }
+.nav-pills li a:hover {
+    background: #6192bb;
+    color: white;
+}
 
 /*.nav-pills {
     padding: 0px;
@@ -194,31 +194,31 @@ body {
     background: transparent;
 }
 
-    .popupButton:hover {
-        color: #e22822;
-    }
+.popupButton:hover {
+    color: #e22822;
+}
 
-    .popupButton:focus {
-        outline: 0;
-    }
+.popupButton:focus {
+    outline: 0;
+}
 
 
 .popupButton_danger {
     color: #d9534f;
 }
 
-    .popupButton_danger:hover {
-        color: #e22822;
-    }
+.popupButton_danger:hover {
+    color: #e22822;
+}
 
 
 .popupButton_warning {
     color: #fb7e21;
 }
 
-    .popupButton_warning:hover {
-        color: #ff5500;
-    }
+.popupButton_warning:hover {
+    color: #ff5500;
+}
 
 
 .handsontable .currentRow {
@@ -251,33 +251,33 @@ body {
     margin-right: 0px;
 }
 
-    #applicationIconList li {
-        width: 300px;
-        height: 290px;
-        display: inline-block;
-        -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
-        box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
-        border-radius: 0px;
-        border: 0px solid transparent;
-        background: white;
-        margin-left: 0px;
-        margin-right: 15px;
-        margin-bottom: 15px;
-        /*-webkit-border-radius: 6px;*/
-        /*-moz-border-radius: 6px;*/
-        /*border-radius: 4px;*/
-        padding: 10px 10px 10px 10px;
-        /*border: 1px solid #B0B0B0;*/
-        /*box-shadow: 1px 1px 3px #B8B8B8;*/
-        vertical-align: top;
-    }
+#applicationIconList li {
+    width: 300px;
+    height: 290px;
+    display: inline-block;
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+    box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+    border-radius: 0px;
+    border: 0px solid transparent;
+    background: white;
+    margin-left: 0px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    /*-webkit-border-radius: 6px;*/
+    /*-moz-border-radius: 6px;*/
+    /*border-radius: 4px;*/
+    padding: 10px 10px 10px 10px;
+    /*border: 1px solid #B0B0B0;*/
+    /*box-shadow: 1px 1px 3px #B8B8B8;*/
+    vertical-align: top;
+}
 
-        #applicationIconList li .console {
-            padding: 5px;
-            margin-top: 10px;
-            font-size: 70%;
-            font-family: monospace, Consolas, "Courier New", Courier, monospace;
-        }
+#applicationIconList li .console {
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 70%;
+    font-family: monospace, Consolas, "Courier New", Courier, monospace;
+}
 
 /* Database box handling */
 
@@ -290,34 +290,34 @@ body {
 }
 
 
-    #databaseIconList li {
-        width: 300px;
-        height: 165px;
-        display: inline-block;
-        -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
-        box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
-        border-radius: 0px;
-        border: 0px solid transparent;
-        background: white;
-        margin-left: 0px;
-        margin-right: 15px;
-        margin-bottom: 15px;
-        /*border: 1px solid #B0B0B0;
-        -webkit-border-radius: 6px;
-        -moz-border-radius: 6px;
-        border-radius: 4px;*/
-        padding: 10px 10px 10px 10px;
-        /*box-shadow: 1px 1px 3px #B8B8B8;*/
-        vertical-align: top;
-    }
+#databaseIconList li {
+    width: 300px;
+    height: 165px;
+    display: inline-block;
+    -webkit-box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+    box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+    border-radius: 0px;
+    border: 0px solid transparent;
+    background: white;
+    margin-left: 0px;
+    margin-right: 15px;
+    margin-bottom: 15px;
+    /*border: 1px solid #B0B0B0;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    border-radius: 4px;*/
+    padding: 10px 10px 10px 10px;
+    /*box-shadow: 1px 1px 3px #B8B8B8;*/
+    vertical-align: top;
+}
 
 
-        #databaseIconList li .console {
-            padding: 5px;
-            margin-top: 10px;
-            font-size: 70%;
-            font-family: monospace, Consolas, "Courier New", Courier, monospace;
-        }
+#databaseIconList li .console {
+    padding: 5px;
+    margin-top: 10px;
+    font-size: 70%;
+    font-family: monospace, Consolas, "Courier New", Courier, monospace;
+}
 
 .spinner {
     background-position: center center;
@@ -328,26 +328,54 @@ body {
     vertical-align: middle;
 }
 
-    .spinner.tiny {
-        height: 18px;
-        width: 18px; /* Pixel size of the GIF you download */
-        background: url("/app/images/spiffygif_18x18.gif");
-    }
+.spinner.tiny {
+    height: 18px;
+    width: 18px; /* Pixel size of the GIF you download */
+    background: url("/app/images/spiffygif_18x18.gif");
+}
 
-    .spinner.small {
-        height: 24px;
-        width: 24px; /* Pixel size of the GIF you download */
-        background: url("/app/images/spiffygif_28x28.gif");
-    }
+.spinner.small {
+    height: 24px;
+    width: 24px; /* Pixel size of the GIF you download */
+    background: url("/app/images/spiffygif_28x28.gif");
+}
 
-    .spinner.medium {
-        height: 32px;
-        width: 32px;
-        background: url("/app/images/spiffygif_32x32.gif");
-    }
+.spinner.medium {
+    height: 32px;
+    width: 32px;
+    background: url("/app/images/spiffygif_32x32.gif");
+}
 
-    .spinner.large {
-        height: 64px;
-        width: 64px;
-        background: url("/app/images/spiffygif_64x64.gif");
-    }
+.spinner.large {
+    height: 64px;
+    width: 64px;
+    background: url("/app/images/spiffygif_64x64.gif");
+}
+
+.handsontable td.log-message {
+    white-space: pre-wrap;
+    word-break: break-all;
+    word-wrap: break-word;
+    padding: 0;
+}
+.handsontable pre {
+    border: none;
+    background-color: transparent;
+    margin: 0
+}
+.handsontable .log-message .wrapper {
+    overflow-x: auto;
+}
+.log-message code {
+    word-break: normal;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+}
+.log-message pre {
+    padding: 0 4px 0 4px;
+}
+.log-message-detector pre, .log-message-detector code {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    white-space: pre;
+}

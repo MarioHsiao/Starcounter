@@ -31,3 +31,85 @@ Handsontable.cellTypes.UInt16 = Handsontable.cellTypes.text; //it can be numeric
 Handsontable.cellTypes.Binary = Handsontable.cellTypes.text; //Handsontable now does not have a default type, so we must map all other types as text
 Handsontable.cellTypes.LargeBinary = Handsontable.cellTypes.text;
 Handsontable.cellTypes.Key = Handsontable.cellTypes.text;
+
+(function() {
+  // logMessage renderer
+  Handsontable.cellTypes.logMessage = {
+    renderer: function(instance, TD, row, col, prop, value, cellProperties) {
+      var escaped = Handsontable.helper.stringify(value),
+        className = 'wrapper',
+        logElement;
+
+      Handsontable.renderers.BaseRenderer.apply(this, arguments);
+      logElement = getLogTemplate(escaped);
+
+      if (/\n/.test(escaped)) {
+        logElement.firstChild.style.width = detectLogWidth(escaped) + 'px';
+      }
+      Handsontable.Dom.empty(TD);
+      Handsontable.Dom.addClass(logElement, className);
+      TD.appendChild(logElement);
+    }
+  };
+
+  // logHost renderer
+  Handsontable.cellTypes.logHost = {
+    renderer: function(instance, TD, row, col, prop, value, cellProperties) {
+      var escaped = Handsontable.helper.stringify(value),
+        logElement;
+
+      Handsontable.renderers.BaseRenderer.apply(this, arguments);
+      logElement = getLogHostTemplate(escaped);
+
+      Handsontable.Dom.empty(TD);
+      TD.appendChild(logElement);
+    }
+  };
+
+  function getLogTemplate(logMessage) {
+    var tpl = document.createElement('div'),
+      code = document.createElement('code'),
+      pre = document.createElement('pre');
+
+    pre.appendChild(code);
+    tpl.appendChild(pre);
+    code.textContent = logMessage;
+
+    return tpl;
+  }
+
+  function getLogHostTemplate(logMessage) {
+    var tpl, url;
+
+    if (logMessage[0] === '#') {
+      url = '/#/databases/' + (logMessage.replace('#/', ''));
+      tpl = document.createElement('a');
+      tpl.href = url;
+      tpl.textContent = url;
+    } else {
+      tpl = document.createTextNode(logMessage);
+    }
+
+    return tpl;
+  }
+
+  function detectLogWidth(logMessage) {
+    var el = document.querySelector('.log-message-detector'),
+      width;
+
+    if (el) {
+      el.firstChild.firstChild.textContent = logMessage;
+    } else {
+      el = getLogTemplate(logMessage);
+      el.style.position = 'absolute';
+      el.style.top = '-10000px';
+      el.style.left = '-10000px';
+      el.style.visibility = 'hidden';
+      el.className = 'log-message-detector';
+      document.body.appendChild(el);
+    }
+    width = el.clientWidth;
+
+    return width;
+  }
+}());
