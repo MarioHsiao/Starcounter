@@ -13,7 +13,7 @@ namespace Starcounter.InstallerWPF.Components
         {
             get
             {
-                return true;
+                return false;
             }
         }
 
@@ -37,7 +37,7 @@ namespace Starcounter.InstallerWPF.Components
         {
             base.SetDefaultValues();
 
-            this.IsInstalled = DependenciesCheck.VStudio2015Installed();
+            this.IsInstalled = false;//DependenciesCheck.VStudio2015Installed();
 
         }
 
