@@ -67,6 +67,16 @@ namespace Starcounter.Weaver {
         public string EditionLibrariesDirectory { get; private set; }
 
         /// <summary>
+        /// The directory where the weaver looks for libraries
+        /// with database classes.
+        /// </summary>
+        public string LibrariesWithDatabaseClassesDirectory {
+            get {
+                return Path.Combine(WeaverRuntimeDirectory, "LibrariesWithDatabaseClasses"); ;
+            }
+        }
+
+        /// <summary>
         /// The cache directory used by the weaver.
         /// </summary>
         public readonly string CacheDirectory;
@@ -245,9 +255,15 @@ namespace Starcounter.Weaver {
                 postSharpSettings.OverwriteAssemblyNames = false;
                 postSharpSettings.DisableReflection = true;
                 postSharpSettings.SearchDirectories.Add(this.InputDirectory);
+
                 if (!this.DisableEditionLibraries && Directory.Exists(this.EditionLibrariesDirectory)) {
                     postSharpSettings.SearchDirectories.Add(this.EditionLibrariesDirectory);
                 }
+
+                if (Directory.Exists(this.LibrariesWithDatabaseClassesDirectory)) {
+                    postSharpSettings.SearchDirectories.Add(this.LibrariesWithDatabaseClassesDirectory);
+                }
+                
                 postSharpSettings.LocalHostImplementation = typeof(CodeWeaverInsidePostSharpDomain).AssemblyQualifiedName;
 
                 // Move all assemblies in the cached weaver schema to that of the
@@ -373,6 +389,10 @@ namespace Starcounter.Weaver {
             this.Cache.AssemblySearchDirectories.Add(this.InputDirectory);
             this.Cache.AssemblySearchDirectories.Add(this.WeaverRuntimeDirectory);
             this.Cache.AssemblySearchDirectories.Add(this.EditionLibrariesDirectory);
+
+            if (Directory.Exists(this.LibrariesWithDatabaseClassesDirectory)) {
+                this.Cache.AssemblySearchDirectories.Add(this.LibrariesWithDatabaseClassesDirectory);
+            }
 
             return true;
         }
