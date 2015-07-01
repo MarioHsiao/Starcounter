@@ -1,4 +1,4 @@
-/*! puppet.js version: 1.1.0
+/*! puppet.js version: 1.2.1
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -92,10 +92,15 @@
   function PuppetNetworkChannel(puppet, remoteUrl, useWebSocket, onReceive, onSend, onError, onStateChange) {
     // TODO(tomalec): to be removed once we will achieve better separation of concerns
     this.puppet = puppet;
-    // this.remoteUrl = remoteUrl;
-    Object.defineProperty(this, 'remoteUrl', {
-      value: remoteUrl
-    });
+
+    if (remoteUrl instanceof URL) {
+        this.remoteUrl = remoteUrl;
+    } else if (remoteUrl) {
+        this.remoteUrl = new URL(remoteUrl, window.location.href);
+    } else {
+        this.remoteUrl = new URL(window.location.href);
+    }
+    
     // define wsURL if needed
     if(useWebSocket){
       defineWebSocketURL(this, remoteUrl);
@@ -105,8 +110,6 @@
     onSend && (this.onSend = onSend);
     onError && (this.onError = onError);
     onStateChange && (this.onStateChange = onStateChange);
-
-    this.referer = null;
 
     //useWebSocket = useWebSocket || false;
     var that = this;
@@ -129,14 +132,12 @@
         return useWebSocket = newValue;
       }
     });
-
-    this.handleResponseCookie();
   }
   // TODO: auto-configure here #38 (tomalec)
   PuppetNetworkChannel.prototype.establish = function(bootstrap /*, onConnectionReady*/){
     var network = this;
     return this.xhr(
-        this.remoteUrl,
+        this.remoteUrl.href,
         'application/json', 
         null,  
         function (res) {
@@ -158,30 +159,12 @@
    */
   PuppetNetworkChannel.prototype.send = function(msg){
     var that = this;
-    if (this.useWebSocket) {
-      if(!this._ws) {
-        this.webSocketUpgrade(function(){
-          // send message once WS is there
-          that._ws.send(msg);
-          that.onSend(msg, that._ws.url, "WS");
-        });
-      } else if (this._ws.readyState === 0) {
-        var oldOnOpen = this._ws.onopen;
-        this._ws.onopen = function(){
-          oldOnOpen();
-          // send message once WS is opened
-          that._ws.send(msg);
-          that.onSend(msg, that._ws.url, "WS");
-        };
-      }
-      else {
+    // send message only if there is a working ws connection
+    if (this.useWebSocket && this._ws && this._ws.readyState === 1) {
         this._ws.send(msg);
         that.onSend(msg, that._ws.url, "WS");
-      }
-    }
-    else {
-      var url = this.referer || this.remoteUrl;
-      //"referer" should be used as the url when sending JSON Patches (see https://github.com/PuppetJs/PuppetJs/wiki/Server-communication)
+    } else {
+      var url = this.remoteUrl.href;
       this.xhr(url, 'application/json-patch+json', msg, function (res, method) {
           that.onReceive(res.responseText, url, method);
         });
@@ -201,7 +184,7 @@
 
   /**
    * Send a WebSocket upgrade request to the server.
-   * For testing purposes WS upgrade url is hardcoded now in PuppetJS (replace __default/ID with __default/wsupgrade/ID)
+   * For testing purposes WS upgrade url is hardcoded now in PuppetJS (replace __default/ID with __default/ID)
    * In future, server should suggest the WebSocket upgrade URL
    * @TODO:(tomalec)[cleanup] hide from public API.
    * @param {Function} [callback] Function to be called once connection gets opened.
@@ -212,11 +195,11 @@
     // resolve session path given in referrer in the context of remote WS URL
     var upgradeURL = (
       new URL(
-        this.referer.replace(/(\/?)__([^\/]*)\//g, "/__$2/wsupgrade/"), 
+        this.remoteUrl.pathname,
         this.wsURL
         )
       ).href;
-    // ws[s]://[user[:pass]@]remote.host[:port]/__[sessionid]/wsupgrade/
+    // ws[s]://[user[:pass]@]remote.host[:port]/__[sessionid]/
 
     that._ws = new WebSocket(upgradeURL);
     that._ws.onopen = function (event) {
@@ -233,44 +216,37 @@
     };
     that._ws.onclose = function (event) {
       that.onStateChange(that._ws.readyState, upgradeURL, null, event.code, event.reason);
-      throw new Error("WebSocket connection closed" + event.code + " " + event.reason);
+
+      var m = ["WebSocket connection closed. Status code: ", event.code, "."];
+
+      if (event.reason) {
+          m.push(" Reason: ", event.reason);
+      }
+
+      console.error(m.join(""));
     };
   };
   PuppetNetworkChannel.prototype.changeState = function (href) {
     var that = this;
     return this.xhr(href, 'application/json-patch+json', null, function (res, method) {
       that.onReceive(res.responseText, href, method);
-    });
+    }, true);
   };
 
   // TODO:(tomalec)[cleanup] hide from public API.
-  PuppetNetworkChannel.prototype.setReferer = function (referer) {
-    if (this.referer && this.referer !== referer) {
-      throw new Error("Session lost. Server replied with a different session ID that was already set. \nPossibly a server restart happened while you were working. \nPlease reload the page.\n\nPrevious session ID: " + this.referer + "\nNew session ID: " + referer);
+  PuppetNetworkChannel.prototype.setRemoteUrl = function (remoteUrl) {
+    if (this.remoteUrlSet && this.remoteUrl && this.remoteUrl.href != remoteUrl) {
+        throw new Error("Session lost. Server replied with a different session ID that was already set. \nPossibly a server restart happened while you were working. \nPlease reload the page.\n\nPrevious session ID: " + this.remoteUrl + "\nNew session ID: " + remoteUrl);
     }
-    this.referer = referer;
+    this.remoteUrlSet = true;
+    this.remoteUrl = new URL(remoteUrl, this.remoteUrl.href);
   };
 
   // TODO:(tomalec)[cleanup] hide from public API.
   PuppetNetworkChannel.prototype.handleResponseHeader = function (xhr) {
     var location = xhr.getResponseHeader('X-Location') || xhr.getResponseHeader('Location');
     if (location) {
-      this.setReferer(location);
-    }
-  };
-
-  /**
-   * PuppetJs does not use cookies because of sessions (you need to take care of it in your application code)
-   * Reason PuppetJs handles cookies is different:
-   * JavaScript cannot read HTTP "Location" header for the main HTML document, but it can read cookies
-   * So if you want to establish session in the main HTML document, send "Location" value as a cookie
-   * The cookie will be erased (replaced with empty value) after reading
-   */
-  PuppetNetworkChannel.prototype.handleResponseCookie = function () {
-    var location = cookie.read('Location');
-    if (location) { //if cookie exists and is not empty
-      this.setReferer(location);
-      cookie.erase('Location');
+      this.setRemoteUrl(location);
     }
   };
 
@@ -282,15 +258,12 @@
    * @param [callback(response)] callback to be called in context of puppet with response as argument
    * @returns {XMLHttpRequest} performed XHR
    */
-  PuppetNetworkChannel.prototype.xhr = function (url, accept, data, callback) {
-    //this.handleResponseCookie();
-    cookie.erase('Location'); //more invasive cookie erasing because sometimes the cookie was still visible in the requests
+  PuppetNetworkChannel.prototype.xhr = function (url, accept, data, callback, setReferer) {
     var that = this;
     var req = new XMLHttpRequest();
     var method = "GET";
     req.onload = function () {
       var res = this;
-      that.handleResponseCookie();
       that.handleResponseHeader(res);
       if (res.status >= 400 && res.status <= 599) {
         that.onError(JSON.stringify({ statusCode: res.status, statusText: res.statusText, text: res.responseText }), url, method);
@@ -312,8 +285,8 @@
     if (accept) {
       req.setRequestHeader('Accept', accept);
     }
-    if (that.referer) {
-      req.setRequestHeader('X-Referer', that.referer);
+    if (that.remoteUrl && setReferer) {
+      req.setRequestHeader('X-Referer', that.remoteUrl.pathname);
     }
     that.onSend(data, url, method);
     req.send(data);
@@ -634,42 +607,6 @@
 
     if(this.debug) {
       this.remoteObj = JSON.parse(JSON.stringify(this.obj));
-    }
-  };
-  /**
-   * Cookie helper
-   * @see Puppet.prototype.handleResponseCookie
-   * reference: http://www.quirksmode.org/js/cookies.html
-   * reference: https://github.com/js-coder/cookie.js/blob/gh-pages/cookie.js
-   */
-  var cookie = {
-    create: function createCookie(name, value, days) {
-      var expires = "";
-      if (days) {
-        var date = new Date();
-        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-        expires = "; expires=" + date.toGMTString();
-      }
-      document.cookie = name + "=" + value + expires + '; path=/';
-    },
-
-    readAll: function readCookies() {
-      if (document.cookie === '') return {};
-      var cookies = document.cookie.split('; ')
-        , result = {};
-      for (var i = 0, l = cookies.length; i < l; i++) {
-        var item = cookies[i].split('=');
-        result[decodeURIComponent(item[0])] = decodeURIComponent(item[1]);
-      }
-      return result;
-    },
-
-    read: function readCookie(name) {
-      return cookie.readAll()[name];
-    },
-
-    erase: function eraseCookie(name) {
-      cookie.create(name, "", -1);
     }
   };
 

@@ -1,9 +1,17 @@
-/*! puppet-dom.js version: 1.1.0
+/*! puppet-dom.js version: 1.2.1
  * (c) 2013 Joachim Wester
  * MIT license
  */
 
 (function (global) {
+  function getRemoteUrlFromCookie() {
+      var location = cookie.read('Location');
+
+      cookie.erase('Location');
+
+      return location;
+  }
+
   /**
    * PuppetDOM
    * @extends {Puppet}
@@ -14,7 +22,6 @@
     options || (options={});
     var onDataReady = options.callback;
     this.element = options.listenTo || document.body;
-    this.clickHandler;
     var clickHandler = this.clickHandler.bind(this);
     this.historyHandler = this.historyHandler.bind(this);
 
@@ -29,8 +36,6 @@
       this.element.addEventListener('click', clickHandler);
       window.addEventListener('popstate', this.historyHandler); //better here than in constructor, because Chrome triggers popstate on page load
       this.element.addEventListener('puppet-redirect-pushstate', this.historyHandler);
-
-      this.addShadowRootClickListeners(clickHandler);
     };
     this.unlisten = function(){
       this.listening = false;
@@ -38,9 +43,10 @@
       this.element.removeEventListener('click', clickHandler);
       window.removeEventListener('popstate', this.historyHandler); //better here than in constructor, because Chrome triggers popstate on page load
       this.element.removeEventListener('puppet-redirect-pushstate', this.historyHandler);
-
-      this.removeShadowRootClickListeners(clickHandler);
     };
+
+    options.remoteUrl = options.remoteUrl || getRemoteUrlFromCookie() || window.location.href;
+
     Puppet.call(this, options);
   };
   PuppetDOM.prototype = Object.create(Puppet.prototype);
@@ -54,87 +60,27 @@
     history.pushState(null, null, url);
     this.network.changeState(url);
   };
-  /**
-   * Returns array of shadow roots inside of a element (recursive)
-   * @param el
-   * @param out (Optional)
-   */
-  PuppetDOM.prototype.findShadowRoots = function (el, out) {
-    if (!out) {
-      out = [];
-    }
-    for (var i = 0, ilen = el.childNodes.length; i < ilen; i++) {
-      if (el.childNodes[i].nodeType === 1) {
-        var shadowRoot = el.childNodes[i].shadowRoot || el.childNodes[i].polymerShadowRoot_;
-        if (shadowRoot) {
-          out.push(shadowRoot);
-          this.findShadowRoots(shadowRoot, out);
-        }
-        this.findShadowRoots(el.childNodes[i], out);
-      }
-    }
-    return out;
-  };
-  function containsInShadow(root, element){
-    var parent = element;
-    while(parent && root !== parent){
-      parent = parent.parentNode || parent.host;
-    }
 
-    return root === parent;
-  }
-  /**
-   * Catches clicks in Shadow DOM
-   * @see <a href="https://groups.google.com/forum/#!topic/polymer-dev/fDRlCT7nNPU">discussion</a>
-   */
-  PuppetDOM.prototype.addShadowRootClickListeners = function (clickHandler) {
-    //existing shadow roots
-    var shadowRoots = this.findShadowRoots(this.element);
-    for (var i = 0, ilen = shadowRoots.length; i < ilen; i++) {
-      (shadowRoots[i].impl || shadowRoots[i]).addEventListener("click", clickHandler);
-    }
-    var puppet = this;
-    //future shadow roots
-    //TODO: move it outside of listen/unlisten, to overwrite it only once.
-    var old = Element.prototype.createShadowRoot;
-    Element.prototype.createShadowRoot = function () {
-      var shadowRoot = old.apply(this, arguments);
-      // unwrap in case of WebComponents polyfill
-      if(puppet.listening && containsInShadow(puppet.element, unwrap && unwrap(this) || this)){
-        shadowRoot.addEventListener("click", clickHandler);
-      }
-      return shadowRoot;
-    };
-  };
-  /**
-   * Catches clicks in Shadow DOM
-   * @see <a href="https://groups.google.com/forum/#!topic/polymer-dev/fDRlCT7nNPU">discussion</a>
-   */
-  PuppetDOM.prototype.removeShadowRootClickListeners = function (clickHandler) {
-
-    //existing shadow roots
-    var shadowRoots = this.findShadowRoots(this.element);
-    // var shadowRoots = this.findShadowRoots(document.documentElement);
-    for (var i = 0, ilen = shadowRoots.length; i < ilen; i++) {
-      (shadowRoots[i].impl || shadowRoots[i]).removeEventListener("click", clickHandler);
-    }
-  };
   PuppetDOM.prototype.clickHandler = function (event) {
+    //Don't morph ctrl/cmd + click & middle mouse button
+    if (event.ctrlKey || event.metaKey || event.which == 2) {
+      return;
+    }
+
     if (event.detail && event.detail.target) {
       //detail is Polymer
       event = event.detail;
     }
+
     var target = event.target;
-    if (target.impl) {
-      //impl is Polymer
-      target = target.impl;
-    }
 
     if (target.nodeName !== 'A') {
-      var parentA = closestHrefParent(target, 'A');
-      if (parentA) {
-        target = parentA;
-      }
+        for (var i = 0; i < event.path.length; i++) {
+            if (event.path[i].nodeName == "A") {
+                target = event.path[i];
+                break;
+            }
+        }
     }
 
     //needed since Polymer 0.2.0 in Chrome stable / Web Plaftorm features disabled
@@ -179,15 +125,42 @@
     }
     return (elem.protocol == window.location.protocol && elem.host == window.location.host);
   };
-  //goes up the DOM tree (including given element) until it finds an element that matches the nodeName
-  var closestHrefParent = function (elem) {
-    while (elem != null) {
-      if (elem.nodeType === 1 && (elem.href || elem.getAttribute('href'))) {
-        return elem;
+
+  /**
+   * Cookie helper
+   * @see Puppet.prototype.handleResponseCookie
+   * reference: http://www.quirksmode.org/js/cookies.html
+   * reference: https://github.com/js-coder/cookie.js/blob/gh-pages/cookie.js
+   */
+  var cookie = {
+      create: function createCookie(name, value, days) {
+          var expires = "";
+          if (days) {
+              var date = new Date();
+              date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+              expires = "; expires=" + date.toGMTString();
+          }
+          document.cookie = name + "=" + value + expires + '; path=/';
+      },
+
+      readAll: function readCookies() {
+          if (document.cookie === '') return {};
+          var cookies = document.cookie.split('; ')
+            , result = {};
+          for (var i = 0, l = cookies.length; i < l; i++) {
+              var item = cookies[i].split('=');
+              result[decodeURIComponent(item[0])] = decodeURIComponent(item[1]);
+          }
+          return result;
+      },
+
+      read: function readCookie(name) {
+          return cookie.readAll()[name];
+      },
+
+      erase: function eraseCookie(name) {
+          cookie.create(name, "", -1);
       }
-      elem = elem.parentNode;
-    }
-    return null;
   };
 
   global.PuppetDOM = PuppetDOM;
