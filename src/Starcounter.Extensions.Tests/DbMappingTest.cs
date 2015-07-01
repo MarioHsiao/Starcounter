@@ -39,8 +39,6 @@ namespace DbMappingTest {
         public static void Main() {
 
             Db.Transact(() => {
-                Db.SlowSQL("DELETE FROM DbMapInfo");
-                Db.SlowSQL("DELETE FROM DbMappingRelation");
                 Db.SlowSQL("DELETE FROM NameClass1");
                 Db.SlowSQL("DELETE FROM NameClass2");
                 Db.SlowSQL("DELETE FROM NameClass3");
