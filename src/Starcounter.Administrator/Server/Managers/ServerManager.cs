@@ -80,8 +80,13 @@ namespace Administrator.Server.Managers {
             Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
 
                 Json json = TemporaryStorage.Find(id);
+
                 ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
-                return System.Net.HttpStatusCode.OK;
+
+                Response response = new Response();
+                response["Access-Control-Allow-Origin"] = "*";  //"http://localhost:8080";
+                response.StatusCode = (UInt16) System.Net.HttpStatusCode.OK;
+                return response;
             });
 
             // Incoming patch on socket
