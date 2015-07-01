@@ -52,6 +52,7 @@ Attribute          | Options       | Default                | Description
 `remoteVersionPath`| *JSONPointer* | `"_ver#s"`             | remote version path, set it to falsy to disable Double Versioned JSON Patch communication
 `ot`               | *Boolean*     | `true`                 | `false` to disable OT
 `purity`           | *Boolean*     | `false`                | true to enable purist mode of OT
+`listen-to`		   | *String*      | `document.body`        | DOM node to listen to (see [PuppetDOM listenTo attribute](https://github.com/PuppetJs/PuppetJs#puppetdom))
 
 ## Events
 Name                 | Arguments                                                             | Descriptions
