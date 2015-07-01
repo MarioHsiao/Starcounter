@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Starcounter.Rest;
 using Starcounter.XSON;
 using System.Text;
+using Starcounter.Advanced;
 
 namespace Starcounter.Internal {
 
@@ -111,39 +112,29 @@ namespace Starcounter.Internal {
                 }
             }, new HandlerOptions() { ProxyDelegateTrigger = true });
 
-            Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Session session) => {
-                Json root = null;
-
+            Handle.GET(port, ScSessionClass.DataLocationUriPrefix + Handle.UriParameterIndicator, (Request request, Session session) => {
                 if (session == null)
-                    return CreateErrorResponse(404, "No session found for the specified uri.");
-                root = session.PublicViewModel;
-                if (root == null)
-                    return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
+                    return CreateErrorResponse(404, "No resource found for the specified uri.");
 
-                if (root.ChangeLog != null)
-                    root.ChangeLog.Checkpoint();
-
-                return new Response() {
-                    BodyBytes = root.ToJsonUtf8(),
-                    ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
-                };
-
-                
-            });
-
-            // Handler to process Json-Patch WebSocket Upgrade HTTP request! :)
-            Handle.GET(port, ScSessionClass.DataLocationUriPrefix + "wsupgrade/" + Handle.UriParameterIndicator, (Request req, Session session) => {
-
-                // Checking if its a WebSocket Upgrade request.
-                if (req.WebSocketUpgrade) {
-
+                if (request.WebSocketUpgrade) {
                     // Sending an upgrade (note that we attach the existing session).
-                    req.SendUpgrade(JsonPatchWebSocketGroupName, null, null, session);
-
+                    request.SendUpgrade(JsonPatchWebSocketGroupName, null, null, session);
                     return HandlerStatus.Handled;
-                }
+                } else if (request.PreferredMimeType == MimeType.Application_Json) {
+                    Json root = session.PublicViewModel;
+                    if (root == null)
+                        return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
-                return 513;
+                    if (root.ChangeLog != null)
+                        root.ChangeLog.Checkpoint();
+
+                    return new Response() {
+                        BodyBytes = root.ToJsonUtf8(),
+                        ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
+                    };
+                } else {
+                    return CreateErrorResponse(513, String.Format("Unsupported mime type {0}.", request.PreferredMimeTypeString));
+                }
             });
 
             // Handling WebSocket JsonPatch string message.
