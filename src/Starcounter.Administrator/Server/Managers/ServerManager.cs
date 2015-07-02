@@ -35,11 +35,31 @@ namespace Administrator.Server.Managers {
         }
 
         /// <summary>
+        /// Returns response with all needed access control headers set.
+        /// </summary>
+        /// <returns></returns>
+        static Response GetAllowAccessControlResponse() {
+
+            Response response = new Response();
+
+            response["Access-Control-Expose-Headers"] = "Location, X-Location";
+            response["Access-Control-Allow-Headers"] = "Accept, Content-Type, X-Location, Location";
+            response["Access-Control-Allow-Methods"] = "GET, POST, HEAD, OPTIONS, PUT, DELETE, PATCH";
+            response["Access-Control-Allow-Origin"] = "*";
+            response.StatusCode = (UInt16)System.Net.HttpStatusCode.OK;
+
+            return response;
+        }
+
+        /// <summary>
         /// Register handlers for the full model api
         /// </summary>
         private static void RegisterFullModelApi() {
 
             string socketChannelName = "servermodel";
+
+            // TODO: Anders check please if this was needed and why?
+            // I.e. why there are 3 parameters sometimes and 2???
 
             Handle.GET("/api/servermodel/{?}/{?}", (string key, Session session, Request request) => {
 
@@ -65,38 +85,28 @@ namespace Administrator.Server.Managers {
                 string id = TemporaryStorage.Store(serverModelJson);
 
                 // Create response
-                Response response = new Response();
+                Response response = GetAllowAccessControlResponse();
                 response.Resource = serverModelJson;
                 response["Set-Cookie"] = request.Uri + "/" + id;
                 response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
 
-                response["Access-Control-Allow-Origin"] = "*";  //"http://localhost:8080";
-                response["Access-Control-Expose-Headers"] = "Location, X-Location";
-                //response["Access-Control-Allow-Headers"] = "X-Referer";
                 return response;
             });
 
             // Incoming patch on http
-            Handle.PATCH("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
+            Handle.PATCH("/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
 
                 Json json = TemporaryStorage.Find(id);
 
                 ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
 
-                Response response = new Response();
-                response["Access-Control-Allow-Origin"] = "*";  //"http://localhost:8080";
-                response.StatusCode = (UInt16) System.Net.HttpStatusCode.OK;
-                return response;
+                return GetAllowAccessControlResponse();
             });
 
             // Options for server model request.
-            Handle.OPTIONS("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
+            Handle.OPTIONS("/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
 
-                Response response = new Response();
-                response["Access-Control-Allow-Origin"] = "*";  //"http://localhost:8080";
-                response.StatusCode = (UInt16)System.Net.HttpStatusCode.OK;
-
-                return response;
+                return GetAllowAccessControlResponse();
             });
 
             // Incoming patch on socket
@@ -129,6 +139,7 @@ namespace Administrator.Server.Managers {
                 if (request.WebSocketUpgrade) {
                     Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
                     if (database != null) {
+
                         WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
                         databaseModelSockets[ws.ToUInt64()] = database;
                         return HandlerStatus.Handled;
@@ -179,13 +190,15 @@ namespace Administrator.Server.Managers {
                 }
             });
 
+            // TODO: Anders check please if this was needed and why?
             // Incoming patch on http
-            Handle.PATCH("/api/servermodel/{?}/{?}/{?}", (string databaseName, string id, Session session, Request request) => {
+            /*Handle.PATCH("/api/servermodel/{?}/{?}/{?}", (string databaseName, string id, Session session, Request request) => {
 
                 //                Json json = TemporaryStorage.Find(id);
                 //                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
                 return System.Net.HttpStatusCode.NotImplemented;
-            });
+            });*/
+
             Handle.WebSocketDisconnect(socketChannelName, (ws) => {
                 // Remove ws.
                 Database database;
