@@ -351,6 +351,7 @@ namespace Starcounter {
         public const String POST_METHOD = "POST";
         public const String DELETE_METHOD = "DELETE";
         public const String PATCH_METHOD = "PATCH";
+        public const String OPTIONS_METHOD = "OPTIONS";
 
         /// <summary>
         /// Checks if given URI is a part of 
@@ -748,6 +749,54 @@ namespace Starcounter {
         public static void PATCH<T1, T2, T3, T4, T5>(ushort port, String uriTemplate, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null)
         {
             _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, PATCH_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS(String uriTemplate, Func<Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS(ushort port, String uriTemplate, Func<Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler(port, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T>(String uriTemplate, Func<T, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T>(ushort port, String uriTemplate, Func<T, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T>(port, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2>(String uriTemplate, Func<T1, T2, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2>(ushort port, String uriTemplate, Func<T1, T2, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2>(port, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2, T3>(String uriTemplate, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2, T3>(ushort port, String uriTemplate, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2, T3>(port, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2, T3, T4>(String uriTemplate, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2, T3, T4>(ushort port, String uriTemplate, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2, T3, T4>(port, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2, T3, T4, T5>(String uriTemplate, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
+        }
+
+        public static void OPTIONS<T1, T2, T3, T4, T5>(ushort port, String uriTemplate, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null) {
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, OPTIONS_METHOD + " " + uriTemplate, handler, ho);
         }
     }
 }

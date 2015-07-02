@@ -89,6 +89,16 @@ namespace Administrator.Server.Managers {
                 return response;
             });
 
+            // Options for server model request.
+            Handle.OPTIONS("/api/servermodel/{?}/{?}", (string id, Session session, Request request) => {
+
+                Response response = new Response();
+                response["Access-Control-Allow-Origin"] = "*";  //"http://localhost:8080";
+                response.StatusCode = (UInt16)System.Net.HttpStatusCode.OK;
+
+                return response;
+            });
+
             // Incoming patch on socket
             Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
 
