@@ -8,6 +8,8 @@
   <!ELEMENT remarks     (#PCDATA|para)*>
   <!ELEMENT para        (#PCDATA)>
 
+  <!-- test -->
+  
   <!-- facility's "hex" attrib is a 12-bit integer in hexadecimal notation. -->
   <!ATTLIST facility   hex      CDATA                                 #REQUIRED>
   <!-- 
