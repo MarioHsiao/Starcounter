@@ -483,22 +483,22 @@ namespace Starcounter.Rest
         /// <summary>
         /// Tries to find handler by processed URI string.
         /// </summary>
-        public static UserHandlerInfo FindHandlerByProcessedUri(String processedUriInfo, HandlerOptions ho = null) {
+        public static UserHandlerInfo FindHandlerByProcessedUri(String methodSpaceProcessedUriSpace, HandlerOptions ho = null) {
 
             // Checking if handler options is defined.
             if (ho == null) {
                 ho = new HandlerOptions();
             }
 
-            return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByProcessedUri(processedUriInfo);
+            return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByProcessedUri(methodSpaceProcessedUriSpace);
         }
 
         /// <summary>
         /// Checks if given URI handler is registered.
         /// </summary>
-        public static Boolean IsHandlerRegistered(String methodSpaceUriSpace, HandlerOptions ho) {
+        public static Boolean IsHandlerRegistered(String methodSpaceProcessedUriSpace, HandlerOptions ho) {
 
-            return (null != FindHandlerByProcessedUri(methodSpaceUriSpace, ho));
+            return (null != FindHandlerByProcessedUri(methodSpaceProcessedUriSpace, ho));
         }
 
         /// <summary>

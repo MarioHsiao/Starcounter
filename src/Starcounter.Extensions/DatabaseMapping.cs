@@ -37,11 +37,40 @@ namespace Starcounter.Extensions {
         /// </summary>
         [ThreadStatic]
         static Dictionary<String, Boolean> touchedClasses_;
+
+        /// <summary>
+        /// Initializes the database mapping.
+        /// </summary>
+        public static void Init() {
+
+            // Creating a unique index on DbMappingRelation.FromOid.
+            if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
+                Db.SQL("CREATE UNIQUE INDEX DbMappingRelationFromOidIndex ON DbMappingRelation (FromOid ASC)");
+            }
+        }
+
+        /// <summary>
+        /// Remaps the existing mapping relation.
+        /// </summary>
+        public static void Remap(UInt64 srcOid, UInt64 newMappedOid) {
+
+            Db.Transact(() => {
+            
+                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", srcOid).First;
+
+                if (null == rel) {
+                    throw new ArgumentOutOfRangeException("Specified object has no mapping relation found: " + srcOid);
+                }
+            
+                // Mapping to a new given object.
+                rel.ToOid = newMappedOid;
+            });
+        }
         
         /// <summary>
-        /// Adding database mapping.
+        /// Map database classes for replication.
         /// </summary>
-        public static void DbMap(String httpMethod, String fromUri, String toUri, Func<UInt64, UInt64, UInt64> converter) {
+        public static void Map(String httpMethod, String fromUri, String toUri, Func<UInt64, UInt64, UInt64> converter) {
 
             lock (registrationLock_) {
 
@@ -52,6 +81,9 @@ namespace Starcounter.Extensions {
                 if (!toUri.EndsWith("/{?}")) {
                     throw new ArgumentOutOfRangeException("Handler to URI should end with parameter, e.g. /MyClassName/{?}");
                 }
+
+                String processedFromUri = fromUri.Replace(Handle.UriParameterIndicator, "@l"),
+                    processedToUri = toUri.Replace(Handle.UriParameterIndicator, "@l");
 
                 String toClassFullName = toUri.Substring(1).Substring(0, toUri.Length - 5),
                     fromClassFullName = fromUri.Substring(1).Substring(0, fromUri.Length - 5);
@@ -64,150 +96,212 @@ namespace Starcounter.Extensions {
                     throw new ArgumentOutOfRangeException("To class name with given full name does not exist: " + toClassFullName);
                 }
 
-                String methodSpaceProcessedFromUriSpace = httpMethod + " " + fromUri.Replace(Handle.UriParameterIndicator, "@l") + " ";
+                String methodSpaceProcessedFromUriSpace = httpMethod + " " + processedFromUri + " ";
 
                 HandlerOptions ho = new HandlerOptions() { HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel };
 
+                String converterUri = fromUri + toUri;
+
+                if (Handle.IsHandlerRegistered(httpMethod + " " + processedFromUri + processedToUri + " ", ho)) {
+                    throw new ArgumentOutOfRangeException("Converter URI handler is already registered: " + httpMethod + " " + converterUri);
+                }
+
                 switch (httpMethod) {
 
-                    case Handle.POST_METHOD:
-                    case Handle.PUT_METHOD:
-                    case Handle.DELETE_METHOD: {
+                    case Handle.POST_METHOD: {
 
-                        String converterUri = httpMethod + " " + fromUri + toUri;
+                        // Adding converter handler.
+                        Handle.POST(converterUri, (UInt64 fromOid, UInt64 unused) => {
+                            UInt64 res = converter(fromOid, 0);
+                            return res.ToString();
+                        }, ho);
 
-                        if (Handle.IsHandlerRegistered(converterUri + " ", ho)) {
-                            throw new ArgumentOutOfRangeException("Converter URI handler is already registered: " + converterUri);
+                        // Checking if the processing handler is registered.
+                        if (Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
+                            break;
                         }
 
-                        Handle.CUSTOM(converterUri, (UInt64 fromOid, UInt64 toOid) => {
+                        // The actual processing handler that is called by database hooks.
+                        Handle.POST(fromUri, (UInt64 fromOid) => {
+
+                            Boolean isRootHierarchy = false;
+
+                            if (null == touchedClasses_) {
+
+                                isRootHierarchy = true;
+                                touchedClasses_ = new Dictionary<String, Boolean>();
+
+                                // Touching myself here.
+                                touchedClasses_.Add(fromClassFullName, true);
+                            }
+
+                            try {
+
+                                foreach (DbMapInfo mapInfo in Db.SQL("SELECT o FROM DbMapInfo o WHERE o.MethodSpaceProcessedFromUriSpace = ?", methodSpaceProcessedFromUriSpace)) {
+
+                                    // Checking if we already have processed this class.
+                                    if (!touchedClasses_.ContainsKey(mapInfo.ToClassFullName)) {
+
+                                        // Adding class as touched.
+                                        touchedClasses_.Add(mapInfo.ToClassFullName, true);
+
+                                        // Calling the converter.
+                                        Response resp = Self.POST("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + mapInfo.ToClassFullName + "/0", null, null, null, 0, ho);
+
+                                        // Checking if we have result.
+                                        if (null == resp)
+                                            continue;
+
+                                        // Getting new created related object id.
+                                        UInt64 toOid = UInt64.Parse(resp.Body);
+
+                                        // Checking if object id is real.
+                                        if ((0 != toOid) && (UInt64.MaxValue != toOid)) {
+
+                                            Db.Transact(() => {
+
+                                                // Creating a relation between two objects.
+                                                DbMappingRelation objRel = new DbMappingRelation() {
+                                                    FromOid = fromOid,
+                                                    ToOid = toOid,
+                                                    MapInfo = mapInfo
+                                                };
+
+                                            });
+                                        }
+                                    }
+                                }
+
+                            } finally {
+
+                                if (isRootHierarchy) {
+                                    touchedClasses_ = null;
+                                }
+                            }
+
+                            return 200;
+
+                        }, ho);
+
+                        break;
+                    }
+
+                    case Handle.PUT_METHOD: {
+
+                        // Adding converter handler.
+                        Handle.PUT(converterUri, (UInt64 fromOid, UInt64 toOid) => {
                             UInt64 res = converter(fromOid, toOid);
                             return res.ToString();
                         }, ho);
 
-                        if (!Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
-
-                            Handle.CUSTOM(httpMethod + " " + fromUri, (UInt64 fromOid) => {
-
-                                Boolean isRootHierarchy = false;
-
-                                if (null == touchedClasses_) {
-
-                                    isRootHierarchy = true;
-                                    touchedClasses_ = new Dictionary<String, Boolean>();
-
-                                    // Touching myself here.
-                                    if (httpMethod == Handle.POST_METHOD) {
-                                        touchedClasses_.Add(fromClassFullName, true);
-                                    }
-                                }
-
-                                try {
-
-                                    // Checking if we create objects.
-                                    switch (httpMethod) {
-
-                                        // Creating a new object.
-                                        case Handle.POST_METHOD: {
-
-                                            foreach (DbMapInfo mapInfo in Db.SQL("SELECT o FROM DbMapInfo o WHERE o.MethodSpaceProcessedFromUriSpace = ?", methodSpaceProcessedFromUriSpace)) {
-
-                                                // Checking if we already have processed this class.
-                                                if (!touchedClasses_.ContainsKey(mapInfo.ToClassFullName)) {
-
-                                                    // Adding class as touched.
-                                                    touchedClasses_.Add(mapInfo.ToClassFullName, true);
-
-                                                    // Calling the converter.
-                                                    Response resp = Self.POST("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + mapInfo.ToClassFullName + "/0", null, null, null, 0, ho);
-
-                                                    // Checking if we have result.
-                                                    if (null == resp)
-                                                        continue;
-
-                                                    // Getting new created related object id.
-                                                    UInt64 toOid = UInt64.Parse(resp.Body);
-
-                                                    // Checking if object id is real.
-                                                    if ((0 != toOid) && (UInt64.MaxValue != toOid)) {
-
-                                                        // Creating a relation between two objects.
-                                                        DbMappingRelation objRel = new DbMappingRelation() {
-                                                            FromOid = fromOid,
-                                                            ToOid = toOid,
-                                                            MapInfo = mapInfo
-                                                        };
-                                                    }
-                                                }
-                                            }
-
-                                            break;
-                                        }
-
-                                        // Deleting object.
-                                        case Handle.DELETE_METHOD: {
-
-                                            // Going through all connected objects.
-                                            foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
-
-                                                // Checking if we already have processed this class.
-                                                if (!touchedClasses_.ContainsKey(rel.MapInfo.ToClassFullName)) {
-
-                                                    // Adding class as touched.
-                                                    touchedClasses_.Add(rel.MapInfo.ToClassFullName, true);
-
-                                                    // Calling the converter.
-                                                    Response resp = Self.DELETE("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.MapInfo.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
-
-                                                    // Checking if we have result.
-                                                    if (null == resp)
-                                                        continue;
-
-                                                    // Deleting the relation, since we are about to delete objects.
-                                                    rel.Delete();
-                                                }
-                                            }
-
-                                            break;
-                                        }
-
-                                        // Modifying object.
-                                        case Handle.PUT_METHOD: {
-
-                                            // Going through all connected objects.
-                                            foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
-
-                                                // Checking if we already have processed this class.
-                                                if (!touchedClasses_.ContainsKey(rel.MapInfo.ToClassFullName)) {
-
-                                                    // Adding class as touched.
-                                                    touchedClasses_.Add(rel.MapInfo.ToClassFullName, true);
-
-                                                    // Calling the converter.
-                                                    Response resp = Self.PUT("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.MapInfo.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
-
-                                                    // Checking if we have result.
-                                                    if (null == resp)
-                                                        continue;
-                                                }
-                                            }
-
-                                            break;
-                                        }
-                                    }
-
-                                } finally {
-
-                                    if (isRootHierarchy) {
-                                        touchedClasses_ = null;
-                                    }
-                                }
-
-                                return 200;
-
-                            }, ho);
+                        // Checking if the processing handler is registered.
+                        if (Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
+                            break;
                         }
 
+                        // The actual processing handler that is called by database hooks.
+                        Handle.PUT(fromUri, (UInt64 fromOid) => {
+
+                            Boolean isRootHierarchy = false;
+
+                            if (null == touchedClasses_) {
+
+                                isRootHierarchy = true;
+                                touchedClasses_ = new Dictionary<String, Boolean>();
+                            }
+
+                            try {
+
+                                // Going through all connected objects.
+                                foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
+
+                                    // Checking if we already have processed this class.
+                                    if (!touchedClasses_.ContainsKey(rel.MapInfo.ToClassFullName)) {
+
+                                        // Adding class as touched.
+                                        touchedClasses_.Add(rel.MapInfo.ToClassFullName, true);
+
+                                        // Calling the converter.
+                                        Response resp = Self.PUT("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.MapInfo.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+
+                                        // Checking if we have result.
+                                        if (null == resp)
+                                            continue;
+                                    }
+                                }
+
+                            } finally {
+
+                                if (isRootHierarchy) {
+                                    touchedClasses_ = null;
+                                }
+                            }
+
+                            return 200;
+
+                        }, ho);
+
+                        break;
+                    }
+
+                    case Handle.DELETE_METHOD: {
+
+                        // Adding converter handler.
+                        Handle.DELETE(converterUri, (UInt64 fromOid, UInt64 toOid) => {
+                            UInt64 res = converter(fromOid, toOid);
+                            return res.ToString();
+                        }, ho);
+
+                        // Checking if the processing handler is registered.
+                        if (Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
+                            break;
+                        }
+
+                        // The actual processing handler that is called by database hooks.
+                        Handle.DELETE(fromUri, (UInt64 fromOid) => {
+
+                            Boolean isRootHierarchy = false;
+
+                            if (null == touchedClasses_) {
+
+                                isRootHierarchy = true;
+                                touchedClasses_ = new Dictionary<String, Boolean>();
+                            }
+
+                            try {
+
+                                // Going through all connected objects.
+                                foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
+
+                                    // Checking if we already have processed this class.
+                                    if (!touchedClasses_.ContainsKey(rel.MapInfo.ToClassFullName)) {
+
+                                        // Adding class as touched.
+                                        touchedClasses_.Add(rel.MapInfo.ToClassFullName, true);
+
+                                        // Calling the converter.
+                                        Response resp = Self.DELETE("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.MapInfo.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+
+                                        // Checking if we have result.
+                                        if (null == resp)
+                                            continue;
+
+                                        // Deleting the relation, since we are about to delete objects.
+                                        rel.Delete();
+                                    }
+                                }
+
+                            } finally {
+
+                                if (isRootHierarchy) {
+                                    touchedClasses_ = null;
+                                }
+                            }
+
+                            return 200;
+
+                        }, ho);
+                    
                         break;
                     }
 

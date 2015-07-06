@@ -681,13 +681,13 @@ namespace Starcounter.Rest
         /// <summary>
         /// Searches for existing processed URI handler.
         /// </summary>
-        public UserHandlerInfo FindHandlerByProcessedUri(String processedUriInfo) {
+        public UserHandlerInfo FindHandlerByProcessedUri(String methodSpaceProcessedUriSpace) {
 
             lock (allUriHandlers_) {
 
                 for (UInt16 i = 0; i < maxNumHandlersEntries_; i++) {
 
-                    if (0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, processedUriInfo, true)) {
+                    if (0 == String.Compare(allUriHandlers_[i].ProcessedUriInfo, methodSpaceProcessedUriSpace, true)) {
                         
                         return allUriHandlers_[i];
                     }

@@ -375,9 +375,9 @@ namespace Starcounter {
         /// <summary>
         /// Checks if given URI handler is registered.
         /// </summary>
-        public static Boolean IsHandlerRegistered(String methodSpaceUriSpace, HandlerOptions ho) {
+        public static Boolean IsHandlerRegistered(String methodSpaceProcessedUriSpace, HandlerOptions ho) {
 
-            return isHandlerRegistered_(methodSpaceUriSpace, ho);
+            return isHandlerRegistered_(methodSpaceProcessedUriSpace, ho);
         }
 
         /// <summary>
