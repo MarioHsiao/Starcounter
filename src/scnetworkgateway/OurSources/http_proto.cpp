@@ -344,10 +344,14 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
 
         case XREFERRER_FIELD:
         {
-            // Checking if Starcounter session id is presented.
-            if (MixedCodeConstants::SESSION_STRING_LEN_CHARS == length)
+            // Excluding wrong short session values.
+            if (MixedCodeConstants::SESSION_STRING_LEN_CHARS <= length)
             {
-                uint32_t err_code = g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, at);
+                // Pointing to the actual value of a session.
+                const char* session_id_start = at + length - MixedCodeConstants::SESSION_STRING_LEN_CHARS;
+
+                // Trying to convert session string into session struct.
+                uint32_t err_code = g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_id_start);
                 if (err_code)
                     break;
 
