@@ -461,7 +461,7 @@ public:
     static int OnHeaderValue(http_parser* p, const char *at, size_t length);
 
     // Processes the session information.
-    void ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start);
+    uint32_t ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start);
 
     // Resets the HTTP/WS structure.
     void Reset()

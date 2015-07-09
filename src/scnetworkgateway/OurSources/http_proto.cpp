@@ -307,16 +307,20 @@ inline int HttpProto::OnHeaderField(http_parser* p, const char *at, size_t lengt
 }
 
 // Processes the session information.
-inline void HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start)
+inline uint32_t HttpProto::ProcessSessionString(SocketDataChunkRef sd, const char* session_id_start)
 {
     // Parsing the session.
-    sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
+    uint32_t err_code = sd->GetSessionStruct()->FillFromString(session_id_start, MixedCodeConstants::SESSION_STRING_LEN_CHARS);
+    if (err_code)
+        return err_code;
 
     // Setting the session offset.
     http_request_.session_string_offset_ = static_cast<uint16_t>(session_id_start - (char*)sd);
 
     // Setting global session from just parsed.
     sd->SetGlobalSessionFromLocal();
+
+    return 0;
 }
 
 inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t length)
@@ -340,18 +344,16 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
 
         case XREFERRER_FIELD:
         {
-            // Pointing to the actual value of a session.
-            const char* session_id_start = at + length - MixedCodeConstants::SESSION_STRING_LEN_CHARS;
-
             // Checking if Starcounter session id is presented.
-            if ((MixedCodeConstants::SESSION_STRING_LEN_CHARS < length) &&
-                (*(session_id_start - 1) == '/'))
+            if (MixedCodeConstants::SESSION_STRING_LEN_CHARS == length)
             {
-               g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_id_start);
+                uint32_t err_code = g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, at);
+                if (err_code)
+                    break;
 
-               // Checking if X-Referer field is read.
-               if (XREFERRER_FIELD == g_ts_last_field_)
-                   g_xhreferer_read_ = true;
+                // Checking if X-Referer field is read.
+                if (XREFERRER_FIELD == g_ts_last_field_)
+                    g_xhreferer_read_ = true;
             }
 
             break;
@@ -375,7 +377,9 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
                 while (session_cookie[offset] == ' ')
                     offset++;
 
-                g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_cookie + offset);
+                uint32_t err_code = g_ts_sd_->get_http_proto()->ProcessSessionString(g_ts_sd_, session_cookie + offset);
+                if (err_code)
+                    break;
             }
 
             break;
@@ -675,7 +679,9 @@ HANDLER_MATCHED:
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
             MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
-            ProcessSessionString(sd, method_space_uri_space + p->offset_);
+            err_code = ProcessSessionString(sd, method_space_uri_space + p->offset_);
+            if (err_code)
+                return err_code;
         }
 
         // Setting determined HTTP URI settings (e.g. for reverse proxy).

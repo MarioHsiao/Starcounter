@@ -127,7 +127,8 @@ enum GatewayErrorCodes
     SCERRGWCANTOBTAINFREESOCKETINDEX,
     SCERRGWWRONGUDPFROMPORT,
     SCERRGWWRONGPORTINDEX,
-    SCERRGWREGISTERERINGINCORRECTURI
+    SCERRGWREGISTERERINGINCORRECTURI,
+    SCERRGWINVALIDSESSIONVALUE
 };
 
 // Maximum number of ports the gateway operates with.
@@ -688,13 +689,30 @@ struct ScSessionStruct
     }
 
     // Constructing session from string.
-    void FillFromString(const char* str_in, uint32_t len_bytes)
+    uint32_t FillFromString(const char* str_in, uint32_t len_bytes)
     {
         GW_ASSERT(MixedCodeConstants::SESSION_STRING_LEN_CHARS == len_bytes);
 
-        random_salt_ = static_cast<random_salt_type> (hex_string_to_uint64(str_in, 16));
-        linear_index_ = static_cast<session_index_type> (hex_string_to_uint64(str_in + 16, 6));
-        scheduler_id_ = static_cast<scheduler_id_type> (hex_string_to_uint64(str_in + 22, 2));
+        uint64_t tmp_random_salt = hex_string_to_uint64(str_in, 16);
+        if (INVALID_CONVERTED_NUMBER == tmp_random_salt) {
+            return SCERRGWINVALIDSESSIONVALUE;
+        }
+
+        uint64_t tmp_linear_index = hex_string_to_uint64(str_in + 16, 6);
+        if (INVALID_CONVERTED_NUMBER == tmp_linear_index) {
+            return SCERRGWINVALIDSESSIONVALUE;
+        }
+
+        uint64_t tmp_scheduler_id = hex_string_to_uint64(str_in + 22, 2);
+        if (INVALID_CONVERTED_NUMBER == tmp_scheduler_id) {
+            return SCERRGWINVALIDSESSIONVALUE;
+        }
+        
+        random_salt_ = static_cast<random_salt_type>(tmp_random_salt);
+        linear_index_ = static_cast<session_index_type>(tmp_linear_index);
+        scheduler_id_ = static_cast<scheduler_id_type>(tmp_scheduler_id);
+
+        return 0;
     }
 
     // Compare socket stamps of two sessions.

@@ -217,7 +217,6 @@ inline uint64_t hex_string_to_uint64(const char *str_in, int32_t num_4bits)
             case 'E': result |= ((uint64_t)0xE << s); break;
             case 'F': result |= ((uint64_t)0xF << s); break;
 
-            // INVALID_CONVERTED_NUMBER should never be returned in normal case.
             default: return INVALID_CONVERTED_NUMBER;
         }
 
