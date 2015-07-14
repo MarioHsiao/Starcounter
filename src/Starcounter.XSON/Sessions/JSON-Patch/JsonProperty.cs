@@ -147,6 +147,7 @@ namespace Starcounter.XSON {
 
                     if (!found) {
                         throw new JsonPatchException(
+                            1,
                             String.Format("Unknown namespace '{0}' in path.", ptr.Current),
                             null
                         );
@@ -163,6 +164,7 @@ namespace Starcounter.XSON {
                     current = t;
                 } else {
                     throw new JsonPatchException(
+                            1,
                             String.Format("Unknown property '{0}' in path.", ptr.Current),
                             null
                         );
@@ -177,6 +179,7 @@ namespace Starcounter.XSON {
                 // Current token points to a value or an action. No more tokens should exist. 
                 if (ptr.MoveNext()) {
                     throw new JsonPatchException(
+                                1,
                                 String.Format("Invalid path in patch. Property: '{0}' was not expected.", ptr.Current),
                                 null
                     );
