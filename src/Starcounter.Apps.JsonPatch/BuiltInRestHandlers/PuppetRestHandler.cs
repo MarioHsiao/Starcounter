@@ -41,14 +41,14 @@ namespace Starcounter.Internal {
 
                 // Checking if session is presented still.
                 if (session == null) {
-                    ws.Disconnect("No session found.");
+                    ws.Disconnect("No session found.", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                     return;
                 }
 
                 // Checking if session has a tree.
                 root = session.PublicViewModel;
                 if (root == null) {
-                    ws.Disconnect("Session does not contain any state (session.Data).");
+                    ws.Disconnect("Session does not contain any state (session.Data).", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                     return;
                 }
 
@@ -66,7 +66,7 @@ namespace Starcounter.Internal {
                 }
                 return;
             } catch (JsonPatchException nex) {
-                ws.Disconnect(nex.Message + " Patch: " + nex.Patch);
+                ws.Disconnect(nex.Message, WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
                 return;
             } 
         }
@@ -125,11 +125,13 @@ namespace Starcounter.Internal {
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
+                    byte[] body = root.ToJsonUtf8();
+
                     if (root.ChangeLog != null)
                         root.ChangeLog.Checkpoint();
 
                     return new Response() {
-                        BodyBytes = root.ToJsonUtf8(),
+                        BodyBytes = body,
                         ContentType = MimeTypeHelper.MimeTypeAsString(MimeType.Application_Json)
                     };
                 } else {
