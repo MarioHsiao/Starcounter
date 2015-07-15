@@ -13,14 +13,22 @@ namespace Starcounter.XSON {
             if (root == null) return;
 
             if (patchOp != JsonPatchOperation.Replace)
-                throw new JsonPatchException("Unsupported patch operation in patch.");
+                throw new JsonPatchException(1, "Unsupported patch operation in patch.");
 
             origAppName = StarcounterEnvironment.AppName;
             try {
                 var aat = JsonProperty.Evaluate(pointer, root);
 
+                if (aat.Property == null) {
+                    throw new JsonPatchException(
+                        1,
+                        "Only patches for primitive values (boolean, number, string) are allowed from client.",
+                        null);
+                }
+
                 if (!aat.Property.Editable) {
                     throw new JsonPatchException(
+                        1,
                         "Property '" + aat.Property.PropertyName + "' is readonly.",
                         null
                     );
@@ -41,6 +49,7 @@ namespace Starcounter.XSON {
                         ParseAndProcess((TTrigger)aat.Property, aat.Json);
                     } else {
                         throw new JsonPatchException(
+                            1,
                             "Property " + aat.Property.TemplateName + " is invalid for userinput",
                             null
                         );

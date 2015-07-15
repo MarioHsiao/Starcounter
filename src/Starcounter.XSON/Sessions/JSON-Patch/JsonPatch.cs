@@ -597,8 +597,8 @@ namespace Starcounter.XSON {
                                     if (patchHandler != null) {
                                         try {
                                             patchHandler(root, patchOp, pointer, valuePtr, valueSize);
-                                        } catch (JsonPatchException) {
-                                            if (strictPatchRejection)
+                                        } catch (JsonPatchException jpe) {
+                                            if (strictPatchRejection || jpe.Severity > 0)
                                                 throw;
                                             rejectedPatches++;
                                         } catch (FormatException) {
@@ -680,7 +680,7 @@ namespace Starcounter.XSON {
         /// <param name="data"></param>
         /// <param name="msg"></param>
         private void ThrowPatchException(int patchStart, IntPtr data, int dataSize, string msg) {
-            throw new JsonPatchException(msg, GetPatchAsString(patchStart, data, dataSize));
+            throw new JsonPatchException(1, msg, GetPatchAsString(patchStart, data, dataSize));
         }
 
         /// <summary>

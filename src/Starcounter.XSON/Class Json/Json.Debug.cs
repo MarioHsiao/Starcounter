@@ -10,35 +10,46 @@ using System.Text;
 
 namespace Starcounter {
 	public partial class Json {
-		internal void WriteToDebugString(StringBuilder sb, int indentation, bool includeStepsiblings) {
-			if (Data != null) {
-				sb.Append("(data=" + Data.GetType().Name + ")");
+        internal string DebugString {
+            get {
+                var sb = new StringBuilder();
+                WriteToDebugString(this, sb, 0, true);
+                return sb.ToString();
+            }
+        }
+
+		private static void WriteToDebugString(Json json, StringBuilder sb, int indentation, bool includeStepsiblings) {
+			if (json.Data != null) {
+				sb.Append(" <data=" + json.Data.GetType().Name + ">");
 			}
-			if (_Dirty) {
-				sb.Append("(dirty)");
+			if (json._Dirty) {
+				sb.Append(" <dirty>");
 			}
-			if (Parent != null) {
-				Parent.WriteChildStatus(sb, this.IndexInParent);
+			if (json.Parent != null) {
+				WriteChildStatus(json.Parent, sb, json.IndexInParent);
 			}
-			if (IsArray) {
-				WriteArrayToDebugString(sb, indentation);
-			} else {
-                WriteObjectToDebugString(sb, indentation, includeStepsiblings);
-			}
+
+			if (json.IsArray) {
+				WriteArrayToDebugString(json, sb, indentation);
+            } else if (json.IsObject) {
+                WriteObjectToDebugString(json, sb, indentation, includeStepsiblings);
+            } else { // Single primitive value
+                WriteChildStatus(json, sb, -1);
+            }
 		}
 
-		private void WriteArrayToDebugString(StringBuilder sb, int indentation) {
+		private static void WriteArrayToDebugString(Json array, StringBuilder sb, int indentation) {
 
 			sb.Append("[");
 			indentation += 3;
 			int t = 0;
-			var values = list;
+			var values = array.list;
 			foreach (var e in values) {
 				if (t > 0) {
 					sb.AppendLine(",");
 					sb.Append(' ', indentation);
 				}
-				(e as Json).WriteToDebugString(sb, indentation, true);
+				WriteToDebugString((Json)e, sb, indentation, true);
 				t++;
 			}
 			indentation -= 3;
@@ -47,50 +58,24 @@ namespace Starcounter {
 			sb.Append("]");
 		}
 
-		internal string DebugString {
-			get {
-				var sb = new StringBuilder();
-				WriteToDebugString(sb, 0, true);
-				return sb.ToString();
-			}
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="sb"></param>
-		/// <param name="i"></param>
-		private void WriteObjectToDebugString(StringBuilder sb, int i, bool includeStepsiblings) {
-			if (this.IsArray) {
-				throw new NotImplementedException();
-				//                WriteToDebugString(sb, i, (ArrSchema<Json>)Template);
-			} else {
-                WriteObjectToDebugString(sb, i, (TObject)Template, includeStepsiblings);
-			}
-		}
-
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="sb"></param>
 		/// <param name="i"></param>
 		/// <param name="template"></param>
-		private void WriteObjectToDebugString(StringBuilder sb, int i, TObject template, bool includeStepsiblings) {
-			if (Template == null) {
-				sb.Append("{}");
+		private static void WriteObjectToDebugString(Json json, StringBuilder sb, int i, bool includeStepsiblings) {
+            TObject template;
+
+			if (json == null || json.Template == null) {
+				sb.Append("<null>");
 				return;
 			}
-
-            //if (Session != null && Parent != null) {
-            //    var index = Parent.IndexOf(this);
-            //    if (Parent._isStatefulObject && Parent._SetFlag[index]) {
-            //        sb.Append("(set)");
-            //    }
-            //}
-
-            if (Parent != null && !string.IsNullOrEmpty(_appName)) {
-                sb.Append('<');
-                sb.Append(_appName);
+            template = json.Template as TObject;
+            
+            if (json.Parent != null && !string.IsNullOrEmpty(json._appName)) {
+                sb.Append("<appname: ");
+                sb.Append(json._appName);
                 sb.Append(">");
             }
 
@@ -107,15 +92,16 @@ namespace Starcounter {
 				sb.Append('"');
 				sb.Append(prop.PropertyName);
 				sb.Append("\":");
-				if (_trackChanges && WasReplacedAt(prop.TemplateIndex)) {
-					sb.Append("(direct-set)");
+				if (json._trackChanges && json.WasReplacedAt(prop.TemplateIndex)) {
+					sb.Append("<changed>");
 				}
 
 				if (prop is TContainer) {
-                    ((Json)((TContainer)prop).GetUnboundValueAsObject(this)).WriteToDebugString(sb, i, true);
+                    var cont = (Json)((TContainer)prop).GetUnboundValueAsObject(json);
+                    if (cont != null)
+                        WriteToDebugString(cont, sb, i, true);
 				} else {
-					WriteChildStatus(sb, t);
-					//sb.Append(((TValue)prop).ValueToJsonString(this));
+					WriteChildStatus(json, sb, t);
 				}
 				t++;
 			}
@@ -124,50 +110,44 @@ namespace Starcounter {
 			sb.Append(' ', i);
 			sb.Append("}");
 
-            if (includeStepsiblings && _stepSiblings != null && _stepSiblings.Count > 1) {
-                foreach (var stepSibling in _stepSiblings) {
-                    if (stepSibling == this)
+            if (includeStepsiblings && json._stepSiblings != null && json._stepSiblings.Count > 1) {
+                foreach (var stepSibling in json._stepSiblings) {
+                    if (stepSibling == json)
                         continue;
-                    stepSibling.WriteToDebugString(sb, i, false);
+                    sb.AppendLine();
+                    sb.Append(' ', i);
+                    sb.Append("<stepsibling> ");
+                    WriteToDebugString(stepSibling, sb, i, false);
                 }
             }
 		}
 
-		private void WriteChildStatus(StringBuilder sb, int index) {
-            object oldValue;
+		private static void WriteChildStatus(Json json, StringBuilder sb, int index) {
             string binding;
             TValue template;
 
-			if (IsArray) {
-				template = (Template as TObjArr).ElementType as TValue;
+            if (index == -1) {
+                template = (TValue)json.Template;
+            } else if (json.IsArray) {
+				template = ((TObjArr)(json.Template)).ElementType as TValue;
 			} else {
-				template = (Template as TObject).Properties[index] as TValue;
+				template = (json.Template as TObject).Properties[index] as TValue;
 			}
 
-			if (template != null) {
-                binding = template.Bind;
-                if (binding != null && Data != null) {
-					if (binding != template.PropertyName) {
-						sb.Append("(bound path=" + binding + ")");
-					} else {
-						sb.Append("(bound)");
-					}
-				}
-
-                if (IsArray) {
-                    var cjson = this._GetAt(index) as Json;
-                    oldValue = "notsent";
-                    if (cjson != null && cjson.HasBeenSent)
-                        oldValue = cjson;
-                } else {
-                    oldValue = template.GetUnboundValueAsObject(this);
-                    if (template.GetUnboundValueAsObject(this) != oldValue) {
-                        if (oldValue == null)
-                            oldValue = "notsent";
+            if (template != null) {
+                if (template.UseBinding(json)) {
+                    binding = template.Bind;
+                    sb.Append("<bound: " + binding + ">");
+                    if (json.IsArray) {
+                        sb.Append("<value: " + template.GetUnboundValueAsObject(json) + ">");
+                    } else {
+                        sb.Append("<old: " + template.GetUnboundValueAsObject(json));
+                        sb.Append(", new: " + template.GetValueAsObject(json) + ">");
                     }
+                } else {
+                    sb.Append("<value: " + template.GetValueAsObject(json) + ">");
                 }
-                sb.Append("(indirect-set old=" + oldValue + ")");
-			}
+            }
 		}
 	}
 }
