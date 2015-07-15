@@ -63,7 +63,7 @@ namespace Starcounter.Internal.Web {
             string dir = null;
             string fileName = null;
             
-            Debug(" (FILE ACCESS) " + relativeUri);
+            //Debug(" (FILE ACCESS) " + relativeUri);
 
             statusCode = HttpStatusCode.OK;
             shouldBeCached = !Configuration.Current.FileServer.DisableAllCaching;
@@ -75,11 +75,20 @@ namespace Starcounter.Internal.Web {
                 payload = Encoding.UTF8.GetBytes(
                     "Uri could not be resolved. No directories added for serving static files.");
             } else {
+
                 if (!ReadFile(relativeUri, out dir, out fileName, out fileExtension, out payload)) {
+
                     statusCode = HttpStatusCode.NotFound;
                     mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
                     payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
-                    Debug("Could not find " + relativeUri);
+
+                    //Debug("Could not find " + relativeUri);
+
+                    // Calling custom not found resource resolver.
+                    if (null != Handle.customResourceNotFoundResolver_) {
+                        return Handle.customResourceNotFoundResolver_(relativeUri);
+                    }
+
                 } else {
                     mimeType = MimeMap.GetMimeType(fileExtension);
                 }
@@ -109,12 +118,12 @@ namespace Starcounter.Internal.Web {
 //                Debug(String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
 
                 if (didCompress) {
-                    Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                    //Debug(" (compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                     contentLength = compressed.Length;
                     payload = compressed;
                     response.ContentEncoding = "gzip";
                 } else {
-                    Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
+                    //Debug(" (not-worth-compressing)"); // String.Format("Compressed({0})+100 < Uncompressed({1})", compressed.Length, payload.Length));
                 }
             }
 

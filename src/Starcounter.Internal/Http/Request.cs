@@ -1147,7 +1147,7 @@ namespace Starcounter {
         /// <summary>
         /// Sends the response.
         /// </summary>
-        public void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
+        void SendResponse(Byte[] buffer, Int32 offset, Int32 length, Response.ConnectionFlags connFlags)
         {
             try {
 
@@ -1171,11 +1171,21 @@ namespace Starcounter {
         {
             try {
 
-                resp.ConstructFromFields(this, serializationBuf);
+                // Checking if there are any outgoing filters.
+                Response filteredResp = Handle.RunOutgoingFilters(this, resp);
+                if (null != filteredResp) {
 
-                SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+                    filteredResp.ConstructFromFields(this, serializationBuf);
+                    SendResponse(filteredResp.ResponseBytes, 0, filteredResp.ResponseSizeBytes, filteredResp.ConnFlags);
+
+                } else {
+
+                    resp.ConstructFromFields(this, serializationBuf);
+                    SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+                }
 
             } finally {
+
                 resp.Destroy();
             }
         }

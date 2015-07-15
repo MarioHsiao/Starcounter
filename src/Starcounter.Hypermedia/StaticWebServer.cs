@@ -107,6 +107,7 @@ namespace Starcounter.Internal.Web {
         /// <param name="request">The http request as defined by Starcounter</param>
         /// <returns>The UTF8 encoded response</returns>
         public Response GetStaticResponseClone(string relativeUri, Request request) {
+
             Response resourceResp;
 
             relativeUri = relativeUri.ToLower();

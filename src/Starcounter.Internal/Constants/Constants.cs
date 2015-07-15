@@ -47,11 +47,6 @@ namespace Starcounter.Internal
         public const string PolyjuiceWebRootName = "wwwroot";
 
         /// <summary>
-        /// Static files directories registration URI.
-        /// </summary>
-        public const String StaticFilesDirRegistrationUri = "/addstaticcontentdir";
-
-        /// <summary>
         /// Network related constants.
         /// </summary>
         public static class NetworkConstants

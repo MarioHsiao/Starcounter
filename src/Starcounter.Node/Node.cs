@@ -820,11 +820,6 @@ DO_CALL_ON_GIVEN_LEVEL:
                                 handlerOptions.HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel;
                                 goto DO_CALL_ON_GIVEN_LEVEL;
                             }
-
-                            case HandlerOptions.HandlerLevels.ApplicationExtraLevel: {
-                                handlerOptions.HandlerLevel = HandlerOptions.HandlerLevels.CodeHostStaticFileServer;
-                                goto DO_CALL_ON_GIVEN_LEVEL;
-                            }
                         };
                     }
 

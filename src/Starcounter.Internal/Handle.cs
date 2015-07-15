@@ -22,8 +22,7 @@ namespace Starcounter {
         public enum HandlerLevels {
             DefaultLevel,
             ApplicationLevel,
-            ApplicationExtraLevel,
-            CodeHostStaticFileServer
+            ApplicationExtraLevel
         }
 
         /// <summary>
@@ -170,7 +169,7 @@ namespace Starcounter {
         /// <summary>
         /// The actual filter delegate.
         /// </summary>
-        public Func<Request, Response> FilterRequest {
+        public Func<Request, Response> Filter {
             get;
             set;
         }
@@ -179,12 +178,43 @@ namespace Starcounter {
         /// Constructor.
         /// </summary>
         /// <param name="filterRequest">Filter request parameter.</param>
-        public MiddlewareFilter(Func<Request, Response> filterRequest) {
+        public MiddlewareFilter(Func<Request, Response> filter) {
             AppName = StarcounterEnvironment.AppName;
-            FilterRequest = filterRequest;
+            Filter = filter;
         }
     }
-    
+
+    /// <summary>
+    /// Represents an outgoing response filter.
+    /// </summary>
+    public class OutgoingFilter {
+
+        /// <summary>
+        /// Application name that registered this handler.
+        /// </summary>
+        public string AppName {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// The actual filter delegate.
+        /// </summary>
+        public Func<Request, Response, Response> Filter {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="filterRequest">Outgoing response parameter.</param>
+        public OutgoingFilter(Func<Request, Response, Response> filter) {
+            AppName = StarcounterEnvironment.AppName;
+            Filter = filter;
+        }
+    }
+
     /// <summary>
     /// Allows you to register communication endpoints such as REST style handlers
     /// (GET/POST/PUT/DELETE/PATCH etc.)
@@ -380,6 +410,16 @@ namespace Starcounter {
             return isHandlerRegistered_(methodSpaceProcessedUriSpace, ho);
         }
 
+        internal static Func<String, Response> customResourceNotFoundResolver_;
+
+        /// <summary>
+        /// Setting custom not-found resource resolver.
+        /// </summary>
+        public static void SetCustomResourceNotFoundResolver(Func<String, Response> customResourceNotFoundResolver) {
+
+            customResourceNotFoundResolver_ = customResourceNotFoundResolver;
+        }
+
         /// <summary>
         /// Filtering request.
         /// </summary>
@@ -409,9 +449,9 @@ namespace Starcounter {
         /// <summary>
         /// Adding new filter to middleware.
         /// </summary>
-        public static void AddFilterToMiddleware(Func<Request, Response> filterRequest) {
+        public static void AddFilterToMiddleware(Func<Request, Response> filter) {
 
-            MiddlewareFilter mf = new MiddlewareFilter(filterRequest);
+            MiddlewareFilter mf = new MiddlewareFilter(filter);
 
             middlewareFilters_.Add(mf);
         }
@@ -424,19 +464,91 @@ namespace Starcounter {
 
             String curAppName = StarcounterEnvironment.AppName;
 
-            for (Int32 i = (middlewareFilters_.Count - 1); i >= 0; i--) {
+            try {
 
-                MiddlewareFilter mf = middlewareFilters_[i];
+                for (Int32 i = (middlewareFilters_.Count - 1); i >= 0; i--) {
 
-                StarcounterEnvironment.AppName = mf.AppName;
+                    MiddlewareFilter mf = middlewareFilters_[i];
 
-                Response resp = mf.FilterRequest(req);
+                    StarcounterEnvironment.AppName = mf.AppName;
 
-                if (null != resp)
-                    return resp;
+                    Response resp = mf.Filter(req);
+
+                    if (null != resp)
+                        return resp;
+                }
+
+            } finally {
+
+                StarcounterEnvironment.AppName = curAppName;
             }
+            
+            return null;
+        }
 
-            StarcounterEnvironment.AppName = curAppName;
+        /// <summary>
+        /// Outgoing response filter.
+        /// </summary>
+        public static List<OutgoingFilter> outgoingFilters_ = new List<OutgoingFilter>();
+
+        /// <summary>
+        /// Saved outgoing filters list.
+        /// </summary>
+        public static List<OutgoingFilter> savedOutgoingFilters_ = new List<OutgoingFilter>();
+
+        /// <summary>
+        /// Enable/Disable outgoing filters.
+        /// </summary>
+        public static void EnableDisableOutgoingFilter(Boolean enable) {
+
+            if (enable) {
+
+                outgoingFilters_ = savedOutgoingFilters_;
+
+            } else {
+
+                savedOutgoingFilters_ = outgoingFilters_;
+
+                outgoingFilters_ = new List<OutgoingFilter>();
+            }
+        }
+
+        /// <summary>
+        /// Adding new filter to outgoing.
+        /// </summary>
+        public static void AddOutgoingFilter(Func<Request, Response, Response> filter) {
+
+            OutgoingFilter mf = new OutgoingFilter(filter);
+
+            outgoingFilters_.Add(mf);
+        }
+
+        /// <summary>
+        /// Runs all added outgoing filters until one that returns non-null response.
+        /// </summary>
+        /// <returns>Filtered response or null.</returns>
+        internal static Response RunOutgoingFilters(Request req, Response resp) {
+
+            String curAppName = StarcounterEnvironment.AppName;
+
+            try {
+
+                for (Int32 i = (outgoingFilters_.Count - 1); i >= 0; i--) {
+
+                    OutgoingFilter mf = outgoingFilters_[i];
+
+                    StarcounterEnvironment.AppName = mf.AppName;
+
+                    Response response = mf.Filter(req, resp);
+
+                    if (null != response)
+                        return response;
+                }
+
+            } finally {
+
+                StarcounterEnvironment.AppName = curAppName;
+            }
 
             return null;
         }

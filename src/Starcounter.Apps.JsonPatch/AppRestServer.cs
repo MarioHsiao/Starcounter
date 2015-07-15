@@ -15,6 +15,7 @@ using Starcounter.Rest;
 using Starcounter.Logging;
 using System.Diagnostics;
 using System.Collections.Concurrent;
+using Starcounter.Templates;
 
 namespace Starcounter.Internal.Web {
     /// <summary>
@@ -166,33 +167,53 @@ namespace Starcounter.Internal.Web {
                     fileServerPerPort_[port] = staticWebServer;
                     staticWebServer.UserAddedLocalFileDirectoryWithStaticContent(appName, port, path);
 
-                    // Checking if its not an Administrator application.
-                    if (!StarcounterEnvironment.IsAdministratorApp) {
+                    String savedAppName = StarcounterEnvironment.AppName;
 
-                        // Registering handler on special static file resource level.
-                        HandlerOptions ho = new HandlerOptions(HandlerOptions.HandlerLevels.CodeHostStaticFileServer);
+                    StarcounterEnvironment.AppName = null;
 
-                        // Setting as a proxy delegate.
-                        ho.ProxyDelegateTrigger = true;
+                    // Registering static handler on given port.
+                    Handle.GET(port, "/{?}", (string res) => {
+                        return HandlerStatus.ResolveStaticContent;
+                    }, new HandlerOptions() {
+                        ProxyDelegateTrigger = true,
+                        SkipMiddlewareFilters = true
+                    });
 
-                        String savedAppName = StarcounterEnvironment.AppName;
-                        StarcounterEnvironment.AppName = null;
+                    // Json templates used to return static files statistics.
+                    var workingFolderTemplate = new TObject();
+                    workingFolderTemplate.Add<TLong>("Port");
+                    workingFolderTemplate.Add<TString>("Folder");
 
-                        // Registering static handler on given port.
-                        Handle.GET(port, "/{?}", (string res) => {
-                            return HandlerStatus.ResolveStaticContent;
-                        }, ho);
+                    var workingFoldersTemplate = new TObject();
+                    workingFoldersTemplate.Add<TArray<Json>>("Items", workingFolderTemplate);
 
-                        StarcounterEnvironment.AppName = savedAppName;
+                    // Handler to get all registered static resource folders
+                    Handle.GET(port, "/staticcontentdir", (Request req) => {
 
-                    } else {
+                        Dictionary<UInt16, IList<string>> folders = AppsBootstrapper.GetFileServingDirectories();
 
-                        // Registering static handler on given port.
-                        Handle.GET(port, "/{?}", (string res) => {
-                            return HandlerStatus.ResolveStaticContent;
-                        });
-                    }
+                        dynamic workingFolders = new Json();
+                        workingFolders.Template = workingFoldersTemplate;
 
+                        foreach (KeyValuePair<UInt16, IList<string>> entry in folders) {
+
+                            if (entry.Value != null && entry.Value.Count > 0) {
+                                foreach (string folder in entry.Value) {
+                                    var folderJson = workingFolders.Items.Add();
+                                    folderJson.Port = entry.Key;
+                                    folderJson.Folder = folder;
+                                }
+                            }
+                        }
+
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };
+
+                    }, new HandlerOptions() {
+                        ProxyDelegateTrigger = true,
+                        SkipMiddlewareFilters = true
+                    });
+
+                    StarcounterEnvironment.AppName = savedAppName;
                 }
             }
         }

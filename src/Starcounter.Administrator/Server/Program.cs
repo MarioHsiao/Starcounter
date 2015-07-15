@@ -101,52 +101,9 @@ namespace Starcounter.Administrator.Server {
                 return Self.GET("/index.html");
             });
 
-            // Register a static resource folder
-            Handle.POST(StarcounterConstants.StaticFilesDirRegistrationUri, (Request req) => {
-
-                // Getting POST contents.
-                String content = req.Body;
-
-                // Splitting contents.
-                String[] settings = content.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
-
-                // Application name.
-                String appName = settings[0];
-
-                // Is Polyjuice app directory.
-                Boolean isPolyjuiceApp = Boolean.Parse(settings[1]);
-
-                // Getting port of the resource.
-                UInt16 port = UInt16.Parse(settings[2]);
-
-                // Static file path.
-                String path = settings[3];
-
-                // Adding static files serving directory.
-                AppsBootstrapper.InternalAddStaticFileDirectory(port, path, appName);
-
-                return "Success!";
-            });
-
-            // Handler to get all registered static resource folders
-            Handle.GET("/staticcontentdir", (Request req) => {
-
-                Dictionary<UInt16, IList<string>> folders = AppsBootstrapper.GetFileServingDirectories();
-
-                WorkingFolders workingFolders = new WorkingFolders();
-
-                foreach (KeyValuePair<UInt16, IList<string>> entry in folders) {
-
-                    if (entry.Value != null && entry.Value.Count > 0) {
-                        foreach (string folder in entry.Value) {
-                            var folderJson = workingFolders.Items.Add();
-                            folderJson.Port = entry.Key;
-                            folderJson.Folder = folder;
-                        }
-                    }
-                }
-
-                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };
+            // Setting custom "not found" resource page.
+            Handle.SetCustomResourceNotFoundResolver((String uri) => {
+                return Self.GET("/404.html");
             });
 
             #region Debug/Test

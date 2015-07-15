@@ -94,6 +94,7 @@ namespace Starcounter.Internal {
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
 
+            // Creating scheduler resources.
             SchedulerResources.Init(numSchedulers);
 
             if (!noNetworkGateway) {
@@ -233,25 +234,6 @@ namespace Starcounter.Internal {
 
             // Registering files directory.
             AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, fullPathToResourcesDir);
-
-            // Checking if this is not administrator.
-            if (!StarcounterEnvironment.IsAdministratorApp) {
-
-                // Putting port and full path to resources directory.
-                String body =
-                    appName + StarcounterConstants.NetworkConstants.CRLF +
-                    StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
-                    port + StarcounterConstants.NetworkConstants.CRLF +
-                    fullPathToResourcesDir;
-
-                // Sending REST POST request to Administrator to register static resources directory.
-                Response resp = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + 
-                    StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
-
-                if ("Success!" != resp.Body) {
-                    throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
-                }
-            }
         }
 
         /// <summary>
@@ -303,19 +285,7 @@ namespace Starcounter.Internal {
             // Since this is loaded for both polyjuice and non-polyjuice databases we should probably rename the folder from 'Polyjuice'
             String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
             if (Directory.Exists(polyjuiceStatic)) {
-
-                String body =
-                    appName + StarcounterConstants.NetworkConstants.CRLF +
-                    StarcounterEnvironment.PolyjuiceAppsFlag.ToString() + StarcounterConstants.NetworkConstants.CRLF +
-                    StarcounterEnvironment.Default.UserHttpPort + StarcounterConstants.NetworkConstants.CRLF +
-                    polyjuiceStatic;
-
-                Response resp = Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort +
-                    StarcounterConstants.StaticFilesDirRegistrationUri, body, null);
-
-                if ("Success!" != resp.Body) {
-                    throw new Exception(string.Format("Failed to register the static resources directory ({0}).", resp.Body));
-                }
+                AddStaticFileDirectory(polyjuiceStatic);
             }
         }
 
