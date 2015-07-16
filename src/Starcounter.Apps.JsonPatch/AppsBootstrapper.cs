@@ -252,6 +252,14 @@ namespace Starcounter.Internal {
             // By default middleware filters are enabled.
             StarcounterEnvironment.MiddlewareFiltersEnabled = true;
 
+            // Adding Starcounter specific static files directory (but loaded for both polyjuice and nonpolyjuice databases).
+            // TODO:
+            // Since this is loaded for both polyjuice and non-polyjuice databases we should probably rename the folder from 'Polyjuice'
+            String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
+            if (Directory.Exists(polyjuiceStatic)) {
+                AddStaticFileDirectory(polyjuiceStatic);
+            }
+
             // Checking if there is a given web resource path.
             if (webResourcesDir != null) {
 
@@ -276,16 +284,6 @@ namespace Starcounter.Internal {
 
                 // Adding found directory to static file server.
                 InternalAddStaticFileDirectory(port, fullPathToResourcesDir, appName);
-            }
-
-            // Initializing based on the edition and codehost type.
-
-            // Adding Starcounter specific static files directory (but loaded for both polyjuice and nonpolyjuice databases).
-            // TODO:
-            // Since this is loaded for both polyjuice and non-polyjuice databases we should probably rename the folder from 'Polyjuice'
-            String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
-            if (Directory.Exists(polyjuiceStatic)) {
-                AddStaticFileDirectory(polyjuiceStatic);
             }
         }
 

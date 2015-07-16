@@ -70,7 +70,6 @@ namespace Starcounter.Internal.Web {
 
                 fileDirectories_.Add(path);
                 appNames_.Add(appName);
-
             }
         }
 

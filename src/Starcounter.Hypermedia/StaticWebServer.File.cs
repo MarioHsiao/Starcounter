@@ -238,24 +238,6 @@ namespace Starcounter.Internal.Web {
             out string fileExtension,
             out byte[] payload) {
 
-            // Extracting prefix for the resource, e.g. "/myappname/index.html" will have prefix "/myappname".
-            for (Int32 i = 0; i < appNames_.Count; i++) {
-
-                if (relativeUri.StartsWith("/" + appNames_[i] + "/", StringComparison.InvariantCultureIgnoreCase)) {
-
-                    if (ReadFileInDirectory(
-                        relativeUri.Substring(appNames_[i].Length + 1),
-                        fileDirectories_[i],
-                        out dir,
-                        out fileName,
-                        out fileExtension,
-                        out payload)) {
-
-                        return true;
-                    }
-                }
-            }
-
             // Going through every directory.
             for (int t = (fileDirectories_.Count - 1); t >= 0; t--) {
 
