@@ -668,16 +668,19 @@ namespace Starcounter {
             {
                 if (null == bodyString_) {
 
-                    if (null != bodyBytes_) {
+                    unsafe {
 
-                        bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
+                        // First checking the incoming request data.
+                        if (null != http_request_struct_) {
 
-                    } else {
+                            bodyString_ = http_request_struct_->GetBodyStringUtf8_Slow();
 
-                        unsafe {
+                        } else {
 
-                            if (null != http_request_struct_)
-                                bodyString_ = http_request_struct_->GetBodyStringUtf8_Slow();
+                            // Otherwise trying to convert from existing body bytes.
+                            if (null != bodyBytes_) {
+                                bodyString_ = Encoding.UTF8.GetString(bodyBytes_);
+                            }
                         }
                     }
                 }
@@ -699,15 +702,21 @@ namespace Starcounter {
         {
             get
             {
-                if (null == bodyBytes_)
-                {
-                    if (bodyString_ != null) {
-                        bodyBytes_ = Encoding.UTF8.GetBytes(bodyString_);
-                    } else {
+                if (null == bodyBytes_) {
 
-                        unsafe {
-                            if (http_request_struct_ != null)
-                                bodyBytes_ = http_request_struct_->GetBodyByteArray_Slow();
+                    unsafe {
+
+                        // First checking the incoming request data.
+                        if (null != http_request_struct_) {
+
+                            bodyBytes_ = http_request_struct_->GetBodyByteArray_Slow();
+
+                        } else {
+
+                            // Otherwise trying to convert from existing body string.
+                            if (null != bodyString_) {
+                               bodyBytes_ = Encoding.UTF8.GetBytes(bodyString_);
+                            }
                         }
                     }
                 }
