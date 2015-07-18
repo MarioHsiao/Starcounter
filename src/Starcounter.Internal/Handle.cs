@@ -34,6 +34,11 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Skip middleware filters global flag.
+        /// </summary>
+        internal static Boolean SkipMiddlewareFiltersGlobal = true;
+
+        /// <summary>
         /// Calling application name.
         /// </summary>
         internal String CallingAppName {
@@ -382,23 +387,6 @@ namespace Starcounter {
         public const String DELETE_METHOD = "DELETE";
         public const String PATCH_METHOD = "PATCH";
         public const String OPTIONS_METHOD = "OPTIONS";
-
-        /// <summary>
-        /// Checks if given URI is a part of 
-        /// </summary>
-        /// <param name="uri">Incomming URI.</param>
-        /// <returns>True if its a system handler.</returns>
-        public static Boolean IsSystemHandlerUri(String uri) {
-
-            if (uri.StartsWith("/polyjuice", StringComparison.InvariantCultureIgnoreCase) ||
-                uri.StartsWith("/codehost", StringComparison.InvariantCultureIgnoreCase) ||
-                uri.StartsWith("/_", StringComparison.InvariantCultureIgnoreCase)) {
-
-                return true;
-            }
-
-            return false;
-        }
 
         internal static Func<String, HandlerOptions, Boolean> isHandlerRegistered_;
 

@@ -262,6 +262,8 @@ namespace StarcounterInternal.Bootstrap {
                     OnBasePackageLoaded();
                 }
 
+                // NOTE: Disabling skip for middleware filters since no more system handlers are expected at this line.
+                HandlerOptions.SkipMiddlewareFiltersGlobal = false;
             }
             finally { OnEndStart(); }
         }

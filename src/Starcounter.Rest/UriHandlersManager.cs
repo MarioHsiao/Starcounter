@@ -428,7 +428,7 @@ namespace Starcounter.Rest
 
             Debug.Assert(userDelegate_ == null);
 
-            SkipMiddlewareFilters = ho.SkipMiddlewareFilters;
+            SkipMiddlewareFilters = ho.SkipMiddlewareFilters || HandlerOptions.SkipMiddlewareFiltersGlobal;
 
             if (ho.ProxyDelegateTrigger) {
 
