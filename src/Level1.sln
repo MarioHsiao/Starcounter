@@ -439,6 +439,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Extensions", "S
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Extensions.Tests", "Starcounter.Extensions.Tests\Starcounter.Extensions.Tests.csproj", "{08E41128-E0E2-4A2D-A101-62C6499627A0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{D53B0468-9942-4B97-B128-7CB1F098A253}"
+	ProjectSection(SolutionItems) = preProject
+		.nuget\packages.config = .nuget\packages.config
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
