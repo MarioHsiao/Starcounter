@@ -79,6 +79,23 @@ namespace Starcounter.Administrator.Server {
             // Bootstrap Admin API handlers
             StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, Program.ResourceFolder);
 
+            // Registering static handler on given port.
+            Handle.GET(adminPort, "/{?}", (String uri, Request req) => {
+
+                Response resp = Handle.ResolveStaticResource(req.Uri, req);
+
+                if ((null == resp) || (404 == resp.StatusCode)) {
+                    resp = Self.GET("/404.html");
+                }
+
+                return resp;
+
+            }, new HandlerOptions() {
+                ProxyDelegateTrigger = true,
+                SkipMiddlewareFilters = true,
+                ReplaceExistingDelegate = true
+            });
+
             // Start User Tracking (Send data to tracking server each hour and crash reports)
             if (serverInfo.Configuration.SendUsageAndCrashReports) {
                 Tracking.Client.Instance.StartTrackUsage(Program.ServerInterface, Program.ServerEngine.HostLog);
@@ -99,11 +116,6 @@ namespace Starcounter.Administrator.Server {
             Handle.GET("/", () => {
                 // Returns this response to original request.
                 return Self.GET("/index.html");
-            });
-
-            // Setting custom "not found" resource page.
-            Handle.SetCustomResourceNotFoundResolver((String uri) => {
-                return Self.GET("/404.html");
             });
 
             #region Debug/Test

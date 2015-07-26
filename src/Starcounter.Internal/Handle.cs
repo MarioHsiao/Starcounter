@@ -388,6 +388,11 @@ namespace Starcounter {
         public const String PATCH_METHOD = "PATCH";
         public const String OPTIONS_METHOD = "OPTIONS";
 
+        /// <summary>
+        /// Resolves static resource with given URI and incoming request object.
+        /// </summary>
+        public static Func<String, Request, Response> ResolveStaticResource;
+
         internal static Func<String, HandlerOptions, Boolean> isHandlerRegistered_;
 
         /// <summary>
@@ -396,16 +401,6 @@ namespace Starcounter {
         public static Boolean IsHandlerRegistered(String methodSpaceProcessedUriSpace, HandlerOptions ho) {
 
             return isHandlerRegistered_(methodSpaceProcessedUriSpace, ho);
-        }
-
-        internal static Func<String, Response> customResourceNotFoundResolver_;
-
-        /// <summary>
-        /// Setting custom not-found resource resolver.
-        /// </summary>
-        public static void SetCustomResourceNotFoundResolver(Func<String, Response> customResourceNotFoundResolver) {
-
-            customResourceNotFoundResolver_ = customResourceNotFoundResolver;
         }
 
         /// <summary>
@@ -438,6 +433,16 @@ namespace Starcounter {
         /// Adding new filter to middleware.
         /// </summary>
         public static void AddFilterToMiddleware(Func<Request, Response> filter) {
+
+            MiddlewareFilter mf = new MiddlewareFilter(filter);
+
+            middlewareFilters_.Add(mf);
+        }
+
+        /// <summary>
+        /// Adding new request filter.
+        /// </summary>
+        public static void AddRequestFilter(Func<Request, Response> filter) {
 
             MiddlewareFilter mf = new MiddlewareFilter(filter);
 
@@ -502,9 +507,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Adding new filter to outgoing.
+        /// Adding new response filter.
         /// </summary>
-        public static void AddOutgoingFilter(Func<Request, Response, Response> filter) {
+        public static void AddResponseFilter(Func<Request, Response, Response> filter) {
 
             OutgoingFilter mf = new OutgoingFilter(filter);
 

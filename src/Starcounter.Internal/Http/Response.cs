@@ -18,12 +18,7 @@ namespace Starcounter
         /// <summary>
         /// The response is handled explicitly by some other means.
         /// </summary>
-        Handled = 1,
-
-        /// <summary>
-        /// If static files resolver should take care of response.
-        /// </summary>
-        ResolveStaticContent = 2
+        Handled = 1
     }
 
     /// <summary>
@@ -39,12 +34,7 @@ namespace Starcounter
         /// <summary>
         /// The response was handled by some explicit means.
         /// </summary>
-        Handled,
-
-        /// <summary>
-        /// If static files resolver should take care of response.
-        /// </summary>
-        ResolveStaticContent
+        Handled
     }
 
     /// <summary>

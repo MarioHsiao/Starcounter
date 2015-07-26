@@ -109,17 +109,6 @@ namespace Starcounter.Internal.Web {
 
             Profiler.Current.Stop(ProfilerNames.GetUriHandlersManager);
 
-            // Checking if we need to resolve static resource.
-            if ((resp != null) && (resp.HandlingStatus == HandlerStatusInternal.ResolveStaticContent)) {
-
-                Profiler.Current.Start(ProfilerNames.HandleStaticFileResource);
-
-                resp = ResolveAndPrepareFile(req.Uri, req);
-                resp.HandlingStatus = HandlerStatusInternal.Done;
-
-                Profiler.Current.Stop(ProfilerNames.HandleStaticFileResource);
-            }
-
             return resp;
         }
 
@@ -172,8 +161,10 @@ namespace Starcounter.Internal.Web {
                     StarcounterEnvironment.AppName = null;
 
                     // Registering static handler on given port.
-                    Handle.GET(port, "/{?}", (string res) => {
-                        return HandlerStatus.ResolveStaticContent;
+                    Handle.GET(port, "/{?}", (String uri, Request req) => {
+
+                        return Handle.ResolveStaticResource(req.Uri, req);
+
                     }, new HandlerOptions() {
                         ProxyDelegateTrigger = true,
                         SkipMiddlewareFilters = true

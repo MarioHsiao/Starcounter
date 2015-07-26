@@ -84,12 +84,8 @@ namespace Starcounter.Internal.Web {
 
                     //Debug("Could not find " + relativeUri);
 
-                    // Calling custom not found resource resolver.
-                    if (null != Handle.customResourceNotFoundResolver_) {
-                        return Handle.customResourceNotFoundResolver_(relativeUri);
-                    }
-
                 } else {
+
                     mimeType = MimeMap.GetMimeType(fileExtension);
                 }
             }
