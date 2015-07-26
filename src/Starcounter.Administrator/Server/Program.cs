@@ -93,7 +93,7 @@ namespace Starcounter.Administrator.Server {
             }, new HandlerOptions() {
                 ProxyDelegateTrigger = true,
                 SkipMiddlewareFilters = true,
-                ReplaceExistingDelegate = true
+                ReplaceExistingHandler = true
             });
 
             // Start User Tracking (Send data to tracking server each hour and crash reports)

@@ -69,9 +69,9 @@ namespace Starcounter {
         internal TypesOfHandler TypeOfHandler;
 
         /// <summary>
-        /// Replace existing delegate.
+        /// Replace existing registered handler.
         /// </summary>
-        public Boolean ReplaceExistingDelegate {
+        public Boolean ReplaceExistingHandler {
             get;
             set;
         }

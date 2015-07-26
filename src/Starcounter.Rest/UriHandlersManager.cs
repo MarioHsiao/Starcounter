@@ -363,7 +363,7 @@ namespace Starcounter.Rest
             HandlerOptions ho)
         {
             // Checking if we are replacing the delegate.
-            if (ho.ReplaceExistingDelegate) {
+            if (ho.ReplaceExistingHandler) {
 
                 // Checking if its a proxy trigger we are trying to replace.
                 if (ho.ProxyDelegateTrigger) {
