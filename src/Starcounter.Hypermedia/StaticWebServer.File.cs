@@ -79,11 +79,14 @@ namespace Starcounter.Internal.Web {
                 // Trying to read the file contents.
                 if (!ReadFile(relativeUri, out dir, out fileName, out fileExtension, out payload)) {
 
-                    statusCode = HttpStatusCode.NotFound;
-                    mimeType = MimeTypeHelper.MimeTypeAsString(MimeType.Text_Plain);
-                    payload = Encoding.UTF8.GetBytes(String.Format("Error 404: File {0} not found", relativeUri + "."));
-
                     //Debug("Could not find " + relativeUri);
+
+                    return new Response() {
+                        StatusCode = 404,
+                        StatusDescription = "Not Found",
+                        Body = String.Format("Error 404: Resource \"{0}\" not found.", relativeUri),
+                        HandlingStatus = HandlerStatusInternal.ResourceNotFound
+                    };
 
                 } else {
 

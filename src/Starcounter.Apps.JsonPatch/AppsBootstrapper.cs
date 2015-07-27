@@ -355,6 +355,7 @@ namespace Starcounter.Internal {
             // Determining what we should do with response.
             switch (resp.HandlingStatus) {
 
+                case HandlerStatusInternal.ResourceNotFound:
                 case HandlerStatusInternal.Done: {
 
                     // Creating response serialization buffer.

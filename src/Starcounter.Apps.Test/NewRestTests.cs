@@ -336,8 +336,8 @@ namespace Starcounter.Internal.Test
 
                 Response r = new Response()
                 {
-                    StatusCode = 299,
-                    StatusDescription = "My Status Code",
+                    StatusCode = 404,
+                    StatusDescription = "Not Found",
                     ContentType = "text/html",
                     ContentEncoding = "gzip",
                     Cookies = { "MyCookie1=123", "MyCookie2=456" },
@@ -351,8 +351,8 @@ namespace Starcounter.Internal.Test
 
             Response resp = Self.GET("/response1");
 
-            Assert.IsTrue(299 == resp.StatusCode);
-            Assert.IsTrue("My Status Code" == resp.StatusDescription);
+            Assert.IsTrue(404 == resp.StatusCode);
+            Assert.IsTrue("Not Found" == resp.StatusDescription);
             Assert.IsTrue("text/html" == resp.ContentType);
             Assert.IsTrue("gzip" == resp.ContentEncoding);
 

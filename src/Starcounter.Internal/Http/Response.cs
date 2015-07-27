@@ -34,7 +34,12 @@ namespace Starcounter
         /// <summary>
         /// The response was handled by some explicit means.
         /// </summary>
-        Handled
+        AlreadyHandled,
+
+        /// <summary>
+        /// For example static resource server returns this if resource is not found.
+        /// </summary>
+        ResourceNotFound
     }
 
     /// <summary>
