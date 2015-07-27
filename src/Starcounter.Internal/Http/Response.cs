@@ -279,6 +279,7 @@ namespace Starcounter
         internal Response CloneStaticResourceResponse() {
 
             Response resp = new Response() {
+                handlingStatus_ = handlingStatus_,
                 statusCode_ = statusCode_,
 				statusDescription_ = statusDescription_,
                 uris_ = uris_,
