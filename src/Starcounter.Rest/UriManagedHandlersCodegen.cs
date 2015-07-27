@@ -1111,6 +1111,10 @@ namespace Starcounter.Rest
                         new IntPtr(parametersInfoBufferOnStack),
                         req);
 
+                    // Checking if resource wasn't found.
+                    if (404 == resp.StatusCode)
+                        return false;
+
                     // Handler was successfully found.
                     return true;
                 }

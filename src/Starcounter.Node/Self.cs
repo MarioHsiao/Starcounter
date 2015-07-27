@@ -392,11 +392,6 @@ DO_CALL_ON_GIVEN_LEVEL:
                 portNumber,
                 out resp);
 
-            // Checking if there is some response.
-            if (resp != null) {
-                return resp;
-            }
-
             // Going level by level up.
             if (!handlerFound) {
 
@@ -438,6 +433,13 @@ DO_CALL_ON_GIVEN_LEVEL:
 
                     // NOTE: We tried a specific handler level but didn't get any response, so returning.
                     return null;
+                }
+
+            } else {
+
+                // Checking if there is some response.
+                if (resp != null) {
+                    return resp;
                 }
             }
 

@@ -789,21 +789,6 @@ DO_CALL_ON_GIVEN_LEVEL:
                     portNumber_,
                     out resp);
 
-                // Checking if there is some response.
-                if (resp != null) {
-
-                    // Checking if user has supplied a delegate to be called.
-                    if (null != userDelegate) {
-
-                        // Invoking user delegate.
-                        userDelegate.Invoke(resp, userObject);
-
-                        return null;
-                    }
-
-                    return resp;
-                }
-            
                 // Going level by level up.
                 if (!handlerFound) {
 
@@ -844,6 +829,23 @@ DO_CALL_ON_GIVEN_LEVEL:
 
                         // NOTE: We tried a specific handler level but didn't get any response, so returning.
                         return null;
+                    }
+
+                } else {
+
+                    // Checking if there is some response.
+                    if (resp != null) {
+
+                        // Checking if user has supplied a delegate to be called.
+                        if (null != userDelegate) {
+
+                            // Invoking user delegate.
+                            userDelegate.Invoke(resp, userObject);
+
+                            return null;
+                        }
+
+                        return resp;
                     }
                 }
 

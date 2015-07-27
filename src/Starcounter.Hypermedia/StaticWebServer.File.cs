@@ -76,6 +76,7 @@ namespace Starcounter.Internal.Web {
                     "Uri could not be resolved. No directories added for serving static files.");
             } else {
 
+                // Trying to read the file contents.
                 if (!ReadFile(relativeUri, out dir, out fileName, out fileExtension, out payload)) {
 
                     statusCode = HttpStatusCode.NotFound;
