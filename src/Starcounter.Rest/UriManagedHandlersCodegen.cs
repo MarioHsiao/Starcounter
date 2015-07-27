@@ -1112,7 +1112,7 @@ namespace Starcounter.Rest
                         req);
 
                     // Checking if resource wasn't found.
-                    if (404 == resp.StatusCode)
+                    if ((null != resp) && (404 == resp.StatusCode))
                         return false;
 
                     // Handler was successfully found.
