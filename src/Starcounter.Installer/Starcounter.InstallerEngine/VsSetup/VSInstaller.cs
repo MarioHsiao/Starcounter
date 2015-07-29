@@ -106,7 +106,7 @@ namespace Starcounter.InstallerEngine.VsSetup {
                 );
 
             // Delete the folder with the extension files, since it seems
-            // like Microsoft have delayed this in VS 2013.
+            // like Microsoft have delayed this in VS 2015.
             var manifestFile = VSIXUtilities.FindManifestFile(VSIntegration.GetUserExtensionsRootFolder(VisualStudioVersion.VS2015), VSIXPackageInfo.VS2015.ExtensionIdentity);
             if (File.Exists(manifestFile)) {
                 var extensionDirectory = Path.GetDirectoryName(manifestFile);

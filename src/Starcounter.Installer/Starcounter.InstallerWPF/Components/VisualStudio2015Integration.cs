@@ -33,7 +33,7 @@ namespace Starcounter.InstallerWPF.Components
 
         public override bool CanBeInstalled {
             get {
-                return false;
+                return true;
             }
         }
         //public override bool IsExecuteCommandEnabled {
@@ -57,27 +57,24 @@ namespace Starcounter.InstallerWPF.Components
         {
             base.SetDefaultValues();
 
-            this.IsInstalled = false;
-            this.ExecuteCommand = false;
-
-//#if !SIMULATE_CLEAN_INSTALLATION
-//            this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2015Integration];
-//#endif
-//            switch (this.Command)
-//            {
-//                case ComponentCommand.Install:
-//                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed());
-//                    break;
-//                case ComponentCommand.None:
-//                    this.ExecuteCommand = false;
-//                    break;
-//                case ComponentCommand.Uninstall:
-//                    this.ExecuteCommand = false;
-//                    break;
-//                case ComponentCommand.Update:
-//                    this.ExecuteCommand = false;
-//                    break;
-//            }
+#if !SIMULATE_CLEAN_INSTALLATION
+            this.IsInstalled = MainWindow.InstalledComponents[(int)ComponentsCheck.Components.VS2015Integration];
+#endif
+            switch (this.Command)
+            {
+                case ComponentCommand.Install:
+                    this.ExecuteCommand = (!this.IsInstalled) && (DependenciesCheck.VStudio2015Installed());
+                    break;
+                case ComponentCommand.None:
+                    this.ExecuteCommand = false;
+                    break;
+                case ComponentCommand.Uninstall:
+                    this.ExecuteCommand = false;
+                    break;
+                case ComponentCommand.Update:
+                    this.ExecuteCommand = false;
+                    break;
+            }
         }
 
         public VisualStudio2015Integration(ObservableCollection<BaseComponent> components)
@@ -86,7 +83,7 @@ namespace Starcounter.InstallerWPF.Components
         }
 
         public override bool ValidateSettings() {
-            return false;
+            return true;
         }
 
     }

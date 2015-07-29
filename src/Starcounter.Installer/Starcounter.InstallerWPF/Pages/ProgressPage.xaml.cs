@@ -297,6 +297,9 @@ namespace Starcounter.InstallerWPF.Pages {
                 PersonalServer personalServerComponent = config.Components[PersonalServer.Identifier] as PersonalServer;
                 VisualStudio2012Integration vs2012IntegrationComponent = config.Components[VisualStudio2012Integration.Identifier] as VisualStudio2012Integration;
                 VisualStudio2013Integration vs2013IntegrationComponent = config.Components[VisualStudio2013Integration.Identifier] as VisualStudio2013Integration;
+                VisualStudio2015Integration vs2015IntegrationComponent = config.Components[VisualStudio2015Integration.Identifier] as VisualStudio2015Integration;
+
+                // TODO: Send info about VS 2015!
 
                 Starcounter.Tracking.Client.Instance.SendInstallerExecuting(Starcounter.Tracking.Client.InstallationMode.FullInstallation,
                     personalServerComponent != null && personalServerComponent.IsExecuteCommandEnabled && personalServerComponent.ExecuteCommand,

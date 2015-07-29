@@ -778,6 +778,9 @@ namespace Starcounter.InstallerWPF {
             VisualStudio2013 visualStudio2013 = new VisualStudio2013(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2013);
 
+            VisualStudio2015 visualStudio2015 = new VisualStudio2015(this._InternalComponents);
+            this._InternalComponents.Add(visualStudio2015);
+
             // Starcounter installation
 
             InstallationBase starcounterInstallation = new InstallationBase(this._InternalComponents);
@@ -817,6 +820,9 @@ namespace Starcounter.InstallerWPF {
 
             VisualStudio2013Integration visualStudio2013Integration = new VisualStudio2013Integration(this._InternalComponents);
             this._InternalComponents.Add(visualStudio2013Integration);
+
+            VisualStudio2015Integration visualStudio2015Integration = new VisualStudio2015Integration(this._InternalComponents);
+            this._InternalComponents.Add(visualStudio2015Integration);
 
             // Samples
 
@@ -926,6 +932,9 @@ namespace Starcounter.InstallerWPF {
                     if (InstalledComponents[(int)ComponentsCheck.Components.VS2013Integration])
                         foundComponents += " - Visual Studio 2013 Integration.";
 
+                    if (InstalledComponents[(int)ComponentsCheck.Components.VS2015Integration])
+                        foundComponents += " - Visual Studio 2015 Integration.";
+
                     WpfMessageBoxResult result = WpfMessageBox.Show("Starcounter installation seems corrupted." + Environment.NewLine + "Footprints of the following components are found:" + Environment.NewLine +
                         foundComponents +
                         Environment.NewLine + "Would you like to run Starcounter cleanup process?" +
@@ -1001,7 +1010,12 @@ namespace Starcounter.InstallerWPF {
 
             BaseComponent vs2012 = this.Configuration.Components[VisualStudio2012Integration.Identifier] as BaseComponent;
             BaseComponent vs2013 = this.Configuration.Components[VisualStudio2013Integration.Identifier] as BaseComponent;
-            if (this.ChangeAdditionalSettings || (vs2012 != null && vs2012.ValidateSettings() == false || vs2013 != null && vs2013.ValidateSettings() == false)) {
+            BaseComponent vs2015 = this.Configuration.Components[VisualStudio2015Integration.Identifier] as BaseComponent;
+
+            if (this.ChangeAdditionalSettings ||
+                ((vs2012 != null && vs2012.ValidateSettings() == false) ||
+                (vs2013 != null && vs2013.ValidateSettings() == false) ||
+                (vs2015 != null && vs2015.ValidateSettings() == false))) {
                 this.RegisterPage(new DeveloperToolsPage());
             }
 
