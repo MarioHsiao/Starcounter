@@ -45,10 +45,10 @@ namespace DbMappingTest {
                 Db.SlowSQL("DELETE FROM NameClass4");
             });
 
-            //Debugger.Launch();
-
             // Database mapping initialization.
             DbMapping.Init();
+
+            //Debugger.Launch();
 
             DbMapping.Map("PUT", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
@@ -112,6 +112,7 @@ namespace DbMappingTest {
                 NameClass2 nc2;
                 NameClass3 nc3;
                 NameClass4 nc4;
+                List<UInt64> mappedOids;
 
                 Debug.Assert(Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First != null);
                 Debug.Assert(Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First != null);
@@ -120,10 +121,24 @@ namespace DbMappingTest {
 
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First;
                 Debug.Assert(nc2.FullName == "John ");
+
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First;
                 Debug.Assert(nc3.FirstName == "John");
+
+                Debug.Assert(true == DbMapping.HasMappedObjects(nc1.GetObjectNo()));
+                Debug.Assert(false == DbMapping.HasMappedObjects(nc2.GetObjectNo()));
+                Debug.Assert(true == DbMapping.HasMappedObjects(nc3.GetObjectNo()));
+
+                mappedOids = DbMapping.GetMappedOids(nc1.GetObjectNo());
+                Debug.Assert(mappedOids[0] == nc2.GetObjectNo());
+                Debug.Assert(mappedOids[1] == nc3.GetObjectNo());
+
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
                 Debug.Assert(nc4.FirstName == "HahaJohn");
+
+                Debug.Assert(false == DbMapping.HasMappedObjects(nc4.GetObjectNo()));
+                mappedOids = DbMapping.GetMappedOids(nc3.GetObjectNo());
+                Debug.Assert(mappedOids[0] == nc4.GetObjectNo());
 
                 nc1.LastName = "Doe";
 

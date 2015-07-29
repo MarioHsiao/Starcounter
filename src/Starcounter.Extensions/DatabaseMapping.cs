@@ -45,21 +45,60 @@ namespace Starcounter.Extensions {
 
             // Creating a unique index on DbMappingRelation.FromOid.
             if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
-                Db.SQL("CREATE UNIQUE INDEX DbMappingRelationFromOidIndex ON DbMappingRelation (FromOid ASC)");
+                Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON DbMappingRelation (FromOid ASC)");
             }
+        }
+
+        /// <summary>
+        /// Returns true if there is a mapped object to a given one.
+        /// </summary>
+        public static Boolean HasMappedObjects(UInt64 fromOid) {
+            UInt64 mappedOid = 0;
+
+            Db.Transact(() => {
+
+                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid).First;
+
+                // Checking if there is no relation found for this object.
+                if (null == rel) {
+                    return;
+                }
+
+                mappedOid = rel.ToOid;
+            });
+
+            return 0 != mappedOid;
+        }
+
+        /// <summary>
+        /// Getting mapped object ids, if they exists. Otherwise an empty list.
+        /// </summary>
+        public static List<UInt64> GetMappedOids(UInt64 fromOid) {
+
+            List<UInt64> mappedOids = new List<UInt64>();
+
+            Db.Transact(() => {
+
+                // Going through all connected objects.
+                foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
+                    mappedOids.Add(rel.ToOid);
+                }
+            });
+
+            return mappedOids;
         }
 
         /// <summary>
         /// Remaps the existing mapping relation.
         /// </summary>
-        public static void Remap(UInt64 srcOid, UInt64 newMappedOid) {
+        public static void Remap(UInt64 fromOid, UInt64 newMappedOid) {
 
             Db.Transact(() => {
-            
-                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", srcOid).First;
+
+                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid).First;
 
                 if (null == rel) {
-                    throw new ArgumentOutOfRangeException("Specified object has no mapping relation found: " + srcOid);
+                    throw new ArgumentOutOfRangeException("Specified object has no mapping relation found: " + fromOid);
                 }
             
                 // Mapping to a new given object.
