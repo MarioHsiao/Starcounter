@@ -30,6 +30,8 @@ scadmin\app\
 scadmin\Administrator.exe
 scadmin\Administrator.pdb
 scadmin\index.html
+scadmin\404.html
+scadmin\404.jpg
 scadmin\Starcounter.MsBuild.targets
 scadmin\PickFileDialog.exe
 
