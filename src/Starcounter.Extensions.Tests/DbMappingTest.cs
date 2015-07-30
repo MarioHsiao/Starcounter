@@ -50,58 +50,52 @@ namespace DbMappingTest {
 
             //Debugger.Launch();
 
-            DbMapping.Map("PUT", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass2 dst = (NameClass2)DbHelper.FromID(toOid);
                 dst.FullName = src.FirstName + " " + src.LastName;
-                return 0;
             });
 
-            DbMapping.Map("PUT", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass3 dst = (NameClass3)DbHelper.FromID(toOid);
                 dst.FirstName = src.FirstName;
-                return 0;
             });
 
-            DbMapping.Map("PUT", "/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass3 src = (NameClass3)DbHelper.FromID(fromOid);
                 NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
                 dst.FirstName = "Haha" + src.FirstName;
-                return 0;
             });
 
-            DbMapping.Map("DELETE", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass2 dst = (NameClass2)DbHelper.FromID(toOid);
                 dst.Delete();
-                return 0;
             });
 
-            DbMapping.Map("DELETE", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass3 dst = (NameClass3)DbHelper.FromID(toOid);
                 dst.Delete();
-                return 0;
             });
 
-            DbMapping.Map("DELETE", "/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
                 dst.Delete();
-                return 0;
             });
 
-            DbMapping.Map("POST", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 unused) => {
+            DbMapping.MapCreation("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass2 dst = new NameClass2();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.Map("POST", "/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 unused) => {
+            DbMapping.MapCreation("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass3 dst = new NameClass3();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.Map("POST", "/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 unused) => {
+            DbMapping.MapCreation("/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid) => {
                 NameClass3 src = (NameClass3)DbHelper.FromID(fromOid);
                 NameClass4 dst = new NameClass4();
                 return dst.GetObjectNo(); // Newly created object ID.

@@ -107,9 +107,38 @@ namespace Starcounter.Extensions {
         }
         
         /// <summary>
+        /// Maps creation of a new object.
+        /// </summary>
+        public static void MapCreation(String fromUri, String toUri, Func<UInt64, UInt64> converter) {
+            Map("POST", fromUri, toUri, (UInt64 createdOid, UInt64 unusedOid) => { 
+                return converter(createdOid); 
+            });
+        }
+
+        /// <summary>
+        /// Maps deletion of an object.
+        /// </summary>
+        public static void MapDeletion(String fromUri, String toUri, Action<UInt64, UInt64> converter) {
+            Map("DELETE", fromUri, toUri, (UInt64 fromOid, UInt64 toOid) => {
+                converter(fromOid, toOid);
+                return 0;            
+            });
+        }
+
+        /// <summary>
+        /// Maps modification of an object.
+        /// </summary>
+        public static void MapModification(String fromUri, String toUri, Action<UInt64, UInt64> converter) {
+            Map("PUT", fromUri, toUri, (UInt64 fromOid, UInt64 toOid) => {
+                converter(fromOid, toOid);
+                return 0;
+            });
+        }
+        
+        /// <summary>
         /// Map database classes for replication.
         /// </summary>
-        public static void Map(String httpMethod, String fromUri, String toUri, Func<UInt64, UInt64, UInt64> converter) {
+        internal static void Map(String httpMethod, String fromUri, String toUri, Func<UInt64, UInt64, UInt64> converter) {
 
             lock (registrationLock_) {
 
