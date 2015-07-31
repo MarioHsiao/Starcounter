@@ -17,11 +17,11 @@ namespace Starcounter.Internal.Tests {
 
             Handle.GET("/__default/wsupgrade/{?}", (Session p0) => { return 200; });
 
-            Handle.GET("/so/{?}/{?}", (String p0, String p1) => { return 200; });
+            Handle.GET("/so2/{?}/{?}", (String p0, String p1) => { return 200; });
 
-            Handle.GET("/db/{?}/{?}", (String p0, String p1) => { return 200; });
+            Handle.GET("/db2/{?}/{?}", (String p0, String p1) => { return 200; });
 
-            Handle.GET("/polyjuice/htmlmerger?{?}", (String p0) => { return 200; });
+            Handle.GET("/polyjuice/htmlmerger2?{?}", (String p0) => { return 200; });
 
             Handle.GET("/launcher/launchpad/polyjuice/htmlmerger?{?}", (String p0) => { return 200; });
 
