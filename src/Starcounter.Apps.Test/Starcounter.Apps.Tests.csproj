@@ -93,6 +93,7 @@
     <Compile Include="TestApp.cs" />
     <Compile Include="TestCallLevel.cs" />
     <Compile Include="TestHandlerMapping.cs" />
+    <Compile Include="UriMatcherGenTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
