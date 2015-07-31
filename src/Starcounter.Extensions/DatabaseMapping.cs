@@ -91,18 +91,18 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Remaps the existing mapping relation.
         /// </summary>
-        public static void Remap(UInt64 fromOid, UInt64 newMappedOid) {
+        public static void Remap(UInt64 fromOid, UInt64 toOid, UInt64 newToOid) {
 
             Db.Transact(() => {
 
-                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid).First;
+                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ? AND o.ToOid = ?", fromOid, toOid).First;
 
                 if (null == rel) {
-                    throw new ArgumentOutOfRangeException("Specified object has no mapping relation found: " + fromOid);
+                    throw new ArgumentOutOfRangeException("Specified object has no mapping relation found: " + fromOid + " -> " + toOid);
                 }
-            
+                
                 // Mapping to a new given object.
-                rel.ToOid = newMappedOid;
+                rel.ToOid = newToOid;
             });
         }
         
