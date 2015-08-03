@@ -7,6 +7,12 @@ namespace Starcounter.Internal {
     /// Temporary class providing global on/off for mapping.
     /// </summary>
     public static class MapConfig {
+
+        /// <summary>
+        /// Variable that stores decision if database mapping is enabled.
+        /// </summary>
+        static Boolean isMappingEnabled_ = !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING"));
+
         /// <summary>
         /// Indicates if mapping of applications should be enabled
         /// or not. Configuration will probably be on another level (app
@@ -14,8 +20,7 @@ namespace Starcounter.Internal {
         /// </summary>
         public static bool Enabled {
             get {
-                var value = Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING");
-                return !string.IsNullOrEmpty(value);
+                return isMappingEnabled_;
             }
         }
     }
