@@ -11,7 +11,7 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Variable that stores decision if database mapping is enabled.
         /// </summary>
-        static Boolean isMappingEnabled_ = !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING"));
+        static Boolean isMappingEnabled_ = ("True" == Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING"));
 
         /// <summary>
         /// Indicates if mapping of applications should be enabled

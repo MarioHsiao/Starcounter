@@ -527,6 +527,13 @@ namespace Starcounter.Rest
                 String originalUriInfo = null;
                 String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
 
+                // Checking if its a special mapping application.
+                Boolean isMapperApp = false;
+                if (!String.IsNullOrEmpty(StarcounterEnvironment.AppName)) {
+                    isMapperApp = StarcounterEnvironment.AppName.EndsWith("mapper", StringComparison.InvariantCultureIgnoreCase) ||
+                        StarcounterEnvironment.AppName.EndsWith("mapping", StringComparison.InvariantCultureIgnoreCase);
+                }
+
                 // Checking if consists of method and URI.
                 if (s.Length > 1) {
 
@@ -545,7 +552,7 @@ namespace Starcounter.Rest
                         if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
                             // Handler name should start with application name or launcher name.
-                            if (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase)) {
+                            if ((!isMapperApp) && (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase))) {
 
                                 throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
                             }
@@ -558,7 +565,7 @@ namespace Starcounter.Rest
                 } else {
 
                     // Checking if its a Polyjuice application.
-                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                    if (StarcounterEnvironment.PolyjuiceAppsFlag && !isMapperApp) {
 
                         // Checking that its a Polyjuice handler.
                         if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
