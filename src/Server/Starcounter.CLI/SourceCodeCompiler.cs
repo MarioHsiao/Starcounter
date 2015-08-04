@@ -105,6 +105,15 @@ namespace Starcounter.CLI {
                 AddDefaultAssemblyReference(parameters, reference);
             }
 
+            // Add additional references from known class library folders.
+            // This can easily be extended later, to allow for more folders to
+            // be passed on the command-line or in a reference config file.
+
+            var additionalClassLibraryFolders = new[] { starcounterDatabaseClassesFolder };
+            foreach (var libFolder in additionalClassLibraryFolders) {
+                AddAssemblyReferencesFromDirectory(parameters, libFolder);
+            }
+
             var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
             if (result.Errors.Count > 0) {
                 assemblyPath = null;
@@ -139,6 +148,17 @@ namespace Starcounter.CLI {
 
             if (!parameters.ReferencedAssemblies.Contains(assemblyName)) {
                 parameters.ReferencedAssemblies.Add(assemblyName);
+            }
+        }
+
+        static void AddAssemblyReferencesFromDirectory(CompilerParameters parameters, string classLibraryDir) {
+            var dir = new DirectoryInfo(classLibraryDir);
+            var files = dir.GetFiles("*.dll");
+
+            foreach (var lib in files) {
+                if (!parameters.ReferencedAssemblies.Contains(lib.FullName)) {
+                    parameters.ReferencedAssemblies.Add(lib.FullName);
+                }
             }
         }
 
