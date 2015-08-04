@@ -72,7 +72,7 @@ namespace Starcounter.Weaver {
         /// </summary>
         public string LibrariesWithDatabaseClassesDirectory {
             get {
-                return Path.Combine(WeaverRuntimeDirectory, "LibrariesWithDatabaseClasses"); ;
+                return StarcounterEnvironment.LibrariesWithDatabaseClassesDirectory;
             }
         }
 
