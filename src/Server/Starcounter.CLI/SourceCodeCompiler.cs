@@ -102,7 +102,7 @@ namespace Starcounter.CLI {
             // here.
 
             foreach (var reference in DefaultAssemblyReferences) {
-                AddAssemblyReference(parameters, reference);
+                AddDefaultAssemblyReference(parameters, reference);
             }
 
             var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
@@ -127,7 +127,7 @@ namespace Starcounter.CLI {
             assemblyPath = result.PathToAssembly;
         }
 
-        static void AddAssemblyReference(CompilerParameters parameters, string assemblyName) {
+        static void AddDefaultAssemblyReference(CompilerParameters parameters, string assemblyName) {
             if (!assemblyName.EndsWith(".dll", StringComparison.InvariantCultureIgnoreCase)) {
                 assemblyName += ".dll";
             }
