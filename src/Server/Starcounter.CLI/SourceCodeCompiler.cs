@@ -34,6 +34,7 @@ namespace Starcounter.CLI {
             "Starcounter.Apps.JsonPatch",
             "Starcounter.HyperMedia",
             "Starcounter.Internal",
+            "Starcounter.Extensions",
             "Starcounter.Logging",
             "Starcounter.Node",
             "Starcounter.XSON",
