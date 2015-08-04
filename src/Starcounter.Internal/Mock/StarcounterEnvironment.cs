@@ -257,6 +257,17 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Gets the full path of the directory containing preinstalled Starcounter
+        /// database classes.
+        /// </summary>
+        public static string LibrariesWithDatabaseClassesDirectory {
+            get {
+                var installDir = InstallationDirectory;
+                return Path.Combine(installDir, "LibrariesWithDatabaseClasses");
+            }
+        }
+
+        /// <summary>
         /// Assigns the Starcounter installation directory for the current process
         /// based on the calling assembly. Designed to be invoked first/early in
         /// any of our managed bootstrappers (e.g. the code host, the CLI tools,

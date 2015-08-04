@@ -27,11 +27,14 @@ namespace Starcounter.CLI {
     /// </remarks>
     public class SourceCodeCompiler {
         static string starcounterAssembliesFolder = StarcounterEnvironment.InstallationDirectory;
+        static string starcounterDatabaseClassesFolder = StarcounterEnvironment.LibrariesWithDatabaseClassesDirectory;
+
         static string[] DefaultAssemblyReferences = new string[] {
             "Starcounter",
             "Starcounter.Apps.JsonPatch",
             "Starcounter.HyperMedia",
             "Starcounter.Internal",
+            "Starcounter.Extensions",
             "Starcounter.Logging",
             "Starcounter.Node",
             "Starcounter.XSON",
@@ -133,6 +136,11 @@ namespace Starcounter.CLI {
             var candidate = Path.Combine(starcounterAssembliesFolder, assemblyName);
             if (File.Exists(candidate)) {
                 assemblyName = candidate;
+            } else {
+                candidate = Path.Combine(starcounterDatabaseClassesFolder, assemblyName);
+                if (File.Exists(candidate)) {
+                    assemblyName = candidate;
+                }
             }
 
             if (!parameters.ReferencedAssemblies.Contains(assemblyName)) {
