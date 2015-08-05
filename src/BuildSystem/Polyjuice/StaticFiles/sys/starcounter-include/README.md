@@ -1,7 +1,7 @@
-&lt;polyjuice-include&gt;
+&lt;starcounter-include&gt;
 ==============
 
-`<polyjuice-include>` is a custom element that let's you load HTML partials into your Polyjuice page, it uses [`<imported-template>`](https://github.com/Juicy/imported-template), so, you can take full control over loaded `<script>`s and `<link rel="import">`s. Thanks to HTML Imports - caching, script execution, etc. is completely native.
+`<starcounter-include>` is a custom element that let's you load HTML partials into your Starcounter page, it uses [`<imported-template>`](https://github.com/Juicy/imported-template), so, you can take full control over loaded `<script>`s and `<link rel="import">`s. Thanks to HTML Imports - caching, script execution, etc. is completely native.
 g
 ### Small sample
 
@@ -20,7 +20,7 @@ SubPageViewModel = {
 ```
 You can put it on screen with
 ```html
-<polyjuice-include partial="{{ SubPageViewModel }}"></polyjuice-include>
+<starcounter-include partial="{{ SubPageViewModel }}"></starcounter-include>
 ```
 To produce
 ```html
@@ -33,7 +33,7 @@ To produce
 
 ### [`<imported-template>` Demo/Example](https://github.com/Juicy/imported-template#demoexamples)
 
-### [Test/Use cases](http://polyjuice.github.io/polyjuice-include/tests)
+### [Test/Use cases](http://polyjuice.github.io/starcounter-include/tests)
 
 ## Features
 
@@ -56,15 +56,15 @@ To produce
 
 ## Install
 
-Polyjuice has it already pre-installed, under `/sys/polyjuice-include/polyjuice-include.html`, but if you want to use it separately as well.
+Starcounter has it already pre-installed, under `/sys/starcounter-include/starcounter-include.html`, but if you want to use it separately as well.
 
 Install the component using [Bower](http://bower.io/):
 
 ```sh
-$ bower install Polyjuice/polyjuice-include --save
+$ bower install Polyjuice/starcounter-include --save
 ```
 
-Or [download as ZIP](https://github.com/Polyjuice/polyjuice-include/archive/master.zip).
+Or [download as ZIP](https://github.com/Polyjuice/starcounter-include/archive/master.zip).
 
 ## Usage
 
@@ -77,27 +77,27 @@ Or [download as ZIP](https://github.com/Polyjuice/polyjuice-include/archive/mast
 2. Import Custom Element:
 
     ```html
-    <link rel="import" href="bower_components/polyjuice-include/polyjuice-include.html">
+    <link rel="import" href="bower_components/starcounter-include/starcounter-include.html">
     ```
 
 3. Start using it!
 
     ```html
-    <polyjuice-include partial="{{ViewModel}}"></polyjuice-include>
+    <starcounter-include partial="{{ViewModel}}"></starcounter-include>
     ```
     or without mustache-style data-binding:
     ```js
-    document.querySelector("polyjuice-include").partial = ViewModel;
+    document.querySelector("starcounter-include").partial = ViewModel;
     ```
     or with inline JSON:
     ```js
-    <polyjuice-include partial="{&quot;Html&quot;: &quot;/path/to/file.html&quot;, &quot;some&quot;: &quot;data&quot;}"></polyjuice-include>
+    <starcounter-include partial="{&quot;Html&quot;: &quot;/path/to/file.html&quot;, &quot;some&quot;: &quot;data&quot;}"></starcounter-include>
     ```
 
 ## Test suite
 
  - local browser `./tests/index.html`
- - [online](http://polyjuice.github.io/polyjuice-include/tests)
+ - [online](http://polyjuice.github.io/starcounter-include/tests)
 
 ## Contributing
 
@@ -109,4 +109,4 @@ Or [download as ZIP](https://github.com/Polyjuice/polyjuice-include/archive/mast
 
 ## History
 
-For detailed changelog, check [Releases](https://github.com/Polyjuice/polyjuice-include/releases).
+For detailed changelog, check [Releases](https://github.com/Polyjuice/starcounter-include/releases).
