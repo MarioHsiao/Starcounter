@@ -1,15 +1,15 @@
 {
-  "name": "polyjuice-include",
+  "name": "starcounter-include",
   "authors": [
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
-  "homepage": "https://github.com/Polyjuice/polyjuice-include",
-  "description": "Custom Element to include HTML partials/templates from Polyjuice",
-  "main": "polyjuice-include.html",
+  "homepage": "https://github.com/Polyjuice/starcounter-include",
+  "description": "Custom Element to include HTML partials/templates from Starcounter",
+  "main": "starcounter-include.html",
   "keywords": [
     "template",
     "partial",
-    "polyjuice",
+    "starcounter",
     "imported-template"
   ],
   "license": "MIT",
@@ -32,10 +32,10 @@
   "_release": "0.0.4",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.4",
+    "tag": "0.0.5",
     "commit": "a0c6e36d73c0d9672293488779c1c1459f5e8d1d"
   },
-  "_source": "git://github.com/Polyjuice/polyjuice-include.git",
+  "_source": "git://github.com/Polyjuice/starcounter-include.git",
   "_target": "~0.0.4",
-  "_originalSource": "Polyjuice/polyjuice-include"
+  "_originalSource": "Polyjuice/starcounter-include"
 }

@@ -11,6 +11,6 @@
     "starcounter-debug-aid": "Polyjuice/starcounter-debug-aid#~1.0.0",
     "puppet-client": "PuppetJS/puppet-client#~0.0.3",
     "bootswatch": "thomaspark/bootswatch#~3.3.5",
-    "polyjuice-include": "Polyjuice/polyjuice-include#~0.0.4"
+    "starcounter-include": "Polyjuice/starcounter-include#~0.0.5"
   }
 }

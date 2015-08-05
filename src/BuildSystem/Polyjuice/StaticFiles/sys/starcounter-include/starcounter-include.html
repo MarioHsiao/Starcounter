@@ -1,16 +1,16 @@
 <!--
-polyjuice-include.html
+starcounter-include.html
 MIT license
-https://github.com/Polyjuice/polyjuice-include
-version: 0.0.4
+https://github.com/Polyjuice/starcounter-include
+version: 0.0.5
 -->
 <link rel="import" href="../imported-template/imported-template.html">
 <script>
   (function () {
-    var PolyjuiceIncludePrototype = Object.create(HTMLElement.prototype);
+    var StarcounterIncludePrototype = Object.create(HTMLElement.prototype);
 
-    PolyjuiceIncludePrototype.partial = null;
-    PolyjuiceIncludePrototype.isAttached = false;
+    StarcounterIncludePrototype.partial = null;
+    StarcounterIncludePrototype.isAttached = false;
 
     /**
      * Read the `partial` attribute of given element, 
@@ -28,18 +28,18 @@ version: 0.0.4
     /**
      * Define partial setter, stamp inner `imported-template`
      */
-    PolyjuiceIncludePrototype.createdCallback = function () {
-      //d console.log("polyjuice-partial created");
+    StarcounterIncludePrototype.createdCallback = function () {
+      //d console.log("starcounter-partial created");
       //this.partial = /*this.partial ||*/ {};
       var partial = undefined;
-      var polyjuiceInclude = this;
+      var starcounterInclude = this;
       // define a setter for partial attribute, 
       // so it could be change by VanillaJs without Polymer Template Binding
       Object.defineProperty(this,"partial",{
         set: function(newValue){
           //d console.log("partial set");
           partial = newValue;
-          polyjuiceInclude.partialChanged(partial);
+          starcounterInclude.partialChanged(partial);
         },
         get: function(){
           return partial;
@@ -52,27 +52,27 @@ version: 0.0.4
       this.appendChild(importedTemplate);
     };
 
-    PolyjuiceIncludePrototype.attachedCallback = function () {
+    StarcounterIncludePrototype.attachedCallback = function () {
       partialAttributeToProperty(this);
       this.isAttached = true;
-      //d console.log("polyjuice-partial attached");
+      //d console.log("starcounter-partial attached");
       this.partialChanged();
     };
 
-    PolyjuiceIncludePrototype.detachedCallback = function(){
+    StarcounterIncludePrototype.detachedCallback = function () {
       this.isAttached = false;
-      //d console.log("polyjuice-partial detached");
+      //d console.log("starcounter-partial detached");
     };
 
-    PolyjuiceIncludePrototype.attributeChangedCallback = function(name, oldVal, newVal){
+    StarcounterIncludePrototype.attributeChangedCallback = function (name, oldVal, newVal) {
       partialAttributeToProperty(this);
-      //d console.log("polyjuice-partial attr changed");
+      //d console.log("starcounter-partial attr changed");
     };
     /**
      * Updates inner `imported-template` with partial data given (if applicable)
      * @param  {Object} newVal new partial value
      */
-    PolyjuiceIncludePrototype.partialChanged = function(newVal){
+    StarcounterIncludePrototype.partialChanged = function (newVal) {
       var html = this.partial && this.partial.Html;
       !html && console.warn("partial.Html for", this, "is missing.");
       if(this.isAttached && html){
@@ -87,7 +87,7 @@ version: 0.0.4
      * @param  {Boolean} oneTime   [description]
      * @return {Object}            observer
      */
-    PolyjuiceIncludePrototype.bind = function(name, observable, oneTime) {
+    StarcounterIncludePrototype.bind = function (name, observable, oneTime) {
       if (name === 'partial') {
         // observable callback
         var self = this;
@@ -114,8 +114,8 @@ version: 0.0.4
       }
     };
 
-    document.registerElement('polyjuice-include', {
-      prototype: PolyjuiceIncludePrototype
+    document.registerElement('starcounter-include', {
+      prototype: StarcounterIncludePrototype
     });
 
    
