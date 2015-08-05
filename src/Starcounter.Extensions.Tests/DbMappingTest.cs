@@ -120,7 +120,7 @@ namespace DbMappingTest {
                 Debug.Assert(nc3.FirstName == "John");
 
                 Debug.Assert(true == DbMapping.HasMappedObjects(nc1.GetObjectNo()));
-                Debug.Assert(false == DbMapping.HasMappedObjects(nc2.GetObjectNo()));
+                Debug.Assert(true == DbMapping.HasMappedObjects(nc2.GetObjectNo()));
                 Debug.Assert(true == DbMapping.HasMappedObjects(nc3.GetObjectNo()));
 
                 mappedOids = DbMapping.GetMappedOids(nc1.GetObjectNo());
@@ -130,7 +130,7 @@ namespace DbMappingTest {
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
                 Debug.Assert(nc4.FirstName == "HahaJohn");
 
-                Debug.Assert(false == DbMapping.HasMappedObjects(nc4.GetObjectNo()));
+                Debug.Assert(true == DbMapping.HasMappedObjects(nc4.GetObjectNo()));
                 mappedOids = DbMapping.GetMappedOids(nc3.GetObjectNo());
                 Debug.Assert(mappedOids[0] == nc4.GetObjectNo());
 

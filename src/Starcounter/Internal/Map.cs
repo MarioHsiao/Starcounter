@@ -38,7 +38,9 @@ namespace Starcounter.Internal {
         public static void POST(string uri) {
 
             Self.POST(uri, null, null, null, 0, new HandlerOptions() { 
-                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
+                ProxyDelegateTrigger = true,
+                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+            });
 
             //Console.WriteLine("MAP POST on {0}", uri);
         }
@@ -51,8 +53,10 @@ namespace Starcounter.Internal {
         /// updated.</param>
         public static void PUT(string uri) {
 
-            Self.PUT(uri, null, null, null, 0, new HandlerOptions() { 
-                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
+            Self.PUT(uri, null, null, null, 0, new HandlerOptions() {
+                ProxyDelegateTrigger = true,
+                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+            });
 
             //Console.WriteLine("MAP PUT on {0}", uri);
         }
@@ -65,8 +69,10 @@ namespace Starcounter.Internal {
         /// deleted.</param>
         public static void DELETE(string uri) {
 
-            Self.DELETE(uri, null, null, null, 0, new HandlerOptions() { 
-                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel });
+            Self.DELETE(uri, null, null, null, 0, new HandlerOptions() {
+                ProxyDelegateTrigger = true,
+                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+            });
 
             //Console.WriteLine("MAP DELETE on {0}", uri);
         }

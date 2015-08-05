@@ -15,6 +15,7 @@ namespace Starcounter.Extensions {
     [Database]
     public class DbMapInfo {
         public String ToClassFullName;
+        public String FromClassFullName;
         public String MethodSpaceProcessedFromUriSpace;
     }
 
@@ -22,7 +23,8 @@ namespace Starcounter.Extensions {
     public class DbMappingRelation {
         public UInt64 FromOid;
         public UInt64 ToOid;
-        public DbMapInfo MapInfo;
+        public String ToClassFullName;
+        public DbMappingRelation MirrorRelationRef;
     }
 
     public class DbMapping {
@@ -229,11 +231,22 @@ namespace Starcounter.Extensions {
                                             Db.Transact(() => {
 
                                                 // Creating a relation between two objects.
-                                                DbMappingRelation objRel = new DbMappingRelation() {
+                                                DbMappingRelation relTo = new DbMappingRelation() {
                                                     FromOid = fromOid,
                                                     ToOid = toOid,
-                                                    MapInfo = mapInfo
+                                                    ToClassFullName = mapInfo.ToClassFullName
                                                 };
+
+                                                // Creating a relation between two objects.
+                                                DbMappingRelation relFrom = new DbMappingRelation() {
+                                                    FromOid = toOid,
+                                                    ToOid = fromOid,
+                                                    ToClassFullName = mapInfo.FromClassFullName,
+                                                    MirrorRelationRef = relTo
+                                                };
+
+                                                // Setting relation back.
+                                                relTo.MirrorRelationRef = relFrom;
 
                                             });
                                         }
@@ -276,6 +289,9 @@ namespace Starcounter.Extensions {
 
                                 isRootHierarchy = true;
                                 touchedClasses_ = new Dictionary<String, Boolean>();
+
+                                // Touching myself here.
+                                touchedClasses_.Add(fromClassFullName, true);
                             }
 
                             try {
@@ -284,13 +300,13 @@ namespace Starcounter.Extensions {
                                 foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
 
                                     // Checking if we already have processed this class.
-                                    if (!touchedClasses_.ContainsKey(rel.MapInfo.ToClassFullName)) {
+                                    if (!touchedClasses_.ContainsKey(rel.ToClassFullName)) {
 
                                         // Adding class as touched.
-                                        touchedClasses_.Add(rel.MapInfo.ToClassFullName, true);
+                                        touchedClasses_.Add(rel.ToClassFullName, true);
 
                                         // Calling the converter.
-                                        Response resp = Self.PUT("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.MapInfo.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        Response resp = Self.PUT("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
 
                                         // Checking if we have result.
                                         if (null == resp)
@@ -334,6 +350,9 @@ namespace Starcounter.Extensions {
 
                                 isRootHierarchy = true;
                                 touchedClasses_ = new Dictionary<String, Boolean>();
+
+                                // Touching myself here.
+                                touchedClasses_.Add(fromClassFullName, true);
                             }
 
                             try {
@@ -342,17 +361,20 @@ namespace Starcounter.Extensions {
                                 foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
 
                                     // Checking if we already have processed this class.
-                                    if (!touchedClasses_.ContainsKey(rel.MapInfo.ToClassFullName)) {
+                                    if (!touchedClasses_.ContainsKey(rel.ToClassFullName)) {
 
                                         // Adding class as touched.
-                                        touchedClasses_.Add(rel.MapInfo.ToClassFullName, true);
+                                        touchedClasses_.Add(rel.ToClassFullName, true);
 
                                         // Calling the converter.
-                                        Response resp = Self.DELETE("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.MapInfo.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        Response resp = Self.DELETE("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
 
                                         // Checking if we have result.
                                         if (null == resp)
                                             continue;
+
+                                        // First deleting other direction map.
+                                        rel.MirrorRelationRef.Delete();
 
                                         // Deleting the relation, since we are about to delete objects.
                                         rel.Delete();
@@ -385,6 +407,7 @@ namespace Starcounter.Extensions {
 
                         DbMapInfo dbi = new DbMapInfo() {
                             ToClassFullName = toClassFullName,
+                            FromClassFullName = fromClassFullName,
                             MethodSpaceProcessedFromUriSpace = methodSpaceProcessedFromUriSpace
                         };
                     });
