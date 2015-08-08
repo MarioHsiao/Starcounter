@@ -188,6 +188,9 @@ const int32_t INVALID_PORT_NUMBER = 0;
 // Bad URI index.
 const uri_index_type INVALID_URI_INDEX = -1;
 
+// Bad reverse proxy index.
+const uri_index_type INVALID_RP_INDEX = -1;
+
 // Invalid parameter index in user delegate.
 const uint8_t INVALID_PARAMETER_INDEX = 255;
 
@@ -453,6 +456,14 @@ uint32_t GatewayTestSample(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_info,
+    bool* is_handled);
+
+// Updates configuration for Gateway.
+uint32_t GatewayUpdateConfiguration(
+    HandlersList* hl,
+    GatewayWorker *gw,
+    SocketDataChunkRef sd, 
+    BMX_HANDLER_TYPE handler_id, 
     bool* is_handled);
 
 // Profilers statistics for Gateway.
@@ -1261,6 +1272,10 @@ struct ReverseProxyInfo
     std::string matching_method_and_uri_processed_;
     int32_t matching_method_and_uri_processed_len_;
 
+    // Host name.
+    std::string matching_host_;
+    int32_t matching_host_len_;
+
     // IP address of the destination server.
     std::string destination_ip_;
 
@@ -1272,6 +1287,27 @@ struct ReverseProxyInfo
 
     // Proxied service address socket info.
     sockaddr_in destination_addr_;
+
+    // Resetting the proxy info.
+    void Reset() {
+
+        matching_method_and_uri_ = std::string();
+        matching_method_and_uri_len_ = 0;
+
+        matching_method_and_uri_processed_ = std::string();
+        matching_method_and_uri_processed_len_ = 0;
+
+        matching_host_ = std::string();
+        matching_host_len_ = 0;
+
+        destination_ip_ = std::string();
+
+        destination_port_ = INVALID_PORT_NUMBER;
+
+        sc_proxy_port_ = INVALID_PORT_NUMBER;
+
+        destination_addr_ = sockaddr_in();
+    }
 };
 
 class GatewayLogWriter
@@ -1506,6 +1542,32 @@ class Gateway
 
 public:
 
+    ReverseProxyInfo* GetReverseProxyInfo(int32_t reverse_proxy_index) {
+        GW_ASSERT(reverse_proxy_index >= 0);
+        GW_ASSERT(reverse_proxy_index < num_reversed_proxies_);
+        return reverse_proxies_ + reverse_proxy_index;
+    }
+
+    // Comparing given host header with registered reverse proxies hosts.
+    int32_t GetHostHeaderIndexInReverseProxy(const char* const host_header_value, const size_t value_len, const uint16_t port) {
+
+        // Checking each reverse proxy info.
+        for (int32_t i = 0; i < num_reversed_proxies_; i++) {
+
+            // Checking if port is also the same.
+            if (reverse_proxies_[i].sc_proxy_port_ == port) {
+
+                // Checking proxy host is exactly the same as host header value.
+                if (0 == reverse_proxies_[i].matching_host_.compare(0, value_len, host_header_value, value_len)) {
+
+                    return i;
+                }
+            }
+        }
+
+        return INVALID_RP_INDEX;
+    }
+
     // Find certain URI entry.
     uri_index_type CheckIfGatewayHandler(const char* method_uri_space, const int32_t method_uri_space_len);
 
@@ -1561,6 +1623,9 @@ public:
 
     // Registering all gateway handlers.
     uint32_t RegisterGatewayHandlers();
+
+    // Updating reverse proxies.
+    uint32_t UpdateReverseProxies();
 
     // Handle to Starcounter log.
     MixedCodeConstants::server_log_handle_type get_sc_log_handle()
@@ -1980,7 +2045,13 @@ public:
     Gateway();
 
     // Load settings from XML.
-    uint32_t LoadSettings(std::wstring configFilePath);
+    uint32_t LoadSettings();
+
+    // Load proxy configuration from XML.
+    uint32_t LoadReverseProxies();
+
+    // Getting gateway configuration XML contents.
+    std::string GetConfigXmlContents();
 
     // Assert some correct state parameters.
     uint32_t AssertCorrectState();

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <NetworkGateway>
-  <!-- IP address of the master node -->
-  <MasterIP></MasterIP>
-
+    
   <!-- Number of worker threads -->
   <WorkersNumber>2</WorkersNumber>
   

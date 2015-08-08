@@ -498,7 +498,8 @@ public:
         GatewayWorker *gw,
         SocketDataChunkRef sd,
         BMX_HANDLER_TYPE handler_id,
-        bool* is_handled);
+        bool* is_handled,
+        int32_t reverse_proxy_index);
 };
 
 int32_t ConstructHttp400(

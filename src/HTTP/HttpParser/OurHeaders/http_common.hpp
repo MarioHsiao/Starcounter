@@ -19,6 +19,7 @@ enum HttpWsFields
     REFERRER_FIELD,
     XREFERRER_FIELD,
     COOKIE_FIELD,
+    HOST_FIELD,
     CONTENT_LENGTH_FIELD,
     ACCEPT_FIELD,
     ACCEPT_ENCODING_FIELD,
@@ -39,6 +40,15 @@ inline HttpWsFields DetermineField(const char *at, size_t length)
 {
     // NOTE: First checking assuming "standard" case sensitivity.
     switch (length) {
+
+        case 4: { // Host
+
+            if (*(int32_t*)at == *(int32_t*)"Host") {
+                return HOST_FIELD;
+            }
+
+            break;
+        }
 
         case 6: { // Cookie
 

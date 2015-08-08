@@ -652,19 +652,19 @@ ServerPort::~ServerPort()
 {
 }
 
-// Loads configuration settings from provided XML file.
-uint32_t Gateway::LoadSettings(std::wstring configFilePath)
-{
+// Getting gateway configuration XML contents.
+std::string Gateway::GetConfigXmlContents() {
+
     // Opening file stream.
     std::ifstream config_file_stream;
-    config_file_stream.open(configFilePath);
+    config_file_stream.open(setting_config_file_path_);
     if (!config_file_stream.is_open())
     {
         config_file_stream.open(GW_DEFAULT_CONFIG_NAME);
         if (!config_file_stream.is_open())
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Settings file stream can't be opened.");
-            return SCERRBADGATEWAYCONFIG;
+            return NULL;
         }
     }
 
@@ -672,14 +672,225 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
     std::stringstream str_stream;
     str_stream << config_file_stream.rdbuf();
     std::string tmp_str = str_stream.str();
-    char* config_contents = GwNewArray(char, tmp_str.size() + 1);
-    strcpy_s(config_contents, tmp_str.size() + 1, tmp_str.c_str());
+
+    return tmp_str;
+}
+
+// Loads reverse proxies configuration settings from provided XML file.
+uint32_t Gateway::LoadReverseProxies()
+{
+    std::string config_contents_str = GetConfigXmlContents();
+    if (0 == config_contents_str.length()) {
+        return SCERRBADGATEWAYCONFIG;
+    }
+
+    ReverseProxyInfo proxies[MAX_PROXIED_URIS];
+    int32_t n = 0;
 
     try
     {
+        char* tmp = (char*) config_contents_str.c_str();
         using namespace rapidxml;
         xml_document<> doc; // Character type defaults to char.
-        doc.parse<0>(config_contents); // 0 means default parse flags.
+        doc.parse<0>(tmp); // 0 means default parse flags.
+
+        xml_node<> *root_elem = doc.first_node("NetworkGateway");
+        if (!root_elem)
+        {
+            g_gateway.LogWriteCritical(L"Gateway XML: Can't read NetworkGateway property.");
+            return SCERRBADGATEWAYCONFIG;
+        }
+
+        // Getting local interfaces.
+        xml_node<>* node_elem = NULL;
+
+        // Checking if we have reverse proxies.
+        xml_node<char>* proxies_node = root_elem->first_node("ReverseProxies");
+        if (proxies_node)
+        {
+            xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
+            if (!proxy_node)
+            {
+                g_gateway.LogWriteCritical(L"Gateway XML: Can't read ReverseProxy property.");
+                return SCERRBADGATEWAYCONFIG;
+            }
+
+            while (proxy_node)
+            {
+                // Resetting proxy info.
+                proxies[n].Reset();
+
+                // Filling reverse proxy information.
+                node_elem = proxy_node->first_node("DestinationDNS");
+                if (NULL == node_elem)
+                {
+                    node_elem = proxy_node->first_node("DestinationIP");
+
+                    if (NULL == node_elem) {
+
+                        g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationIP property. Either DestinationDNS or DestinationIP property should be specified.");
+                        return SCERRBADGATEWAYCONFIG;
+                    }
+                    proxies[n].destination_ip_ = node_elem->value();
+
+                    // Checking destination IP correctness.
+                    for (int32_t i = 0; i < proxies[n].destination_ip_.length(); i++) {
+
+                        char c = proxies[n].destination_ip_[i];
+
+                        // Checking if not a digit.
+                        if (!isdigit(c)) {
+
+                            // Checking if not a dot.
+                            if ('.' != c) {
+
+                                g_gateway.LogWriteCritical(L"Gateway XML: DestinationIP property contains illegal characters which is not an IP address.");
+                                return SCERRBADGATEWAYCONFIG;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    addrinfo *dns_addr_info = NULL;
+
+                    // Obtaining server IP from DNS name.
+                    uint32_t err_code = GetAddrInfoA(node_elem->value(), NULL, NULL, &dns_addr_info);
+                    if (err_code)
+                    {
+                        std::wstring temp = L"Reverse proxy: Can't obtain IP address from DNS name: ";
+                        std::wstring ws_temp;
+                        std::string s_temp = node_elem->value();
+                        ws_temp.assign(s_temp.begin(), s_temp.end());
+                        temp += ws_temp;
+
+                        g_gateway.LogWriteCritical(temp.c_str());
+                        return SCERRBADGATEWAYCONFIG;
+                    }
+
+                    // Checking if its IPv4 address.
+                    if (dns_addr_info->ai_family != AF_INET)
+                    {
+                        std::wstring temp = L"Reverse proxy: Only resolved IPv4 addresses are supported at the moment: ";
+                        std::wstring ws_temp;
+                        std::string s_temp = node_elem->value();
+                        ws_temp.assign(s_temp.begin(), s_temp.end());
+                        temp += ws_temp;
+
+                        g_gateway.LogWriteCritical(temp.c_str());
+                        return SCERRBADGATEWAYCONFIG;
+                    }
+
+                    // Getting the first IP address.
+                    proxies[n].destination_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
+                }
+
+                node_elem = proxy_node->first_node("DestinationPort");
+                if (!node_elem)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationPort property.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                proxies[n].destination_port_ = atoi(node_elem->value());
+                if ((proxies[n].destination_port_ <= 0) || (proxies[n].destination_port_  >= 65536))
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect DestinationPort number.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                node_elem = proxy_node->first_node("StarcounterProxyPort");
+                if (!node_elem)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read StarcounterProxyPort property.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                std::string sc_proxy_port_string = node_elem->value();
+
+                proxies[n].sc_proxy_port_ = atoi(node_elem->value());
+                if ((proxies[n].sc_proxy_port_ <= 0) || (proxies[n].sc_proxy_port_  >= 65536))
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect StarcounterProxyPort number.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                // Checking that destination port and proxy port are different.
+                if (proxies[n].sc_proxy_port_ == proxies[n].destination_port_) {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy should not have the same destination port as proxy port.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                node_elem = proxy_node->first_node("MatchingMethodAndUri");
+
+                if (NULL != node_elem) {
+
+                    proxies[n].matching_method_and_uri_ = node_elem->value();
+                    proxies[n].matching_method_and_uri_processed_ = proxies[n].matching_method_and_uri_ + " ";
+
+                    proxies[n].matching_method_and_uri_len_ = static_cast<int32_t> (proxies[n].matching_method_and_uri_.length());
+                    proxies[n].matching_method_and_uri_processed_len_ = proxies[n].matching_method_and_uri_len_ + 1;
+                }
+
+                node_elem = proxy_node->first_node("MatchingHost");
+
+                if (NULL != node_elem) {
+
+                    proxies[n].matching_host_ = node_elem->value();
+
+                    // We need to append port number to host in case if proxy port is not 80.
+                    if (80 != proxies[n].sc_proxy_port_) {
+                        proxies[n].matching_host_.append(":");
+                        proxies[n].matching_host_.append(sc_proxy_port_string);
+                    }
+
+                    proxies[n].matching_host_len_ = static_cast<int32_t> (proxies[n].matching_host_.length());
+                }
+
+                // Loading proxied servers.
+                sockaddr_in* server_addr = &proxies[n].destination_addr_;
+                memset(server_addr, 0, sizeof(sockaddr_in));
+                server_addr->sin_family = AF_INET;
+                server_addr->sin_addr.s_addr = inet_addr(proxies[n].destination_ip_.c_str());
+                server_addr->sin_port = htons(proxies[n].destination_port_);
+
+                // Getting next reverse proxy information.
+                proxy_node = proxy_node->next_sibling("ReverseProxy");
+
+                n++;
+            }
+        }
+    }
+    catch (...)
+    {
+        g_gateway.LogWriteCritical(L"Gateway XML: Internal error occurred when loading reverse proxy settings.");
+        GW_COUT << "Error loading gateway XML settings!" << GW_ENDL;
+        return SCERRBADGATEWAYCONFIG;
+    }
+
+    // Applying new proxy settings.
+    num_reversed_proxies_ = n;
+    for (int32_t i = 0; i < n; i++) {
+        reverse_proxies_[i] = proxies[i];
+    }
+
+    return 0;
+}
+
+// Loads configuration settings from provided XML file.
+uint32_t Gateway::LoadSettings()
+{
+    std::string config_contents_str = GetConfigXmlContents();
+    if (config_contents_str.length() == 0) {
+        return SCERRBADGATEWAYCONFIG;
+    }
+
+    try
+    {
+        char* tmp = (char*) config_contents_str.c_str();
+        using namespace rapidxml;
+        xml_document<> doc; // Character type defaults to char.
+        doc.parse<0>(tmp); // 0 means default parse flags.
 
         xml_node<> *root_elem = doc.first_node("NetworkGateway");
         if (!root_elem)
@@ -795,117 +1006,6 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         // Initializing global timer.
         global_timer_unsafe_ = min_inactive_socket_life_seconds_;
 
-        // Checking if we have reverse proxies.
-        xml_node<char>* proxies_node = root_elem->first_node("ReverseProxies");
-        if (proxies_node)
-        {
-            xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
-            if (!node_elem)
-            {
-                g_gateway.LogWriteCritical(L"Gateway XML: Can't read ReverseProxy property.");
-                return SCERRBADGATEWAYCONFIG;
-            }
-
-            int32_t n = 0;
-            while (proxy_node)
-            {
-                // Filling reverse proxy information.
-                node_elem = proxy_node->first_node("DestinationDNS");
-                if (!node_elem)
-                {
-                    node_elem = proxy_node->first_node("DestinationIP");
-                    if (!node_elem)
-                    {
-                        g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationIP property. Either DestinationDNS or DestinationIP property should be specified.");
-                        return SCERRBADGATEWAYCONFIG;
-                    }
-                    reverse_proxies_[n].destination_ip_ = node_elem->value();
-                }
-                else
-                {
-                    addrinfo *dns_addr_info = NULL;
-
-                    // Obtaining server IP from DNS name.
-                    uint32_t err_code = GetAddrInfoA(node_elem->value(), NULL, NULL, &dns_addr_info);
-                    if (err_code)
-                    {
-                        std::wstring temp = L"Reverse proxy: Can't obtain IP address from DNS name: ";
-                        std::wstring ws_temp;
-                        std::string s_temp = node_elem->value();
-                        ws_temp.assign(s_temp.begin(), s_temp.end());
-                        temp += ws_temp;
-
-                        g_gateway.LogWriteCritical(temp.c_str());
-                        return SCERRBADGATEWAYCONFIG;
-                    }
-
-                    // Checking if its IPv4 address.
-                    if (dns_addr_info->ai_family != AF_INET)
-                    {
-                        std::wstring temp = L"Reverse proxy: Only resolved IPv4 addresses are supported at the moment: ";
-                        std::wstring ws_temp;
-                        std::string s_temp = node_elem->value();
-                        ws_temp.assign(s_temp.begin(), s_temp.end());
-                        temp += ws_temp;
-
-                        g_gateway.LogWriteCritical(temp.c_str());
-                        return SCERRBADGATEWAYCONFIG;
-                    }
-
-                    // Getting the first IP address.
-                    reverse_proxies_[n].destination_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
-                }
-
-                node_elem = proxy_node->first_node("DestinationPort");
-                if (!node_elem)
-                {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationPort property.");
-                    return SCERRBADGATEWAYCONFIG;
-                }
-
-                reverse_proxies_[n].destination_port_ = atoi(node_elem->value());
-                if (reverse_proxies_[n].destination_port_ <= 0 || reverse_proxies_[n].destination_port_  >= 65536)
-                {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect DestinationPort number.");
-                    return SCERRBADGATEWAYCONFIG;
-                }
-
-                node_elem = proxy_node->first_node("StarcounterProxyPort");
-                if (!node_elem)
-                {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read StarcounterProxyPort property.");
-                    return SCERRBADGATEWAYCONFIG;
-                }
-
-                reverse_proxies_[n].sc_proxy_port_ = atoi(node_elem->value());
-                if (reverse_proxies_[n].sc_proxy_port_ <= 0 || reverse_proxies_[n].sc_proxy_port_  >= 65536)
-                {
-                    g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect StarcounterProxyPort number.");
-                    return SCERRBADGATEWAYCONFIG;
-                }
-
-                node_elem = proxy_node->first_node("MatchingMethodAndUri");
-                reverse_proxies_[n].matching_method_and_uri_ = node_elem->value();
-                reverse_proxies_[n].matching_method_and_uri_processed_ = reverse_proxies_[n].matching_method_and_uri_ + " ";
-
-                reverse_proxies_[n].matching_method_and_uri_len_ = static_cast<int32_t> (reverse_proxies_[n].matching_method_and_uri_.length());
-                reverse_proxies_[n].matching_method_and_uri_processed_len_ = reverse_proxies_[n].matching_method_and_uri_len_ + 1;
-
-                // Loading proxied servers.
-                sockaddr_in* server_addr = &reverse_proxies_[n].destination_addr_;
-                memset(server_addr, 0, sizeof(sockaddr_in));
-                server_addr->sin_family = AF_INET;
-                server_addr->sin_addr.s_addr = inet_addr(reverse_proxies_[n].destination_ip_.c_str());
-                server_addr->sin_port = htons(reverse_proxies_[n].destination_port_);
-
-                // Getting next reverse proxy information.
-                proxy_node = proxy_node->next_sibling("ReverseProxy");
-
-                n++;
-            }
-
-            num_reversed_proxies_ = n;
-        }
     }
     catch (...)
     {
@@ -914,9 +1014,7 @@ uint32_t Gateway::LoadSettings(std::wstring configFilePath)
         return SCERRBADGATEWAYCONFIG;
     }
 
-    GwDeleteArray(config_contents);
-
-    return 0;
+    return LoadReverseProxies();
 }
 
 // Assert some correct state parameters.
@@ -1197,6 +1295,13 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 
     // Releasing global lock.
     gw->LeaveGlobalLock();
+
+    // Reporting to server log if we are trying to register a handler duplicate.
+    if (SCERRHANDLERALREADYREGISTERED == err_code) {
+        wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, processed_uri_info);
+        g_gateway.LogWriteError(temp);
+    }
 
     if (err_code) {
 
@@ -1856,6 +1961,63 @@ uint32_t Gateway::Init()
     return 0;
 }
 
+// Updating reverse proxies.
+uint32_t Gateway::UpdateReverseProxies() {
+
+    uint32_t err_code;
+
+    // Registering all proxies.
+    for (int32_t i = 0; i < num_reversed_proxies_; i++)
+    {
+        // Checking if reverse proxy is based on URI (not only Host-proxy in comparison).
+        if (reverse_proxies_[i].matching_method_and_uri_.length() > 0) {
+
+            // Registering URI handlers.
+            err_code = AddUriHandler(
+                &gw_workers_[0],
+                reverse_proxies_[i].sc_proxy_port_,
+                "gateway",
+                reverse_proxies_[i].matching_method_and_uri_.c_str(),
+                reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
+                NULL,
+                0,
+                bmx::BMX_INVALID_HANDLER_INFO,
+                INVALID_DB_INDEX,
+                GatewayUriProcessProxy,
+                false,
+                reverse_proxies_ + i);
+
+            if (err_code && (SCERRHANDLERALREADYREGISTERED != err_code)) {
+                return err_code;
+            }
+
+        } else {
+
+            uint8_t param_types[2] = { 0, 0 };
+
+            // Registering URI handler for gateway statistics.
+            err_code = AddUriHandler(
+                &gw_workers_[0],
+                reverse_proxies_[i].sc_proxy_port_,
+                "gateway",
+                "{?} {?}",
+                "@s @w ",
+                param_types,
+                2,
+                bmx::BMX_INVALID_HANDLER_INFO,
+                INVALID_DB_INDEX,
+                AppsUriProcessData,
+                true);
+
+            if (err_code && (SCERRHANDLERALREADYREGISTERED != err_code)) {
+                return err_code;
+            }
+        }
+    }
+
+    return 0;
+}
+
 uint32_t Gateway::RegisterGatewayHandlers() {
 
     uint32_t err_code = 0;
@@ -1950,6 +2112,23 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         &gw_workers_[0],
         setting_internal_system_port_,
         "gateway",
+        "GET /updateconfiguration",
+        "GET /updateconfiguration ",
+        NULL,
+        0,
+        bmx::BMX_INVALID_HANDLER_INFO,
+        INVALID_DB_INDEX,
+        GatewayUpdateConfiguration,
+        true);
+
+    if (err_code)
+        return err_code;
+
+    // Registering URI handler for gateway statistics.
+    err_code = AddUriHandler(
+        &gw_workers_[0],
+        setting_internal_system_port_,
+        "gateway",
         "GET /profiler/gateway",
         "GET /profiler/gateway ",
         NULL,
@@ -1962,27 +2141,10 @@ uint32_t Gateway::RegisterGatewayHandlers() {
     if (err_code)
         return err_code;
 
-    // Registering all proxies.
-    for (int32_t i = 0; i < num_reversed_proxies_; i++)
-    {
-        // Registering URI handlers.
-        err_code = AddUriHandler(
-            &gw_workers_[0],
-            reverse_proxies_[i].sc_proxy_port_,
-            "gateway",
-            reverse_proxies_[i].matching_method_and_uri_.c_str(),
-            reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
-            NULL,
-            0,
-            bmx::BMX_INVALID_HANDLER_INFO,
-            INVALID_DB_INDEX,
-            GatewayUriProcessProxy,
-            false,
-            reverse_proxies_ + i);
+    err_code = UpdateReverseProxies();
 
-        if (err_code)
-            return err_code;
-    }
+    if (err_code)
+        return err_code;
 
     if (0 != setting_aggregation_port_)
     {
@@ -2946,7 +3108,7 @@ int32_t Gateway::StartGateway()
     }
 
     // Loading configuration settings.
-    err_code = LoadSettings(setting_config_file_path_);
+    err_code = LoadSettings();
     if (err_code)
     {
         GW_COUT << "Loading configuration settings failed." << GW_ENDL;
@@ -3186,10 +3348,6 @@ uint32_t Gateway::AddUriHandler(
     }
     else
     {
-        wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port_num, processed_uri_info);
-        g_gateway.LogWriteError(temp);
-
         // Disallowing handler duplicates.
         return SCERRHANDLERALREADYREGISTERED;
     }

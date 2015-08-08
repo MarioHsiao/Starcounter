@@ -67,7 +67,8 @@ const int32_t kHttpNotFoundMessageLength = static_cast<int32_t> (strlen(kHttpNot
 
 __declspec(thread) http_parser g_ts_http_parser_;
 __declspec(thread) uint8_t g_ts_last_field_;
-__declspec(thread) bool g_xhreferer_read_;
+__declspec(thread) int32_t g_ts_reverse_proxy_index_;
+__declspec(thread) bool g_ts_xhreferer_read_;
 __declspec(thread) SocketDataChunk* g_ts_sd_;
 __declspec(thread) GatewayWorker* g_ts_gw_;
 __declspec(thread) HttpRequest* g_ts_http_request_;
@@ -335,10 +336,18 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
     // Processing last field type.
     switch (g_ts_last_field_)
     {
+        case HOST_FIELD: {
+            if (!g_ts_sd_->HasProxySocket()) {
+                g_ts_reverse_proxy_index_ = g_gateway.GetHostHeaderIndexInReverseProxy(at, length, g_ts_sd_->GetPortNumber());
+            }
+            
+            break;
+        }
+
         case REFERRER_FIELD:
         {
             // Do nothing if X-Referer field is already processed.
-            if (g_xhreferer_read_)
+            if (g_ts_xhreferer_read_)
                 break;
         }
 
@@ -357,7 +366,7 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
 
                 // Checking if X-Referer field is read.
                 if (XREFERRER_FIELD == g_ts_last_field_)
-                    g_xhreferer_read_ = true;
+                    g_ts_xhreferer_read_ = true;
             }
 
             break;
@@ -374,7 +383,7 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
             ((char*)at)[length - 1] = c;
 
             // XReferer has higher priority and overrides session value.
-            if (session_cookie && !g_xhreferer_read_)
+            if (session_cookie && !g_ts_xhreferer_read_)
             {
                 // Skipping session cookie name and equals character.
                 int32_t offset = MixedCodeConstants::ScSessionCookieNameLength + 1;
@@ -523,15 +532,22 @@ uint32_t HttpProto::HttpUriDispatcher(
     HandlersList* hl,
     GatewayWorker *gw,
     SocketDataChunkRef sd,
-    BMX_HANDLER_TYPE handler_index,
+    BMX_HANDLER_TYPE handler_id,
     bool* is_handled)
 {
+    // Checking if we are proxying on this socket.
+    if (sd->HasProxySocket()) {
+
+        // Just running proxy processing.
+        return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, is_handled, INVALID_RP_INDEX);
+    }
+
     // Checking if data goes to user code.
     if (sd->get_to_database_direction_flag())
     {
         // Checking if we are already passed the WebSockets handshake.
         if (sd->is_web_socket())
-            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_index, is_handled);
+            return sd->get_ws_proto()->ProcessWsDataToDb(gw, sd, handler_id, is_handled);
 
         // Obtaining method and URI.
         char* method_space_uri_space = (char*) sd->get_data_blob_start();
@@ -557,7 +573,7 @@ uint32_t HttpProto::HttpUriDispatcher(
                     sd->set_unknown_proxied_proto_flag();
 
                     // Just running proxy processing.
-                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_index, is_handled);
+                    return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, is_handled, INVALID_RP_INDEX);
                 }
 
                 // Returning socket to receiving state.
@@ -698,7 +714,7 @@ HANDLER_MATCHED:
     else
     {
         // Just running standard response processing.
-        return AppsHttpWsProcessData(hl, gw, sd, handler_index, is_handled);
+        return AppsHttpWsProcessData(hl, gw, sd, handler_id, is_handled);
     }
 
     return 0;
@@ -711,7 +727,8 @@ void HttpProto::ResetParser(GatewayWorker *gw, SocketDataChunkRef sd)
     g_ts_http_request_ = sd->get_http_proto()->get_http_request();
     g_ts_sd_ = sd;
     g_ts_gw_ = gw;
-    g_xhreferer_read_ = false;
+    g_ts_xhreferer_read_ = false;
+    g_ts_reverse_proxy_index_ = INVALID_RP_INDEX;
 
     http_request_.Reset();
 
@@ -753,9 +770,13 @@ uint32_t HttpProto::AppsHttpWsProcessData(
             (const char *)sd->get_data_blob_start(),
             sd->get_accumulated_len_bytes());
 
-        // Checking if we should continue receiving the headers.
-        if (!sd->get_complete_header_flag())
-        {
+        // Checking if we have a reverse proxy on host.
+        if (INVALID_RP_INDEX != g_ts_reverse_proxy_index_) { 
+            
+            return GatewayHttpWsReverseProxy(NULL, gw, sd, handler_id, is_handled, g_ts_reverse_proxy_index_);
+
+        } else if (!sd->get_complete_header_flag()) { // Checking if we should continue receiving the headers.
+
             // NOTE: At this point we don't really know here what the final size of the request will be.
             // That is why we just extend the chunk to next bigger one, without specifying the size.
 
@@ -783,8 +804,8 @@ uint32_t HttpProto::AppsHttpWsProcessData(
         http_request_.request_len_bytes_ = http_request_.content_offset_ - http_request_.request_offset_ + http_request_.content_len_bytes_;
 
         // Checking if we have WebSockets upgrade.
-        if (g_ts_http_parser_.upgrade)
-        {
+        if (g_ts_http_parser_.upgrade) {
+
 #ifdef GW_WEBSOCKET_DIAG
             GW_COUT << "Upgrade to another protocol detected, data: " << GW_ENDL;
 #endif
@@ -972,7 +993,7 @@ uint32_t AppsUriProcessData(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 // HTTP/WebSockets handler for Gateway proxy.
 uint32_t GatewayUriProcessProxy(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    return sd->get_http_proto()->GatewayHttpWsReverseProxy(hl, gw, sd, handler_id, is_handled);
+    return sd->get_http_proto()->GatewayHttpWsReverseProxy(hl, gw, sd, handler_id, is_handled, INVALID_RP_INDEX);
 }
 
 // Reverse proxies the HTTP traffic.
@@ -981,7 +1002,8 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
     GatewayWorker *gw,
     SocketDataChunkRef sd,
     BMX_HANDLER_TYPE handler_id,
-    bool* is_handled)
+    bool* is_handled,
+    int32_t reverse_proxy_index)
 {
     uint32_t err_code;
 
@@ -1028,7 +1050,16 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
         sd->PrepareToSendOnProxy();
 
         // Getting proxy information.
-        ReverseProxyInfo* proxy_info = hl->get_reverse_proxy_info();
+        ReverseProxyInfo* proxy_info = NULL;
+
+        if (INVALID_RP_INDEX == reverse_proxy_index) {
+
+            proxy_info = hl->get_reverse_proxy_info();
+
+        } else {
+
+            proxy_info = g_gateway.GetReverseProxyInfo(reverse_proxy_index);
+        }
 
         // Connecting to the server.
         return gw->Connect(sd, &proxy_info->destination_addr_);
@@ -1045,6 +1076,35 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
     *is_handled = true;
 
     return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
+}
+
+// Updates configuration for Gateway.
+uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+    *is_handled = true;
+
+    gw->EnterGlobalLock();
+    
+    uint32_t err_code = g_gateway.LoadReverseProxies();
+
+    if (0 == err_code) {
+        err_code = g_gateway.UpdateReverseProxies();
+    }
+
+    gw->LeaveGlobalLock();
+
+    if (0 == err_code) {
+
+        const char* msg = "Starcounter gateway configuration updated!";
+
+        return gw->SendHttpBody(sd, msg, (int32_t)strlen(msg));
+
+    } else {
+
+        const char* msg = "Error updating gateway configuration. Consult the server log!";
+
+        return gw->SendHttpBody(sd, msg, (int32_t)strlen(msg));
+    }
 }
 
 // Profilers statistics for Gateway.
