@@ -1308,6 +1308,18 @@ struct ReverseProxyInfo
 
         destination_addr_ = sockaddr_in();
     }
+
+    // Printing the proxy info.
+    void PrintInfo(std::stringstream& stats_stream)
+    {
+        stats_stream << "{\"MatchingMethodAndUri\":\"" << matching_method_and_uri_ << "\",";
+        stats_stream << "\"MatchingHost\":\"" << matching_host_ << "\",";
+        stats_stream << "\"DestinationIP\":\"" <<  destination_ip_ << "\",";
+        stats_stream << "\"DestinationPort\":" <<  destination_port_ << ",";
+        stats_stream << "\"StarcounterProxyPort\":" <<  sc_proxy_port_;
+
+        stats_stream << "}";
+    }
 };
 
 class GatewayLogWriter
@@ -1531,6 +1543,7 @@ class Gateway
     std::stringstream global_statistics_stream_;
     std::stringstream global_port_statistics_stream_;
     std::stringstream global_databases_statistics_stream_;
+    std::stringstream global_reverse_proxies_statistics_stream_;
     std::stringstream global_workers_statistics_stream_;
     char global_statistics_string_[MAX_STATS_LENGTH + 1];
 
@@ -1614,6 +1627,9 @@ public:
 
     // Printing statistics for all ports.
     void PrintPortStatistics(std::stringstream& stats_stream);
+
+    // Printing statistics for all reverse proxies.
+    void PrintReverseProxiesStatistics(std::stringstream& stats_stream);
 
     // Printing statistics for all databases.
     void PrintDatabaseStatistics(std::stringstream& stats_stream);

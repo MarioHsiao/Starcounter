@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <NetworkGateway>
     
   <!-- Number of worker threads -->
@@ -23,8 +24,22 @@
 
   <!--
   <ReverseProxies>
+  
+    <ReverseProxy>
+      <DestinationIP>127.0.0.1</DestinationIP>
+      <DestinationPort>8080</DestinationPort>
+      <StarcounterProxyPort>80</StarcounterProxyPort>
+	  <MatchingHost>www.example1.sc</MatchingHost>
+    </ReverseProxy>
+
+	<ReverseProxy>
+      <DestinationIP>127.0.0.1</DestinationIP>
+      <DestinationPort>8282</DestinationPort>
+      <StarcounterProxyPort>80</StarcounterProxyPort>
+	  <MatchingHost>www.example2.sc</MatchingHost>
+    </ReverseProxy>
       
-     <ReverseProxy>
+    <ReverseProxy>
       <DestinationIP>www.starcounter.com</DestinationIP>
       <DestinationPort>80</DestinationPort>
       <StarcounterProxyPort>8181</StarcounterProxyPort>

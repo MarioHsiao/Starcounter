@@ -2237,6 +2237,28 @@ void Gateway::PrintPortStatistics(std::stringstream& stats_stream)
     stats_stream << "]";
 }
 
+// Printing statistics for all reverse proxies.
+void Gateway::PrintReverseProxiesStatistics(std::stringstream& stats_stream)
+{
+    bool first = true;
+
+    // Emptying the statistics stream.
+    stats_stream.str(std::string());
+
+    // Going through all proxies.
+    stats_stream << "[";
+    for (int32_t p = 0; p < num_reversed_proxies_; p++)
+    {
+        if (!first)
+            stats_stream << ",";
+        first = false;
+
+        reverse_proxies_[p].PrintInfo(stats_stream);
+    }
+
+    stats_stream << "]";
+}
+
 // Printing statistics for all databases.
 void Gateway::PrintDatabaseStatistics(std::stringstream& stats_stream)
 {
@@ -2322,15 +2344,24 @@ const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
     // Printing workers statistics.
     PrintWorkersStatistics(global_workers_statistics_stream_);
 
+    // Printing reverse proxies statistics.
+    PrintReverseProxiesStatistics(global_reverse_proxies_statistics_stream_);
+
     // Filing everything into one stream.
     std::stringstream all_stats_stream;
 
     all_stats_stream << "{\"ports\":";
     all_stats_stream << global_port_statistics_stream_.str();
+
     all_stats_stream << ",\"databases\":";
     all_stats_stream << global_databases_statistics_stream_.str();
+
     all_stats_stream << ",\"workers\":";
     all_stats_stream << global_workers_statistics_stream_.str();
+
+    all_stats_stream << ",\"reverseproxies\":";
+    all_stats_stream << global_reverse_proxies_statistics_stream_.str();
+
     all_stats_stream << ",\"global\":";
     all_stats_stream << global_statistics_stream_.str();
     all_stats_stream << "}";
