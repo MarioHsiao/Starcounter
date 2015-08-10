@@ -1097,13 +1097,13 @@ uint32_t GatewayUpdateConfiguration(HandlersList* hl, GatewayWorker *gw, SocketD
 
         const char* msg = "Starcounter gateway configuration updated!";
 
-        return gw->SendHttpBody(sd, msg, (int32_t)strlen(msg));
+        return gw->SendHttp200WithBody(sd, msg, (int32_t)strlen(msg));
 
     } else {
 
-        const char* msg = "Error updating gateway configuration. Consult the server log!";
+        const char* msg = "Error updating gateway to new configuration, current is kept. Consult the server log for details!";
 
-        return gw->SendHttpBody(sd, msg, (int32_t)strlen(msg));
+        return gw->SendHttp500WithBody(sd, msg, (int32_t)strlen(msg));
     }
 }
 
@@ -1125,7 +1125,7 @@ uint32_t GatewayTestSample(HandlersList* hl, GatewayWorker *gw, SocketDataChunkR
 
     *is_handled = true;
 
-    return gw->SendHttpBody(sd, test_msg, (int32_t)strlen(test_msg));
+    return gw->SendHttp200WithBody(sd, test_msg, (int32_t)strlen(test_msg));
 }
 
 // Profilers statistics for Gateway.
@@ -1139,7 +1139,7 @@ uint32_t GatewayProfilersInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 
     gw->LeaveGlobalLock();
 
-    return gw->SendHttpBody(sd, s.c_str(), resp_len_bytes);
+    return gw->SendHttp200WithBody(sd, s.c_str(), resp_len_bytes);
 }
 
 } // namespace network

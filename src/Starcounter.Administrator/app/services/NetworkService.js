@@ -22,7 +22,7 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
     this.getNetworkStatistics = function (successCallback, errorCallback) {
 
         var errorHeader = "Failed to retrieve the Network statistics";
-        var uri = "/gwstats";
+        var uri = "/gw/stats";
 
         $http.get(uri).then(function (response) {
             // Success

@@ -30,7 +30,7 @@ namespace NodeTest {
                 }
             }*/
 
-            new Request { Uri = "/gwtest" },
+            new Request { Uri = "/gw/test" },
             new Request { Uri = "/test" },
             new Request { Uri = "/index.html" },
             new Request { Uri = "/" },
