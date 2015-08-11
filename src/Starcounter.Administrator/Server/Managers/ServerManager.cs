@@ -28,7 +28,7 @@ namespace Administrator.Server.Managers {
 
             ServerManager.RegisterInternalModelApi();
             ServerManager.RegisterFullModelApi();
-            ServerManager.RegisterDatabaseModelApi();
+            ServerManager.RegisterDatabaseModelApi(8182);
 
             //Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (session) => {
             //});
@@ -93,22 +93,6 @@ namespace Administrator.Server.Managers {
                 return response;
             });
 
-            // Incoming patch on http
-            Handle.PATCH("/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
-
-                Json json = TemporaryStorage.Find(id);
-
-                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
-
-                return GetAllowAccessControlResponse();
-            });
-
-            // Options for server model request.
-            Handle.OPTIONS("/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
-
-                return GetAllowAccessControlResponse();
-            });
-
             // Incoming patch on socket
             Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
 
@@ -129,11 +113,11 @@ namespace Administrator.Server.Managers {
         /// <summary>
         /// Register handlers for the database model api
         /// </summary>
-        private static void RegisterDatabaseModelApi() {
+        private static void RegisterDatabaseModelApi(ushort port) {
 
             string socketChannelName = "databaseGroupName";
 
-            Handle.GET("/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
+            Handle.GET(port,"/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
 
                 // Check if the request was a WebSocket request.
                 if (request.WebSocketUpgrade) {
@@ -152,7 +136,7 @@ namespace Administrator.Server.Managers {
                 return 513; // 513 Message Too Large
             });
 
-            Handle.GET("/api/servermodel/{?}", (string databaseName, Request request) => {
+            Handle.GET(port,"/api/servermodel/{?}", (string databaseName, Request request) => {
 
                 // Create view-model
                 DatabaseJson databaseJson = new DatabaseJson();
@@ -175,8 +159,26 @@ namespace Administrator.Server.Managers {
                 return response;
             });
 
+            // Incoming patch on http
+            Handle.PATCH(port,"/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
+
+                Json json = TemporaryStorage.Find(id);
+
+                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
+
+                return GetAllowAccessControlResponse();
+            });
+
+            // Options for server model request.
+            Handle.OPTIONS(port,"/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
+
+                return GetAllowAccessControlResponse();
+            });
+
+
+
             // Incoming patch on socket
-            Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
+            Handle.WebSocket(port,socketChannelName, (string data, WebSocket ws) => {
 
                 if (ws.Session == null) {
                     ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
@@ -199,7 +201,7 @@ namespace Administrator.Server.Managers {
                 return System.Net.HttpStatusCode.NotImplemented;
             });*/
 
-            Handle.WebSocketDisconnect(socketChannelName, (ws) => {
+            Handle.WebSocketDisconnect(port,socketChannelName, (ws) => {
                 // Remove ws.
                 Database database;
                 databaseModelSockets.TryRemove(ws.ToUInt64(), out database);
