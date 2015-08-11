@@ -395,8 +395,12 @@ public:
         const char* message,
         const int32_t message_len);
 
-    // Sends given body.
-    uint32_t SendHttpBody(
+    uint32_t SendHttp200WithBody(
+        SocketDataChunkRef sd,
+        const char* body,
+        const int32_t body_len);
+
+    uint32_t SendHttp500WithBody(
         SocketDataChunkRef sd,
         const char* body,
         const int32_t body_len);

@@ -508,16 +508,27 @@ int32_t ConstructHttp400(
     const std::string& body,
     const int32_t err_code);
 
-const char* const kHttpGenericHtmlHeader =
+const char* const kHttp200Header =
     "HTTP/1.1 200 OK\r\n"
     "Content-Type: text/html\r\n"
     "Cache-control: no-store\r\n"
     "Content-Length: @@@@@@@@\r\n"
     "\r\n";
 
-const int32_t kHttpGenericHtmlHeaderLength = static_cast<int32_t> (strlen(kHttpGenericHtmlHeader));
+const int32_t kHttp200HeaderLength = static_cast<int32_t> (strlen(kHttp200Header));
 
-const int32_t kHttpGenericHtmlHeaderInsertPoint = static_cast<int32_t> (strstr(kHttpGenericHtmlHeader, "@") - kHttpGenericHtmlHeader);
+const int32_t kHttp200HeaderInsertPoint = static_cast<int32_t> (strstr(kHttp200Header, "@") - kHttp200Header);
+
+const char* const kHttp500Header =
+    "HTTP/1.1 500 Internal Server Error\r\n"
+    "Content-Type: text/html\r\n"
+    "Cache-control: no-store\r\n"
+    "Content-Length: @@@@@@@@\r\n"
+    "\r\n";
+
+const int32_t kHttp500HeaderLength = static_cast<int32_t> (strlen(kHttp500Header));
+
+const int32_t kHttp500HeaderInsertPoint = static_cast<int32_t> (strstr(kHttp500Header, "@") - kHttp500Header);
 
 const char* const kHttpStatisticsHeader =
     "HTTP/1.1 200 OK\r\n"

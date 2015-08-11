@@ -1379,29 +1379,29 @@ void GatewayWorker::LoopbackForAggregation(SocketDataChunkRef sd)
 
     memcpy(body, (char*)sd + sd->get_http_proto()->get_http_request()->content_offset_, body_len);
 
-    GW_ASSERT(static_cast<uint32_t>(body_len + kHttpGenericHtmlHeaderLength) < sd->get_data_blob_size());
+    GW_ASSERT(static_cast<uint32_t>(body_len + kHttp200HeaderLength) < sd->get_data_blob_size());
 
     // Getting user data pointer.
     uint8_t* dest_data = sd->get_data_blob_start();
 
     // Copying predefined header.
-    memcpy(dest_data, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
+    memcpy(dest_data, kHttp200Header, kHttp200HeaderLength);
 
     // Making length a white space.
-    *(uint64_t*)(dest_data + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
+    *(uint64_t*)(dest_data + kHttp200HeaderInsertPoint) = 0x2020202020202020;
 
     // Converting content length to string.
-    WriteUIntToString((char*)dest_data + kHttpGenericHtmlHeaderInsertPoint, body_len);
+    WriteUIntToString((char*)dest_data + kHttp200HeaderInsertPoint, body_len);
 
     // Copying body to response.
-    memcpy(dest_data + kHttpGenericHtmlHeaderLength, body, body_len);
+    memcpy(dest_data + kHttp200HeaderLength, body, body_len);
 
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
-    sd->SetUserData(sd->get_data_blob_start(), kHttpGenericHtmlHeaderLength + body_len);
+    sd->SetUserData(sd->get_data_blob_start(), kHttp200HeaderLength + body_len);
 
     // Prepare buffer to send outside.
-    sd->AddAccumulatedBytes(kHttpGenericHtmlHeaderLength + body_len);
+    sd->AddAccumulatedBytes(kHttp200HeaderLength + body_len);
 
     // Running the handlers.
     uint32_t err_code = RunFromDbHandlers(sd);
@@ -2026,8 +2026,7 @@ void GatewayWorker::DeleteInactiveDatabase(db_index_type db_index)
     }
 }
 
-// Sends given body.
-uint32_t GatewayWorker::SendHttpBody(
+uint32_t GatewayWorker::SendHttp200WithBody(
     SocketDataChunkRef sd,
     const char* body,
     const int32_t body_len)
@@ -2036,19 +2035,43 @@ uint32_t GatewayWorker::SendHttpBody(
     char temp_buf[TEMP_BIG_BUFFER_SIZE];
 
     // Copying predefined header.
-    memcpy(temp_buf, kHttpGenericHtmlHeader, kHttpGenericHtmlHeaderLength);
+    memcpy(temp_buf, kHttp200Header, kHttp200HeaderLength);
 
     // Making length a white space.
-    *(uint64_t*)(temp_buf + kHttpGenericHtmlHeaderInsertPoint) = 0x2020202020202020;
+    *(uint64_t*)(temp_buf + kHttp200HeaderInsertPoint) = 0x2020202020202020;
 
     // Converting content length to string.
-    WriteUIntToString(temp_buf + kHttpGenericHtmlHeaderInsertPoint, body_len);
+    WriteUIntToString(temp_buf + kHttp200HeaderInsertPoint, body_len);
 
     // Copying body to response.
-    memcpy(temp_buf + kHttpGenericHtmlHeaderLength, body, body_len);
+    memcpy(temp_buf + kHttp200HeaderLength, body, body_len);
 
     // Sending predefined response.
-    return SendPredefinedMessage(sd, temp_buf, kHttpGenericHtmlHeaderLength + body_len);
+    return SendPredefinedMessage(sd, temp_buf, kHttp200HeaderLength + body_len);
+}
+
+uint32_t GatewayWorker::SendHttp500WithBody(
+    SocketDataChunkRef sd,
+    const char* body,
+    const int32_t body_len)
+{
+    GW_ASSERT(body_len < (TEMP_BIG_BUFFER_SIZE - 512));
+    char temp_buf[TEMP_BIG_BUFFER_SIZE];
+
+    // Copying predefined header.
+    memcpy(temp_buf, kHttp500Header, kHttp500HeaderLength);
+
+    // Making length a white space.
+    *(uint64_t*)(temp_buf + kHttp500HeaderInsertPoint) = 0x2020202020202020;
+
+    // Converting content length to string.
+    WriteUIntToString(temp_buf + kHttp500HeaderInsertPoint, body_len);
+
+    // Copying body to response.
+    memcpy(temp_buf + kHttp500HeaderLength, body, body_len);
+
+    // Sending predefined response.
+    return SendPredefinedMessage(sd, temp_buf, kHttp500HeaderLength + body_len);
 }
 
 // Sends given predefined response.
