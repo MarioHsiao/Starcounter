@@ -556,64 +556,64 @@ namespace Starcounter {
         /// </summary>
         public static volatile IREST _REST;
 
-        public static void CUSTOM(String methodAndUriInfo, Func<Response> handler, HandlerOptions ho = null)
+        public static void CUSTOM(String methodSpaceUri, Func<Response> handler, HandlerOptions ho = null)
         {
-            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM(ushort port, String methodAndUriInfo, Func<Response> handler, HandlerOptions ho = null)
+        public static void CUSTOM(ushort port, String methodSpaceUri, Func<Response> handler, HandlerOptions ho = null)
         {
-            _REST.RegisterHandler(port, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler(port, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T>(String methodAndUriInfo, Func<T, Response> handler, HandlerOptions ho = null)
+        public static void CUSTOM<T>(String methodSpaceUri, Func<T, Response> handler, HandlerOptions ho = null)
         {
-            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T>(ushort port, String methodAndUriInfo, Func<T, Response> handler, HandlerOptions ho = null)
+        public static void CUSTOM<T>(ushort port, String methodSpaceUri, Func<T, Response> handler, HandlerOptions ho = null)
         {
-            _REST.RegisterHandler<T>(port, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T>(port, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2>(String methodAndUriInfo, Func<T1, T2, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2>(String methodSpaceUri, Func<T1, T2, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2>(ushort port, String methodAndUriInfo, Func<T1, T2, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2>(ushort port, String methodSpaceUri, Func<T1, T2, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2>(port, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2>(port, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2, T3>(String methodAndUriInfo, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2, T3>(String methodSpaceUri, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2, T3>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2, T3>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2, T3>(ushort port, String methodSpaceUri, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2, T3>(port, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2, T3>(port, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2, T3, T4>(String methodAndUriInfo, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2, T3, T4>(String methodSpaceUri, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2, T3, T4>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2, T3, T4>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2, T3, T4>(ushort port, String methodSpaceUri, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2, T3, T4>(port, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2, T3, T4>(port, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2, T3, T4, T5>(String methodAndUriInfo, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2, T3, T4, T5>(String methodSpaceUri, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);
         }
 
-        public static void CUSTOM<T1, T2, T3, T4, T5>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null) {
+        public static void CUSTOM<T1, T2, T3, T4, T5>(ushort port, String methodSpaceUri, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null) {
 
-            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, methodAndUriInfo, handler, ho);
+            _REST.RegisterHandler<T1, T2, T3, T4, T5>(port, methodSpaceUri, handler, ho);
         }
 
         public static void PUT(String uriTemplate, Func<Response> handler, HandlerOptions ho = null)

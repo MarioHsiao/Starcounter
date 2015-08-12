@@ -506,7 +506,7 @@ namespace Starcounter.Rest
         /// </summary>
         Func<Request, IntPtr, IntPtr, Response> RegisterDelegate(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             MethodInfo userDelegateInfo,
             Expression delegExpr,
             MixedCodeConstants.NetworkProtocolType protoType,
@@ -523,7 +523,7 @@ namespace Starcounter.Rest
                     }
                 }
 
-                String[] s = methodAndUriInfo.Split(null);
+                String[] s = methodSpaceUri.Split(null);
                 String originalUriInfo = null;
                 String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
 
@@ -539,7 +539,7 @@ namespace Starcounter.Rest
 
                     // Checking that HTTP method is upper case.
                     if ((s[0] != s[0].ToUpperInvariant())) {
-                        throw new ArgumentOutOfRangeException(methodAndUriInfo, "HTTP method should be upper-case (HTTP 1.1 RFC).");
+                        throw new ArgumentOutOfRangeException(methodSpaceUri, "HTTP method should be upper-case (HTTP 1.1 RFC).");
                     }
 
 #if CASE_INSENSITIVE_URI_MATCHER
@@ -554,7 +554,7 @@ namespace Starcounter.Rest
                             // Handler name should start with application name or launcher name.
                             if ((!isMapperApp) && (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase))) {
 
-                                throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
+                                throw new ArgumentOutOfRangeException(methodSpaceUri, polyjuiceMsg);
                             }
                         }
                     }
@@ -570,7 +570,7 @@ namespace Starcounter.Rest
                         // Checking that its a Polyjuice handler.
                         if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
 
-                            throw new ArgumentOutOfRangeException(methodAndUriInfo, polyjuiceMsg);
+                            throw new ArgumentOutOfRangeException(methodSpaceUri, polyjuiceMsg);
                         }
                     }
 
@@ -826,7 +826,7 @@ namespace Starcounter.Rest
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -834,17 +834,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<Response>> delegExpr = () => userDelegate();
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -852,17 +852,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, Response>> delegExpr = (p1) => userDelegate(p1);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -870,17 +870,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, Response>> delegExpr = (p1, p2) => userDelegate(p1, p2);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2, T3>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, T3, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -888,17 +888,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, Response>> delegExpr = (p1, p2, p3) => userDelegate(p1, p2, p3);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2, T3, T4>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, T3, T4, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -906,17 +906,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, Response>> delegExpr = (p1, p2, p3, p4) => userDelegate(p1, p2, p3, p4);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2, T3, T4, T5>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, T3, T4, T5, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -924,17 +924,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, Response>> delegExpr = (p1, p2, p3, p4, p5) => userDelegate(p1, p2, p3, p4, p5);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2, T3, T4, T5, T6>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, T3, T4, T5, T6, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -942,17 +942,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, Response>> delegExpr = (p1, p2, p3, p4, p5, p6) => userDelegate(p1, p2, p3, p4, p5, p6);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2, T3, T4, T5, T6, T7>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, T3, T4, T5, T6, T7, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -960,17 +960,17 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7) => userDelegate(p1, p2, p3, p4, p5, p6, p7);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 
         public Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegate<T1, T2, T3, T4, T5, T6, T7, T8>(
             UInt16 port,
-            String methodAndUriInfo,
+            String methodSpaceUri,
             Func<T1, T2, T3, T4, T5, T6, T7, T8, Response> userDelegate,
             HandlerOptions ho,
             MixedCodeConstants.NetworkProtocolType protoType = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1)
@@ -978,11 +978,11 @@ namespace Starcounter.Rest
             if (!userDelegate.Method.IsStatic)
             {
                 Expression<Func<T1, T2, T3, T4, T5, T6, T7, T8, Response>> delegExpr = (p1, p2, p3, p4, p5, p6, p7, p8) => userDelegate(p1, p2, p3, p4, p5, p6, p7, p8);
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, delegExpr, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, delegExpr, protoType, ho);
             }
             else
             {
-                return RegisterDelegate(port, methodAndUriInfo, userDelegate.Method, null, protoType, ho);
+                return RegisterDelegate(port, methodSpaceUri, userDelegate.Method, null, protoType, ho);
             }
         }
 

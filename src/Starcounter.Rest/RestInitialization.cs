@@ -53,17 +53,17 @@ namespace Starcounter.Rest
         /// <summary>
         /// Registers a handler with no parameters
         /// </summary>
-        public void RegisterHandler(ushort port, String methodAndUriInfo, Func<Response> handler, HandlerOptions ho = null)
+        public void RegisterHandler(ushort port, String methodSpaceUri, Func<Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodAndUriInfo, handler, ho);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
 
         /// <summary>
         /// Registers a handler with one parameter
         /// </summary>
-        public void RegisterHandler<T>(ushort port, String methodAndUriInfo, Func<T, Response> handler, HandlerOptions ho = null)
+        public void RegisterHandler<T>(ushort port, String methodSpaceUri, Func<T, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodAndUriInfo, handler, ho);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
 
         /// <summary>
@@ -73,33 +73,33 @@ namespace Starcounter.Rest
         /// <typeparam name="T2">The type of the second parameter.</typeparam>
         /// <param name="verbAndUri">The verb and uri of the request. For example GET /things/123</param>
         /// <param name="handler">The code to call when receiving the request</param>
-        public void RegisterHandler<T1, T2>(ushort port, String methodAndUriInfo, Func<T1, T2, Response> handler, HandlerOptions ho = null)
+        public void RegisterHandler<T1, T2>(ushort port, String methodSpaceUri, Func<T1, T2, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodAndUriInfo, handler, ho);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
 
         /// <summary>
         /// Registers a handler with three parameters
         /// </summary>
-        public void RegisterHandler<T1, T2, T3>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null)
+        public void RegisterHandler<T1, T2, T3>(ushort port, String methodSpaceUri, Func<T1, T2, T3, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodAndUriInfo, handler, ho);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
 
         /// <summary>
         /// Registers a handler with four parameters
         /// </summary>
-        public void RegisterHandler<T1, T2, T3, T4>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null)
+        public void RegisterHandler<T1, T2, T3, T4>(ushort port, String methodSpaceUri, Func<T1, T2, T3, T4, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodAndUriInfo, handler, ho);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
 
         /// <summary>
         /// Registers a handler with five parameters
         /// </summary>
-        public void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null)
+        public void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, String methodSpaceUri, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null)
         {
-            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodAndUriInfo, handler, ho);
+            UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
     }
 
