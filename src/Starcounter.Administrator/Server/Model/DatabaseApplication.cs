@@ -68,6 +68,19 @@ namespace Administrator.Server.Model {
                 this.OnPropertyChanged("IsInstalled");
             }
         }
+
+        private bool _CanBeUninstalled;
+        public bool CanBeUninstalled {
+            get {
+                return this._CanBeUninstalled;
+            }
+            set {
+                if (this._CanBeUninstalled == value) return;
+                this._CanBeUninstalled = value;
+                this.OnPropertyChanged("CanBeUninstalled");
+            }
+        }
+
         private bool _IsRunning;
         public bool IsRunning {
             get {
@@ -648,7 +661,7 @@ namespace Administrator.Server.Model {
             applicationJson.VersionDate = this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
             applicationJson.DatabaseName = this.DatabaseName;
             applicationJson.ImageUri = string.IsNullOrEmpty(this.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), this.ImageUri); // Use default image?
-
+            applicationJson.CanBeUninstalled = this.CanBeUninstalled;
             return applicationJson;
         }
 
@@ -683,6 +696,7 @@ namespace Administrator.Server.Model {
             application.SourceID = string.Empty;
             application.SourceUrl = string.Empty;   // TODO: Maybe use file://abc/123.exe ?
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
+            application.CanBeUninstalled = false;
             return application;
         }
 
@@ -714,6 +728,7 @@ namespace Administrator.Server.Model {
             application.Arguments = string.Empty;
             application.SourceID = item.SourceID;
             application.SourceUrl = item.SourceUrl;
+            application.CanBeUninstalled = item.CanBeUninstalled;
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetDeployFolder(database.ID)));
             return application;
         }
@@ -757,6 +772,7 @@ namespace Administrator.Server.Model {
             application.SourceID = string.Empty;
             application.SourceUrl = string.Empty; // TODO: Maybe use file://abc/123.exe ?
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(application.Executable));
+            application.CanBeUninstalled = false;
             return application;
         }
 
