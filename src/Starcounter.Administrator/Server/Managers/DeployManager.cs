@@ -38,7 +38,7 @@ namespace Administrator.Server.Managers {
         /// </summary>
         /// <param name="application"></param>
         /// <returns></returns>
-        private static DeployedConfigFile GetItemFromApplication(DatabaseApplication application) {
+        public static DeployedConfigFile GetItemFromApplication(DatabaseApplication application) {
 
             IList<DeployedConfigFile> items = DeployManager.GetItems(application.DatabaseName);
             foreach (var item in items) {
@@ -137,6 +137,13 @@ namespace Administrator.Server.Managers {
         internal static void Delete(DatabaseApplication application, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
 
             try {
+
+                if (application.CanBeUninstalled == false) {
+                    if (errorCallback != null) {
+                        errorCallback("Can not delete locked application");
+                    }
+                    return;
+                }
 
                 if (application.IsRunning) {
                     if (errorCallback != null) {

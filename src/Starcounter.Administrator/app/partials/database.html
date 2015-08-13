@@ -1,4 +1,16 @@
 ﻿<!-- Database -->
+<style>
+
+    .padlock {
+        border: 0px;
+        background-color:transparent;
+        width: 20px;
+        outline: none;
+    }
+
+</style>
+
+
 <div class="panel panel-default" ng-show="database">
 
     <table class="table">
@@ -48,9 +60,6 @@
                 </td>
 
                 <td class="vert-align">
-
-
-
                     <div ng-show="database && database.Applications.length > 0" data-toggle="buttons-radio" style="margin-left: 20px">
 
                         <div class="btn-group pull-right btn-group-sm" data-toggle="buttons">
@@ -102,7 +111,7 @@
                 </td>
 
                 <!-- Buttons -->
-                <td class="vert-align" style="width: 300px; background: rgba(0, 0, 0, 0.0)">
+                <td class="vert-align" style="width: 318px; background: rgba(0, 0, 0, 0.0)">
 
                     <div class="btn-group-sm">
                         <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
@@ -110,6 +119,8 @@
                         <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Start Application when database starts">Auto-Start (OFF)</button>
                         <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Start Application when database starts">Auto-Start (ON)</button>
                         <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
+                        <button ng-show="application.CanBeUninstalled$ && application.IsDeployed" style="color:#aaaaaa" class="padlock" ng-click="application.CanBeUninstalled$=!application.CanBeUninstalled$" title="Unlocked, Can be deleted"><i class="fa fa-unlock"></i></span></button>
+                        <button ng-show="!application.CanBeUninstalled$ && application.IsDeployed" style="color:#fb7e21" class="padlock" ng-click="application.CanBeUninstalled$=!application.CanBeUninstalled$" title="Locked, Can NOT be deleted"><i class="fa fa-lock"></i></span></button>
                     </div>
                 </td>
 

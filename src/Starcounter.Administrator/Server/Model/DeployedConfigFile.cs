@@ -41,8 +41,19 @@ namespace Administrator.Server.Model {
         public string SourceID;         // Package source ID, "EB23432"
         public string SourceUrl;        // Package source Url, "http://appstore.polyjuice.com/apps/EB23432"
 
+        public bool CanBeUninstalled;   // True if the application can be uninstalled
+
         [XmlIgnoreAttribute]
         public string File;
+
+        public void Save() {
+
+            if (string.IsNullOrEmpty(this.File)) {
+                throw new InvalidOperationException("Can not save configuration file without a filename");
+            }
+
+            this.Save(this.File);
+        }
 
         /// <summary>
         /// Save 

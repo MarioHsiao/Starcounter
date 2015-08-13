@@ -17,6 +17,7 @@
 	"StatusText" : "",
 	"ErrorMessage" : { "$" : { "Reuse" : "Administrator.Server.Model.ErrorMessageJson" } },
 	"HasErrorMessage" : false,
+	"CanBeUninstalled$" : true,
 	"Install$" : 0, 
 	"Uninstall$" : 0, 
 	"Delete$": 0,
