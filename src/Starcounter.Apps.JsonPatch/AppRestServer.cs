@@ -127,9 +127,12 @@ namespace Starcounter.Internal.Web {
                 return staticWebServer.GetStaticResponseClone(relativeUri, req);
             }
 
-            var badReq = Response.FromStatusCode(400);
-            badReq["Connection"] = "close";
-            return badReq;
+            return new Response() {
+                StatusCode = 404,
+                StatusDescription = "Not Found",
+                Body = String.Format("Error 404: Resource \"{0}\" not found. No static file resolver on port {1}.", relativeUri, req.PortNumber),
+                HandlingStatus = HandlerStatusInternal.ResourceNotFound
+            };
         }
 
         /// <summary>
