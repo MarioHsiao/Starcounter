@@ -85,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdvancedRequestResponseUsage.cs" />
+    <Compile Include="ClangUsageTests.cs" />
     <Compile Include="NewRestTests.cs" />
     <Compile Include="NodeRelatedTests.cs" />
     <Compile Include="Polyjuice.Tests.cs" />

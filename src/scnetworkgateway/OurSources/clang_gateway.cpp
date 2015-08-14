@@ -68,10 +68,26 @@ public:
         llvm_context_ = new llvm::LLVMContext();
     }
 
-    void* CompileCodeAndGetFuntion(
-        const char* code_str,
-        const char* func_name,
-        bool accumulate_old_modules)
+    std::vector<std::string>& StringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
+        std::stringstream ss(s);
+        std::string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+        return elems;
+    }
+
+    std::vector<std::string> StringSplit(const std::string &s, char delim) {
+        std::vector<std::string> elems;
+        StringSplit(s, delim, elems);
+        return elems;
+    }
+
+    uint32_t CompileCodeAndGetFuntions(
+        const char* const code_str,
+        const char* const function_names_delimited,
+        const bool accumulate_old_modules,
+        void* out_func_ptrs[])
     {
         using namespace clang;
         using namespace llvm;
@@ -80,11 +96,19 @@ public:
 
         clock_t start_parsing = clock();
 
-        std::string code_string = code_str, func_name_string = func_name, error_str;
+        std::string code_string = code_str, error_str;
+        std::vector<std::string> function_names = StringSplit(function_names_delimited, ';');
+        assert(function_names.size() > 0);
+
+        // Setting all output pointers to NULL to avoid dirty values on error.
+        for (int i = 0; i < function_names.size(); i++) {
+            out_func_ptrs[i] = NULL;
+        }
 
         // Performing cleanup before the new round.
-        if (module_)
+        if (module_) {
             Cleanup(accumulate_old_modules);
+        }
 
         CompilerInstance ci;
         CodeGenOptions code_gen_options;
@@ -103,7 +127,7 @@ public:
 
         IntrusiveRefCntPtr<DiagnosticOptions> diagnostic_options = new DiagnosticOptions();
         DiagnosticConsumer* diagnostic_client = new TextDiagnosticBuffer();
-            //new TextDiagnosticPrinter(errs(), &*diagnostic_options);
+        //new TextDiagnosticPrinter(errs(), &*diagnostic_options);
 
         IntrusiveRefCntPtr<DiagnosticIDs> diagnostic_id(new DiagnosticIDs());
         IntrusiveRefCntPtr<DiagnosticsEngine> diagnostic_engine = 
@@ -148,7 +172,7 @@ public:
         ci.getDiagnosticClient().BeginSourceFile(lang_options);
         ParseAST(ci.getPreprocessor(), codegen_, ci.getASTContext());
         ci.getDiagnosticClient().EndSourceFile();
-        
+
         clock_t end_parsing = clock();
 
         clock_t start_jiting = clock();
@@ -165,47 +189,55 @@ public:
         }
         assert(exec_engine_ && "Can't create execution engine by some reason!");
 
-        Function* module_func = module_->getFunction(func_name_string.c_str());
-        assert(module_func && "Can't find function from generated code module!");
+        // Getting pointer for each function.
+        for (int i = 0; i < function_names.size(); i++) {
+            
+            std::string func_name_string = function_names[i];
 
-        // Obtaining the pointer to created function.
-        void* fp = exec_engine_->getPointerToFunction(module_func);
-        assert(fp && "Can't get function address from JITed code!");
+            Function* module_func = module_->getFunction(func_name_string.c_str());
+            assert((module_func != NULL) && "Can't find function from generated code module!");
+
+            // Obtaining the pointer to created function.
+            out_func_ptrs[i] = exec_engine_->getPointerToFunction(module_func);
+            assert((out_func_ptrs[i] != NULL) && "Can't get function address from JITed code!");
+        }
 
         clock_t end_jiting = clock();
-        
+
         float seconds_parsing = (float) (end_parsing - start_parsing) / CLOCKS_PER_SEC,
             seconds_jiting = (float) (end_jiting - start_jiting) / CLOCKS_PER_SEC;
 
         std::cout << "Codegen took seconds: " << seconds_parsing + seconds_jiting << " (" << seconds_parsing << ", " << seconds_jiting << ")." << std::endl;
 
-        return fp;
+        return 0;
     }
 };
 
-extern "C" __declspec(dllexport) void GwClangInit()
+extern "C" __declspec(dllexport) void ClangInit()
 {
     llvm::InitializeNativeTarget();
 }
 
-extern "C" __declspec(dllexport) void GwClangShutdown()
+extern "C" __declspec(dllexport) void ClangShutdown()
 {
     llvm::llvm_shutdown();
 }
 
-extern "C" __declspec(dllexport) void* GwClangCompileCodeAndGetFuntion(
-    CodegenEngine** cge,
-    const char* code_str,
-    const char* func_name,
-    bool accumulate_old_modules)
+extern "C" __declspec(dllexport) uint32_t ClangCompileCodeAndGetFuntions(
+    CodegenEngine** const clang_engine,
+    const char* const code_str,
+    const char* const function_names,
+    const bool accumulate_old_modules,
+    void* out_func_ptrs[])
 {
-    if (NULL == *cge)
-        *cge = new CodegenEngine();
+    if (NULL == *clang_engine) {
+        *clang_engine = new CodegenEngine();
+    }
 
-    return (*cge)->CompileCodeAndGetFuntion(code_str, func_name, accumulate_old_modules);
+    return (*clang_engine)->CompileCodeAndGetFuntions(code_str, function_names, accumulate_old_modules, out_func_ptrs);
 }
 
-extern "C" __declspec(dllexport) void GwClangDestroyEngine(CodegenEngine* clang_engine)
+extern "C" __declspec(dllexport) void ClangDestroyEngine(CodegenEngine* clang_engine)
 {
     assert(clang_engine && "Engine must exist to be destroyed!");
 
@@ -216,9 +248,15 @@ extern "C" __declspec(dllexport) void GwClangDestroyEngine(CodegenEngine* clang_
 
 int main()
 {
-    GwClangInit();
+    ClangInit();
 
-    CodegenEngine* cge = NULL; 
+    CodegenEngine* cge = NULL;
+
+    const char * const code = "extern \"C\" __declspec(dllexport) int aaaaa() { return 124; }";
+    const char * const function_names = "aaaaa";
+    void* out_functions[1];
+
+    ClangCompileCodeAndGetFuntions(&cge, code, function_names, false, out_functions);
 
     for (int i = 0; i < 100000; i++) {
 
@@ -226,13 +264,16 @@ int main()
         std::stringstream ss;
         ss << fs.rdbuf();
 
-        GwClangCompileCodeAndGetFuntion(&cge, ss.str().c_str(), "MatchUriForPort8181", false);
+        const char * const function_names = "MatchUriForPort8181";
+        void* out_functions[1];
+
+        ClangCompileCodeAndGetFuntions(&cge, ss.str().c_str(), function_names, false, out_functions);
 
         std::ifstream fs2(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc2.cpp");
         std::stringstream ss2;
         ss2 << fs2.rdbuf();
 
-        GwClangCompileCodeAndGetFuntion(&cge, ss2.str().c_str(), "MatchUriForPort8181", false);
+        ClangCompileCodeAndGetFuntions(&cge, ss2.str().c_str(), function_names, false, out_functions);
     }
 
     return 0;

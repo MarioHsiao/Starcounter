@@ -1364,15 +1364,14 @@ public:
 #endif
 };
 
-typedef void* (*GwClangCompileCodeAndGetFuntion)(
-    void** clang_engine,
-    const char* code_str,
-    const char* func_name,
-    bool accumulate_old_modules);
+typedef uint32_t (*ClangCompileCodeAndGetFuntions) (
+    void** const clang_engine,
+    const char* const code_str,
+    const char* const function_names,
+    const bool accumulate_old_modules,
+    void* out_func_ptrs[]);
 
-typedef void (*ClangDestroyEngineType) (
-    void* clang_engine
-    );
+typedef void (*ClangDestroyEngineType) (void* clang_engine);
 
 // Tries to set a SIO_LOOPBACK_FAST_PATH on a given TCP socket.
 void SetLoopbackFastPathOnTcpSocket(SOCKET sock);
@@ -1660,10 +1659,10 @@ public:
 	}
 
     // Pointer to Clang compile and get function pointer.
-    GwClangCompileCodeAndGetFuntion ClangCompileAndGetFunc;
+    ClangCompileCodeAndGetFuntions clangCompileCodeAndGetFuntions_;
 
     // Destroys existing Clang engine.
-    ClangDestroyEngineType ClangDestroyEngineFunc;
+    ClangDestroyEngineType clangDestroyEngineFunc_;
 
     // Generate the code using managed generator.
     uint32_t GenerateUriMatcher(ServerPort* sp, RegisteredUris* port_uris);
@@ -1673,7 +1672,6 @@ public:
     {
         return codegen_uri_matcher_;
     }
-
     
     // Unique linear socket id.
     random_salt_type get_unique_socket_id()

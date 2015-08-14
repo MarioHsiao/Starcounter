@@ -554,7 +554,7 @@ void UriMatcherCacheEntry::Destroy() {
     }
 
     if (NULL != clang_engine_) {
-        g_gateway.ClangDestroyEngineFunc(clang_engine_);
+        g_gateway.clangDestroyEngineFunc_(clang_engine_);
         clang_engine_ = NULL;
     }
     
@@ -1884,37 +1884,43 @@ uint32_t Gateway::Init()
     HMODULE clang_dll = LoadLibrary(L"GatewayClang.dll");
     GW_ASSERT(clang_dll != NULL);
 
-    typedef void (*GwClangInit)();
-    GwClangInit clang_init = (GwClangInit) GetProcAddress(clang_dll, "GwClangInit");
+    typedef void (*ClangInit)();
+    ClangInit clang_init = (ClangInit) GetProcAddress(clang_dll, "ClangInit");
     GW_ASSERT(clang_init != NULL);
     clang_init();
 
-    ClangCompileAndGetFunc = (GwClangCompileCodeAndGetFuntion) GetProcAddress(
+    clangCompileCodeAndGetFuntions_ = (ClangCompileCodeAndGetFuntions) GetProcAddress(
         clang_dll,
-        "GwClangCompileCodeAndGetFuntion");
+        "ClangCompileCodeAndGetFuntions");
 
-    GW_ASSERT(ClangCompileAndGetFunc != NULL);
+    GW_ASSERT(clangCompileCodeAndGetFuntions_ != NULL);
 
-    ClangDestroyEngineFunc = (ClangDestroyEngineType) GetProcAddress(
+    clangDestroyEngineFunc_ = (ClangDestroyEngineType) GetProcAddress(
         clang_dll,
-        "GwClangDestroyEngine");
+        "ClangDestroyEngine");
 
-    GW_ASSERT(ClangDestroyEngineFunc != NULL);
+    GW_ASSERT(clangDestroyEngineFunc_ != NULL);
 
     // Running a test compilation.
-    typedef int (*example_main_func_type) ();
-    example_main_func_type example_main_func;
     void* clang_engine = NULL;
     void** clang_engine_addr = &clang_engine;
-    example_main_func = (example_main_func_type) g_gateway.ClangCompileAndGetFunc(
+
+    void* out_functions[1];
+
+    uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
         clang_engine_addr,
-        "int main() { return 124; }",
-        "main",
-        false);
+        "extern \"C\" __declspec(dllexport) int func1() { return 124; }",
+        "func1",
+        false,
+        out_functions);
 
-    GW_ASSERT(example_main_func != NULL);
+    GW_ASSERT(0 == err_code);
 
-    g_gateway.ClangDestroyEngineFunc(clang_engine);
+    // Calling test function.
+    typedef int (*example_func_type) ();
+    GW_ASSERT(124 == (example_func_type(out_functions[0]))());
+
+    g_gateway.clangDestroyEngineFunc_(clang_engine);
 
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
@@ -1941,7 +1947,7 @@ uint32_t Gateway::Init()
 #endif
 
     // Registering all gateway handlers.
-    int32_t err_code = RegisterGatewayHandlers();
+    err_code = RegisterGatewayHandlers();
     if (err_code)
         return err_code;
 
