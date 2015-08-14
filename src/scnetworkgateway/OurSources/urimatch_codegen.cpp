@@ -196,9 +196,11 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
 
             uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
                 clang_engine_addr,
+                false,
+                false,
+                true,
                 uri_matching_code_,
                 root_function_name,
-                false,
                 out_functions);
 
             GW_ASSERT(0 == err_code);

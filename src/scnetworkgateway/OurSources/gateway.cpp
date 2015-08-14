@@ -1909,9 +1909,12 @@ uint32_t Gateway::Init()
 
     uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
         clang_engine_addr,
-        "extern \"C\" __declspec(dllexport) int func1() { return 124; }",
-        "func1",
         false,
+        false,
+        true,
+        "extern \"C\" __declspec(dllexport) int func1() { return 124; }\r\n"
+        "int UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
+        "func1",
         out_functions);
 
     GW_ASSERT(0 == err_code);

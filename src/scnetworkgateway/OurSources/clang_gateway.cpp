@@ -1,6 +1,8 @@
 #include "clang/CodeGen/CodeGenAction.h"
 #include "clang/Basic/DiagnosticOptions.h"
 #include "clang/Basic/TargetInfo.h"
+#include "clang/Basic/Builtins.h"
+#include "clang/lex/Preprocessor.h"
 #include "clang/Driver/Compilation.h"
 #include "clang/Driver/Driver.h"
 #include "clang/Driver/Tool.h"
@@ -84,19 +86,19 @@ public:
     }
 
     uint32_t CompileCodeAndGetFuntions(
-        const char* const code_str,
-        const char* const function_names_delimited,
         const bool accumulate_old_modules,
+        const bool print_to_console,
+        const bool do_optimizations,
+        const char* const input_code_str,
+        const char* const function_names_delimited,
         void* out_func_ptrs[])
     {
         using namespace clang;
         using namespace llvm;
 
-        bool optimize = true;
-
         clock_t start_parsing = clock();
 
-        std::string code_string = code_str, error_str;
+        std::string code_string = input_code_str, error_str;
         std::vector<std::string> function_names = StringSplit(function_names_delimited, ';');
         assert(function_names.size() > 0);
 
@@ -114,7 +116,7 @@ public:
         CodeGenOptions code_gen_options;
         code_gen_options.DisableFree = 0;
 
-        if (optimize) {
+        if (do_optimizations) {
             code_gen_options.OptimizationLevel = 3; // All optimizations.
         } else {
             code_gen_options.OptimizationLevel = 0; // No optimizations.
@@ -126,8 +128,12 @@ public:
         target_options->Triple = sys::getDefaultTargetTriple();
 
         IntrusiveRefCntPtr<DiagnosticOptions> diagnostic_options = new DiagnosticOptions();
-        DiagnosticConsumer* diagnostic_client = new TextDiagnosticBuffer();
-        //new TextDiagnosticPrinter(errs(), &*diagnostic_options);
+        DiagnosticConsumer* diagnostic_client;
+        if (print_to_console) {
+            diagnostic_client = new TextDiagnosticPrinter(errs(), &*diagnostic_options);
+        } else {
+            diagnostic_client = new TextDiagnosticBuffer();
+        }
 
         IntrusiveRefCntPtr<DiagnosticIDs> diagnostic_id(new DiagnosticIDs());
         IntrusiveRefCntPtr<DiagnosticsEngine> diagnostic_engine = 
@@ -147,7 +153,7 @@ public:
         lang_options.Bool = 1; 
         lang_options.CPlusPlus = 1;
 
-        if (optimize) {
+        if (do_optimizations) {
             lang_options.Optimize = 1;
         } else {
             lang_options.Optimize = 0;
@@ -161,6 +167,10 @@ public:
         ci.getFrontendOpts().DisableFree = 0;
         ci.getDiagnostics().setIgnoreAllWarnings(true);
         ci.getDiagnosticOpts().IgnoreWarnings = 1;
+
+        // Enabling Clang intrinsics.
+        Preprocessor& pp = ci.getPreprocessor();
+        pp.getBuiltinInfo().InitializeBuiltins(pp.getIdentifierTable(), pp.getLangOpts());
 
         MemoryBuffer *mb = MemoryBuffer::getMemBufferCopy(code_string, "some");
         assert(mb && "Error creating MemoryBuffer!");
@@ -182,7 +192,7 @@ public:
         assert(module_ && "Can't release module by some reason!");
 
         // Creating new execution engine for this module.
-        if (optimize) {
+        if (do_optimizations) {
             exec_engine_ = ExecutionEngine::create(module_, false, &error_str, CodeGenOpt::Aggressive);
         } else {
             exec_engine_ = ExecutionEngine::create(module_, false, &error_str, CodeGenOpt::None);
@@ -225,16 +235,24 @@ extern "C" __declspec(dllexport) void ClangShutdown()
 
 extern "C" __declspec(dllexport) uint32_t ClangCompileCodeAndGetFuntions(
     CodegenEngine** const clang_engine,
-    const char* const code_str,
-    const char* const function_names,
     const bool accumulate_old_modules,
+    const bool print_to_console,
+    const bool do_optimizations,
+    const char* const input_code_str,
+    const char* const function_names_delimited,
     void* out_func_ptrs[])
 {
     if (NULL == *clang_engine) {
         *clang_engine = new CodegenEngine();
     }
 
-    return (*clang_engine)->CompileCodeAndGetFuntions(code_str, function_names, accumulate_old_modules, out_func_ptrs);
+    return (*clang_engine)->CompileCodeAndGetFuntions(
+        accumulate_old_modules,
+        print_to_console,
+        do_optimizations,
+        input_code_str,
+        function_names_delimited,
+        out_func_ptrs);
 }
 
 extern "C" __declspec(dllexport) void ClangDestroyEngine(CodegenEngine* clang_engine)
@@ -249,14 +267,18 @@ extern "C" __declspec(dllexport) void ClangDestroyEngine(CodegenEngine* clang_en
 int main()
 {
     ClangInit();
-
+     
     CodegenEngine* cge = NULL;
 
-    const char * const code = "extern \"C\" __declspec(dllexport) int aaaaa() { return 124; }";
-    const char * const function_names = "aaaaa";
+    std::ifstream ifs("c:\\Users\\Alexey Moiseenko\\Downloads\\a3jmo3vhkidakmq.cpp");
+    std::string code2( (std::istreambuf_iterator<char>(ifs) ),
+        (std::istreambuf_iterator<char>()    ) );
+
+    const char * const code = code2.c_str(); //"extern \"C\" __declspec(dllexport) int UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }";
+    const char * const function_names = "DllMain";
     void* out_functions[1];
 
-    ClangCompileCodeAndGetFuntions(&cge, code, function_names, false, out_functions);
+    ClangCompileCodeAndGetFuntions(&cge, false, true, true, code, function_names, out_functions);
 
     for (int i = 0; i < 100000; i++) {
 
@@ -267,13 +289,13 @@ int main()
         const char * const function_names = "MatchUriForPort8181";
         void* out_functions[1];
 
-        ClangCompileCodeAndGetFuntions(&cge, ss.str().c_str(), function_names, false, out_functions);
+        ClangCompileCodeAndGetFuntions(&cge, false, true, true, ss.str().c_str(), function_names, out_functions);
 
         std::ifstream fs2(L"C:\\Users\\Alexey Moiseenko\\Desktop\\ccc2.cpp");
         std::stringstream ss2;
         ss2 << fs2.rdbuf();
 
-        ClangCompileCodeAndGetFuntions(&cge, ss2.str().c_str(), function_names, false, out_functions);
+        ClangCompileCodeAndGetFuntions(&cge, false, true, true, ss2.str().c_str(), function_names, out_functions);
     }
 
     return 0;

@@ -121,7 +121,8 @@ namespace Starcounter.Clang.Tests {
                     clang_engine,
                     "extern \"C\" __declspec(dllexport) int func1() { return 124; }\r\n" +
                     "extern \"C\" __declspec(dllexport) int func3(int a, int b) { return a + b; }\r\n" +
-                    "extern \"C\" __declspec(dllexport) int func2() { return 125; }",
+                    "extern \"C\" __declspec(dllexport) int func2() { return 125; }\r\n" +
+                    "extern \"C\" __declspec(dllexport) int func4intrinsics() { asm(\"int3\");  __builtin_unreachable(); }\r\n",
                     new String[] { "func1", "func2", "func3" },
                     out_functions_ptrs);
 

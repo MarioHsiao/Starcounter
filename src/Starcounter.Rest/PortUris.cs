@@ -16,9 +16,11 @@ namespace Starcounter.Rest {
         [DllImport("GatewayClang.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 ClangCompileCodeAndGetFuntions(
             void** clang_engine,
-            Byte* code_str,
-            Byte* function_names,
             Boolean accumulate_old_modules,
+            Boolean print_to_console,
+            Boolean do_optimizations,
+            Byte* code_str,
+            Byte* function_names_delimited,
             IntPtr* out_func_ptrs
         );
 
@@ -68,9 +70,11 @@ namespace Starcounter.Rest {
                     // Compiling the given code and getting function pointer back.
                     UInt32 err_code = ClangFunctions.ClangCompileCodeAndGetFuntions(
                         clang_engine,
+                        false,
+                        false,
+                        true,
                         cpp_code_ptr,
                         function_names_bytes_native,
-                        false,
                         out_func_ptrs);
 
                     if (0 != err_code) {

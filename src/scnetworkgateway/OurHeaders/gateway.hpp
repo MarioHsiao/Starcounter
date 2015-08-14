@@ -1366,9 +1366,11 @@ public:
 
 typedef uint32_t (*ClangCompileCodeAndGetFuntions) (
     void** const clang_engine,
-    const char* const code_str,
-    const char* const function_names,
     const bool accumulate_old_modules,
+    const bool print_to_console,
+    const bool do_optimizations,
+    const char* const input_code_str,
+    const char* const function_names_delimited,
     void* out_func_ptrs[]);
 
 typedef void (*ClangDestroyEngineType) (void* clang_engine);
