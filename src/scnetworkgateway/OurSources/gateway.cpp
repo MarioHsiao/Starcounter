@@ -1908,14 +1908,17 @@ uint32_t Gateway::Init()
     void* out_functions[1];
 
     uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
-        clang_engine_addr,
-        false,
-        false,
-        true,
-        "extern \"C\" __declspec(dllexport) int func1() { return 124; }\r\n"
-        "int UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
-        "func1",
-        out_functions);
+        clang_engine_addr, // Pointer to Clang engine.
+        false, // Accumulate Clang modules.
+        false, // Print build output to console.
+        true, // Do code optimizations.
+
+        "extern \"C\" __declspec(dllexport) int Func1() { return 124; }\r\n" // Input C++ code.
+        "void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
+
+        "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
+        out_functions // Output pointers to functions.
+        );
 
     GW_ASSERT(0 == err_code);
 
