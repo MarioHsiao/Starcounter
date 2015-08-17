@@ -1,3 +1,4 @@
+using Administrator.Server.Managers;
 using Starcounter;
 using System;
 using System.Threading;
@@ -24,6 +25,15 @@ namespace Administrator.Server.Model {
 
         void Handle(Input.Delete action) {
             this.Data.WantDeleted = true;
+        }
+
+        void Handle(Input.CanBeUninstalled action) {
+
+            DeployedConfigFile config = DeployManager.GetItemFromApplication(this.Data);
+            if (config != null) {
+                config.CanBeUninstalled = action.Value;
+                config.Save();
+            }
         }
     }
 }

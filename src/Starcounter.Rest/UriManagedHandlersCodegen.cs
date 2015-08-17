@@ -1059,7 +1059,7 @@ namespace Starcounter.Rest
                 portUris = uhm.AddPort(portNumber);
 
             // Calling the code generation for URIs if needed.
-            if (null == portUris.MatchUriAndGetHandlerId) {
+            if (null == portUris.matchUriAndGetHandlerIdFunc_) {
 
                 if (!portUris.GenerateUriMatcher(
                     portNumber,
@@ -1097,7 +1097,7 @@ namespace Starcounter.Rest
                     }
 
                     // TODO: Resolve this hack with only positive handler ids in generated code.
-                    handlerId = portUris.MatchUriAndGetHandlerId(methodSpaceUriSpaceLowerOnStack, (UInt32)len, handlerNativeParamsAddr) - 1;
+                    handlerId = portUris.matchUriAndGetHandlerIdFunc_(methodSpaceUriSpaceLowerOnStack, (UInt32)len, handlerNativeParamsAddr) - 1;
                 }
 
                 // Checking if we have found the handler.

@@ -674,7 +674,7 @@ namespace Starcounter.Rest
                 // Resetting port URIs matcher.
                 PortUris portUris = SearchPort(port);
                 if (portUris != null)
-                    portUris.MatchUriAndGetHandlerId = null;
+                    portUris.matchUriAndGetHandlerIdFunc_ = null;
             }
         }
 

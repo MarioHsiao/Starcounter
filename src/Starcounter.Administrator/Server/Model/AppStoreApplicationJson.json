@@ -20,6 +20,7 @@
 	"IsDeployed" : false,
 	"IsRunning" : false,
 	"IsInstalled" : false,
+	"CanBeUninstalled" : true,
 	"Status" : 0,
 	"StatusText" : "",
 	"ErrorMessage" : { "$" : { "Reuse" : "Administrator.Server.Model.ErrorMessageJson" } },

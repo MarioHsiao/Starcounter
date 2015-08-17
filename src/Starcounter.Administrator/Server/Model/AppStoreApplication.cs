@@ -73,6 +73,12 @@ namespace Administrator.Server.Model {
             }
         }
 
+        public bool CanBeUninstalled {
+            get {
+                return this.HasDatabaseAppliction && this.DatabaseApplication.CanBeUninstalled;
+            }
+        }
+
         private ApplicationStatus _Status;
         public ApplicationStatus Status {
             get {
@@ -217,6 +223,7 @@ namespace Administrator.Server.Model {
                 this.OnPropertyChanged("DatabaseApplication");
                 this.OnPropertyChanged("IsRunning");
                 this.OnPropertyChanged("IsInstalled");
+                this.OnPropertyChanged("CanBeUninstalled");
                 this.OnPropertyChanged("IsDeployed");
                 this.OnPropertyChanged("ErrorMessage");
                 this.OnPropertyChanged("HasErrorMessage");
@@ -251,6 +258,9 @@ namespace Administrator.Server.Model {
                 }
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsInstalled") {
                     this.OnPropertyChanged("IsInstalled");
+                }
+                if (((PropertyChangedEventArgs)e).PropertyName == "CanBeUninstalled") {
+                    this.OnPropertyChanged("CanBeUninstalled");
                 }
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsDeployed") {
                     this.OnPropertyChanged("IsDeployed");
@@ -456,6 +466,7 @@ namespace Administrator.Server.Model {
             applicationJson.VersionDate = this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
             applicationJson.DatabaseName = this.DatabaseName;
             applicationJson.ImageUri = string.IsNullOrEmpty(this.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), this.ImageUri); // Use default image?
+            applicationJson.CanBeUninstalled = this.CanBeUninstalled;
 
             return applicationJson;
         }

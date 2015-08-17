@@ -283,6 +283,8 @@ namespace Administrator.Server.Managers {
 
             config.SourceUrl = sourceUrl;
             config.ImageUri = imageUri;
+
+            config.CanBeUninstalled = true;
         }
 
 
