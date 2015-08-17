@@ -87,6 +87,11 @@ namespace QueryProcessingTest {
                 nrs++;
             }
             Trace.Assert(nrs == 1);
+            nrs = 0;
+            foreach (User u in Db.SQL<User>("select u from user u where userid like ?", "")) {
+                nrs++;
+            }
+            Trace.Assert(nrs == 0);
             HelpMethods.LogEvent("Finished test queries with like");
         }
 
