@@ -258,8 +258,15 @@ namespace Administrator.Server.Managers {
 
                         Database database = ServerInstance.GetDatabase(databaseName);
 
+                        if (database == null) {
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Database not found";
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
                         AppStoreApplication appStoreApplication = null;
 
+                        // Get the application
                         foreach (AppStoreStore store in database.AppStoreStores) {
 
                             foreach (AppStoreApplication item in store.Applications) {
@@ -268,6 +275,10 @@ namespace Administrator.Server.Managers {
                                     appStoreApplication = item;
                                     break;
                                 }
+                            }
+
+                            if (appStoreApplication != null) {
+                                break;
                             }
                         }
 
@@ -283,9 +294,11 @@ namespace Administrator.Server.Managers {
                         }
                         else {
                             // TODO: Error
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Application not found";
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                         }
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
-
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created };
 
                     }
                     else if (string.Equals("Uninstall", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
