@@ -293,8 +293,8 @@ int main() {
 	(function_type1(out_func_ptrs[0]))(123, NULL);
 
 	typedef uint32_t(*function_type2) ();
-	uint32_t result = (function_type2(out_func_ptrs[1]))();
-	assert(133 == result);
+	
+	assert(133 == (function_type2(out_func_ptrs[1]))());
 
 	ClangDestroyEngine(cge);
 

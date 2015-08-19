@@ -71,7 +71,7 @@ filter.exp
 filter.lib
 filter.pdb
 FSharp.Core.dll
-GatewayClang.dll
+scllvm.dll
 GatewayToClrProxy.dll
 GatewayToClrProxy.exp
 GatewayToClrProxy.lib
