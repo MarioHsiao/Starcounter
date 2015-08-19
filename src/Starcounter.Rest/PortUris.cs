@@ -13,7 +13,7 @@ namespace Starcounter.Rest {
     /// </summary>
     public unsafe class ClangFunctions {
 
-        [DllImport("GatewayClang.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static UInt32 ClangCompileCodeAndGetFuntions(
             void** clang_engine,
             Boolean accumulate_old_modules,
@@ -24,10 +24,10 @@ namespace Starcounter.Rest {
             IntPtr* out_func_ptrs
         );
 
-        [DllImport("GatewayClang.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static void ClangInit();
 
-        [DllImport("GatewayClang.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
+        [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static void ClangDestroyEngine(void* clang_engine);
 
         /// <summary>

@@ -29,7 +29,7 @@
     <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
-    <ClangGatewayUriMatcherBinary Include="..\scnetworkgateway\GatewayClang.dll" />
+    <ClangGatewayUriMatcherBinary Include="..\scllvm\scllvm.dll" />
     <MonoCsharpBinary Include="..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll" />
     
     <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />

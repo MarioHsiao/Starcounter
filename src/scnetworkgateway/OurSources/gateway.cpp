@@ -1881,7 +1881,7 @@ uint32_t Gateway::Init()
     codegen_uri_matcher_->Init();
 
     // Loading Clang for URI matching.
-    HMODULE clang_dll = LoadLibrary(L"GatewayClang.dll");
+    HMODULE clang_dll = LoadLibrary(L"scllvm.dll");
     GW_ASSERT(clang_dll != NULL);
 
     typedef void (*ClangInit)();
@@ -1905,7 +1905,7 @@ uint32_t Gateway::Init()
     void* clang_engine = NULL;
     void** clang_engine_addr = &clang_engine;
 
-    void* out_functions[1];
+    void* out_functions[2];
 
     uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
         clang_engine_addr, // Pointer to Clang engine.
@@ -1913,10 +1913,10 @@ uint32_t Gateway::Init()
         false, // Print build output to console.
         true, // Do code optimizations.
 
-        "extern \"C\" __declspec(dllexport) int Func1() { return 124; }\r\n" // Input C++ code.
-        "void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
+        "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
+        "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
 
-        "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
+        "Func1;UseIntrinsics", // Name of functions which pointers should be returned, delimited by semicolon.
         out_functions // Output pointers to functions.
         );
 
