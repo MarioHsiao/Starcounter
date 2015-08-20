@@ -4,6 +4,9 @@ IF "%SC_RUN_DBMAPPING_TEST%"=="False" GOTO :EOF
 :: Killing existing processes.
 "%StarcounterBin%\staradmin.exe" kill all
 
+:: Enabling database mapping.
+SET SC_ENABLE_MAPPING=True
+
 :: Starting server application.
 star.exe --database=default --sc-codehostargs="--PolyjuiceDatabaseFlag=False" "%StarcounterBin%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
 IF ERRORLEVEL 1 GOTO FAILED
