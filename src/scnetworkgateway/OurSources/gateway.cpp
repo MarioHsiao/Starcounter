@@ -1916,7 +1916,7 @@ uint32_t Gateway::Init()
         "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
         "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
 
-        "Func1;UseIntrinsics", // Name of functions which pointers should be returned, delimited by semicolon.
+        "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
         out_functions // Output pointers to functions.
         );
 
