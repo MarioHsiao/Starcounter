@@ -4736,12 +4736,7 @@
         There is no column in the database for the given type and column name.
       </message>
     </code>
-    <code hex="0005" severity="Error" name="ScErrIndexNotFound">
-      <message>
-        There is no index in the database for the given index name.
-      </message>
-    </code>
-    <code hex="0006" severity="Error" name="ScErrIndexNotFoundInType">
+    <code hex="0005" severity="Error" name="ScErrIndexNotFoundInType">
       <message>
         There is no given index in the database for the given type.
       </message>
