@@ -402,12 +402,10 @@ uint32_t SocketDataChunk::ChangeToBigger(
 }
 
 // Clone current socket data to push it.
-uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, SocketDataChunk** new_sd)
+uint32_t SocketDataChunk::CloneToPush(GatewayWorker* gw, int32_t data_size, SocketDataChunk** new_sd)
 {
-    GW_ASSERT(static_cast<int32_t>(get_accumulated_len_bytes()) <= get_data_blob_size());
-
     // Taking the chunk where accumulated buffer fits.
-    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(get_accumulated_len_bytes());
+    (*new_sd) = gw->GetWorkerChunks()->ObtainChunk(data_size);
 
     // Checking if couldn't obtain chunk.
     if (NULL == (*new_sd))

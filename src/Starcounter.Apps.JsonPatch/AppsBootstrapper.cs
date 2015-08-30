@@ -168,9 +168,9 @@ namespace Starcounter.Internal {
                 if (!StarcounterEnvironment.IsAdministratorApp) {
 
                     // Registering redirection port.
-                    Handle.GET(defaultSystemHttpPort, "/sc/redirectroot/" + defaultUserHttpPort + "{?}", (String redirectUri) => {
+                    Handle.GET(defaultSystemHttpPort, "/sc/redirect/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
 
-                        RegisterRootRedirectHandler(defaultUserHttpPort, "GET", redirectUri);
+                        RegisterRedirectHandler(defaultUserHttpPort, Handle.GET_METHOD, fromUri, toUri);
 
                         return 200;
                     });
@@ -251,21 +251,21 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Registering redirect handler.
         /// </summary>
-        static void RegisterRootRedirectHandler(UInt16 port, String method, String redirectUri) {
+        static void RegisterRedirectHandler(UInt16 port, String method, String fromUri, String toUri) {
 
             String origAppName = StarcounterEnvironment.AppName;
             StarcounterEnvironment.AppName = null;
 
             try {
 
-                Handle.CUSTOM(port, method + " /", (Request req) => {
+                Handle.CUSTOM(port, method + " " + fromUri, (Request req) => {
 
                     Response resp = new Response() {
                         StatusCode = 302,
                         StatusDescription = "Found"
                     };
 
-                    resp["Location"] = "http://" + req.Host + redirectUri;
+                    resp["Location"] = "http://" + req.Host + toUri;
 
                     return resp;
 
@@ -275,6 +275,7 @@ namespace Starcounter.Internal {
                 });
 
             } finally {
+
                 StarcounterEnvironment.AppName = origAppName;
             }
         }

@@ -265,7 +265,7 @@ public:
         sd->set_accumulating_flag();
 
         // Checking if the host accumulation should be involved.
-        if (total_desired_bytes > static_cast<uint32_t>(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]))
+        if (total_desired_bytes > static_cast<uint32_t>(MAX_SOCKET_DATA_SIZE))
         {
             // We need to accumulate on host.
             sd->set_on_host_accumulation_flag();

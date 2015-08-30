@@ -155,6 +155,12 @@ const int32_t GW_LOG_BUFFER_SIZE = 8192 * 32;
 // Maximum number of proxied URIs.
 const int32_t MAX_PROXIED_URIS = 32;
 
+// Maximum number of URI aliases.
+const int32_t MAX_URI_ALIASES = 32;
+
+// Maximum number of URI aliases string characters.
+const int32_t MAX_URI_ALIAS_CHARS = 128;
+
 // Number of sockets to increase the accept roof.
 const int32_t ACCEPT_ROOF_STEP_SIZE = 1;
 
@@ -244,9 +250,6 @@ const int32_t SOCKET_LIFETIME_MULTIPLIER = 5;
 // First port number used for binding.
 const uint16_t FIRST_BIND_PORT_NUM = 1500;
 
-// Maximum length of gateway statistics string.
-const int32_t MAX_STATS_LENGTH = 1024 * 64;
-
 // Size of the listening queue.
 const int32_t LISTENING_SOCKET_QUEUE_SIZE = 256;
 
@@ -307,6 +310,9 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
 };
+
+// Maximum size of socket data.
+const int32_t MAX_SOCKET_DATA_SIZE = GatewayChunkDataSizes[NumGatewayChunkSizes - 1];
 
 // Maximum size of UDP datagram.
 const int32_t MAX_UDP_DATAGRAM_SIZE = GatewayChunkDataSizes[3];
@@ -1073,6 +1079,39 @@ public:
     void Destroy();
 };
 
+// Information about the alias URI.
+struct UriAliasInfo
+{
+    char from_method_space_uri_space_[MAX_URI_ALIAS_CHARS];
+    int32_t from_method_space_uri_space_len_;
+
+    char to_method_space_uri_space_[MAX_URI_ALIAS_CHARS];
+    int32_t to_method_space_uri_space_len_;
+
+    char lower_to_method_space_uri_space_[MAX_URI_ALIAS_CHARS];
+
+    uint16_t port_;
+
+    void Reset() {
+
+        from_method_space_uri_space_len_ = 0;
+        to_method_space_uri_space_len_ = 0;
+
+        port_ = INVALID_PORT_NUMBER;
+    }
+
+    void PrintInfo(std::stringstream& stats_stream)
+    {
+        stats_stream << "{";
+
+        stats_stream << "\"From\":\"" << from_method_space_uri_space_ << "\",";
+        stats_stream << "\"To\":\"" << to_method_space_uri_space_ << "\",";
+        stats_stream << "\"Port\":" <<  port_;
+
+        stats_stream << "}";
+    }
+};
+
 // Represents an active server port.
 class HandlersList;
 class SocketDataChunk;
@@ -1531,6 +1570,10 @@ class Gateway
     ReverseProxyInfo reverse_proxies_[MAX_PROXIED_URIS];
     int32_t num_reversed_proxies_;
 
+    // List of URI aliases.
+    UriAliasInfo uri_aliases_[MAX_URI_ALIASES];
+    int32_t num_uri_aliases_;
+
     // White list with allowed IP-addresses.
     LinearList<ip_info_type, MAX_BLACK_LIST_IPS_PER_WORKER> white_ips_list_;
 
@@ -1542,11 +1585,6 @@ class Gateway
 
     // Current global statistics stream.
     std::stringstream global_statistics_stream_;
-    std::stringstream global_port_statistics_stream_;
-    std::stringstream global_databases_statistics_stream_;
-    std::stringstream global_reverse_proxies_statistics_stream_;
-    std::stringstream global_workers_statistics_stream_;
-    char global_statistics_string_[MAX_STATS_LENGTH + 1];
 
     // Critical section for statistics.
     CRITICAL_SECTION cs_statistics_;
@@ -1555,6 +1593,36 @@ class Gateway
     CodegenUriMatcher* codegen_uri_matcher_;
 
 public:
+
+    // Compares the input URI with existing aliases and returns one if matches.
+    bool GetUriAliasIfAny(
+        const uint16_t port,
+        const char* input_uri,
+        const int32_t input_uri_len,
+        char** method_space_uri_space,
+        char** lower_method_space_uri_space,
+        int32_t* method_space_uri_space_len) {
+
+        // Walking through every URI alias.
+        for (int32_t i = 0; i < num_uri_aliases_; i++) {
+
+            if (port == uri_aliases_[i].port_) {
+
+                // Comparing to URI alias.
+                if ((input_uri_len == uri_aliases_[i].from_method_space_uri_space_len_) &&
+                    (0 == strncmp(input_uri, uri_aliases_[i].from_method_space_uri_space_, uri_aliases_[i].from_method_space_uri_space_len_))) {
+
+                        *method_space_uri_space_len = uri_aliases_[i].to_method_space_uri_space_len_;
+                        *method_space_uri_space = uri_aliases_[i].to_method_space_uri_space_;
+                        *lower_method_space_uri_space = uri_aliases_[i].lower_to_method_space_uri_space_;
+
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
 
     ReverseProxyInfo* GetReverseProxyInfo(int32_t reverse_proxy_index) {
         GW_ASSERT(reverse_proxy_index >= 0);
@@ -1696,8 +1764,8 @@ public:
         return setting_log_file_path_;
     }
 
-    // Current global statistics.
-    const char* GetGlobalStatisticsString(int32_t* out_len);
+    // Current gateway statistics.
+    std::string GetGatewayStatisticsString();
 
     // Current global profilers stats.
     std::string GetGlobalProfilersString(int32_t* out_len);

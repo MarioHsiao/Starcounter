@@ -996,7 +996,7 @@ public:
     uint32_t CloneToReceive(GatewayWorker *gw);
 
     // Clone current socket data to simply send it.
-    uint32_t CloneToPush(GatewayWorker*gw, SocketDataChunk** new_sd);
+    uint32_t CloneToPush(GatewayWorker*gw, int32_t data_size, SocketDataChunk** new_sd);
 
     // Clone current socket data to a bigger one.
     static uint32_t ChangeToBigger(

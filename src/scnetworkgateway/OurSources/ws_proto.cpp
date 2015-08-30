@@ -219,7 +219,7 @@ uint32_t WsProto::SendWebSocketDisconnectToDb(
     }
 
     SocketDataChunk* sd_push_to_db = NULL;
-    uint32_t err_code = sd->CloneToPush(gw, &sd_push_to_db);
+    uint32_t err_code = sd->CloneToPush(gw, sd->get_accumulated_len_bytes(), &sd_push_to_db);
     if (err_code)
         return err_code;
 

@@ -898,7 +898,7 @@ uint32_t GatewayWorker::ReceiveOnSocket(socket_index_type socket_index)
 uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
 {
     SocketDataChunk* sd_push_to_db = NULL;
-    uint32_t err_code = sd->CloneToPush(this, &sd_push_to_db);
+    uint32_t err_code = sd->CloneToPush(this, sd->get_accumulated_len_bytes(), &sd_push_to_db);
     if (err_code)
         return err_code;
 
@@ -1846,7 +1846,7 @@ uint32_t GatewayWorker::CreateSocketData(
     // Obtaining chunk from gateway private memory.
     // Checking if its an aggregation socket.
     if (IsAggregatingPort(socket_info_index)) {
-        out_sd = worker_chunks_.ObtainChunk(GatewayChunkDataSizes[NumGatewayChunkSizes - 1]);
+        out_sd = worker_chunks_.ObtainChunk(MAX_SOCKET_DATA_SIZE);
     } else {
         out_sd = worker_chunks_.ObtainChunk(data_len);
     }
@@ -2080,24 +2080,63 @@ uint32_t GatewayWorker::SendPredefinedMessage(
     const char* message,
     const int32_t message_len)
 {
+    GW_ASSERT(NULL != message);
+
+    uint32_t err_code;
+
+    int32_t cur_message_offset = 0;
+    int32_t cur_message_len = message_len;
+
     // We don't need original chunk contents.
     sd->ResetAccumBuffer();
 
+    // Checking if we need to split the message into portions.
+    while (cur_message_len > MAX_SOCKET_DATA_SIZE) {
+
+        // Setting message length to maximum chunk size.
+        cur_message_len = MAX_SOCKET_DATA_SIZE;
+
+        SocketDataChunk* sd_send_clone = NULL;
+        err_code = sd->CloneToPush(this, cur_message_len, &sd_send_clone);
+        if (err_code)
+            return err_code;
+
+        GW_ASSERT(cur_message_len == sd_send_clone->get_data_blob_size());
+
+        // Copying part of the message.
+        memcpy(sd_send_clone->get_data_blob_start(), message + cur_message_offset, cur_message_len);
+
+        // Prepare buffer to send outside.
+        sd_send_clone->PrepareForSend(sd_send_clone->get_data_blob_start(), cur_message_len);
+
+        // Sending data.
+        err_code = Send(sd_send_clone);
+        if (err_code) {
+            // Releasing the cloned chunk.
+            ReturnSocketDataChunksToPool(sd_send_clone);
+            return err_code;
+        }
+
+        GW_ASSERT(NULL == sd_send_clone);
+
+        // Shifting message.
+        cur_message_offset += cur_message_len;
+        cur_message_len = message_len - cur_message_offset;
+    }
+
     // Checking if data fits inside chunk.
-    if (message_len > (int32_t)sd->get_num_available_network_bytes())
-    {
-        uint32_t err_code = SocketDataChunk::ChangeToBigger(this, sd, message_len);
+    if (cur_message_len > (int32_t) sd->get_num_available_network_bytes()) {
+
+        err_code = SocketDataChunk::ChangeToBigger(this, sd, cur_message_len);
         if (err_code)
             return err_code;
     }
 
-    // Checking if message should be copied.
-    if (message) {
-        memcpy(sd->get_data_blob_start(), message, message_len);
-    }
+    // Copying data.
+    memcpy(sd->get_data_blob_start(), message + cur_message_offset, cur_message_len);
 
     // Prepare buffer to send outside.
-    sd->PrepareForSend(sd->get_data_blob_start(), message_len);
+    sd->PrepareForSend(sd->get_data_blob_start(), cur_message_len);
 
     // Sending data.
     return Send(sd);
