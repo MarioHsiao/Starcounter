@@ -33,12 +33,13 @@ namespace Administrator.Server.Managers {
         /// <param name="imageResourceFolder">Folder where app image will be created</param>
         /// <param name="replace">Replace existing app if any</param>
         /// <param name="config"></param>
-        public static void Unpack(Stream packageZip, string sourceUrl, string appRootFolder, string imageResourceFolder, out DeployedConfigFile config) {
+        public static void Unpack(Stream packageZip, string sourceUrl, string storeUrl, string appRootFolder, string imageResourceFolder, out DeployedConfigFile config) {
 
             lock (PackageManager.locker) {
 
                 if (packageZip == null) throw new ArgumentNullException("packageZip");
                 if (sourceUrl == null) throw new ArgumentNullException("sourceUrl");
+                if (storeUrl == null) throw new ArgumentNullException("storeUrl");
                 if (appRootFolder == null) throw new ArgumentNullException("appRootFolder");
 
                 string createdDestinationFolder = null;
@@ -76,8 +77,7 @@ namespace Administrator.Server.Managers {
 
                             // Create app configuration file
                             //config = new DeployedConfigFile();
-
-                            CreateConfig(packageConfig, sourceUrl, imageUri, out config);
+                            CreateConfig(packageConfig, sourceUrl, storeUrl, imageUri, out config);
 
                             //Uri u = new Uri(sourceUrl);
                             //if (u.IsFile) {
@@ -130,9 +130,10 @@ namespace Administrator.Server.Managers {
                 }
 
                 string sourceHost = new Uri(System.IO.Path.GetFullPath(packageZip)).AbsoluteUri;
+                string storeUrl = string.Empty;
 
                 using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
-                    Unpack(fs, sourceHost, appRootFolder, imageResourceFolder, out config);
+                    Unpack(fs, sourceHost, storeUrl, appRootFolder, imageResourceFolder, out config);
                 }
             }
         }
@@ -146,13 +147,13 @@ namespace Administrator.Server.Managers {
         /// <param name="appRootFolder"></param>
         /// <param name="imageResourceFolder">Folder where app image will be created</param>
         /// <param name="config"></param>
-        public static void Upgrade(DeployedConfigFile from, string packageZip, string appRootFolder, string imageResourceFolder, out DeployedConfigFile config) {
+        //public static void Upgrade(DeployedConfigFile from, string packageZip, string appRootFolder, string imageResourceFolder, out DeployedConfigFile config) {
 
-            lock (PackageManager.locker) {
-                PackageManager.Unpack(packageZip, appRootFolder, imageResourceFolder, out config);
-                PackageManager.Delete(from, imageResourceFolder);
-            }
-        }
+        //    lock (PackageManager.locker) {
+        //        PackageManager.Unpack(packageZip, appRootFolder, imageResourceFolder, out config);
+        //        PackageManager.Delete(from, imageResourceFolder);
+        //    }
+        //}
 
         /// <summary>
         /// 
@@ -163,13 +164,13 @@ namespace Administrator.Server.Managers {
         /// <param name="appRootFolder"></param>
         /// <param name="imageResourceFolder">Folder where app image will be created</param>
         /// <param name="config"></param>
-        public static void Upgrade(DeployedConfigFile from, string sourceHost, Stream packageZip, string appRootFolder, string imageResourceFolder, out DeployedConfigFile config) {
+        //public static void Upgrade(DeployedConfigFile from, string sourceHost, Stream packageZip, string appRootFolder, string imageResourceFolder, out DeployedConfigFile config) {
 
-            lock (PackageManager.locker) {
-                PackageManager.Unpack(packageZip, sourceHost, appRootFolder, imageResourceFolder, out config);
-                PackageManager.Delete(from, imageResourceFolder);
-            }
-        }
+        //    lock (PackageManager.locker) {
+        //        PackageManager.Unpack(packageZip, sourceHost, appRootFolder, imageResourceFolder, out config);
+        //        PackageManager.Delete(from, imageResourceFolder);
+        //    }
+        //}
 
         /// <summary>
         /// Delete unpacked package
@@ -254,7 +255,7 @@ namespace Administrator.Server.Managers {
         /// </summary>
         /// <param name="packageConfig"></param>
         /// <param name="config"></param>
-        private static void CreateConfig(PackageConfigFile packageConfig, string sourceUrl, string imageUri, out DeployedConfigFile config) {
+        private static void CreateConfig(PackageConfigFile packageConfig, string sourceUrl, string storeUrl, string imageUri, out DeployedConfigFile config) {
 
             // Create app configuration file
             config = new DeployedConfigFile();
@@ -280,10 +281,18 @@ namespace Administrator.Server.Managers {
             else {
                 config.SourceID = u.Segments[u.Segments.Length - 1];
             }
-
             config.SourceUrl = sourceUrl;
-            config.ImageUri = imageUri;
 
+            Uri su = new Uri(storeUrl);
+            if (su.IsFile) {
+                config.StoreID = string.Format("{0:X8}", su.LocalPath.GetHashCode());
+            }
+            else {
+                config.StoreID = su.Segments[su.Segments.Length - 1];
+            }
+            config.StoreUrl = storeUrl;
+
+            config.ImageUri = imageUri;
             config.CanBeUninstalled = true;
         }
 
@@ -293,7 +302,7 @@ namespace Administrator.Server.Managers {
         /// </summary>
         /// <param name="packageZip"></param>
         /// <param name="config"></param>
-        private static void ReadConfiguration(ZipArchive archive, out PackageConfigFile config) {
+        public static void ReadConfiguration(ZipArchive archive, out PackageConfigFile config) {
             lock (PackageManager.locker) {
 
                 try {
@@ -324,7 +333,7 @@ namespace Administrator.Server.Managers {
         /// </summary>
         /// <param name="packageZip"></param>
         /// <param name="config"></param>
-        private static void ReadConfiguration(string packageZip, out PackageConfigFile config) {
+        public static void ReadConfiguration(string packageZip, out PackageConfigFile config) {
             lock (PackageManager.locker) {
 
                 using (ZipArchive archive = ZipFile.OpenRead(packageZip)) {
@@ -333,15 +342,14 @@ namespace Administrator.Server.Managers {
             }
         }
 
-        private static void VerifyPacket(string packageZip) {
+        public static void VerifyPacket(string packageZip) {
 
             using (FileStream fs = new FileStream(packageZip, FileMode.Open)) {
                 VerifyPacket(fs);
             }
-
         }
 
-        private static void VerifyPacket(Stream package) {
+        public static void VerifyPacket(Stream package) {
 
             try {
 
@@ -477,7 +485,7 @@ namespace Administrator.Server.Managers {
         /// <param name="archive"></param>
         /// <param name="file"></param>
         /// <param name="destinationFileName"></param>
-        private static void UnpackFile(ZipArchive archive, string file, string destinationFileName) {
+        public static void UnpackFile(ZipArchive archive, string file, string destinationFileName) {
 
             try {
                 foreach (ZipArchiveEntry entry in archive.Entries) {

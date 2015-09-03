@@ -49,45 +49,23 @@
             <table class="table">
 
                 <tbody>
-                    <!--<tr ng-repeat="item in store.Applications | orderBy:['-IsDeployed','DisplayName'] ">-->
 
                     <tr ng-repeat="item in store.Applications | orderBy:['DisplayName'] ">
 
-                        <td class="vert-align" style="width: 41px; padding-left: 15px">
+                        <td style="width: 41px; padding-top:12px; padding-left: 15px">
                             <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
                             <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Not installed" title="Not downloaded"></span>
+                            <span ng-show="item.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{item.ErrorMessage.Message}}" tooltip="{{item.ErrorMessage.Message}}"></span>
                             <span ng-show="item.Status!=0" title="{{item.StatusText}}" tooltip="{{item.StatusText}}" class="spinner tiny" style="margin: 0px; padding: 0px"></span>
                         </td>
 
-                        <td class="vert-align" style="width: 95px;">
-                            <div>
-                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="item.IsDeployed" ng-click="btnDeleteApplication(item)" title="Delete">Delete</button>
-                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
-
-<!--                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed" ng-click="btnInstallApplication(item)" title="Install">Install</button>
-                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Open</button>
-                                <a style="min-width: 80px"  ng-show="item.IsDeployed && item.IsRunning" class="btn btn-default btn-sm btn-success" href="http://localhost:8080/{{item.AppName}}" target="_blank" role="button" title="Open Application">Open</a>
-                                <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.IsDeployed && item.IsInstalled && !item.IsRunning" ng-click="btnOpenApplication(item)" title="Open Application">Restart</button>-->
-                            </div>
+                        <td style="width: 95px;">
+                            <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="item.IsDeployed" ng-click="btnDeleteApplication(item)" title="Delete">Delete</button>
+                            <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed && !item.CanUpgrade" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
+                            <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.CanUpgrade" ng-click="btnUpgradeApplication(item)" title="Upgrade">Upgrade</button>
                         </td>
 
-                        <!--                        <td class="vert-align">
-                                <div>{{item.StatusText}}</div>
-                        </td>-->
-
-                <!-- Error message -->
-                <td class="vert-align">
-
-                    <!-- Status Text -->
-                    {{item.StatusText}}
-                   
-                    <span ng-show="item.HasErrorMessage">{{item.ErrorMessage.Message}}
-                        <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
-                        View the <a href="#/server/log">log</a> for more details.
-                    </span>
-
-                </td>
-
+                        <!-- Icon + Name -->
                         <td>
                             <span style="display: inline">
                                 <img style="margin-right: 10px; vertical-align: baseline; height: 32px; width: 32px; max-width: 32px; max-height: 32px;" ng-src="{{item.ImageUri}}" />
@@ -98,13 +76,23 @@
                             </span>
                         </td>
 
-                        <td class="vert-align">
-                            <div class="fixedwidth">
+           
+                        <td >
+                            <div class="fixedwidth_">
                                 {{item.Description}}
                             </div>
+                            <!-- Status Text -->
+                            {{item.StatusText}}
+
+                        <!-- Error message -->
+                            <span style="color: #d9534f"  ng-show="item.HasErrorMessage">{{item.ErrorMessage.Message}}
+                                <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                                View the <a href="#/server/log">log</a> for more details.
+                            </span>
+
                         </td>
 
-                        <td class="vert-align text-right">{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
+                        <td class="text-right">{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
                     </tr>
                 </tbody>
 

@@ -1,13 +1,11 @@
 ﻿<!-- Database -->
 <style>
-
     .padlock {
         border: 0px;
-        background-color:transparent;
+        background-color: transparent;
         width: 20px;
         outline: none;
     }
-
 </style>
 
 
@@ -99,19 +97,16 @@
             <tr ng-repeat="application in database.Applications | orderBy:['DisplayName']">
 
                 <!-- Status -->
-                <td class="vert-align" style="width: 41px; padding-left: 15px">
-
-                    <div style="margin-top: 5px;">
-                        <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
-                        <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Stopped" tooltip="Stopped"></span>
-                        <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not running" tooltip="Not running"></span>
-                        <span ng-show="application.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}" tooltip="{{application.ErrorMessage.Message}}"></span>
-                        <span ng-show="application.Status!=0" style="margin-top: -2px" title="{{application.StatusText}}" class="spinner tiny"></span>
-                    </div>
+                <td style="width: 41px; padding-top: 12px; padding-left: 15px">
+                    <span ng-show="!application.HasErrorMessage && application.IsRunning && application.Status==0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
+                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && (!database.IsRunning || (database.IsRunning && !application.IsInstalled ))" style="font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-ok-circle" aria-hidden="true" title="Stopped" tooltip="Stopped"></span>
+                    <span ng-show="!application.HasErrorMessage && !application.IsRunning && application.Status==0 && database.IsRunning && application.IsInstalled" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not running" tooltip="Not running"></span>
+                    <span ng-show="application.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}" tooltip="{{application.ErrorMessage.Message}}"></span>
+                    <span ng-show="application.Status!=0" style="margin-top: -2px" title="{{application.StatusText}}" class="spinner tiny"></span>
                 </td>
 
                 <!-- Buttons -->
-                <td class="vert-align" style="width: 318px; background: rgba(0, 0, 0, 0.0)">
+                <td style="width: 318px;">
 
                     <div class="btn-group-sm">
                         <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
@@ -119,19 +114,19 @@
                         <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Start Application when database starts">Auto-Start (OFF)</button>
                         <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Start Application when database starts">Auto-Start (ON)</button>
                         <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
-                        <button ng-show="application.CanBeUninstalled$ && application.IsDeployed" style="color:#aaaaaa" class="padlock" ng-click="application.CanBeUninstalled$=!application.CanBeUninstalled$" title="Unlocked, Can be deleted"><i class="fa fa-unlock"></i></span></button>
-                        <button ng-show="!application.CanBeUninstalled$ && application.IsDeployed" style="color:#fb7e21" class="padlock" ng-click="application.CanBeUninstalled$=!application.CanBeUninstalled$" title="Locked, Can NOT be deleted"><i class="fa fa-lock"></i></span></button>
+                        <button ng-show="application.CanBeUninstalled$ && application.IsDeployed" style="color: #aaaaaa" class="padlock" ng-click="application.CanBeUninstalled$=!application.CanBeUninstalled$" title="Unlocked, Can be deleted"><i class="fa fa-unlock"></i></span></button>
+                        <button ng-show="!application.CanBeUninstalled$ && application.IsDeployed" style="color: #fb7e21" class="padlock" ng-click="application.CanBeUninstalled$=!application.CanBeUninstalled$" title="Locked, Can NOT be deleted"><i class="fa fa-lock"></i></span></button>
                     </div>
                 </td>
 
                 <!-- Image and App name -->
-                <td class="vert-align">
+                <td >
                     <img ng-src="{{application.ImageUri}}" err-src="/app/images/EXE-32.png" style="margin-right: 10px; height: 40px; width: 40px; min-width: 32px; max-width: 32px; max-height: 32px;" />
                     <a href="#/databases/{{application.DatabaseName}}/applications/{{application.ID}}">{{application.DisplayName}}</a>
                 </td>
 
                 <!-- Error message -->
-                <td class="vert-align">
+                <td>
 
                     <span style="color: #d9534f" ng-show="application.HasErrorMessage">
                         <!--                        <span style="margin-top: 5px;font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{application.ErrorMessage.Message}}"></span>-->
@@ -148,7 +143,7 @@
                 </td>
 
                 <!-- Version -->
-                <td class="vert-align text-right">{{application.Version}} ({{application.VersionDate | fixdate:'medium'}})</td>
+                <td class="text-right">{{application.Version}} ({{application.VersionDate | fixdate:'medium'}})</td>
             </tr>
         </tbody>
     </table>

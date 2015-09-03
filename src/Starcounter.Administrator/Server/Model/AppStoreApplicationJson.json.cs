@@ -12,8 +12,25 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Install action) {
 
-            this.Data.WantDeployed = true;
-            this.Data.WantInstalled = true;
+
+            this.Data.DeployApplication((deployedApplication) => {
+
+                // Success
+                deployedApplication.InstallApplication((installedApplication) => {
+
+                    // Success
+                }, (installedApplication, wasCanceled, title, message, helpLink) => {
+
+                    // Error
+                });
+
+            }, (deployedApplication, wasCanceled, title, message, helpLink) => {
+
+                // Error
+            });
+
+            //this.Data.WantDeployed = true;
+            //this.Data.WantInstalled = true;
         }
 
         /// <summary>
@@ -22,7 +39,17 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Delete action) {
 
-            this.Data.WantDeployed = false;
+            //this.Data.WantDeployed = false;
+
+            this.Data.DeleteApplication((deployedApplication) => {
+
+                // Success
+     
+            }, (deployedApplication, wasCanceled, title, message, helpLink) => {
+
+                // Error
+            });
+
         }
 
         /// <summary>
@@ -31,8 +58,16 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Download action) {
 
-            this.Data.WantInstalled = false;
-            this.Data.WantDeployed = true;
+            //this.Data.WantInstalled = false;
+            //this.Data.WantDeployed = true;
+
+            this.Data.DeployApplication((deployedApplication) => {
+
+                // Success
+            }, (deployedApplication, wasCanceled, title, message, helpLink) => {
+
+                // Error
+            });
         }
 
         /// <summary>
@@ -42,12 +77,32 @@ namespace Administrator.Server.Model {
         void Handle(Input.Open action) {
 
             if (this.Data.HasDatabaseAppliction) {
-                this.Data.DatabaseApplication.WantRunning = true;
+
+                this.Data.DatabaseApplication.StartApplication((application) => {
+
+                }, (application, wasCancelled, title, message, helpLink) => {
+                    // TODO: Handle error
+                });
             }
 
 
             // TODO: Go to app page
-//            this.StatusText = "Not implemented";
+        }
+
+        /// <summary>
+        /// Upgrade application
+        /// </summary>
+        /// <param name="action"></param>
+        void Handle(Input.Upgrade action) {
+
+            this.Data.UpgradeApplication((application) => {
+
+                // Success
+            }, (application, wasCanceled, title, message, helpLink) => {
+
+                // Error
+            });
+            //            this.Data.WantDeployed = true;
         }
     }
 }

@@ -227,13 +227,30 @@ namespace Starcounter.Binding
         void AssignDymanicTypeInformation() {
             TypeNameIndex = TypePropertyIndex = InheritsPropertyIndex = -1;
             if (_PropertyDefs != null) {
-                for (int i = 0; i < _PropertyDefs.Length; i++) {
-                    var candidate = _PropertyDefs[i];
-                    if (candidate.IsTypeReference) {
+                AssignDymanicTypeInformation(_PropertyDefs);
+            }
+        }
+
+        // Called when all previous results have been cleared and there are
+        // in fact properties defined to process
+        void AssignDymanicTypeInformation(PropertyDef[] props) {
+            // The strategy here is to use the fact that more specialized properties
+            // are more towards the end of the array - hence, we traverse it in a
+            // reverse fashion to get the most specific one. As soon as one is found
+            // for a certain type of property, we stop looking for that.
+
+            for (int i = props.Length - 1; i >= 0; i--) {
+                var candidate = props[i];
+                if (candidate.IsTypeReference) {
+                    if (TypePropertyIndex == -1) {
                         TypePropertyIndex = i;
-                    } else if (candidate.IsInheritsReference) {
+                    }
+                } else if (candidate.IsInheritsReference) {
+                    if (InheritsPropertyIndex == -1) {
                         InheritsPropertyIndex = i;
-                    } else if (candidate.IsTypeName) {
+                    }
+                } else if (candidate.IsTypeName) {
+                    if (TypeNameIndex == -1) {
                         TypeNameIndex = i;
                     }
                 }

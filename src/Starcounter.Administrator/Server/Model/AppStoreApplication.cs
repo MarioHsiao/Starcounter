@@ -5,6 +5,7 @@ using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -52,6 +53,10 @@ namespace Administrator.Server.Model {
 
         public string SourceID;         // App Store item id
         public string SourceUrl;        // App Store item source
+
+        public string StoreID;         // Store id
+        public string StoreUrl;        // Store source
+
         public string Heading;
         public long Rating;
 
@@ -60,22 +65,31 @@ namespace Administrator.Server.Model {
                 return this.HasDatabaseAppliction;
             }
         }
-
         public bool IsRunning {
             get {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.IsRunning;
             }
         }
-
         public bool IsInstalled {
             get {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.IsInstalled;
             }
         }
-
         public bool CanBeUninstalled {
             get {
                 return this.HasDatabaseAppliction && this.DatabaseApplication.CanBeUninstalled;
+            }
+        }
+        // Version exist (Is deployed) and versionDate is newer
+        private bool _CanUpgrade;
+        public bool CanUpgrade {
+            get {
+                return this._CanUpgrade;
+            }
+            set {
+                if (this._CanUpgrade == value) return;
+                this._CanUpgrade = value;
+                this.OnPropertyChanged("CanUpgrade");
             }
         }
 
@@ -83,9 +97,9 @@ namespace Administrator.Server.Model {
         public ApplicationStatus Status {
             get {
 
-                if (this.HasDatabaseAppliction) {
-                    return this.DatabaseApplication.Status;
-                }
+                //if (this.HasDatabaseAppliction) {
+                //    return this.DatabaseApplication.Status;
+                //}
 
                 return this._Status;
             }
@@ -100,9 +114,9 @@ namespace Administrator.Server.Model {
         public string StatusText {
             get {
 
-                if (this.HasDatabaseAppliction) {
-                    return this.DatabaseApplication.StatusText;
-                }
+                //if (this.HasDatabaseAppliction) {
+                //    return this.DatabaseApplication.StatusText;
+                //}
 
                 return this._StatusText;
             }
@@ -139,24 +153,6 @@ namespace Administrator.Server.Model {
             }
         }
 
-
-        private bool _WantDeployed;
-        public bool WantDeployed {
-            get {
-                return this._WantDeployed;
-            }
-            set {
-                this._WantDeployed = value;
-
-                // Reset error state
-                this.DeployError = false;
-                //this.CouldnotDelete = false;
-                this.ResetErrorMessage();
-                this.OnPropertyChanged("WantDeployed");
-                this.Evaluate();
-            }
-        }
-
         private bool _DeployError;
         public bool DeployError {
             get {
@@ -169,31 +165,27 @@ namespace Administrator.Server.Model {
             }
         }
 
-        private bool _WantInstalled;
-        public bool WantInstalled {
+        private bool _DeleteError;
+        public bool DeleteError {
             get {
-                return this._WantInstalled;
+                return this._DeleteError;
             }
             set {
-                this._WantInstalled = value;
-
-                // Reset error state
-                this.CouldNotInstall = false;
-
-                this.OnPropertyChanged("WantInstalled");
-                this.Evaluate();
+                if (this._DeleteError == value) return;
+                this._DeleteError = value;
+                this.OnPropertyChanged("DeleteError");
             }
         }
 
-        private bool _CouldNotInstall;
-        public bool CouldNotInstall {
+        private bool _UpgradeError;
+        public bool UpgradeError {
             get {
-                return this._CouldNotInstall;
+                return this._UpgradeError;
             }
             set {
-                if (this._CouldNotInstall == value) return;
-                this._CouldNotInstall = value;
-                this.OnPropertyChanged("CouldNotInstall");
+                if (this._UpgradeError == value) return;
+                this._UpgradeError = value;
+                this.OnPropertyChanged("UpgradeError");
             }
         }
 
@@ -219,16 +211,19 @@ namespace Administrator.Server.Model {
                 if (this._DatabaseApplication != null) {
                     this._DatabaseApplication.Changed += _DatabaseApplication_Changed;
                 }
+
+                //this.SetCanUpgradeFlag();
+
                 this.OnPropertyChanged("HasDatabaseAppliction");
                 this.OnPropertyChanged("DatabaseApplication");
                 this.OnPropertyChanged("IsRunning");
                 this.OnPropertyChanged("IsInstalled");
                 this.OnPropertyChanged("CanBeUninstalled");
                 this.OnPropertyChanged("IsDeployed");
-                this.OnPropertyChanged("ErrorMessage");
-                this.OnPropertyChanged("HasErrorMessage");
-                this.OnPropertyChanged("Status");
-                this.OnPropertyChanged("StatusText");
+                //this.OnPropertyChanged("ErrorMessage");
+                //this.OnPropertyChanged("HasErrorMessage");
+                //this.OnPropertyChanged("Status");
+                //this.OnPropertyChanged("StatusText");
             }
         }
 
@@ -240,18 +235,18 @@ namespace Administrator.Server.Model {
                 //    this.OnPropertyChanged("HasErrorMessage");
                 //}
 
-                if (((PropertyChangedEventArgs)e).PropertyName == "ErrorMessage") {
+                //if (((PropertyChangedEventArgs)e).PropertyName == "ErrorMessage") {
 
-                    // Copy app error message to the AppStore app
-                    ErrorMessage err = ((DatabaseApplication)sender).ErrorMessage;
+                //    // Copy app error message to the AppStore app
+                //    ErrorMessage err = ((DatabaseApplication)sender).ErrorMessage;
 
-                    this.ErrorMessage.Message = err.Message;
-                    this.ErrorMessage.Title = err.Title;
-                    this.ErrorMessage.HelpLink = err.HelpLink;
+                //    this.ErrorMessage.Message = err.Message;
+                //    this.ErrorMessage.Title = err.Title;
+                //    this.ErrorMessage.HelpLink = err.HelpLink;
 
-                    this.OnPropertyChanged("ErrorMessage");
-                    this.OnPropertyChanged("HasErrorMessage");
-                }
+                //    this.OnPropertyChanged("ErrorMessage");
+                //    this.OnPropertyChanged("HasErrorMessage");
+                //}
 
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsRunning") {
                     this.OnPropertyChanged("IsRunning");
@@ -265,18 +260,17 @@ namespace Administrator.Server.Model {
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsDeployed") {
                     this.OnPropertyChanged("IsDeployed");
                 }
-                if (((PropertyChangedEventArgs)e).PropertyName == "Status") {
-                    this.OnPropertyChanged("Status");
-                }
-                if (((PropertyChangedEventArgs)e).PropertyName == "StatusText") {
-                    this.OnPropertyChanged("StatusText");
-                }
+                //if (((PropertyChangedEventArgs)e).PropertyName == "Status") {
+                //    this.OnPropertyChanged("Status");
+                //}
+                //if (((PropertyChangedEventArgs)e).PropertyName == "StatusText") {
+                //    this.OnPropertyChanged("StatusText");
+                //}
 
             }
 
             this.OnChanged(sender, e);
         }
-
 
         #endregion
 
@@ -307,122 +301,383 @@ namespace Administrator.Server.Model {
         #region Update Model
         public void UpdateModel() {
 
-            this.UpdateProperties();
         }
-
-        private void UpdateProperties() {
-
-            // TODO:
-            // this.IsRunning = this.ApplicationRunningState();
-        }
-        #endregion
 
         /// <summary>
-        /// Evaluate application wanting states
+        /// Called when: 
+        /// * An application has been connected to an appstore application
+        /// * An application has been disconnected from an appstore application (application deleted)
+        /// * An appstore application has been added
+        /// * An appstore application has been remove
         /// </summary>
-        private void Evaluate() {
+        public void UpdateUpgradeFlag() {
 
-            if (this.IsDeployed != this.WantDeployed) {
+            DatabaseApplication deployedApplication = this.Database.GetLatestApplication(this.Namespace, this.Channel);
 
-                if (this.WantDeployed) {
+            AppStoreStore store = this.GetApplicationStore();
+            if (store != null) {
+                IList<AppStoreApplication> appStoreApplications = store.GetAppStoreApplications(this.Namespace, this.Channel);
+                foreach (AppStoreApplication item in appStoreApplications) {
 
-                    // Download
-                    if (!this.DeployError && this.IsDeployed == false && !this.Status.HasFlag(ApplicationStatus.Downloading)) {
-                        this.DeployApplication();
-                    }
-                }
-                else {
-
-
-                    if (this.HasDatabaseAppliction) {
-                        DatabaseApplication databaseApplication = this.DatabaseApplication;
-                        databaseApplication.WantDeleted = true;
-                    }
-
-
-                    //// Delete
-                    //if (!this.DeployError && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
-                    //    this.DeleteApplication();
-                    //}
+                    item.CanUpgrade = deployedApplication != null && item.VersionDate > deployedApplication.VersionDate;
                 }
             }
+        }
 
-            //if (this.WantDeployed) {
+        private AppStoreStore GetApplicationStore() {
 
-            //    if (!this.CouldnotDeploy && this.IsDeployed == false && !this.Status.HasFlag(ApplicationStatus.Downloading)) {
-            //        this.DeployApplication();
-            //    }
-            //}
+            foreach (AppStoreStore store in this.Database.AppStoreStores) {
 
-            if (this.Status != ApplicationStatus.None) {
-                // Work already in progres, when work is compleated it will call Evaluate()
+                foreach (AppStoreApplication app in store.Applications) {
+                    // TODO: USe Uri.Compare(
+                    if (String.Equals(app.SourceUrl, this.SourceUrl, StringComparison.OrdinalIgnoreCase)) {
+                        return store;
+                    }
+                }
+            }
+            return null;
+        }
+
+        #endregion
+
+        #region Actions
+
+        #region DeployApplication
+        private ConcurrentStack<Action<DatabaseApplication>> DeployApplicationCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> DeployApplicationErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
+        /// <summary>
+        /// Deploy application
+        /// Download application from appstore and unpack it to the database
+        /// NOTE: The application is not "Installed" auto-started.
+        /// </summary>
+        public void DeployApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.DeployApplicationCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.DeployApplicationErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Installing)) {
+                // Busy
                 return;
             }
 
             if (this.IsDeployed) {
-                if (this.DatabaseApplication.IsInstalled != this.WantInstalled) {
-                    this.DatabaseApplication.WantRunning = this.WantInstalled;
-                    this.DatabaseApplication.WantInstalled = this.WantInstalled;
+                // Already deployed
+                this.DeployApplicationErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DeployApplicationCallbacks);
+                return;
+            }
+
+            this.DeployError = false;
+            this.Status |= ApplicationStatus.Installing;
+
+            DeployManager.Download(this, (application) => {
+
+                this.Status &= ~ApplicationStatus.Installing;
+
+                this.DeployApplicationErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DeployApplicationCallbacks);
+
+            }, (message) => {
+
+                this.Status &= ~ApplicationStatus.Installing;
+                this.DeployError = true;
+                this.OnCommandError("Deploy application", message, null);
+                this.DeployApplicationCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.DeployApplicationErrorCallbacks, false, "Deploy application", message, null);
+            });
+        }
+
+        #endregion
+
+        #region DeleteApplication
+        private ConcurrentStack<Action<DatabaseApplication>> DeleteApplicationCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> DeleteApplicationErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
+        /// <summary>
+        /// Delete application
+        /// Delete deployed application from disk.
+        /// </summary>
+        public void DeleteApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.DeleteApplicationCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.DeleteApplicationErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Deleting)) {
+                // Busy
+                return;
+            }
+
+            if (!this.HasDatabaseAppliction) {
+
+                this.DeleteError = true;
+                this.DeleteApplicationErrorCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.DeleteApplicationErrorCallbacks, false, "Delete Application", "Could not find application", null);
+                return;
+            }
+
+            if (this.IsDeployed == false) {
+                // Not deployed
+                this.DeleteApplicationErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DeleteApplicationCallbacks);
+                return;
+            }
+
+            this.DeleteError = false;
+            this.Status |= ApplicationStatus.Deleting;
+
+            this.DatabaseApplication.DeleteApplication(false, (application) => {
+
+                this.Status &= ~ApplicationStatus.Deleting;
+
+                this.DeleteApplicationErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DeleteApplicationCallbacks);
+
+            }, (application, wasCanceled, title, message, helpLink) => {
+
+                this.Status &= ~ApplicationStatus.Deleting;
+                this.DeleteError = true;
+                this.OnCommandError(title, message, helpLink);
+                this.DeleteApplicationCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.DeleteApplicationErrorCallbacks, false, title, message, helpLink);
+            });
+        }
+
+        #endregion
+
+        #region UpgradeApplication
+        private ConcurrentStack<Action<DatabaseApplication>> UpgradeApplicationCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> UpgradeApplicationErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
+        /// <summary>
+        /// Upgrade application
+        /// 
+        /// </summary>
+        public void UpgradeApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.UpgradeApplicationCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.UpgradeApplicationErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Upgrading)) {
+                // Busy
+                return;
+            }
+
+            if (this.IsDeployed == true) {
+                // Already deployed
+                this.UpgradeApplicationErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.UpgradeApplicationCallbacks);
+                return;
+            }
+
+            // Get Right DatabaseApplication to upgrade
+            DatabaseApplication currentDatabaseApplication = this.Database.GetLatestApplication(this.Namespace, this.Channel);
+            if (currentDatabaseApplication == null) {
+                this.UpgradeError = true;
+                this.OnCommandError("Upgrade Application", "Failed to find the application", null);
+                this.UpgradeApplicationErrorCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, "Upgrade Application", "Failed to find the application", null);
+                return;
+            }
+
+            // Check store
+            if (this.HasDatabaseAppliction && currentDatabaseApplication.StoreUrl != this.DatabaseApplication.StoreUrl) {
+                // Can not upgrade applications from different sources
+                this.UpgradeError = true;
+                this.OnCommandError("Upgrade Application", "Can not upgrade applications from different stores", null);
+                this.UpgradeApplicationErrorCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, "Upgrade Application", "Can not upgrade applications from different stores", null);
+            }
+
+            this.UpgradeError = false;
+            this.Status |= ApplicationStatus.Upgrading;
+
+            this.DeployApplication((deployedDatabaseApplication) => {
+
+                this._Upgraded_Step_1_Stopping(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+
+            }, (depoyedApplication, wasCanceled, title, message, helpLink) => {
+
+                // Error
+                this.OnUpgradeError(title, message, helpLink);
+            });
+        }
+
+        private void _Upgraded_Step_1_Stopping(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (currentDatabaseApplication.IsRunning) {
+
+                currentDatabaseApplication.StopApplication((stoppedCurrentApplication) => {
+
+                    this._Upgraded_Step_2_Installed(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+
+                }, (application, wasCanceled, title, message, helpLink) => {
+
+                    // Could not stop old application
+                    this.OnUpgradeError(title, message, helpLink);
+                });
+            }
+            else {
+                this._Upgraded_Step_2_Installed(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+            }
+        }
+
+        /// <summary>
+        /// Helper:
+        /// </summary>
+        /// <param name="databaseApplication"></param>
+        /// <param name="currentDatabaseApplication"></param>
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        private void _Upgraded_Step_2_Installed(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (currentDatabaseApplication.IsInstalled) {
+
+                // TODO: Should we Uninstall current database application?
+
+                deployedDatabaseApplication.InstallApplication((installedApplication) => {
+
+                    this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                }, (installedApplication, wasCanceled, title, message, helpLink) => {
+                    // Error
+
+                    this.OnUpgradeError(title, message, helpLink);
+                });
+            }
+            else {
+                this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+            }
+        }
+
+        private void _Upgraded_Step_3_LockFlag(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            if (currentDatabaseApplication.CanBeUninstalled != deployedDatabaseApplication.CanBeUninstalled) {
+
+                deployedDatabaseApplication.SetCanBeUninstalledFlag(currentDatabaseApplication.CanBeUninstalled, (application) => {
+
+                    this._Upgraded_Step_4_Cleanup(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+
+                }, (application, wasCancelled, title, message, helpLink) => {
+                    // Failed to lock 
+                    this._Upgraded_Step_4_Cleanup(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                });
+
+            }
+            else {
+                this._Upgraded_Step_4_Cleanup(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+            }
+        }
+
+        private void _Upgraded_Step_4_Cleanup(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            currentDatabaseApplication.DeleteApplication(true, (deletedApplication) => {
+
+                // Upgrade OK
+                this.OnUpgradeSuccess();
+            }, (deletedApplication, wasCanceled, title, message, helpLink) => {
+
+                deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
+                    // Error
+                    this.OnUpgradeError(title, message, helpLink);
+
+                }, (depoyedApplication2, wasCanceled2, title2, message2, helpLink2) => {
+
+                    // Error
+                    this.OnUpgradeError(title, message, helpLink);
+                });
+
+            });
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Called when upgrade was successfully executed
+        /// </summary>
+        private void OnUpgradeSuccess() {
+
+            this.Status &= ~ApplicationStatus.Upgrading;
+            this.UpgradeApplicationErrorCallbacks.Clear();
+            this.InvokeActionListeners(this.UpgradeApplicationCallbacks);
+        }
+
+        /// <summary>
+        /// Called when an upgrade failed
+        /// </summary>
+        /// <param name="title"></param>
+        /// <param name="message"></param>
+        /// <param name="helpLink"></param>
+        private void OnUpgradeError(string title, string message, string helpLink) {
+
+            // TODO: If current app was stopped, then we need to restart it
+            // TODO: If current app was uninstalled then we need to reinstalled it
+            // TODO: If current app had the canbeuninstalled flag changed then we need to restore to previous value
+
+            this.Status &= ~ApplicationStatus.Upgrading;
+            this.UpgradeError = true;
+            this.OnCommandError(title, message, helpLink);
+            this.UpgradeApplicationCallbacks.Clear();
+            this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, title, message, helpLink);
+        }
+
+        /// <summary>
+        /// Invoke action listeners½
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionListeners(ConcurrentStack<Action<DatabaseApplication>> listeners) {
+
+            while (listeners.Count > 0) {
+
+                Action<DatabaseApplication> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback(this.DatabaseApplication);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
                 }
             }
         }
 
-        #region Actions
-
         /// <summary>
-        /// Deploy appkication on server
-        /// Download application from appstore.
+        /// Invoke action error listeners
         /// </summary>
-        private void DeployApplication() {
+        /// <param name="listeners"></param>
+        private void InvokeActionErrorListeners(ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> listeners, bool wasCancelled, string title, string message, string helpLink) {
 
-            //this.ResetErrorMessage();
+            while (listeners.Count > 0) {
 
-            this.Status |= ApplicationStatus.Downloading;
-            this.StatusText = "Downloading";
-
-            DeployManager.Download(this, (application) => {
-
-                this.Status &= ~ApplicationStatus.Downloading; // Remove status
-                this.StatusText = string.Empty;
-                this.Evaluate();
-            }, (message) => {
-
-                this.DeployError = true;
-                this.Status &= ~ApplicationStatus.Downloading; // Remove status
-                this.StatusText = string.Empty;
-
-                this.OnCommandError("Downloading Application", message, null);
-
-                this.Evaluate();
-            });
+                Action<DatabaseApplication, bool, string, string, string> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback(this.DatabaseApplication, wasCancelled, title, message, helpLink);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
         }
-
-        /// <summary>
-        /// Delete deployed application from server
-        /// </summary>
-        //private void DeleteApplication() {
-
-        //    this.ResetErrorMessage();
-
-        //    this.Status |= ApplicationStatus.Deleting;
-        //    this.StatusText = "Deleting";
-
-        //    DeployManager.Delete(this.DatabaseApplication, (application) => {
-
-        //        this.Status &= ~ApplicationStatus.Deleting; // Remove status
-        //        this.StatusText = string.Empty;
-        //        this.Evaluate();
-        //    }, (message) => {
-
-        //        this.DeployError = true;
-        //        this.Status &= ~ApplicationStatus.Deleting; // Remove status
-        //        this.StatusText = string.Empty;
-
-        //        this.OnCommandError("Deleting Application", message, null);
-
-        //        this.Evaluate();
-        //    });
-        //}
 
         /// <summary>
         /// 
@@ -482,5 +737,4 @@ namespace Administrator.Server.Model {
 
         #endregion
     }
-
 }
