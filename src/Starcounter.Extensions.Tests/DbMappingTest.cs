@@ -10,6 +10,7 @@ using Starcounter.Advanced;
 using System.Net;
 using PolyjuiceNamespace;
 using Starcounter.Extensions;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DbMappingTest {
 
@@ -108,122 +109,122 @@ namespace DbMappingTest {
                 NameClass4 nc4;
                 List<UInt64> mappedOids;
 
-                Debug.Assert(Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First != null);
-                Debug.Assert(Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First != null);
+                Assert.IsTrue(Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First != null);
+                Assert.IsTrue(Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First != null);
 
                 nc1.FirstName = "John";
 
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First;
-                Debug.Assert(nc2.FullName == "John ");
+                Assert.IsTrue(nc2.FullName == "John ");
 
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First;
-                Debug.Assert(nc3.FirstName == "John");
+                Assert.IsTrue(nc3.FirstName == "John");
 
-                Debug.Assert(true == DbMapping.HasMappedObjects(nc1.GetObjectNo()));
-                Debug.Assert(true == DbMapping.HasMappedObjects(nc2.GetObjectNo()));
-                Debug.Assert(true == DbMapping.HasMappedObjects(nc3.GetObjectNo()));
+                Assert.IsTrue(true == DbMapping.HasMappedObjects(nc1.GetObjectNo()));
+                Assert.IsTrue(true == DbMapping.HasMappedObjects(nc2.GetObjectNo()));
+                Assert.IsTrue(true == DbMapping.HasMappedObjects(nc3.GetObjectNo()));
 
                 mappedOids = DbMapping.GetMappedOids(nc1.GetObjectNo());
-                Debug.Assert(mappedOids[0] == nc2.GetObjectNo());
-                Debug.Assert(mappedOids[1] == nc3.GetObjectNo());
+                Assert.IsTrue(mappedOids[0] == nc2.GetObjectNo());
+                Assert.IsTrue(mappedOids[1] == nc3.GetObjectNo());
 
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
-                Debug.Assert(nc4.FirstName == "HahaJohn");
+                Assert.IsTrue(nc4.FirstName == "HahaJohn");
 
-                Debug.Assert(true == DbMapping.HasMappedObjects(nc4.GetObjectNo()));
+                Assert.IsTrue(true == DbMapping.HasMappedObjects(nc4.GetObjectNo()));
                 mappedOids = DbMapping.GetMappedOids(nc3.GetObjectNo());
-                Debug.Assert(mappedOids[0] == nc4.GetObjectNo());
+                Assert.IsTrue(mappedOids[0] == nc4.GetObjectNo());
 
                 nc1.LastName = "Doe";
 
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First;
-                Debug.Assert(nc2.FullName == "John Doe");
+                Assert.IsTrue(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First;
-                Debug.Assert(nc3.FirstName == "John");
+                Assert.IsTrue(nc3.FirstName == "John");
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
-                Debug.Assert(nc4.FirstName == "HahaJohn");
+                Assert.IsTrue(nc4.FirstName == "HahaJohn");
 
                 nc1 = new NameClass1();
                 nc1.FirstName = "Ivan";
 
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "Ivan ").First;
-                Debug.Assert(nc2.FullName == "Ivan ");
+                Assert.IsTrue(nc2.FullName == "Ivan ");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "Ivan").First;
-                Debug.Assert(nc3.FirstName == "Ivan");
+                Assert.IsTrue(nc3.FirstName == "Ivan");
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o WHERE o.FirstName = ?", "HahaIvan").First;
-                Debug.Assert(nc4.FirstName == "HahaIvan");
+                Assert.IsTrue(nc4.FirstName == "HahaIvan");
 
                 // Checking that old instances are untouched.
                 NameClass1 nc11 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc11.FirstName == "John");
+                Assert.IsTrue(nc11.FirstName == "John");
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
-                Debug.Assert(nc2.FullName == "John Doe");
+                Assert.IsTrue(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc3.FirstName == "John");
+                Assert.IsTrue(nc3.FirstName == "John");
 
                 nc1.LastName = "Petrov";
 
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "Ivan Petrov").First;
-                Debug.Assert(nc2.FullName == "Ivan Petrov");
+                Assert.IsTrue(nc2.FullName == "Ivan Petrov");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "Ivan").First;
-                Debug.Assert(nc3.FirstName == "Ivan");
+                Assert.IsTrue(nc3.FirstName == "Ivan");
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o WHERE o.FirstName = ?", "HahaIvan").First;
-                Debug.Assert(nc4.FirstName == "HahaIvan");
+                Assert.IsTrue(nc4.FirstName == "HahaIvan");
 
                 // Checking that old instances are untouched.
                 nc11 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc11.FirstName == "John");
+                Assert.IsTrue(nc11.FirstName == "John");
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
-                Debug.Assert(nc2.FullName == "John Doe");
+                Assert.IsTrue(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc3.FirstName == "John");
+                Assert.IsTrue(nc3.FirstName == "John");
 
                 // Deleting the object, and all related objects.
                 nc1.Delete();
 
                 // Checking that old instances are untouched.
                 nc11 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc11.FirstName == "John");
+                Assert.IsTrue(nc11.FirstName == "John");
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
-                Debug.Assert(nc2.FullName == "John Doe");
+                Assert.IsTrue(nc2.FullName == "John Doe");
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc3.FirstName == "John");
+                Assert.IsTrue(nc3.FirstName == "John");
 
                 // Checking that the original and all mapped objects are deleted.
                 nc1 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "Ivan").First;
-                Debug.Assert(nc1 == null);
+                Assert.IsTrue(nc1 == null);
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "Ivan Petrov").First;
-                Debug.Assert(nc2 == null);
+                Assert.IsTrue(nc2 == null);
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "Ivan").First;
-                Debug.Assert(nc3 == null);
+                Assert.IsTrue(nc3 == null);
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o WHERE o.FirstName = ?", "HahaIvan").First;
-                Debug.Assert(nc4 == null);
+                Assert.IsTrue(nc4 == null);
 
                 nc1 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc1.FirstName == "John");
+                Assert.IsTrue(nc1.FirstName == "John");
 
                 // Deleting the object, and all related objects.
                 nc1.Delete();
 
                 // Checking that the original and all mapped objects are deleted.
                 nc1 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc1 == null);
+                Assert.IsTrue(nc1 == null);
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o WHERE o.FullName = ?", "John Doe").First;
-                Debug.Assert(nc2 == null);
+                Assert.IsTrue(nc2 == null);
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o WHERE o.FirstName = ?", "John").First;
-                Debug.Assert(nc3 == null);
+                Assert.IsTrue(nc3 == null);
 
                 // Checking that no objects are left.
                 nc1 = Db.SQL<NameClass1>("SELECT o FROM NameClass1 o").First;
-                Debug.Assert(nc1 == null);
+                Assert.IsTrue(nc1 == null);
                 nc2 = Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First;
-                Debug.Assert(nc2 == null);
+                Assert.IsTrue(nc2 == null);
                 nc3 = Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First;
-                Debug.Assert(nc3 == null);
+                Assert.IsTrue(nc3 == null);
 
                 // Checking that all relations are also deleted.
                 DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
-                Debug.Assert(rel == null);
+                Assert.IsTrue(rel == null);
             });
         }
     }

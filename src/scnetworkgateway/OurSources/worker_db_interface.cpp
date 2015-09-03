@@ -88,7 +88,7 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
 
                     SocketDataChunk* sd_copy = simulated_shared_memory_queue_using_sd_.PopFront();
 
-                    uint32_t err_code = sd_copy->CloneToPush(gw, &sd);
+                    uint32_t err_code = sd_copy->CloneToPush(gw, sd_copy->get_accumulated_len_bytes(), &sd);
                     GW_ASSERT(0 == err_code);
 
                     // Returning gateway chunk to pool.
@@ -350,7 +350,7 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
         
         // Copying socket data to put it in simulated queue.
         SocketDataChunk* sd_copy;
-        uint32_t err_code = sd->CloneToPush(gw, &sd_copy);
+        uint32_t err_code = sd->CloneToPush(gw, sd->get_accumulated_len_bytes(), &sd_copy);
         GW_ASSERT(0 == err_code);
 
         // Returning gateway chunk to pool.

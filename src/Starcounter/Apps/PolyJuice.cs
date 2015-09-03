@@ -204,7 +204,10 @@ namespace PolyjuiceNamespace {
         /// <summary>
         /// Mapping  handler that calls registered handlers.
         /// </summary>
-        static Response MappingHandler(Request req, List<HandlerInfoForUriMapping> mappedHandlersList, String stringParam) {
+        static Response MappingHandler(
+            Request req,
+            List<HandlerInfoForUriMapping> mappedHandlersList,
+            String stringParam) {
 
             HandlerOptions callingHandlerOptions = req.HandlerOpts;
 
@@ -324,7 +327,7 @@ namespace PolyjuiceNamespace {
         public static void Map(
             String appProcessedUri,
             String mapProcessedUri,
-            String method = "GET") {
+            String method = Handle.GET_METHOD) {
 
             Map(appProcessedUri, mapProcessedUri, null, null, method);
         }
@@ -340,20 +343,18 @@ namespace PolyjuiceNamespace {
             String method) {
 
             // Checking if method is allowed.
-            if (method != "GET" &&
-                method != "PUT" &&
-                method != "POST" &&
-                method != "PATCH" &&
-                method != "DELETE") {
+            if (method != Handle.GET_METHOD &&
+                method != Handle.PUT_METHOD &&
+                method != Handle.POST_METHOD &&
+                method != Handle.PATCH_METHOD &&
+                method != Handle.DELETE_METHOD) {
 
                 throw new InvalidOperationException("HTTP method should be either GET, POST, PUT, DELETE or PATCH.");
             }
 
-            // Checking that map URI is "/" or starts with "/polyjuice/".
+            // Checking that map URI starts with "/polyjuice/".
             if (!mapProcessedUri.StartsWith(PolyjuiceMappingUri, StringComparison.InvariantCultureIgnoreCase)) {
-                if (mapProcessedUri != "/") {
-                    throw new ArgumentException("Application can only map to handlers starting with \"/polyjuice/\" or a root handler.");
-                }
+                throw new ArgumentException("Application can only map to handlers starting with \"/polyjuice/\".");
             }
 
             lock (customMaps_) {

@@ -20,9 +20,30 @@
   <!-- Gateway system internal port -->
   <InternalSystemPort>8181</InternalSystemPort>
 
-  <!-- Information on reverse proxies if any. -->
-
+  <UriAliases>
+  
+    <!-- Administrator root alias -->
+	<UriAlias>
+		<HttpMethod>GET</HttpMethod>
+		<FromUri>/</FromUri>
+		<ToUri>/index.html</ToUri>
+		<Port>8181</Port>
+	</UriAlias>
+  </UriAliases>
+  
   <!--
+  
+  <UriAliases>
+  
+	<UriAlias>
+		<HttpMethod>GET</HttpMethod>
+		<FromUri>/</FromUri>
+		<ToUri>/launcher</ToUri>
+		<Port>8080</Port>
+	</UriAlias>
+	
+  </UriAliases>
+  
   <ReverseProxies>
   
     <ReverseProxy>
@@ -54,6 +75,7 @@
     </ReverseProxy>
      
   </ReverseProxies>
+  
   -->
   
   <!--

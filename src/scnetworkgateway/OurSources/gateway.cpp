@@ -288,6 +288,7 @@ Gateway::Gateway()
 
     // No reverse proxies by default.
     num_reversed_proxies_ = 0;
+    num_uri_aliases_ = 0;
 
     // Starting linear unique socket with 0.
     unique_socket_id_ = 0;
@@ -318,9 +319,6 @@ Gateway::Gateway()
 
     // Resetting Starcounter log handle.
     sc_log_handle_ = MixedCodeConstants::INVALID_SERVER_LOG_HANDLE;
-
-    // Empty global statistics.
-    memcpy(global_statistics_string_, kHttpStatisticsHeader, kHttpStatisticsHeaderLength);
 
     codegen_uri_matcher_ = NULL;
 }
@@ -685,25 +683,25 @@ uint32_t Gateway::LoadReverseProxies()
     }
 
     ReverseProxyInfo proxies[MAX_PROXIED_URIS];
-    int32_t n = 0;
+    int32_t num_proxies = 0, num_aliases = 0;
+
+    char* tmp = (char*) config_contents_str.c_str();
+    using namespace rapidxml;
+    xml_document<> doc; // Character type defaults to char.
+    doc.parse<0>(tmp); // 0 means default parse flags.
+
+    xml_node<> *root_elem = doc.first_node("NetworkGateway");
+    if (!root_elem)
+    {
+        g_gateway.LogWriteCritical(L"Gateway XML: Can't read NetworkGateway property.");
+        return SCERRBADGATEWAYCONFIG;
+    }
+
+    // Getting local interfaces.
+    xml_node<>* node_elem = NULL;
 
     try
     {
-        char* tmp = (char*) config_contents_str.c_str();
-        using namespace rapidxml;
-        xml_document<> doc; // Character type defaults to char.
-        doc.parse<0>(tmp); // 0 means default parse flags.
-
-        xml_node<> *root_elem = doc.first_node("NetworkGateway");
-        if (!root_elem)
-        {
-            g_gateway.LogWriteCritical(L"Gateway XML: Can't read NetworkGateway property.");
-            return SCERRBADGATEWAYCONFIG;
-        }
-
-        // Getting local interfaces.
-        xml_node<>* node_elem = NULL;
-
         // Checking if we have reverse proxies.
         xml_node<char>* proxies_node = root_elem->first_node("ReverseProxies");
         if (proxies_node)
@@ -718,7 +716,7 @@ uint32_t Gateway::LoadReverseProxies()
             while (proxy_node)
             {
                 // Resetting proxy info.
-                proxies[n].Reset();
+                proxies[num_proxies].Reset();
 
                 // Filling reverse proxy information.
                 node_elem = proxy_node->first_node("DestinationDNS");
@@ -731,12 +729,12 @@ uint32_t Gateway::LoadReverseProxies()
                         g_gateway.LogWriteCritical(L"Gateway XML: Can't read DestinationIP property. Either DestinationDNS or DestinationIP property should be specified.");
                         return SCERRBADGATEWAYCONFIG;
                     }
-                    proxies[n].destination_ip_ = node_elem->value();
+                    proxies[num_proxies].destination_ip_ = node_elem->value();
 
                     // Checking destination IP correctness.
-                    for (int32_t i = 0; i < proxies[n].destination_ip_.length(); i++) {
+                    for (int32_t i = 0; i < proxies[num_proxies].destination_ip_.length(); i++) {
 
-                        char c = proxies[n].destination_ip_[i];
+                        char c = proxies[num_proxies].destination_ip_[i];
 
                         // Checking if not a digit.
                         if (!isdigit(c)) {
@@ -782,7 +780,7 @@ uint32_t Gateway::LoadReverseProxies()
                     }
 
                     // Getting the first IP address.
-                    proxies[n].destination_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
+                    proxies[num_proxies].destination_ip_ = inet_ntoa(((struct sockaddr_in *) dns_addr_info->ai_addr)->sin_addr);
                 }
 
                 node_elem = proxy_node->first_node("DestinationPort");
@@ -792,8 +790,8 @@ uint32_t Gateway::LoadReverseProxies()
                     return SCERRBADGATEWAYCONFIG;
                 }
 
-                proxies[n].destination_port_ = atoi(node_elem->value());
-                if ((proxies[n].destination_port_ <= 0) || (proxies[n].destination_port_  >= 65536))
+                proxies[num_proxies].destination_port_ = atoi(node_elem->value());
+                if ((proxies[num_proxies].destination_port_ <= 0) || (proxies[num_proxies].destination_port_  >= 65536))
                 {
                     g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect DestinationPort number.");
                     return SCERRBADGATEWAYCONFIG;
@@ -808,15 +806,15 @@ uint32_t Gateway::LoadReverseProxies()
 
                 std::string sc_proxy_port_string = node_elem->value();
 
-                proxies[n].sc_proxy_port_ = atoi(node_elem->value());
-                if ((proxies[n].sc_proxy_port_ <= 0) || (proxies[n].sc_proxy_port_  >= 65536))
+                proxies[num_proxies].sc_proxy_port_ = atoi(node_elem->value());
+                if ((proxies[num_proxies].sc_proxy_port_ <= 0) || (proxies[num_proxies].sc_proxy_port_  >= 65536))
                 {
                     g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy has incorrect StarcounterProxyPort number.");
                     return SCERRBADGATEWAYCONFIG;
                 }
 
                 // Checking that destination port and proxy port are different.
-                if (proxies[n].sc_proxy_port_ == proxies[n].destination_port_) {
+                if (proxies[num_proxies].sc_proxy_port_ == proxies[num_proxies].destination_port_) {
                     g_gateway.LogWriteCritical(L"Gateway XML: Reverse proxy should not have the same destination port as proxy port.");
                     return SCERRBADGATEWAYCONFIG;
                 }
@@ -825,53 +823,182 @@ uint32_t Gateway::LoadReverseProxies()
 
                 if (NULL != node_elem) {
 
-                    proxies[n].matching_method_and_uri_ = node_elem->value();
-                    proxies[n].matching_method_and_uri_processed_ = proxies[n].matching_method_and_uri_ + " ";
+                    proxies[num_proxies].matching_method_and_uri_ = node_elem->value();
+                    proxies[num_proxies].matching_method_and_uri_processed_ = proxies[num_proxies].matching_method_and_uri_ + " ";
 
-                    proxies[n].matching_method_and_uri_len_ = static_cast<int32_t> (proxies[n].matching_method_and_uri_.length());
-                    proxies[n].matching_method_and_uri_processed_len_ = proxies[n].matching_method_and_uri_len_ + 1;
+                    proxies[num_proxies].matching_method_and_uri_len_ = static_cast<int32_t> (proxies[num_proxies].matching_method_and_uri_.length());
+                    proxies[num_proxies].matching_method_and_uri_processed_len_ = proxies[num_proxies].matching_method_and_uri_len_ + 1;
                 }
 
                 node_elem = proxy_node->first_node("MatchingHost");
 
                 if (NULL != node_elem) {
 
-                    proxies[n].matching_host_ = node_elem->value();
+                    proxies[num_proxies].matching_host_ = node_elem->value();
 
                     // We need to append port number to host in case if proxy port is not 80.
-                    if (80 != proxies[n].sc_proxy_port_) {
-                        proxies[n].matching_host_.append(":");
-                        proxies[n].matching_host_.append(sc_proxy_port_string);
+                    if (80 != proxies[num_proxies].sc_proxy_port_) {
+                        proxies[num_proxies].matching_host_.append(":");
+                        proxies[num_proxies].matching_host_.append(sc_proxy_port_string);
                     }
 
-                    proxies[n].matching_host_len_ = static_cast<int32_t> (proxies[n].matching_host_.length());
+                    proxies[num_proxies].matching_host_len_ = static_cast<int32_t> (proxies[num_proxies].matching_host_.length());
                 }
 
                 // Loading proxied servers.
-                sockaddr_in* server_addr = &proxies[n].destination_addr_;
+                sockaddr_in* server_addr = &proxies[num_proxies].destination_addr_;
                 memset(server_addr, 0, sizeof(sockaddr_in));
                 server_addr->sin_family = AF_INET;
-                server_addr->sin_addr.s_addr = inet_addr(proxies[n].destination_ip_.c_str());
-                server_addr->sin_port = htons(proxies[n].destination_port_);
+                server_addr->sin_addr.s_addr = inet_addr(proxies[num_proxies].destination_ip_.c_str());
+                server_addr->sin_port = htons(proxies[num_proxies].destination_port_);
 
                 // Getting next reverse proxy information.
                 proxy_node = proxy_node->next_sibling("ReverseProxy");
 
-                n++;
+                num_proxies++;
+
+                if (num_proxies > MAX_PROXIED_URIS) {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Too many reverse URI proxies specified (maximum 32 are allowed).");
+                    return SCERRBADGATEWAYCONFIG;
+                }
             }
         }
     }
-    catch (...)
-    {
+    catch (...) {
+
         g_gateway.LogWriteCritical(L"Gateway XML: Internal error occurred when loading reverse proxy settings.");
         GW_COUT << "Error loading gateway XML settings!" << GW_ENDL;
         return SCERRBADGATEWAYCONFIG;
     }
 
+    UriAliasInfo uri_aliases[MAX_URI_ALIASES];
+
+    try {
+
+        // Checking if we have URI aliases.
+        xml_node<char>* uri_aliases_node = root_elem->first_node("UriAliases");
+        if (uri_aliases_node)
+        {
+            xml_node<char>* uri_alias_node = uri_aliases_node->first_node("UriAlias");
+            if (!uri_alias_node)
+            {
+                g_gateway.LogWriteCritical(L"Gateway XML: Can't read UriAlias property.");
+                return SCERRBADGATEWAYCONFIG;
+            }
+
+            while (uri_alias_node)
+            {
+                // Resetting info.
+                uri_aliases[num_aliases].Reset();
+
+                node_elem = uri_alias_node->first_node("Port");
+                if (!node_elem)
+                {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read Port property.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                uri_aliases[num_aliases].port_ = atoi(node_elem->value());
+                if ((uri_aliases[num_aliases].port_ <= 0) || (uri_aliases[num_aliases].port_  >= 65536)) {
+                    g_gateway.LogWriteCritical(L"Gateway XML: URI alias has incorrect port number.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                node_elem = uri_alias_node->first_node("HttpMethod");
+
+                if (!node_elem) {
+
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read HttpMethod property.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                std::string method = node_elem->value();
+
+                node_elem = uri_alias_node->first_node("FromUri");
+
+                if (!node_elem) {
+
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read FromUri property.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                std::string tmp = node_elem->value();
+
+                // Converting FromUri to lower.
+                std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+
+                // Wrapping with method and space.
+                tmp = method + " " + tmp + " ";
+
+                if (tmp.length() >= MAX_URI_ALIAS_CHARS) {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Too long FromUri alias supplied.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                strncpy_s(uri_aliases[num_aliases].from_method_space_uri_space_, tmp.c_str(), tmp.length());
+                uri_aliases[num_aliases].from_method_space_uri_space_len_ = static_cast<int32_t>(tmp.length());
+
+                node_elem = uri_alias_node->first_node("ToUri");
+
+                if (!node_elem) {
+
+                    g_gateway.LogWriteCritical(L"Gateway XML: Can't read ToUri property.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                tmp = node_elem->value();
+
+                std::string tmp_lower = tmp;
+
+                // Converting ToUri to lower.
+                std::transform(tmp_lower.begin(), tmp_lower.end(), tmp_lower.begin(), ::tolower);
+
+                // Wrapping with method and space.
+                tmp = method + " " + tmp + " ";
+                tmp_lower = method + " " + tmp_lower + " ";
+
+                if (tmp.length() >= MAX_URI_ALIAS_CHARS) {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Too long ToUri alias supplied.");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+
+                strncpy_s(uri_aliases[num_aliases].to_method_space_uri_space_, tmp.c_str(), tmp.length());
+                uri_aliases[num_aliases].to_method_space_uri_space_len_ = static_cast<int32_t>(tmp.length());
+                strncpy_s(uri_aliases[num_aliases].lower_to_method_space_uri_space_, tmp_lower.c_str(), tmp.length());
+
+                // Getting next reverse proxy information.
+                uri_alias_node = uri_alias_node->next_sibling("UriAlias");
+
+                num_aliases++;
+
+                if (num_aliases > MAX_URI_ALIASES) {
+                    g_gateway.LogWriteCritical(L"Gateway XML: Too many URI aliases specified (maximum 32 are allowed).");
+                    return SCERRBADGATEWAYCONFIG;
+                }
+            }
+        }
+
+    } catch (...) {
+
+        g_gateway.LogWriteCritical(L"Gateway XML: Internal error occurred when loading URI aliases settings.");
+        GW_COUT << "Error loading gateway XML settings!" << GW_ENDL;
+        return SCERRBADGATEWAYCONFIG;
+    }
+
     // Applying new proxy settings.
-    num_reversed_proxies_ = n;
-    for (int32_t i = 0; i < n; i++) {
+    num_reversed_proxies_ = num_proxies;
+
+    for (int32_t i = 0; i < num_proxies; i++) {
+
         reverse_proxies_[i] = proxies[i];
+    }
+
+    // Applying new URI aliases settings.
+    num_uri_aliases_ = num_aliases;
+
+    for (int32_t i = 0; i < num_aliases; i++) {
+
+        uri_aliases_[i] = uri_aliases[i];
     }
 
     return 0;
@@ -1881,7 +2008,7 @@ uint32_t Gateway::Init()
     codegen_uri_matcher_->Init();
 
     // Loading Clang for URI matching.
-    HMODULE clang_dll = LoadLibrary(L"GatewayClang.dll");
+    HMODULE clang_dll = LoadLibrary(L"scllvm.dll");
     GW_ASSERT(clang_dll != NULL);
 
     typedef void (*ClangInit)();
@@ -1905,7 +2032,7 @@ uint32_t Gateway::Init()
     void* clang_engine = NULL;
     void** clang_engine_addr = &clang_engine;
 
-    void* out_functions[1];
+    void* out_functions[2];
 
     uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
         clang_engine_addr, // Pointer to Clang engine.
@@ -1913,8 +2040,8 @@ uint32_t Gateway::Init()
         false, // Print build output to console.
         true, // Do code optimizations.
 
-        "extern \"C\" __declspec(dllexport) int Func1() { return 124; }\r\n" // Input C++ code.
-        "void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
+        "extern \"C\" int Func1() { return 124; }\r\n" // Input C++ code.
+        "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
 
         "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
         out_functions // Output pointers to functions.
@@ -2340,77 +2467,61 @@ std::string Gateway::GetGlobalProfilersString(int32_t* out_stats_len_bytes)
     return str;
 }
 
-// Current global statistics value.
-const char* Gateway::GetGlobalStatisticsString(int32_t* out_stats_len_bytes)
+// Current gateway statistics value.
+std::string Gateway::GetGatewayStatisticsString()
 {
-    *out_stats_len_bytes = 0;
+    std::stringstream port_statistics_stream;
+    std::stringstream databases_statistics_stream;
+    std::stringstream reverse_proxies_statistics_stream;
+    std::stringstream workers_statistics_stream;
 
     EnterCriticalSection(&cs_statistics_);
 
     // Printing port information.
-    PrintPortStatistics(global_port_statistics_stream_);
+    PrintPortStatistics(port_statistics_stream);
 
     // Printing database statistics.
-    PrintDatabaseStatistics(global_databases_statistics_stream_);
-
-    // Printing workers statistics.
-    PrintWorkersStatistics(global_workers_statistics_stream_);
+    PrintDatabaseStatistics(databases_statistics_stream);
 
     // Printing reverse proxies statistics.
-    PrintReverseProxiesStatistics(global_reverse_proxies_statistics_stream_);
+    PrintReverseProxiesStatistics(reverse_proxies_statistics_stream);
+
+    // Printing workers statistics.
+    PrintWorkersStatistics(workers_statistics_stream);
 
     // Filing everything into one stream.
+    std::stringstream stats_body_stream;
+
+    stats_body_stream << "{";
+
+    stats_body_stream << "\"ports\":";
+    stats_body_stream << port_statistics_stream.str();
+
+    stats_body_stream << ",\"databases\":";
+    stats_body_stream << databases_statistics_stream.str();
+
+    stats_body_stream << ",\"workers\":";
+    stats_body_stream << workers_statistics_stream.str();
+
+    stats_body_stream << ",\"reverseproxies\":";
+    stats_body_stream << reverse_proxies_statistics_stream.str();
+
+    stats_body_stream << ",\"global\":";
+    stats_body_stream << global_statistics_stream_.str();
+
+    stats_body_stream << "}";
+
+    std::string stats_body_string = stats_body_stream.str();
+
     std::stringstream all_stats_stream;
-
-    all_stats_stream << "{\"ports\":";
-    all_stats_stream << global_port_statistics_stream_.str();
-
-    all_stats_stream << ",\"databases\":";
-    all_stats_stream << global_databases_statistics_stream_.str();
-
-    all_stats_stream << ",\"workers\":";
-    all_stats_stream << global_workers_statistics_stream_.str();
-
-    all_stats_stream << ",\"reverseproxies\":";
-    all_stats_stream << global_reverse_proxies_statistics_stream_.str();
-
-    all_stats_stream << ",\"global\":";
-    all_stats_stream << global_statistics_stream_.str();
-    all_stats_stream << "}";
-
-    // Total number of bytes in HTTP response.
-    int32_t total_response_bytes = kHttpStatisticsHeaderLength;
-
-    // Getting number of written bytes to the stream.
-    int32_t all_stats_bytes = static_cast<int32_t> (all_stats_stream.tellp());
-    total_response_bytes += all_stats_bytes;
-
-    // Checking for not too big statistics.
-    if (total_response_bytes >= MAX_STATS_LENGTH)
-    {
-        all_stats_bytes = MAX_STATS_LENGTH - kHttpStatisticsHeaderLength;
-        total_response_bytes = MAX_STATS_LENGTH;
-    }
-
-    // Copying characters from stream to given buffer.
-    all_stats_stream.seekg(0);
-    all_stats_stream.rdbuf()->sgetn(global_statistics_string_ + kHttpStatisticsHeaderLength, all_stats_bytes);
-
-    // Sealing the string.
-    global_statistics_string_[total_response_bytes] = '\0';
-
-    // Making length a white space.
-    *(uint64_t*)(global_statistics_string_ + kHttpStatisticsHeaderInsertPoint) = 0x2020202020202020;
-    
-    // Converting content length to string.
-    WriteUIntToString(global_statistics_string_ + kHttpStatisticsHeaderInsertPoint, total_response_bytes - kHttpStatisticsHeaderLength);
+    all_stats_stream << "HTTP/1.1 200 OK\r\n"
+        "Content-Type: application/json\r\n"
+        "Cache-control: no-store\r\n"
+        "Content-Length: " << stats_body_string.length() << "\r\n\r\n" << stats_body_string;
 
     LeaveCriticalSection(&cs_statistics_);
 
-    // Calculating final data length in bytes.
-    *out_stats_len_bytes = total_response_bytes;
-
-    return global_statistics_string_;
+    return all_stats_stream.str();
 }
 
 // Check and wait for global lock.

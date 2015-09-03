@@ -52,6 +52,8 @@ namespace Starcounter.Query.Execution
         /// </summary>
         String IsStartWith(String str)
         {
+            if (String.IsNullOrEmpty(str))
+                return null;
             Int32 strLastCharIndex = str.Length - 1;
             if (str[strLastCharIndex] == '%')
             {

@@ -4713,6 +4713,36 @@
       </message>
     </code>
   </facility>
+  
+    <!-- Error codes related to meta-layer and type system -->
+  <facility name="MetaTypes" hex="000F">
+    <code hex="0001" severity="Error" name="ScErrBaseTypeNotFound">
+      <message>
+        There is no type in the database for the given base type name.
+      </message>
+    </code>
+    <code hex="0002" severity="Error" name="ScErrDataTypeNotFound">
+      <message>
+        There is no type in the database for the given column data type name.
+      </message>
+    </code>
+    <code hex="0003" severity="Error" name="ScErrTypeNotFound">
+      <message>
+        There is no type in the database for the given type name.
+      </message>
+    </code>
+    <code hex="0004" severity="Error" name="ScErrTypeColumnNotFound">
+      <message>
+        There is no column in the database for the given type and column name.
+      </message>
+    </code>
+    <code hex="0005" severity="Error" name="ScErrIndexNotFoundInType">
+      <message>
+        There is no given index in the database for the given type.
+      </message>
+    </code>
+  </facility>
+
 <!--
     <code hex="0010" severity="Error" name="ScErrTemplateNotSpecified">
       <message> A template needs to be specified before this object can be used. </message>

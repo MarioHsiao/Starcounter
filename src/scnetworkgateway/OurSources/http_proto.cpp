@@ -474,7 +474,7 @@ inline int HttpProto::OnHeaderValue(http_parser* p, const char *at, size_t lengt
             g_ts_sd_->set_chunk_looping_host_flag();
 
             SocketDataChunk* sd_send_clone = NULL;
-            uint32_t err_code = g_ts_sd_->CloneToPush(g_ts_gw_, &sd_send_clone);
+            uint32_t err_code = g_ts_sd_->CloneToPush(g_ts_gw_, g_ts_sd_->get_accumulated_len_bytes(), &sd_send_clone);
             GW_ASSERT(0 == err_code);
 
             // Sending OK response to the client so it does not wait.
@@ -655,21 +655,61 @@ uint32_t HttpProto::HttpUriDispatcher(
             }
         }
 
-        // Prepared method and URI.
-        char* prepared_method_space_uri_space = method_space_uri_space;
-
 #ifdef CASE_INSENSITIVE_URI_MATCHER
 
+        // Prepared method and URI.
+        char* lower_method_space_uri_space = method_space_uri_space;
+
         // Pointing to lower case temporary buffer in this worker.
-        prepared_method_space_uri_space = gw->get_method_space_uri_space_worker_buf();
+        lower_method_space_uri_space = gw->get_method_space_uri_space_worker_buf();
 
         // Making URI lower case.
-        StringToLower(prepared_method_space_uri_space, method_space_uri_space, uri_offset, method_space_uri_space_len);
+        StringToLower(lower_method_space_uri_space, method_space_uri_space, uri_offset, method_space_uri_space_len);
+
+        // Checking if there are any URI aliases involved.
+        char* lower_aliased_method_space_uri_space;
+        char* aliased_method_space_uri_space;
+        int32_t aliased_method_space_uri_space_len;
+
+        // Getting URI alias information.
+        bool should_alias = g_gateway.GetUriAliasIfAny(port_num, 
+            lower_method_space_uri_space, 
+            method_space_uri_space_len, 
+            &aliased_method_space_uri_space,
+            &lower_aliased_method_space_uri_space,
+            &aliased_method_space_uri_space_len);
+
+        // Checking if we should convert the URI.
+        if (should_alias) {
+
+            int32_t num_remaining_bytes = (sd->get_data_blob_size() - sd->get_accumulated_len_bytes()),
+                diff_uri_length = aliased_method_space_uri_space_len - method_space_uri_space_len;
+
+            // Checking if we need to extend the buffer.
+            if (num_remaining_bytes < diff_uri_length) {
+
+                err_code = SocketDataChunk::ChangeToBigger(gw, sd, sd->get_accumulated_len_bytes() + diff_uri_length);
+                if (err_code)
+                    return err_code;
+            }
+
+            // Moving the accumulated data.
+            memmove(method_space_uri_space + aliased_method_space_uri_space_len, method_space_uri_space + method_space_uri_space_len, sd->get_accumulated_len_bytes() - method_space_uri_space_len);
+
+            // Injecting the aliased URI information.
+            memcpy(method_space_uri_space, aliased_method_space_uri_space, aliased_method_space_uri_space_len);
+
+            // Replacing the pointer and length.
+            method_space_uri_space = aliased_method_space_uri_space;
+            method_space_uri_space_len = aliased_method_space_uri_space_len;
+            lower_method_space_uri_space = lower_aliased_method_space_uri_space;
+            sd->AddAccumulatedBytes(diff_uri_length);
+        }
 
 #endif
 
         // Getting the matched uri index.
-        matched_index = port_uris->RunCodegenUriMatcher(prepared_method_space_uri_space, method_space_uri_space_len, sd->get_accept_or_params_data());
+        matched_index = port_uris->RunCodegenUriMatcher(lower_method_space_uri_space, method_space_uri_space_len, sd->get_accept_or_params_data());
 
         // Checking if we failed to find again.
         if (matched_index < 0)
@@ -1071,11 +1111,12 @@ uint32_t HttpProto::GatewayHttpWsReverseProxy(
 // HTTP/WebSockets statistics for Gateway.
 uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
 {
-    int32_t resp_len_bytes;
-    const char* stats_page_string = g_gateway.GetGlobalStatisticsString(&resp_len_bytes);
+    std::string stats_page_string = g_gateway.GetGatewayStatisticsString();
     *is_handled = true;
 
-    return gw->SendPredefinedMessage(sd, stats_page_string, resp_len_bytes);
+    return gw->SendPredefinedMessage(sd,
+        stats_page_string.c_str(),
+        static_cast<int32_t>(stats_page_string.length()));
 }
 
 // Updates configuration for Gateway.
