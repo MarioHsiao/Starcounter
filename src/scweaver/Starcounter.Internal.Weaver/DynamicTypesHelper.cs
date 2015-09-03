@@ -120,15 +120,17 @@ namespace Starcounter.Internal.Weaver {
             });
 
             if (other != null) {
-                ScMessageSource.WriteError(
-                    MessageLocation.Unknown,
-                    Error.SCERRINVALIDINHERITSREFERENCE,
-                    string.Format("Attribute {0}.{1} is marked [Inherits]; {2}.{3} is too.",
-                    attribute.DeclaringClass.Name,
-                    attribute.Name,
-                    other.DeclaringClass.Name,
-                    other.Name
-                    ));
+                if (attribute.SynonymousTo == null || attribute.SynonymousTo != other) {
+                    ScMessageSource.WriteError(
+                        MessageLocation.Unknown,
+                        Error.SCERRINVALIDINHERITSREFERENCE,
+                        string.Format("Attribute {0}.{1} is marked [Inherits]; {2}.{3} is too. Specialize it using [SynonymousTo(\"{3}\")].",
+                        attribute.DeclaringClass.Name,
+                        attribute.Name,
+                        other.DeclaringClass.Name,
+                        other.Name
+                        ));
+                }
             }
 
             if (attribute.IsTypeReference) {
@@ -169,15 +171,17 @@ namespace Starcounter.Internal.Weaver {
             });
 
             if (other != null) {
-                ScMessageSource.WriteError(
-                    MessageLocation.Unknown,
-                    Error.SCERRINVALIDTYPENAME,
-                    string.Format("Attribute {0}.{1} is marked [TypeName]; {2}.{3} is too.",
-                    attribute.DeclaringClass.Name,
-                    attribute.Name,
-                    other.DeclaringClass.Name,
-                    other.Name
-                    ));
+                if (attribute.SynonymousTo == null || attribute.SynonymousTo != other) {
+                    ScMessageSource.WriteError(
+                        MessageLocation.Unknown,
+                        Error.SCERRINVALIDTYPENAME,
+                        string.Format("Attribute {0}.{1} is marked [TypeName]; {2}.{3} is too. Specialize it using [SynonymousTo(\"{3}\")].",
+                        attribute.DeclaringClass.Name,
+                        attribute.Name,
+                        other.DeclaringClass.Name,
+                        other.Name
+                        ));
+                }
             }
 
             if (!attribute.IsPublicRead) {
