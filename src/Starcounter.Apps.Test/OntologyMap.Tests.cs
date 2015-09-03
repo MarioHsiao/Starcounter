@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Starcounter.Rest;
 using Starcounter.Advanced.XSON;
 using Starcounter.Templates;
-using PolyjuiceNamespace;
 using System.Collections.Concurrent;
 
 namespace Starcounter.Internal.Tests
@@ -107,7 +106,7 @@ namespace Starcounter.Internal.Tests
             allObjWrappedRef.FacebookApp = new Json() { Template = facebookProfileTemplate };
             allObjWrappedRef.GoogleMapsApp = new Json() { Template = googleMapsTemplate };
 
-            PolyjuiceNamespace.Polyjuice.Init(true);
+            UriMapping.Init(true);
             
             StarcounterEnvironment.AppName = GoogleMapsAppName;
 
@@ -208,19 +207,19 @@ namespace Starcounter.Internal.Tests
             // Setting no application just to be able to map.
             StarcounterEnvironment.AppName = null;
 
-            Polyjuice.OntologyMap("/GoogleMapsApp/object/@w", "/so/something/@w",
+            UriMapping.OntologyMap("/GoogleMapsApp/object/@w", "/so/something/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.OntologyMap("/SalaryApp/employee/@w", "/so/person/@w",
+            UriMapping.OntologyMap("/SalaryApp/employee/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.OntologyMap("/SkypeApp/skypeuser/@w", "/so/person/@w",
+            UriMapping.OntologyMap("/SkypeApp/skypeuser/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
-            Polyjuice.OntologyMap("/FacebookApp/person/@w", "/so/person/@w",
+            UriMapping.OntologyMap("/FacebookApp/person/@w", "/so/person/@w",
                 (String appObjectId) => { return appObjectId + "456"; },
                 (String soObjectId) => { return soObjectId + "789"; });
 
@@ -331,7 +330,7 @@ namespace Starcounter.Internal.Tests
         [Test]
         public static void OrdinaryMapsTests() {
 
-            Polyjuice.Init(true);
+            UriMapping.Init(true);
 
             StarcounterEnvironment.AppName = "SomeApp";
 
@@ -363,9 +362,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3";
             });
 
-            Polyjuice.Map("/SomeApp/map1", "/polyjuice/mapped");
-            Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped");
-            Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped");
+            UriMapping.Map("/SomeApp/map1", "/polyjuice/mapped");
+            UriMapping.Map("/SomeApp/map2", "/polyjuice/mapped");
+            UriMapping.Map("/SomeApp/map3", "/polyjuice/mapped");
 
             String r = Self.GET<String>("/SomeApp/map1");
             Assert.IsTrue("/map1" == r);
@@ -412,9 +411,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3";
             });
 
-            Polyjuice.Map("/SomeApp/map1", "/polyjuice/mapped", "POST");
-            Polyjuice.Map("/SomeApp/map2", "/polyjuice/mapped", "POST");
-            Polyjuice.Map("/SomeApp/map3", "/polyjuice/mapped", "POST");
+            UriMapping.Map("/SomeApp/map1", "/polyjuice/mapped", "POST");
+            UriMapping.Map("/SomeApp/map2", "/polyjuice/mapped", "POST");
+            UriMapping.Map("/SomeApp/map3", "/polyjuice/mapped", "POST");
 
             Response resp = Self.POST("/SomeApp/map1", body, null);
             Assert.IsTrue("/map1" == resp.Body);
@@ -458,9 +457,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3/" + p;
             });
 
-            Polyjuice.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w");
-            Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w");
-            Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w");
+            UriMapping.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w");
+            UriMapping.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w");
+            UriMapping.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w");
 
             r = Self.GET<String>("/SomeApp/map1/" + param);
             Assert.IsTrue("/map1/" + param == r);
@@ -508,9 +507,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3/" + p;
             });
 
-            Polyjuice.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w", "POST");
-            Polyjuice.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w", "POST");
-            Polyjuice.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w", "POST");
+            UriMapping.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w", "POST");
+            UriMapping.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w", "POST");
+            UriMapping.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w", "POST");
 
             resp = Self.POST("/SomeApp/map1/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
@@ -523,9 +522,6 @@ namespace Starcounter.Internal.Tests
 
             resp = Self.POST("/polyjuice/mapped/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
-
-            // Now all applications are treated as Starcounter applications.
-            StarcounterEnvironment.PolyjuiceAppsFlag = false;
         }
     }
 }

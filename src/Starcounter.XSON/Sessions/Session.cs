@@ -68,7 +68,7 @@ namespace Starcounter {
             transactions = new List<TransactionRef>();
             publicViewModelIndex = -1;
 
-            bool b = StarcounterEnvironment.PolyjuiceAppsFlag;
+            bool b = StarcounterEnvironment.WrapJsonInNamespaces;
             if (includeNamespaces.HasValue)
                 b = includeNamespaces.Value;
 

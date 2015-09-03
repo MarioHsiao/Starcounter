@@ -9,6 +9,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -37,44 +38,56 @@ namespace Starcounter.Internal
         public static string DatabaseNameLower { get; internal set; }
 
         /// <summary>
-        /// Set if Polyjuice applications are expected in the codehost.
+        /// Basically returns the string name of the field.
         /// </summary>
-        public static Boolean PolyjuiceAppsFlag {
-            get;
-            set;
+        public static string GetFieldName<TValue>(Expression<Func<TValue>> memberAccess) {
+            return ((MemberExpression)memberAccess.Body).Member.Name;
         }
+
+        /// <summary>
+        /// Skip middleware filters global flag.
+        /// </summary>
+        internal static Boolean SkipMiddlewareFiltersGlobal = true;
+
+        /// <summary>
+        /// Wrap JSON in namespaces.
+        /// </summary>
+        public static Boolean WrapJsonInNamespaces = true;
+
+        /// <summary>
+        /// Flag to enforce URI namespaces.
+        /// </summary>
+        public static Boolean EnforceURINamespaces = false;
+
+        /// <summary>
+        /// Flag to load edition libraries.
+        /// </summary>
+        public static Boolean LoadEditionLibraries = false;
+
+        /// <summary>
+        /// Merge Json siblings.
+        /// </summary>
+        public static Boolean MergeJsonSiblings = true;
 
         /// <summary>
         /// Enables or disables the middle filters for external requests.
         /// </summary>
-        public static Boolean MiddlewareFiltersEnabled {
-            get;
-            set;
-        }
+        public static Boolean MiddlewareFiltersEnabled = false;
 
         /// <summary>
-        /// Enables or disables the ordinary mapping (Polyjuice.Map).
+        /// Enables or disables the ordinary mapping.
         /// </summary>
-        public static Boolean MappingEnabled {
-            get;
-            set;
-        }
+        public static Boolean UriMappingEnabled = true;
 
         /// <summary>
-        /// Enables or disables the ontology mapping (Polyjuice.Map).
+        /// Enables or disables the ontology mapping.
         /// </summary>
-        public static Boolean OntologyMappingEnabled {
-            get;
-            set;
-        }
+        public static Boolean OntologyMappingEnabled = true;
 
         /// <summary>
         /// Set if there is no network gateway.
         /// </summary>
-        public static Boolean NoNetworkGatewayFlag {
-            get;
-            set;
-        }
+        public static Boolean NoNetworkGatewayFlag = false;
 
         /// <summary>
         /// Name of the application.

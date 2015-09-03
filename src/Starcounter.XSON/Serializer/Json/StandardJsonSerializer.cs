@@ -282,7 +282,7 @@ namespace Starcounter.Advanced.XSON {
 
                 // Checking if merging Html URI was constructed.
                 if (htmlUriMerged != null) {
-                    htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
+                    htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
                     sizeBytes += htmlUriMerged.Length;
 
                     if (!string.IsNullOrEmpty(partialConfigId)) {
@@ -587,7 +587,7 @@ namespace Starcounter.Advanced.XSON {
 
                     // Checking if merging Html URI was constructed.
                     if (null != htmlUriMerged) {
-                        htmlUriMerged = StarcounterConstants.PolyjuiceHtmlMergerPrefix + htmlUriMerged;
+                        htmlUriMerged = StarcounterConstants.HtmlMergerPrefix + htmlUriMerged;
 
                         valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, htmlUriMerged);
                         used += valueSize;

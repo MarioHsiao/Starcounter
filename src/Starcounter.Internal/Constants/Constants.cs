@@ -37,14 +37,19 @@ namespace Starcounter.Internal
         public const string PolyjuiceEditionName = "Polyjuice";
 
         /// <summary>
-        /// Polyjuice HTML merger URI prefix.
+        /// Internal system handlers prefix.
         /// </summary>
-        public const string PolyjuiceHtmlMergerPrefix = "/polyjuice/htmlmerger?";
+        public const string StarcounterSystemUriPrefix = "/sc";
 
         /// <summary>
-        /// Name of the Web-root directory for Polyjuice.
+        /// Polyjuice HTML merger URI prefix.
         /// </summary>
-        public const string PolyjuiceWebRootName = "wwwroot";
+        public const string HtmlMergerPrefix = StarcounterSystemUriPrefix + "/htmlmerger?";
+
+        /// <summary>
+        /// Name of the Web-root directory.
+        /// </summary>
+        public const string WebRootFolderName = "wwwroot";
 
         /// <summary>
         /// Network related constants.
@@ -279,11 +284,6 @@ namespace Starcounter.Internal
             /// Default session timeout.
             /// </summary>
             public const string DefaultSessionTimeoutMinutes = "DefaultSessionTimeoutMinutes";
-
-            /// <summary>
-            /// Polyjuice database.
-            /// </summary>
-            public const string PolyjuiceDatabaseFlag = "PolyjuiceDatabaseFlag";
 
             /// <summary>
             /// Default HTTP port for system code.

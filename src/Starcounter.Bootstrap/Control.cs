@@ -189,6 +189,9 @@ namespace StarcounterInternal.Bootstrap {
                 // Initializing system profilers.
                 Profiler.Init();
 
+                // Applying configuration flags for applications.
+                configuration.ApplyAppsFlags();
+
                 // Initializing AppsBootstrapper.
                 AppsBootstrapper.InitAppsBootstrapper(
                     (byte)schedulerCount,
@@ -196,8 +199,7 @@ namespace StarcounterInternal.Bootstrap {
                     configuration.DefaultSystemHttpPort,
                     configuration.DefaultSessionTimeoutMinutes,
                     configuration.Name,
-                    configuration.NoNetworkGateway,
-                    configuration.PolyjuiceDatabaseFlag);
+                    configuration.NoNetworkGateway);
 
                 OnAppsBoostraperInitialized();
 
@@ -263,7 +265,7 @@ namespace StarcounterInternal.Bootstrap {
                 }
 
                 // NOTE: Disabling skip for middleware filters since no more system handlers are expected at this line.
-                HandlerOptions.SkipMiddlewareFiltersGlobal = false;
+                StarcounterEnvironment.SkipMiddlewareFiltersGlobal = false;
             }
             finally { OnEndStart(); }
         }

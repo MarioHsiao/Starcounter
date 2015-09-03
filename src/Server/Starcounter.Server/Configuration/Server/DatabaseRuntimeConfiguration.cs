@@ -7,6 +7,7 @@
 using Starcounter.Internal;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
@@ -127,22 +128,12 @@ namespace Starcounter.Advanced.Configuration {
         }
         private UInt32 _DefaultSessionTimeoutMinutes = StarcounterConstants.NetworkPorts.DefaultSessionTimeoutMinutes;
 
-        /// <summary>
-        /// Gets the default database Polyjuice flag.
-        /// </summary>
-        /// <value>The default Polyjuice database flag.</value>
-        public Boolean PolyjuiceDatabaseFlag {
-            get {
-                return _PolyjuiceDatabaseFlag;
-            }
-            set {
-                _PolyjuiceDatabaseFlag = value;
-                OnPropertyChanged(StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag);
-            }
-        }
-
-        // Default value for Polyjuice flag comes from installed edition.
-        private Boolean _PolyjuiceDatabaseFlag = (CurrentVersion.EditionName == "Polyjuice");
+        public Boolean LoadEditionLibraries = StarcounterEnvironment.LoadEditionLibraries;
+        public Boolean WrapJsonInNamespaces = StarcounterEnvironment.WrapJsonInNamespaces;
+        public Boolean EnforceURINamespaces = StarcounterEnvironment.EnforceURINamespaces;
+        public Boolean MergeJsonSiblings = StarcounterEnvironment.MergeJsonSiblings;
+        public Boolean UriMappingEnabled = StarcounterEnvironment.UriMappingEnabled;
+        public Boolean OntologyMappingEnabled = StarcounterEnvironment.OntologyMappingEnabled;
 
         /// <summary>
         /// Support of aggregations in SQL queries, for which current implementation is very slow.

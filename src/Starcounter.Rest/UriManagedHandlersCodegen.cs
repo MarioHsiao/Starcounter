@@ -525,7 +525,7 @@ namespace Starcounter.Rest
 
                 String[] s = methodSpaceUri.Split(null);
                 String originalUriInfo = null;
-                String polyjuiceMsg = "Polyjuice applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
+                String uriPolicyViolatedMsg = "Applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
 
                 // Checking if its a special mapping application.
                 Boolean isMapperApp = false;
@@ -545,16 +545,15 @@ namespace Starcounter.Rest
 #if CASE_INSENSITIVE_URI_MATCHER
                     s[1] = s[1].ToLowerInvariant();
 #endif
-                    // Checking if its a Polyjuice application.
-                    if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                    // Checking if URIs should be enforced.
+                    if (StarcounterEnvironment.EnforceURINamespaces) {
 
-                        // Checking that its a Polyjuice handler.
-                        if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
+                        if ((ho == null) || (false == ho.SkipHandlersPolicy)) {
 
                             // Handler name should start with application name or launcher name.
                             if ((!isMapperApp) && (!s[1].StartsWith("/" + StarcounterEnvironment.AppName, StringComparison.InvariantCultureIgnoreCase))) {
 
-                                throw new ArgumentOutOfRangeException(methodSpaceUri, polyjuiceMsg);
+                                throw new ArgumentOutOfRangeException(methodSpaceUri, uriPolicyViolatedMsg);
                             }
                         }
                     }
@@ -564,13 +563,12 @@ namespace Starcounter.Rest
 
                 } else {
 
-                    // Checking if its a Polyjuice application.
-                    if (StarcounterEnvironment.PolyjuiceAppsFlag && !isMapperApp) {
+                    // Checking if URIs should be enforced.
+                    if (StarcounterEnvironment.EnforceURINamespaces && !isMapperApp) {
 
-                        // Checking that its a Polyjuice handler.
-                        if ((ho == null) || (false == ho.AllowNonPolyjuiceHandler)) {
+                        if ((ho == null) || (false == ho.SkipHandlersPolicy)) {
 
-                            throw new ArgumentOutOfRangeException(methodSpaceUri, polyjuiceMsg);
+                            throw new ArgumentOutOfRangeException(methodSpaceUri, uriPolicyViolatedMsg);
                         }
                     }
 

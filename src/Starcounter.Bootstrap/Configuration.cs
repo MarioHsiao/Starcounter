@@ -8,6 +8,7 @@ using Starcounter;
 using Starcounter.CommandLine;
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace StarcounterInternal.Bootstrap
@@ -226,18 +227,47 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
-        /// Polyjuice database flag.
+        /// Applies all application related flags.
         /// </summary>
-        public Boolean PolyjuiceDatabaseFlag {
-            get {
-                Boolean polyjuiceDatabaseFlag = (CurrentVersion.EditionName == "Polyjuice");
-                String s;
-                if (this.ProgramArguments.TryGetProperty(StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag, out s)) {
-                    polyjuiceDatabaseFlag = Boolean.Parse(s);
-                }
+        public void ApplyAppsFlags() {
+            String propName;
+            String s;
 
-                return polyjuiceDatabaseFlag;
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.LoadEditionLibraries);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.LoadEditionLibraries = Boolean.Parse(s);
             }
+
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.WrapJsonInNamespaces = Boolean.Parse(s);
+            }
+
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.EnforceURINamespaces = Boolean.Parse(s);
+            }
+
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.MergeJsonSiblings = Boolean.Parse(s);
+            }
+
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MiddlewareFiltersEnabled);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.MiddlewareFiltersEnabled = Boolean.Parse(s);
+            }
+
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.UriMappingEnabled = Boolean.Parse(s);
+            }
+
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled);
+            if (ProgramArguments.TryGetProperty(propName, out s)) {
+                StarcounterEnvironment.OntologyMappingEnabled = Boolean.Parse(s);
+            }
+
         }
 
         /// <summary>

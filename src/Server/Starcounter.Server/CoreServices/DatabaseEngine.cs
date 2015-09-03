@@ -607,7 +607,14 @@ namespace Starcounter.Server {
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultUserHttpPort + "={0}", database.Configuration.Runtime.DefaultUserHttpPort);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.ChunksNumber + "={0}", database.Configuration.Runtime.ChunksNumber);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSessionTimeoutMinutes + "={0}", database.Configuration.Runtime.DefaultSessionTimeoutMinutes);
-            args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.PolyjuiceDatabaseFlag + "={0}", database.Configuration.Runtime.PolyjuiceDatabaseFlag);
+
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.LoadEditionLibraries) + "={0}", database.Configuration.Runtime.LoadEditionLibraries);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.WrapJsonInNamespaces) + "={0}", database.Configuration.Runtime.WrapJsonInNamespaces);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces) + "={0}", database.Configuration.Runtime.EnforceURINamespaces);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings) + "={0}", database.Configuration.Runtime.MergeJsonSiblings);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled) + "={0}", database.Configuration.Runtime.UriMappingEnabled);
+            args.AddFormat(" --" + StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled) + "={0}", database.Configuration.Runtime.OntologyMappingEnabled);
+
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber + "={0}", StarcounterEnvironment.Gateway.NumberOfWorkers);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DefaultSystemHttpPort + "={0}", database.Server.Configuration.SystemHttpPort);
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.SQLProcessPort + "={0}", database.Configuration.Runtime.SQLProcessPort);

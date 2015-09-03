@@ -57,11 +57,9 @@ namespace Starcounter.Administrator.Server.Utilities {
             settings.TempDirectory = database.Configuration.Runtime.TempDirectory;
             settings.ImageDirectory = database.Configuration.Runtime.ImageDirectory;
             settings.TransactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory;
-            settings.PolyjuiceDatabaseFlag = database.Configuration.Runtime.PolyjuiceDatabaseFlag;
             settings.CollationFile = database.CollationFile;
             return settings;
         }
-
 
         /// <summary>
         /// Create Server settings

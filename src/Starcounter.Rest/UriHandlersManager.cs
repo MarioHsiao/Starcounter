@@ -230,7 +230,7 @@ namespace Starcounter.Rest
                         // Setting the response application name.
                         subsResp.AppName = handlerOptions.CallingAppName;
 
-                        if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                        if (StarcounterEnvironment.MergeJsonSiblings &&
                             (!String.IsNullOrEmpty(handlerOptions.CallingAppName))) {
 
                             // Checking if we wanted to call the same application, then there is just substitution.
@@ -250,7 +250,7 @@ namespace Starcounter.Rest
                     } else {
 
                         // Checking that its not an outside call.
-                        if (StarcounterEnvironment.PolyjuiceAppsFlag &&
+                        if (StarcounterEnvironment.MergeJsonSiblings &&
                             (!handlerOptions.ProxyDelegateTrigger) &&
                             (!String.IsNullOrEmpty(handlerOptions.CallingAppName)) &&
                             (handlerOptions.CallingAppName != appName_)) {
@@ -269,7 +269,7 @@ namespace Starcounter.Rest
                     if (null == resp) {
 
                         if (subsResp != null) {
-                            if (StarcounterEnvironment.PolyjuiceAppsFlag) {
+                            if (StarcounterEnvironment.MergeJsonSiblings) {
                                 return Response.ResponsesMergerRoutine_(req, subsResp, null);
                             }
                             return subsResp;
@@ -285,7 +285,7 @@ namespace Starcounter.Rest
 
                     // Checking if we need to merge.
                     if ((!handlerOptions.ProxyDelegateTrigger) &&
-                        (StarcounterEnvironment.PolyjuiceAppsFlag)) {
+                        (StarcounterEnvironment.MergeJsonSiblings)) {
 
                         // Checking if we have a substitute handler response.
                         if (subsResp != null) {
@@ -428,7 +428,7 @@ namespace Starcounter.Rest
 
             Debug.Assert(userDelegate_ == null);
 
-            SkipMiddlewareFilters = ho.SkipMiddlewareFilters || HandlerOptions.SkipMiddlewareFiltersGlobal;
+            SkipMiddlewareFilters = ho.SkipMiddlewareFilters || StarcounterEnvironment.SkipMiddlewareFiltersGlobal;
 
             if (ho.ProxyDelegateTrigger) {
 

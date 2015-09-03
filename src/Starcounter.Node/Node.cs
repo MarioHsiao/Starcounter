@@ -818,8 +818,9 @@ DO_CALL_ON_GIVEN_LEVEL:
                             // Setting the response application name.
                             resp.AppName = req.HandlerOpts.CallingAppName;
 
-                            if (StarcounterEnvironment.PolyjuiceAppsFlag)
+                            if (StarcounterEnvironment.MergeJsonSiblings) {
                                 return Response.ResponsesMergerRoutine_(req, resp, null);
+                            }
                         }
 
                         return resp;

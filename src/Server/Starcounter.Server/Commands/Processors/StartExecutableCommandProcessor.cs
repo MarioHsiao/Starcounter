@@ -99,7 +99,7 @@ namespace Starcounter.Server.Commands {
                     weavedExecutable = weaver.Weave(
                         command.Application.BinaryFilePath,
                         appRuntimeDirectory,
-                        !database.Configuration.Runtime.PolyjuiceDatabaseFlag);
+                        !database.Configuration.Runtime.LoadEditionLibraries);
 
                     OnWeavingCompleted();
                 }

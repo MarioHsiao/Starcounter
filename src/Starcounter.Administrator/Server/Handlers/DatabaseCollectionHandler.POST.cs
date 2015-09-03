@@ -45,7 +45,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                     command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;
                     command.SetupProperties.Configuration.Runtime.ImageDirectory = settings.ImageDirectory;
                     command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = settings.TransactionLogDirectory;
-                    command.SetupProperties.Configuration.Runtime.PolyjuiceDatabaseFlag = settings.PolyjuiceDatabaseFlag;
 
                     command.EnableWaiting = true;
 

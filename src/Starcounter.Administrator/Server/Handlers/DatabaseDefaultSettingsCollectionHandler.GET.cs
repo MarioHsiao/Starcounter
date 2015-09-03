@@ -45,7 +45,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                     databaseSettings.TempDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TempDirectory;
                     databaseSettings.ImageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
                     databaseSettings.TransactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
-                    databaseSettings.PolyjuiceDatabaseFlag = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.PolyjuiceDatabaseFlag;
                     databaseSettings.CollationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databaseSettings.ToJsonUtf8() };

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
-using PolyjuiceNamespace;
 using Starcounter.Advanced;
 using Starcounter.Internal.Web;
 using Starcounter.Logging;
@@ -44,8 +43,7 @@ namespace Starcounter.Internal {
             UInt16 defaultSystemHttpPort,
             UInt32 sessionTimeoutMinutes,
             String dbName,
-            Boolean noNetworkGateway,
-            Boolean polyjuiceDatabaseFlag)
+            Boolean noNetworkGateway)
         {
             // Setting host exception logging for internal.
             Diagnostics.SetHostLogException((Exception exc) => {
@@ -103,50 +101,8 @@ namespace Starcounter.Internal {
                 // Registering JSON patch handlers on default user port.
                 PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
 
-                Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
-                    ScSessionClass.DataLocationUriPrefix + "MappingFlag", () => {
-                        return "{\"MappingEnabled\":\"" + StarcounterEnvironment.MappingEnabled.ToString() + "\"}";
-                    });
-
-                Handle.POST(StarcounterEnvironment.Default.SystemHttpPort,
-                    ScSessionClass.DataLocationUriPrefix + "MappingFlag/{?}", (Boolean enable) => {
-
-                        // Checking if we should switch the flag.
-                        if (StarcounterEnvironment.MappingEnabled != enable) {
-
-                            StarcounterEnvironment.MappingEnabled = enable;
-
-                            UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
-                                StarcounterEnvironment.MappingEnabled, HandlerOptions.TypesOfHandler.OrdinaryMapping);
-                        }
-
-                        return 200;
-                    });
-
-                Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
-                    ScSessionClass.DataLocationUriPrefix + "MiddlewareFiltersFlag", () => {
-                        return "{\"MiddlewareFiltersEnabled\":\"" + StarcounterEnvironment.MiddlewareFiltersEnabled.ToString() + "\"}";
-                    });
-
-                Handle.POST(StarcounterEnvironment.Default.SystemHttpPort,
-                    ScSessionClass.DataLocationUriPrefix + "MiddlewareFiltersFlag/{?}", (Boolean enable) => {
-
-                        // Checking if we should switch the flag.
-                        if (StarcounterEnvironment.MiddlewareFiltersEnabled != enable) {
-
-                            StarcounterEnvironment.MiddlewareFiltersEnabled = enable;
-
-                            Handle.EnableDisableMiddleware(StarcounterEnvironment.MiddlewareFiltersEnabled);
-                        }
-
-                        return 200;
-                    });
-
-                // Checking if we have a Polyjuice edition.
-                if (polyjuiceDatabaseFlag) {
-
-                    Polyjuice.Init(false);
-                }
+                // Initializing URI mapping for ordinary and ontology mappings.
+                UriMapping.Init(false);
 
                 Handle.GET(defaultSystemHttpPort, "/schedulers/" + dbName, () => {
 
@@ -296,12 +252,10 @@ namespace Starcounter.Internal {
             // By default middleware filters are enabled.
             StarcounterEnvironment.MiddlewareFiltersEnabled = true;
 
-            // Adding Starcounter specific static files directory (but loaded for both polyjuice and nonpolyjuice databases).
-            // TODO:
-            // Since this is loaded for both polyjuice and non-polyjuice databases we should probably rename the folder from 'Polyjuice'
-            String polyjuiceStatic = Path.Combine(StarcounterEnvironment.InstallationDirectory, "Polyjuice\\StaticFiles");
-            if (Directory.Exists(polyjuiceStatic)) {
-                AddStaticFileDirectory(polyjuiceStatic);
+            // Adding Starcounter specific static files directory.
+            String specialStaticFiles = Path.Combine(StarcounterEnvironment.InstallationDirectory, "ClientFiles\\StaticFiles");
+            if (Directory.Exists(specialStaticFiles)) {
+                AddStaticFileDirectory(specialStaticFiles);
             }
 
             // Checking if there is a given web resource path.
@@ -311,7 +265,7 @@ namespace Starcounter.Internal {
                 String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
 
                 // Path to wwwroot folder, if any exists.
-                String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.PolyjuiceWebRootName);
+                String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.WebRootFolderName);
 
                 if (Directory.Exists(extendedResourceDirPath)) {
 
@@ -319,7 +273,7 @@ namespace Starcounter.Internal {
 
                 } else {
 
-                    extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.PolyjuiceWebRootName);
+                    extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.WebRootFolderName);
 
                     if (Directory.Exists(extendedResourceDirPath)) {
                         fullPathToResourcesDir = extendedResourceDirPath;

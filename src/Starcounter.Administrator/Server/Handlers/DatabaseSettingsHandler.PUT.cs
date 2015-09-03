@@ -44,7 +44,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                         config.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
                         config.Runtime.SchedulerCount = (int)settings.SchedulerCount;
                         config.Runtime.ChunksNumber = (int)settings.ChunksNumber;
-                        config.Runtime.PolyjuiceDatabaseFlag = settings.PolyjuiceDatabaseFlag;
                         config.Save();
 
                         // Get cloned config from public model and update it with original values
@@ -61,7 +60,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                         database.Configuration.Runtime.DefaultUserHttpPort = config.Runtime.DefaultUserHttpPort;
                         database.Configuration.Runtime.SchedulerCount = config.Runtime.SchedulerCount;
                         database.Configuration.Runtime.ChunksNumber = config.Runtime.ChunksNumber;
-                        database.Configuration.Runtime.PolyjuiceDatabaseFlag = config.Runtime.PolyjuiceDatabaseFlag;
                         //database.Configuration.Save();
 
                         // Return new settings

@@ -34,11 +34,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Skip middleware filters global flag.
-        /// </summary>
-        internal static Boolean SkipMiddlewareFiltersGlobal = true;
-
-        /// <summary>
         /// Calling application name.
         /// </summary>
         internal String CallingAppName {
@@ -95,9 +90,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Forcing setting non-polyjuice handler flag.
+        /// Forcing skipping policy handler flag.
         /// </summary>
-        public Boolean AllowNonPolyjuiceHandler {
+        public Boolean SkipHandlersPolicy {
             get;
             set;
         }

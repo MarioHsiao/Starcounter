@@ -966,6 +966,21 @@ uint32_t Gateway::LoadReverseProxies()
                 uri_aliases[num_aliases].to_method_space_uri_space_len_ = static_cast<int32_t>(tmp.length());
                 strncpy_s(uri_aliases[num_aliases].lower_to_method_space_uri_space_, tmp_lower.c_str(), tmp.length());
 
+                node_elem = uri_alias_node->first_node("Host");
+
+                if (node_elem) {
+
+                    tmp = node_elem->value();
+
+                    if (tmp.length() >= MAX_URI_ALIAS_CHARS) {
+                        g_gateway.LogWriteCritical(L"Gateway XML: Too long alias Host name supplied.");
+                        return SCERRBADGATEWAYCONFIG;
+                    }
+
+                    strncpy_s(uri_aliases[num_aliases].host_name_, tmp.c_str(), tmp.length());
+                    uri_aliases[num_aliases].host_name_len_ = static_cast<int32_t>(tmp.length());
+                }
+
                 // Getting next reverse proxy information.
                 uri_alias_node = uri_alias_node->next_sibling("UriAlias");
 

@@ -8,9 +8,9 @@ using System.Diagnostics;
 using Starcounter.Advanced.XSON;
 using System.Text;
 
-namespace PolyjuiceNamespace {
+namespace Starcounter {
 
-    public class Polyjuice {
+    public class UriMapping {
 
         /// <summary>
         /// Set to true if database class hierarchy should be emulated (unit tests).
@@ -33,9 +33,9 @@ namespace PolyjuiceNamespace {
         const String EndsWithStringParam = "@w";
 
         /// <summary>
-        /// Suggested Polyjuice mapping URI.
+        /// Required URI mapping prefix.
         /// </summary>
-        const String PolyjuiceMappingUri = "/polyjuice/";
+        const String MappingUriPrefix = "/sc/mapping/";
 
         public class Tree {
             private Dictionary<string, MappingClassInfo> nameToNodes;
@@ -352,9 +352,9 @@ namespace PolyjuiceNamespace {
                 throw new InvalidOperationException("HTTP method should be either GET, POST, PUT, DELETE or PATCH.");
             }
 
-            // Checking that map URI starts with "/polyjuice/".
-            if (!mapProcessedUri.StartsWith(PolyjuiceMappingUri, StringComparison.InvariantCultureIgnoreCase)) {
-                throw new ArgumentException("Application can only map to handlers starting with \"/polyjuice/\".");
+            // Checking that map URI starts with mapping prefix.
+            if (!mapProcessedUri.StartsWith(MappingUriPrefix, StringComparison.InvariantCultureIgnoreCase)) {
+                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix);
             }
 
             lock (customMaps_) {
@@ -434,7 +434,7 @@ namespace PolyjuiceNamespace {
                         Handle.CUSTOM(method + " " + hs, (Request req, String p) => {
                             return MappingHandler(req, mappedHandlersList, p);
                         }, new HandlerOptions() {
-                            AllowNonPolyjuiceHandler = true,
+                            SkipHandlersPolicy = true,
                             ProxyDelegateTrigger = true,
                             TypeOfHandler = HandlerOptions.TypesOfHandler.OrdinaryMapping
                         });
@@ -445,7 +445,7 @@ namespace PolyjuiceNamespace {
                         Handle.CUSTOM(method + " " + mapProcessedUri, (Request req) => {
                             return MappingHandler(req, mappedHandlersList, null);
                         }, new HandlerOptions() {
-                            AllowNonPolyjuiceHandler = true,
+                            SkipHandlersPolicy = true,
                             ProxyDelegateTrigger = true,
                             TypeOfHandler = HandlerOptions.TypesOfHandler.OrdinaryMapping
                         });
@@ -533,8 +533,8 @@ namespace PolyjuiceNamespace {
             Func<String, String> converterToSo,
             Func<String, String> converterFromSo) {
 
-            if (!StarcounterEnvironment.PolyjuiceAppsFlag) {
-                throw new InvalidOperationException("Polyjuice is not initialized!");
+            if (!StarcounterEnvironment.OntologyMappingEnabled) {
+                throw new InvalidOperationException("Ontology mapping is not enabled!");
             }
 
             lock (tree_) {
@@ -1153,9 +1153,9 @@ namespace PolyjuiceNamespace {
         }
 
         /// <summary>
-        /// Default merger function for PolyJuice.
+        /// Default JSON merger function.
         /// </summary>
-        public static Response DefaultMerger(Request req, Response resp, List<Response> responses) {
+        public static Response DefaultJsonMerger(Request req, Response resp, List<Response> responses) {
             Json siblingJson;
             Json mainJson;
             List<Json> stepSiblings;
@@ -1191,6 +1191,7 @@ namespace PolyjuiceNamespace {
             mainJson = mainResponse.Resource as Json;
 
             if (mainJson != null) {
+
                 mainJson._appName = mainResponse.AppName;
 
                 if (responses.Count == 1)
@@ -1287,13 +1288,13 @@ namespace PolyjuiceNamespace {
         }
 
         /// <summary>
-        /// Initializes everything needed for Polyjuice.
+        /// Initializes everything needed for mapping.
         /// </summary>
         public static void Init(Boolean emulateDatabase) {
 
             PopulateSoTree(emulateDatabase);
 
-            Response.ResponsesMergerRoutine_ = DefaultMerger;
+            Response.ResponsesMergerRoutine_ = DefaultJsonMerger;
 
             String savedAppName = StarcounterEnvironment.AppName;
             StarcounterEnvironment.AppName = null;
@@ -1321,7 +1322,7 @@ namespace PolyjuiceNamespace {
              );
 
             // Merges HTML partials according to provided URLs.
-            Handle.GET(StarcounterConstants.PolyjuiceHtmlMergerPrefix + "{?}", (String s) => {
+            Handle.GET(StarcounterConstants.HtmlMergerPrefix + "{?}", (String s) => {
 
                 StringBuilder sb = new StringBuilder();
 
@@ -1345,31 +1346,38 @@ namespace PolyjuiceNamespace {
             });
 
             Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
-                ScSessionClass.DataLocationUriPrefix + "Polyjuice/OntologyMappingFlag", () => {
-                    return "{\"OntologyMappingEnabled\":\"" + StarcounterEnvironment.OntologyMappingEnabled.ToString() + "\"}";
+                StarcounterConstants.StarcounterSystemUriPrefix + "/" + StarcounterEnvironment.DatabaseNameLower + "/" + "GetFlag/{?}", (String flagName) => {
+
+                    var typ = typeof(StarcounterEnvironment);
+                    var flag = typ.GetField(flagName);
+                    if (flag == null) {
+                        return new Response() {
+                            StatusDescription = "The following flag is not found: " + flagName,
+                            StatusCode = 404
+                        };
+                    }
+                    
+                    return "{\"" + flagName + "\":\"" + flag.GetValue(null).ToString() + "\"}";
                 });
 
-            Handle.POST(StarcounterEnvironment.Default.SystemHttpPort, 
-                ScSessionClass.DataLocationUriPrefix + "Polyjuice/OntologyMappingFlag/{?}", (Boolean enable) => {
+            Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
+                StarcounterConstants.StarcounterSystemUriPrefix + "/" + StarcounterEnvironment.DatabaseNameLower + "/" + "SetFlag/{?}/{?}", (String flagName, Boolean value) => {
 
-                // Checking if we should switch the flag.
-                if (StarcounterEnvironment.OntologyMappingEnabled != enable) {
+                    var typ = typeof(StarcounterEnvironment);
+                    var flag = typ.GetField(flagName);
+                    if (flag == null) {
+                        return new Response() {
+                            StatusDescription = "The following flag is not found: " + flagName,
+                            StatusCode = 404
+                        };
+                    }
 
-                    StarcounterEnvironment.OntologyMappingEnabled = enable;
-
-                    UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).EnableDisableMapping(
-                        StarcounterEnvironment.OntologyMappingEnabled, HandlerOptions.TypesOfHandler.OntologyMapping);
-                }
-
-                return 200;
-            });
+                    flag.SetValue(null, value);
+                    
+                    return "{\"" + flagName + "\":\"" + flag.GetValue(null).ToString() + "\"}";
+                });
 
             StarcounterEnvironment.AppName = savedAppName;
-
-            // Now all applications are treated as Polyjuice applications.
-            StarcounterEnvironment.PolyjuiceAppsFlag = true;
-            StarcounterEnvironment.MappingEnabled = true;
-            StarcounterEnvironment.OntologyMappingEnabled = true;
         }
     }
 }

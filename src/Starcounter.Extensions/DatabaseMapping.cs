@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using Starcounter.Internal;
 using Starcounter.Advanced;
 using System.Net;
-using PolyjuiceNamespace;
 
 namespace Starcounter.Extensions {
 

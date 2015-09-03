@@ -18,7 +18,7 @@ namespace Administrator.Server.Model {
         public string Executable;       // Executable name (relative path)
         public string ResourceFolder;   // Resource folder
 
-        public string AppName;          // AppName (name of the app running in starcounter, can be the bindingname in polyjuice)
+        public string AppName;          // AppName (name of the app running in starcounter)
 
         public string DisplayName;      // Displayname
         public string Company;          // Company name

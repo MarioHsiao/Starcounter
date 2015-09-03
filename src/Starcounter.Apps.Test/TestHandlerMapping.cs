@@ -1,5 +1,4 @@
 ﻿using NUnit.Framework;
-using PolyjuiceNamespace;
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
@@ -35,7 +34,7 @@ namespace Starcounter.Internal.Test {
                 return "/handler2";
             });
 
-            Polyjuice.Map("/handler1", "/polyjuice/map1");
+            UriMapping.Map("/handler1", "/polyjuice/map1");
 
             Response resp = Self.GET("/handler1");
             Assert.AreEqual(resp.Body, "/handler1");

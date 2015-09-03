@@ -1090,12 +1090,16 @@ struct UriAliasInfo
 
     char lower_to_method_space_uri_space_[MAX_URI_ALIAS_CHARS];
 
+    char host_name_[MAX_URI_ALIAS_CHARS];
+    int32_t host_name_len_;
+
     uint16_t port_;
 
     void Reset() {
 
         from_method_space_uri_space_len_ = 0;
         to_method_space_uri_space_len_ = 0;
+        host_name_len_ = 0;
 
         port_ = INVALID_PORT_NUMBER;
     }
@@ -1611,6 +1615,10 @@ public:
                 // Comparing to URI alias.
                 if ((input_uri_len == uri_aliases_[i].from_method_space_uri_space_len_) &&
                     (0 == strncmp(input_uri, uri_aliases_[i].from_method_space_uri_space_, uri_aliases_[i].from_method_space_uri_space_len_))) {
+
+                        if (uri_aliases_[i].host_name_len_ != 0) {
+
+                        }
 
                         *method_space_uri_space_len = uri_aliases_[i].to_method_space_uri_space_len_;
                         *method_space_uri_space = uri_aliases_[i].to_method_space_uri_space_;
