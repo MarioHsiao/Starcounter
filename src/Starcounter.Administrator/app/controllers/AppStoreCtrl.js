@@ -37,6 +37,14 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
     }
 
     /**
+      * Upgrade Application
+      * @param {object} application Application
+      */
+    $scope.btnUpgradeApplication = function (application) {
+
+        application.Upgrade$++;
+    }
+    /**
      * Open Application
      * @param {object} application Application
      */

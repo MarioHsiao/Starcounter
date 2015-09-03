@@ -21,6 +21,7 @@
 	"IsRunning" : false,
 	"IsInstalled" : false,
 	"CanBeUninstalled" : true,
+	"CanUpgrade" : false,
 	"Status" : 0,
 	"StatusText" : "",
 	"ErrorMessage" : { "$" : { "Reuse" : "Administrator.Server.Model.ErrorMessageJson" } },
@@ -28,5 +29,6 @@
 	"Install$": 0,
 	"Delete$": 0,
 	"Download$" : 0,
+	"Upgrade$" : 0,
 	"Open$" : 0
 }

@@ -117,7 +117,7 @@ namespace Administrator.Server.Managers {
 
             string socketChannelName = "databaseGroupName";
 
-            Handle.GET(port,"/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
+            Handle.GET(port, "/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
 
                 // Check if the request was a WebSocket request.
                 if (request.WebSocketUpgrade) {
@@ -136,7 +136,7 @@ namespace Administrator.Server.Managers {
                 return 513; // 513 Message Too Large
             });
 
-            Handle.GET(port,"/api/servermodel/{?}", (string databaseName, Request request) => {
+            Handle.GET(port, "/api/servermodel/{?}", (string databaseName, Request request) => {
 
                 // Create view-model
                 DatabaseJson databaseJson = new DatabaseJson();
@@ -160,7 +160,7 @@ namespace Administrator.Server.Managers {
             });
 
             // Incoming patch on http
-            Handle.PATCH(port,"/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
+            Handle.PATCH(port, "/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
 
                 Json json = TemporaryStorage.Find(id);
 
@@ -170,7 +170,7 @@ namespace Administrator.Server.Managers {
             });
 
             // Options for server model request.
-            Handle.OPTIONS(port,"/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
+            Handle.OPTIONS(port, "/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
 
                 return GetAllowAccessControlResponse();
             });
@@ -178,7 +178,7 @@ namespace Administrator.Server.Managers {
 
 
             // Incoming patch on socket
-            Handle.WebSocket(port,socketChannelName, (string data, WebSocket ws) => {
+            Handle.WebSocket(port, socketChannelName, (string data, WebSocket ws) => {
 
                 if (ws.Session == null) {
                     ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
@@ -201,7 +201,7 @@ namespace Administrator.Server.Managers {
                 return System.Net.HttpStatusCode.NotImplemented;
             });*/
 
-            Handle.WebSocketDisconnect(port,socketChannelName, (ws) => {
+            Handle.WebSocketDisconnect(port, socketChannelName, (ws) => {
                 // Remove ws.
                 Database database;
                 databaseModelSockets.TryRemove(ws.ToUInt64(), out database);
@@ -283,13 +283,33 @@ namespace Administrator.Server.Managers {
                         }
 
                         if (appStoreApplication != null) {
-                            appStoreApplication.WantDeployed = true;    // Download
 
-                            // TODO: this will not work when we fix the async download mode
-                            if (appStoreApplication.DatabaseApplication != null) {
-                                appStoreApplication.DatabaseApplication.WantInstalled = true;
-                                appStoreApplication.DatabaseApplication.WantRunning = true;
-                            }
+                            appStoreApplication.DeployApplication((deployedApplication) => {
+                                // Success
+                                // TODO: this will not work when we fix the async download mode
+
+                                deployedApplication.InstallApplication((installedApplication) => {
+                                    // TODO: Handle success
+                                    installedApplication.StartApplication((startedApplication) => {
+                                        // TODO: Handle success
+                                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
+                                        // TODO: Handle error
+                                    });
+                                }, (installedApplication, wasCancelled, title, message, helpLink) => {
+                                    // TODO: Handle error
+                                });
+
+                                //appStoreApplication.DatabaseApplication.WantInstalled = true;
+                                //appStoreApplication.DatabaseApplication.WantRunning = true;
+
+                            }, (application, wasCanceled, title, message, helpLink) => {
+                                // Error
+
+                            });
+
+                            //appStoreApplication.WantDeployed = true;    // Download
+
+
 
                         }
                         else {
@@ -317,13 +337,20 @@ namespace Administrator.Server.Managers {
                             }
                         }
 
-                        if (appStoreApplication != null) {
-                            appStoreApplication.DatabaseApplication.WantDeleted = true;
+                        // TODO: Handle async task and errors
+                        appStoreApplication.DatabaseApplication.DeleteApplication(false,(application) => {
 
-                        }
-                        else {
-                            // TODO: Error
-                        }
+                        }, (application, wasCancelled, title, message, helpLink) => {
+
+                        });
+
+                        //if (appStoreApplication != null) {
+                        //    appStoreApplication.DatabaseApplication.WantDeleted = true;
+
+                        //}
+                        //else {
+                        //    // TODO: Error
+                        //}
 
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
                     }

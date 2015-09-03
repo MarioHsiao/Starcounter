@@ -13,7 +13,7 @@ namespace Starcounter.Administrator.Server.Handlers {
     internal static partial class StarcounterAdminAPI {
 
         private static Object LOCK = new Object();
-        static LogSource AdministratorLogSource = new LogSource("Administrator");
+        public static LogSource AdministratorLogSource = new LogSource("Administrator");
 
         /// <summary>
         /// Prepares the admin server REST API for use, mainly registering

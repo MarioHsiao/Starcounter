@@ -125,6 +125,9 @@ namespace Starcounter.Administrator.Server.Handlers {
                             app.ID = appStoreApplication.ID;
                             app.SourceID = appStoreApplication.SourceID;
                             app.SourceUrl = appStoreApplication.SourceUrl;
+                            app.StoreID = appStoreApplication.StoreID;
+                            app.StoreUrl = appStoreApplication.StoreUrl;
+
                             app.Namespace = appStoreApplication.Namespace;
                             app.Channel = appStoreApplication.Channel;
                             app.Version = appStoreApplication.Version;

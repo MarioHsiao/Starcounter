@@ -9,7 +9,7 @@ using System.Xml.Serialization;
 
 namespace Administrator.Server.Model {
     /// <summary>
-    /// TODO: Rename class AppConfig to DeployedItem
+    /// 
     /// </summary>
     [XmlRoot(ElementName = "AppConfig")]    // Handle backward compability
     public class DeployedConfigFile {
@@ -40,6 +40,9 @@ namespace Administrator.Server.Model {
 
         public string SourceID;         // Package source ID, "EB23432"
         public string SourceUrl;        // Package source Url, "http://appstore.polyjuice.com/apps/EB23432"
+
+        public string StoreID;          // Store ID
+        public string StoreUrl;         // Store Url
 
         public bool CanBeUninstalled;   // True if the application can be uninstalled
 

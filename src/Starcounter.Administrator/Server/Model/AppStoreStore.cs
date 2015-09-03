@@ -51,10 +51,13 @@ namespace Administrator.Server.Model {
                     foreach (AppStoreApplication item in e.NewItems) {
 
                         item.Changed += AppStoreApplication_Changed;
+
                         // Connect AppStoreAppliction with DatabaseApplication (if available)
                         item.DatabaseApplication = this.Database.GetApplicationBySourceUrl(item.SourceUrl);
                         item.UpdateModel();
+                        item.UpdateUpgradeFlag();
                     }
+
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
 
@@ -63,8 +66,10 @@ namespace Administrator.Server.Model {
 
                     // Remove listeners on the database instance
                     foreach (AppStoreApplication item in e.OldItems) {
+                        item.UpdateUpgradeFlag();
                         item.Changed -= AppStoreApplication_Changed;
                     }
+
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Replace:
 
@@ -75,12 +80,45 @@ namespace Administrator.Server.Model {
                     foreach (AppStoreApplication item in this.Applications) {
                         item.Changed -= AppStoreApplication_Changed;
                         item.Changed += AppStoreApplication_Changed;
+                        item.UpdateUpgradeFlag();
                     }
+
                     break;
             }
 
-
             this.OnChanged(sender, e);
+        }
+
+        public AppStoreApplication GetLatestVersion(string nameSpace, string channel) {
+
+            AppStoreApplication latestVersion = null;
+            DateTime aDate = DateTime.MinValue;
+
+            IList<AppStoreApplication> apps = this.GetAppStoreApplications(nameSpace, channel);
+            foreach (AppStoreApplication app in apps) {
+
+                if (app.VersionDate >= aDate) {
+                    aDate = app.VersionDate;
+                    latestVersion = app;
+                }
+            }
+
+            return latestVersion;
+        }
+
+
+        public IList<AppStoreApplication> GetAppStoreApplications(string nameSpace, string channel) {
+
+            List<AppStoreApplication> result = new List<AppStoreApplication>();
+
+            foreach (AppStoreApplication app in this.Applications) {
+
+                if (app.Namespace == nameSpace && app.Channel == channel) {
+                    result.Add(app);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -99,21 +137,6 @@ namespace Administrator.Server.Model {
                 Changed(sender, e);
             }
         }
-     
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="applicationJson"></param>
-        //public AppStoreStoreJson ToAppStoreStore() {
-
-        //    AppStoreStoreJson item = new AppStoreStoreJson();
-        //    item.ID = this.ID;
-        //    item.DisplayName = this.DisplayName;
-
-        //    return item;
-        //}
 
         #region INotifyPropertyChanged Members
 

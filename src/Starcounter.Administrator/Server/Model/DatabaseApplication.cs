@@ -5,6 +5,7 @@ using Starcounter.Internal;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.PublicModel.Commands;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -30,7 +31,6 @@ namespace Administrator.Server.Model {
                 return string.Empty;
             }
         }
-
         public string DisplayName;
         public string AppName;
         public string Description;
@@ -44,6 +44,10 @@ namespace Administrator.Server.Model {
 
         public string SourceID;         // App Store item id
         public string SourceUrl;        // App Store item source
+
+        public string StoreID;         // Store id
+        public string StoreUrl;        // Store source
+
         public string Heading;
 
         private bool _IsDeployed;
@@ -57,6 +61,7 @@ namespace Administrator.Server.Model {
                 this.OnPropertyChanged("IsDeployed");
             }
         }
+
         private bool _IsInstalled;
         public bool IsInstalled {
             get {
@@ -78,18 +83,6 @@ namespace Administrator.Server.Model {
                 if (this._CanBeUninstalled == value) return;
                 this._CanBeUninstalled = value;
                 this.OnPropertyChanged("CanBeUninstalled");
-            }
-        }
-
-        private bool _IsRunning;
-        public bool IsRunning {
-            get {
-                return this._IsRunning;
-            }
-            set {
-                if (this._IsRunning == value) return;
-                this._IsRunning = value;
-                this.OnPropertyChanged("IsRunning");
             }
         }
 
@@ -142,120 +135,77 @@ namespace Administrator.Server.Model {
             }
         }
 
-        private bool _WantRunning;
-        public bool WantRunning {
+        #region Running
+        private bool _IsRunning;
+        public bool IsRunning {
             get {
-                return this._WantRunning;
+                return this._IsRunning;
             }
             set {
-                //if (this._WantRunning == value) return;
-                this._WantRunning = value;
-
-                // Reset error state
-                this.CouldNotStart = false;
-                this.CouldNotStop = false;
-
-                this.ResetErrorMessage();
-
-                this.OnPropertyChanged("WantRunning");
-                this.Evaluate();
+                if (this._IsRunning == value) return;
+                this._IsRunning = value;
+                this.OnPropertyChanged("IsRunning");
             }
         }
 
-        private bool _WantInstalled;
-        public bool WantInstalled {
+        private bool _StartingError;
+        public bool StartingError {
             get {
-                return this._WantInstalled;
+                return this._StartingError;
             }
             set {
-                //if (this._WantInstalled == value) return;
-                this._WantInstalled = value;
-
-                // Reset error state
-                this.CouldNotInstall = false;
-                this.CouldNotUninstall = false;
-                this.ResetErrorMessage();
-
-                this.OnPropertyChanged("WantInstalled");
-                this.Evaluate();
+                if (this._StartingError == value) return;
+                this._StartingError = value;
+                this.OnPropertyChanged("StartingError");
             }
         }
 
-        private bool _WantDeleted;
-        public bool WantDeleted {
+        private bool _StoppingError;
+        private bool StoppingError {
             get {
-                return this._WantDeleted;
+                return this._StoppingError;
             }
             set {
-                this._WantDeleted = value;
+                if (this._StoppingError == value) return;
+                this._StoppingError = value;
+                this.OnPropertyChanged("StoppingError");
+            }
+        }
+        #endregion
 
-                // Reset error state
-                this._CouldNotDelete = false;
-                this._CouldNotStop = false;
-                this.ResetErrorMessage();
-
-                this.OnPropertyChanged("WantDeleted");
-                this.Evaluate();
+        private bool _InstallingError;
+        public bool InstallingError {
+            get {
+                return this._InstallingError;
+            }
+            set {
+                if (this._InstallingError == value) return;
+                this._InstallingError = value;
+                this.OnPropertyChanged("InstallingError");
             }
         }
 
-        private bool _CouldNotStart;
-        public bool CouldNotStart {
+        private bool _UninstallingError;
+        public bool UninstallingError {
             get {
-                return this._CouldNotStart;
+                return this._UninstallingError;
             }
             set {
-                if (this._CouldNotStart == value) return;
-                this._CouldNotStart = value;
-                this.OnPropertyChanged("CouldNotStart");
+                if (this._UninstallingError == value) return;
+                this._UninstallingError = value;
+                this.OnPropertyChanged("UninstallingError");
             }
         }
 
-        private bool _CouldNotStop;
-        public bool CouldNotStop {
+        private bool _DeletingError;
+        public bool DeletingError {
             get {
-                return this._CouldNotStop;
+                return this._DeletingError;
             }
             set {
-                if (this._CouldNotStop == value) return;
-                this._CouldNotStop = value;
-                this.OnPropertyChanged("CouldNotStop");
-            }
-        }
-
-        private bool _CouldNotInstall;
-        public bool CouldNotInstall {
-            get {
-                return this._CouldNotInstall;
-            }
-            set {
-                if (this._CouldNotInstall == value) return;
-                this._CouldNotInstall = value;
-                this.OnPropertyChanged("CouldNotInstall");
-            }
-        }
-
-        private bool _CouldNotUninstall;
-        public bool CouldNotUninstall {
-            get {
-                return this._CouldNotUninstall;
-            }
-            set {
-                if (this._CouldNotUninstall == value) return;
-                this._CouldNotUninstall = value;
-                this.OnPropertyChanged("CouldNotUninstall");
-            }
-        }
-
-        private bool _CouldNotDelete;
-        public bool CouldNotDelete {
-            get {
-                return this._CouldNotDelete;
-            }
-            set {
-                if (this._CouldNotDelete == value) return;
-                this._CouldNotDelete = value;
-                this.OnPropertyChanged("CouldNotDelete");
+                if (this._DeletingError == value) return;
+                this._DeletingError = value;
+                this.OnPropertyChanged("DeletingError");
             }
         }
 
@@ -305,140 +255,327 @@ namespace Administrator.Server.Model {
 
         #endregion
 
-        /// <summary>
-        /// Evaluate application wanting states
-        /// </summary>
-        public void Evaluate() {
-
-            if (this.Status != ApplicationStatus.None) {
-                // Work already in progres, when work is compleated it will call Evaluate()
-                return;
-            }
-
-            if (this.WantRunning) {
-
-                if (!this.Database.CouldnotStart && this.Database.IsRunning == false && !this.Database.Status.HasFlag(DatabaseStatus.Starting)) {
-                    this.Database.WantRunning = true;
-                }
-                else {
-                    if (!this.CouldNotStart && this.IsRunning == false && !this.Status.HasFlag(ApplicationStatus.Starting)) {
-                        this.StartApplication(); // Async
-                    }
-                }
-            }
-            else {
-
-                if (!this.CouldNotStop && this.IsRunning == true && !this.Status.HasFlag(ApplicationStatus.Stopping)) {
-                    this.StopApplication();  // Async
-                }
-            }
-
-            if (this.Status != ApplicationStatus.None) {
-                // Work already in progres, when work is compleated it will call Evaluate()
-                return;
-            }
-
-            if (this.WantDeleted && !this.CouldNotStop) {
-
-                // If application is running or starting then try to stop it.
-                if (this.IsRunning || this.Status.HasFlag(ApplicationStatus.Starting)) {
-                    this.WantRunning = false; // Will trigger Evaluate()
-                }
-                else {
-
-                    if (this.CouldNotDelete == false && this.IsDeployed == true && !this.Status.HasFlag(ApplicationStatus.Deleting)) {
-                        this.DeleteApplication(); // Async
-                    }
-                }
-            }
-
-
-            if (this.Status != ApplicationStatus.None) {
-                // Work already in progres, when work is compleated it will call Evaluate()
-                return;
-            }
-
-            if (this.WantInstalled) {
-
-                if (!this.CouldNotInstall && this.IsInstalled == false && !this.Status.HasFlag(ApplicationStatus.Installing)) {
-                    this.InstallApplication();   // Sync
-                }
-            }
-            else {
-
-                if (!this._CouldNotUninstall && this.IsInstalled == true && !this.Status.HasFlag(ApplicationStatus.Uninstalling)) {
-                    this.UninstallApplication(); // Sync
-                }
-            }
-        }
-
         #region Actions
+
+        #region Install
+        private ConcurrentStack<Action<DatabaseApplication>> ApplicationInstallCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> ApplicationInstallErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
 
         /// <summary>
         /// Install application
         /// Will make the application start along with the database startup
         /// </summary>
-        private void InstallApplication() {
+        public void InstallApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
-            //this.ResetErrorMessage();
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.ApplicationInstallCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.ApplicationInstallErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Installing)) {
+                // Busy
+                return;
+            }
+
+            if (this.IsInstalled) {
+                // Already installed
+                this.ApplicationInstallErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationInstallCallbacks);
+                return;
+            }
+
+            this.InstallingError = false;
+            this.Status |= ApplicationStatus.Installing;
 
             try {
-                this.Status |= ApplicationStatus.Installing;
+                // TODO: Make ApplicationManager.InstallApplication call async
                 ApplicationManager.InstallApplication(this);
                 this.Status &= ~ApplicationStatus.Installing;
 
-                this.Evaluate();
+                this.ApplicationInstallErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationInstallCallbacks);
             }
             catch (Exception e) {
 
                 this.Status &= ~ApplicationStatus.Installing;
-                this.CouldNotInstall = true;
+                this.InstallingError = true;
                 this.OnCommandError("Install Application", e.Message, null);
+                this.ApplicationInstallCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationInstallErrorCallbacks, false, "Install Application", e.Message, null);
             }
         }
+
+        #endregion
+
+        #region Uninstall
+        private ConcurrentStack<Action<DatabaseApplication>> ApplicationUninstallCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> ApplicationUninstallErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
 
         /// <summary>
         /// Uninstall application
         /// Application will not be started along with the database startup
         /// </summary>
-        private void UninstallApplication() {
+        public void UninstallApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
-            //this.ResetErrorMessage();
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.ApplicationUninstallCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.ApplicationUninstallErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Uninstalling)) {
+                // Busy
+                return;
+            }
+
+            if (this.IsInstalled == false) {
+                // Already uninstalled
+                this.ApplicationUninstallErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationUninstallCallbacks);
+                return;
+            }
+
+            this.UninstallingError = false;
+            this.Status |= ApplicationStatus.Uninstalling;
 
             try {
-                this.Status |= ApplicationStatus.Uninstalling;
+                // TODO: Make ApplicationManager.UninstallApplication call async
                 ApplicationManager.UninstallApplication(this);
                 this.Status &= ~ApplicationStatus.Uninstalling;
 
-                this.Evaluate();
+                this.ApplicationUninstallErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationUninstallCallbacks);
             }
             catch (Exception e) {
+
                 this.Status &= ~ApplicationStatus.Uninstalling;
-                this.CouldNotUninstall = true;
+                this.UninstallingError = true;
                 this.OnCommandError("Uninstall Application", e.Message, null);
+                this.ApplicationUninstallCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationUninstallErrorCallbacks, false, "Uninstall Application", e.Message, null);
+            }
+
+            //try {
+            //    this.Status |= ApplicationStatus.Uninstalling;
+            //    ApplicationManager.UninstallApplication(this);
+            //    this.Status &= ~ApplicationStatus.Uninstalling;
+
+            //    if (completionCallback != null) {
+            //        completionCallback(this);
+            //    }
+
+            //}
+            //catch (Exception e) {
+            //    this.Status &= ~ApplicationStatus.Uninstalling;
+            //    this.CouldNotUninstall = true;
+            //    //this.OnCommandError("Uninstall Application", e.Message, null);
+            //    if (errorCallback != null) {
+            //        errorCallback("Install Application", e.Message, null);
+            //    }
+
+            //}
+        }
+        #endregion
+
+        #region Delete
+        private ConcurrentStack<Action<DatabaseApplication>> ApplicationDeleteCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> ApplicationDeleteErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
+        /// <summary>
+        /// Delete deployed application from server
+        /// TODO: Also Uninstall application if it's installed
+        /// </summary>
+        public void DeleteApplication(bool forceDelete, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.ApplicationDeleteCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.ApplicationDeleteErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Deleting)) {
+                // Busy
+                return;
+            }
+
+            this.Status |= ApplicationStatus.Deleting;
+
+            if (this.IsRunning) {
+
+                this.StopApplication((application) => {
+
+                    // Application stopped
+                    this.ExecuteDeleteApplicationCommand(forceDelete);
+
+                }, (application, wasCancelled, title, message, helpLink) => {
+
+                    this.Status &= ~ApplicationStatus.Deleting;    // Remove status
+
+                    // Failed to stop database, we can not delete database.
+                    this.ApplicationDeleteCallbacks.Clear();
+                    this.InvokeActionErrorListeners(this.ApplicationDeleteErrorCallbacks, wasCancelled, title, message, helpLink);
+                });
+
+            }
+            else {
+                this.ExecuteDeleteApplicationCommand(forceDelete);
+            }
+
+
+        }
+
+        /// <summary>
+        /// Execute delete application command
+        /// </summary>
+        private void ExecuteDeleteApplicationCommand(bool forceDelete) {
+
+            this.DeletingError = false;
+
+            DeployManager.Delete(this, forceDelete, (application) => {
+
+                this.Status &= ~ApplicationStatus.Deleting;
+
+                this.ApplicationDeleteErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationDeleteCallbacks);
+
+            }, (message) => {
+
+                this.Status &= ~ApplicationStatus.Deleting;
+                this.DeletingError = true;
+                this.OnCommandError("Delete Application", message, null);
+                this.ApplicationDeleteCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationDeleteErrorCallbacks, false, "Delete Application", message, null);
+            });
+
+            //this.StoppingError = false;
+
+            //DatabaseApplication app = ApplicationManager.GetApplication(this.DatabaseName, this.ID);
+            //if (app == null) {
+
+            //    this.StartingError = true;
+            //    this.ApplicationStartErrorCallbacks.Clear();
+            //    this.InvokeActionErrorListeners(this.ApplicationStartErrorCallbacks, false, "Start Application", "Could not find application", null);
+            //    return;
+            //}
+
+            //string[] arguments = new string[0];
+            //// TODO: Use arguments from application (String need to be split to array
+            //AppInfo appinfo = new AppInfo(app.AppName, app.Executable, app.Executable, app.ResourceFolder, arguments, "");
+
+            //// Create Command
+            //StartExecutableCommand command;
+            //command = new StartExecutableCommand(RootHandler.Host.Engine, this.DatabaseName, appinfo);
+            //command.EnableWaiting = false;
+            //command.RunEntrypointAsynchronous = false;  // ?
+
+            //this.ExecuteCommand(command, (database) => {
+
+            //    this.Status &= ~ApplicationStatus.Starting;
+
+            //    this.ApplicationStartErrorCallbacks.Clear();
+            //    this.InvokeActionListeners(this.ApplicationStartCallbacks);
+            //}, (database, wasCancelled, title, message, helpLink) => {
+
+            //    this.Status &= ~ApplicationStatus.Starting;
+            //    this.StartingError = true;
+
+            //    this.OnCommandError(title, message, helpLink);
+
+            //    this.ApplicationStartCallbacks.Clear();
+            //    this.InvokeActionErrorListeners(this.ApplicationStartErrorCallbacks, wasCancelled, title, message, helpLink);
+            //});
+        }
+
+        #endregion
+
+        #region Start Application
+        private ConcurrentStack<Action<DatabaseApplication>> ApplicationStartCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> ApplicationStartErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
+        /// <summary>
+        /// Start Application
+        /// </summary>
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public void StartApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.ApplicationStartCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.ApplicationStartErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Starting)) {
+                // Busy
+                return;
+            }
+
+            if (this.IsRunning) {
+                // Already running
+                this.ApplicationStartErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationStartCallbacks);
+                return;
+            }
+
+            this.Status |= ApplicationStatus.Starting;
+
+            if (this.Database.IsRunning == false) {
+
+                this.Database.StartDatabase((database) => {
+
+                    // Database started
+                    this.ExecuteStartApplicationCommand();
+
+                }, (database, wasCancelled, title, message, helpLink) => {
+
+                    this.Status &= ~ApplicationStatus.Starting;    // Remove status
+
+                    // Failed to stop database, we can not delete database.
+                    this.ApplicationStartCallbacks.Clear();
+                    this.InvokeActionErrorListeners(this.ApplicationStartErrorCallbacks, wasCancelled, title, message, helpLink);
+                });
+
+            }
+            else {
+                this.ExecuteStartApplicationCommand();
             }
         }
 
         /// <summary>
-        /// Start application
+        /// Execute Start application command
         /// </summary>
-        /// <param name="application"></param>
-        private void StartApplication() {
+        private void ExecuteStartApplicationCommand() {
 
-            //this.ResetErrorMessage();
+            this.StartingError = false;
 
             DatabaseApplication app = ApplicationManager.GetApplication(this.DatabaseName, this.ID);
             if (app == null) {
-                // TODO: 500: Internal Server Error
-                this.OnCommandError("Start Application", "Could not find application", null);
-                this.CouldNotStart = true;
-                this.Evaluate();
+
+                this.StartingError = true;
+                this.ApplicationStartErrorCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationStartErrorCallbacks, false, "Start Application", "Could not find application", null);
                 return;
             }
 
             string[] arguments = new string[0];
             // TODO: Use arguments from application (String need to be split to array
-
             AppInfo appinfo = new AppInfo(app.AppName, app.Executable, app.Executable, app.ResourceFolder, arguments, "");
 
             // Create Command
@@ -447,31 +584,76 @@ namespace Administrator.Server.Model {
             command.EnableWaiting = false;
             command.RunEntrypointAsynchronous = false;  // ?
 
-            RunApplicationCommand(command);
+            this.ExecuteCommand(command, (database) => {
+
+                this.Status &= ~ApplicationStatus.Starting;
+
+                this.ApplicationStartErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationStartCallbacks);
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+                this.Status &= ~ApplicationStatus.Starting;
+                this.StartingError = true;
+
+                this.OnCommandError(title, message, helpLink);
+
+                this.ApplicationStartCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationStartErrorCallbacks, wasCancelled, title, message, helpLink);
+            });
         }
 
+        #endregion
+
+        #region Stop Application
+
+        private ConcurrentStack<Action<DatabaseApplication>> ApplicationStopCallbacks = new ConcurrentStack<Action<DatabaseApplication>>();
+        private ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> ApplicationStopErrorCallbacks = new ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>>();
+
         /// <summary>
-        /// Stop application
+        /// Stop Database
         /// </summary>
-        /// <param name="application"></param>
-        private void StopApplication() {
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public void StopApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
-            //this.ResetErrorMessage();
+            this.ResetErrorMessage();
 
-            DatabaseApplication app = ApplicationManager.GetApplication(this.DatabaseName, this.ID);
-            if (app == null) {
-                // TODO: 500: Internal Server Error
-                this.OnCommandError("Stop Application", "Could not find application", null);
-                this.CouldNotStart = true;
-                this.Evaluate();
+            if (completionCallback != null) {
+                this.ApplicationStopCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.ApplicationStopErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(ApplicationStatus.Stopping)) {
+                // Busy
                 return;
             }
 
-            string id;
+            if (this.IsRunning == false) {
+                // Already stopped
+                this.ApplicationStopErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationStopCallbacks);
+                return;
+            }
+
+            DatabaseApplication app = ApplicationManager.GetApplication(this.DatabaseName, this.ID);
+            if (app == null) {
+
+                this.StoppingError = true;
+                this.ApplicationStopErrorCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationStopErrorCallbacks, false, "Stop Application", "Could not find application", null);
+                return;
+            }
+
+            this.StoppingError = false;
+            this.Status |= ApplicationStatus.Stopping;
 
             // We can not stop the application by using the appName, we need to use the App Key or Executable full path.
             // There is an flaw when using the Executable full path for stopping apps. (multiple apps can have the same filename but not the same appname)
             AppInfo appInfo = this.GetApplicationAppInfo();
+            string id;
             if (appInfo != null) {
                 id = appInfo.Key;
             }
@@ -482,98 +664,192 @@ namespace Administrator.Server.Model {
             var command = new StopExecutableCommand(RootHandler.Host.Engine, app.DatabaseName, id);
             command.EnableWaiting = false;
 
-            RunApplicationCommand(command);
-        }
+            this.ExecuteCommand(command, (database) => {
 
-        /// <summary>
-        /// Delete deployed application from server
-        /// </summary>
-        public void DeleteApplication() {
+                this.Status &= ~ApplicationStatus.Stopping;
+                this.ApplicationStopErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.ApplicationStopCallbacks);
 
-            //this.ResetErrorMessage();
+            }, (database, wasCancelled, title, message, helpLink) => {
 
-            this.Status |= ApplicationStatus.Deleting;
-            this.StatusText = "Deleting";
-
-            DeployManager.Delete(this, (application) => {
-
-                this.Status &= ~ApplicationStatus.Deleting; // Remove status
-                this.StatusText = string.Empty;
-                this.Evaluate();
-            }, (message) => {
-
-                this.CouldNotDelete = true;
-                this.Status &= ~ApplicationStatus.Deleting; // Remove status
-                this.StatusText = message;
-                this.Evaluate();
+                this.Status &= ~ApplicationStatus.Stopping;
+                this.StoppingError = true;
+                this.OnCommandError(title, message, helpLink);
+                this.ApplicationStopCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.ApplicationStopErrorCallbacks, wasCancelled, title, message, helpLink);
             });
         }
 
+        #endregion
+
+        #region Set CanBeUninstalled Flag
+
+        public void SetCanBeUninstalledFlag(bool status, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            DeployedConfigFile config = DeployManager.GetItemFromApplication(this);
+
+            if (config == null) {
+                if (errorCallback != null) {
+                    errorCallback(this, false, "Setting uninstallation lock", "Failed to find application configuration file", null);
+                }
+            }
+
+            try {
+                config.CanBeUninstalled = status;
+                config.Save();
+
+                this.CanBeUninstalled = config.CanBeUninstalled;
+
+                if (completionCallback != null) {
+                    completionCallback(this);
+                }
+
+            }
+            catch (Exception e) {
+                if (errorCallback != null) {
+                    errorCallback(this, false, "Setting uninstallation lock", e.Message, null);
+                }
+            }
+
+
+        }
+        #endregion
+
         /// <summary>
-        /// Run Application Command (Start/Stop)
+        /// Invoke action listeners½
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionListeners(ConcurrentStack<Action<DatabaseApplication>> listeners) {
+
+            while (listeners.Count > 0) {
+
+                Action<DatabaseApplication> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback(this);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Invoke action error listeners
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionErrorListeners(ConcurrentStack<Action<DatabaseApplication, bool, string, string, string>> listeners, bool wasCancelled, string title, string message, string helpLink) {
+
+            while (listeners.Count > 0) {
+
+                Action<DatabaseApplication, bool, string, string, string> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback(this, wasCancelled, title, message, helpLink);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execut Command (Start/Stop)
         /// </summary>
         /// <param name="command"></param>
         /// <param name="database"></param>
-        private void RunApplicationCommand(ServerCommand command) {
+        private void ExecuteCommand(ServerCommand command, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
             var runtime = RootHandler.Host.Runtime;
-
-            if (command is StartExecutableCommand) {
-                this.Status |= ApplicationStatus.Starting;  // Add Status
-            }
-            else if (command is StopExecutableCommand) {
-                this.Status |= ApplicationStatus.Stopping;  // Add Status
-            }
 
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
 
-                return this.WantRunning == this.IsRunning;  // return true to cancel
+                if (command is StartExecutableCommand &&
+                    (this.Status.HasFlag(ApplicationStatus.Stopping) ||
+                    this.Status.HasFlag(ApplicationStatus.Deleting))) {
+
+                    return true;    // return true to cancel
+                }
+                else if (command is StopExecutableCommand && this.Status.HasFlag(ApplicationStatus.Starting)) {
+
+                    return true;    // return true to cancel
+                }
+
+
+                return false;   // return true to cancel
+
+
             }, (commandId) => {
 
                 CommandInfo commandInfo = runtime.GetCommand(commandId);
 
-                if (command is StartExecutableCommand) {
-                    this.CouldNotStart = commandInfo.HasError;
-                    this.Status &= ~ApplicationStatus.Starting; // Remove status
-                }
-                else if (command is StopExecutableCommand) {
-                    this.CouldNotStop = commandInfo.HasError;
-                    this.Status &= ~ApplicationStatus.Stopping; // Remove status
-                }
-
                 this.IsRunning = this.ApplicationRunningState();
+
                 this.StatusText = string.Empty;
 
                 if (commandInfo.HasError) {
+
+                    //Check if command was Canceled
+                    bool wasCancelled = false;
+                    if (commandInfo.HasProgress) {
+                        foreach (var p in commandInfo.Progress) {
+                            if (p.WasCancelled == true) {
+                                wasCancelled = true;
+                                break;
+                            }
+                        }
+                    }
+
                     ErrorInfo single = commandInfo.Errors.PickSingleServerError();
                     var msg = single.ToErrorMessage();
-                    this.OnCommandError(command.Description, msg.Brief, msg.Helplink);
+
+                    if (errorCallback != null) {
+                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                    }
                 }
                 else {
-                    //this.Evaluate();
-                }
-                this.Evaluate();
 
+                    if (completionCallback != null) {
+                        completionCallback(this);
+                    }
+                }
             });
 
             this.StatusText = c.Description;
 
             if (c.IsCompleted) {
 
-                if (command is StartExecutableCommand) {
-                    this.CouldNotStart = c.HasError;
-                    this.Status &= ~ApplicationStatus.Starting; // Remove status
-                }
-                else if (command is StopExecutableCommand) {
-                    this.CouldNotStop = c.HasError;
-                    this.Status &= ~ApplicationStatus.Stopping; // Remove status
-                }
+                CommandInfo commandInfo = runtime.GetCommand(c.CorrelatedCommandId);
+
+                this.IsRunning = this.ApplicationRunningState();
+                this.StatusText = string.Empty;
 
                 if (c.HasError) {
+
+                    //Check if command was Canceled
+                    bool wasCancelled = false;
+                    if (commandInfo.HasProgress) {
+                        foreach (var p in commandInfo.Progress) {
+                            if (p.WasCancelled == true) {
+                                wasCancelled = true;
+                                break;
+                            }
+                        }
+                    }
+
                     ErrorInfo single = c.Errors.PickSingleServerError();
                     var msg = single.ToErrorMessage();
-                    this.OnCommandError(command.Description, msg.Brief, msg.Helplink);
+                    if (errorCallback != null) {
+                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                    }
+                }
+                else {
+                    if (completionCallback != null) {
+                        completionCallback(this);
+                    }
                 }
             }
         }
@@ -584,7 +860,6 @@ namespace Administrator.Server.Model {
         /// <param name="message"></param>
         private void OnCommandError(string title, string message, string helpLink) {
             // TODO: Append errors to notification list
-            //    this.StatusText = message;
 
             this.ErrorMessage.Title = title;
             this.ErrorMessage.Message = message;
@@ -592,11 +867,10 @@ namespace Administrator.Server.Model {
 
             this.OnPropertyChanged("ErrorMessage");
             this.OnPropertyChanged("HasErrorMessage");
-
         }
 
         private void ResetErrorMessage() {
-            //            this.ErrorMessage = null;
+
             this.ErrorMessage.Title = string.Empty;
             this.ErrorMessage.Message = string.Empty;
             this.ErrorMessage.HelpLink = string.Empty;
@@ -796,6 +1070,7 @@ namespace Administrator.Server.Model {
         Installing = 4,
         Uninstalling = 16,
         Downloading = 32,
-        Deleting = 64
+        Deleting = 64,
+        Upgrading = 128
     }
 }

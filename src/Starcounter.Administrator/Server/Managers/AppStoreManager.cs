@@ -3,6 +3,7 @@ using Administrator.Server.Model;
 using Starcounter;
 using Starcounter.Administrator.API.Handlers;
 using Starcounter.Administrator.Server;
+using Starcounter.Administrator.Server.Handlers;
 using Starcounter.Administrator.Server.Utilities;
 using Starcounter.Server.PublicModel;
 using Starcounter.Server.Rest.Representations.JSON;
@@ -47,6 +48,12 @@ namespace Administrator.Server.Managers {
                 try {
 
                     if (!response.IsSuccessStatusCode) {
+
+                        StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001] GetApplications(): StatusCode:" + response.StatusCode);
+                        if (!string.IsNullOrEmpty(response.Body)) {
+                            StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001]: resultBody:" + response.Body);
+                        }
+
                         throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
                     }
 
@@ -89,6 +96,11 @@ namespace Administrator.Server.Managers {
             Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, 10000);
 
             if (!response.IsSuccessStatusCode) {
+                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0002] GetApplications(): StatusCode:" + response.StatusCode);
+                if (!string.IsNullOrEmpty(response.Body)) {
+                    StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0002]: resultBody:" + response.Body);
+                }
+
                 message = "At the moment The App Store Service is not avaiable. Try again later.";
                 return null;
             }
@@ -109,9 +121,13 @@ namespace Administrator.Server.Managers {
                 string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
                 if (store.ID != id) continue;
 
-                foreach (var remoteApp in remoteStore.Items) {
+                string storeUrl = AppStoreManager.appStoreHost + "/appstore/stores/" + remoteStore.ID;    // TODO: Strange url
 
+                foreach (var remoteApp in remoteStore.Items) {
+                    
                     AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
+                    application.StoreID = store.ID;
+                    application.StoreUrl = storeUrl;
                     application.Database = database;
                     applications.Add(application);
                 }
@@ -119,55 +135,6 @@ namespace Administrator.Server.Managers {
 
             return applications;
         }
-
-        /// <summary>
-        /// Get AppStore applications
-        /// </summary>
-        /// <param name="database"></param>
-        /// <param name="applications"></param>
-        //public static void GetApplications(Administrator.Server.Model.Database database, out IList<AppStoreApplication> applications) {
-
-        //    string uri = AppStoreManager.appStoreHost + "/appstore/apps";
-        //    Response response = X.GET(uri);
-
-        //    ResponseToList(response, database, out applications);
-        //}
-
-        /// <summary>
-        /// Translate Response to an AppStore Application list
-        /// </summary>
-        /// <param name="response"></param>
-        /// <param name="database"></param>
-        /// <param name="applications"></param>
-        /// <returns></returns>
-        //private static bool ResponseToList(Response response, Administrator.Server.Model.Database database, AppStoreStore store, out IList<AppStoreApplication> applications) {
-
-        //    applications = new List<AppStoreApplication>();
-
-        //    if (!response.IsSuccessStatusCode) {
-        //        throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
-        //    }
-
-        //    Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
-        //    remoteAppStoreItems.PopulateFromJson(response.Body);
-
-        //    IList<DeployedConfigFile> downloadedApplications = DeployManager.GetItems(database.ID);
-
-        //    foreach (var remoteStore in remoteAppStoreItems.Stores) {
-
-        //        string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
-        //        if (store.ID != id) continue;
-
-        //        foreach (var remoteApp in remoteStore.Items) {
-
-        //            AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
-        //            application.Database = database;
-        //            applications.Add(application);
-        //        }
-        //    }
-
-        //    return true;
-        //}
 
         /// <summary>
         /// 
@@ -181,6 +148,11 @@ namespace Administrator.Server.Managers {
 
                 if (!response.IsSuccessStatusCode) {
                     if (errorCallback != null) {
+                        StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0003] GetStores(): StatusCode:" + response.StatusCode);
+                        if (!string.IsNullOrEmpty(response.Body)) {
+                            StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0003]: resultBody:" + response.Body);
+                        }
+
                         errorCallback("At the moment The App Store Service is not avaiable. Try again later.");
                     }
                     return;
@@ -214,6 +186,10 @@ namespace Administrator.Server.Managers {
             Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, 10000);
 
             if (!response.IsSuccessStatusCode) {
+                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0004] GetStores(): StatusCode:" + response.StatusCode);
+                if (!string.IsNullOrEmpty(response.Body)) {
+                    StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0004]: resultBody:" + response.Body);
+                }
                 message = "At the moment The App Store Service is not avaiable. Try again later.";
                 return null;
             }
@@ -267,6 +243,10 @@ namespace Administrator.Server.Managers {
             response = Http.GET(uri, null, 30000, opt);
 
             if (!response.IsSuccessStatusCode) {
+                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0005] GetAppStoreItems(): StatusCode:" + response.StatusCode);
+                if (!string.IsNullOrEmpty(response.Body)) {
+                    StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0005]: resultBody:" + response.Body);
+                }
 
                 ErrorResponse errorResponse = new ErrorResponse();
                 errorResponse.Text = string.Format("At the moment The App Store Service is not avaiable. Try again later.");
@@ -303,6 +283,10 @@ namespace Administrator.Server.Managers {
 
             application.SourceID = remoteApp.ID;
             application.SourceUrl = remoteApp.Url;
+
+            //application.StoreID = 
+            //application.StoreUrl = 
+
             application.Heading = remoteApp.Heading;
             application.Rating = remoteApp.Rating;
 

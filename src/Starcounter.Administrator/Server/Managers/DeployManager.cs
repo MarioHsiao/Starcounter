@@ -74,31 +74,25 @@ namespace Administrator.Server.Managers {
 
         /// <summary>
         /// Dowload package
-        /// TODO: Make async
-        /// TODO: When the async is fixed we also need to fix handling when an appstore app is installed. 
-        ///       (see the "/__internal_api/databases/{?}/task" handler")
         /// </summary>
         /// <param name="application"></param>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
         internal static void Download(AppStoreApplication application, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
 
-            try {
+            DeployManager.DownloadPackage(application.SourceUrl, (data) => {
 
-                // Download Application package
-                byte[] packageData;
-                HttpStatusCode resultCode = DownloadPackage(application.SourceUrl, out packageData);
-                if (packageData != null) {
-                    // Success
-                    using (MemoryStream packageZip = new MemoryStream(packageData)) {
+                try {
+
+                    using (MemoryStream packageZip = new MemoryStream(data)) {
                         DeployedConfigFile config;
 
                         string imageResourceFolder = System.IO.Path.Combine(Program.ResourceFolder, DeployManager.GetAppImagesFolder());
 
                         // Install package (Unzip)
-                        PackageManager.Unpack(packageZip, application.SourceUrl, DeployManager.GetDeployFolder(application.DatabaseName), imageResourceFolder, out config);
+                        PackageManager.Unpack(packageZip, application.SourceUrl, application.StoreUrl,  DeployManager.GetDeployFolder(application.DatabaseName), imageResourceFolder, out config);
 
-                        // Update server model
+                        // Update server modelF
                         DatabaseApplication deployedApplication = DatabaseApplication.ToApplication(config, application.DatabaseName);
                         deployedApplication.IsDeployed = true;
                         application.Database.Applications.Add(deployedApplication);
@@ -107,25 +101,25 @@ namespace Administrator.Server.Managers {
                         }
                     }
                 }
-                else {
-
-                    string errorMessage = string.Format("Failed to download application.");
-
-                    if (resultCode == System.Net.HttpStatusCode.ServiceUnavailable) {
-                        errorMessage += " " + "Service Unavailable.";
-                    }
+                catch (Exception e) {
 
                     if (errorCallback != null) {
-                        errorCallback(errorMessage);
+                        errorCallback(e.Message);
                     }
                 }
-            }
-            catch (InvalidOperationException e) {
+
+            }, (resultCode, resultBody) => {
+
+                string errorMessage = string.Format("Failed to download application.");
+
+                if (resultCode == (ushort)System.Net.HttpStatusCode.ServiceUnavailable) {
+                    errorMessage += " " + "Service Unavailable.";
+                }
 
                 if (errorCallback != null) {
-                    errorCallback(e.Message);
+                    errorCallback(errorMessage);
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -134,11 +128,11 @@ namespace Administrator.Server.Managers {
         /// <param name="application">AppStore Application</param>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
-        internal static void Delete(DatabaseApplication application, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
+        internal static void Delete(DatabaseApplication application, bool force, Action<DatabaseApplication> completionCallback = null, Action<string> errorCallback = null) {
 
             try {
 
-                if (application.CanBeUninstalled == false) {
+                if (force == false && application.CanBeUninstalled == false) {
                     if (errorCallback != null) {
                         errorCallback("Can not delete locked application");
                     }
@@ -181,19 +175,6 @@ namespace Administrator.Server.Managers {
         }
 
         /// <summary>
-        /// TODO:
-        /// </summary>
-        /// <param name="application"></param>
-        /// <param name="appsRootFolder"></param>
-        /// <param name="imageResourceFolder"></param>
-        /// <param name="response"></param>
-        /// <returns></returns>
-        internal static bool Upgrade(DatabaseApplication application, string appsRootFolder, string imageResourceFolder, out Response response) {
-
-            throw new NotImplementedException("Deploymanager - Upgrade application");
-        }
-
-        /// <summary>
         /// Download package from Url
         /// </summary>
         /// <param name="sourceUrl"></param>
@@ -216,6 +197,35 @@ namespace Administrator.Server.Managers {
             }
 
             return (HttpStatusCode)response.StatusCode;
+        }
+
+        /// <summary>
+        /// Download package from Url
+        /// </summary>
+        /// <param name="sourceUrl"></param>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private static void DownloadPackage(string sourceUrl, Action<byte[]> completionCallback = null, Action<ushort, string> errorCallback = null) {
+
+            HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
+
+            // Get package from host
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/octet-stream" } };
+
+            Http.GET(sourceUrl, headers, null, (Response response, Object userObject) => {
+
+                if (response.IsSuccessStatusCode) {
+
+                    if (completionCallback != null) {
+                        completionCallback(response.BodyBytes);
+                    }
+                }
+                else {
+                    if (errorCallback != null) {
+                        errorCallback(response.StatusCode, response.Body);
+                    }
+                }
+            }, 1000 * 60 * 60, opt);
         }
     }
 }

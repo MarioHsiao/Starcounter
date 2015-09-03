@@ -8,6 +8,7 @@ using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Representations.JSON;
 using Starcounter.XSON;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -70,12 +71,6 @@ namespace Administrator.Server.Model {
             get {
                 return this._ErrorMessage;
             }
-            //set {
-            //    if (this._ErrorMessage == value) return;
-            //    this._ErrorMessage = value;
-            //    this.OnPropertyChanged("ErrorMessage");
-            //    this.OnPropertyChanged("HasErrorMessage");
-            //}
         }
 
         public bool HasErrorMessage {
@@ -84,9 +79,6 @@ namespace Administrator.Server.Model {
                 string.IsNullOrEmpty(this.ErrorMessage.Title) &&
                 string.IsNullOrEmpty(this.ErrorMessage.Message) &&
                 string.IsNullOrEmpty(this.ErrorMessage.HelpLink));
-
-
-                //return this.ErrorMessage != null;
             }
         }
 
@@ -114,40 +106,9 @@ namespace Administrator.Server.Model {
             }
         }
 
-        private bool _WantRunning;
-        public bool WantRunning {
-            get {
-                return this._WantRunning;
-            }
-            set {
-                //if (this._WantRunning == value) return;
-                this._WantRunning = value;
+        #endregion
 
-                // Reset error state
-                this.CouldnotStart = false;
-                this.CouldnotStop = false;
-
-                this.OnPropertyChanged("WantRunning");
-                this.Evaluate();
-            }
-        }
-
-        private bool _WantDeleted;
-        public bool WantDeleted {
-            get {
-                return this._WantDeleted;
-            }
-            set {
-                this._WantDeleted = value;
-
-                // Reset error state
-                this.CouldNotDelete = false;
-
-                this.OnPropertyChanged("WantDeleted");
-                this.Evaluate();
-            }
-        }
-
+        #region Running
         private bool _IsRunning;
         public bool IsRunning {
             get {
@@ -160,6 +121,32 @@ namespace Administrator.Server.Model {
             }
         }
 
+        private bool _StartingError;
+        public bool StartingError {
+            get {
+                return this._StartingError;
+            }
+            set {
+                if (this._StartingError == value) return;
+                this._StartingError = value;
+                this.OnPropertyChanged("StartingError");
+            }
+        }
+
+        private bool _StoppingError;
+        private bool StoppingError {
+            get {
+                return this._StoppingError;
+            }
+            set {
+                if (this._StoppingError == value) return;
+                this._StoppingError = value;
+                this.OnPropertyChanged("StoppingError");
+            }
+        }
+        #endregion
+
+        #region Delete
         private bool _IsDeleted;
         public bool IsDeleted {
             get {
@@ -172,69 +159,17 @@ namespace Administrator.Server.Model {
             }
         }
 
-        private bool _CouldnotStart;
-        public bool CouldnotStart {
+        private bool _DeletingError;
+        public bool DeletingError {
             get {
-                return this._CouldnotStart;
+                return this._DeletingError;
             }
             set {
-                if (this._CouldnotStart == value) return;
-                this._CouldnotStart = value;
-                this.OnPropertyChanged("CouldnotStart");
+                if (this._DeletingError == value) return;
+                this._DeletingError = value;
+                this.OnPropertyChanged("DeletingError");
             }
         }
-
-        private bool _CouldnotStop;
-        public bool CouldnotStop {
-            get {
-                return this._CouldnotStop;
-            }
-            set {
-                if (this._CouldnotStop == value) return;
-                this._CouldnotStop = value;
-                this.OnPropertyChanged("CouldnotStop");
-            }
-        }
-
-        private bool _CouldNotDelete;
-        public bool CouldNotDelete {
-            get {
-                return this._CouldNotDelete;
-            }
-            set {
-                if (this._CouldNotDelete == value) return;
-                this._CouldNotDelete = value;
-                this.OnPropertyChanged("CouldNotDelete");
-            }
-        }
-
-
-        //private bool _WantAppStoreStores;
-        //public bool WantAppStoreStores {
-        //    get {
-        //        return this._WantAppStoreStores;
-        //    }
-        //    set {
-        //        if (this._WantAppStoreStores == value) return;
-        //        this._WantAppStoreStores = value;
-        //        this.OnPropertyChanged("WantAppStoreStores");
-
-        //        this.InvalidateAppStoreStores();  // Async
-        //    }
-        //}
-
-        //private bool _CouldNotGetAppStoreStores;
-        //public bool CouldNotGetAppStoreStores {
-        //    get {
-        //        return this._CouldNotGetAppStoreStores;
-        //    }
-        //    set {
-        //        if (this._CouldNotGetAppStoreStores == value) return;
-        //        this._CouldNotGetAppStoreStores = value;
-        //        this.OnPropertyChanged("CouldNotGetAppStoreStores");
-        //    }
-        //}
-
         #endregion
 
         // TODO: Make thread-safe
@@ -254,10 +189,8 @@ namespace Administrator.Server.Model {
 
             this.PropertyChanged += Database_PropertyChanged;
             this.Applications.CollectionChanged += DatabaseApplications_CollectionChanged;
-            //this.AppStoreApplications.CollectionChanged += AppStoreApplications_CollectionChanged;
             this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
             this.JsonPatchInstance = new JsonPatch();
-
         }
 
         void AppStoreStores_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
@@ -271,20 +204,6 @@ namespace Administrator.Server.Model {
                         store.Changed += AppStoreStore_Changed;
 
                         this.UpdateAppStoreItems(store);
-
-                        //AppStoreManager.GetApplications(this, item, (remoteApplications) => {
-
-                        //    item.Applications.Clear();// TODO: Merge lists.
-
-                        //    foreach (AppStoreApplication remoteApplication in remoteApplications) {
-                        //        item.Applications.Add(remoteApplication);
-                        //    }
-
-                        //}, (errorMessage) => {
-
-                        //    this.OnCommandError("AppStore", errorMessage, null);
-                        //});
-
                     }
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Move:
@@ -313,18 +232,11 @@ namespace Administrator.Server.Model {
 
                 this.UpdateAppStoreApplications(store, remoteApplications);
 
-                //store.Applications.Clear();// TODO: Merge lists.
-
-                //foreach (AppStoreApplication remoteApplication in remoteApplications) {
-                //    store.Applications.Add(remoteApplication);
-                //}
-
             }, (errorMessage) => {
 
                 this.OnCommandError("AppStore", errorMessage, null);
             });
         }
-
 
         void AppStoreStore_Changed(object sender, EventArgs e) {
 
@@ -349,6 +261,7 @@ namespace Administrator.Server.Model {
                         AppStoreApplication appStoreApplication = this.GetAppStoreApplication(item.SourceUrl);
                         if (appStoreApplication != null) {
                             appStoreApplication.DatabaseApplication = item;
+                            appStoreApplication.UpdateUpgradeFlag();
                         }
 
                         item.InvalidateModel();
@@ -367,6 +280,7 @@ namespace Administrator.Server.Model {
                         AppStoreApplication appStoreApplication = this.GetAppStoreApplication(item.SourceUrl);
                         if (appStoreApplication != null) {
                             appStoreApplication.DatabaseApplication = null;
+                            appStoreApplication.UpdateUpgradeFlag();
                         }
                     }
                     break;
@@ -437,11 +351,11 @@ namespace Administrator.Server.Model {
         /// </summary>
         private void OnStarted() {
 
-            // If the database was started be an app request we then also need to avaluate the app.
+            // If the database was started by an app request we then also need to avaluate the app.
             // Database is not started and the app want to start, it first starts the database then the app
-            foreach (DatabaseApplication application in this.Applications) {
-                application.Evaluate();
-            }
+            //foreach (DatabaseApplication application in this.Applications) {
+            //    application.Evaluate();
+            //}
 
             // Playlist
             // TODO: Only auto-start apps if the database was started with the the administrator
@@ -454,7 +368,14 @@ namespace Administrator.Server.Model {
             // Playlist
             foreach (DatabaseApplication application in this.Applications) {
                 if (application.IsInstalled) {
-                    application.WantRunning = true;
+
+                    application.StartApplication((startedApplication) => {
+                        // TODO: Handle success
+                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
+                        // TODO: Handle error
+                    });
+
+                    //application.WantRunning = true;
                 }
             }
         }
@@ -467,6 +388,8 @@ namespace Administrator.Server.Model {
             // DatabaseApplication has been stopped
             this.InvalidateApplications();
         }
+
+        #region Get
 
         /// <summary>
         /// Get Application
@@ -483,6 +406,43 @@ namespace Administrator.Server.Model {
             }
             return null;
         }
+
+
+        /// <summary>
+        /// Get Applications by namespace an channel
+        /// </summary>
+        /// <param name="nameSpace"></param>
+        /// <param name="channel"></param>
+        /// <returns></returns>
+        private IList<DatabaseApplication> GetApplications(string nameSpace, string channel) {
+
+            List<DatabaseApplication> result = new List<DatabaseApplication>();
+
+            foreach (DatabaseApplication app in this.Applications) {
+
+                if (app.Namespace == nameSpace && app.Channel == channel) {
+                    result.Add(app);
+                }
+            }
+
+            return result;
+        }
+
+        public DatabaseApplication GetLatestApplication(string nameSpace, string channel) {
+
+            DatabaseApplication latestApp = null;
+
+            IList<DatabaseApplication> apps = this.GetApplications(nameSpace, channel);
+            foreach (var app in apps) {
+
+                if (latestApp == null || app.VersionDate > latestApp.VersionDate) {
+                    latestApp = app;
+                }
+            }
+
+            return latestApp;
+        }
+
 
         /// <summary>
         /// Get Store
@@ -515,7 +475,6 @@ namespace Administrator.Server.Model {
             }
             return null;
         }
-
 
         /// <summary>
         /// Get Application
@@ -568,6 +527,8 @@ namespace Administrator.Server.Model {
             return null;
         }
 
+        #endregion
+
         #region Invalidate Model
 
         /// <summary>
@@ -578,6 +539,7 @@ namespace Administrator.Server.Model {
             this.IsRunning = this.DatabaseRunningState();
 
             this.InvalidateApplications();
+            this.InvalidateAppStoreStores();
         }
 
         /// <summary>
@@ -734,54 +696,117 @@ namespace Administrator.Server.Model {
         /// <summary>
         /// Evaluate database and applications states agains wanted state
         /// </summary>
-        public void Evaluate() {
+        //public void Evaluate() {
 
-            if (this.Status != DatabaseStatus.None) {
-                // Work already in progres, when work is compleated it will call Evaluate()
-                return;
-            }
+        //    //#region Start or Stop
+        //    //if (this.WantRunning != this.IsRunning) {
 
-            if (this.WantRunning) {
+        //    //    if (this.WantRunning && !this.StartingError) {
 
-                if (!this.CouldnotStart && this.IsRunning == false && !this.Status.HasFlag(DatabaseStatus.Starting)) {
-                    this.StartDatabase();
-                }
-            }
-            else {
+        //    //        if (this.Status.HasFlag(DatabaseStatus.Starting)) {
+        //    //            // Busy
+        //    //            return;
+        //    //        }
 
-                if (!this.CouldnotStop && this.IsRunning == true && !this.Status.HasFlag(DatabaseStatus.Stopping)) {
-                    this.StopDatabase();
-                }
-            }
+        //    //        this._StartDatabase((database) => {
 
-            if (this.Status != DatabaseStatus.None) {
-                // Work already in progres, when work is compleated it will call Evaluate()
-                return;
-            }
+        //    //            this.Evaluate();
+        //    //        }, (database, wasCancelled, title, message, helpLink) => {
 
-            if (this.WantDeleted) {
+        //    //            this.Evaluate();
+        //    //        });
+        //    //        return;
+        //    //    }
 
-                if (this.IsRunning || this.Status.HasFlag(DatabaseStatus.Starting)) {
-                    this.WantRunning = false; // Will trigger Eveluate()
-                }
-                else {
+        //    //    if (this.WantRunning == false && !this.StoppingError) {
 
-                    if (this._CouldNotDelete == false && this.IsDeleted == false && !this.Status.HasFlag(DatabaseStatus.Deleting)) {
-                        this.DeleteDatabase(); // Async
-                    }
-                }
-            }
-        }
+        //    //        if (this.Status.HasFlag(DatabaseStatus.Stopping)) {
+        //    //            // Busy
+        //    //            return;
+        //    //        }
+
+        //    //        this._StopDatabase((database) => {
+
+        //    //            this.Evaluate();
+        //    //        }, (database, wasCancelled, title, message, helpLink) => {
+
+        //    //            this.Evaluate();
+        //    //        });
+        //    //        return;
+        //    //    }
+        //    //}
+
+        //    //#endregion
+
+        //    //#region Delete
+        //    //if (this.WantDeleted && !this.IsDeleted) {
+
+        //    //    // If application is busy then try to stop it.
+        //    //    if (this.IsRunning || this.Status != 0) {
+        //    //        this.WantRunning = false; // Will trigger Evaluate()
+        //    //        return;
+        //    //    }
+
+        //    //    if (this.DeletingError == false) {
+
+        //    //        if (this.Status.HasFlag(DatabaseStatus.Deleting)) {
+        //    //            // Busy
+        //    //            return;
+        //    //        }
+
+        //    //        this.DeleteDatabase((database) => {
+
+        //    //            this.Evaluate();
+        //    //        }, (database, wasCancelled, title, message, helpLink) => {
+
+        //    //            this.OnCommandError(title, message, helpLink);
+        //    //            this.Evaluate();
+        //    //        });
+        //    //        return;
+        //    //    }
+        //    //}
+        //    //#endregion
+
+        //}
 
         #region Actions
+
+        #region Start Database
+
+        private ConcurrentStack<Action<Database>> DatabaseStartCallbacks = new ConcurrentStack<Action<Database>>();
+        private ConcurrentStack<Action<Database, bool, string, string, string>> DatabaseStartErrorCallbacks = new ConcurrentStack<Action<Database, bool, string, string, string>>();
 
         /// <summary>
         /// Start database
         /// </summary>
-        /// <param name="database"></param>
-        private void StartDatabase() {
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public void StartDatabase(Action<Database> completionCallback = null, Action<Database, bool, string, string, string> errorCallback = null) {
 
             this.ResetErrorMessage();
+
+            if (completionCallback != null) {
+                this.DatabaseStartCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.DatabaseStartErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(DatabaseStatus.Starting)) {
+                // Busy
+                return;
+            }
+
+            if (this.IsRunning) {
+                // Already running
+                this.DatabaseStartErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DatabaseStartCallbacks);
+                return;
+            }
+
+            this.StartingError = false;
+            this.Status |= DatabaseStatus.Starting;
 
             // Create Command
             StartDatabaseCommand command;
@@ -793,126 +818,316 @@ namespace Administrator.Server.Model {
             command.LogSteps = false;
             command.CodeHostCommandLineAdditions = string.Empty;
 
-            this.RunDatabaseCommand(command);
+            this.ExecuteCommand(command, (database) => {
+
+                this.Status &= ~DatabaseStatus.Starting;
+
+                this.DatabaseStartErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DatabaseStartCallbacks);
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+                this.Status &= ~DatabaseStatus.Starting;
+                this.StartingError = true;
+
+                this.OnCommandError(title, message, helpLink);
+
+                this.DatabaseStartCallbacks.Clear(); 
+                this.InvokeActionErrorListeners(this.DatabaseStartErrorCallbacks, wasCancelled, title, message, helpLink);
+            });
         }
 
+        #endregion
+
+        #region Stop Database
+
+        private ConcurrentStack<Action<Database>> DatabaseStopCallbacks = new ConcurrentStack<Action<Database>>();
+        private ConcurrentStack<Action<Database, bool, string, string, string>> DatabaseStopErrorCallbacks = new ConcurrentStack<Action<Database, bool, string, string, string>>();
+
         /// <summary>
-        /// Stop database
+        /// Stop Database
         /// </summary>
-        /// <param name="database"></param>
-        private void StopDatabase() {
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public void StopDatabase(Action<Database> completionCallback = null, Action<Database, bool, string, string, string> errorCallback = null) {
 
             this.ResetErrorMessage();
 
-            // Create Command
+            if (completionCallback != null) {
+                this.DatabaseStopCallbacks.Push(completionCallback);
+            }
+
+            if (errorCallback != null) {
+                this.DatabaseStopErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(DatabaseStatus.Stopping)) {
+                // Busy
+                return;
+            }
+
+            if (this.IsRunning == false) {
+                // Already stopped
+                this.DatabaseStopErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DatabaseStopCallbacks);
+                return;
+            }
+
+            this.StoppingError = false;
+            this.Status |= DatabaseStatus.Stopping;
+
             StopDatabaseCommand command;
             command = new StopDatabaseCommand(RootHandler.Host.Engine, this.ID, true);
             command.EnableWaiting = false;
 
-            this.RunDatabaseCommand(command);
+            this.ExecuteCommand(command, (database) => {
+
+                this.Status &= ~DatabaseStatus.Stopping;
+                this.DatabaseStopErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DatabaseStopCallbacks);
+
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+                this.Status &= ~DatabaseStatus.Stopping;
+                this.StoppingError = true;
+                this.OnCommandError(title, message, helpLink);
+                this.DatabaseStopCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.DatabaseStopErrorCallbacks, wasCancelled, title, message, helpLink);
+            });
         }
 
+        #endregion
+
+        #region Delete Database
+
+        private ConcurrentStack<Action<Database>> DatabaseDeleteCallbacks = new ConcurrentStack<Action<Database>>();
+        private ConcurrentStack<Action<Database, bool, string, string, string>> DatabaseDeleteErrorCallbacks = new ConcurrentStack<Action<Database, bool, string, string, string>>();
+
         /// <summary>
-        /// Delete database
+        /// Delete Database
         /// </summary>
-        /// <param name="database"></param>
-        private void DeleteDatabase() {
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public void DeleteDatabase(Action<Database> completionCallback = null, Action<Database, bool, string, string, string> errorCallback = null) {
 
             this.ResetErrorMessage();
 
-            // Create Command
+            if (completionCallback != null) {
+                this.DatabaseDeleteCallbacks.Push(completionCallback);
+            }
+            if (errorCallback != null) {
+                this.DatabaseDeleteErrorCallbacks.Push(errorCallback);
+            }
+
+            if (this.Status.HasFlag(DatabaseStatus.Deleting)) {
+                // Busy
+                return;
+            }
+
+            this.Status |= DatabaseStatus.Deleting; // Add status
+
+            if (this.IsRunning == true) {
+                // The database needs to be stopped before it can be deleted
+
+                this.StopDatabase((database) => {
+
+                    // Database Stopped
+                    this.ExecuteDeleteDatabaseCommand();
+
+                }, (database, wasCancelled, title, message, helpLink) => {
+
+                    this.Status &= ~DatabaseStatus.Deleting;    // Remove status
+
+                    // Failed to stop database, we can not delete database.
+                    this.DatabaseDeleteCallbacks.Clear();
+                    this.InvokeActionErrorListeners(this.DatabaseDeleteErrorCallbacks, wasCancelled, title, message, helpLink);
+                });
+            }
+            else {
+                this.ExecuteDeleteDatabaseCommand();
+            }
+        }
+
+        /// <summary>
+        /// Execute delete database command
+        /// </summary>
+        private void ExecuteDeleteDatabaseCommand() {
+
+            this.DeletingError = false;
+
             DeleteDatabaseCommand command;
             command = new DeleteDatabaseCommand(RootHandler.Host.Engine, this.ID, true);
             command.EnableWaiting = false;
 
-            this.RunDatabaseCommand(command);
+            this.ExecuteCommand(command, (database) => {
+
+                this.Status &= ~DatabaseStatus.Deleting;
+
+                this.DatabaseDeleteErrorCallbacks.Clear();
+                this.InvokeActionListeners(this.DatabaseDeleteCallbacks);
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+                this.Status &= ~DatabaseStatus.Deleting;
+                this.DeletingError = true;
+                this.OnCommandError(title, message, helpLink);
+
+                this.DatabaseDeleteCallbacks.Clear();
+                this.InvokeActionErrorListeners(this.DatabaseDeleteErrorCallbacks, wasCancelled, title, message, helpLink);
+            });
+        }
+
+        #endregion
+
+        /// <summary>
+        /// Invoke action listeners
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionListeners(ConcurrentStack<Action<Database>> listeners) {
+
+            while (listeners.Count > 0) {
+
+                Action<Database> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback(this);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
         }
 
         /// <summary>
-        /// Run Database Command (Start/Stop)
+        /// Invoke action error listeners
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionErrorListeners(ConcurrentStack<Action<Database, bool, string, string, string>> listeners, bool wasCancelled, string title, string message, string helpLink) {
+
+            while (listeners.Count > 0) {
+
+                Action<Database, bool, string, string, string> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback(this, wasCancelled, title, message, helpLink);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execut Command (Start/Stop)
         /// </summary>
         /// <param name="command"></param>
         /// <param name="database"></param>
-        private void RunDatabaseCommand(ServerCommand command) {
+        private void ExecuteCommand(ServerCommand command, Action<Database> completionCallback = null, Action<Database, bool, string, string, string> errorCallback = null) {
 
             var runtime = RootHandler.Host.Runtime;
-
-            if (command is StartDatabaseCommand) {
-                this.Status |= DatabaseStatus.Starting;  // Add Status
-            }
-            else if (command is StopDatabaseCommand) {
-                this.Status |= DatabaseStatus.Stopping;  // Add Status
-            }
-            else if (command is DeleteDatabaseCommand) {
-                this.Status |= DatabaseStatus.Deleting;  // Add Status
-            }
 
             // Execute Command
             var c = runtime.Execute(command, (commandId) => {
 
-                if (command is DeleteDatabaseCommand) {
-                    return this.WantDeleted == this.IsDeleted;  // return true to cancel
+                if (command is StartDatabaseCommand &&
+                    (this.Status.HasFlag(DatabaseStatus.Stopping) ||
+                    this.Status.HasFlag(DatabaseStatus.Deleting))) {
+
+                    return true;    // return true to cancel
+                }
+                else if (command is StopDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+
+                    return true;    // return true to cancel
+                }
+                else if (command is DeleteDatabaseCommand && this.Status.HasFlag(DatabaseStatus.Starting)) {
+
+                    return true;    // return true to cancel
+                }
+                else if (command is CreateDatabaseCommand && this.Status != DatabaseStatus.Creating) {
+
+                    return true;    // return true to cancel
                 }
 
-                return this.WantRunning == this.IsRunning;  // return true to cancel
+                return false;   // return true to cancel
+
+                //if (command is DeleteDatabaseCommand) {
+                //    return this.WantDeleted == this.IsDeleted;  // return true to cancel
+                //}
+
+                //return this.WantRunning == this.IsRunning;  // return true to cancel
+
             }, (commandId) => {
 
                 CommandInfo commandInfo = runtime.GetCommand(commandId);
-
-                if (command is StartDatabaseCommand) {
-                    this.CouldnotStart = commandInfo.HasError;
-                    this.Status &= ~DatabaseStatus.Starting; // Remove status
-                }
-                else if (command is StopDatabaseCommand) {
-                    this.CouldnotStop = commandInfo.HasError;
-                    this.Status &= ~DatabaseStatus.Stopping; // Remove status
-                }
-                else if (command is DeleteDatabaseCommand) {
-                    this.CouldNotDelete = commandInfo.HasError;
-                    this.Status &= ~DatabaseStatus.Deleting; // Remove status
-                    this.IsDeleted = !commandInfo.HasError;
-                }
 
                 this.IsRunning = this.DatabaseRunningState();
 
                 if (this.IsRunning) {
                     this.RunPlayList();
                 }
-
                 this.StatusText = string.Empty;
 
+
                 if (commandInfo.HasError) {
+
+                    //Check if command was Canceled
+                    bool wasCancelled = false;
+                    if (commandInfo.HasProgress) {
+                        foreach (var p in commandInfo.Progress) {
+                            if (p.WasCancelled == true) {
+                                wasCancelled = true;
+                                break;
+                            }
+                        }
+                    }
+
                     ErrorInfo single = commandInfo.Errors.PickSingleServerError();
                     var msg = single.ToErrorMessage();
-                    this.OnCommandError(command.Description, msg.Brief, msg.Helplink);
+
+                    if (errorCallback != null) {
+                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                    }
                 }
                 else {
-                    //                    this.StatusText = string.Empty;
-                    this.Evaluate();
+
+                    if (completionCallback != null) {
+                        completionCallback(this);
+                    }
                 }
             });
 
             this.StatusText = c.Description;
 
+
             if (c.IsCompleted) {
 
-                if (command is StartExecutableCommand) {
-                    this.CouldnotStart = c.HasError;
-                    this.Status &= ~DatabaseStatus.Starting; // Remove status
-                }
-                else if (command is StopExecutableCommand) {
-                    this.CouldnotStop = c.HasError;
-                    this.Status &= ~DatabaseStatus.Stopping; // Remove status
-                }
-                else if (command is DeleteDatabaseCommand) {
-                    this.CouldNotDelete = c.HasError;
-                    this.Status &= ~DatabaseStatus.Deleting; // Remove status
-                }
+                CommandInfo commandInfo = runtime.GetCommand(c.CorrelatedCommandId);
+
+                this.IsRunning = this.DatabaseRunningState();
+                this.StatusText = string.Empty;
+
 
                 if (c.HasError) {
+
+                    //Check if command was Canceled
+                    bool wasCancelled = false;
+                    if (commandInfo.HasProgress) {
+                        foreach (var p in commandInfo.Progress) {
+                            if (p.WasCancelled == true) {
+                                wasCancelled = true;
+                                break;
+                            }
+                        }
+                    }
+
                     ErrorInfo single = c.Errors.PickSingleServerError();
                     var msg = single.ToErrorMessage();
-                    this.OnCommandError(command.Description, msg.Brief, msg.Helplink);
+                    if (errorCallback != null) {
+                        errorCallback(this, wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                    }
+                }
+                else {
+                    if (completionCallback != null) {
+                        completionCallback(this);
+                    }
                 }
             }
         }
@@ -924,7 +1139,6 @@ namespace Administrator.Server.Model {
         private void OnCommandError(string title, string message, string helpLink) {
 
             // TODO: Append errors to notification list
-            //this.StatusText = message;
 
             this.ErrorMessage.Title = title;
             this.ErrorMessage.Message = message;
@@ -932,14 +1146,12 @@ namespace Administrator.Server.Model {
 
             this.OnPropertyChanged("ErrorMessage");
             this.OnPropertyChanged("HasErrorMessage");
-
-            //            this.ErrorMessage = errorMessage;
         }
 
         #endregion
 
         private void ResetErrorMessage() {
-            //            this.ErrorMessage = null;
+
             this.ErrorMessage.Title = string.Empty;
             this.ErrorMessage.Message = string.Empty;
             this.ErrorMessage.HelpLink = string.Empty;

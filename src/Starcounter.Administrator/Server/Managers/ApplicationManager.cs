@@ -303,7 +303,7 @@ namespace Administrator.Server.Managers {
                         }
 
                         freshApplication.IsInstalled = true;
-                        freshApplication.WantInstalled = true;
+                        //freshApplication.WantInstalled = true;
                         break;
                     }
                 }
@@ -320,7 +320,7 @@ namespace Administrator.Server.Managers {
 
                 DatabaseApplication freshApplication = DatabaseApplication.ToApplication(item, databaseName);
                 freshApplication.IsInstalled = true;
-                freshApplication.WantInstalled = true;
+                //freshApplication.WantInstalled = true;
                 freshApplications.Add(freshApplication);
             }
 
@@ -338,19 +338,19 @@ namespace Administrator.Server.Managers {
 
                 DatabaseApplication freshApplication;
                 foreach (AppInfo appInfo in databaseInfo.Engine.HostedApps) {
-                    bool bNew = false;
+                    //bool bNew = false;
                     string runningApplicationID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + Path.GetFullPath(appInfo.FilePath));
                     freshApplication = GetApplication(runningApplicationID, freshApplications);
                     if (freshApplication == null) {
-                        bNew = true;
+                        //bNew = true;
                         freshApplication = DatabaseApplication.ToApplication(appInfo, databaseName);
                     }
 
                     freshApplications.Add(freshApplication);
                     freshApplication.IsRunning = true;
-                    if (bNew) {
-                        freshApplication.WantRunning = true;
-                    }
+                    //if (bNew) {
+                    //    freshApplication.WantRunning = true;
+                    //}
                 }
             }
 

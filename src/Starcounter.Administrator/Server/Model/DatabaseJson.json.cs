@@ -12,7 +12,18 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Start action) {
 
-            this.Data.WantRunning = true;
+            this.Data.StartDatabase((database) => {
+
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+            });
+
+            //this.Data.StartDatabase((database) => {
+
+            //}, (database, wasCancelled, title, message, helpLink) => {
+
+            //});
+            //this.Data.WantRunning = true;
         }
 
         /// <summary>
@@ -21,7 +32,24 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Stop action) {
 
-            this.Data.WantRunning = false;
+            this.Data.StopDatabase((database) => {
+
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+            });
+
+            //this.Data.StartDatabase((database) => {
+
+            //}, (database, wasCancelled, title, message, helpLink) => {
+
+            //});
+
+            //this.Data.StopDatabase((database) => {
+
+            //}, (database, wasCancelled, title, message, helpLink) => {
+
+            //});
+            //this.Data.WantRunning = false;
         }
 
         /// <summary>
@@ -30,7 +58,14 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Delete action) {
 
-            this.Data.WantDeleted = true;
+            //this.Data.WantDeleted = true;
+
+            this.Data.DeleteDatabase((database) => {
+
+            }, (database, wasCancelled, title, message, helpLink) => {
+
+            });
+
         }
 
         /// <summary>

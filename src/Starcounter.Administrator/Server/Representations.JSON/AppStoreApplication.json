@@ -3,6 +3,8 @@
 	"ID": "",	// Local install ID is App is Installed otherwice a Temp ID
 	"SourceID" :"",
 	"SourceUrl" : "",
+	"StoreID" :"",
+	"StoreUrl" : "",
 	"Namespace": "", 
 	"Channel" : "",
 	"Version" : "",
