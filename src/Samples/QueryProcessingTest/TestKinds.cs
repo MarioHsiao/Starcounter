@@ -63,6 +63,12 @@ namespace QueryProcessingTest {
         public CarModel Model;
     }
 
+    public class SwedishCar : Car {
+        [Type]
+        [SynonymousTo("Model")]
+        public Saab SwedishModel;
+    }
+
     [Database]
     public class CarModel {
         public string Brand; // I.e. Porsche
@@ -70,5 +76,8 @@ namespace QueryProcessingTest {
         public string ModelName; // I.e. 911
         [Inherits]
         public CarModel BasedOn;
+    }
+
+    public class Saab : CarModel {
     }
 }
