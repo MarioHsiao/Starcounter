@@ -63,7 +63,7 @@ namespace Starcounter.Internal.Weaver {
                     ScMessageSource.WriteError(
                         MessageLocation.Unknown,
                         Error.SCERRINVALIDTYPEREFERENCE,
-                        string.Format("Attribute {0}.{1} is marked a type; {2}.{3} is too.",
+                        string.Format("Attribute {0}.{1} is marked a type; {2}.{3} is too. Specialize it using [SynonymousTo(\"{3}\")].",
                         attribute.DeclaringClass.Name,
                         attribute.Name,
                         other.DeclaringClass.Name,
