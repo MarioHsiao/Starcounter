@@ -19,17 +19,6 @@
 
   <!-- Gateway system internal port -->
   <InternalSystemPort>8181</InternalSystemPort>
-
-  <UriAliases>
-  
-    <!-- Administrator root alias -->
-	<UriAlias>
-		<HttpMethod>GET</HttpMethod>
-		<FromUri>/</FromUri>
-		<ToUri>/index.html</ToUri>
-		<Port>8181</Port>
-	</UriAlias>
-  </UriAliases>
   
   <!--
   

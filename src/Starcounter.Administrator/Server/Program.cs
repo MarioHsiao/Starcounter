@@ -113,10 +113,10 @@ namespace Starcounter.Administrator.Server {
         static void RegisterHandlers() {
 
             // Redirecting root to index.html.
-            /*Handle.GET("/", () => {
+            Handle.GET("/", () => {
                 // Returns this response to original request.
                 return Self.GET("/index.html");
-            });*/
+            });
 
             #region Debug/Test
 
