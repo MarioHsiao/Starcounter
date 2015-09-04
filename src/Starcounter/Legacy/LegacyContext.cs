@@ -8,7 +8,8 @@ namespace Starcounter.Legacy {
 
     public sealed class LegacyContext {
         static object _sync = new object();
-        public static Dictionary<Application, LegacyContext> contexts = new Dictionary<Application, LegacyContext>();
+        static Dictionary<Application, LegacyContext> contexts = new Dictionary<Application, LegacyContext>();
+        
         public string[] ExistingClasses { get; private set; }
         public string[] NewClasses { get; private set; }
 
