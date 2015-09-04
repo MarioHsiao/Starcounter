@@ -709,22 +709,22 @@ namespace Administrator.Server.Model {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="applicationJson"></param>
-        public DatabaseApplicationJson ToDatabaseApplication() {
+        //public DatabaseApplicationJson ToDatabaseApplication() {
 
-            DatabaseApplicationJson applicationJson = new DatabaseApplicationJson();
-            applicationJson.ID = this.ID;
-            applicationJson.IsDeployed = this.IsDeployed;
-            applicationJson.DisplayName = this.DisplayName;
-            applicationJson.Description = this.Description;
-            applicationJson.Company = this.Company;
-            applicationJson.Version = this.Version;
-            applicationJson.VersionDate = this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-            applicationJson.DatabaseName = this.DatabaseName;
-            applicationJson.ImageUri = string.IsNullOrEmpty(this.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), this.ImageUri); // Use default image?
-            applicationJson.CanBeUninstalled = this.CanBeUninstalled;
+        //    DatabaseApplicationJson applicationJson = new DatabaseApplicationJson();
+        //    applicationJson.ID = this.ID;
+        //    applicationJson.IsDeployed = this.IsDeployed;
+        //    applicationJson.DisplayName = this.DisplayName;
+        //    applicationJson.Description = this.Description;
+        //    applicationJson.Company = this.Company;
+        //    applicationJson.Version = this.Version;
+        //    applicationJson.VersionDate = this.VersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
+        //    applicationJson.DatabaseName = this.DatabaseName;
+        //    applicationJson.ImageUri = string.IsNullOrEmpty(this.ImageUri) ? string.Empty : string.Format("{0}/{1}", DeployManager.GetAppImagesFolder(), this.ImageUri); // Use default image?
+        //    applicationJson.CanBeUninstalled = this.CanBeUninstalled;
 
-            return applicationJson;
-        }
+        //    return applicationJson;
+        //}
 
         #region INotifyPropertyChanged Members
 

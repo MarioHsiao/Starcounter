@@ -22,7 +22,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     }
 
                     string msg;
-                    IList<AppStoreStore> stores = AppStoreManager.GetStores(database, out msg);
+                    IList<AppStoreStore> stores = AppStoreManager.GetStores(out msg);
                     if (stores == null) {
                         ErrorResponse errorResponse = new ErrorResponse();
                         errorResponse.Text = msg;
@@ -58,7 +58,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 // Find store
                 string msg;
-                IList<AppStoreStore> stores = AppStoreManager.GetStores(database, out msg);
+                IList<AppStoreStore> stores = AppStoreManager.GetStores(out msg);
                 if (stores == null) {
 
                     ErrorResponse errorResponse = new ErrorResponse();
@@ -94,7 +94,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 // Find store
                 string msg;
-                IList<AppStoreStore> stores = AppStoreManager.GetStores(database, out msg);
+                IList<AppStoreStore> stores = AppStoreManager.GetStores(out msg);
                 if (stores == null) {
 
                     ErrorResponse errorResponse = new ErrorResponse();
@@ -107,7 +107,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     if (store.ID == storeId) {
 
                         // Get applications
-                        IList<AppStoreApplication> applications = AppStoreManager.GetApplications(database, store, out msg);
+                        IList<AppStoreApplication> applications = AppStoreManager.GetApplications(store, out msg);
                         if (applications == null) {
 
                             ErrorResponse errorResponse = new ErrorResponse();
@@ -121,7 +121,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                         foreach (AppStoreApplication appStoreApplication in applications) {
 
                             Representations.JSON.AppStoreApplication app = new Representations.JSON.AppStoreApplication();
-                            
+
                             app.ID = appStoreApplication.ID;
                             app.SourceID = appStoreApplication.SourceID;
                             app.SourceUrl = appStoreApplication.SourceUrl;

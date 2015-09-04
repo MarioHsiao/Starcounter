@@ -245,6 +245,7 @@ namespace Administrator.Server.Managers {
                 return 200;
             });
 
+            // TODO: Do not use this API (not fully implemented)
             Handle.POST("/__internal_api/databases/{?}/task", (string databaseName, Request request) => {
 
                 try {
@@ -264,62 +265,7 @@ namespace Administrator.Server.Managers {
                             return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                         }
 
-                        AppStoreApplication appStoreApplication = null;
-
-                        // Get the application
-                        foreach (AppStoreStore store in database.AppStoreStores) {
-
-                            foreach (AppStoreApplication item in store.Applications) {
-
-                                if (item.ID == task.ID) {
-                                    appStoreApplication = item;
-                                    break;
-                                }
-                            }
-
-                            if (appStoreApplication != null) {
-                                break;
-                            }
-                        }
-
-                        if (appStoreApplication != null) {
-
-                            appStoreApplication.DeployApplication((deployedApplication) => {
-                                // Success
-                                // TODO: this will not work when we fix the async download mode
-
-                                deployedApplication.InstallApplication((installedApplication) => {
-                                    // TODO: Handle success
-                                    installedApplication.StartApplication((startedApplication) => {
-                                        // TODO: Handle success
-                                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
-                                        // TODO: Handle error
-                                    });
-                                }, (installedApplication, wasCancelled, title, message, helpLink) => {
-                                    // TODO: Handle error
-                                });
-
-                                //appStoreApplication.DatabaseApplication.WantInstalled = true;
-                                //appStoreApplication.DatabaseApplication.WantRunning = true;
-
-                            }, (application, wasCanceled, title, message, helpLink) => {
-                                // Error
-
-                            });
-
-                            //appStoreApplication.WantDeployed = true;    // Download
-
-
-
-                        }
-                        else {
-                            // TODO: Error
-                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
-                            errorResponse.Text = "Application not found";
-                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
-                        }
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created };
-
+                        return Install_Task(database, task);
                     }
                     else if (string.Equals("Uninstall", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
 
@@ -338,7 +284,7 @@ namespace Administrator.Server.Managers {
                         }
 
                         // TODO: Handle async task and errors
-                        appStoreApplication.DatabaseApplication.DeleteApplication(false,(application) => {
+                        appStoreApplication.DatabaseApplication.DeleteApplication(false, (application) => {
 
                         }, (application, wasCancelled, title, message, helpLink) => {
 
@@ -375,6 +321,80 @@ namespace Administrator.Server.Managers {
                     return RestUtils.CreateErrorResponse(e);
                 }
             });
+        }
+
+        /// <summary>
+        /// TODO: Installation Task
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="task"></param>
+        /// <returns></returns>
+        static Response Install_Task(Database database, Representations.JSON.ApplicationTask task) {
+
+            AppStoreApplication appStoreApplication = null;
+
+//            AppStoreManager.GetApplications( database
+
+            database.InvalidateAppStoreStores(() => {
+                // Success
+            }, (title, message, helpLink) => { 
+                // Error
+            });
+
+
+            // TODO: Invalidate appstore list
+
+            // Get the application
+            foreach (AppStoreStore store in database.AppStoreStores) {
+
+                foreach (AppStoreApplication item in store.Applications) {
+
+                    if (item.ID == task.ID) {
+                        appStoreApplication = item;
+                        break;
+                    }
+                }
+
+                if (appStoreApplication != null) {
+                    break;
+                }
+            }
+
+            if (appStoreApplication == null) {
+
+                Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                errorResponse.Text = "Application not found";
+                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+            }
+
+
+
+            appStoreApplication.DeployApplication((deployedApplication) => {
+                // Success
+                // TODO: this will not work when we fix the async download mode
+
+                deployedApplication.InstallApplication((installedApplication) => {
+                    // TODO: Handle success
+                    installedApplication.StartApplication((startedApplication) => {
+                        // TODO: Handle success
+                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
+                        // TODO: Handle error
+                    });
+                }, (installedApplication, wasCancelled, title, message, helpLink) => {
+                    // TODO: Handle error
+                });
+
+                //appStoreApplication.DatabaseApplication.WantInstalled = true;
+                //appStoreApplication.DatabaseApplication.WantRunning = true;
+
+            }, (application, wasCanceled, title, message, helpLink) => {
+                // Error
+
+            });
+
+
+            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created };
+
         }
 
         /// <summary>
