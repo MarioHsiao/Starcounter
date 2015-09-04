@@ -17,6 +17,7 @@ using Starcounter.Metadata;
 using Starcounter.SqlProcessor;
 using System.Collections.Generic;
 using StarcounterInternal.Hosting;
+using Starcounter.Legacy;
 
 namespace Starcounter.Hosting {
 
@@ -156,6 +157,7 @@ namespace Starcounter.Hosting {
 
             if (application != null) {
                 Application.Index(application_);
+                LegacyContext.Enter(application, typeDefinitions, unregisteredTypeDefinitions);
             }
 
             try {
@@ -449,7 +451,11 @@ namespace Starcounter.Hosting {
                 }
 
                 throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
+
+            } finally {
+                LegacyContext.Exit(application);
             }
+
             OnEntryPointExecuted();
         }
 
