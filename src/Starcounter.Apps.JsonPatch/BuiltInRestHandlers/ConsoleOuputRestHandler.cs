@@ -466,6 +466,7 @@ namespace Starcounter.Internal {
         private string GetAppName() {
 
             try {
+                if (Application.Current == null) return null;
                 return Application.Current.Name;
             }
             catch (Exception) {
