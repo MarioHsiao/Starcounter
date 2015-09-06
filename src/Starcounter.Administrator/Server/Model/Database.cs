@@ -200,6 +200,8 @@ namespace Administrator.Server.Model {
 
                     foreach (AppStoreStore store in e.NewItems) {
 
+                        store.Database = this;
+
                         store.Changed -= AppStoreStore_Changed;
                         store.Changed += AppStoreStore_Changed;
 
@@ -228,7 +230,7 @@ namespace Administrator.Server.Model {
 
         private void UpdateAppStoreItems(AppStoreStore store) {
 
-            AppStoreManager.GetApplications(this, store, (remoteApplications) => {
+            AppStoreManager.GetApplications(store, (remoteApplications) => {
 
                 this.UpdateAppStoreApplications(store, remoteApplications);
 
@@ -363,6 +365,9 @@ namespace Administrator.Server.Model {
             //this.RunPlayList();
         }
 
+        /// <summary>
+        /// Start installed applications
+        /// </summary>
         private void RunPlayList() {
 
             // Playlist
@@ -374,8 +379,6 @@ namespace Administrator.Server.Model {
                     }, (startedApplication, wasCancelled, title, message, helpLink) => {
                         // TODO: Handle error
                     });
-
-                    //application.WantRunning = true;
                 }
             }
         }
@@ -385,7 +388,6 @@ namespace Administrator.Server.Model {
         /// </summary>
         private void OnStopped() {
 
-            // DatabaseApplication has been stopped
             this.InvalidateApplications();
         }
 
@@ -595,12 +597,49 @@ namespace Administrator.Server.Model {
 
             this.ResetErrorMessage();
 
-            AppStoreManager.GetStores(this, (stores) => {
+            AppStoreManager.GetStores((freshStores) => {
 
-                this.UpdateAppStoreList(stores);
+                this.UpdateAppStoreList(freshStores);
             }, (errorMessage) => {
 
-                this.OnCommandError("AppStore", errorMessage, null);
+                this.OnCommandError("Retriving AppStore stores", errorMessage, null);
+            });
+        }
+
+        public void InvalidateAppStoreStores(Action completionCallback = null, Action<string, string, string> errorCallback = null) {
+
+            AppStoreManager.GetStores((freshStores) => {
+
+                this.UpdateAppStoreList(freshStores);
+                int counter = freshStores.Count;
+                foreach (AppStoreStore store in freshStores) {
+
+                    AppStoreManager.GetApplications(store, (remoteApplications) => {
+
+                        this.UpdateAppStoreApplications(store, remoteApplications);
+
+                        counter--;
+
+                        if (counter == 0) {
+                            if (completionCallback != null) {
+                                completionCallback();
+                            }
+                        }
+                    }, (errorMessage) => {
+
+                        counter = -1;    // Only show one error message
+
+                        this.OnCommandError("Retriving AppStore stores", errorMessage, null);
+
+                        if (errorCallback != null) {
+                            errorCallback("Retriving AppStore stores", errorMessage, null);
+                        }
+                    });
+                }
+
+            }, (errorMessage) => {
+
+                this.OnCommandError("Retriving AppStore stores", errorMessage, null);
             });
         }
 
@@ -652,8 +691,6 @@ namespace Administrator.Server.Model {
         private void UpdateAppStoreApplications(AppStoreStore store, IList<AppStoreApplication> freshAppStoreApplications) {
 
             // Add new stores
-            //IList<AppStoreApplication> newList = new List<AppStoreApplication>();
-
             foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
 
                 AppStoreApplication app = this.GetAppStoreApplication(store, freshApp.ID);
@@ -662,7 +699,7 @@ namespace Administrator.Server.Model {
                     store.Applications.Add(freshApp);
                 }
                 else {
-                    // TODO: update app
+                    // TODO: update app properties with freshApp properties
                 }
             }
 
@@ -690,84 +727,7 @@ namespace Administrator.Server.Model {
             }
         }
 
-
         #endregion
-
-        /// <summary>
-        /// Evaluate database and applications states agains wanted state
-        /// </summary>
-        //public void Evaluate() {
-
-        //    //#region Start or Stop
-        //    //if (this.WantRunning != this.IsRunning) {
-
-        //    //    if (this.WantRunning && !this.StartingError) {
-
-        //    //        if (this.Status.HasFlag(DatabaseStatus.Starting)) {
-        //    //            // Busy
-        //    //            return;
-        //    //        }
-
-        //    //        this._StartDatabase((database) => {
-
-        //    //            this.Evaluate();
-        //    //        }, (database, wasCancelled, title, message, helpLink) => {
-
-        //    //            this.Evaluate();
-        //    //        });
-        //    //        return;
-        //    //    }
-
-        //    //    if (this.WantRunning == false && !this.StoppingError) {
-
-        //    //        if (this.Status.HasFlag(DatabaseStatus.Stopping)) {
-        //    //            // Busy
-        //    //            return;
-        //    //        }
-
-        //    //        this._StopDatabase((database) => {
-
-        //    //            this.Evaluate();
-        //    //        }, (database, wasCancelled, title, message, helpLink) => {
-
-        //    //            this.Evaluate();
-        //    //        });
-        //    //        return;
-        //    //    }
-        //    //}
-
-        //    //#endregion
-
-        //    //#region Delete
-        //    //if (this.WantDeleted && !this.IsDeleted) {
-
-        //    //    // If application is busy then try to stop it.
-        //    //    if (this.IsRunning || this.Status != 0) {
-        //    //        this.WantRunning = false; // Will trigger Evaluate()
-        //    //        return;
-        //    //    }
-
-        //    //    if (this.DeletingError == false) {
-
-        //    //        if (this.Status.HasFlag(DatabaseStatus.Deleting)) {
-        //    //            // Busy
-        //    //            return;
-        //    //        }
-
-        //    //        this.DeleteDatabase((database) => {
-
-        //    //            this.Evaluate();
-        //    //        }, (database, wasCancelled, title, message, helpLink) => {
-
-        //    //            this.OnCommandError(title, message, helpLink);
-        //    //            this.Evaluate();
-        //    //        });
-        //    //        return;
-        //    //    }
-        //    //}
-        //    //#endregion
-
-        //}
 
         #region Actions
 
@@ -831,7 +791,7 @@ namespace Administrator.Server.Model {
 
                 this.OnCommandError(title, message, helpLink);
 
-                this.DatabaseStartCallbacks.Clear(); 
+                this.DatabaseStartCallbacks.Clear();
                 this.InvokeActionErrorListeners(this.DatabaseStartErrorCallbacks, wasCancelled, title, message, helpLink);
             });
         }

@@ -30,10 +30,12 @@ namespace Administrator.Server.Managers {
 #endif
 
         /// <summary>
-        /// Get applications from an appstore
+        /// Get applications from appstore
         /// </summary>
-        /// <param name="databaseName"></param>
-        public static void GetApplications(Administrator.Server.Model.Database database, AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
+        /// <param name="store"></param>
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public static void GetApplications(AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
 
             if (string.IsNullOrEmpty(AppStoreManager.appStoreHost)) {
 
@@ -57,26 +59,10 @@ namespace Administrator.Server.Managers {
                         throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
                     }
 
-                    //Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
-                    //remoteAppStoreItems.PopulateFromJson(response.Body);
-
-                    //IList<AppStoreApplication> applications = new List<AppStoreApplication>();
-
-                    //foreach (var remoteStore in remoteAppStoreItems.Stores) {
-
-                    //    string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
-                    //    if (store.ID != id) continue;
-
-                    //    foreach (var remoteApp in remoteStore.Items) {
-
-                    //        AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
-                    //        application.Database = database;
-                    //        applications.Add(application);
-                    //    }
-                    //}
-
                     if (completionCallback != null) {
-                        completionCallback(PopulateApplicationsFromResponse(database, store, response));
+
+                        List<AppStoreApplication> results = (List<AppStoreApplication>)PopulateApplicationsFromResponse(store, response);
+                        completionCallback(results);
                     }
                 }
                 catch (InvalidOperationException e) {
@@ -87,7 +73,13 @@ namespace Administrator.Server.Managers {
             });
         }
 
-        public static IList<AppStoreApplication> GetApplications(Administrator.Server.Model.Database database, AppStoreStore store, out string message) {
+        /// <summary>
+        /// Get applications from appstore
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static IList<AppStoreApplication> GetApplications(AppStoreStore store, out string message) {
 
             IList<AppStoreApplication> applications = new List<AppStoreApplication>();
             // TODO:
@@ -105,11 +97,17 @@ namespace Administrator.Server.Managers {
                 return null;
             }
 
-            return PopulateApplicationsFromResponse(database, store, response);
+            return PopulateApplicationsFromResponse(store, response);
 
         }
 
-        private static IList<AppStoreApplication> PopulateApplicationsFromResponse(Administrator.Server.Model.Database database, AppStoreStore store, Response response) {
+        /// <summary>
+        /// Populate response to an result
+        /// </summary>
+        /// <param name="store"></param>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        private static IList<AppStoreApplication> PopulateApplicationsFromResponse(AppStoreStore store, Response response) {
 
             Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
             remoteAppStoreItems.PopulateFromJson(response.Body);
@@ -124,11 +122,10 @@ namespace Administrator.Server.Managers {
                 string storeUrl = AppStoreManager.appStoreHost + "/appstore/stores/" + remoteStore.ID;    // TODO: Strange url
 
                 foreach (var remoteApp in remoteStore.Items) {
-                    
+
                     AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
                     application.StoreID = store.ID;
                     application.StoreUrl = storeUrl;
-                    application.Database = database;
                     applications.Add(application);
                 }
             }
@@ -137,12 +134,11 @@ namespace Administrator.Server.Managers {
         }
 
         /// <summary>
-        /// 
+        /// Get Stores
         /// </summary>
-        /// <param name="host"></param>
         /// <param name="completionCallback"></param>
         /// <param name="errorCallback"></param>
-        public static void GetStores(Administrator.Server.Model.Database database, Action<IList<AppStoreStore>> completionCallback = null, Action<string> errorCallback = null) {
+        public static void GetStores(Action<IList<AppStoreStore>> completionCallback = null, Action<string> errorCallback = null) {
 
             Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
 
@@ -158,27 +154,18 @@ namespace Administrator.Server.Managers {
                     return;
                 }
 
-                //Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
-                //remoteAppStoreItems.PopulateFromJson(response.Body);
-
-                //IList<AppStoreStore> stores = new List<AppStoreStore>();
-
-                //foreach (var remoteStore in remoteAppStoreItems.Stores) {
-
-                //    AppStoreStore store = new AppStoreStore();
-                //    store.Database = database;
-                //    store.ID = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
-                //    store.DisplayName = remoteStore.DisplayName;
-                //    stores.Add(store);
-                //}
-
                 if (completionCallback != null) {
-                    completionCallback(PopulateStoresFromResponse(database, response));
+                    completionCallback(PopulateStoresFromResponse(response));
                 }
             });
         }
 
-        public static IList<AppStoreStore> GetStores(Administrator.Server.Model.Database database, out string message) {
+        /// <summary>
+        /// Get Stores
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static IList<AppStoreStore> GetStores(out string message) {
             IList<AppStoreStore> stores = new List<AppStoreStore>();
             // TODO:
             message = null;
@@ -194,10 +181,15 @@ namespace Administrator.Server.Managers {
                 return null;
             }
 
-            return PopulateStoresFromResponse(database, response);
+            return PopulateStoresFromResponse(response);
         }
 
-        private static IList<AppStoreStore> PopulateStoresFromResponse(Administrator.Server.Model.Database database, Response response) {
+        /// <summary>
+        /// Populate response to an result
+        /// </summary>
+        /// <param name="response"></param>
+        /// <returns></returns>
+        private static IList<AppStoreStore> PopulateStoresFromResponse(Response response) {
 
             Representations.JSON.RemoteAppStoreItems remoteAppStoreItems = new Representations.JSON.RemoteAppStoreItems();
             remoteAppStoreItems.PopulateFromJson(response.Body);
@@ -207,7 +199,6 @@ namespace Administrator.Server.Managers {
             foreach (var remoteStore in remoteAppStoreItems.Stores) {
 
                 AppStoreStore store = new AppStoreStore();
-                store.Database = database;
                 store.ID = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
                 store.DisplayName = remoteStore.DisplayName;
                 stores.Add(store);
@@ -219,53 +210,9 @@ namespace Administrator.Server.Managers {
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="appStoreHost"></param>
-        /// <param name="items"></param>
-        /// <param name="response"></param>
+        /// <param name="remoteApp"></param>
         /// <returns></returns>
-        private static bool GetAppStoreItems(string appStoreHost, out Representations.JSON.RemoteAppStoreItems items, out Response response) {
-
-
-            items = new Representations.JSON.RemoteAppStoreItems();
-
-            if (string.IsNullOrEmpty(appStoreHost)) {
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.Text = string.Format("Configuration error, Unknown App Store host");
-                response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-                return false;
-            }
-
-            string uri = appStoreHost + "/appstore/apps";
-
-            // Get App Store items (external source)
-            HandlerOptions opt = new HandlerOptions() { CallExternalOnly = true };
-
-            response = Http.GET(uri, null, 30000, opt);
-
-            if (!response.IsSuccessStatusCode) {
-                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0005] GetAppStoreItems(): StatusCode:" + response.StatusCode);
-                if (!string.IsNullOrEmpty(response.Body)) {
-                    StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0005]: resultBody:" + response.Body);
-                }
-
-                ErrorResponse errorResponse = new ErrorResponse();
-                errorResponse.Text = string.Format("At the moment The App Store Service is not avaiable. Try again later.");
-                errorResponse.Helplink = appStoreHost;
-                response = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.ServiceUnavailable, BodyBytes = errorResponse.ToJsonUtf8() };
-                return false;
-            }
-
-            items.PopulateFromJson(response.Body);
-
-            return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="app"></param>
-        /// <param name="applicationJson"></param>
-        public static AppStoreApplication RemoteAppStoreApplicationToAppStoreApplication(Representations.JSON.RemoteAppStoreItem remoteApp) {
+        private static AppStoreApplication RemoteAppStoreApplicationToAppStoreApplication(Representations.JSON.RemoteAppStoreItem remoteApp) {
 
             AppStoreApplication application = new AppStoreApplication();
             application.Namespace = remoteApp.Namespace;
