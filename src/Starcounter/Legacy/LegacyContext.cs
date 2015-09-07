@@ -13,7 +13,7 @@ namespace Starcounter.Legacy {
         public string[] ExistingClasses { get; private set; }
         public string[] NewClasses { get; private set; }
 
-        public static LegacyContext GetContext(Application application) {
+        internal static LegacyContext GetContext(Application application) {
             LegacyContext context = null;
             lock (_sync) {
                 var found = contexts.TryGetValue(application, out context);
