@@ -1346,6 +1346,9 @@
     <code hex="0095" severity="Error" name="ScErrCantBindAppWithPrivateData">
       <message>The application can not start because it contains at least one database class with private data. See separate errors with ID "ScErrNonPublicFieldNotExposed".</message>
     </code>
+    <code hex="0096" severity="Error" name="ScErrInvokeApplicationHost">
+      <message>Failed to create/invoke the application host. See IApplicationHost documentation on its constraints.</message>
+    </code>
   </facility>
 
   <!-- I/O error codes. -->
