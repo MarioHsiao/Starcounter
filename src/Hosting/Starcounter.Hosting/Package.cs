@@ -185,6 +185,12 @@ namespace Starcounter.Hosting {
                     OnInternalHandlersRegistered();
                 }
 
+                // The host must always be executed in this context, even if the
+                // application start synchronously.
+                if (application != null) {
+                    ExecuteHost(application);
+                }
+
                 // Starting user Main() here.
                 if (application != null && execEntryPointSynchronously_)
                     ExecuteEntryPoint(application);
@@ -424,6 +430,28 @@ namespace Starcounter.Hosting {
             return updated;
         }
 
+        void ExecuteHost(Application application) {
+            Debug.Assert(application != null);
+            var entrypoint = assembly_.EntryPoint;
+            if (entrypoint != null) {
+                var declaringClass = entrypoint.DeclaringType;
+                if (typeof(IApplicationHost).IsAssignableFrom(declaringClass)) {
+                    using (var codeHost = new CodeHost(application)) {
+                        try {
+                            var appHost = Activator.CreateInstance(declaringClass) as IApplicationHost;
+                            if (appHost == null) {
+                                throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, string.Format(
+                                    "Unable to create instance of {0}. Is it public? Does it have a default constructor?", declaringClass.Name));
+                            }
+                            appHost.HostApplication(codeHost, application);
+                        } catch (Exception e) {
+                            throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, e);
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Executes the entry point.
         /// </summary>
@@ -441,6 +469,7 @@ namespace Starcounter.Hosting {
                     var arguments = application.Arguments ?? new string[0];
                     entrypoint.Invoke(null, new object[] { arguments });
                 }
+
             } catch (TargetInvocationException te) {
                 var entrypointException = te.InnerException;
                 if (entrypointException == null) throw;
@@ -451,9 +480,6 @@ namespace Starcounter.Hosting {
                 }
 
                 throw ErrorCode.ToException(Error.SCERRFAILINGENTRYPOINT, te, detail);
-
-            } finally {
-                LegacyContext.Exit(application);
             }
 
             OnEntryPointExecuted();
