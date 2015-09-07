@@ -106,6 +106,8 @@
     <Compile Include="DbException.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Entity.Implementation.cs" />
+    <Compile Include="Hosting\CodeHost.cs" />
+    <Compile Include="Hosting\IApplicationHost.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
     <Compile Include="Internal\Map.cs" />

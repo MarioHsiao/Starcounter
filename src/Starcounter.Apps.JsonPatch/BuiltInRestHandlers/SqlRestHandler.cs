@@ -163,13 +163,13 @@ namespace Starcounter.Internal {
                                     ((TDouble)rowItemTemplate.Properties[0]).Setter(jsonRow, (Double)row);
                                     break;
                                 case DbTypeCode.Int16:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+                                    ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, Convert.ToInt64(row));
                                     break;
                                 case DbTypeCode.Int32:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, Convert.ToInt64(row));
                                     break;
                                 case DbTypeCode.Int64:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+                                    ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, Convert.ToInt64(row));
                                     break;
                                 case DbTypeCode.Object:
                                     IObjectView value = (IObjectView)row;
@@ -178,7 +178,7 @@ namespace Starcounter.Internal {
                                     }
                                     break;
                                 case DbTypeCode.SByte:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+                                    ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, Convert.ToInt64(row));
                                     break;
                                 case DbTypeCode.Single:
 									((TDouble)rowItemTemplate.Properties[0]).Setter(jsonRow, (Double)(Single)row);
@@ -187,17 +187,17 @@ namespace Starcounter.Internal {
 									((TString)rowItemTemplate.Properties[0]).Setter(jsonRow, (String)row);
                                     break;
                                 case DbTypeCode.UInt16:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+                                    ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, Convert.ToInt64(row));
                                     break;
                                 case DbTypeCode.UInt32:
-									((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, (long)row);
+                                    ((TLong)rowItemTemplate.Properties[0]).Setter(jsonRow, Convert.ToInt64(row));
                                     break;
                                 case DbTypeCode.UInt64:
 									var col = rowItemTemplate.Properties[0];
 									if (col is TString) {
 										((TString)col).Setter(jsonRow, row.ToString());
 									} else {
-										((TLong)col).Setter(jsonRow, (long)row);
+                                        ((TLong)col).Setter(jsonRow, Convert.ToInt64(row));
 									}
                                     break;
                                 default:
