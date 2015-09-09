@@ -137,6 +137,17 @@ namespace Starcounter.Server.Commands {
                 }
             }
 
+            // Delete Applications "Apps" configuration file
+            string appsConfiguration = Path.Combine(Path.GetDirectoryName(file.FilePath), "applications.json");
+            if (File.Exists(appsConfiguration)) {
+                File.Delete(appsConfiguration);
+            }
+            // Delete Applications "Apps" folder
+            string appsFolder = Path.Combine(Path.GetDirectoryName(file.FilePath), "apps");
+            if (Directory.Exists(appsFolder)) {
+                Directory.Delete(appsFolder, true);
+            }
+
             // Delete the file itself.
             // Then Delete the directory it resides in, if empty. Don't
             // fail if this does not succeed (deleting the directory is
