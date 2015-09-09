@@ -308,7 +308,7 @@ namespace Starcounter {
             if (resps.Count > 0) {
 
                 // Creating merged response.
-                if (null != Response.ResponsesMergerRoutine_) {
+                if (StarcounterEnvironment.MergeJsonSiblings) {
                     return Response.ResponsesMergerRoutine_(req, null, resps);
                 }
 
@@ -1273,7 +1273,7 @@ namespace Starcounter {
             if (resps.Count > 0) {
 
                 // Creating merged response.
-                if (null != Response.ResponsesMergerRoutine_) {
+                if (StarcounterEnvironment.MergeJsonSiblings) {
                     return Response.ResponsesMergerRoutine_(req, null, resps);
                 }
 
