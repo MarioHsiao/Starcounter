@@ -51,6 +51,18 @@ public:
 		}
 	}
 
+	void DestroyEngine(llvm::ExecutionEngine** exec_engine) {
+
+		std::vector<llvm::ExecutionEngine*>::iterator position = std::find(exec_engines_.begin(), exec_engines_.end(), *exec_engine);
+
+		// Checking if we have found this execution module, then removing it.
+		if (position != exec_engines_.end()) {
+			exec_engines_.erase(position);
+			delete *exec_engine;
+			*exec_engine = NULL;
+		}
+	}
+
 	std::vector<std::string>& StringSplit(const std::string &s, char delim, std::vector<std::string> &elems) {
 		std::stringstream ss(s);
 		std::string item;
@@ -72,7 +84,8 @@ public:
 		const bool do_optimizations,
 		const char* const input_code_str,
 		const char* const function_names_delimited,
-		uint64_t out_func_ptrs[])
+		uint64_t out_func_ptrs[],
+		void** out_exec_engine)
 	{
 		using namespace clang;
 		using namespace llvm;
@@ -223,6 +236,9 @@ public:
 		// Adding to the list of execution engines.
 		exec_engines_.push_back(exec_engine);
 
+		// Saving execution engine for later use.
+		*out_exec_engine = exec_engine;
+
 		clock_t end_jiting = clock();
 
 		float seconds_parsing = (float)(end_parsing - start_parsing) / CLOCKS_PER_SEC,
@@ -240,8 +256,8 @@ extern "C" __declspec(dllexport) void ClangInit() {
 	llvm::InitializeNativeTargetAsmParser();
 }
 
-extern "C" __declspec(dllexport) void ClangShutdown() {
-	llvm::llvm_shutdown();
+extern "C" __declspec(dllexport) void ClangDeleteModule(CodegenEngine* const clang_engine, void** exec_engine) {
+	clang_engine->DestroyEngine((llvm::ExecutionEngine**) exec_engine);
 }
 
 extern "C" __declspec(dllexport) uint32_t ClangCompileCodeAndGetFuntions(
@@ -251,7 +267,8 @@ extern "C" __declspec(dllexport) uint32_t ClangCompileCodeAndGetFuntions(
 	const bool do_optimizations,
 	const char* const input_code_str,
 	const char* const function_names_delimited,
-	uint64_t out_func_ptrs[])
+	uint64_t out_func_ptrs[],
+	void** out_exec_engine)
 {
 	if (NULL == *clang_engine) {
 		*clang_engine = new CodegenEngine();
@@ -263,10 +280,11 @@ extern "C" __declspec(dllexport) uint32_t ClangCompileCodeAndGetFuntions(
 		do_optimizations,
 		input_code_str,
 		function_names_delimited,
-		out_func_ptrs);
+		out_func_ptrs,
+		out_exec_engine);
 }
 
-extern "C" __declspec(dllexport) void ClangDestroyEngine(CodegenEngine* clang_engine) {
+extern "C" __declspec(dllexport) void ClangDestroy(CodegenEngine* clang_engine) {
 
 	assert((NULL != clang_engine) && "Engine must exist to be destroyed!");
 
@@ -289,8 +307,8 @@ int main() {
 											 "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }";*/
 	const char * const function_names = "InitGeneratedLib;GetInitGeneratedLib"; //"Func1;UseIntrinsics";
 	uint64_t out_func_ptrs[2];
-
-	ClangCompileCodeAndGetFuntions(&cge, false, true, true, code, function_names, out_func_ptrs);
+	void* exec_engine;
+	ClangCompileCodeAndGetFuntions(&cge, false, true, true, code, function_names, out_func_ptrs, &exec_engine);
 
 	// Calling test function.
 	typedef void(*function_type1) (uint32_t tls_key_context, const uint8_t **segment_base_ptrs);
@@ -300,7 +318,7 @@ int main() {
 
 	assert(133 == (function_type2(out_func_ptrs[1]))());
 
-	ClangDestroyEngine(cge);
+	ClangDestroy(cge);
 
 	/*
 	for (int i = 0; i < 100000; i++) {

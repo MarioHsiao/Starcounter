@@ -193,6 +193,7 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
         case COMPILER_CLANG:
         {
             void* out_functions[1];
+            void* exec_module = NULL;
 
             uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
                 clang_engine_addr,
@@ -201,9 +202,11 @@ uint32_t CodegenUriMatcher::CompileIfNeededAndLoadDll(
                 true,
                 uri_matching_code_,
                 root_function_name,
-                out_functions);
+                out_functions,
+                &exec_module);
 
             GW_ASSERT(0 == err_code);
+            GW_ASSERT(NULL != exec_module);
 
             (*out_match_uri_func) = (MixedCodeConstants::MatchUriType) out_functions[0];
 

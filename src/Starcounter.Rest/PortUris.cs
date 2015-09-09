@@ -21,14 +21,15 @@ namespace Starcounter.Rest {
             Boolean do_optimizations,
             Byte* code_str,
             Byte* function_names_delimited,
-            IntPtr* out_func_ptrs
+            IntPtr* out_func_ptrs,
+            IntPtr** out_exec_module
         );
 
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public extern static void ClangInit();
 
         [DllImport("scllvm.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public extern static void ClangDestroyEngine(void* clang_engine);
+        public extern static void ClangDestroy(void* clang_engine);
 
         /// <summary>
         /// Generates Clang functions.
@@ -67,6 +68,9 @@ namespace Starcounter.Rest {
 
                 fixed (IntPtr* out_func_ptrs = out_functions) {
 
+                    // Pointer to execution module that we don't use though.
+                    IntPtr* exec_module;
+
                     // Compiling the given code and getting function pointer back.
                     UInt32 err_code = ClangFunctions.ClangCompileCodeAndGetFuntions(
                         clang_engine,
@@ -75,7 +79,8 @@ namespace Starcounter.Rest {
                         true,
                         cpp_code_ptr,
                         function_names_bytes_native,
-                        out_func_ptrs);
+                        out_func_ptrs,
+                        &exec_module);
 
                     if (0 != err_code) {
                         return err_code;
@@ -149,7 +154,7 @@ namespace Starcounter.Rest {
         /// </summary>
         public void Destroy()
         {
-            ClangFunctions.ClangDestroyEngine(clang_engine_);
+            ClangFunctions.ClangDestroy(clang_engine_);
         }
 
         /// <summary>

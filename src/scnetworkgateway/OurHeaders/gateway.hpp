@@ -1414,9 +1414,10 @@ typedef uint32_t (*ClangCompileCodeAndGetFuntions) (
     const bool do_optimizations,
     const char* const input_code_str,
     const char* const function_names_delimited,
-    void* out_func_ptrs[]);
+    void* out_func_ptrs[],
+    void** exec_module);
 
-typedef void (*ClangDestroyEngineType) (void* clang_engine);
+typedef void (*ClangDestroy) (void* clang_engine);
 
 // Tries to set a SIO_LOOPBACK_FAST_PATH on a given TCP socket.
 void SetLoopbackFastPathOnTcpSocket(SOCKET sock);
@@ -1740,7 +1741,7 @@ public:
     ClangCompileCodeAndGetFuntions clangCompileCodeAndGetFuntions_;
 
     // Destroys existing Clang engine.
-    ClangDestroyEngineType clangDestroyEngineFunc_;
+    ClangDestroy clangDestroyFunc_;
 
     // Generate the code using managed generator.
     uint32_t GenerateUriMatcher(ServerPort* sp, RegisteredUris* port_uris);
