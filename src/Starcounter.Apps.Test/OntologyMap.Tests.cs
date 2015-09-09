@@ -362,9 +362,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3";
             });
 
-            UriMapping.Map("/SomeApp/map1", "/polyjuice/mapped");
-            UriMapping.Map("/SomeApp/map2", "/polyjuice/mapped");
-            UriMapping.Map("/SomeApp/map3", "/polyjuice/mapped");
+            UriMapping.Map("/SomeApp/map1", "/sc/mapping/mapped");
+            UriMapping.Map("/SomeApp/map2", "/sc/mapping/mapped");
+            UriMapping.Map("/SomeApp/map3", "/sc/mapping/mapped");
 
             String r = Self.GET<String>("/SomeApp/map1");
             Assert.IsTrue("/map1" == r);
@@ -375,7 +375,7 @@ namespace Starcounter.Internal.Tests
             r = Self.GET<String>("/SomeApp/map3");
             Assert.IsTrue("/map1" == r);
 
-            r = Self.GET<String>("/polyjuice/mapped");
+            r = Self.GET<String>("/sc/mapping/mapped");
             Assert.IsTrue("/map1" == r);
 
             //////////////////////////////////////
@@ -411,9 +411,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3";
             });
 
-            UriMapping.Map("/SomeApp/map1", "/polyjuice/mapped", "POST");
-            UriMapping.Map("/SomeApp/map2", "/polyjuice/mapped", "POST");
-            UriMapping.Map("/SomeApp/map3", "/polyjuice/mapped", "POST");
+            UriMapping.Map("/SomeApp/map1", "/sc/mapping/mapped", "POST");
+            UriMapping.Map("/SomeApp/map2", "/sc/mapping/mapped", "POST");
+            UriMapping.Map("/SomeApp/map3", "/sc/mapping/mapped", "POST");
 
             Response resp = Self.POST("/SomeApp/map1", body, null);
             Assert.IsTrue("/map1" == resp.Body);
@@ -424,7 +424,7 @@ namespace Starcounter.Internal.Tests
             resp = Self.POST("/SomeApp/map3", body, null);
             Assert.IsTrue("/map1" == resp.Body);
 
-            resp = Self.POST("/polyjuice/mapped", body, null);
+            resp = Self.POST("/sc/mapping/mapped", body, null);
             Assert.IsTrue("/map1" == resp.Body);
 
             //////////////////////////////////////
@@ -457,9 +457,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3/" + p;
             });
 
-            UriMapping.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w");
-            UriMapping.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w");
-            UriMapping.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w");
+            UriMapping.Map("/SomeApp/map1/@w", "/sc/mapping/mapped/@w");
+            UriMapping.Map("/SomeApp/map2/@w", "/sc/mapping/mapped/@w");
+            UriMapping.Map("/SomeApp/map3/@w", "/sc/mapping/mapped/@w");
 
             r = Self.GET<String>("/SomeApp/map1/" + param);
             Assert.IsTrue("/map1/" + param == r);
@@ -470,7 +470,7 @@ namespace Starcounter.Internal.Tests
             r = Self.GET<String>("/SomeApp/map3/" + param);
             Assert.IsTrue("/map1/" + param == r);
 
-            r = Self.GET<String>("/polyjuice/mapped/" + param);
+            r = Self.GET<String>("/sc/mapping/mapped/" + param);
             Assert.IsTrue("/map1/" + param == r);
 
             //////////////////////////////////////
@@ -507,9 +507,9 @@ namespace Starcounter.Internal.Tests
                 return "/map3/" + p;
             });
 
-            UriMapping.Map("/SomeApp/map1/@w", "/polyjuice/mapped/@w", "POST");
-            UriMapping.Map("/SomeApp/map2/@w", "/polyjuice/mapped/@w", "POST");
-            UriMapping.Map("/SomeApp/map3/@w", "/polyjuice/mapped/@w", "POST");
+            UriMapping.Map("/SomeApp/map1/@w", "/sc/mapping/mapped/@w", "POST");
+            UriMapping.Map("/SomeApp/map2/@w", "/sc/mapping/mapped/@w", "POST");
+            UriMapping.Map("/SomeApp/map3/@w", "/sc/mapping/mapped/@w", "POST");
 
             resp = Self.POST("/SomeApp/map1/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
@@ -520,7 +520,7 @@ namespace Starcounter.Internal.Tests
             resp = Self.POST("/SomeApp/map3/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
 
-            resp = Self.POST("/polyjuice/mapped/" + param, body, null);
+            resp = Self.POST("/sc/mapping/mapped/" + param, body, null);
             Assert.IsTrue("/map1/" + param == resp.Body);
         }
     }
