@@ -35,7 +35,7 @@ namespace Starcounter {
         /// <summary>
         /// Required URI mapping prefix.
         /// </summary>
-        const String MappingUriPrefix = "/sc/mapping/";
+        public const String MappingUriPrefix = "/sc/mapping";
 
         public class Tree {
             private Dictionary<string, MappingClassInfo> nameToNodes;
@@ -353,10 +353,10 @@ namespace Starcounter {
             }
 
             // Checking that map URI starts with mapping prefix.
-            if (!mapProcessedUri.StartsWith(MappingUriPrefix, StringComparison.InvariantCultureIgnoreCase) ||
-                (mapProcessedUri.Length <= MappingUriPrefix.Length)) {
+            if (!mapProcessedUri.StartsWith(MappingUriPrefix + "/", StringComparison.InvariantCultureIgnoreCase) ||
+                (mapProcessedUri.Length <= MappingUriPrefix.Length + 1)) {
 
-                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix + " prefix followed by some string.");
+                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix + "/ prefix followed by some string.");
             }
 
             lock (customMaps_) {
