@@ -353,8 +353,10 @@ namespace Starcounter {
             }
 
             // Checking that map URI starts with mapping prefix.
-            if (!mapProcessedUri.StartsWith(MappingUriPrefix, StringComparison.InvariantCultureIgnoreCase)) {
-                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix);
+            if (!mapProcessedUri.StartsWith(MappingUriPrefix, StringComparison.InvariantCultureIgnoreCase) ||
+                (mapProcessedUri.Length <= MappingUriPrefix.Length)) {
+
+                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix + " prefix followed by some string.");
             }
 
             lock (customMaps_) {
