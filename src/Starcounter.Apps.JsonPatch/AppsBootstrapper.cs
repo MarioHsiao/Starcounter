@@ -217,7 +217,7 @@ namespace Starcounter.Internal {
         /// </summary>
         static void RegisterUriAliasHandler(String httpMethod, String fromUri, String toUri, UInt16 port) {
 
-            String gatewayXml = "";
+            String gatewayXml = ""; // TODO: Get gateway XML path here.
 
             GatewayConfig conf = GatewayConfig.Deserealize(gatewayXml);
 

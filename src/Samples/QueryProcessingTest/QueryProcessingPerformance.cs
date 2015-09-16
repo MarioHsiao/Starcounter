@@ -43,7 +43,7 @@ namespace QueryProcessingTest {
             se.sics.prologbeans.QueryAnswer answer = null;
             timer.Start();
             for (int i = 0; i < nrPrologIterations; i++)
-                answer = PrologManager.CallProlog(QueryModule.DatabaseId, query);
+                answer = PrologManager.CallProlog(Starcounter.Internal.StarcounterEnvironment.AppName + QueryModule.DatabaseId, query);
             timer.Stop();
             Console.WriteLine("Call Prolog (parse and type check) took " + timer.ElapsedMilliseconds * 1000 / nrPrologIterations + " mcs.");
             timer.Reset();

@@ -73,7 +73,7 @@ namespace Starcounter {
 			}
             template = json.Template as TObject;
             
-            if (json.Parent != null && !string.IsNullOrEmpty(json._appName)) {
+            if (json.Parent != null && json._wrapInAppName) {
                 sb.Append("<appname: ");
                 sb.Append(json._appName);
                 sb.Append(">");

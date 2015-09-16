@@ -21,6 +21,7 @@ using System.Text;
 using System.Threading;
 using Starcounter.Query.Optimization;
 using Starcounter.Query.SQL;
+using Starcounter.Internal;
 
 namespace Starcounter.Query.Sql
 {
@@ -88,8 +89,7 @@ namespace Starcounter.Query.Sql
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
-
-            String schemaFilePath = schemaFolderExternal + "/schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + ".pl";
+            String schemaFilePath = schemaFolderExternal + "/schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + (new Random()).Next() + ".pl";
             try
             {
                 WriteSchemaInfoToFile(databaseId, schemaFilePath, typeDefArray);
@@ -249,7 +249,7 @@ namespace Starcounter.Query.Sql
         private static void EstablishSqlProcess(int schedulerToImpersonate)
         {
             DisconnectPrologSessions();
-            String existingProcessVersion = GetExistingSqlProcessVersionAndDeleteSchemaInfo(QueryModule.DatabaseId, schedulerToImpersonate);
+            String existingProcessVersion = GetExistingSqlProcessVersionAndDeleteSchemaInfo(StarcounterEnvironment.AppName + QueryModule.DatabaseId, schedulerToImpersonate);
 
             if (existingProcessVersion == null)
             {
@@ -752,16 +752,24 @@ namespace Starcounter.Query.Sql
                     if (typeDef.BaseName != null)
                     {
                         streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
-                        var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
-                        if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null))
-                            streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+
+                        if (!typeDef.UseOnlyFullNamespaceSqlName) {
+
+                            var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
+                            if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null))
+                                streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                        }
                     }
                     else
                     {
                         streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
-                        var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
-                        if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null))
-                            streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
+
+                        if (!typeDef.UseOnlyFullNamespaceSqlName) {
+
+                            var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
+                            if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null))
+                                streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
+                        }
                     }
                 }
 

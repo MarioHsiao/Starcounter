@@ -108,7 +108,7 @@ namespace Starcounter.Advanced.XSON {
         }
 
         private static bool WrapInAppName(Session session, Json obj) {
-            if (!string.IsNullOrEmpty(obj._appName)
+            if (obj._wrapInAppName
                 && session != null
                 && session.CheckOption(SessionOptions.IncludeNamespaces)
                 && (session.PublicViewModel != obj)

@@ -1170,6 +1170,7 @@ namespace Starcounter {
 
                 if (mainJson != null) {
                     mainJson._appName = resp.AppName;
+                    mainJson._wrapInAppName = true;
                 }
 
                 return resp;
@@ -1195,6 +1196,7 @@ namespace Starcounter {
             if (mainJson != null) {
 
                 mainJson._appName = mainResponse.AppName;
+                mainJson._wrapInAppName = true;
 
                 if (responses.Count == 1)
                     return mainResponse;
@@ -1223,6 +1225,7 @@ namespace Starcounter {
                             continue;
 
                         siblingJson._appName = responses[i].AppName;
+                        siblingJson._wrapInAppName = true;
 
                         if (siblingJson.StepSiblings != null) {
                             // We have another set of stepsiblings. Merge them into one list.

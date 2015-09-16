@@ -10,12 +10,15 @@ using System.Linq;
 
 namespace Starcounter.Binding
 {
-
     /// <summary>
     /// Class TypeDef
     /// </summary>
     public class TypeDef
     {
+        /// <summary>
+        /// SQL should access this class only using full name.
+        /// </summary>
+        public bool UseOnlyFullNamespaceSqlName;
 
         /// <summary>
         /// The name

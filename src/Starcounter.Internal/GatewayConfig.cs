@@ -158,6 +158,7 @@ namespace Starcounter.Internal {
             // Serializing to backup gateway xml to restore in case of failure.
             Serialize(bakupFile);
 
+            // Sending update configuration request to gateway.
             Response resp = Http.GET("http:://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
 
             if (resp.IsSuccessStatusCode) {

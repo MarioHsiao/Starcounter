@@ -62,7 +62,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Flag to load edition libraries.
         /// </summary>
-        public static Boolean LoadEditionLibraries = false;
+        public static Boolean LoadEditionLibraries = true;
 
         /// <summary>
         /// Merge Json siblings.

@@ -108,10 +108,14 @@ public sealed class SqlEnumCache
     }
 
     internal Int32 CacheOrExecuteEnumerator<T>(String query, bool slowSQL, params Object[] values) {
-        if (query == globalQueryCache.GetQueryString(lastUsedEnumIndex))
+
+        String appNameQuery = StarcounterEnvironment.AppName + query;
+
+        if (appNameQuery == globalQueryCache.GetQueryString(lastUsedEnumIndex))
             return lastUsedEnumIndex;
+
         // We have to ask dictionary for the index.
-        Int32 enumIndex = globalQueryCache.GetEnumIndex(query);
+        Int32 enumIndex = globalQueryCache.GetEnumIndex(appNameQuery);
 
         // Checking if its completely new query.
         if (enumIndex < 0) {
@@ -123,9 +127,9 @@ public sealed class SqlEnumCache
                 IExecutionEnumerator newEnum = Starcounter.Query.QueryPreparation.PrepareOrExecuteQuery<T>(query, slowSQL, values);
                 if (newEnum == null)
                     return -1;
-                enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
+                enumIndex = globalQueryCache.AddNewQuery<T>(appNameQuery, newEnum);
                 if (totalCachedEnum == 0) { // Cache was reset
-                    enumIndex = globalQueryCache.AddNewQuery<T>(query, newEnum);
+                    enumIndex = globalQueryCache.AddNewQuery<T>(appNameQuery, newEnum);
                 }
             }
             finally {

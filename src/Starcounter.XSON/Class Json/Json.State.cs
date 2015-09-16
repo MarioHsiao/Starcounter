@@ -98,6 +98,8 @@ namespace Starcounter {
 
         internal String _appName;
 
+        internal Boolean _wrapInAppName;
+
         internal String _activeAppName;
 
         /// <summary>
