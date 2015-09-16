@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{533e8534-362e-4ee4-adb0-a358833bc17c}</ProjectGuid>
+    <ProjectGuid>{533E8534-362E-4EE4-ADB0-A358833BC17C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UdpTest</RootNamespace>
@@ -57,10 +57,6 @@
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
       <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
       <Name>Starcounter.Internal</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Node\Starcounter.Node.csproj">
-      <Project>{b640d3ff-ed2b-46c1-b49d-584efadfcfad}</Project>
-      <Name>Starcounter.Node</Name>
     </ProjectReference>
     <None Include="App.config" />
   </ItemGroup>

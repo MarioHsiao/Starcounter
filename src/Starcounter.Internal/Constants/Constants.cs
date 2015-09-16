@@ -32,17 +32,12 @@ namespace Starcounter.Internal
         public const string SocietyObjectsPrefix = "SocietyObjects";
 
         /// <summary>
-        /// Polyjuice edition name.
-        /// </summary>
-        public const string PolyjuiceEditionName = "Polyjuice";
-
-        /// <summary>
         /// Internal system handlers prefix.
         /// </summary>
         public const string StarcounterSystemUriPrefix = "/sc";
 
         /// <summary>
-        /// Polyjuice HTML merger URI prefix.
+        /// HTML merger URI prefix.
         /// </summary>
         public const string HtmlMergerPrefix = StarcounterSystemUriPrefix + "/htmlmerger?";
 

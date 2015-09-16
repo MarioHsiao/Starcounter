@@ -15,13 +15,13 @@ namespace Starcounter.Internal.Tests
     /// <summary>
     /// 
     /// </summary>
-    public class PolyjuiceTests
+    public class MappingTests
     {
         /// <summary>
         /// Testing ontology maps.
         /// </summary>
         //[Test]
-        public static void SimplePolyjuiceTests() {
+        public static void SimpleMappingTests() {
 
             const String FacebookAppName = "FacebookApp";
             const String GoogleMapsAppName = "GoogleMapsApp";

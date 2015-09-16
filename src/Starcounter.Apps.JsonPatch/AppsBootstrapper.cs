@@ -130,6 +130,14 @@ namespace Starcounter.Internal {
 
                         return 200;
                     });
+
+                    // Registering URI aliasing port.
+                    Handle.GET(defaultSystemHttpPort, "/sc/alias/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
+
+                        RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
+
+                        return 200;
+                    });
                 }
             }
 
@@ -202,6 +210,26 @@ namespace Starcounter.Internal {
 
             // Registering files directory.
             AppServer_.UserAddedLocalFileDirectoryWithStaticContent(appName, port, fullPathToResourcesDir);
+        }
+
+        /// <summary>
+        /// Registering URI alias handler.
+        /// </summary>
+        static void RegisterUriAliasHandler(String httpMethod, String fromUri, String toUri, UInt16 port) {
+
+            String gatewayXml = "";
+
+            GatewayConfig conf = GatewayConfig.Deserealize(gatewayXml);
+
+            GatewayConfig.UriAlias a = new GatewayConfig.UriAlias() {
+                HttpMethod = httpMethod,
+                FromUri = fromUri,
+                ToUri = toUri,
+                Port = port
+            };
+
+            conf.AddOrReplaceUriAlias(a);
+            conf.UpdateConfiguration(gatewayXml);
         }
 
         /// <summary>
