@@ -82,13 +82,13 @@ namespace Starcounter.Query
         /// <summary>
         /// </summary>
         /// <param name="typeDefArray"></param>
-        public static void UpdateSchemaInfo(String fullAppId, TypeDef[] typeDefArray)
+        public static void UpdateSchemaInfo(String fullAppId, TypeDef[] typeDefArray, Boolean useFullNamespaceOnly)
         {
             Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
                 Scheduler scheduler = Scheduler.GetInstance(true);
-                PrologManager.ExportSchemaInfo(scheduler, fullAppId, typeDefArray);
+                PrologManager.ExportSchemaInfo(scheduler, fullAppId, typeDefArray, useFullNamespaceOnly);
             }
             finally
             {

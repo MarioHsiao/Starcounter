@@ -25,11 +25,11 @@ namespace Starcounter.Internal.Tests {
 
             Handle.GET("/launcher/launchpad/sc/mapping/htmlmerger?{?}", (String p0) => { return 200; });
 
-            Handle.POST("/launcher/juicytilessetup?{?}", (String p0) => { return 200; });
+            Handle.POST("/sc/Starcounter.Layout?{?}", (String p0) => { return 200; });
 
-            Handle.GET("/launcher/juicytilessetup?{?}", (String p0) => { return 200; });
+            Handle.GET("/sc/Starcounter.Layout?{?}", (String p0) => { return 200; });
 
-            Handle.DELETE("/launcher/juicytilessetup?{?}", (String p0) => { return 200; });
+            Handle.DELETE("/sc/Starcounter.Layout?{?}", (String p0) => { return 200; });
 
             Handle.GET("/launcher/generatestyles/{?}", (String p0) => { return 200; });
 

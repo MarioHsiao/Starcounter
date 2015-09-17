@@ -328,41 +328,41 @@ namespace Starcounter
         /// <summary>
         /// The file path
         /// </summary>
-        internal string FilePath {
+        public string FilePath {
             get { return filePath_; }
-            set { filePath_ = value; }
+            internal set { filePath_ = value; }
         }
 
         /// <summary>
         /// The file directory
         /// </summary>
-        internal string FileDirectory {
+        public string FileDirectory {
             get { return fileDirectory_; }
-            set { fileDirectory_ = value; }
+            internal set { fileDirectory_ = value; }
         }
 
         /// <summary>
         /// The file name
         /// </summary>
-        internal string FileName {
+        public string FileName {
             get { return fileName_; }
-            set { fileName_ = value; }
+            internal set { fileName_ = value; }
         } 
 
         /// <summary>
         /// The file exists
         /// </summary>
-        internal bool FileExists {
+        public bool FileExists {
             get { return fileExists_; }
-            set { fileExists_ = value; }
+            internal set { fileExists_ = value; }
         } 
 
         /// <summary>
         /// File modification date.
         /// </summary>
-        internal DateTime FileModified {
+        public DateTime FileModified {
             get { return fileModified_; }
-            set { fileModified_ = value; }
+            internal set { fileModified_ = value; }
         } 
 
         /// <summary>

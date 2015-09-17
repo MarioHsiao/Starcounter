@@ -67,7 +67,7 @@ namespace Starcounter {
                 return 204;
             });
 
-            Handle.GET("/launcher/generatestyles/{?}", (string app) => {
+            Handle.GET("/sc/generatestyles/{?}", (string app) => {
                 string sql = "SELECT i FROM Starcounter.Layout i WHERE i.Key LIKE ?";
                 StringBuilder sb = new StringBuilder();
                 int index = 0;

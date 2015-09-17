@@ -293,13 +293,10 @@ namespace Starcounter.Advanced.XSON {
                         // "PartialId":"",
                         sizeBytes += 15 + partialConfigId.Length;
 
-                        string setupStr = null;
-                        try {
-                            setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
-                        } catch { }
+                        string setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM Starcounter.Layout p WHERE p.Key = ?", partialConfigId).First;
 
                         if (setupStr != null) {
-                            sizeBytes += setupStr.Length + 21; // "juicyTilesSetup":"",
+                            sizeBytes += setupStr.Length + 12; // "layout":"",
                         }
                     }
                 }
@@ -624,16 +621,14 @@ namespace Starcounter.Advanced.XSON {
                             used += valueSize;
                             pfrag += valueSize;
 
-                            try {
-                                setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM JuicyTilesSetup p WHERE p.Key = ?", partialConfigId).First;
-                            } catch { }
+                            setupStr = StarcounterBase._DB.SQL<string>("SELECT p.Value FROM Starcounter.Layout p WHERE p.Key = ?", partialConfigId).First;
                         }
 
                         if (setupStr != null) {
                             *pfrag++ = (byte)',';
                             used++;
 
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "juicyTilesSetup");
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, "layout");
                             used += valueSize;
                             pfrag += valueSize;
 
