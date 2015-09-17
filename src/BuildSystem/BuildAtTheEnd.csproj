@@ -36,7 +36,6 @@
         $(OutputPath)\Starcounter.Internal.dll;
         $(OutputPath)\Starcounter.Logging.dll;
         $(OutputPath)\Starcounter.HyperMedia.dll;
-        $(OutputPath)\Starcounter.Node.dll;
         $(OutputPath)\Starcounter.XSON.dll;
       "/>
       <PublicAssembliesHelp Include="
@@ -46,7 +45,6 @@
         $(OutputPath)\Starcounter.Internal.XML;
         $(OutputPath)\Starcounter.Logging.XML;
         $(OutputPath)\Starcounter.Hypermedia.XML;
-        $(OutputPath)\Starcounter.Node.XML;
         $(OutputPath)\Starcounter.XSON.XML;
       "/>
     </ItemGroup>
