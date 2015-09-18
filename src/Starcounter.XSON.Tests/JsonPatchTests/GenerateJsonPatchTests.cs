@@ -38,7 +38,6 @@ namespace Starcounter.Internal.XSON.Tests {
             StarcounterEnvironment.AppName = oldAppName;
 		}
 
-        // TODO: Christian please check this.
         [Test]
         public static void TestPatchSizes() {
             byte[] patchArr;
