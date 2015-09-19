@@ -35,7 +35,6 @@ namespace Starcounter.CLI {
             "Starcounter.HyperMedia",
             "Starcounter.Internal",
             "Starcounter.Logging",
-            "Starcounter.Node",
             "Starcounter.XSON",
             "System",
             "System.Core",
