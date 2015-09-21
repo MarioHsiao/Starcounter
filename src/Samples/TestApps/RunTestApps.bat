@@ -43,6 +43,11 @@ CALL CommitHooksTest.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+PUSHD TestIApplicationHost
+CALL AppHostTest.bat
+POPD
+IF ERRORLEVEL 1 GOTO err
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 

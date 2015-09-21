@@ -697,10 +697,12 @@ __forceinline uint32_t GatewayWorker::FinishReceive(
         {
             sd->reset_accumulating_flag();
         }
-    }
 
-    // Resetting the session based on protocol.
-    sd->ResetSessionBasedOnProtocol(this);
+	} else {
+	
+		// Resetting the session based on protocol.
+		sd->ResetSessionBasedOnProtocol(this);
+	}
 
     ProfilerStart(worker_id_, utils::ProfilerEnums::Empty);
     ProfilerStop(worker_id_, utils::ProfilerEnums::Empty);

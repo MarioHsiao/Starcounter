@@ -43,9 +43,22 @@ namespace Starcounter.Internal {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseNameLower);
                 Handle.POST(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sql", (Request req) => {
                     SqlQueryResult result = null;
-                    Db.Transact(() => {
-                        result = ExecuteQuery(req.Body);
-                    }, false, 0);
+                    try {
+                        Db.Transact(() => {
+                            result = ExecuteQuery(req.Body);
+                        }, false, 0);
+
+                    }
+                    catch( Starcounter.DbException e) {
+
+                        if (e.ErrorCode == Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED) {
+                            result = ExecuteQuery(req.Body);
+                        }
+                        else {
+                            throw e;
+                        }
+                    }
+
                     return result;
                 });
             }
@@ -286,6 +299,13 @@ namespace Starcounter.Internal {
                 results.hasSqlException = true;
             }
             catch (Exception e) {
+                uint code;
+                if (ErrorCode.TryGetCode(e, out code)) {
+
+                    if (code == Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED) {
+                        throw e;
+                    }
+                }
 
                 LogSources.Sql.LogException(e);
 
