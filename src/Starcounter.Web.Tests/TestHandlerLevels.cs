@@ -42,6 +42,8 @@ namespace Starcounter.Internal.Tests {
                 appServer.RunDelegateAndProcessResponse,
                 UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
+            StarcounterEnvironment.MergeJsonSiblings = false;
+
             // Initializing system profilers.
             Profiler.Init(true);
         }

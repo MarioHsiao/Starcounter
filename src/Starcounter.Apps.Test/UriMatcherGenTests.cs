@@ -21,15 +21,15 @@ namespace Starcounter.Internal.Tests {
 
             Handle.GET("/db2/{?}/{?}", (String p0, String p1) => { return 200; });
 
-            Handle.GET("/polyjuice/htmlmerger2?{?}", (String p0) => { return 200; });
+            Handle.GET("/sc/mapping/htmlmerger2?{?}", (String p0) => { return 200; });
 
-            Handle.GET("/launcher/launchpad/polyjuice/htmlmerger?{?}", (String p0) => { return 200; });
+            Handle.GET("/launcher/launchpad/sc/mapping/htmlmerger?{?}", (String p0) => { return 200; });
 
-            Handle.POST("/launcher/juicytilessetup?{?}", (String p0) => { return 200; });
+            Handle.POST("/sc/Starcounter.Layout?{?}", (String p0) => { return 200; });
 
-            Handle.GET("/launcher/juicytilessetup?{?}", (String p0) => { return 200; });
+            Handle.GET("/sc/Starcounter.Layout?{?}", (String p0) => { return 200; });
 
-            Handle.DELETE("/launcher/juicytilessetup?{?}", (String p0) => { return 200; });
+            Handle.DELETE("/sc/Starcounter.Layout?{?}", (String p0) => { return 200; });
 
             Handle.GET("/launcher/generatestyles/{?}", (String p0) => { return 200; });
 
@@ -71,13 +71,13 @@ namespace Starcounter.Internal.Tests {
 
             Handle.GET("/useradmin/search/{?}", (String p0) => { return 200; });
 
-            Handle.GET("/polyjuice/menu", () => { return 200; });
+            Handle.GET("/sc/mapping/menu", () => { return 200; });
 
-            Handle.GET("/polyjuice/app-name", () => { return 200; });
+            Handle.GET("/sc/mapping/app-name", () => { return 200; });
 
-            Handle.GET("/polyjuice/app-icon", () => { return 200; });
+            Handle.GET("/sc/mapping/app-icon", () => { return 200; });
 
-            Handle.GET("/polyjuice/search?query={?}", (String p0) => { return 200; });
+            Handle.GET("/sc/mapping/search?query={?}", (String p0) => { return 200; });
 
             Handle.GET("/signin/user", () => { return 200; });
 
@@ -89,7 +89,7 @@ namespace Starcounter.Internal.Tests {
 
             Handle.GET("/signin/signinuser?{?}", (String p0) => { return 200; });
 
-            Handle.GET("/polyjuice/user", () => { return 200; });
+            Handle.GET("/sc/mapping/user", () => { return 200; });
 
             Handle.GET("/adfenix/import-shit", () => { return 200; });
 

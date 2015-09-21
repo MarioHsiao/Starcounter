@@ -56,10 +56,20 @@ namespace Starcounter.Hosting {
         }
 
         /// <summary>
+        /// Exported schema.
+        /// </summary>
+        static Dictionary<String, Boolean> exportedSchemas_ = new Dictionary<String, Boolean>();
+
+        /// <summary>
         /// Set of type definitions to consider during processing
         /// of this package.
         /// </summary>
         private TypeDef[] typeDefinitions;
+
+        /// <summary>
+        /// System type definitions.
+        /// </summary>
+        static TypeDef[] systemTypeDefinitions_;
 
         /// <summary>
         /// The assembly_
@@ -163,7 +173,43 @@ namespace Starcounter.Hosting {
             try {
                 OnProcessingStarted();
 
-                UpdateDatabaseSchemaAndRegisterTypes(unregisteredTypeDefinitions);
+                String fullAppId = QueryModule.DatabaseId;
+
+                if (application != null) {
+                    fullAppId = application.Name + fullAppId;
+                } else {
+                    if (typeDefinitions.Length != 0) {
+                        systemTypeDefinitions_ = typeDefinitions;
+                    }
+                }
+
+                // Checking if we already have exported schemas for this app.
+                if ((!exportedSchemas_.ContainsKey(fullAppId)) && (systemTypeDefinitions_ != null)) {
+
+                    // Resetting current schema if any.
+                    QueryModule.Reset(fullAppId);
+
+                    // Adding system type definitions to this database.
+                    if (systemTypeDefinitions_ != typeDefinitions) {
+                        QueryModule.UpdateSchemaInfo(fullAppId, systemTypeDefinitions_, false);
+                    }
+                }
+
+                UpdateDatabaseSchemaAndRegisterTypes(fullAppId, unregisteredTypeDefinitions, typeDefinitions);
+
+                // Checking if there are any type definitions.
+                if (typeDefinitions.Length != 0) {
+
+                    // Checking if we already have exported schemas for this app.
+                    if (!exportedSchemas_.ContainsKey(fullAppId)) {
+
+                        // Adding user type definitions (+EditionLibraries) to this database.
+                        QueryModule.UpdateSchemaInfo(fullAppId, typeDefinitions, false);
+
+                        // Adding this app as processed.
+                        exportedSchemas_.Add(fullAppId, true);
+                    }
+                }
 
                 if ((application != null) && (!StarcounterEnvironment.IsAdministratorApp)) {
 
@@ -268,8 +314,10 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Updates the database schema and register types.
         /// </summary>
-        private void UpdateDatabaseSchemaAndRegisterTypes(TypeDef[] unregisteredTypeDefs) {
+        private void UpdateDatabaseSchemaAndRegisterTypes(String fullAppId, TypeDef[] unregisteredTypeDefs, TypeDef[] allTypeDefs) {
+
             if (unregisteredTypeDefs.Length != 0) {
+
                 // Using transaction directly here instead of Db.Scope and scope it several times because of 
                 // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
                 using (var transaction = new Transaction(true)) {
@@ -339,7 +387,22 @@ namespace Starcounter.Hosting {
 #endif
                     OnColumnsCheckedAndUpdated();
 
-                    QueryModule.UpdateSchemaInfo(unregisteredTypeDefs);
+                    // Checking if we already have exported schemas for this app.
+                    if (!exportedSchemas_.ContainsKey(fullAppId)) {
+
+                        // Adding user type definitions (+EditionLibraries) to this database.
+                        QueryModule.UpdateSchemaInfo(fullAppId, allTypeDefs, false);
+
+                        // Adding this app as processed.
+                        exportedSchemas_.Add(fullAppId, true);
+                    } 
+                    
+                    // Checking if we are in app not in plain database.
+                    if (fullAppId != QueryModule.DatabaseId) {
+
+                        // Adding new type definitions to database scope with full name generation.
+                        QueryModule.UpdateSchemaInfo(QueryModule.DatabaseId, unregisteredTypeDefs, true);
+                    }
 
                     OnQueryModuleSchemaInfoUpdated();
 
@@ -353,6 +416,7 @@ namespace Starcounter.Hosting {
                     }
 
                     MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
+
                     OnPopulateClrMetadata();
                 }
             }

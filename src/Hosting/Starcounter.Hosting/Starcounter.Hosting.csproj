@@ -94,10 +94,6 @@
       <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
       <Name>Starcounter.Logging</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Node\Starcounter.Node.csproj">
-      <Project>{b640d3ff-ed2b-46c1-b49d-584efadfcfad}</Project>
-      <Name>Starcounter.Node</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
       <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
       <Name>Starcounter</Name>

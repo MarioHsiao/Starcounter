@@ -63,14 +63,14 @@ namespace Starcounter.Query
         /// <summary>
         /// Removes all schema information from external SQL process (Prolog-process).
         /// </summary>
-        internal static void Reset()
+        internal static void Reset(String fullAppId)
         {
             Int32 tickCount = Environment.TickCount;
             Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
                 Scheduler scheduler = Scheduler.GetInstance(true);
-                PrologManager.DeleteAllSchemaInfo(QueryModule.DatabaseId, scheduler);
+                PrologManager.DeleteAllSchemaInfo(fullAppId, scheduler);
             }
             finally
             {
@@ -82,13 +82,13 @@ namespace Starcounter.Query
         /// <summary>
         /// </summary>
         /// <param name="typeDefArray"></param>
-        public static void UpdateSchemaInfo(TypeDef[] typeDefArray)
+        public static void UpdateSchemaInfo(String fullAppId, TypeDef[] typeDefArray, Boolean useFullNamespaceOnly)
         {
             Starcounter.ThreadHelper.SetYieldBlock();
             try
             {
                 Scheduler scheduler = Scheduler.GetInstance(true);
-                PrologManager.ExportSchemaInfo(scheduler, QueryModule.DatabaseId, typeDefArray);
+                PrologManager.ExportSchemaInfo(scheduler, fullAppId, typeDefArray, useFullNamespaceOnly);
             }
             finally
             {

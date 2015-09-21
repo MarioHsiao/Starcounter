@@ -145,8 +145,10 @@ namespace Starcounter.Internal.XSON.Tests {
                 stepSiblings.Add(json.Page);
                 stepSiblings.Add(json2);
                 Json real = json.Page;
+                real._wrapInAppName = true;
                 real.StepSiblings = stepSiblings;
                 real = json2;
+                real._wrapInAppName = true;
                 real.StepSiblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);
@@ -178,8 +180,10 @@ namespace Starcounter.Internal.XSON.Tests {
                 stepSiblings.Add(json.Focused);
                 stepSiblings.Add(json2);
                 real = json.Focused;
+                real._wrapInAppName = true;
                 real.StepSiblings = stepSiblings;
                 real = json2;
+                real._wrapInAppName = true;
                 real.StepSiblings = stepSiblings;
                 change = Change.Update(json2, property);
                 patchSize = JsonPatch.EstimateSizeOfPatch(change, true);

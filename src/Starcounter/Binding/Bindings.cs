@@ -13,19 +13,109 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("QueryProcessingTest, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
 [assembly: InternalsVisibleTo("IndexQueryTest, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e758955f5e1537c52891c61cd689a8dd1643807340bd32cc12aee50d2add85eeeaac0b44a796cefb6055fac91836a8a72b5dbf3b44138f508bc2d92798a618ad5791ff0db51b8662d7c936c16b5720b075b2a966bb36844d375c1481c2c7dc4bb54f6d72dbe9d33712aacb6fa0ad84f04bfa6c951f7b9432fe820884c81d67db")]
 
-namespace Starcounter.Binding
-{
+namespace Starcounter.Binding {
+
+    /// <summary>
+    /// Registered type definitions per application.
+    /// </summary>
+    public class AppTypeDefs {
+
+        /// <summary>
+        /// The type definitions by class name.
+        /// </summary>
+        private Dictionary<string, TypeDef> typeDefsByName_ = new Dictionary<string, TypeDef>();
+
+        /// <summary>
+        /// Gets the type definition by class name.
+        /// </summary>
+        public TypeDef GetTypeDef(string name) {
+            TypeDef typeDef;
+            typeDefsByName_.TryGetValue(name, out typeDef);
+            return typeDef;
+        }
+
+        /// <summary>
+        /// Registering type definitions by name.
+        /// </summary>
+        /// <param name="typeDefs"></param>
+        public void RegisterTypeDefs(TypeDef[] typeDefs) {
+
+            // We don't have to lock here since only one thread at a time will
+            // be adding type definitions.
+
+            Dictionary<string, TypeDef> typeDefsByName = new Dictionary<string, TypeDef>(typeDefsByName_);
+            TypeDef typeDef;
+
+            for (int i = 0; i < typeDefs.Length; i++) {
+
+                typeDef = typeDefs[i];
+                // Before adding the unique name, it is necessary to check if it is already there.
+                // The only case for this if the unique name has no namespaces and a short name was added before.
+                try {
+                    typeDefsByName.Add(typeDef.Name, typeDef);
+                } catch (ArgumentException) {
+#if false // DEBUG
+                    TypeDef alreadyTypeDef;
+                    typeDefsByName.TryGetValue(typeDef.Name, out alreadyTypeDef);
+                    if (alreadyTypeDef != null)
+                        Debug.Assert(alreadyTypeDef.ShortName == typeDef.Name && alreadyTypeDef.Name != typeDef.Name);
+#endif // DEBUG
+                    typeDefsByName[typeDef.Name] = typeDef;
+                }
+                // Add lower case name if the name is not already in lower case.
+                if (typeDef.Name != typeDef.LowerName) {
+                    TypeDef alreadyTypeDef;
+                    if (typeDefsByName.TryGetValue(typeDef.LowerName, out alreadyTypeDef)) // The stored short name is the actual lower name of this only type
+                        typeDefsByName[typeDef.LowerName] = typeDef;
+                    else
+                        typeDefsByName.Add(typeDef.LowerName, typeDef);
+                }
+                // Add short name, i.e., without namespaces, if the original name is not the short name.
+                // Short name don't need to be unique, since the same class name can be given in different namespaces.
+                // It is important to check if the existing short name is actual name of a class with no namespaces.
+                if (typeDef.LowerName != typeDef.ShortName) {
+                    TypeDef alreadyTypeDef;
+                    if (typeDefsByName.TryGetValue(typeDef.ShortName, out alreadyTypeDef)) {
+                        if (alreadyTypeDef != null) // Already ambiguous short names
+                            if (typeDef.ShortName != alreadyTypeDef.LowerName) // If case-insensitive equal then stored short name is real name
+                                typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
+                    } else {
+                        typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
+                    }
+                }
+            }
+
+            typeDefsByName_ = typeDefsByName;
+        }
+    }
 
     /// <summary>
     /// Class Bindings
     /// </summary>
     public static class Bindings
     {
+        /// <summary>
+        /// Dictionary containing type definitions per application.
+        /// </summary>
+        static Dictionary<string, AppTypeDefs> typeDefsForApps_ = new Dictionary<string, AppTypeDefs>();
+
+        /// <summary>
+        /// Gets registered type definitions per application.
+        /// </summary>
+        public static AppTypeDefs GetTypeDefsForApp(String fullAppId) {
+
+            if (!typeDefsForApps_.ContainsKey(fullAppId)) {
+                typeDefsForApps_.Add(fullAppId, new AppTypeDefs());
+            }
+
+            return typeDefsForApps_[fullAppId];
+        }
 
         /// <summary>
         /// The type bindings by id_
         /// </summary>
         private static TypeBinding[] typeBindingsById_ = new TypeBinding[0];
+
         /// <summary>
         /// The type bindings by name_
         /// </summary>
@@ -35,6 +125,7 @@ namespace Starcounter.Binding
         /// The type defs by id_
         /// </summary>
         private static TypeDef[] typeDefsById_ = new TypeDef[0];
+
         /// <summary>
         /// The type defs by name_
         /// </summary>

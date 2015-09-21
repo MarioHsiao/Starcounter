@@ -19,8 +19,9 @@ IF EXIST .db (
 IF EXIST s\QueryProcessingTest\dumpQueryProcessingDB.sql DEL s\QueryProcessingTest\dumpQueryProcessingDB.sql
 
 :: For this test no extra database classes should be present, so 
-:: renaming temporary LibrariesWithDatabaseClasses directory.
+:: renaming temporary LibrariesWithDatabaseClasses and EditionLibraries directory.
 IF EXIST LibrariesWithDatabaseClasses ( RENAME LibrariesWithDatabaseClasses DontUseLibrariesWithDatabaseClasses )
+IF EXIST EditionLibraries ( RENAME EditionLibraries DontUseEditionLibraries )
 
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
@@ -33,8 +34,9 @@ sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 IF ERRORLEVEL 1 (
 
-	:: Renaming back temporary LibrariesWithDatabaseClasses directory.
+	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO Error: The query processing regression test failed!
     EXIT /b 1
@@ -66,8 +68,9 @@ sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%
 
 IF ERRORLEVEL 1 (
 
-	:: Renaming back temporary LibrariesWithDatabaseClasses directory.
+	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO Error: The query processing regression test failed!
     EXIT /b 1
@@ -77,16 +80,18 @@ sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%
 
 IF ERRORLEVEL 1 (
 
-	:: Renaming back temporary LibrariesWithDatabaseClasses directory.
+	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO Error: The query processing regression test failed!
     EXIT /b 1
 	
 ) else (
 
-	:: Renaming back temporary LibrariesWithDatabaseClasses directory.
+	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO The query processing regression test succeeded.
     EXIT /b 0

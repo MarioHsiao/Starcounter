@@ -3,7 +3,7 @@ using Starcounter.Templates;
 
 namespace Starcounter {
     // Not the right place for this class, but a temporary location to add a baseclass for
-    // polyjuice pages (with automatic return of mimetype html) and access to Self.Get().
+    // pages (with automatic return of mimetype html) and access to Self.Get().
     // Should be moved to a separate project and included in the project templates used in extension
     // for VS.
     public class Page : Json {

@@ -34,12 +34,12 @@ namespace Starcounter.Internal.Test {
                 return "/handler2";
             });
 
-            UriMapping.Map("/handler1", "/polyjuice/map1");
+            UriMapping.Map("/handler1", "/sc/mapping/map1");
 
             Response resp = Self.GET("/handler1");
             Assert.AreEqual(resp.Body, "/handler1");
 
-            resp = Self.GET("/polyjuice/map1");
+            resp = Self.GET("/sc/mapping/map1");
             Assert.AreEqual(resp.Body, "/handler1");
         }
     }

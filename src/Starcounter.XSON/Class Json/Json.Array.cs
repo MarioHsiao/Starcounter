@@ -32,6 +32,7 @@ namespace Starcounter {
             _checkBoundProperties = true;
             _cacheIndexInArr = -1;
             _transaction = TransactionHandle.Invalid;
+            _appName = StarcounterEnvironment.AppName;
             AttachCurrentTransaction();
             this.Template = templ;
             Parent = parent;

@@ -35,7 +35,7 @@ namespace Starcounter.Query {
             se.sics.prologbeans.QueryAnswer answer = null;
             try {
                 string formatedQuery = query.Replace("\r\n", "\n");
-                answer = PrologManager.CallProlog(QueryModule.DatabaseId, formatedQuery);
+                answer = PrologManager.CallProlog(Starcounter.Internal.StarcounterEnvironment.AppName + QueryModule.DatabaseId, formatedQuery);
             } catch (SqlException ex) {
                 try {
                     if (Starcounter.Query.Sql.SqlProcessor.ParseNonSelectQuery(query, slowSql, values))

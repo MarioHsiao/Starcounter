@@ -35,7 +35,7 @@ namespace Starcounter {
         /// <summary>
         /// Required URI mapping prefix.
         /// </summary>
-        const String MappingUriPrefix = "/sc/mapping/";
+        public const String MappingUriPrefix = "/sc/mapping";
 
         public class Tree {
             private Dictionary<string, MappingClassInfo> nameToNodes;
@@ -308,7 +308,7 @@ namespace Starcounter {
             if (resps.Count > 0) {
 
                 // Creating merged response.
-                if (null != Response.ResponsesMergerRoutine_) {
+                if (StarcounterEnvironment.MergeJsonSiblings) {
                     return Response.ResponsesMergerRoutine_(req, null, resps);
                 }
 
@@ -353,8 +353,10 @@ namespace Starcounter {
             }
 
             // Checking that map URI starts with mapping prefix.
-            if (!mapProcessedUri.StartsWith(MappingUriPrefix, StringComparison.InvariantCultureIgnoreCase)) {
-                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix);
+            if (!mapProcessedUri.StartsWith(MappingUriPrefix + "/", StringComparison.InvariantCultureIgnoreCase) ||
+                (mapProcessedUri.Length <= MappingUriPrefix.Length + 1)) {
+
+                throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix + "/ prefix followed by some string.");
             }
 
             lock (customMaps_) {
@@ -1168,6 +1170,7 @@ namespace Starcounter {
 
                 if (mainJson != null) {
                     mainJson._appName = resp.AppName;
+                    mainJson._wrapInAppName = true;
                 }
 
                 return resp;
@@ -1193,6 +1196,7 @@ namespace Starcounter {
             if (mainJson != null) {
 
                 mainJson._appName = mainResponse.AppName;
+                mainJson._wrapInAppName = true;
 
                 if (responses.Count == 1)
                     return mainResponse;
@@ -1221,6 +1225,7 @@ namespace Starcounter {
                             continue;
 
                         siblingJson._appName = responses[i].AppName;
+                        siblingJson._wrapInAppName = true;
 
                         if (siblingJson.StepSiblings != null) {
                             // We have another set of stepsiblings. Merge them into one list.
@@ -1273,7 +1278,7 @@ namespace Starcounter {
             if (resps.Count > 0) {
 
                 // Creating merged response.
-                if (null != Response.ResponsesMergerRoutine_) {
+                if (StarcounterEnvironment.MergeJsonSiblings) {
                     return Response.ResponsesMergerRoutine_(req, null, resps);
                 }
 

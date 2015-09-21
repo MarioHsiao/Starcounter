@@ -36,7 +36,6 @@ namespace Starcounter.Weaver {
                 "RGiesecke.DllExport.Metadata.dll",
                 "Starcounter.UriMatcher.dll",
                 "Starcounter.REST.dll",
-                "Starcounter.Node.dll",
                 "Starcounter.XSON.dll",
                 "Starcounter.Logging.dll",
                 "Starcounter.Hosting.dll",

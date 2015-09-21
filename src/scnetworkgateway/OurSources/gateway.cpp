@@ -552,7 +552,7 @@ void UriMatcherCacheEntry::Destroy() {
     }
 
     if (NULL != clang_engine_) {
-        g_gateway.clangDestroyEngineFunc_(clang_engine_);
+        g_gateway.clangDestroyFunc_(clang_engine_);
         clang_engine_ = NULL;
     }
     
@@ -2037,17 +2037,18 @@ uint32_t Gateway::Init()
 
     GW_ASSERT(clangCompileCodeAndGetFuntions_ != NULL);
 
-    clangDestroyEngineFunc_ = (ClangDestroyEngineType) GetProcAddress(
+    clangDestroyFunc_ = (ClangDestroy) GetProcAddress(
         clang_dll,
-        "ClangDestroyEngine");
+        "ClangDestroy");
 
-    GW_ASSERT(clangDestroyEngineFunc_ != NULL);
+    GW_ASSERT(clangDestroyFunc_ != NULL);
 
     // Running a test compilation.
     void* clang_engine = NULL;
     void** clang_engine_addr = &clang_engine;
 
     void* out_functions[2];
+    void* exec_module = NULL;
 
     uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
         clang_engine_addr, // Pointer to Clang engine.
@@ -2059,16 +2060,18 @@ uint32_t Gateway::Init()
         "extern \"C\" void UseIntrinsics() { asm(\"int3\");  __builtin_unreachable(); }",
 
         "Func1", // Name of functions which pointers should be returned, delimited by semicolon.
-        out_functions // Output pointers to functions.
+        out_functions, // Output pointers to functions.
+        &exec_module
         );
 
     GW_ASSERT(0 == err_code);
+    GW_ASSERT(NULL != exec_module);
 
     // Calling test function.
     typedef int (*example_func_type) ();
     GW_ASSERT(124 == (example_func_type(out_functions[0]))());
 
-    g_gateway.clangDestroyEngineFunc_(clang_engine);
+    g_gateway.clangDestroyFunc_(clang_engine);
 
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;

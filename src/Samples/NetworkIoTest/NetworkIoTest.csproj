@@ -69,11 +69,6 @@
       <Name>Starcounter.Internal</Name>
       <Private>False</Private>
     </ProjectReference>
-    <ProjectReference Include="..\..\Starcounter.Node\Starcounter.Node.csproj">
-      <Project>{b640d3ff-ed2b-46c1-b49d-584efadfcfad}</Project>
-      <Name>Starcounter.Node</Name>
-      <Private>False</Private>
-    </ProjectReference>
     <ProjectReference Include="..\..\Starcounter.Bootstrap\Starcounter.Bootstrap.csproj">
       <Project>{8278b17c-e0e9-49b7-8bda-f15282445d45}</Project>
       <Name>Starcounter.Bootstrap</Name>

@@ -130,7 +130,15 @@ namespace Starcounter.Internal
                 databaseAssembly = databaseClass.Assembly;
                 var assemblyName = new AssemblyName(databaseAssembly.FullName);
                 var typeLoader = new TypeLoader(assemblyName, databaseClass.Name);
-                typeDefs.Add(EntityClassToTypeDef(databaseClass, typeLoader));
+                var typeDef = EntityClassToTypeDef(databaseClass, typeLoader);
+
+                if (assemblyName.Name.StartsWith("Simplified.") ||
+                    assemblyName.Name.StartsWith("SocietyObjects.")) {
+
+                    typeDef.UseOnlyFullNamespaceSqlName = true;
+                }
+
+                typeDefs.Add(typeDef);
             }
 
             if (errorsFoundWithCodeScErrNonPublicFieldNotExposed > 0) {

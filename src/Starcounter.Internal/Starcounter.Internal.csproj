@@ -77,9 +77,11 @@
     <Compile Include="ErrorHandling\ParcelledError.cs" />
     <Compile Include="ErrorHandling\TestTraceListener.cs" />
     <Compile Include="EnvironmentExtensions.cs" />
+    <Compile Include="GatewayConfig.cs" />
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
+    <Compile Include="Rest\Http.cs" />
     <Compile Include="Http\Cookie.cs" />
     <Compile Include="Http\HttpHeadersUtf8.cs" />
     <Compile Include="Http\TcpSocket.cs" />
@@ -91,8 +93,12 @@
     <Compile Include="Interfaces\ITransactionManager.cs" />
     <Compile Include="Interfaces\XSON\IBindableRetriever.cs" />
     <Compile Include="LockFreeStack.cs" />
+    <Compile Include="Rest\Node.cs" />
+    <Compile Include="Rest\NodeExtensions.cs" />
+    <Compile Include="Rest\NodeTask.cs" />
     <Compile Include="Profiler\Profiler.cs" />
     <Compile Include="SchedulerResources.cs" />
+    <Compile Include="Rest\Self.cs" />
     <Compile Include="Sessions\InternalSessions.cs" />
     <Compile Include="Http\HttpStatusCodeAndReason.cs" />
     <Compile Include="Http\Request.cs" />
@@ -132,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Web" />
     <Reference Include="System.XML" />
   </ItemGroup>

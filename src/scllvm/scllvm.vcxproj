@@ -15,8 +15,8 @@
     <RootNamespace>scllvm</RootNamespace>
     <ClangSrcDir>
     </ClangSrcDir>
-    <LLVMClangSrcDir>c:\clang\llvm-3.7.0rc2.src\</LLVMClangSrcDir>
-    <LLVMClangOutDir>c:\clang\llvm-3.7.0rc2.src\VS</LLVMClangOutDir>
+    <LLVMClangSrcDir>c:\clang\llvm-3.7.0.src\</LLVMClangSrcDir>
+    <LLVMClangOutDir>c:\clang\llvm-3.7.0.src\VS</LLVMClangOutDir>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -59,7 +59,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <TreatSpecificWarningsAsErrors>4238</TreatSpecificWarningsAsErrors>
       <WarningLevel>Level3</WarningLevel>
@@ -106,7 +106,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <TreatSpecificWarningsAsErrors>4238</TreatSpecificWarningsAsErrors>
       <WarningLevel>Level4</WarningLevel>
