@@ -84,15 +84,18 @@ namespace Starcounter.Query.Sql
         /// </summary>
         /// <param name="scheduler">Representation of the current virtual processor.</param>
         /// <param name="typeDefArray">Enumerator of TypeDefs (type information).</param>
-        internal static void ExportSchemaInfo(Scheduler scheduler, String databaseId, TypeDef[] typeDefArray, Boolean useFullNamespaceOnly)
+        internal static void ExportSchemaInfo(Scheduler scheduler, String fullAppId, TypeDef[] typeDefArray, Boolean useFullNamespaceOnly)
         {
+            // Adding type definitions to application.
+            Starcounter.Binding.Bindings.GetTypeDefsForApp(fullAppId).RegisterTypeDefs(typeDefArray);
+
             // Since the scheduler.PrologSession is shared between all the threads
             // managed by the same scheduler, this method must be called within
             // the scope of a yield block. 
             String schemaFilePath = schemaFolderExternal + "/schema" + DateTime.Now.ToString("yyMMddHHmmssfff") + (new Random()).Next() + ".pl";
             try
             {
-                WriteSchemaInfoToFile(databaseId, schemaFilePath, typeDefArray, useFullNamespaceOnly);
+                WriteSchemaInfoToFile(fullAppId, schemaFilePath, typeDefArray, useFullNamespaceOnly);
             }
             catch (Exception exception)
             {
@@ -720,7 +723,7 @@ namespace Starcounter.Query.Sql
                 throw e;
         }
 
-        private static void WriteSchemaInfoToFile(String databaseId, String schemaFilePath, TypeDef[] typeDefArray, Boolean useFullNamespaceOnly)
+        private static void WriteSchemaInfoToFile(String fullAppId, String schemaFilePath, TypeDef[] typeDefArray, Boolean useFullNamespaceOnly)
         {
             StreamWriter streamWriter = null;
             //IEnumerator<ExtensionBinding> extEnumerator = null;
@@ -737,7 +740,7 @@ namespace Starcounter.Query.Sql
                 streamWriter.WriteLine("/* THIS FILE WAS AUTO-GENERATED. DO NOT EDIT! */");
                 streamWriter.WriteLine(":- multifile schemafile/2, class/4, extension/4, property/5, method/6, gmethod/7.");
                 streamWriter.WriteLine(":- dynamic schemafile/2, class/4, extension/4, property/5, method/6, gmethod/7.");
-                streamWriter.WriteLine(":- assert(schemafile('" + databaseId + "','" + schemaFilePath + "')).");
+                streamWriter.WriteLine(":- assert(schemafile('" + fullAppId + "','" + schemaFilePath + "')).");
 
                 // Export information about classes (tables).
                 streamWriter.WriteLine("/* class(databaseId,fullClassNameUpper,fullClassName,baseClassName). */");
@@ -751,24 +754,26 @@ namespace Starcounter.Query.Sql
                     shortClassNameUpper = GetShortName(typeDef.Name).ToUpperInvariant();
                     if (typeDef.BaseName != null)
                     {
-                        streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                        streamWriter.WriteLine(":- assert(class('" + fullAppId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
 
                         if (!useFullNamespaceOnly && !typeDef.UseOnlyFullNamespaceSqlName) {
 
-                            var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
-                            if (shortClassNameUpper != fullClassNameUpper)
-                                streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                            var typeDefShort = Starcounter.Binding.Bindings.GetTypeDefsForApp(fullAppId).GetTypeDef(shortClassNameUpper.ToLower());
+                            if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null)) {
+                                streamWriter.WriteLine(":- assert(class('" + fullAppId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','" + typeDef.BaseName + "')).");
+                            }
                         }
                     }
                     else
                     {
-                        streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
+                        streamWriter.WriteLine(":- assert(class('" + fullAppId + "','" + fullClassNameUpper + "','" + typeDef.Name + "','none')).");
 
                         if (!useFullNamespaceOnly && !typeDef.UseOnlyFullNamespaceSqlName) {
 
-                            var typeDefShort = Starcounter.Binding.Bindings.GetTypeDef(shortClassNameUpper.ToLower());
-                            if (shortClassNameUpper != fullClassNameUpper)
-                                streamWriter.WriteLine(":- assert(class('" + databaseId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
+                            var typeDefShort = Starcounter.Binding.Bindings.GetTypeDefsForApp(fullAppId).GetTypeDef(shortClassNameUpper.ToLower());
+                            if (shortClassNameUpper != fullClassNameUpper && (typeDefShort == typeDef || typeDefShort == null)) {
+                                streamWriter.WriteLine(":- assert(class('" + fullAppId + "','" + shortClassNameUpper + "','" + typeDef.Name + "','none')).");
+                            }
                         }
                     }
                 }
@@ -813,7 +818,7 @@ namespace Starcounter.Query.Sql
                         {
                             if (propDef.TargetTypeName != null)
                             {
-                                streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                                streamWriter.WriteLine(":- assert(property('" + fullAppId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                                     propDef.Name + "','" + propDef.TargetTypeName + "')).");
                             }
                             else
@@ -823,7 +828,7 @@ namespace Starcounter.Query.Sql
                         }
                         else
                         {
-                            streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
+                            streamWriter.WriteLine(":- assert(property('" + fullAppId + "','" + typeDef.Name + "','" + propDef.Name.ToUpperInvariant() + "','" +
                                 propDef.Name + "','" + propDef.Type.ToString() + "')).");
                             if (propDef.Name.ToUpperInvariant() == objectNoNameUpper)
                                 isUserObjectNo = true;
@@ -833,10 +838,10 @@ namespace Starcounter.Query.Sql
                     }
                     // Add hard-coded properties ObjectNo and ObjectID
                     if (!isUserObjectNo)
-                        streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + objectNoNameUpper + "','" +
+                        streamWriter.WriteLine(":- assert(property('" + fullAppId + "','" + typeDef.Name + "','" + objectNoNameUpper + "','" +
                             DbHelper.ObjectNoName + "','" + DbHelper.ObjectNoType.ToString() + "')).");
                     if (!isUserObjectID)
-                        streamWriter.WriteLine(":- assert(property('" + databaseId + "','" + typeDef.Name + "','" + objectIDNameUpper + "','" +
+                        streamWriter.WriteLine(":- assert(property('" + fullAppId + "','" + typeDef.Name + "','" + objectIDNameUpper + "','" +
                             DbHelper.ObjectIDName + "','" + DbHelper.ObjectIDType.ToString() + "')).");
                 }
 
@@ -901,7 +906,7 @@ namespace Starcounter.Query.Sql
                 //}
 
                 tickCount = Environment.TickCount - tickCount;
-                logSource.Debug("Exported SQL schema info for " + databaseId + " to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
+                logSource.Debug("Exported SQL schema info for " + fullAppId + " to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
                 //logSource.LogNotice("Exported SQL schema info for " + databaseId + " to " + schemaFilePath + " in " + tickCount.ToString() + " ms.");
             }
             finally

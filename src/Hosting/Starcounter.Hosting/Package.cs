@@ -183,16 +183,19 @@ namespace Starcounter.Hosting {
                     }
                 }
 
-                // NOTE: We update schemas within no-application context
-                // (because schemas for this app are not yet loaded in Prolog).
-                String curAppName = StarcounterEnvironment.AppName;
-                try {
-                    StarcounterEnvironment.AppName = null;
-                    UpdateDatabaseSchemaAndRegisterTypes(fullAppId, unregisteredTypeDefinitions, typeDefinitions);
+                // Checking if we already have exported schemas for this app.
+                if ((!exportedSchemas_.ContainsKey(fullAppId)) && (systemTypeDefinitions_ != null)) {
 
-                } finally {
-                    StarcounterEnvironment.AppName = curAppName;
+                    // Resetting current schema if any.
+                    QueryModule.Reset(fullAppId);
+
+                    // Adding system type definitions to this database.
+                    if (systemTypeDefinitions_ != typeDefinitions) {
+                        QueryModule.UpdateSchemaInfo(fullAppId, systemTypeDefinitions_, false);
+                    }
                 }
+
+                UpdateDatabaseSchemaAndRegisterTypes(fullAppId, unregisteredTypeDefinitions, typeDefinitions);
 
                 // Checking if there are any type definitions.
                 if (typeDefinitions.Length != 0) {
@@ -200,17 +203,10 @@ namespace Starcounter.Hosting {
                     // Checking if we already have exported schemas for this app.
                     if (!exportedSchemas_.ContainsKey(fullAppId)) {
 
-                        // Resetting current schema if any.
-                        QueryModule.Reset(fullAppId);
-
                         // Adding user type definitions (+EditionLibraries) to this database.
                         QueryModule.UpdateSchemaInfo(fullAppId, typeDefinitions, false);
 
-                        // Adding system type definitions to this database.
-                        if (systemTypeDefinitions_ != typeDefinitions) {
-                            QueryModule.UpdateSchemaInfo(fullAppId, systemTypeDefinitions_, false);
-                        }
-
+                        // Adding this app as processed.
                         exportedSchemas_.Add(fullAppId, true);
                     }
                 }
@@ -385,29 +381,20 @@ namespace Starcounter.Hosting {
 #endif
                     OnColumnsCheckedAndUpdated();
 
-                    Boolean appHasExportedTypeDefs = exportedSchemas_.ContainsKey(fullAppId);
-
                     // Checking if we already have exported schemas for this app.
-                    if (!appHasExportedTypeDefs) {
-
-                        // Resetting current schema if any.
-                        QueryModule.Reset(fullAppId);
+                    if (!exportedSchemas_.ContainsKey(fullAppId)) {
 
                         // Adding user type definitions (+EditionLibraries) to this database.
                         QueryModule.UpdateSchemaInfo(fullAppId, allTypeDefs, false);
 
-                        // Adding system type definitions to this database.
-                        if (systemTypeDefinitions_ != allTypeDefs) {
-                            QueryModule.UpdateSchemaInfo(fullAppId, systemTypeDefinitions_, false);
-                        }
-
+                        // Adding this app as processed.
                         exportedSchemas_.Add(fullAppId, true);
                     } 
                     
                     // Checking if we are in app not in plain database.
                     if (fullAppId != QueryModule.DatabaseId) {
 
-                        // Adding the new type definitions to database scope with full name generation.
+                        // Adding new type definitions to database scope with full name generation.
                         QueryModule.UpdateSchemaInfo(QueryModule.DatabaseId, unregisteredTypeDefs, true);
                     }
 
