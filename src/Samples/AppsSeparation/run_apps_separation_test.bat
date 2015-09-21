@@ -5,30 +5,33 @@ IF "%MsbuildExe%"=="" SET MsbuildExe=C:\Windows\Microsoft.NET\Framework\v4.0.303
 
 IF "%Configuration%"=="" SET Configuration=Debug
 
+:: Setting required variables.
+IF "%SC_CHECKOUT_DIR%"=="" SET SC_CHECKOUT_DIR=%cd%
+
 :: Killing existing processes.
 "%StarcounterBin%/staradmin.exe" kill all
 
 :: Building solution.
 ECHO Building solution.
-"%MsbuildExe%" "Level1\src\Samples\AppsSeparation\App1\App1.sln" /p:Configuration=%Configuration%
+"%MsbuildExe%" "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App1\App1.sln" /p:Configuration=%Configuration%
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Starting first App
 ECHO Starting App1
-star.exe "Level1\src\Samples\AppsSeparation\App1\bin\%Configuration%\App1.exe"
+star.exe "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App1\bin\%Configuration%\App1.exe"
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Starting second App
 ECHO Starting App2
-star.exe "Level1\src\Samples\AppsSeparation\App2\bin\%Configuration%\App2.exe"
+star.exe "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App2\bin\%Configuration%\App2.exe"
 IF ERRORLEVEL 1 GOTO FAILED
 
 ECHO Re-Starting App2
-star.exe "Level1\src\Samples\AppsSeparation\App2\bin\%Configuration%\App2.exe"
+star.exe "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App2\bin\%Configuration%\App2.exe"
 IF ERRORLEVEL 1 GOTO FAILED
 
 ECHO Re-Starting App1
-star.exe "Level1\src\Samples\AppsSeparation\App1\bin\%Configuration%\App1.exe"
+star.exe "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App1\bin\%Configuration%\App1.exe"
 IF ERRORLEVEL 1 GOTO FAILED
 
 ECHO Deleting database default
