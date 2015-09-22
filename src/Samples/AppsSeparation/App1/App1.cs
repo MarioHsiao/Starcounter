@@ -1,6 +1,11 @@
 ﻿using System;
 using Starcounter;
 
+[Database]
+public class App1ClassWithoutNamespace {
+    public string App1ClassWithoutNamespaceField;
+}
+
 namespace App1 {
 
     [Database]
@@ -17,7 +22,9 @@ namespace App1 {
                 "SharedDll.SharedDllClass",
                 "SharedDllClass",
                 "App1PrivateDll.App1PrivateDllClass",
-                "App1PrivateDllClass"
+                "App1PrivateDllClass",
+                "App1ClassWithoutNamespace",
+                "SharedClassWithoutNamespace"
             };
 
             foreach (String className in allowedClasses) {
