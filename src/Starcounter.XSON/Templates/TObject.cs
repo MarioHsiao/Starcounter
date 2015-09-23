@@ -282,21 +282,6 @@ namespace Starcounter.Templates {
             return t;
         }
 
-        internal static readonly Dictionary<Type, Func<TObject,string,TValue>> @switch = new Dictionary<Type, Func<TObject,string,TValue>> {
-                    { typeof(byte), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(UInt16), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(Int16), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(UInt32), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(Int32), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(UInt64), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(Int64), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(float), (TObject t, string name) => { return t.Add<TLong>(name); }},
-                    { typeof(double), (TObject t, string name) => { return t.Add<TDouble>(name); }},
-                    { typeof(decimal), (TObject t, string name) => { return t.Add<TDecimal>(name); }},
-                    { typeof(bool), (TObject t, string name) => { return t.Add<TBool>(name); }},
-                    { typeof(string), (TObject t, string name) => { return t.Add<TString>(name); }}
-            };
-
         /// <summary>
         /// Creates a new property (template) with the specified name and type.
         /// </summary>
@@ -304,39 +289,7 @@ namespace Starcounter.Templates {
         /// <param name="type">The type of the new property</param>
         /// <returns>The new property template</returns>
         public TValue Add(Type type, string name) {
-
-
-            Func<TObject, string, TValue> t;
-            if (@switch.TryGetValue(type,out t)) {
-                return t.Invoke(this,name);
-            }
-            if (typeof(IEnumerable<Json>).IsAssignableFrom(type)) {
-                return this.Add<TArray<Json>>(name);
-            }
-//            if (typeof(IEnumerator<Obj>).IsAssignableFrom(type)) {
-//                return this.Add<TArr<Obj, TDynamicObj>>(name);
-//            }
-            if (typeof(Json).IsAssignableFrom(type)) {
-                return this.Add<TObject>(name);
-            }
-            if ((typeof(IEnumerable).IsAssignableFrom(type))) {
-                return this.Add<TObjArr>(name);
-            }
-            throw new Exception(String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties", name, type.Name));
-        }
-
-        /// <summary>
-        /// Creates a new typed array property (template) with the specified name and type.
-        /// </summary>
-        /// <param name="name">The name of the new property</param>
-        /// <param name="type">The type of the new property</param>
-        /// <param name="elementType">The type of each element in the array</param>
-        /// <returns>The new property template</returns>
-        public Template Add(Type type, string name, Type elementType ) {
-
-            throw new NotImplementedException();
-
-            throw new Exception( String.Format("Cannot add the {0} property to the template as the type {1} is not supported for Json properties",name,type.Name));
+            return DynamicFunctions.AddTemplateFromType(type, this, name);
         }
 
         /// <summary>

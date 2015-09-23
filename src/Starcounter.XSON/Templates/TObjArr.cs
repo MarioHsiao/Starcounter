@@ -281,34 +281,6 @@ namespace Starcounter.Templates {
             return new Arr<Json>(parent, this);
 		}
 
-        /// <summary>
-        /// Autogenerates a template for a given data object given its (one dimensional) primitive fields and properties.
-        /// This allows you to assign a SQL result to an expando like Json object without having defined
-        /// any schema for the Json array.
-        /// </summary>
-        /// <param name="entity">An instance to create the template from</param>
-        internal void CreateElementTypeFromDataObject(object entity) {
-            var elementType = new TObject();
-            var type = entity.GetType();
-            var props = type.GetProperties(BindingFlags.Public|BindingFlags.Instance);
-            foreach (var prop in props) {
-                if (prop.CanRead) {
-                    var pt = prop.PropertyType;
-                    if (Template.IsSupportedType(pt)) {
-                        elementType.Add(pt, prop.Name);
-                    }
-                }
-            }
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-            foreach (var field in fields) {
-                var pt = field.FieldType;
-                if (Template.IsSupportedType(pt)) {
-                    elementType.Add(pt, field.Name);
-                }
-            }
-            ElementType = elementType;
-        }
-
         internal override TemplateTypeEnum TemplateTypeId {
             get { return TemplateTypeEnum.Array; }
         }
