@@ -1,12 +1,15 @@
 ﻿using System;
-using System.Dynamic;using System.Linq.Expressions;using System.Reflection;using System.Linq;using Starcounter.Templates;using System.Diagnostics;
 using System.Collections;
-using Starcounter.Internal.XSON;namespace Starcounter {        public partial class Json : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
-        /// <summary>
-        /// Provides late bound (dynamic) access to Json properties defined
-        /// in the Template of the Json object. Also supports data binding 
-        /// using the Json.Data property.
-        /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(                System.Linq.Expressions.Expression parameter,                Json value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
+using System.Dynamic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using Starcounter.Internal.XSON;
+using Starcounter.Templates;namespace Starcounter {        public partial class Json : IDynamicMetaObjectProvider {        DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(            Expression parameter) {            return new DynamicPropertyMetaObject(parameter, this);        }
+        /// <summary>
+        /// Provides late bound (dynamic) access to Json properties defined in the Template 
+        /// of the Json object. Also supports data binding using the Json.Data property.
+        /// </summary>        private class DynamicPropertyMetaObject : DynamicMetaObject {            internal DynamicPropertyMetaObject(System.Linq.Expressions.Expression parameter, Json value)                : base(parameter, BindingRestrictions.Empty, value) {            }            /// <summary>
             /// Getter implementation. See DynamicPropertyMetaObject.
             /// </summary>
             /// <param name="binder"></param>
@@ -14,9 +17,8 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                 var app = (Json)Value;
                 if (app.IsArray) {
                     return base.BindGetMember(binder);
-                }
-                else {
-                    return BindGetMemberForJsonObject(app, (TObject)app.Template, binder);
+                } else {
+                    return BindGetMemberForJsonObject(app, (TValue)app.Template, binder);
                 }
             }
 
@@ -26,11 +28,16 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
             /// <param name="template"></param>
             /// <param name="binder"></param>
             /// <returns></returns>
-            private DynamicMetaObject BindGetMemberForJsonObject( Json app, TObject template, GetMemberBinder binder ) {
+            private DynamicMetaObject BindGetMemberForJsonObject( Json app, TValue template, GetMemberBinder binder ) {
+                TValue templ = null;
 
                 MemberInfo pi = ReflectionHelper.FindPropertyOrField(RuntimeType, binder.Name);                if (pi != null)                    return base.BindGetMember(binder);
 
-                TValue templ = (TValue)(template.Properties[binder.Name]);
+                var templateAsObj = template as TObject;
+
+                if (templateAsObj != null) {
+                    templ = (TValue)(templateAsObj.Properties[binder.Name]);
+                }
 
                 if (templ == null) {
                     if (app.Data != null) {
@@ -48,17 +55,17 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                                 break;
                             }
                         }
-                        if (proptype != null) {
-                            template.OnSetUndefinedProperty(binder.Name, proptype );
+                        if (proptype != null && templateAsObj != null) {
+                            templateAsObj.OnSetUndefinedProperty(binder.Name, proptype );
                             // Check if it is there now
-                            templ = (TValue)(template.Properties[binder.Name]);
+                            templ = (TValue)(templateAsObj.Properties[binder.Name]);
                         }
                         if (templ == null) {
                             throw new Exception(String.Format("Neither the Json object or the bound Data object (an instance of {0}) contains the property {1}", app.Data.GetType().Name, binder.Name));
                         }
                     }
                 }
-//                Column c = Column.LookupColumn(binder.Name);//                Debug.WriteLine("DynamicEntity Binding Get " + binder.Name);                MethodInfo method;                if (templ is TObjArr) {                    // The GetMethod does not deal with generic signatures causing an exception                    // for the ambiguous methods GetValue<T>( TObjArr x ) and GetValue( TObjArr x).                    // We need to call GetMethods instead (probably slower).                    // See http://stackoverflow.com/questions/11566613/how-do-i-distinguish-between-generic-and-non-generic-signatures-using-getmethod
+                MethodInfo method;                if (templ is TObjArr) {                    // The GetMethod does not deal with generic signatures causing an exception                    // for the ambiguous methods GetValue<T>( TObjArr x ) and GetValue( TObjArr x).                    // We need to call GetMethods instead (probably slower).                    // See http://stackoverflow.com/questions/11566613/how-do-i-distinguish-between-generic-and-non-generic-signatures-using-getmethod
 
 					var t = templ.GetType();
 					if (t.IsGenericType) {
@@ -121,7 +128,6 @@ using Starcounter.Internal.XSON;namespace Starcounter {        public part
                     return BindSetMemberForJsonObject(binder, value, app);
                 }                
             }
-
 
             /// <summary>
             /// 
