@@ -39,7 +39,7 @@ namespace Starcounter {
                     setup.Value = request.Body;
                 });
                 return 204;
-            });
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
 
             Handle.GET("/sc/layout?{?}", (string key) => {
                 var setup = Layout.GetSetup(key);
@@ -51,7 +51,7 @@ namespace Starcounter {
                 response.Body = setup.Value;
                 response.StatusCode = 200;
                 return response;
-            });
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
 
             Handle.DELETE("/sc/layout?{?}", (string key) => {
                 Db.Transact(() => {
@@ -65,7 +65,7 @@ namespace Starcounter {
                     }
                 });
                 return 204;
-            });
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
 
             Handle.GET("/sc/generatestyles/{?}", (string app) => {
                 string sql = "SELECT i FROM Starcounter.Layout i WHERE i.Key LIKE ?";
@@ -85,7 +85,7 @@ namespace Starcounter {
                 }
 
                 return sb.ToString();
-            });
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
         }
     }
 }
