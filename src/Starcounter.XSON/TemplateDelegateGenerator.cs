@@ -153,8 +153,19 @@ namespace Starcounter.XSON {
 			
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
-            bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
-			if (bInfo.Member != null) {
+            string bind = property.Bind;
+            if (bind == null && property == json.Template) {
+                bInfo = new BindingInfo();
+                if (json.Data != null) {
+                    bInfo.BoundToType = typeof(T);
+                    bInfo.IsBoundToParent = true;
+                    bInfo.Member = json.GetType().GetProperty("Data", BindingFlags.Instance | BindingFlags.Public);
+                }
+            } else {
+                bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
+            }
+			    
+            if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<T>(bInfo, property);
 				property.BoundGetter = getLambda.Compile();
 
@@ -187,9 +198,13 @@ namespace Starcounter.XSON {
 			bool throwException;
 			Expression<Func<Json, object>> getLambda;
 			Expression<Action<Json, object>> setLambda = null;
-			
+
+            var bind = property.Bind;
+            if (bind == null)
+                return;
+
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
-			bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
+			bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<object>(bInfo, property);
 				property.BoundGetter = getLambda.Compile();
@@ -224,8 +239,12 @@ namespace Starcounter.XSON {
 			Expression<Action<Json, IEnumerable>> setLambda = null;
 			object dataObject = json.Data;
 
+            var bind = property.Bind;
+            if (bind == null)
+                return;
+
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
-			bInfo = DataBindingHelper.SearchForBinding(json, property.Bind, property, throwException);
+			bInfo = DataBindingHelper.SearchForBinding(json, bind, property, throwException);
 			if (bInfo.Member != null) {
 				getLambda = GenerateBoundGetExpression<IEnumerable>(bInfo, property);
 				property.BoundGetter = getLambda.Compile();

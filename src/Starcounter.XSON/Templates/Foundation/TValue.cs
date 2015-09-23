@@ -71,7 +71,7 @@ namespace Starcounter.Templates {
 				if (strategy == Templates.BindingStrategy.UseParent) {
 					var parent = Parent;
 					if (parent == null)
-						return BindingStrategy.Unbound;
+						return BindingStrategy.Auto;
 
 					while (!(parent is TObject))
 						parent = parent.Parent;
