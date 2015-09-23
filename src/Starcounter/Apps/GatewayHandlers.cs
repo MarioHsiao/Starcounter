@@ -132,6 +132,11 @@ namespace Starcounter
                 userCallback(clientIp, clientPort, dataBytes);
                 *isHandled = true;
 
+            } catch (Exception exc) {
+
+                LogSources.Hosting.LogException(exc);
+                return Error.SCERRUNSPECIFIED;
+
             } finally {
 
                 // Need to return all chunks here.
@@ -165,6 +170,8 @@ namespace Starcounter
             // Creating network data stream object which holds the chunk etc.
             NetworkDataStream dataStream = new NetworkDataStream(taskInfo->chunk_index, taskInfo->client_worker_id);
 
+            TcpSocket tcpSocket = null;
+
             try {
 
                 // Allocate memory on the stack that can hold a few number of transactions that are fast 
@@ -186,7 +193,7 @@ namespace Starcounter
                     dataStream.GatewayWorkerId
                     );
 
-                TcpSocket tcpSocket = new TcpSocket(dataStream, socketStruct);
+                tcpSocket = new TcpSocket(dataStream, socketStruct);
                 Debug.Assert(null != tcpSocket);
 
                 Byte[] dataBytes = null;
@@ -224,6 +231,16 @@ namespace Starcounter
                 userCallback(tcpSocket, dataBytes);
                 
                 *isHandled = true;
+
+            } catch (Exception exc) {
+
+                // Disconnecting the socket if there is an exception.
+                if (null != tcpSocket) {
+                    tcpSocket.Disconnect();
+                }
+
+                LogSources.Hosting.LogException(exc);
+                return Error.SCERRUNSPECIFIED;
 
             } finally {
 
