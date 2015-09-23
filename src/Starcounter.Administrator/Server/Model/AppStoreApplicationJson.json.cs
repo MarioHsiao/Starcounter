@@ -18,6 +18,12 @@ namespace Administrator.Server.Model {
                 // Success
                 deployedApplication.InstallApplication((installedApplication) => {
 
+                    installedApplication.StartApplication((databaseapplication) => {
+                        // Success
+                    }, (databaseapplication, wasCanceled, title, message, helpLink) => {
+                        // Error
+                    });
+
                     // Success
                 }, (installedApplication, wasCanceled, title, message, helpLink) => {
 
@@ -44,7 +50,7 @@ namespace Administrator.Server.Model {
             this.Data.DeleteApplication((deployedApplication) => {
 
                 // Success
-     
+
             }, (deployedApplication, wasCanceled, title, message, helpLink) => {
 
                 // Error
