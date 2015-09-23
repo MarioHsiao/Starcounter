@@ -1,0 +1,5 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+	"Settings" : { "$" : { "Reuse" : "Starcounter.Administrator.Server.DatabaseSettings" } }
+}
+

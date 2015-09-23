@@ -1,0 +1,10 @@
+﻿{
+	"$": { Namespace: "Administrator.Server.Model" },
+	"ID" : "",
+	"Status": 0,
+	"ResourceUri" : "",
+	"TaskUri" : "",
+	"Message" : "",
+	"Created" : ""
+}
+

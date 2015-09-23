@@ -50,7 +50,7 @@ namespace Administrator.Server.Model {
                     // Add listeners on the database instance
                     foreach (AppStoreApplication item in e.NewItems) {
 
-                        item.Database = this.Database;
+                        //item.Database = this.Database;
                         item.Changed += AppStoreApplication_Changed;
 
                         // Connect AppStoreAppliction with DatabaseApplication (if available)

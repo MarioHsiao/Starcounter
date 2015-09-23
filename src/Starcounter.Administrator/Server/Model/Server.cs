@@ -10,6 +10,7 @@ using Starcounter.Server.PublicModel.Commands;
 using Starcounter.Server.Rest.Representations.JSON;
 using Starcounter.XSON;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -31,6 +32,64 @@ namespace Administrator.Server.Model {
         internal JsonPatch JsonPatchInstance;
 
         #region Properties
+
+        private bool _CreatingDatabaseError;
+        public bool CreatingDatabaseError {
+            get {
+                return this._CreatingDatabaseError;
+            }
+            set {
+                if (this._CreatingDatabaseError == value) return;
+                this._CreatingDatabaseError = value;
+                this.OnPropertyChanged("CreatingDatabaseError");
+            }
+        }
+
+
+        #region Status
+
+        private ErrorMessage _ErrorMessage = new ErrorMessage();
+        public ErrorMessage ErrorMessage {
+            get {
+                return this._ErrorMessage;
+            }
+        }
+
+        public bool HasErrorMessage {
+            get {
+                return !(
+                string.IsNullOrEmpty(this.ErrorMessage.Title) &&
+                string.IsNullOrEmpty(this.ErrorMessage.Message) &&
+                string.IsNullOrEmpty(this.ErrorMessage.HelpLink));
+            }
+        }
+
+        private ServerStatus _Status;
+        public ServerStatus Status {
+            get {
+                return this._Status;
+            }
+            set {
+                if (this._Status == value) return;
+                this._Status = value;
+                this.OnPropertyChanged("Status");
+            }
+        }
+
+        private string _StatusText;
+        public string StatusText {
+            get {
+                return this._StatusText;
+            }
+            set {
+                if (this._StatusText == value) return;
+                this._StatusText = value;
+                this.OnPropertyChanged("StatusText");
+            }
+        }
+
+        #endregion
+
 
         /// <summary>
         /// List of databases
@@ -119,7 +178,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private  void Database_Changed(object sender, EventArgs e) {
+        private void Database_Changed(object sender, EventArgs e) {
 
             this.OnChanged(sender, e);
         }
@@ -147,13 +206,20 @@ namespace Administrator.Server.Model {
 
             foreach (DatabaseInfo databaseInfo in databaseInfos) {
 
-                Database database = GetDatabaseByUrl(databaseInfo.Uri);
+                //Database database = GetDatabaseByUrl(databaseInfo.Uri);
+                Database database = this.GetDatabase(databaseInfo.Name);
                 if (database == null) {
                     // Create
                     database = new Database();
-                    database.ID = databaseInfo.Name;
+                    database.ID = databaseInfo.Name.ToLower();
                     database.DisplayName = databaseInfo.Name;
-                    database.Url = databaseInfo.Uri;
+                    //database.Url = databaseInfo.Uri;
+
+//                    database.Url = string.Format("http://127.0.0.1:8181/api/admin/databases/{0}", database.ID); // TODO: Fix hardcodes IP and Port
+                    database.Url = string.Format("/api/admin/databases/{0}", database.ID); // TODO: Fix hardcodes IP and Port
+
+                    database.UserHttpPort = databaseInfo.Configuration.Runtime.DefaultUserHttpPort;
+
                     this.Databases.Add(database);
                 }
             }
@@ -188,7 +254,7 @@ namespace Administrator.Server.Model {
         public Database GetDatabase(string id) {
 
             foreach (var database in this.Databases) {
-                if (database.ID == id) {
+                if (string.Equals( database.ID,id, StringComparison.InvariantCultureIgnoreCase)) {
                     return database;
                 }
             }
@@ -200,15 +266,303 @@ namespace Administrator.Server.Model {
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private Database GetDatabaseByUrl(string url) {
+        //private Database GetDatabaseByUrl(string url) {
 
-            foreach (var database in this.Databases) {
-                if (database.Url == url) {
-                    return database;
+        //    // TODO: Compare two url's
+        //    foreach (var database in this.Databases) {
+        //        if (string.Equals( database.Url, url, StringComparison.InvariantCultureIgnoreCase)) {
+        //            return database;
+        //        }
+        //    }
+        //    return null;
+        //}
+
+        #region CreateDatabase
+
+        //private ConcurrentStack<Action<Database>> CreateDatabaseCallbacks = new ConcurrentStack<Action<Database>>();
+        //private ConcurrentStack<Action< bool, string, string, string>> CreateDatabaseErrorCallbacks = new ConcurrentStack<Action< bool, string, string, string>>();
+
+        /// <summary>
+        /// Create database
+        /// </summary>
+        /// <param name="completionCallback"></param>
+        /// <param name="errorCallback"></param>
+        public void CreateDatabase(DatabaseSettings settings, Action<Database> completionCallback = null, Action< bool, string, string, string> errorCallback = null) {
+
+            this.ResetErrorMessage();
+
+            this.CreatingDatabaseError = false;
+            this.Status |= ServerStatus.CreatingDatabase;
+
+            CreateDatabaseCommand command;
+            command = new CreateDatabaseCommand(Program.ServerEngine, settings.Name);
+
+            command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
+            command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
+            command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
+            command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
+            command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
+            command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;
+            command.SetupProperties.Configuration.Runtime.ImageDirectory = settings.ImageDirectory;
+            command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = settings.TransactionLogDirectory;
+            command.SetupProperties.Configuration.Runtime.PolyjuiceDatabaseFlag = settings.PolyjuiceDatabaseFlag;
+
+            command.EnableWaiting = false;
+
+            this.ExecuteCommand(command, () => {
+
+                this.Status &= ~ServerStatus.CreatingDatabase;
+
+                Database database = this.GetDatabase(settings.Name);
+                if (database == null) {
+                }
+
+                if (completionCallback != null) {
+                    completionCallback(database);
+                }
+            }, ( wasCancelled, title, message, helpLink) => {
+
+                this.Status &= ~ServerStatus.CreatingDatabase;
+                this.CreatingDatabaseError = true;
+                this.OnCommandError(title, message, helpLink);
+
+                if (errorCallback != null) {
+                    errorCallback(wasCancelled, title, message, helpLink);
+                }
+            });
+        }
+
+        #endregion
+
+        private void ResetErrorMessage() {
+
+            this.ErrorMessage.Title = string.Empty;
+            this.ErrorMessage.Message = string.Empty;
+            this.ErrorMessage.HelpLink = string.Empty;
+
+            this.OnPropertyChanged("ErrorMessage");
+            this.OnPropertyChanged("HasErrorMessage");
+        }
+
+        /// <summary>
+        /// Execut Command (Start/Stop)
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="database"></param>
+        private void ExecuteCommand(ServerCommand command, Action completionCallback = null, Action< bool, string, string, string> errorCallback = null) {
+
+            var runtime = RootHandler.Host.Runtime;
+
+            // Execute Command
+            var c = runtime.Execute(command, (commandId) => {
+
+                //if (command is CreateDatabaseCommand && this.Status.HasFlag(ServerStatus.CreatingDatabase)) {
+
+                //    return true;    // return true to cancel
+                //}
+
+                return false;   // return true to cancel
+
+            }, (commandId) => {
+
+                CommandInfo commandInfo = runtime.GetCommand(commandId);
+
+                this.StatusText = string.Empty;
+
+                if (commandInfo.HasError) {
+
+                    //Check if command was Canceled
+                    bool wasCancelled = false;
+                    if (commandInfo.HasProgress) {
+                        foreach (var p in commandInfo.Progress) {
+                            if (p.WasCancelled == true) {
+                                wasCancelled = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    ErrorInfo single = commandInfo.Errors.PickSingleServerError();
+                    var msg = single.ToErrorMessage();
+
+                    if (errorCallback != null) {
+                        errorCallback( wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                    }
+                }
+                else {
+
+                    if (completionCallback != null) {
+                        completionCallback();
+                    }
+                }
+            });
+
+            this.StatusText = c.Description;
+
+            if (c.IsCompleted) {
+
+                CommandInfo commandInfo = runtime.GetCommand(c.CorrelatedCommandId);
+
+                this.StatusText = string.Empty;
+
+                if (c.HasError) {
+
+                    //Check if command was Canceled
+                    bool wasCancelled = false;
+                    if (commandInfo.HasProgress) {
+                        foreach (var p in commandInfo.Progress) {
+                            if (p.WasCancelled == true) {
+                                wasCancelled = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    ErrorInfo single = c.Errors.PickSingleServerError();
+                    var msg = single.ToErrorMessage();
+                    if (errorCallback != null) {
+                        errorCallback( wasCancelled, command.Description, msg.Brief, msg.Helplink);
+                    }
+                }
+                else {
+                    if (completionCallback != null) {
+                        completionCallback();
+                    }
                 }
             }
-            return null;
         }
+
+        /// <summary>
+        /// Set status text
+        /// </summary>
+        /// <param name="message"></param>
+        private void OnCommandError(string title, string message, string helpLink) {
+
+            // TODO: Append errors to notification list
+
+            this.ErrorMessage.Title = title;
+            this.ErrorMessage.Message = message;
+            this.ErrorMessage.HelpLink = helpLink;
+
+            this.OnPropertyChanged("ErrorMessage");
+            this.OnPropertyChanged("HasErrorMessage");
+        }
+
+        /// <summary>
+        /// Invoke action listeners
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionListeners(ConcurrentStack<Action<Database>> listeners, Database database) {
+
+            while (listeners.Count > 0) {
+
+                Action<Database> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback( database);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Invoke action error listeners
+        /// </summary>
+        /// <param name="listeners"></param>
+        private void InvokeActionErrorListeners(ConcurrentStack<Action<bool, string, string, string>> listeners, bool wasCancelled, string title, string message, string helpLink) {
+
+            while (listeners.Count > 0) {
+
+                Action< bool, string, string, string> callback;
+                if (listeners.TryPop(out callback)) {
+                    callback( wasCancelled, title, message, helpLink);
+                }
+                else {
+                    // TODO:
+                    Console.WriteLine("TryPop() failed when it should have succeeded");
+                }
+            }
+        }
+
+        //static void CreateDb() {
+        //    try {
+
+        //        ValidationErrors validationErrors = RestUtils.GetValidationErrors(settings);
+
+        //        if (validationErrors.Items.Count > 0) {
+        //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden, BodyBytes = validationErrors.ToJsonUtf8() };
+        //        }
+
+        //        var command = new CreateDatabaseCommand(Program.ServerEngine, settings.Name) {
+        //            EnableWaiting = true
+        //        };
+
+        //        command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
+        //        command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
+        //        command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
+        //        command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
+
+        //        command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
+        //        command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;
+        //        command.SetupProperties.Configuration.Runtime.ImageDirectory = settings.ImageDirectory;
+        //        command.SetupProperties.Configuration.Runtime.TransactionLogDirectory = settings.TransactionLogDirectory;
+        //        command.SetupProperties.Configuration.Runtime.PolyjuiceDatabaseFlag = settings.PolyjuiceDatabaseFlag;
+
+        //        command.EnableWaiting = true;
+
+        //        var info = server.Execute(command);
+        //        info = server.Wait(info);
+        //        if (info.HasError) {
+
+        //            ErrorInfo single = info.Errors.PickSingleServerError();
+        //            var msg = single.ToErrorMessage();
+
+        //            //dynamic errorResultJson = new DynamicJson();
+        //            //errorResultJson.Title = info.Description;
+        //            //errorResultJson.Message = msg.Brief;
+        //            //errorResultJson.HelpLink = msg.Helplink;
+
+        //            ErrorResponse errorResponse = new ErrorResponse();
+        //            errorResponse.Text = msg.Brief;
+        //            errorResponse.StackTrace = string.Empty;
+        //            errorResponse.Helplink = msg.Helplink;
+        //            errorResponse.ServerCode = single.GetErrorCode();
+
+        //            if (single.GetErrorCode() == Error.SCERRDATABASEALREADYEXISTS) {
+        //                return new Response() { StatusCode = (ushort)422, Body = errorResponse.ToJson() };
+        //            }
+
+        //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+        //        }
+
+        //        // TODO: Return the new Created Database
+        //        // At the moment we only return the database name
+        //        Database database = ServerManager.ServerInstance.GetDatabase(settings.Name);
+        //        if (database != null) {
+        //            DatabaseJson databaseJson = new DatabaseJson();
+        //            databaseJson.Data = database;
+        //            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = databaseJson.ToJson() };
+        //        }
+
+
+        //        dynamic resultJson = new DynamicJson();
+        //        resultJson.ID = settings.Name.ToLower();
+
+        //        DatabaseInfo dbInfo = Program.ServerInterface.GetDatabaseByName(resultJson.ID);
+        //        database.Url = dbInfo.Uri;
+
+        //        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = resultJson.ToString() };
+
+        //    }
+        //    catch (Exception e) {
+        //        return RestUtils.CreateErrorResponse(e);
+        //    }
+
+        //}
+
+
 
         #region INotifyPropertyChanged Members
 
@@ -220,5 +574,13 @@ namespace Administrator.Server.Model {
         }
 
         #endregion
+    }
+
+    [Flags]
+    public enum ServerStatus : long {
+        None = 0,
+        Starting = 1,
+        Stopping = 2,
+        CreatingDatabase = 4
     }
 }

@@ -20,7 +20,7 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             // success handler
             if (successCallback != null) {
                 // TODO: Return the newly create database
-                successCallback(response.data.name);
+                successCallback(response.data.ID);
             }
         }, function (response) {
 
@@ -54,12 +54,12 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
                 else if (response.status == 422) {
                     // 422 Unprocessable Entity (WebDAV; RFC 4918)
                     // The request was well-formed but was unable to be followed due to semantic errors
-                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Message, response.data.HelpLink);
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
                 }
                 else if (response.status == 500) {
                     // 500 Server Error
                     errorHeader = "Internal Server Error";
-                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data.Message, response.data.HelpLink);
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
 
                 }
                 else {

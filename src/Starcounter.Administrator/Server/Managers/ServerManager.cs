@@ -7,6 +7,7 @@ using Starcounter.Internal;
 using Starcounter.Administrator.Server.Utilities;
 using Starcounter.XSON;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Administrator.Server.Managers {
     public class ServerManager {
@@ -30,8 +31,7 @@ namespace Administrator.Server.Managers {
             ServerManager.RegisterFullModelApi();
             ServerManager.RegisterDatabaseModelApi(8182);
 
-            //Handle.WebSocketDisconnect(ServerManager.SocketChannelName, (session) => {
-            //});
+            ExternalAPI.Register();
         }
 
         /// <summary>
@@ -245,157 +245,11 @@ namespace Administrator.Server.Managers {
                 return 200;
             });
 
-            // TODO: Do not use this API (not fully implemented)
-            Handle.POST("/__internal_api/databases/{?}/task", (string databaseName, Request request) => {
-
-                try {
-
-                    Representations.JSON.ApplicationTask task = new Representations.JSON.ApplicationTask();
-                    task.PopulateFromJson(request.Body);
-
-                    if (string.Equals("Install", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
-                        // TODO: Able to use the local ID to get the sourceUrl.
-                        //return StarcounterAdminAPI.Install(task.SourceUrl, appsRootFolder, imageResourceFolder);
-
-                        Database database = ServerInstance.GetDatabase(databaseName);
-
-                        if (database == null) {
-                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
-                            errorResponse.Text = "Database not found";
-                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
-                        }
-
-                        return Install_Task(database, task);
-                    }
-                    else if (string.Equals("Uninstall", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
-
-                        Database database = ServerInstance.GetDatabase(databaseName);
-
-                        AppStoreApplication appStoreApplication = null;
-                        foreach (AppStoreStore store in database.AppStoreStores) {
-
-                            foreach (AppStoreApplication item in store.Applications) {
-
-                                if (item.ID == task.ID) {
-                                    appStoreApplication = item;
-                                    break;
-                                }
-                            }
-                        }
-
-                        // TODO: Handle async task and errors
-                        appStoreApplication.DatabaseApplication.DeleteApplication(false, (application) => {
-
-                        }, (application, wasCancelled, title, message, helpLink) => {
-
-                        });
-
-                        //if (appStoreApplication != null) {
-                        //    appStoreApplication.DatabaseApplication.WantDeleted = true;
-
-                        //}
-                        //else {
-                        //    // TODO: Error
-                        //}
-
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
-                    }
-                    else if (string.Equals("Upgrade", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
-                        //return StarcounterAdminAPI.Upgrade(port, task.ID, appsRootFolder, imageResourceFolder);
-                    }
-                    else if (string.Equals("Start", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
-                        //return StarcounterAdminAPI.Start(task.ID, task.DatabaseName, task.Arguments, appsRootFolder);
-                    }
-                    else if (string.Equals("Stop", task.Type, StringComparison.InvariantCultureIgnoreCase)) {
-                        //return StarcounterAdminAPI.Stop(task.ID, task.DatabaseName, appsRootFolder);
-                    }
-
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.BadRequest };
-                }
-                catch (InvalidOperationException e) {
-                    Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
-                    errorResponse.Text = e.Message;
-                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Forbidden, BodyBytes = errorResponse.ToJsonUtf8() };
-                }
-                catch (Exception e) {
-                    return RestUtils.CreateErrorResponse(e);
-                }
-            });
-        }
-
-        /// <summary>
-        /// TODO: Installation Task
-        /// </summary>
-        /// <param name="database"></param>
-        /// <param name="task"></param>
-        /// <returns></returns>
-        static Response Install_Task(Database database, Representations.JSON.ApplicationTask task) {
-
-            AppStoreApplication appStoreApplication = null;
-
-//            AppStoreManager.GetApplications( database
-
-            database.InvalidateAppStoreStores(() => {
-                // Success
-            }, (title, message, helpLink) => { 
-                // Error
-            });
-
-
-            // TODO: Invalidate appstore list
-
-            // Get the application
-            foreach (AppStoreStore store in database.AppStoreStores) {
-
-                foreach (AppStoreApplication item in store.Applications) {
-
-                    if (item.ID == task.ID) {
-                        appStoreApplication = item;
-                        break;
-                    }
-                }
-
-                if (appStoreApplication != null) {
-                    break;
-                }
-            }
-
-            if (appStoreApplication == null) {
-
-                Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
-                errorResponse.Text = "Application not found";
-                return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
-            }
-
-
-
-            appStoreApplication.DeployApplication((deployedApplication) => {
-                // Success
-                // TODO: this will not work when we fix the async download mode
-
-                deployedApplication.InstallApplication((installedApplication) => {
-                    // TODO: Handle success
-                    installedApplication.StartApplication((startedApplication) => {
-                        // TODO: Handle success
-                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
-                        // TODO: Handle error
-                    });
-                }, (installedApplication, wasCancelled, title, message, helpLink) => {
-                    // TODO: Handle error
-                });
-
-                //appStoreApplication.DatabaseApplication.WantInstalled = true;
-                //appStoreApplication.DatabaseApplication.WantRunning = true;
-
-            }, (application, wasCanceled, title, message, helpLink) => {
-                // Error
-
-            });
-
-
-            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created };
 
         }
+
+
+
 
         /// <summary>
         /// Called when the server model has been changed

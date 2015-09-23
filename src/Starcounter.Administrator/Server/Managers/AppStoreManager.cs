@@ -29,6 +29,8 @@ namespace Administrator.Server.Managers {
         static string appStoreHost = "http://appstore.polyjuice.com:8787";
 #endif
 
+        static Object lockObject_ = new Object();
+
         /// <summary>
         /// Get applications from appstore
         /// </summary>
@@ -37,40 +39,51 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetApplications(AppStoreStore store, Action<IList<AppStoreApplication>> completionCallback = null, Action<string> errorCallback = null) {
 
-            if (string.IsNullOrEmpty(AppStoreManager.appStoreHost)) {
+            lock (lockObject_) {
 
-                if (errorCallback != null) {
-                    errorCallback("Configuration error, Unknown App Store host");
+                if (string.IsNullOrEmpty(AppStoreManager.appStoreHost)) {
+
+                    if (errorCallback != null) {
+                        errorCallback("Configuration error, Unknown App Store host");
+                    }
+                    return;
                 }
-                return;
-            }
-
-            Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
 
                 try {
 
-                    if (!response.IsSuccessStatusCode) {
+                    Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
 
-                        StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001] GetApplications(): StatusCode:" + response.StatusCode);
-                        if (!string.IsNullOrEmpty(response.Body)) {
-                            StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001]: resultBody:" + response.Body);
+                        try {
+
+                            if (!response.IsSuccessStatusCode) {
+
+                                StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001] GetApplications(): StatusCode:" + response.StatusCode);
+                                if (!string.IsNullOrEmpty(response.Body)) {
+                                    StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0001]: resultBody:" + response.Body);
+                                }
+
+                                throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
+                            }
+
+                            if (completionCallback != null) {
+                                completionCallback(PopulateApplicationsFromResponse(store, response));
+                            }
                         }
+                        catch (InvalidOperationException e) {
 
-                        throw new InvalidOperationException("At the moment The App Store Service is not avaiable. Try again later.");
-                    }
-
-                    if (completionCallback != null) {
-
-                        List<AppStoreApplication> results = (List<AppStoreApplication>)PopulateApplicationsFromResponse(store, response);
-                        completionCallback(results);
-                    }
+                            if (errorCallback != null) {
+                                errorCallback(e.Message);
+                            }
+                        }
+                    });
                 }
-                catch (InvalidOperationException e) {
+                catch (Exception e) {
+
                     if (errorCallback != null) {
                         errorCallback(e.Message);
                     }
                 }
-            });
+            }
         }
 
         /// <summary>
@@ -124,6 +137,7 @@ namespace Administrator.Server.Managers {
                 foreach (var remoteApp in remoteStore.Items) {
 
                     AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
+                    application.Database = store.Database;
                     application.StoreID = store.ID;
                     application.StoreUrl = storeUrl;
                     applications.Add(application);
@@ -140,24 +154,29 @@ namespace Administrator.Server.Managers {
         /// <param name="errorCallback"></param>
         public static void GetStores(Action<IList<AppStoreStore>> completionCallback = null, Action<string> errorCallback = null) {
 
-            Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
+            lock (lockObject_) {
 
-                if (!response.IsSuccessStatusCode) {
+                Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
+
+                    if (response.IsSuccessStatusCode) {
+                        if (completionCallback != null) {
+                            completionCallback(PopulateStoresFromResponse(response));
+                        }
+                        return;
+                    }
+
                     if (errorCallback != null) {
                         StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0003] GetStores(): StatusCode:" + response.StatusCode);
                         if (!string.IsNullOrEmpty(response.Body)) {
                             StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0003]: resultBody:" + response.Body);
                         }
 
-                        errorCallback("At the moment The App Store Service is not avaiable. Try again later.");
+                        if (errorCallback != null) {
+                            errorCallback("At the moment The App Store Service is not avaiable. Try again later.");
+                        }
                     }
-                    return;
-                }
-
-                if (completionCallback != null) {
-                    completionCallback(PopulateStoresFromResponse(response));
-                }
-            });
+                });
+            }
         }
 
         /// <summary>
