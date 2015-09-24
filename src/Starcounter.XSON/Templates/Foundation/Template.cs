@@ -344,11 +344,6 @@ namespace Starcounter.Templates {
         IReadOnlyList<IReadOnlyTree> IReadOnlyTree.Children { get { return _Children; } }
         protected virtual IReadOnlyList<IReadOnlyTree> _Children { get { return _emptyList; } }
 
-        protected static bool IsSupportedType(Type pt) {
-            Func<TObject, string, TValue> dummy;
-            return (TObject.@switch.TryGetValue(pt, out dummy));
-        }
-
         /// <summary>
         /// 
         /// </summary>

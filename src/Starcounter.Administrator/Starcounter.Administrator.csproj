@@ -84,6 +84,7 @@
     <Compile Include="API\Utilities\RESTUtility.cs" />
     <Compile Include="API\Handlers\RootHandler.cs" />
     <Compile Include="API\Utilities\StringExtensions.cs" />
+    <Compile Include="Server\Managers\ExternalAPI.cs" />
     <Compile Include="Server\Model\AppStoreStore.cs" />
     <Compile Include="Server\Model\DeployedConfigFile.cs" />
     <Compile Include="Server\Managers\PackageManager.cs" />
@@ -101,7 +102,7 @@
     <Compile Include="Server\Handlers\VersionCheckHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseDefaultSettingsCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\DatabaseCollectionHandler.POST.cs" />
-    <Compile Include="Server\Handlers\Unused_DatabaseCollectionHandler.GET.cs" />
+    <Compile Include="Server\Handlers\DatabaseCollectionHandler.GET.cs" />
     <Compile Include="Server\Handlers\ServerSettingsHandler.GET.cs" />
     <Compile Include="Server\Handlers\ServerSettingsHandler.PUT.cs" />
     <Compile Include="Server\Handlers\ServerLogHandler.GET.cs" />
@@ -576,6 +577,30 @@
     <None Include="app\vendor\jquery\jquery-2.1.0.min.map">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <TypedJSON Include="Server\Tasks\DeleteDatabaseTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\StartApplicationTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\StopDatabaseTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\StartDatabaseTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\InstallApplicationTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\CreateDatabaseTaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Model\DatabasesJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Server\Tasks\TaskJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
     <TypedJSON Include="Server\Representations.JSON\AppStoreStoreJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>

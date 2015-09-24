@@ -26,6 +26,7 @@ namespace Administrator.Server.Model {
     public class Database : INotifyPropertyChanged {
 
         internal JsonPatch JsonPatchInstance;
+        static Object lockObject_ = new Object();
 
         #region Properties
         private string _ID;
@@ -37,6 +38,18 @@ namespace Administrator.Server.Model {
                 if (this._ID == value) return;
                 this._ID = value;
                 this.OnPropertyChanged("ID");
+            }
+        }
+
+        private ushort _UserHttpPort;
+        public ushort UserHttpPort {
+            get {
+                return this._UserHttpPort;
+            }
+            internal set {
+                if (this._UserHttpPort == value) return;
+                this._UserHttpPort = value;
+                this.OnPropertyChanged("UserHttpPort");
             }
         }
 
@@ -200,7 +213,7 @@ namespace Administrator.Server.Model {
 
                     foreach (AppStoreStore store in e.NewItems) {
 
-                        store.Database = this;
+                        //store.Database = this;
 
                         store.Changed -= AppStoreStore_Changed;
                         store.Changed += AppStoreStore_Changed;
@@ -238,6 +251,7 @@ namespace Administrator.Server.Model {
 
                 this.OnCommandError("AppStore", errorMessage, null);
             });
+
         }
 
         void AppStoreStore_Changed(object sender, EventArgs e) {
@@ -595,6 +609,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         public void InvalidateAppStoreStores() {
 
+
             this.ResetErrorMessage();
 
             AppStoreManager.GetStores((freshStores) => {
@@ -604,6 +619,7 @@ namespace Administrator.Server.Model {
 
                 this.OnCommandError("Retriving AppStore stores", errorMessage, null);
             });
+
         }
 
         public void InvalidateAppStoreStores(Action completionCallback = null, Action<string, string, string> errorCallback = null) {
@@ -611,8 +627,8 @@ namespace Administrator.Server.Model {
             AppStoreManager.GetStores((freshStores) => {
 
                 this.UpdateAppStoreList(freshStores);
-                int counter = freshStores.Count;
-                foreach (AppStoreStore store in freshStores) {
+                int counter = this.AppStoreStores.Count;
+                foreach (AppStoreStore store in this.AppStoreStores) {
 
                     AppStoreManager.GetApplications(store, (remoteApplications) => {
 
@@ -640,90 +656,102 @@ namespace Administrator.Server.Model {
             }, (errorMessage) => {
 
                 this.OnCommandError("Retriving AppStore stores", errorMessage, null);
+
+                if (errorCallback != null) {
+                    errorCallback("Retriving AppStore stores", errorMessage, null);
+                }
+
             });
+
         }
 
         private void UpdateAppStoreList(IList<AppStoreStore> freshStores) {
 
-            // Add new stores
-            IList<AppStoreStore> newStoresList = new List<AppStoreStore>();
+            lock (lockObject_) {
 
-            foreach (AppStoreStore freshStore in freshStores) {
-
-                AppStoreStore store = this.GetStore(freshStore.ID);
-                if (store == null) {
-                    // Add store.
-                    newStoresList.Add(freshStore);
-                }
-                else {
-                    this.UpdateAppStoreItems(store);
-                }
-            }
-
-            foreach (AppStoreStore freshStore in newStoresList) {
-                this.AppStoreStores.Add(freshStore);
-            }
-
-            // Remove removed stores
-            bool bExist;
-            IList<AppStoreStore> removeStoresList = new List<AppStoreStore>();
-            foreach (AppStoreStore store in this.AppStoreStores) {
-
-                bExist = false;
+                // Add new stores
+                IList<AppStoreStore> newStoresList = new List<AppStoreStore>();
 
                 foreach (AppStoreStore freshStore in freshStores) {
-                    if (store.ID == freshStore.ID) {
-                        bExist = true;
-                        break;
+
+                    AppStoreStore store = this.GetStore(freshStore.ID);
+                    if (store == null) {
+                        // Add store.
+                        newStoresList.Add(freshStore);
+                    }
+                    else {
+                        this.UpdateAppStoreItems(store);
                     }
                 }
 
-                if (bExist == false) {
-                    removeStoresList.Add(store);
+                foreach (AppStoreStore freshStore in newStoresList) {
+                    freshStore.Database = this;
+                    this.AppStoreStores.Add(freshStore);
                 }
-            }
 
-            foreach (AppStoreStore store in removeStoresList) {
-                this.AppStoreStores.Remove(store);
+                // Remove removed stores
+                bool bExist;
+                IList<AppStoreStore> removeStoresList = new List<AppStoreStore>();
+                foreach (AppStoreStore store in this.AppStoreStores) {
+
+                    bExist = false;
+
+                    foreach (AppStoreStore freshStore in freshStores) {
+                        if (store.ID == freshStore.ID) {
+                            bExist = true;
+                            break;
+                        }
+                    }
+
+                    if (bExist == false) {
+                        removeStoresList.Add(store);
+                    }
+                }
+
+                foreach (AppStoreStore store in removeStoresList) {
+                    this.AppStoreStores.Remove(store);
+                }
             }
         }
 
         private void UpdateAppStoreApplications(AppStoreStore store, IList<AppStoreApplication> freshAppStoreApplications) {
 
-            // Add new stores
-            foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
-
-                AppStoreApplication app = this.GetAppStoreApplication(store, freshApp.ID);
-                if (app == null) {
-
-                    store.Applications.Add(freshApp);
-                }
-                else {
-                    // TODO: update app properties with freshApp properties
-                }
-            }
-
-            // Remove removed stores
-            bool bExist;
-            IList<AppStoreApplication> removeList = new List<AppStoreApplication>();
-            foreach (AppStoreApplication app in store.Applications) {
-
-                bExist = false;
-
+            lock (lockObject_) {
+                // Add new stores
                 foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
-                    if (app.ID == freshApp.ID) {
-                        bExist = true;
-                        break;
+
+                    AppStoreApplication app = this.GetAppStoreApplication(store, freshApp.ID);
+                    if (app == null) {
+
+                        store.Applications.Add(freshApp);
+                    }
+                    else {
+                        // TODO: update app properties with freshApp properties
                     }
                 }
 
-                if (bExist == false) {
-                    removeList.Add(app);
-                }
-            }
+                // Remove removed stores
+                bool bExist;
+                IList<AppStoreApplication> removeList = new List<AppStoreApplication>();
+                foreach (AppStoreApplication app in store.Applications) {
 
-            foreach (AppStoreApplication app in removeList) {
-                store.Applications.Remove(app);
+                    bExist = false;
+
+                    foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
+                        if (app.ID == freshApp.ID) {
+                            bExist = true;
+                            break;
+                        }
+                    }
+
+                    if (bExist == false) {
+                        removeList.Add(app);
+                    }
+                }
+
+                foreach (AppStoreApplication app in removeList) {
+                    store.Applications.Remove(app);
+                }
             }
         }
 
@@ -1127,7 +1155,8 @@ namespace Administrator.Server.Model {
         /// <returns></returns>
         private bool DatabaseRunningState() {
 
-            DatabaseInfo databaseInfo = RootHandler.Host.Runtime.GetDatabase(this.Url);
+            DatabaseInfo databaseInfo = Program.ServerInterface.GetDatabaseByName(this.ID);
+            //DatabaseInfo databaseInfo = RootHandler.Host.Runtime.GetDatabase(this.Url);
             return (databaseInfo != null && databaseInfo.Engine != null && databaseInfo.Engine.DatabaseProcessRunning);
         }
 

@@ -58,17 +58,13 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             StarcounterAdminAPI.ServerTaskHandler_POST(port, appStoreHost, imageResourceFolder);
 #endif
-            //StarcounterAdminAPI.InstalledApplication_PUT(port, appsRootFolder, appStoreHost, imageResourceFolder);
 
             StarcounterAdminAPI.AppStore_GET(port);
 
-            //StarcounterAdminAPI.Database_GET(port, server);
+            StarcounterAdminAPI.Database_GET(port, server);
 
             StarcounterAdminAPI.DatabaseSettings_GET(port, server);
             StarcounterAdminAPI.Applications_GET(port, appImagesSubFolder);
-            //StarcounterAdminAPI.Messages_GET(port, appsRootFolder, appImagesSubFolder);
-            //StarcounterAdminAPI.Messages_DELETE(port, appsRootFolder, appImagesSubFolder);
-            //StarcounterAdminAPI.DatabaseTask_POST(port, appsRootFolder, appImagesSubFolder);
 
             StarcounterAdminAPI.Database_PUT(port, server);
             StarcounterAdminAPI.Database_POST(port, server);

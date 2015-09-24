@@ -588,7 +588,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
             item = new Json();
             item.Value = 27;
-            Assert.Throws<Exception>(() => json.Items2.Add(item));
+            json.Items2.Add(item);
 
             string str = json.ToJson();
             Helper.ConsoleWriteLine(str);
@@ -785,6 +785,72 @@ namespace Starcounter.Internal.XSON.Tests {
             root.Items.RemoveAt(2);
             Assert.IsNull(item.Parent);
             Assert.AreEqual(3, root.Items.Count);
+        }
+
+        [Test]
+        public static void TestDynamicStringArray() {
+            var str1 = "One";
+            var str2 = "Two";
+            var str3 = "Three";
+            dynamic json = new Json();
+
+            json.Sections = new string[] { str1, str2, str3 };
+            json.Sections2 = new List<string>() { str3, str1 };
+
+            string jsonStr = json.ToJson();
+            Helper.ConsoleWriteLine(jsonStr);
+
+            
+            Assert.AreEqual(3, json.Sections.Count);
+            Assert.AreEqual(str1, json.Sections[0].StringValue);
+            Assert.AreEqual(str2, json.Sections[1].StringValue);
+            Assert.AreEqual(str3, json.Sections[2].StringValue);
+
+            Assert.AreEqual(2, json.Sections2.Count);
+            Assert.AreEqual(str3, json.Sections2[0].StringValue);
+            Assert.AreEqual(str1, json.Sections2[1].StringValue);
+        }
+
+        [Test]
+        public static void TestStringArrayAsData() {
+            var str1 = "One";
+            var str2 = "Two";
+            var str3 = "Three";
+            dynamic json = new Json();
+
+            json.Sections = new List<string>(); // Added just to create the property.
+
+            var data = new string[] { str1, str2, str3 };
+            json.Sections.Data = data;
+
+            string jsonStr = json.ToJson();
+            Helper.ConsoleWriteLine(jsonStr);
+
+            Assert.AreEqual(3, json.Sections.Count);
+            Assert.AreEqual(str1, json.Sections[0].StringValue);
+            Assert.AreEqual(str2, json.Sections[1].StringValue);
+            Assert.AreEqual(str3, json.Sections[2].StringValue);
+        }
+
+        [Test]
+        public static void TestDynamicMixedArray() {
+            var value1 = "One";
+            var value2 = 39L;
+            dynamic value3 = new Json();
+            dynamic json = new Json();
+
+            value3.Title = "JSON!";
+            json.MixedValues = new object[] { value1, value2, value3 };
+            
+            string jsonStr = json.ToJson();
+            Helper.ConsoleWriteLine(jsonStr);
+
+            Assert.AreEqual(3, json.MixedValues.Count);
+            Assert.AreEqual(value1, json.MixedValues[0].StringValue);
+            Assert.AreEqual(value2, json.MixedValues[1].IntegerValue);
+            Assert.IsInstanceOfType(typeof(Json), json.MixedValues[2]);
+            Assert.AreEqual(value3, json.MixedValues[2]);
+            Assert.AreEqual("JSON!", json.MixedValues[2].Title);
         }
     }
 }

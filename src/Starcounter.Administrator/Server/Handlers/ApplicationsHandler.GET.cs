@@ -21,7 +21,6 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                     //DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(databaseName);
 
-
                     Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
                     if (database == null) {
                         // Database not found
@@ -57,16 +56,26 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 try {
 
-                    DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(databaseName);
+                    //DatabaseInfo database = Program.ServerInterface.GetDatabaseByName(databaseName);
+                    Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
                     if (database == null) {
                         // Database not found
                         ErrorResponse errorResponse = new ErrorResponse();
-                        errorResponse.Text = string.Format("Could not find the {0} database", databaseName);
+                        errorResponse.Text = string.Format("Failed to find the {0} database", databaseName);
                         errorResponse.Helplink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
                     }
 
+                    DatabaseApplication application = database.GetApplication(id);
+                    if (application == null) {
+                        // Application not found
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.Text = string.Format("Failed to find the application, {0}", id);
+                        errorResponse.Helplink = "http://en.wikipedia.org/wiki/HTTP_404"; // TODO
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                    }
                     DatabaseApplicationJson result = new DatabaseApplicationJson();
+                    result.Data = application;
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };
                 }

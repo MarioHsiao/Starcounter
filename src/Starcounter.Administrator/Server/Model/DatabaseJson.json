@@ -4,6 +4,7 @@
 	"Url": "",
 	"DisplayName": "", 
 	"Description": "",
+	"UserHttpPort" : 0,
 	"IsRunning" : false, 
 	"Status" : 0,
 	"StatusText" : "",

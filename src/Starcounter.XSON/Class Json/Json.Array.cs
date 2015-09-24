@@ -64,6 +64,7 @@ namespace Starcounter {
         /// </remarks>
         internal void Array_InitializeAfterImplicitConversion(Json parent, TObjArr template) {
             Json newApp;
+            TValue itemTemplate;
 
             if (Template == null) {
                 Template = template;
@@ -72,16 +73,19 @@ namespace Starcounter {
 
             if (_PendingEnumeration) {
                 var notEnumeratedResult = (IEnumerable)_data;
+                var elementType = template.ElementType;
+
                 foreach (var entity in notEnumeratedResult) {
                     if (entity is Json) {
                         ((IList)this).Add(entity);
                     } else {
-                        var tobj = template.ElementType;
-                        if (tobj == null) {
-                            template.CreateElementTypeFromDataObject(entity);
-                            tobj = template.ElementType;
+                        if (elementType == null) {
+                            // no type specified on the array. Create one for this item depending on type
+                            itemTemplate = DynamicFunctions.GetTemplateFromType(entity.GetType(), true);
+                            newApp = (Json)itemTemplate.CreateInstance(this);
+                        } else {
+                            newApp = (Json)elementType.CreateInstance(this);
                         }
-                        newApp = (Json)tobj.CreateInstance(this);
 
                         // Setting only the reference to the data first to allow bindings 
                         // and other stuff be handled then setting the property data after 
