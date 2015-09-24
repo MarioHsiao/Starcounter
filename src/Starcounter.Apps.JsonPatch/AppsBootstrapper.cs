@@ -97,7 +97,7 @@ namespace Starcounter.Internal {
             SchedulerResources.Init(numSchedulers);
 
             // Getting server directory path.
-            if (!StarcounterEnvironment.IsAdministratorApp) {
+            if (!StarcounterEnvironment.IsAdministratorApp && !noNetworkGateway) {
                 StarcounterEnvironment.Server.ServerDir = Http.GET<String>("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/sc/conf/serverdir");
                 StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
             }
