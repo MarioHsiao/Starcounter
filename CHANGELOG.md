@@ -1,0 +1,11 @@
+## [Unreleased][unreleased]
+
+### Changed
+- Removal of notion of Polyjuice and major refactoring around this. Full list of changes is here:
+[Starcounter.io blog](http://starcounter.io/nightly-changes/list-breaking-changes-starting-build-2-0-3500-3/)
+- Applications are now isolated on SQL level, read more here:
+[SQL isolation](http://starcounter.io/guides/sql/sql-isolation/)
+
+### Fixed
+- Unandled exceptions in UDP/TCP handlers:
+https://github.com/Starcounter/Starcounter/issues/2886

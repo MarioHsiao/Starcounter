@@ -96,6 +96,12 @@ namespace Starcounter.Internal {
             // Creating scheduler resources.
             SchedulerResources.Init(numSchedulers);
 
+            // Getting server directory path.
+            if (!StarcounterEnvironment.IsAdministratorApp) {
+                StarcounterEnvironment.Server.ServerDir = Http.GET<String>("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/sc/conf/serverdir");
+                StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+            }
+
             if (!noNetworkGateway) {
 
                 // Registering JSON patch handlers on default user port.
@@ -129,7 +135,7 @@ namespace Starcounter.Internal {
                         RegisterRedirectHandler(defaultUserHttpPort, Handle.GET_METHOD, fromUri, toUri);
 
                         return 200;
-                    });
+                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
 
                     // Registering URI aliasing port.
                     Handle.GET(defaultSystemHttpPort, "/sc/alias/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
@@ -137,7 +143,7 @@ namespace Starcounter.Internal {
                         RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
 
                         return 200;
-                    });
+                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
                 }
             }
 
@@ -217,11 +223,9 @@ namespace Starcounter.Internal {
         /// </summary>
         static void RegisterUriAliasHandler(String httpMethod, String fromUri, String toUri, UInt16 port) {
 
-            String gatewayXml = ""; // TODO: Get gateway XML path here.
+            NetworkGateway conf = NetworkGateway.Deserealize();
 
-            GatewayConfig conf = GatewayConfig.Deserealize(gatewayXml);
-
-            GatewayConfig.UriAlias a = new GatewayConfig.UriAlias() {
+            NetworkGateway.UriAlias a = new NetworkGateway.UriAlias() {
                 HttpMethod = httpMethod,
                 FromUri = fromUri,
                 ToUri = toUri,
@@ -229,7 +233,7 @@ namespace Starcounter.Internal {
             };
 
             conf.AddOrReplaceUriAlias(a);
-            conf.UpdateConfiguration(gatewayXml);
+            conf.UpdateConfiguration();
         }
 
         /// <summary>

@@ -53,6 +53,10 @@ namespace Starcounter.Administrator.Server {
 #endif
 
             // Create a Server Engine
+            StarcounterEnvironment.Server.ServerDir = Path.GetDirectoryName(args[0]);
+            StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(
+                StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Program.ServerEngine.Setup();
             Program.ServerInterface = Program.ServerEngine.Start();
@@ -111,6 +115,10 @@ namespace Starcounter.Administrator.Server {
         /// Register default handlers
         /// </summary>
         static void RegisterHandlers() {
+
+            Handle.GET("/sc/conf/serverdir", () => {
+                return StarcounterEnvironment.Server.ServerDir;
+            });
 
             // Redirecting root to index.html.
             Handle.GET("/", () => {

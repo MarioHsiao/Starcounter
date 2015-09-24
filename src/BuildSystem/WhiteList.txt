@@ -39,6 +39,9 @@ scadmin\PickFileDialog.exe
 TestUrls.exe
 TestUrls.pdb
 
+# Change log
+CHANGELOG.md
+
 # Other files
 behemoth.dll
 behemoth.exp

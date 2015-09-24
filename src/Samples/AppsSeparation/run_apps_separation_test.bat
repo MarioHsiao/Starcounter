@@ -13,7 +13,7 @@ IF "%SC_CHECKOUT_DIR%"=="" SET SC_CHECKOUT_DIR=%cd%
 
 :: Building solution.
 ECHO Building solution.
-"%MsbuildExe%" "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App1\App1.sln" /p:ReferencePath="%StarcounterBin% /p:Configuration=%Configuration%
+"%MsbuildExe%" "%SC_CHECKOUT_DIR%\Level1\src\Samples\AppsSeparation\App1\App1.sln" /p:ReferencePath=%StarcounterBin% /p:Configuration=%Configuration%
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Starting first App

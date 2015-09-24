@@ -26,6 +26,7 @@
   <ItemGroup>
     
     <KillAllScript Include="..\BuildSystem\Scripts\kill_all.bat" />
+	<ChangeLog Include="..\..\CHANGELOG.md" />
     <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
@@ -61,6 +62,7 @@
   <!-- Builds Level0 if necessary and copies output files. -->
   <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(KillAllScript)" DestinationFolder="$(OutputPath)" />
+	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ChangeLog)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(TestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />

@@ -707,11 +707,6 @@ uint32_t Gateway::LoadReverseProxies()
         if (proxies_node)
         {
             xml_node<char>* proxy_node = proxies_node->first_node("ReverseProxy");
-            if (!proxy_node)
-            {
-                g_gateway.LogWriteCritical(L"Gateway XML: Can't read ReverseProxy property.");
-                return SCERRBADGATEWAYCONFIG;
-            }
 
             while (proxy_node)
             {
@@ -880,11 +875,6 @@ uint32_t Gateway::LoadReverseProxies()
         if (uri_aliases_node)
         {
             xml_node<char>* uri_alias_node = uri_aliases_node->first_node("UriAlias");
-            if (!uri_alias_node)
-            {
-                g_gateway.LogWriteCritical(L"Gateway XML: Can't read UriAlias property.");
-                return SCERRBADGATEWAYCONFIG;
-            }
 
             while (uri_alias_node)
             {

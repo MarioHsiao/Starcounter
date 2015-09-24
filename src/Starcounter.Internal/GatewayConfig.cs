@@ -15,7 +15,7 @@ namespace Starcounter.Internal {
     /// <summary>
     /// Network Gateway.
     /// </summary>
-    public class GatewayConfig {
+    public class NetworkGateway {
 
         static String DescriptionOrig =
     @"
@@ -129,49 +129,65 @@ namespace Starcounter.Internal {
 
         void Serialize(String gatewayXml) {
 
-            XmlSerializer x = new XmlSerializer(typeof(GatewayConfig));
+            XmlSerializer x = new XmlSerializer(typeof(NetworkGateway));
 
             using (TextWriter writer = new StreamWriter(gatewayXml)) {
                 x.Serialize(writer, this);
             }
         }
 
-        public static GatewayConfig Deserealize(String gatewayXml) {
+        public static NetworkGateway Deserealize() {
 
-            XmlSerializer mySerializer = new XmlSerializer(typeof(GatewayConfig));
+            XmlSerializer mySerializer = new XmlSerializer(typeof(NetworkGateway));
 
-            using (FileStream myFileStream = new FileStream(gatewayXml, FileMode.Open)) {
+            using (FileStream myFileStream = new FileStream(StarcounterEnvironment.Gateway.PathToGatewayConfig, FileMode.Open)) {
 
-                GatewayConfig ng = (GatewayConfig)mySerializer.Deserialize(myFileStream);
+                NetworkGateway ng = (NetworkGateway)mySerializer.Deserialize(myFileStream);
                 ng.Description = DescriptionOrig;
 
                 return ng;
             }
         }
 
-        public Boolean UpdateConfiguration(String gatewayXml) {
+        public Boolean UpdateConfiguration() {
 
-            // Serializing to the actual gateway xml.
-            Serialize(gatewayXml);
-            String bakupFile = gatewayXml + ".bak";
+            String gatewayXml = StarcounterEnvironment.Gateway.PathToGatewayConfig;
+            String backupFile = gatewayXml + ".bak";
+            Boolean updateSuccess = false;
 
-            // Serializing to backup gateway xml to restore in case of failure.
-            Serialize(bakupFile);
+            try {
 
-            // Sending update configuration request to gateway.
-            Response resp = Http.GET("http:://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
+                // Deleting existing backup file if any.
+                if (File.Exists(backupFile)) {
+                    File.Delete(backupFile);
+                }
 
-            if (resp.IsSuccessStatusCode) {
+                // Renaming current working gateway XML to backup.
+                File.Move(gatewayXml, backupFile);
 
-                // Gateway successfully updated configuration.
-                File.Delete(bakupFile);
-                return true;
+                // Serializing to the actual gateway xml.
+                Serialize(gatewayXml);
+
+                // Sending update configuration request to gateway.
+                Response resp = Http.GET("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/updateconf");
+
+                if (resp.IsSuccessStatusCode) {
+
+                    // Gateway successfully updated configuration.
+                    updateSuccess = true;
+                    File.Delete(backupFile);
+
+                    return true;
+                }
+
+            } finally {
+
+                // Gateway failed to update configuration.
+                if (!updateSuccess) {
+                    File.Delete(gatewayXml);
+                    File.Move(backupFile, gatewayXml);
+                }
             }
-
-            // Gateway failed to update configuration.
-            File.Delete(gatewayXml);
-            File.Move(bakupFile, gatewayXml);
-            File.Delete(bakupFile);
 
             return false;
         }

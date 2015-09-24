@@ -219,6 +219,16 @@ namespace Starcounter.Internal
         public static Boolean IsAdministratorApp = false;
 
         /// <summary>
+        /// Server configuration.
+        /// </summary>
+        public static class Server {
+            /// <summary>
+            /// Path to server directory.
+            /// </summary>
+            public static String ServerDir { get; internal set; }
+        }
+
+        /// <summary>
         /// Gateway configuration.
         /// </summary>
         public static class Gateway
@@ -227,6 +237,11 @@ namespace Starcounter.Internal
             /// Number of gateway workers.
             /// </summary>
             public static Byte NumberOfWorkers { get; internal set; }
+
+            /// <summary>
+            /// Path to gateway configuration file.
+            /// </summary>
+            public static String PathToGatewayConfig { get; internal set; }
         }
 
         /// <summary>
