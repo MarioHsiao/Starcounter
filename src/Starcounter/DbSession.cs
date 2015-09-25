@@ -14,6 +14,12 @@ namespace Starcounter.Internal {
         /// Called to execute the task.
         /// </summary>
         void Run();
+
+        /// <summary>
+        /// Getting exception.
+        /// </summary>
+        /// <returns></returns>
+        Exception GetException();
     }
 
     /// <summary>
@@ -82,7 +88,9 @@ namespace Starcounter {
             }
         }
 
-        internal Exception GetException() { return exception_; }
+        public Exception GetException() {
+            return exception_;
+        }
     }
 
     /// <summary>
@@ -101,7 +109,14 @@ namespace Starcounter {
         /// </remarks>
         public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
             unsafe {
-                TaskScheduler.Run(new Task(action, null), schedId);
+                String curAppName = StarcounterEnvironment.AppName;
+
+                TaskScheduler.Run(new Task(
+                () => {
+                    // NOTE: Setting current application name, since StarcounterEnvironment.AppName is thread static.
+                    StarcounterEnvironment.AppName = curAppName;
+                    action();
+                }, null), schedId);
             }
         }
 
@@ -133,7 +148,14 @@ namespace Starcounter {
                     r = sccorelib.cm3_mevt_new(null, 0, &hEvent);
                     if (r == 0) {
                         try {
-                            var task = new Task(action, hEvent);
+                            String curAppName = StarcounterEnvironment.AppName;
+
+                            var task = new Task(
+                            () => {
+                                // NOTE: Setting current application name, since StarcounterEnvironment.AppName is thread static.
+                                StarcounterEnvironment.AppName = curAppName;
+                                action();
+                            }, hEvent);
 
                             TaskScheduler.Run(task, schedId);
 
