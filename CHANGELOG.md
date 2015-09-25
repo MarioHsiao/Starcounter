@@ -9,3 +9,5 @@
 ### Fixed
 - Unandled exceptions in UDP/TCP handlers:
 https://github.com/Starcounter/Starcounter/issues/2886
+- Setting AppName in DbSession.* calls, as well as processing unhandled exceptions there.
+
