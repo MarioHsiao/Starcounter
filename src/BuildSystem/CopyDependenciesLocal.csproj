@@ -37,6 +37,8 @@
 
     <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
     
+	<ClientFiles Include="ClientFiles\**\*" />
+	
   </ItemGroup>
   
   <!-- Builds Level0 if necessary and copies output files. -->
@@ -55,6 +57,7 @@
     
     <!-- Copying to Level1 output. -->
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalLevel0BinFiles)" DestinationFiles="@(LocalLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
+	
   </Target>
 
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
@@ -69,6 +72,8 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
+	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
+
   </Target>
   
   <Target Name="Rebuild" DependsOnTargets="CopyLocalFiles" />
