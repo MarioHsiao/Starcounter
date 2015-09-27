@@ -203,7 +203,7 @@ namespace Administrator.Server.Model {
             this.PropertyChanged += Database_PropertyChanged;
             this.Applications.CollectionChanged += DatabaseApplications_CollectionChanged;
             // TODO: Andwah plz fix this: https://github.com/Starcounter/Starcounter/issues/2912
-            //this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
+            this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
             this.JsonPatchInstance = new JsonPatch();
         }
 
