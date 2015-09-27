@@ -871,6 +871,10 @@ namespace Administrator.Server.Model {
 
         private void ResetErrorMessage() {
 
+            if (string.IsNullOrEmpty(this.ErrorMessage.Title) && string.IsNullOrEmpty(this.ErrorMessage.Message) && string.IsNullOrEmpty(this.ErrorMessage.HelpLink)) {
+                // No change
+                return;
+            }
             this.ErrorMessage.Title = string.Empty;
             this.ErrorMessage.Message = string.Empty;
             this.ErrorMessage.HelpLink = string.Empty;

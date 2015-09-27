@@ -212,41 +212,18 @@ namespace Administrator.Server.Model {
                     this._DatabaseApplication.Changed += _DatabaseApplication_Changed;
                 }
 
-                //this.SetCanUpgradeFlag();
-
                 this.OnPropertyChanged("HasDatabaseAppliction");
                 this.OnPropertyChanged("DatabaseApplication");
                 this.OnPropertyChanged("IsRunning");
                 this.OnPropertyChanged("IsInstalled");
                 this.OnPropertyChanged("CanBeUninstalled");
                 this.OnPropertyChanged("IsDeployed");
-                //this.OnPropertyChanged("ErrorMessage");
-                //this.OnPropertyChanged("HasErrorMessage");
-                //this.OnPropertyChanged("Status");
-                //this.OnPropertyChanged("StatusText");
             }
         }
 
         void _DatabaseApplication_Changed(object sender, EventArgs e) {
 
             if (sender is DatabaseApplication && e is PropertyChangedEventArgs) {
-
-                //if (((PropertyChangedEventArgs)e).PropertyName == "HasErrorMessage") {
-                //    this.OnPropertyChanged("HasErrorMessage");
-                //}
-
-                //if (((PropertyChangedEventArgs)e).PropertyName == "ErrorMessage") {
-
-                //    // Copy app error message to the AppStore app
-                //    ErrorMessage err = ((DatabaseApplication)sender).ErrorMessage;
-
-                //    this.ErrorMessage.Message = err.Message;
-                //    this.ErrorMessage.Title = err.Title;
-                //    this.ErrorMessage.HelpLink = err.HelpLink;
-
-                //    this.OnPropertyChanged("ErrorMessage");
-                //    this.OnPropertyChanged("HasErrorMessage");
-                //}
 
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsRunning") {
                     this.OnPropertyChanged("IsRunning");
@@ -260,16 +237,9 @@ namespace Administrator.Server.Model {
                 if (((PropertyChangedEventArgs)e).PropertyName == "IsDeployed") {
                     this.OnPropertyChanged("IsDeployed");
                 }
-                //if (((PropertyChangedEventArgs)e).PropertyName == "Status") {
-                //    this.OnPropertyChanged("Status");
-                //}
-                //if (((PropertyChangedEventArgs)e).PropertyName == "StatusText") {
-                //    this.OnPropertyChanged("StatusText");
-                //}
-
             }
 
-            this.OnChanged(sender, e);
+            //this.OnChanged(sender, e);
         }
 
         #endregion
@@ -695,6 +665,10 @@ namespace Administrator.Server.Model {
 
         private void ResetErrorMessage() {
 
+            if (string.IsNullOrEmpty(this.ErrorMessage.Title) && string.IsNullOrEmpty(this.ErrorMessage.Message) && string.IsNullOrEmpty(this.ErrorMessage.HelpLink)) {
+                // No change
+                return;
+            }
             this.ErrorMessage.Title = string.Empty;
             this.ErrorMessage.Message = string.Empty;
             this.ErrorMessage.HelpLink = string.Empty;
