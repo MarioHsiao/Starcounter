@@ -60,11 +60,9 @@ namespace StarcounterInternal.Hosting
 
                             case sccorelib_ext.TYPE_RUN_TASK:
 
-
                                 lock (TaskSchedulerImpl.myLock) {
                                     TaskSchedulerImpl.cnt--;
                                 }
-
 
                                 RunTask((IntPtr)task_data.Output3);
                                 break;
@@ -108,6 +106,12 @@ namespace StarcounterInternal.Hosting
                     TransactionManager.CreateImplicitAndSetCurrent(true);
 
                 task.Run();
+
+                // Checking if any exception was thrown.
+                var e = task.GetException();
+                if (e != null) {
+                    throw e;
+                }
             } finally {
                 TransactionManager.Cleanup();
             }
