@@ -15,7 +15,7 @@ namespace Starcounter.Administrator.Server.Handlers {
 
             // Get a list with all available local applications  (Deployed,Installed,Running)
             // Note: Remote AppStore applications is not included
-            Handle.GET("/api/admin/database/{?}/applications", (string databaseName, Request req) => {
+            Handle.GET("/api/admin/databases/{?}/applications", (string databaseName, Request req) => {
 
                 try {
 
@@ -52,7 +52,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             });
 
             // Get application
-            Handle.GET("/api/admin/database/{?}/applications/{?}", (string databaseName, string id, Request req) => {
+            Handle.GET("/api/admin/databases/{?}/applications/{?}", (string databaseName, string id, Request req) => {
 
                 try {
 

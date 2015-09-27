@@ -306,7 +306,7 @@ namespace Administrator.Server.Managers {
                                     // TODO: Handle success
                                     installedApplication.StartApplication((startedApplication) => {
                                         // TODO: Handle success
-                                        taskItem.ResourceUri = string.Format("/api/admin/database/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                        taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
                                         taskItem.Status = 0; // Done;
                                     }, (startedApplication, wasCancelled, title, message, helpLink) => {
                                         // TODO: Handle error
@@ -316,7 +316,7 @@ namespace Administrator.Server.Managers {
                                 }
                                 else {
 
-                                    taskItem.ResourceUri = string.Format("/api/admin/database/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                    taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
                                     taskItem.Status = 0; // Done;
                                 }
 
@@ -370,7 +370,7 @@ namespace Administrator.Server.Managers {
 
             databaseApplication.StartApplication((startedApplication) => {
 
-                taskItem.ResourceUri = string.Format("/api/admin/database/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
                 taskItem.Status = 0; // Done;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {
 

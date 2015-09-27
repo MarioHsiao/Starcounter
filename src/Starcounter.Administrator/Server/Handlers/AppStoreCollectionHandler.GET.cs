@@ -13,7 +13,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         public static void AppStore_GET(ushort port) {
 
             // Get stores
-            Handle.GET(port, "/api/admin/database/{?}/appstore/stores", (string databaseName, Request req) => {
+            Handle.GET(port, "/api/admin/databases/{?}/appstore/stores", (string databaseName, Request req) => {
                 try {
 
                     Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
@@ -47,7 +47,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             });
 
             // Get Store
-            Handle.GET(port, "/api/admin/database/{?}/appstore/stores/{?}", (string databaseName, string storeId, Request req) => {
+            Handle.GET(port, "/api/admin/databases/{?}/appstore/stores/{?}", (string databaseName, string storeId, Request req) => {
 
                 // Get database
                 Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
@@ -83,7 +83,7 @@ namespace Starcounter.Administrator.Server.Handlers {
             });
 
             // Get store applications
-            Handle.GET(port, "/api/admin/database/{?}/appstore/stores/{?}/applications", (string databaseName, string storeId, Request req) => {
+            Handle.GET(port, "/api/admin/databases/{?}/appstore/stores/{?}/applications", (string databaseName, string storeId, Request req) => {
 
                 // Get database
                 Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
@@ -160,7 +160,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                 return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
             });
 
-            Handle.GET(port, "/api/admin/database/{?}/appstore/stores/{?}/applications/{?}", (string databaseName, string storeId, string appId, Request req) => {
+            Handle.GET(port, "/api/admin/databases/{?}/appstore/stores/{?}/applications/{?}", (string databaseName, string storeId, string appId, Request req) => {
                 // TODO: Get store application
                 return System.Net.HttpStatusCode.NotImplemented;
             });
