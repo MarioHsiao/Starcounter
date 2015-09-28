@@ -146,6 +146,7 @@ public:
 		lang_options.RTTI = 1;
 		lang_options.Bool = 1;
 		lang_options.CPlusPlus = 1;
+		lang_options.CPlusPlus11 = 1;
 
 		if (do_optimizations) {
 			lang_options.Optimize = 1;
@@ -195,15 +196,15 @@ public:
 		llvm::Module* module = codegen_->ReleaseModule();
 		assert(module && "Can't release module by some reason!");
 
-		std::unique_ptr<llvm::Module> m(module);
 		std::string error_str;
 
 		llvm::ExecutionEngine* exec_engine = NULL;
 
 		if (do_optimizations) {
 
-			exec_engine = llvm::EngineBuilder(std::move(m))
+			exec_engine = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
 				.setErrorStr(&error_str)
+				.setCodeModel(llvm::CodeModel::JITDefault)
 				.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
 				.setEngineKind(EngineKind::JIT)
 				.setOptLevel(CodeGenOpt::Aggressive)
@@ -212,8 +213,9 @@ public:
 		}
 		else {
 
-			exec_engine = llvm::EngineBuilder(std::move(m))
+			exec_engine = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
 				.setErrorStr(&error_str)
+				.setCodeModel(llvm::CodeModel::JITDefault)
 				.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
 				.setEngineKind(EngineKind::JIT)
 				.setOptLevel(CodeGenOpt::None)
@@ -221,6 +223,9 @@ public:
 		}
 
 		assert((NULL != exec_engine) && "Can't create execution engine by some reason!");
+
+		// Setting module data layout as from execution engine.
+		module->setDataLayout(*exec_engine->getDataLayout());
 
 		// Finalizing MCJIT execution engine (does relocation).
 		exec_engine->finalizeObject();
