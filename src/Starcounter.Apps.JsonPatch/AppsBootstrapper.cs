@@ -8,6 +8,7 @@ using Starcounter.Internal.Web;
 using Starcounter.Logging;
 using Starcounter.Rest;
 using System.Collections.Concurrent;
+using System.Web;
 
 namespace Starcounter.Internal {
 
@@ -21,8 +22,7 @@ namespace Starcounter.Internal {
     public static class AppsBootstrapper {
 
         private static AppRestServer AppServer_;
-        internal static AppRestServer AppServer
-        {
+        internal static AppRestServer AppServer {
             get { return AppServer_; }
         }
 
@@ -43,8 +43,7 @@ namespace Starcounter.Internal {
             UInt16 defaultSystemHttpPort,
             UInt32 sessionTimeoutMinutes,
             String dbName,
-            Boolean noNetworkGateway)
-        {
+            Boolean noNetworkGateway) {
             // Setting host exception logging for internal.
             Diagnostics.SetHostLogException((Exception exc) => {
                 LogSources.Hosting.LogException(exc);
@@ -145,22 +144,26 @@ namespace Starcounter.Internal {
                         return 200;
                     }, new HandlerOptions() { SkipMiddlewareFilters = true });
                 }
+                else {
+
+                    // Registering Reverse proxy handlers
+                    RegisterReverseProxyHandlers(defaultSystemHttpPort);
+                }
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
             DbSession dbSession = new DbSession();
             int interval = 1000 * 60;
             sessionCleanupTimer_ = new Timer((state) => {
-                    // Schedule a job to check once for inactive sessions on each scheduler.
-                    for (Byte i = 0; i < numSchedulers; i++)
-                    {
-                        // Getting sessions for current scheduler.
-                        SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
-                        dbSession.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
-                    }                                
-                }, 
+                // Schedule a job to check once for inactive sessions on each scheduler.
+                for (Byte i = 0; i < numSchedulers; i++) {
+                    // Getting sessions for current scheduler.
+                    SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
+                    dbSession.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
+                }
+            },
                 null, interval, interval);
-            
+
             // Starting procedure to update current date header for every response.
             dateUpdateTimer_ = new Timer(Response.HttpDateUpdateProcedure, null, 1000, 1000);
         }
@@ -195,7 +198,8 @@ namespace Starcounter.Internal {
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
                 if (StarcounterEnvironment.IsAdministratorApp) {
                     port = StarcounterEnvironment.Default.SystemHttpPort;
-                } else {
+                }
+                else {
                     port = StarcounterEnvironment.Default.UserHttpPort;
                 }
             }
@@ -262,10 +266,108 @@ namespace Starcounter.Internal {
                     ProxyDelegateTrigger = true
                 });
 
-            } finally {
+            }
+            finally {
 
                 StarcounterEnvironment.AppName = origAppName;
             }
+        }
+
+        /// <summary>
+        /// Registering reverse proxy handler.
+        /// </summary>
+        static void RegisterReverseProxyHandlers(ushort port) {
+
+            Handle.GET(port, "/sc/reverseproxies", () => {
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+                    ReverseProxiesJson reverseProxiesJson = new ReverseProxiesJson();
+                    reverseProxiesJson.Items.Data = conf.ReverseProxies;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, Body = reverseProxiesJson.ToJson() };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+
+            Handle.PUT(port, "/sc/reverseproxies", (Request req) => {
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+
+                    Starcounter.Internal.NetworkGateway.ReverseProxy reverseProxy = new NetworkGateway.ReverseProxy();
+                    ReverseProxyJson reverseProxyJson = new ReverseProxyJson();
+                    reverseProxyJson.Data = reverseProxy;
+                    reverseProxyJson.PopulateFromJson(req.Body);
+
+                    bool bExists = conf.AddOrReplaceReverseProxy(reverseProxy);
+
+                    if (bExists) {
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NoContent };
+                    }
+
+                    bool bSuccess = conf.UpdateConfiguration();
+                    if (bSuccess == false) {
+                        ErrorResponse errorResponse = new ErrorResponse();
+                        errorResponse.message = "Failed to update the configuration file, Consult the Starcounter log for more information.";
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                    }
+
+                    Dictionary<String, String> headersDictionary = new Dictionary<string, string>();
+                    headersDictionary.Add("Location", string.Format("{0}/{1}/{2}", req.Uri, HttpUtility.UrlEncode(reverseProxy.MatchingHost), reverseProxy.StarcounterProxyPort));
+
+                    return new Response() { HeadersDictionary = headersDictionary, StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = reverseProxyJson.ToJson() };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+
+
+            Handle.DELETE(port, "/sc/reverseproxies/{?}/{?}", (string matchingHost, string starcounterProxyPort, Request req) => {
+                try {
+                    NetworkGateway conf = NetworkGateway.Deserealize();
+
+                    Starcounter.Internal.NetworkGateway.ReverseProxy reverseProxy = new NetworkGateway.ReverseProxy() { MatchingHost = HttpUtility.UrlDecode(matchingHost), StarcounterProxyPort = ushort.Parse(starcounterProxyPort) };
+
+                    bool bRemoved = conf.RemoveReverseProxy(reverseProxy);
+
+                    if (bRemoved) {
+                        bool bSuccess = conf.UpdateConfiguration();
+                        if (bSuccess == false) {
+                            ErrorResponse errorResponse = new ErrorResponse();
+                            errorResponse.message = "Failed to update the configuration file, Consult the Starcounter log for more information.";
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                        }
+                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK };
+                    }
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound };
+                }
+                catch (Exception e) {
+
+                    ErrorResponse errorResponse = new ErrorResponse();
+                    errorResponse.message = e.Message;
+                    errorResponse.stackTrace = e.StackTrace;
+                    errorResponse.helpLink = e.HelpLink;
+
+                    return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
+                }
+
+            }, new HandlerOptions() { SkipMiddlewareFilters = true });
         }
 
         /// <summary>
@@ -303,7 +405,8 @@ namespace Starcounter.Internal {
 
                     fullPathToResourcesDir = extendedResourceDirPath;
 
-                } else {
+                }
+                else {
 
                     extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.WebRootFolderName);
 
@@ -358,18 +461,21 @@ namespace Starcounter.Internal {
                         req);
                 }
 
-            } catch (ResponseException exc) {
+            }
+            catch (ResponseException exc) {
 
                 resp = exc.ResponseObject;
                 resp.ConnFlags = Response.ConnectionFlags.DisconnectAfterSend;
 
-            } catch (UriInjectMethods.IncorrectSessionException) {
+            }
+            catch (UriInjectMethods.IncorrectSessionException) {
 
                 resp = Response.FromStatusCode(400);
                 resp.Body = "Incorrect session supplied!";
                 resp["Connection"] = "close";
 
-            } catch (Exception exc) {
+            }
+            catch (Exception exc) {
 
                 // Logging the exception to server log.
                 LogSources.Hosting.LogException(exc);
@@ -388,35 +494,36 @@ namespace Starcounter.Internal {
                 case HandlerStatusInternal.ResourceNotFound:
                 case HandlerStatusInternal.Done: {
 
-                    // Creating response serialization buffer.
-                    if (responseSerializationBuffer_ == null) {
-                        responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
-                    }
+                        // Creating response serialization buffer.
+                        if (responseSerializationBuffer_ == null) {
+                            responseSerializationBuffer_ = new Byte[DefaultResponseSerializationBufferSize];
+                        }
 
-                    // Standard response send.
-                    try {
-                        req.SendResponse(resp, responseSerializationBuffer_);
-                    } catch (Exception ex) {
-                        // Exception when constructing or sending response. Can happen for example 
-                        // if the mimeconverter for the resource fails.
-                        LogSources.Hosting.LogException(ex);
-                        resp = Response.FromStatusCode(500);
-                        resp.Body = AppRestServer.GetExceptionString(ex);
-                        resp.ContentType = "text/plain";
-                        req.SendResponse(resp, responseSerializationBuffer_);
-                    }
+                        // Standard response send.
+                        try {
+                            req.SendResponse(resp, responseSerializationBuffer_);
+                        }
+                        catch (Exception ex) {
+                            // Exception when constructing or sending response. Can happen for example 
+                            // if the mimeconverter for the resource fails.
+                            LogSources.Hosting.LogException(ex);
+                            resp = Response.FromStatusCode(500);
+                            resp.Body = AppRestServer.GetExceptionString(ex);
+                            resp.ContentType = "text/plain";
+                            req.SendResponse(resp, responseSerializationBuffer_);
+                        }
 
-                    break;
-                }
+                        break;
+                    }
 
                 default: {
 
-                    // Checking if request should be finalized.
-                    if (req.ShouldBeFinalized())
-                        req.CreateFinalizer();
+                        // Checking if request should be finalized.
+                        if (req.ShouldBeFinalized())
+                            req.CreateFinalizer();
 
-                    break;
-                }
+                        break;
+                    }
             }
 
             return true;
