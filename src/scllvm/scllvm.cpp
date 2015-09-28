@@ -204,7 +204,8 @@ public:
 
 			exec_engine = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
 				.setErrorStr(&error_str)
-				.setCodeModel(llvm::CodeModel::JITDefault)
+				.setCodeModel(llvm::CodeModel::Large)
+				.setRelocationModel(llvm::Reloc::Static)
 				.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
 				.setEngineKind(EngineKind::JIT)
 				.setOptLevel(CodeGenOpt::Aggressive)
@@ -215,7 +216,8 @@ public:
 
 			exec_engine = llvm::EngineBuilder(std::unique_ptr<llvm::Module>(module))
 				.setErrorStr(&error_str)
-				.setCodeModel(llvm::CodeModel::JITDefault)
+				.setCodeModel(llvm::CodeModel::Large)
+				.setRelocationModel(llvm::Reloc::Static)
 				.setMCJITMemoryManager(llvm::make_unique<SectionMemoryManager>())
 				.setEngineKind(EngineKind::JIT)
 				.setOptLevel(CodeGenOpt::None)
