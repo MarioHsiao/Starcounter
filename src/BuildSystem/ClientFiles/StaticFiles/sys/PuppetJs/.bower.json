@@ -17,7 +17,7 @@
     "node_modules"
   ],
   "dependencies": {
-    "fast-json-patch": "Starcounter-Jack/JSON-Patch#~0.5.1",
+    "fast-json-patch": "Starcounter-Jack/JSON-Patch#~0.5.3",
     "json-patch-queue": "PuppetJs/JSON-Patch-Queue#gh-pages",
     "json-patch-ot-agent": "PuppetJs/JSON-Patch-OT-agent#gh-pages",
     "json-patch-ot": "PuppetJs/JSON-Patch-OT#gh-pages"
@@ -26,14 +26,14 @@
     "polymer": "Polymer/polymer#<0.8.0",
     "model-operations": "Polyjuice/model-operations"
   },
-  "version": "1.2.1",
-  "_release": "1.2.1",
+  "_release": "dddac29cfa",
   "_resolution": {
-    "type": "version",
-    "tag": "1.2.1",
-    "commit": "cc886d196c55e4fe560ab99f7d44bc570de60146"
+    "type": "branch",
+    "branch": "issues/65",
+    "commit": "dddac29cfa99a8eb461d4dc964f1c147c6a1aaae"
   },
   "_source": "git://github.com/PuppetJs/PuppetJs.git",
-  "_target": ">=1.0.1",
-  "_originalSource": "PuppetJs/PuppetJs"
+  "_target": "issues/65",
+  "_originalSource": "PuppetJs",
+  "_direct": true
 }

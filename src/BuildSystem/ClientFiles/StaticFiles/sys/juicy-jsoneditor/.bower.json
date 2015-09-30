@@ -23,12 +23,12 @@
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
   "homepage": "https://github.com/Juicy/juicy-jsoneditor",
-  "version": "0.0.7",
-  "_release": "0.0.7",
+  "version": "0.0.8",
+  "_release": "0.0.8",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.7",
-    "commit": "2e0aed4dcebf26a45e7dce30ee11339fef883647"
+    "tag": "0.0.8",
+    "commit": "be437f5c17280382c5722b5413896b0843aa3037"
   },
   "_source": "git://github.com/Juicy/juicy-jsoneditor.git",
   "_target": "~0.0.5",

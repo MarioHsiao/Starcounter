@@ -1,26 +1,26 @@
 {
   "name": "imported-template",
-  "version": "0.0.10",
-  "dependencies": {
-    "polymer": "Polymer/polymer#<0.8.0"
-  },
+  "version": "1.0.1",
   "devDependencies": {
-    "github-button": "zenorocha/github-button",
-    "core-menu": "Polymer/core-menu",
-    "core-item": "Polymer/core-item",
-    "core-icon": "Polymer/core-icon"
+    "dom-bind-notifier": "~1.0.0",
+    "iron-icon": "PolymerElements/iron-icon#~1.0.4",
+    "iron-iconset-svg": "PolymerElements/iron-iconset-svg#~1.0.4"
   },
   "keywords": [
-    "polymer",
-    "web-components"
+    "html",
+    "include",
+    "partial",
+    "template",
+    "web-components",
+    "polymer"
   ],
   "homepage": "https://github.com/Juicy/imported-template",
   "authors": [
+    "Tomek Wytrebowicz <tomalecpub@gmail.com>",
     "Joachim Wester <joachimwester@me.com>",
-    "Marcin Warpechowski <marcin@nextgen.pl>",
-    "Tomek Wytrebowicz <tomalecpub@gmail.com>"
+    "Marcin Warpechowski <marcin@nextgen.pl>"
   ],
-  "description": "`<imported-template>` is a custom element that let's you load HTML partials into your Web Components, and take full control over loaded `<script>`s and `<link rel=\\\"import\\\">`s.",
+  "description": "`<imported-template>` is a custom element that let's you load HTML partials into your Web Components, and take full control over loaded `<script>`s and `<link rel=\\\"import\\\">`s.Thanks to HTML Imports - caching, script execution, etc. is completely native. It also provides simple data-binding feature, that plays nice with Polymer or pure JavaScript + HTML data-binding.",
   "main": "./imported-template.html",
   "license": "MIT",
   "ignore": [
@@ -33,13 +33,16 @@
     "examples",
     "preview.png"
   ],
-  "_release": "0.0.10",
+  "dependencies": {
+    "juicy-html": ">=1.0.0"
+  },
+  "_release": "1.0.1",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.10",
-    "commit": "e06c2261dc8b5e852754de2d709dd3db6d074a13"
+    "tag": "1.0.1",
+    "commit": "f5f65d831de95f3fd8980001367939054199771d"
   },
   "_source": "git://github.com/Juicy/imported-template.git",
-  "_target": "~0.0.9",
+  "_target": ">=1.0.1",
   "_originalSource": "imported-template"
 }
