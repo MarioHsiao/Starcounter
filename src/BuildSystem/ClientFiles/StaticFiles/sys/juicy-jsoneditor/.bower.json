@@ -15,7 +15,7 @@
     "preview.png"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^0.5.6",
+    "polymer": "Polymer/polymer#~1.1.4",
     "jsoneditor": "josdejong/jsoneditor#^4.2.1",
     "fast-json-patch": "~0.5.2"
   },
@@ -23,14 +23,14 @@
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
   "homepage": "https://github.com/Juicy/juicy-jsoneditor",
-  "version": "0.0.8",
-  "_release": "0.0.8",
+  "version": "1.0.2",
+  "_release": "1.0.2",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.8",
-    "commit": "be437f5c17280382c5722b5413896b0843aa3037"
+    "tag": "1.0.2",
+    "commit": "5c00e919ba9acadacb5bb258d146448f4938b181"
   },
   "_source": "git://github.com/Juicy/juicy-jsoneditor.git",
-  "_target": "~0.0.5",
+  "_target": "~1.0.1",
   "_originalSource": "juicy-jsoneditor"
 }

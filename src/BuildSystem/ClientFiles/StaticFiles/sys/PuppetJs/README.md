@@ -1,7 +1,7 @@
 PuppetJs
 ========
 
-Library for two-way data binding between local JSON view models and remote, using JSON-Patch, w/ optional OT, via HTTP or WebSockets.
+Library for two-way data binding between local JSON view models and remote, using JSON-Patch, w/ optional OT, via HTTP or WebSocket.
  
 
 Implements [Server communication](https://github.com/Starcounter-Jack/PuppetJs/wiki/Server-communication).
@@ -20,6 +20,7 @@ Then add source to your head:
 <script src="bower_components/fast-json-patch/src/json-patch-duplex.js"></script>
 <script src="bower_components/PuppetJs/src/puppet.js"></script>
 ```
+See [Dependencies section](https://github.com/PuppetJs/puppetjs#dependencies) for more details.
 
 ### Usage
 
@@ -176,6 +177,9 @@ PuppetJs is dependent on [Starcounter-Jack/JSON-Patch](https://github.com/Starco
 It also, uses [URL API](http://www.w3.org/TR/url/), if your environment does not support it (IE, Node), you need to use shim, for example [Polymer/URL](https://github.com/Polymer/URL).
 ```shell
 bower install Polymer/URL
+```
+```html
+<script src="bower_components/url/url.js"></script>
 ```
 
 ### Development

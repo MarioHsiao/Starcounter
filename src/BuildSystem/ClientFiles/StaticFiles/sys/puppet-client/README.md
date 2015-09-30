@@ -5,6 +5,7 @@
 ## Demo
 
 [Example with Polymer app](http://PuppetJs.github.io/puppet-client/examples/polymer/)
+[Example with two separate connection instances](http://PuppetJs.github.io/puppet-client/examples/two_instances/)
 
 ## Install
 
@@ -18,7 +19,7 @@ Or [download as ZIP](https://github.com/PuppetJs/puppet-client/archive/master.zi
 
 ## Usage
 
-1. Import Web Components' polyfill:
+1. Import Web Components' polyfill, if needed:
 
     ```html
     <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
@@ -27,7 +28,7 @@ Or [download as ZIP](https://github.com/PuppetJs/puppet-client/archive/master.zi
 2. Import Custom Element:
 
     ```html
-    <link rel="import" href="bower_components/puppet-client/src/puppet-client.html">
+    <link rel="import" href="bower_components/puppet-client/puppet-client.html">
     ```
 
 3. Start using it!
@@ -77,7 +78,7 @@ Name                 | Arguments                                                
 
 To release new version run
 ```sh
-grunt uglify bump
+grunt bump
 
 ```
 ## History

@@ -19,7 +19,7 @@ Install the component using [Bower](http://bower.io/):
 $ bower install dom-bind-notifier --save
 ```
 
-Or [download as ZIP](https://github.com/Juicy/dom-bind-notifier/archive/master.zip).
+Or [download as ZIP](https://github.com/Juicy/dom-bind-notifier/archive/gh-pages.zip).
 
 ## Usage
 
@@ -45,7 +45,7 @@ Or [download as ZIP](https://github.com/Juicy/dom-bind-notifier/archive/master.z
     </template>
     ```
     Use it always inside `dom-bind`, preferably as the last child.
-    
+
 ## Object.observe
 
 Please note, that we use [`Object.observe` & `Array.observe`](http://wiki.ecmascript.org/doku.php?id=harmony:observe), so if your environment does not support it, you will need a shim.

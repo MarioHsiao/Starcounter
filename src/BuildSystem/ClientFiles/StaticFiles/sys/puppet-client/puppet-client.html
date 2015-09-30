@@ -1,12 +1,12 @@
-<!-- puppet-client version: 0.0.4 | MIT License -->
+<!-- puppet-client version: 1.0.0 | MIT License -->
 
 <!-- include PuppetJs with dependencies -->
-<script src="../../fast-json-patch/src/json-patch-duplex.js"></script>
-<script src="../../json-patch-queue/src/json-patch-queue.js"></script>
-<script src="../../json-patch-ot-agent/src/json-patch-ot-agent.js"></script>
-<script src="../../json-patch-ot/src/json-patch-ot.js"></script>
-<script src="../../PuppetJs/src/puppet.js"></script>
-<script src="../../PuppetJs/src/puppet-dom.js"></script>
+<script src="../fast-json-patch/src/json-patch-duplex.js"></script>
+<script src="../json-patch-queue/src/json-patch-queue.js"></script>
+<script src="../json-patch-ot-agent/src/json-patch-ot-agent.js"></script>
+<script src="../json-patch-ot/src/json-patch-ot.js"></script>
+<script src="../PuppetJs/src/puppet.js"></script>
+<script src="../PuppetJs/src/puppet-dom.js"></script>
 
 <script>
 (function(window, Puppet) {
@@ -79,8 +79,8 @@
             },
             localVersionPath:  this.hasAttribute("localversionpath") ? this.getAttribute("localversionpath") : defaultLocalVersionPath,
             remoteVersionPath: this.hasAttribute("remoteversionpath") ? this.getAttribute("remoteversionpath") : defaultRemoteVersionPath,
-            ot:                parseBoolAttribute(this.hasAttribute("ot"), this.ot),
-            purity:            parseBoolAttribute(this.hasAttribute("purity"), this.purity)
+            ot:                parseBoolAttribute(this.getAttribute("ot"), this.ot),
+            purity:            parseBoolAttribute(this.getAttribute("purity"), this.purity)
         });
 
         if(whereToBind){
