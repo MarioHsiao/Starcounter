@@ -13,14 +13,9 @@ namespace Starcounter {
     public class UriMapping {
 
         /// <summary>
-        /// Set to true if database class hierarchy should be emulated (unit tests).
+        /// Registered mapping class information.
         /// </summary>
-        internal static Boolean EmulateSoDatabase = false;
-
-        /// <summary>
-        /// Global tree.
-        /// </summary>
-        static Tree tree_;
+        static Dictionary<string, MappingClassInfo> classesMappingInfo_ = new Dictionary<string, MappingClassInfo>();
 
         /// <summary>
         /// Custom maps.
@@ -37,94 +32,25 @@ namespace Starcounter {
         /// </summary>
         public const String MappingUriPrefix = "/sc/mapping";
 
-        public class Tree {
-            private Dictionary<string, MappingClassInfo> nameToNodes;
-
-            private MappingClassInfo Locate(string name) {
-                if (!nameToNodes.ContainsKey(name))
-                    nameToNodes.Add(name, new MappingClassInfo(name));
-                return nameToNodes[name];
-            }
-
-            public void Connect(string nameFrom, string nameTo) {
-                MappingClassInfo nodeFrom = Locate(nameFrom);
-                MappingClassInfo nodeTo = Locate(nameTo);
-                nodeTo.Inherits = nodeFrom;
-                nodeFrom.AddChild(nodeTo);
-            }
-
-            public void Add(string name) {
-                if (!nameToNodes.ContainsKey(name))
-                    nameToNodes.Add(name, new MappingClassInfo(name));
-            }
-
-            public MappingClassInfo Find(string name) {
-                if (nameToNodes.ContainsKey(name))
-                    return nameToNodes[name];
-                else return null;
-            }
-
-            public Tree() {
-                nameToNodes = new Dictionary<string, MappingClassInfo>();
-            }
-        }
-
-        private static ClrClass GetClass(string q, string p) {
-            var res = Db.SQL<ClrClass>(q, p);
-            if (res == null) return null;
-            return res.First;
-        }
-
-        private static string ToDot(string s) {
-            var p = s.LastIndexOf('.');
-            if (p == -1) return s;
-            return s.Substring(p + 1);
-        }
-
-        static public void WidenTree(Tree tree, string init) {
-            ClrClass current = GetClass("SELECT c FROM ClrClass c WHERE FullName LIKE ?", "%." + init);
-            if (current == null) return;
-            tree.Add(init);
-            string father = init;
-            while (true) {
-                if (current == null) break;
-                if (current.Inherits == null) break;
-                string child = father;
-                father = current.Inherits.FullName;
-                current = GetClass("SELECT c FROM ClrClass c where FullName=?", father);
-                tree_.Connect(ToDot(father), ToDot(child));
-            }
-        }
-
-        static public void GiveBigTree(Tree tree) {
-            foreach (ClrClass v in Db.SQL<ClrClass>("SELECT c FROM ClrClass c")) {
-                if (v.Updatable)
-                    WidenTree(tree, ToDot(v.FullName));
-            }
-        }
-
-        static public void ProduceLoader(MappingClassInfo node, System.IO.StreamWriter file) {
-            foreach (var v in node.Children) {
-                file.WriteLine("tree_.Connect(\"" + node.Name + "\", \"" + v.Name + "\");");
-                file.Flush();
-                ProduceLoader(v, file);
-            }
-        }
+        /// <summary>
+        /// Mapping class URI prefix.
+        /// </summary>
+        public const String OntologyMappingUriPrefix = "/sc/db";
 
         /// <summary>
         /// Gets type name from class URI.
         /// </summary>
-        static String GetClassNameFromUri(String soSubUri) {
+        static String GetClassNameFromUri(String classSubUri) {
 
             // Until first slash.
             Int32 slashOffset = 0;
 
-            while (soSubUri[slashOffset] != '/') {
+            while (classSubUri[slashOffset] != '/') {
                 slashOffset++;
             }
 
             // Skipping the prefix in the beginning and "/@s" at the end.
-            return soSubUri.Substring(0, slashOffset);
+            return classSubUri.Substring(0, slashOffset);
         }
 
         /// <summary>
@@ -133,9 +59,9 @@ namespace Starcounter {
         public class HandlerInfoForUriMapping {
 
             /// <summary>
-            /// Society Objects type.
+            /// Class information.
             /// </summary>
-            public MappingClassInfo TheType;
+            public MappingClassInfo ClassInfo;
 
             /// <summary>
             /// Handler ID.
@@ -145,12 +71,12 @@ namespace Starcounter {
             /// <summary>
             /// Conversion delegate to the destination class type.
             /// </summary>
-            public Func<String, String> ConverterToSo;
+            public Func<String, String> ConverterToClass;
 
             /// <summary>
             /// Conversion delegate from the destination class type.
             /// </summary>
-            public Func<String, String> ConverterFromSo;
+            public Func<String, String> ConverterFromClass;
 
             /// <summary>
             /// Processed URI for handler.
@@ -169,7 +95,7 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Society Objects type.
+        /// Mapping class information.
         /// </summary>
         public class MappingClassInfo {
 
@@ -278,9 +204,9 @@ namespace Starcounter {
                 if (stringParamCopy != null) {
 
                     // Calling the conversion delegate.
-                    if (x.ConverterFromSo != null) {
+                    if (x.ConverterFromClass != null) {
 
-                        stringParamCopy = x.ConverterFromSo(stringParamCopy);
+                        stringParamCopy = x.ConverterFromClass(stringParamCopy);
 
                         // Checking if string parameter is found after conversion.
                         if (null == stringParamCopy)
@@ -477,9 +403,9 @@ namespace Starcounter {
                         Response resp;
 
                         // Calling the conversion delegate.
-                        if (handler.ConverterToSo != null) {
+                        if (handler.ConverterToClass != null) {
 
-                            String convertedParam = handler.ConverterToSo(stringParam);
+                            String convertedParam = handler.ConverterToClass(stringParam);
 
                             // Checking if string parameter is found after conversion.
                             if (null == convertedParam)
@@ -527,30 +453,30 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Maps an existing application processed URI to Society Objects URI.
+        /// Maps an existing application processed URI to class URI.
         /// </summary>
         public static void OntologyMap(
             String appProcessedUri,
-            String soProcessedUri,
-            Func<String, String> converterToSo,
-            Func<String, String> converterFromSo) {
+            String mappedClassProcessedUri,
+            Func<String, String> converterToClass,
+            Func<String, String> converterFromClass) {
 
             if (!StarcounterEnvironment.OntologyMappingEnabled) {
                 throw new InvalidOperationException("Ontology mapping is not enabled!");
             }
 
-            lock (tree_) {
+            lock (classesMappingInfo_) {
 
                 // Checking that we have only long parameter.
                 Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
-                    numParams2 = soProcessedUri.Split('@').Length - 1;
+                    numParams2 = mappedClassProcessedUri.Split('@').Length - 1;
 
                 if ((numParams1 != 1) || (numParams2 != 1)) {
                     throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
                 }
 
                 numParams1 = appProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
-                numParams2 = soProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
+                numParams2 = mappedClassProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
 
                 if ((numParams1 != 1) || (numParams2 != 1)) {
                     throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
@@ -569,100 +495,66 @@ namespace Starcounter {
                     throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
                 }
 
-                // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
-                String className = GetClassNameFromUri(soProcessedUri.Substring("/db/".Length));
+                // NOTE: +1 is for remaining end slash.
+                Int32 mappingUriPrefixLength = OntologyMappingUriPrefix.Length + 1;
+
+                String className = GetClassNameFromUri(mappedClassProcessedUri.Substring(mappingUriPrefixLength));
 
                 // Getting mapped URI prefix.
-                String mappedUriPrefix = soProcessedUri.Substring(0, "/db/".Length);
+                String mappedUriPrefix = mappedClassProcessedUri.Substring(0, mappingUriPrefixLength);
 
-                MappingClassInfo soType = null;
+                String foundFullClassName = null;
 
-                if (EmulateSoDatabase) {
+                // Assuming that full class name was specified.
+                Starcounter.Metadata.Table classMetadataTable =
+                    Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
 
-                    soType = tree_.Find(className);
+                if (classMetadataTable != null) {
 
-                    if (null == soType) {
-                        throw new ArgumentException("Can not find class type in hierarchy: " + className);
-                    }
+                    // An arbitrary class mapping should have a full name specified.
+                    foundFullClassName = classMetadataTable.FullName;
 
                 } else {
 
-                    String foundFullClassName = null;
+                    throw new ArgumentException("Can not find specified database class: " + className +
+                        ". Note that fully-namespaced class name has to be specified in ordinary mapping!");
+                }
 
-                    // Checking if we have a Society Objects registration.
-                    if (mappedUriPrefix.ToLowerInvariant() == "/so/") {
-
-                        // Checking if there is such class in database.
-                        foreach (Starcounter.Metadata.Table classInfo in
-                            Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", className)) {
-
-                            // Checking that its a class starting with Society Objects namespace.
-                            if (classInfo.FullName.ToLowerInvariant().StartsWith("concepts.ring")) {
-
-                                foundFullClassName = classInfo.FullName;
-                                break;
-                            }
-                        }
-
-                        // Checking if class was not found.
-                        if (null == foundFullClassName) {
-                            throw new ArgumentException("Can not find specified Society Objects database class: " + className);
-                        }
-
-                    } else {
-
-                        // Assuming that full class name was specified.
-                        Starcounter.Metadata.Table classInfo =
-                            Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
-
-                        if (classInfo != null) {
-
-                            // An arbitrary class mapping should have a full name specified.
-                            foundFullClassName = classInfo.FullName;
-
-                        } else {
-
-                            throw new ArgumentException("Can not find specified database class: " + className +
-                                ". Note that fully-namespaced class name has to be specified in ordinary mapping!");
-                        }
-                    }
-
-                    // NOTE: Using database full class name because of case sensitivity.
-                    soType = tree_.Find(foundFullClassName);
-                    if (null == soType) {
-                        tree_.Add(foundFullClassName);
-                        soType = tree_.Find(foundFullClassName);
-                    }
+                // NOTE: Using database full class name because of case sensitivity.
+                MappingClassInfo classInfo = null;
+                classesMappingInfo_.TryGetValue(foundFullClassName, out classInfo);
+                if (null == classInfo) {
+                    classInfo = new MappingClassInfo(foundFullClassName);
+                    classesMappingInfo_.Add(foundFullClassName, classInfo);
                 }
 
                 // Basically attaching a class handler to class.
                 HandlerInfoForUriMapping handler = AddHandlerToClass(
-                    soType,
+                    classInfo,
                     handlerId,
                     appProcessedUri,
                     appProcessedMethodUriSpace,
                     handlerInfo.AppName,
-                    converterToSo,
-                    converterFromSo);
+                    converterToClass,
+                    converterFromClass);
 
                 // Registering the handler as a map to corresponding application URI.
                 String hs = appProcessedUri.Replace(EndsWithStringParam, "{?}");
                 Handle.GET(hs, (Request req, String appObjectId) => {
 
-                    String soObjectId = appObjectId;
+                    String mappedClassObjectId = appObjectId;
 
                     // Calling the conversion delegate.
-                    if (handler.ConverterToSo != null) {
+                    if (handler.ConverterToClass != null) {
 
-                        soObjectId = handler.ConverterToSo(appObjectId);
+                        mappedClassObjectId = handler.ConverterToClass(appObjectId);
 
                         // Checking if string parameter is found after conversion.
-                        if (null == soObjectId)
+                        if (null == mappedClassObjectId)
                             return null;
                     }
 
-                    // NOTE: By doing "/db/".Length we cover all two letters prefixes, like "/so/..." or "/db/..." etc
-                    Response resp = Self.GET(mappedUriPrefix + className + "/" + soObjectId, null, req.HandlerOpts);
+                    Response resp = Self.GET(mappedUriPrefix + className + "/" + mappedClassObjectId, null, req.HandlerOpts);
 
                     return resp;
 
@@ -678,24 +570,27 @@ namespace Starcounter {
         /// </summary>
         /// <param name="currentClassInfo">Current class from which the search starts.</param>
         /// <returns></returns>
-        static MappingClassInfo FindHandlersInClassHierarchy(ref Starcounter.Metadata.Table currentClassInfo) {
+        static MappingClassInfo FindHandlersInClassHierarchy(ref Starcounter.Metadata.Table currentClassMetadataTable) {
 
             // Going up in class hierarchy until we find the handlers.
-            MappingClassInfo soType = tree_.Find(currentClassInfo.FullName);
-            if (soType != null)
-                return soType;
+            MappingClassInfo classInfo;
+            classesMappingInfo_.TryGetValue(currentClassMetadataTable.FullName, out classInfo);
+
+            if (classInfo != null)
+                return classInfo;
 
             while (true) {
 
                 // Going up in class inheritance tree.
-                currentClassInfo = currentClassInfo.Inherits;
+                currentClassMetadataTable = currentClassMetadataTable.Inherits;
 
                 // If there is a parent.
-                if (currentClassInfo != null) {
+                if (currentClassMetadataTable != null) {
 
                     // Checking if there are handlers attached to this class.
-                    soType = tree_.Find(currentClassInfo.FullName);
-                    if (soType != null) {
+                    classesMappingInfo_.TryGetValue(currentClassMetadataTable.FullName, out classInfo);
+
+                    if (classInfo != null) {
                         break;
                     }
                 } else {
@@ -703,56 +598,27 @@ namespace Starcounter {
                 }
             }
 
-            return soType;
+            return classInfo;
         }
         
         /// <summary>
         /// Calling all handlers in class hierarchy.
         /// </summary>
-        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String className, String paramStr, Boolean isSoClass) {
+        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String className, String paramStr) {
 
-            // Checking if there is such class in database.
-            Starcounter.Metadata.Table classInfo = null;
-            MappingClassInfo soType = null;
+            // NOTE: We are searching by full name in arbitrary mapping.
+            Starcounter.Metadata.Table classMetadataTable = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
 
-            if (EmulateSoDatabase) {
-
-                soType = tree_.Find(className);
-
-            } else {
-
-                // Checking if we have SO or arbitrary mapping.
-                if (isSoClass) {
-
-                    // Checking if there is such class in database.
-                    foreach (Starcounter.Metadata.Table ci in
-                        Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where name = ?", className)) {
-
-                        // Checking that its a class starting with Society Objects namespace.
-                        if (ci.FullName.ToLowerInvariant().StartsWith("concepts.ring")) {
-
-                            classInfo = ci;
-                            break;
-                        }
-                    }
-
-                } else {
-
-                    // NOTE: We are searching by full name in arbitrary mapping.
-                    classInfo = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
-                }
-
-                // Checking if class was found.
-                if (classInfo == null) {
-                    throw new ArgumentException("Can not find specified database class: " + className);
-                }
-
-                // Finding the handler based on type name.
-                soType = FindHandlersInClassHierarchy(ref classInfo);
+            // Checking if class was found.
+            if (classMetadataTable == null) {
+                throw new ArgumentException("Can not find specified database class: " + className);
             }
 
+            // Finding the handler based on type name.
+            MappingClassInfo classInfo = FindHandlersInClassHierarchy(ref classMetadataTable);
+
             // Checking if handlers were found.
-            if (null == soType) {
+            if (null == classInfo) {
                 throw new ArgumentException("Can not find the handlers in hierarchy for class type: " + className);
             }
 
@@ -761,7 +627,7 @@ namespace Starcounter {
             // List of handlers that were already called in hierarchy.
             List<UInt16> alreadyCalledHandlers = new List<UInt16>();
 
-            // Checking if we have a substitutional handler.
+            // Checking if we have a substitution handler.
             if (req.HandlerOpts.SubstituteHandler != null) {
 
                 Response resp = new Response();
@@ -782,14 +648,14 @@ namespace Starcounter {
 
                 Boolean currentAppHasHandler = false;
 
-                MappingClassInfo soTypeTemp = soType;
-                Starcounter.Metadata.Table tempClassInfo = classInfo;
+                MappingClassInfo classInfoTemp = classInfo;
+                Starcounter.Metadata.Table tempClassInfo = classMetadataTable;
 
                 // Until we reach the root of the class tree.
-                while (soTypeTemp != null) {
+                while (classInfoTemp != null) {
 
                     // Checking if application handler is presented in the hierarchy.
-                    foreach (HandlerInfoForUriMapping x in soTypeTemp.Handlers) {
+                    foreach (HandlerInfoForUriMapping x in classInfoTemp.Handlers) {
 
                         if (x.AppName == req.HandlerOpts.CallingAppName) {
 
@@ -802,16 +668,9 @@ namespace Starcounter {
                     if (currentAppHasHandler)
                         break;
 
-                    if (EmulateSoDatabase) {
-
-                        soTypeTemp = soTypeTemp.Inherits;
-
-                    } else {
-
-                        // Finding the handler based on type name.
-                        tempClassInfo = tempClassInfo.Inherits;
-                        soTypeTemp = FindHandlersInClassHierarchy(ref tempClassInfo);
-                    }
+                    // Finding the handler based on type name.
+                    tempClassInfo = tempClassInfo.Inherits;
+                    classInfoTemp = FindHandlersInClassHierarchy(ref tempClassInfo);
                 }
 
                 // Checking if there are no handlers found that belong to this application.
@@ -821,20 +680,13 @@ namespace Starcounter {
             }
 
             // Now we have to call all existing handlers up the class hierarchy.
-            while (soType != null) {
+            while (classInfo != null) {
 
-                CallAllHandlersForClass(resps, soType, paramStr, alreadyCalledHandlers);
+                CallAllHandlersForClass(resps, classInfo, paramStr, alreadyCalledHandlers);
 
-                if (EmulateSoDatabase) {
-
-                    soType = soType.Inherits;
-
-                } else {
-
-                    // Finding the handler based on type name.
-                    classInfo = classInfo.Inherits;
-                    soType = FindHandlersInClassHierarchy(ref classInfo);
-                }
+                // Finding the handler based on type name.
+                classMetadataTable = classMetadataTable.Inherits;
+                classInfo = FindHandlersInClassHierarchy(ref classMetadataTable);
             }
 
             return resps;
@@ -844,56 +696,39 @@ namespace Starcounter {
         /// Adding existing handler to class.
         /// </summary>
         static HandlerInfoForUriMapping AddHandlerToClass(
-            MappingClassInfo soType,
+            MappingClassInfo classInfo,
             UInt16 handlerId,
             String handlerProcessedUri,
             String appProcessedMethodUriSpace,
             String appName,
-            Func<String, String> converterToSo,
-            Func<String, String> converterFromSo) {
+            Func<String, String> converterToClass,
+            Func<String, String> converterFromClass) {
 
             HandlerInfoForUriMapping x = new HandlerInfoForUriMapping();
 
-            if (EmulateSoDatabase) {
+            x.ClassInfo = classInfo;
+            x.HandlerId = handlerId;
+            x.HandlerProcessedUri = handlerProcessedUri;
+            x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
+            x.AppName = appName;
+            x.ConverterToClass = converterToClass;
+            x.ConverterFromClass = converterFromClass;
 
-                x.TheType = soType;
-                x.HandlerId = handlerId;
-                x.HandlerProcessedUri = handlerProcessedUri;
-                x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
-                x.AppName = appName;
-                x.ConverterToSo = converterToSo;
-                x.ConverterFromSo = converterFromSo;
-
-                if (soType != null) {
-                    soType.Handlers.Add(x);
-                }
-
-            } else {
-
-                x.TheType = soType;
-                x.HandlerId = handlerId;
-                x.HandlerProcessedUri = handlerProcessedUri;
-                x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
-                x.AppName = appName;
-                x.ConverterToSo = converterToSo;
-                x.ConverterFromSo = converterFromSo;
-
-                if (soType != null) {
-                    soType.Handlers.Add(x);
-                }
-
-                /*
-                // Adding handler id to the type.
-                Db.Transact(() => {
-                    x.TheType = soType;
-                    x.HandlerId = handlerId;
-                    x.HandlerProcessedUri = handlerProcessedUri;
-                    x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
-                    x.AppName = appName;
-                    x.ConverterToSo = converterToSo;
-                    x.ConverterFromSo = converterFromSo;
-                });*/
+            if (classInfo != null) {
+                classInfo.Handlers.Add(x);
             }
+
+            /*
+            // Adding handler id to the type.
+            Db.Transact(() => {
+                x.TheType = classInfo;
+                x.HandlerId = handlerId;
+                x.HandlerProcessedUri = handlerProcessedUri;
+                x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
+                x.AppName = appName;
+                x.ConverterToClass = converterToClass;
+                x.ConverterFromClass = converterFromClass;
+            });*/
 
             return x;
         }
@@ -918,9 +753,9 @@ namespace Starcounter {
                 String stringParamCopy = stringParam;
 
                 // Calling the conversion delegate.
-                if (x.ConverterFromSo != null) {
+                if (x.ConverterFromClass != null) {
 
-                    stringParamCopy = x.ConverterFromSo(stringParamCopy);
+                    stringParamCopy = x.ConverterFromClass(stringParamCopy);
 
                     // Checking if string parameter is found after conversion.
                     if (null == stringParamCopy)
@@ -946,214 +781,38 @@ namespace Starcounter {
 
             };
 
-            if (EmulateSoDatabase) {
+            foreach (HandlerInfoForUriMapping x in type.Handlers) {
 
-                foreach (HandlerInfoForUriMapping x in type.Handlers) {
-
-                    // Going through each skipped handler.
-                    foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
-                        if (x.HandlerId == skipHandlerId) {
-                            continue;
-                        }
+                // Going through each skipped handler.
+                foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
+                    if (x.HandlerId == skipHandlerId) {
+                        continue;
                     }
-
-                    processHandler(x);
-
-                    // Adding this handler since its already called.
-                    alreadyCalledHandlers.Add(x.HandlerId);
                 }
 
-            } else {
+                processHandler(x);
 
-                foreach (HandlerInfoForUriMapping x in type.Handlers) {
+                // Adding this handler since its already called.
+                alreadyCalledHandlers.Add(x.HandlerId);
+            }
 
-                    // Going through each skipped handler.
-                    foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
-                        if (x.HandlerId == skipHandlerId) {
-                            continue;
-                        }
+            /*
+            foreach (HandlerInfoForUriMapping x in Db.SQL("SELECT x FROM HandlerForType x WHERE x.TheType = ?", type)) {
+
+                // Going through each skipped handler.
+                foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
+                    if (x.HandlerId == skipHandlerId) {
+                        continue;
                     }
-
-                    processHandler(x);
-
-                    // Adding this handler since its already called.
-                    alreadyCalledHandlers.Add(x.HandlerId);
                 }
 
-                /*
-                foreach (HandlerForSoType x in Db.SQL("SELECT x FROM HandlerForType x WHERE x.TheType = ?", type)) {
+                processHandler(x);
 
-                    // Going through each skipped handler.
-                    foreach (UInt16 skipHandlerId in alreadyCalledHandlers) {
-                        if (x.HandlerId == skipHandlerId) {
-                            continue;
-                        }
-                    }
-
-                    processHandler(x);
-
-                    // Adding this handler since its already called.
-                    alreadyCalledHandlers.Add(x.HandlerId);
-                }*/
-            }
+                // Adding this handler since its already called.
+                alreadyCalledHandlers.Add(x.HandlerId);
+            }*/
         }
-
-        /// <summary>
-        /// Populating class emulation tree.
-        /// </summary>
-        static void PopulateSoTree(Boolean emulateDatabase) {
-
-            EmulateSoDatabase = emulateDatabase;
-
-            tree_ = new Tree();
-
-            if (EmulateSoDatabase) {
-
-                tree_.Connect("something", "attribute");
-                tree_.Connect("attribute", "role");
-                tree_.Connect("role", "relation");
-                tree_.Connect("relation", "participatingthing");
-                tree_.Connect("participatingthing", "participant");
-                tree_.Connect("participant", "responsible");
-                tree_.Connect("participant", "modifier");
-                tree_.Connect("participatingthing", "messagerecipient");
-                tree_.Connect("participatingthing", "transfered");
-                tree_.Connect("transfered", "moved");
-                tree_.Connect("transfered", "traded");
-                tree_.Connect("participatingthing", "modified");
-                tree_.Connect("participatingthing", "inserted");
-                tree_.Connect("relation", "systemusergroupmember");
-                tree_.Connect("relation", "publisher");
-                tree_.Connect("relation", "somebodiesrelation");
-                tree_.Connect("somebodiesrelation", "subsidiary");
-                tree_.Connect("somebodiesrelation", "personrole");
-                tree_.Connect("personrole", "affiliatedperson");
-                tree_.Connect("affiliatedperson", "employee");
-                tree_.Connect("somebodiesrelation", "affiliatedorganization");
-                tree_.Connect("somebodiesrelation", "consumer");
-                tree_.Connect("somebodiesrelation", "creator");
-                tree_.Connect("relation", "personcategorymember");
-                tree_.Connect("relation", "companycategorymember");
-                tree_.Connect("relation", "vendible");
-                tree_.Connect("relation", "address");
-                tree_.Connect("address", "digitaladdress");
-                tree_.Connect("digitaladdress", "url");
-                tree_.Connect("digitaladdress", "uripath");
-                tree_.Connect("digitaladdress", "uri");
-                tree_.Connect("digitaladdress", "port");
-                tree_.Connect("digitaladdress", "emailaddress");
-                tree_.Connect("digitaladdress", "internetaddress");
-                tree_.Connect("address", "telephonenumber");
-                tree_.Connect("address", "nowhere");
-                tree_.Connect("relation", "addressrelation");
-                tree_.Connect("addressrelation", "abstractcrossreference");
-                tree_.Connect("abstractcrossreference", "hyperlink");
-                tree_.Connect("addressrelation", "webaddress");
-                tree_.Connect("webaddress", "homepageurl");
-                tree_.Connect("addressrelation", "emailrelation");
-                tree_.Connect("addressrelation", "telephonenumberrelation");
-                tree_.Connect("telephonenumberrelation", "officephonenumber");
-                tree_.Connect("telephonenumberrelation", "mobilephonenumber");
-                tree_.Connect("telephonenumberrelation", "homephonenumber");
-                tree_.Connect("telephonenumberrelation", "faxphonenumber");
-                tree_.Connect("addressrelation", "placement");
-                tree_.Connect("placement", "negativeplacement");
-                tree_.Connect("placement", "positiveplacement");
-                tree_.Connect("relation", "definedquantification");
-                tree_.Connect("relation", "groupmember");
-                tree_.Connect("relation", "eventrole");
-                tree_.Connect("eventrole", "eventsubset");
-                tree_.Connect("eventsubset", "eventshare");
-                tree_.Connect("relation", "wordsense");
-                tree_.Connect("role", "systemuser");
-                tree_.Connect("role", "contentbearingobject");
-                tree_.Connect("contentbearingobject", "digitalasset");
-                tree_.Connect("digitalasset", "softwareapplication");
-                tree_.Connect("role", "somebody");
-                tree_.Connect("somebody", "legalentity");
-                tree_.Connect("legalentity", "organization");
-                tree_.Connect("organization", "company");
-                tree_.Connect("legalentity", "person");
-                tree_.Connect("somebody", "group");
-                tree_.Connect("group", "everybody");
-                tree_.Connect("attribute", "modifiedattribute");
-                tree_.Connect("something", "event");
-                tree_.Connect("event", "projectevent");
-                tree_.Connect("event", "message");
-                tree_.Connect("event", "transfer");
-                tree_.Connect("transfer", "move");
-                tree_.Connect("transfer", "trade");
-                tree_.Connect("event", "objectchange");
-                tree_.Connect("objectchange", "modification");
-                tree_.Connect("objectchange", "insertion");
-                tree_.Connect("objectchange", "deletion");
-                tree_.Connect("event", "agreement");
-                tree_.Connect("something", "configurationparameter");
-                tree_.Connect("something", "configuration");
-                tree_.Connect("configuration", "applicationconfiguration");
-                tree_.Connect("configuration", "computerconfiguration");
-                tree_.Connect("something", "digitalsource");
-                tree_.Connect("something", "encoding");
-                tree_.Connect("something", "digitalassetsource");
-                tree_.Connect("digitalassetsource", "datafile");
-                tree_.Connect("something", "artifact");
-                tree_.Connect("artifact", "literarywork");
-                tree_.Connect("artifact", "computersystem");
-                tree_.Connect("artifact", "right");
-                tree_.Connect("artifact", "monetary");
-                tree_.Connect("monetary", "currency");
-                tree_.Connect("something", "systemusergroup");
-                tree_.Connect("something", "category");
-                tree_.Connect("category", "personcategory");
-                tree_.Connect("category", "companycategory");
-                tree_.Connect("category", "vendiblecategory");
-                tree_.Connect("something", "level");
-                tree_.Connect("level", "categorylevel");
-                tree_.Connect("categorylevel", "vendiblelevel");
-                tree_.Connect("level", "addresslevel");
-                tree_.Connect("something", "packagetemplate");
-                tree_.Connect("something", "paymentterms");
-                tree_.Connect("something", "transfercondition");
-                tree_.Connect("something", "deliverymethod");
-                tree_.Connect("something", "identifier");
-                tree_.Connect("identifier", "barcode");
-                tree_.Connect("something", "scheme");
-                tree_.Connect("something", "societyobjectsworkspace");
-                tree_.Connect("something", "societyobjectsring");
-                tree_.Connect("something", "sequence");
-                tree_.Connect("something", "country");
-                tree_.Connect("something", "unitofmeasure");
-                tree_.Connect("unitofmeasure", "temperatureunit");
-                tree_.Connect("unitofmeasure", "lengthunit");
-                tree_.Connect("lengthunit", "metriclengthunit");
-                tree_.Connect("metriclengthunit", "millimetre");
-                tree_.Connect("metriclengthunit", "metre");
-                tree_.Connect("metriclengthunit", "kilometre");
-                tree_.Connect("metriclengthunit", "decimetre");
-                tree_.Connect("metriclengthunit", "centimetre");
-                tree_.Connect("unitofmeasure", "volumeunit");
-                tree_.Connect("volumeunit", "metricvolumeunit");
-                tree_.Connect("metricvolumeunit", "millilitre");
-                tree_.Connect("metricvolumeunit", "litre");
-                tree_.Connect("metricvolumeunit", "decilitre");
-                tree_.Connect("metricvolumeunit", "centilitre");
-                tree_.Connect("unitofmeasure", "massunit");
-                tree_.Connect("massunit", "metricmassunit");
-                tree_.Connect("metricmassunit", "kilogram");
-                tree_.Connect("metricmassunit", "hectogram");
-                tree_.Connect("metricmassunit", "gram");
-                tree_.Connect("unitofmeasure", "energymeasure");
-                tree_.Connect("something", "physicalobject");
-                tree_.Connect("something", "condition");
-                tree_.Connect("something", "illustration");
-                tree_.Connect("something", "word");
-                tree_.Connect("something", "placementpackagetobemovedtoextension");
-                tree_.Connect("something", "language");
-                tree_.Connect("something", "eventinfo");
-                tree_.Connect("something", "fixedtype");
-            }
-        }
-
+        
         /// <summary>
         /// Default JSON merger function.
         /// </summary>
@@ -1228,7 +887,7 @@ namespace Starcounter {
                         siblingJson._wrapInAppName = true;
 
                         if (siblingJson.StepSiblings != null) {
-                            // We have another set of stepsiblings. Merge them into one list.
+                            // We have another set of step-siblings. Merge them into one list.
                             foreach (var existingSibling in siblingJson.StepSiblings) {
                                 if (!stepSiblings.Contains(existingSibling)) {
                                     stepSiblings.Add(existingSibling);
@@ -1270,10 +929,10 @@ namespace Starcounter {
         /// <summary>
         /// Handler used to call all handlers in class hierarchy.
         /// </summary>
-        static Response ClassHierarchyCallProxy(Request req, String className, String paramStr, Boolean isSoClass) {
+        static Response ClassHierarchyCallProxy(Request req, String className, String paramStr) {
 
             // Collecting all responses in the tree.
-            List<Response> resps = CallAllHandlersInTypeHierarchy(req, className, paramStr, isSoClass);
+            List<Response> resps = CallAllHandlersInTypeHierarchy(req, className, paramStr);
 
             if (resps.Count > 0) {
 
@@ -1295,30 +954,17 @@ namespace Starcounter {
         /// <summary>
         /// Initializes everything needed for mapping.
         /// </summary>
-        public static void Init(Boolean emulateDatabase) {
-
-            PopulateSoTree(emulateDatabase);
+        public static void Init() {
 
             Response.ResponsesMergerRoutine_ = DefaultJsonMerger;
 
             String savedAppName = StarcounterEnvironment.AppName;
             StarcounterEnvironment.AppName = null;
 
-            // Registering proxy Society Objects handler.
-            Handle.GET<Request, String, String>("/so/{?}/{?}", 
-                (Request req, String className, String paramStr) => {
-                    return ClassHierarchyCallProxy(req, className, paramStr, true); 
-                }, 
-                new HandlerOptions() {
-                    ProxyDelegateTrigger = true,
-                    TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping 
-                }
-            );
-
             // Registering proxy arbitrary database classes handler.
-            Handle.GET<Request, String, String>("/db/{?}/{?}",
+            Handle.GET<Request, String, String>(OntologyMappingUriPrefix + "/{?}/{?}",
                 (Request req, String className, String paramStr) => {
-                    return ClassHierarchyCallProxy(req, className, paramStr, false);
+                    return ClassHierarchyCallProxy(req, className, paramStr);
                 },                
                 new HandlerOptions() {
                     ProxyDelegateTrigger = true,

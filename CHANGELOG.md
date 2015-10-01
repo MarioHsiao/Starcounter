@@ -6,6 +6,7 @@
 - Applications are now isolated on SQL level, read more here:
 [SQL isolation](http://starcounter.io/guides/sql/sql-isolation/)
 - Static files from /sys/ folder migrated to Polymer 1.1: [Roadmap to Polymer 1.1](https://github.com/Starcounter/Starcounter/issues/2854)
+- UriMapping.OntologyMap now allows only use of fully namespaced class names, and recommended string prefix has changed from "/db/" and "/so/" to UriMapping.OntologyMappingUriPrefix (which is "/sc/db"), for example: UriMapping.OntologyMappingUriPrefix + "/simplified.ring6.chatattachment/@w"
 
 ### Fixed
 - Unandled exceptions in UDP/TCP handlers:

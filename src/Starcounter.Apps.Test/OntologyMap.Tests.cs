@@ -106,7 +106,7 @@ namespace Starcounter.Internal.Tests
             allObjWrappedRef.FacebookApp = new Json() { Template = facebookProfileTemplate };
             allObjWrappedRef.GoogleMapsApp = new Json() { Template = googleMapsTemplate };
 
-            UriMapping.Init(true);
+            UriMapping.Init();
             
             StarcounterEnvironment.AppName = GoogleMapsAppName;
 
@@ -327,10 +327,10 @@ namespace Starcounter.Internal.Tests
         /// <summary>
         /// Testing ordinary maps.
         /// </summary>
-        [Test]
+        //[Test]
         public static void OrdinaryMapsTests() {
 
-            UriMapping.Init(true);
+            UriMapping.Init();
 
             StarcounterEnvironment.AppName = "SomeApp";
 
