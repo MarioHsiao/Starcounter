@@ -1063,7 +1063,6 @@ namespace Administrator.Server.Model {
                 }
                 this.StatusText = string.Empty;
 
-
                 if (commandInfo.HasError) {
 
                     //Check if command was Canceled
@@ -1094,14 +1093,16 @@ namespace Administrator.Server.Model {
 
             this.StatusText = c.Description;
 
-
             if (c.IsCompleted) {
 
                 CommandInfo commandInfo = runtime.GetCommand(c.CorrelatedCommandId);
 
                 this.IsRunning = this.DatabaseRunningState();
-                this.StatusText = string.Empty;
+                if (this.IsRunning) {
+                    this.RunPlayList();
+                }
 
+                this.StatusText = string.Empty;
 
                 if (c.HasError) {
 
