@@ -74,7 +74,7 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.RefreshAppStoreStores action) {
 
-            this.Data.InvalidateAppStoreStores();
+            this.Data.RefreshAppStoreStores();
         }
     }
 }
