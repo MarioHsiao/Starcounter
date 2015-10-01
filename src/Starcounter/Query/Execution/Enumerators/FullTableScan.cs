@@ -469,11 +469,9 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         return true;
     }
 
-    public Boolean MoveNext()
-    {
+    public Boolean MoveNext() {
         // Calling enumerator creation code (ranges, flags, etc.).
-        if (!enumeratorCreated)
-        {
+        if (!enumeratorCreated) {
             // Failure to create enumerator can only be caused
             // by being in last position in the index tree.
             if (!CreateEnumerator())
@@ -533,16 +531,19 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
         isAtRecreatedKey = false;
 
-        if ((counter < fetchNumber) && enumerator.MoveNext()) // Note: replicated code
+        if (counter < fetchNumber) {
+            if (enumerator.MoveNext()) // Note: replicated code
         {
-            currentObject = new Row(rowTypeBinding);
-            currentObject.AttachObject(extentNumber, enumerator.Current);
-            counter++;
-            return true;
-        }
+                currentObject = new Row(rowTypeBinding);
+                currentObject.AttachObject(extentNumber, enumerator.Current);
+                counter++;
+                return true;
+            } else {
 
-        currentObject = null;
-        return false;
+                currentObject = null;
+                return false;
+            }
+        } else return false;
     }
 
     unsafe byte* GetRecreationKeyFromKernel() {

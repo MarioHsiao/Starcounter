@@ -171,7 +171,6 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
 
 
         if (counter >= fetchNumber) {
-            currentObject = null;
             return false;
         }
 

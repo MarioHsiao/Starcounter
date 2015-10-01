@@ -47,6 +47,7 @@ namespace QueryProcessingTest {
             // With operators
             // Drop data
             DropAfterTest();
+            TestPublicExampleBug2915();
             HelpMethods.LogEvent("Finished testing offset key");
         }
 
@@ -59,7 +60,7 @@ namespace QueryProcessingTest {
             byte[] k = e.GetOffsetKey();
             Trace.Assert(k == null);
             e.Dispose();
-            e = Db.SQL(query + f, n).GetEnumerator();
+            e = Db.SQL(query).GetEnumerator();
             while (e.MoveNext())
                 Trace.Assert(e.Current is User);
             k = e.GetOffsetKey();
@@ -542,6 +543,29 @@ namespace QueryProcessingTest {
                 a = new Account { AccountId = accountId, Amount = 100.0m - (accountId - AccountIdLast) * 3, Client = client, When = DateTime.Now };
             });
             return a;
+        }
+
+        static void TestPublicExampleBug2915() {
+            Db.Scope(() => {
+                byte[] k = null;
+                int j = 0;
+                using (IRowEnumerator<Account> e = Db.SQL<Account>("SELECT a FROM Account a WHERE a.AccountId < ? FETCH ?", 100, 10).GetEnumerator()) {
+                    while (e.MoveNext()) {
+                        Account a = e.Current;
+                        j++;
+                    }
+                    k = e.GetOffsetKey();
+                    Trace.Assert(j <= 10);
+                }
+                Trace.Assert(k != null);
+                Console.WriteLine();
+                using (IRowEnumerator<Account> e = Db.SQL<Account>("SELECT a FROM Account a WHERE a.AccountId < ? FETCH ? OFFSETKEY ?", 100, 5, k).GetEnumerator()) {
+                    while (e.MoveNext()) {
+                        Account a = e.Current;
+                    }
+                    k = e.GetOffsetKey();
+                }
+            });
         }
     }
     /*
