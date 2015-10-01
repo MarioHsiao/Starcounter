@@ -11,4 +11,5 @@
 - Unandled exceptions in UDP/TCP handlers:
 https://github.com/Starcounter/Starcounter/issues/2886
 - Setting AppName in DbSession.* calls, as well as processing unhandled exceptions there.
-
+- REST Call ```GET /api/admin/database/[Name]/applications``` Changed to ```GET /api/admin/databases/[Name]/applications``` and 
+ ```GET /api/admin/database/[Name]/appstore/stores``` Changed to ```GET /api/admin/databases/[Name]/appstore/stores```. Notice the plural in ```databases```

@@ -606,12 +606,21 @@ namespace Administrator.Server.Model {
         }
 
         /// <summary>
+        /// Refresh appstore list
+        /// </summary>
+        public void RefreshAppStoreStores() {
+
+            this.ResetErrorMessage(); 
+            this.InvalidateAppStoreStores();
+        }
+
+        /// <summary>
         /// Invalidate app store applications
         /// </summary>
-        public void InvalidateAppStoreStores() {
+        private void InvalidateAppStoreStores() {
 
 
-            this.ResetErrorMessage();
+            //this.ResetErrorMessage();
 
             AppStoreManager.GetStores((freshStores) => {
 
@@ -1054,7 +1063,6 @@ namespace Administrator.Server.Model {
                 }
                 this.StatusText = string.Empty;
 
-
                 if (commandInfo.HasError) {
 
                     //Check if command was Canceled
@@ -1085,14 +1093,16 @@ namespace Administrator.Server.Model {
 
             this.StatusText = c.Description;
 
-
             if (c.IsCompleted) {
 
                 CommandInfo commandInfo = runtime.GetCommand(c.CorrelatedCommandId);
 
                 this.IsRunning = this.DatabaseRunningState();
-                this.StatusText = string.Empty;
+                if (this.IsRunning) {
+                    this.RunPlayList();
+                }
 
+                this.StatusText = string.Empty;
 
                 if (c.HasError) {
 
