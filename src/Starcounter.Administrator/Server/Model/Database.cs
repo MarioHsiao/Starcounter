@@ -1173,7 +1173,7 @@ namespace Administrator.Server.Model {
 
             DatabaseInfo databaseInfo = Program.ServerInterface.GetDatabaseByName(this.ID);
             //DatabaseInfo databaseInfo = RootHandler.Host.Runtime.GetDatabase(this.Url);
-            return (databaseInfo != null && databaseInfo.Engine != null && databaseInfo.Engine.DatabaseProcessRunning);
+            return (databaseInfo != null && databaseInfo.Engine != null && databaseInfo.Engine.DatabaseProcessRunning && databaseInfo.Engine.HostProcessId != 0);
         }
 
         #region INotifyPropertyChanged Members
