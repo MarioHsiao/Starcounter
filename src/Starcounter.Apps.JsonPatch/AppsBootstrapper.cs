@@ -107,7 +107,7 @@ namespace Starcounter.Internal {
                 PuppetRestHandler.RegisterJsonPatchHandlers(defaultUserHttpPort);
 
                 // Initializing URI mapping for ordinary and ontology mappings.
-                UriMapping.Init(false);
+                UriMapping.Init();
 
                 Handle.GET(defaultSystemHttpPort, "/schedulers/" + dbName, () => {
 

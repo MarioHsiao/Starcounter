@@ -48,6 +48,11 @@ CALL AppHostTest.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+PUSHD OffsetkeyBug2915
+CALL OffsetkeyBug2915.bat
+POPD
+IF ERRORLEVEL 1 GOTO err
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 
