@@ -457,7 +457,7 @@ namespace Starcounter {
         /// </summary>
         public static void OntologyMap(
             String appProcessedUri,
-            String mappedClassProcessedUri,
+            String mappedClassInfo,
             Func<String, String> converterToClass,
             Func<String, String> converterFromClass) {
 
@@ -467,16 +467,32 @@ namespace Starcounter {
 
             lock (classesMappingInfo_) {
 
+                Starcounter.Metadata.Table classMetadataTable;
+
+                // Checking if we have just a fully namespaced database class name.
+                if (!mappedClassInfo.StartsWith("/")) {
+
+                    // Checking if fully namespaced class name is given.
+                    classMetadataTable =
+                        Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", mappedClassInfo).First;
+
+                    if (null == classMetadataTable) {
+                        throw new ArgumentException("Class not found: " + classMetadataTable + ". The second parameter of OntologyMap should be either a fully namespaced existing class name or /sc/db/[FullClassName]/@w.");
+                    }
+
+                    mappedClassInfo = OntologyMappingUriPrefix + "/" + mappedClassInfo + "/@w";
+                }
+
                 // Checking that we have only long parameter.
                 Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
-                    numParams2 = mappedClassProcessedUri.Split('@').Length - 1;
+                    numParams2 = mappedClassInfo.Split('@').Length - 1;
 
                 if ((numParams1 != 1) || (numParams2 != 1)) {
                     throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
                 }
 
                 numParams1 = appProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
-                numParams2 = mappedClassProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
+                numParams2 = mappedClassInfo.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
 
                 if ((numParams1 != 1) || (numParams2 != 1)) {
                     throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
@@ -498,16 +514,15 @@ namespace Starcounter {
                 // NOTE: +1 is for remaining end slash.
                 Int32 mappingUriPrefixLength = OntologyMappingUriPrefix.Length + 1;
 
-                String className = GetClassNameFromUri(mappedClassProcessedUri.Substring(mappingUriPrefixLength));
+                String className = GetClassNameFromUri(mappedClassInfo.Substring(mappingUriPrefixLength));
 
                 // Getting mapped URI prefix.
-                String mappedUriPrefix = mappedClassProcessedUri.Substring(0, mappingUriPrefixLength);
+                String mappedUriPrefix = mappedClassInfo.Substring(0, mappingUriPrefixLength);
 
                 String foundFullClassName = null;
 
                 // Assuming that full class name was specified.
-                Starcounter.Metadata.Table classMetadataTable =
-                    Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
+                classMetadataTable = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
 
                 if (classMetadataTable != null) {
 
