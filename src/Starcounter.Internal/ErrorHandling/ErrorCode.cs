@@ -166,7 +166,7 @@ namespace Starcounter
         /// <example>
         /// string msg = ToVersionMessage();
         /// Console.Write(msg);
-        /// /* Output: Version: 2.0.123.456. */
+        /// /* Output: Version: 2.0.123. */
         /// </example>
         public static string ToVersionMessage()
         {
