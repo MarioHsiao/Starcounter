@@ -457,12 +457,12 @@ namespace Starcounter.InstallerEngine
         [HandleProcessCorruptedStateExceptions]
         public static void CheckProcessorRequirements()
         {
-            // Checking number of cores.
-            if (Environment.ProcessorCount <= 1)
+            // TODO: Check later if this CPU cores requirement is needed at all.
+            /*if (Environment.ProcessorCount <= 1)
             {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERABORTED,
                     "To run Starcounter you must have more than one logical core on the machine.");
-            }
+            }*/
 
             // Checking processor features.
             Boolean popcntInstr = false;
