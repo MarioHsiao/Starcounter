@@ -148,13 +148,17 @@ namespace Starcounter.XSON {
 		internal static void GenerateBoundDelegates<T>(Property<T> property, Json json) {
 			BindingInfo bInfo;
 			bool throwException;
+            bool boundDirectlyToData;
 			Expression<Func<Json, T>> getLambda;
 			Expression<Action<Json, T>> setLambda = null;
+
 			
 			throwException = (property.BindingStrategy == Templates.BindingStrategy.Bound);
 
             string bind = property.Bind;
-            if (bind == null && property == json.Template) {
+            boundDirectlyToData = (property == json.Template);
+
+            if (bind == null && boundDirectlyToData) {
                 bInfo = new BindingInfo();
                 if (json.Data != null) {
                     bInfo.BoundToType = typeof(T);
@@ -184,7 +188,11 @@ namespace Starcounter.XSON {
 				property.isVerifiedUnbound = true; // Auto binding where property not match.
 			}
             property.dataTypeForBinding = bInfo.BoundToType;
-            property.isBoundToParent = bInfo.IsBoundToParent;
+
+            if (boundDirectlyToData)
+                property.isBoundToParent = false;
+            else
+                property.isBoundToParent = bInfo.IsBoundToParent;
 		}
 
 		/// <summary>
