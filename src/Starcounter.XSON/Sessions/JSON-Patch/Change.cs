@@ -10,6 +10,7 @@ namespace Starcounter.Internal.XSON {
         public const byte REMOVE = 1;
         public const byte REPLACE = 2;
         public const byte ADD = 3;
+        public const byte MOVE = 4;
 
         /// <summary>
         /// The type of change.
@@ -29,7 +30,12 @@ namespace Starcounter.Internal.XSON {
         /// <summary>
         /// The index if the change is add or remove. Will be -1 in other cases.
         /// </summary>
-        public readonly Int32 Index;
+        public Int32 Index;
+
+        /// <summary>
+        /// If the change is moved, this value will be the old index in the array
+        /// </summary>
+        public Int32 FromIndex;
 
         /// <summary>
         /// If the change is for an item in an array this will be the item, otherwise it will be null.
@@ -43,12 +49,13 @@ namespace Starcounter.Internal.XSON {
         /// <param name="app">The app that was changed.</param>
         /// <param name="prop">The template of the property that was changed.</param>
         /// <param name="index">The index.</param>
-        private Change(byte changeType, Json obj, TValue prop, Int32 index, Json item) {
+        private Change(byte changeType, Json obj, TValue prop, Int32 index, Json item, Int32 fromIndex = -1) {
             ChangeType = changeType;
             Parent = obj;
             Property = prop;
             Index = index;
             Item = item;
+            FromIndex = fromIndex;
 
 #if DEBUG
             if (prop != null)
@@ -85,6 +92,19 @@ namespace Starcounter.Internal.XSON {
 		internal static Change Add(Json obj) {
 			return new Change(Change.REPLACE, obj, null, -1, null);
 		}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="list"></param>
+        /// <param name="fromIndex"></param>
+        /// <param name="toIndex"></param>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        internal static Change Move(Json parent, TObjArr list, Int32 fromIndex, Int32 toIndex, Json item) {
+            return new Change(Change.MOVE, parent, list, toIndex, item, fromIndex);
+        }
 
         /// <summary>
         /// Creates and returns an instance of a Remove change.
