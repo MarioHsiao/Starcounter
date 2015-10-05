@@ -314,7 +314,21 @@ namespace Starcounter {
                 AttachData(boundValue);
         }
 
-        internal void CheckBoundArray(IEnumerable boundValue) {
+        private static int IndexOf(IList list, int offset, object value) {
+            int index = -1;
+            Json current;
+
+            for (int i = offset; i < list.Count; i++) {
+                current = (Json)list[i];
+                if (CompareDataObjects(current.Data, value)) {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+
+        internal void CheckBoundArray_OLD(IEnumerable boundValue) {
             Json oldJson;
             Json newJson;
             int index = 0;
@@ -351,7 +365,57 @@ namespace Starcounter {
                 this.Parent.HasChanged(tArr);
         }
 
-        private bool CompareDataObjects(object obj1, object obj2) {
+        internal void CheckBoundArray(IEnumerable boundValue) {
+            Json oldJson;
+            Json newJson;
+            int index = 0;
+            int itemIndex;
+            TObjArr tArr = Template as TObjArr;
+            bool hasChanged = false;
+            IList jsonList = (IList)this;
+            int offset = (this.ArrayAddsAndDeletes != null) ? this.ArrayAddsAndDeletes.Count : 0;
+
+            foreach (object value in boundValue) {
+                if (jsonList.Count <= index) {
+                    newJson = (Json)tArr.ElementType.CreateInstance();
+                    newJson._data = value;
+                    jsonList.Add(newJson);
+                    newJson.Data = value;
+                    hasChanged = true;
+                } else {
+                    oldJson = (Json)jsonList[index];
+                    if (!CompareDataObjects(oldJson.Data, value)) {
+                        itemIndex = IndexOf(jsonList, index + 1, value);
+                        if (itemIndex == -1) {
+                            newJson = (Json)tArr.ElementType.CreateInstance();
+                            newJson._data = value;
+                            jsonList.Insert(index, newJson);
+                            newJson.Data = value;
+                        } else {
+                            this.Move(itemIndex, index);
+                        }
+                        hasChanged = true;
+                    }
+                }
+                index++;
+            }
+
+            int deleteStart = -1;
+            if (this.ArrayAddsAndDeletes != null)
+                deleteStart = this.ArrayAddsAndDeletes.Count;
+
+            for (int i = _list.Count - 1; i >= index; i--) {
+                jsonList.RemoveAt(i);
+                hasChanged = true;
+            }
+
+            ReduceArrayChanges(this.ArrayAddsAndDeletes, offset, deleteStart);
+
+            if (hasChanged)
+                this.Parent.HasChanged(tArr);
+        }
+
+        private static bool CompareDataObjects(object obj1, object obj2) {
             if (obj1 == null && obj2 == null)
                 return true;
 
@@ -368,6 +432,52 @@ namespace Starcounter {
                 return obj1.Equals(obj2);
 
             return (bind1.Identity == bind2.Identity);
+        }
+
+
+        private static void ReduceArrayChanges(List<Change> arrayChanges, int offset, int deleteStart) {
+            Change current;
+            Change candidate;
+            
+            if (deleteStart == -1 || (arrayChanges.Count - offset) < 2)
+                return;
+
+            for (int i = arrayChanges.Count - 1; i >= deleteStart; i--) {
+                current = arrayChanges[i];
+
+                if (current.ChangeType == Change.REMOVE) {
+                    for (int k = i - 1; k >= offset; k--) {
+                        candidate = arrayChanges[k];
+
+                        if (candidate.ChangeType == Change.MOVE) {
+                            if (candidate.FromIndex >= current.Index) {
+                                current.Index--;
+                                arrayChanges[i] = current;
+
+                                candidate.FromIndex--;
+                                if (candidate.Index == candidate.FromIndex) {
+                                    arrayChanges.RemoveAt(k);
+                                    i--;
+                                } else {
+                                    arrayChanges[k] = candidate;                                          
+                                }
+                            }
+                        } else if (candidate.ChangeType == Change.ADD || candidate.ChangeType == Change.REMOVE) {
+                            if (candidate.Index >= current.Index) {
+                                candidate.Index--;
+                                arrayChanges[k] = candidate;
+                            }
+                        } 
+                    }
+
+                    int test = arrayChanges.IndexOf(current);
+                    if (test != i)
+                        throw new Exception("sfgh");
+
+                    arrayChanges.Remove(current);
+                    arrayChanges.Insert(offset, current);
+                }
+            }
         }
 
         /// <summary>
