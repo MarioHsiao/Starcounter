@@ -142,7 +142,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
             $scope.database._queryState.columns.length = 0;
             angular.forEach(response.columns, function(column) {
                 column.data = column.value;
-                column.type = 'autoDetect';
+                column.renderer = Handsontable.renderers.MaxWidthRenderer;
                 column.maxWidth = 500;
                 $scope.database._queryState.columns.push(column);
             });

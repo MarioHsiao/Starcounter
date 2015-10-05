@@ -34,25 +34,15 @@ Handsontable.cellTypes.Key = Handsontable.cellTypes.text;
 
 (function() {
   // maxWidth renderer
-  Handsontable.cellTypes.autoDetect = {
-    editor: Handsontable.cellTypes.text.editor,
-    renderer: function(instance, TD, row, col, prop, value, cellProperties) {
-      var maxWidth = cellProperties.maxWidth;
-      var columnWidth = instance.getPlugin('autoColumnSize').getColumnWidth(col);
-      var rendererName;
+  Handsontable.renderers.MaxWidthRenderer = function(instance, TD, row, col, prop, value, cellProperties) {
+    var maxWidth = cellProperties.maxWidth;
+    var columnWidth = instance.getPlugin('autoColumnSize').getColumnWidth(col);
 
-      if (maxWidth && columnWidth >= maxWidth) {
-        Handsontable.cellTypes.logMessage.renderer.apply(this, arguments);
-        instance.getPlugin('autoColumnSize').widths[col] = maxWidth;
-      } else {
-        rendererName = cellProperties.type.charAt(0).toUpperCase() + cellProperties.type.substr(1, cellProperties.type.length - 1);
-
-        if (Handsontable.renderers[rendererName + 'Renderer']) {
-          Handsontable.renderers[rendererName + 'Renderer'].apply(this, arguments);
-        } else {
-          Handsontable.renderers.TextRenderer.apply(this, arguments);
-        }
-      }
+    if (maxWidth && columnWidth >= maxWidth) {
+      Handsontable.cellTypes.logMessage.renderer.apply(this, arguments);
+      instance.getPlugin('autoColumnSize').widths[col] = maxWidth;
+    } else {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
     }
   };
 
