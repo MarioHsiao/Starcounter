@@ -556,8 +556,10 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 int testCount;
                 double oldTime;
+                double oldTimePatches;
                 int oldChangeCount;
                 double newTime;
+                double newTimePatches;
                 int newChangeCount;
                 Json items = (Json)json.Items;
                 Action<IEnumerable> oldCheck = items.CheckBoundArray_OLD;
@@ -572,19 +574,17 @@ namespace Starcounter.Internal.XSON.Tests {
                 bound.RemoveAt(2);
 
                 // Testing using old code.
-                ResetJsonArray(json.Items, testCount);
-                oldTime = ExecuteBenchmark(oldCheck, bound);
-                oldChangeCount = json.Items.ArrayAddsAndDeletes.Count;
-                
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
                 // Testing using new code.
-                ResetJsonArray(json.Items, testCount);
-                newTime = ExecuteBenchmark(newCheck, bound);
-                newChangeCount = json.Items.ArrayAddsAndDeletes.Count;
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
 
                 Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item removed in beginning.");
-                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes).");
-                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes).");
-
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
 
                 testCount = 50000;
 
@@ -593,18 +593,17 @@ namespace Starcounter.Internal.XSON.Tests {
                 bound.RemoveAt(testCount - 5);
 
                 // Testing using old code.
-                ResetJsonArray(json.Items, testCount);
-                oldTime = ExecuteBenchmark(oldCheck, bound);
-                oldChangeCount = json.Items.ArrayAddsAndDeletes.Count;
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
 
                 // Testing using new code.
-                ResetJsonArray(json.Items, testCount);
-                newTime = ExecuteBenchmark(newCheck, bound);
-                newChangeCount = json.Items.ArrayAddsAndDeletes.Count;
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
 
                 Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item removed in the end.");
-                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes).");
-                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes).");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
 
                 testCount = 1000;
 
@@ -613,37 +612,83 @@ namespace Starcounter.Internal.XSON.Tests {
                 bound.Reverse();
 
                 // Testing using old code.
-                ResetJsonArray(json.Items, testCount);
-                oldTime = ExecuteBenchmark(oldCheck, bound);
-                oldChangeCount = json.Items.ArrayAddsAndDeletes.Count;
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
 
                 // Testing using new code.
-                ResetJsonArray(json.Items, testCount);
-                newTime = ExecuteBenchmark(newCheck, bound);
-                newChangeCount = json.Items.ArrayAddsAndDeletes.Count;
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
 
                 Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array reversed.");
-                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes).");
-                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes).");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
 
+                testCount = 5000;
+
+                // 1 item inserted in beginning.
+                bound = CreateArray(testCount);
+                bound.Insert(2, 5555);
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item inserted in beginning.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
+
+                testCount = 5000;
+
+                // 1 item inserted in the end.
+                bound = CreateArray(testCount);
+                bound.Insert(testCount - 5, 5555);
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item inserted in the end.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
             } finally {
                 session.StopUsing();
             }
         }
 
-        private static void ResetJsonArray(Json items, int nrOfItems) {
+        private static void ResetJsonArray(Json json, Json items, int nrOfItems) {
             ((IList)items).Clear();
             items.Data = CreateArray(nrOfItems);
-            items.ChangeLog.Clear();
-            items.ArrayAddsAndDeletes.Clear();
+            jsonPatch.Generate(json, true, false);
         }
 
-        private static double ExecuteBenchmark(Action<IEnumerable> action, IEnumerable bound) {
+        private static double ExecuteDirtyCheckBenchmark(Action<IEnumerable> action, Json json, IEnumerable bound, out double patchTime, out int changeCount) {
+            double dirtyTime;
+            byte[] dummy;
+            
             DateTime start = DateTime.Now;
             action(bound);
             DateTime stop = DateTime.Now;
+            dirtyTime = (stop - start).TotalMilliseconds;
 
-            return (stop - start).TotalMilliseconds;
+            changeCount = ((dynamic)json).Items.ArrayAddsAndDeletes.Count;
+
+            start = DateTime.Now;
+            jsonPatch.Generate(json, true, false, out dummy);
+            stop = DateTime.Now;
+            patchTime = (stop - start).TotalMilliseconds;
+
+            return dirtyTime;
         }
 
         private static List<long> CreateArray(int count) {
