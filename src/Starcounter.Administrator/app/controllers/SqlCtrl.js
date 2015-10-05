@@ -3,7 +3,7 @@
  * Sql page Controller
  * ----------------------------------------------------------------------------
  */
-adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$location', '$routeParams', 'HostModelService', 'NoticeFactory', 'SqlService', 'UserMessageFactory', function ($scope, $log, $sce, $document, $location, $routeParams, HostModelService, NoticeFactory, SqlService, UserMessageFactory) {
+adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$location', '$routeParams', 'HostModelService', 'NoticeFactory', 'SqlService', 'UserMessageFactory', 'hotRegisterer', function ($scope, $log, $sce, $document, $location, $routeParams, HostModelService, NoticeFactory, SqlService, UserMessageFactory, hotRegisterer) {
 
     $scope.database = null;
 
@@ -141,18 +141,15 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
             // Fill columns keeping reference to old array
             $scope.database._queryState.columns.length = 0;
             angular.forEach(response.columns, function(column) {
-              column.data = column.value;
-              $scope.database._queryState.columns.push(column);
+                column.data = column.value;
+                column.type = 'autoDetect';
+                column.maxWidth = 500;
+                $scope.database._queryState.columns.push(column);
             });
             $scope.database._queryState.rows.length = 0;
             angular.forEach(response.rows.rows, function(row) {
               $scope.database._queryState.rows.push(row);
             });
-
-            // Make all columns readonly
-            for (var i = 0; i < $scope.database._queryState.columns.length ; i++) {
-                $scope.database._queryState.columns[i].readOnly = true;
-            }
 
             if (response.queryPlan) {
 
@@ -192,6 +189,15 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
             rows: []
         }
     }
+
+    // Re-render table when first tab is ready
+    $scope.onResultTabSelect = function() {
+        var hotSqlResult = hotRegisterer.getInstance('sql-result');
+
+        setTimeout(function() {
+            hotSqlResult.render();
+        }, 50);
+    };
 
     /**
      * On keypress event
