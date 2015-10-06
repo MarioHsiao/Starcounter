@@ -549,7 +549,9 @@ namespace Starcounter.Internal.XSON.Tests {
             }
         }
 
-        [Test]
+// Test added for checking performance when implementing the new check of bound arrays. No point in running it for every
+// build but nice to have the code. 
+//        [Test]
         public static void BenchmarkArrayChangesWithBoundData() {
             var tSchema = new TObject() { ClassName = "ObjWithArr" };
             var tItems = tSchema.Add<TObjArr>("Items");
