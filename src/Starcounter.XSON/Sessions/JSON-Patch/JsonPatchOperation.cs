@@ -6,6 +6,7 @@ namespace Starcounter {
         Remove = 1,
         Replace = 2,
         Add = 3,
-        Test = 4
+        Move = 4,
+        Test = 5
     }
 }

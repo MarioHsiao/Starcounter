@@ -361,6 +361,30 @@ namespace Starcounter {
             return b;
         }
 
+        private void Move(int fromIndex, int toIndex) {
+            Json item = (Json)list[fromIndex];
+            list.RemoveAt(fromIndex);
+            list.Insert(toIndex, item);
+
+            item._cacheIndexInArr = toIndex;
+            
+            int start;
+            int stop;
+
+            if (fromIndex < toIndex) {
+                start = fromIndex + 1;
+                stop = toIndex;
+            } else {
+                start = toIndex + 1;
+                stop = fromIndex;
+            }
+
+            for (Int32 i = start; i < stop; i++) {
+                ((Json)list[i])._cacheIndexInArr = i;
+            }
+            CallHasMovedElement(fromIndex, toIndex, item);
+        }
+
         /// <summary>
         /// Removed the item at the specified index.
         /// </summary>
