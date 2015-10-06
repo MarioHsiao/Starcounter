@@ -473,6 +473,11 @@ namespace Starcounter.Internal
             public const string GatewayConfigFileName = "scnetworkgateway.xml";
 
             /// <summary>
+            /// Gateway configuration sample file name.
+            /// </summary>
+            public const string GatewayConfigSampleFileName = "scnetworkgateway.sample.xml";
+
+            /// <summary>
             /// Holds a constant read-only value representing the name
             /// of the Starcounter Server/Administrator version information
             /// NOTE: This code is duplicated in the installer

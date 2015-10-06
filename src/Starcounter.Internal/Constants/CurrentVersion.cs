@@ -18,7 +18,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// This Starcounter version.
         /// </summary>
-        public static readonly String Version = "2.0.0.0";
+        public static readonly String Version = "2.0.0";
 
         /// <summary>
         /// This name of channel for this version.

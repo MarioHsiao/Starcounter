@@ -23,7 +23,7 @@ IF ERRORLEVEL 1 GOTO TESTFAILED
 ECHO Test finished successfully!
 
 :: Copying back the default gateway config.
-COPY /Y scnetworkgateway.xml %SERVER_DIR%\personal\scnetworkgateway.xml
+COPY /Y scnetworkgateway.sample.xml %SERVER_DIR%\personal\scnetworkgateway.xml
 
 :: Killing all processes.
 staradmin kill all
@@ -35,6 +35,6 @@ ECHO Error occurred during the test! 1>&2
 staradmin kill all
 
 :: Copying back the default gateway config.
-COPY /Y scnetworkgateway.xml %SERVER_DIR%\personal\scnetworkgateway.xml
+COPY /Y scnetworkgateway.sample.xml %SERVER_DIR%\personal\scnetworkgateway.xml
 
 EXIT /b 1

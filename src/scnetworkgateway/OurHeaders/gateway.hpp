@@ -383,7 +383,7 @@ const int32_t WS_MAX_FRAME_INFO_SIZE = 16;
 // Gateway program name.
 const wchar_t* const GW_PROGRAM_NAME = L"scnetworkgateway";
 const char* const GW_PROCESS_NAME = "networkgateway";
-const wchar_t* const GW_DEFAULT_CONFIG_NAME = L"scnetworkgateway.xml";
+const wchar_t* const GW_SAMPLE_CONFIG_NAME = L"scnetworkgateway.sample.xml";
 
 // Type of operation on the socket.
 enum SocketOperType

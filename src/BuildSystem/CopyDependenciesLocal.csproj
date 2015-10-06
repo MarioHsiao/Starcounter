@@ -27,7 +27,7 @@
     
     <KillAllScript Include="..\BuildSystem\Scripts\kill_all.bat" />
 	<ChangeLog Include="..\..\CHANGELOG.md" />
-    <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
+    <GatewayXMLs Include="..\scnetworkgateway\scripts\scnetworkgateway.sample.xml;..\scnetworkgateway\scripts\scnetworkgateway_proxy_test.xml" />
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
     <ClangGatewayUriMatcherBinary Include="..\scllvm\scllvm.dll" />

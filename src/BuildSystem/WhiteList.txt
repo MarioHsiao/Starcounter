@@ -183,7 +183,7 @@ scipcmonitor.pdb
 scnetworkgateway.exe
 scnetworkgateway.ilk
 scnetworkgateway.pdb
-scnetworkgateway.xml
+scnetworkgateway.sample.xml
 ScRuntime.psplugin
 scservice.exe
 scservice.pdb
