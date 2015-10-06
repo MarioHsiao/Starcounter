@@ -529,6 +529,14 @@ namespace Starcounter.Internal.XSON.Tests {
                 expectedPatch = @"[{""op"":""remove"",""path"":""/Items/1""},{""op"":""remove"",""path"":""/Items/3""},{""op"":""add"",""path"":""/Items/1"",""value"":5},{""op"":""remove"",""path"":""/Items/3""},{""op"":""add"",""path"":""/Items/2"",""value"":4}]";
                 Assert.AreEqual(expectedPatch, patch);
 
+                newArr = new long[] { 2, 4 };
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+                patch = jsonPatch.Generate(json, true, false);
+
+                expectedPatch = @"[{""op"":""remove"",""path"":""/Items/3""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""add"",""path"":""/Items/0"",""value"":2}]";
+                Assert.AreEqual(expectedPatch, patch);
+
             } finally {
                 session.StopUsing();
             }
