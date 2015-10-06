@@ -12,8 +12,8 @@
  - Renamed the scnetworkgateway.xml in StarcounterBin to scnetworkgateway.sample.xml
  - Moved requirement to have at least 2 CPU cores to recommendations, as 4Gb RAM now.
 
-
 ### Fixed
-- Unandled exceptions in UDP/TCP handlers:
+- Unhandled exceptions in UDP/TCP handlers:
 https://github.com/Starcounter/Starcounter/issues/2886
 - Setting AppName in DbSession.* calls, as well as processing unhandled exceptions there.
+- Code rewritten for detecting changes on bound arrays in TypedJSON to avoid producing unnecessary changes: [#2920](https://github.com/Starcounter/Starcounter/issues/2920).
