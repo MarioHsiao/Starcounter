@@ -109,6 +109,24 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Runs a given delegate within a certain application context.
+        /// </summary>
+        public static void RunWithinApplication(String desiredAppName, Action action) {
+
+            String curAppName = AppName;
+
+            try {
+                AppName = desiredAppName;
+
+                // Running the delegate.
+                action();
+
+            } finally {
+                AppName = curAppName;
+            }
+        }
+
+        /// <summary>
         /// Name of the application.
         /// </summary>
         [ThreadStatic]
