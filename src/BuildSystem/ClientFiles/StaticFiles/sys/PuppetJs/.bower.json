@@ -36,5 +36,5 @@
   },
   "_source": "git://github.com/PuppetJs/PuppetJs.git",
   "_target": ">=1.0.1",
-  "_originalSource": "PuppetJs/PuppetJs"
+  "_originalSource": "PuppetJs"
 }

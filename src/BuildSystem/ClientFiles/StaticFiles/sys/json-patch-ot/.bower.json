@@ -23,11 +23,11 @@
     "tests"
   ],
   "devDependencies": {},
-  "_release": "5c4ec8129b",
+  "_release": "a21033cba9",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "5c4ec8129b86d84757d1feaa9f28b7052ad980df"
+    "commit": "a21033cba96664d8ff484dffb57f47d6e68223b8"
   },
   "_source": "git://github.com/PuppetJs/JSON-Patch-OT.git",
   "_target": "gh-pages",
