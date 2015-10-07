@@ -68,7 +68,7 @@ namespace Starcounter.Administrator.API.Utilities {
 				var response = Response.FromStatusCode(status);
 				response.Body = jsonContent;
 				if (headers != null) {
-					response.HeadersDictionary = headers;
+					response.SetHeadersDictionary(headers);
 				}
 				return response;
             }

@@ -400,7 +400,7 @@ namespace Starcounter {
 
                 Response resp = new Response();
                 resp.Cookies = cookies;
-                resp.HeadersDictionary = headers;
+                resp.SetHeadersDictionary(headers);
 
                 ws.Session = session;
                 if (session != null) {
