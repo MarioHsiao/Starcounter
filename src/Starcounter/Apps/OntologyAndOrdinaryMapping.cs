@@ -1007,8 +1007,6 @@ namespace Starcounter {
                 }
 
                 return sb.ToString();
-            }, new HandlerOptions() {
-                ProxyDelegateTrigger = true
             });
 
             Handle.GET(StarcounterEnvironment.Default.SystemHttpPort,
