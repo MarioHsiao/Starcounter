@@ -89,10 +89,34 @@ namespace Starcounter.XSON {
 //                }
             }
 
+            // TODO:
+            // Temorary workaround until jsonpatch generation supports move operation.
+            SplitMoves(changes);
+
             var arr = changes.ToArray();
+
             if (flushLog)
                 changes.Clear();
             return arr;
+        }
+
+        private static void SplitMoves(List<Change> changes) {
+            Change current;
+            Change toAdd;
+
+            if (changes == null)
+                return;
+
+            for (int i = 0; i < changes.Count; i++) {
+                current = changes[i];
+                if (current.ChangeType == Change.MOVE) {
+                    toAdd = Change.Remove(current.Parent, (TObjArr)current.Property, current.FromIndex, current.Item);
+                    changes[i] = toAdd;
+                    toAdd = Change.Add(current.Parent, (TObjArr)current.Property, current.Index, current.Item);
+                    changes.Insert(i + 1, toAdd);
+                    i++;
+                }
+            }
         }
 
         /// <summary>

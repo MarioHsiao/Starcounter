@@ -314,7 +314,21 @@ namespace Starcounter {
                 AttachData(boundValue);
         }
 
-        internal void CheckBoundArray(IEnumerable boundValue) {
+        private static int IndexOf(IList list, int offset, object value) {
+            int index = -1;
+            Json current;
+
+            for (int i = offset; i < list.Count; i++) {
+                current = (Json)list[i];
+                if (CompareDataObjects(current.Data, value)) {
+                    index = i;
+                    break;
+                }
+            }
+            return index;
+        }
+
+        internal void CheckBoundArray_OLD(IEnumerable boundValue) {
             Json oldJson;
             Json newJson;
             int index = 0;
@@ -351,7 +365,56 @@ namespace Starcounter {
                 this.Parent.HasChanged(tArr);
         }
 
-        private bool CompareDataObjects(object obj1, object obj2) {
+        internal void CheckBoundArray(IEnumerable boundValue) {
+            Json oldJson;
+            Json newJson;
+            int index = 0;
+            int itemIndex;
+            TObjArr tArr = Template as TObjArr;
+            bool hasChanged = false;
+            IList jsonList = (IList)this;
+            int offset = (this.ArrayAddsAndDeletes != null) ? this.ArrayAddsAndDeletes.Count : 0;
+
+            foreach (object value in boundValue) {
+                if (jsonList.Count <= index) {
+                    newJson = (Json)tArr.ElementType.CreateInstance();
+                    newJson._data = value;
+                    jsonList.Add(newJson);
+                    newJson.Data = value;
+                    hasChanged = true;
+                } else {
+                    oldJson = (Json)jsonList[index];
+                    if (!CompareDataObjects(oldJson.Data, value)) {
+                        itemIndex = IndexOf(jsonList, index + 1, value);
+                        if (itemIndex == -1) {
+                            newJson = (Json)tArr.ElementType.CreateInstance();
+                            newJson._data = value;
+                            jsonList.Insert(index, newJson);
+                            newJson.Data = value;
+                        } else {
+                            this.Move(itemIndex, index);
+                        }
+                        hasChanged = true;
+                    }
+                }
+                index++;
+            }
+
+            int deleteCount = 0;
+            
+            for (int i = _list.Count - 1; i >= index; i--) {
+                jsonList.RemoveAt(i);
+                hasChanged = true;
+                deleteCount++;
+            }
+
+            ReduceArrayChanges(this.ArrayAddsAndDeletes, offset, deleteCount);
+
+            if (hasChanged)
+                this.Parent.HasChanged(tArr);
+        }
+
+        private static bool CompareDataObjects(object obj1, object obj2) {
             if (obj1 == null && obj2 == null)
                 return true;
 
@@ -368,6 +431,116 @@ namespace Starcounter {
                 return obj1.Equals(obj2);
 
             return (bind1.Identity == bind2.Identity);
+        }
+
+        /// <summary>
+        /// Try to reduce a list of modifications for an array. Some assumptions are made to make the implementation easier:
+        /// 1) All deletes are in the end of the list, where deleteCount is the number of deletes.
+        /// 2) We always move deletes to the beginning and transforming modification as we move the delete.
+        /// 
+        /// Modifications can be removed if:
+        /// a MOVE is moving FROM and TO the same index.
+        /// an INSERT has the same index as the DELETE were moving. Both will be canceled out.
+        /// a REPLACE has the same index as the DELETE were moving. The REPLACE will be skipped.
+        /// </summary>
+        /// <param name="arrayChanges"></param>
+        /// <param name="offset"></param>
+        /// <param name="deleteCount"></param>
+        private static void ReduceArrayChanges(List<Change> arrayChanges, int offset, int deleteCount) {
+            Change delete;
+            Change candidate;
+            int lastIndex;
+
+            if (deleteCount < 1 || (arrayChanges.Count - offset) < 2)
+                return;
+
+            for (int i = 0; i < deleteCount; i++) {
+                lastIndex = arrayChanges.Count - 1;
+                delete = arrayChanges[lastIndex];
+
+                for (int k = lastIndex - 1; k >= offset; k--) {
+                    candidate = arrayChanges[k];
+
+                    if (candidate.ChangeType == Change.MOVE) {
+                        if (candidate.Index == delete.Index) {
+                            delete.Index = candidate.FromIndex;
+                            arrayChanges[lastIndex] = delete;
+                            arrayChanges.RemoveAt(k);
+                            lastIndex = arrayChanges.Count - 1;
+                        } else {
+                            // Checking FROM index (i.e the delete)
+                            if (candidate.FromIndex == delete.Index) {
+                                delete.Index--;
+                                arrayChanges[lastIndex] = delete;
+                                candidate.FromIndex--;
+                            } else if (candidate.FromIndex > delete.Index) {
+                                candidate.FromIndex--;
+                            } else { // candidate.FromIndex < delete.Index
+                                delete.Index++;
+                            }
+
+                            // Checking TO index (i.e. the insert)
+                            if (candidate.Index > delete.Index)
+                                candidate.Index--;
+                            else if (candidate.Index < delete.Index) {
+                                delete.Index--;
+                                arrayChanges[lastIndex] = delete;
+                            }
+
+                            // If after moving the delete the indexes in the move are
+                            // equal we can just remove it since it is unnecessary
+                            if (candidate.Index == candidate.FromIndex) {
+                                arrayChanges.RemoveAt(k);
+                                lastIndex = arrayChanges.Count - 1;
+                            } else {
+                                arrayChanges[k] = candidate;
+                            }
+                        }
+                    } else if (candidate.ChangeType == Change.ADD) {
+                        if (candidate.Index == delete.Index) {
+                            // Since we first insert and then delete the inserted index
+                            // we can just remove both operations.
+                            arrayChanges.RemoveAt(lastIndex);
+                            arrayChanges.RemoveAt(k);
+                            lastIndex = -1;
+                            break;
+                        } else if (candidate.Index > delete.Index) {
+                            candidate.Index--;
+                            arrayChanges[k] = candidate;
+                        } else { // candidate.Index < delete.Index
+                            delete.Index--;
+                            arrayChanges[lastIndex] = delete;
+                        }
+                    } else if (candidate.ChangeType == Change.REMOVE) {
+                        if (candidate.Index == delete.Index) {
+                            // Do nothing
+                        } else if (candidate.Index > delete.Index) {
+                            candidate.Index--;
+                            arrayChanges[k] = candidate;
+                        } else { // candidate.Index < delete.Index
+                            delete.Index++;
+                            arrayChanges[lastIndex] = delete;
+                        }
+                    } else if (candidate.ChangeType == Change.REPLACE) {
+                        if (candidate.Index == delete.Index) {
+                            // We first overwrite the value at index and then remove it
+                            // so in this case we can just skip the replace operation.
+                            arrayChanges.RemoveAt(k);
+                            lastIndex = arrayChanges.Count - 1;
+                        } else if (candidate.Index > delete.Index) {
+                            candidate.Index--;
+                            arrayChanges[k] = candidate;
+                        } else { // candidate.Index < delete.Index
+                            // Do nothing
+                        }
+                    }
+                }
+
+                if (arrayChanges.Count > 1 && lastIndex != -1) {
+                    arrayChanges.RemoveAt(lastIndex);
+                    arrayChanges.Insert(offset, delete);
+                }
+            }
         }
 
         /// <summary>

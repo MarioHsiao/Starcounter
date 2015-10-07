@@ -4,6 +4,8 @@ using Starcounter.Internal.XSON.Tests;
 using Starcounter.Templates;
 using System;
 using System.Collections.Generic;
+using Starcounter.XSON;
+using System.Collections;
 
 namespace Starcounter.Internal.XSON.Tests {
 
@@ -456,6 +458,256 @@ namespace Starcounter.Internal.XSON.Tests {
                 + "]";
 
             Assert.AreEqual(correctPatch, patch);
+        }
+
+        [Test]
+        public static void TestArrayChangesWithBoundData() {
+            var tSchema = new TObject() { ClassName = "ObjWithArr" };
+            var tItems = tSchema.Add<TObjArr>("Items");
+            tItems.BindingStrategy = BindingStrategy.Auto;
+            tItems.ElementType = new TLong() { BindingStrategy = BindingStrategy.Auto };
+            dynamic json = new Json() { Template = tSchema };
+
+            var session = new Session();
+            
+            session.StartUsing();
+            try {
+                session.Data = json;
+
+                var newArr = new long[] { 1, 2, 3};
+                json.Items.Data = newArr;
+                AssertArray(json.Items, newArr);
+
+                var patch = jsonPatch.Generate(json, true, false);
+                
+                newArr = new long[] { 1, 4, 2, 3 };
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+
+                patch = jsonPatch.Generate(json, true, false);
+                var expectedPatch = @"[{""op"":""add"",""path"":""/Items/1"",""value"":4}]";
+                Assert.AreEqual(expectedPatch, patch);
+                
+                json.Items.RemoveAt(1); // Reset to inital state, [1, 2, 3]
+                patch = jsonPatch.Generate(json, true, false);
+
+                newArr = new long[] { 1, 3 };
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+
+                patch = jsonPatch.Generate(json, true, false);
+                expectedPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
+                Assert.AreEqual(expectedPatch, patch);
+                
+                newArr = new long[] { 1, 2, 3, 4, 5};
+                json.Items.CheckBoundArray(newArr); // Reset to inital state, [1, 2, 3, 4, 5]
+                AssertArray(json.Items, newArr);
+
+                patch = jsonPatch.Generate(json, true, false);
+                
+                newArr = new long[] { 1, 3, 4, 5 };
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+
+                patch = jsonPatch.Generate(json, true, false);
+                expectedPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
+                Assert.AreEqual(expectedPatch, patch);
+                
+                newArr = new long[] { 1, 2, 3, 4, 5 };
+                json.Items.CheckBoundArray(newArr); // Reset to inital state, [1, 2, 3, 4, 5]
+                AssertArray(json.Items, newArr);
+                patch = jsonPatch.Generate(json, true, false);
+
+                expectedPatch = @"[{""op"":""add"",""path"":""/Items/1"",""value"":2}]";
+                Assert.AreEqual(expectedPatch, patch);
+
+                newArr = new long[] { 1, 5, 4, 3 };
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+                patch = jsonPatch.Generate(json, true, false);
+
+                expectedPatch = @"[{""op"":""remove"",""path"":""/Items/1""},{""op"":""remove"",""path"":""/Items/3""},{""op"":""add"",""path"":""/Items/1"",""value"":5},{""op"":""remove"",""path"":""/Items/3""},{""op"":""add"",""path"":""/Items/2"",""value"":4}]";
+                Assert.AreEqual(expectedPatch, patch);
+
+                newArr = new long[] { 2, 4 };
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+                patch = jsonPatch.Generate(json, true, false);
+
+                expectedPatch = @"[{""op"":""remove"",""path"":""/Items/3""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""add"",""path"":""/Items/0"",""value"":2}]";
+                Assert.AreEqual(expectedPatch, patch);
+
+            } finally {
+                session.StopUsing();
+            }
+        }
+
+        private static void AssertArray(IList actual, long[] expected) {
+            Assert.AreEqual(expected.Length, actual.Count);
+            for (int i = 0; i < expected.Length; i++) {
+                Assert.AreEqual(expected[i], (long)(((Json)actual[i]).Data));
+            }
+        }
+
+// Test added for checking performance when implementing the new check of bound arrays. No point in running it for every
+// build but nice to have the code. 
+//        [Test]
+        public static void BenchmarkArrayChangesWithBoundData() {
+            var tSchema = new TObject() { ClassName = "ObjWithArr" };
+            var tItems = tSchema.Add<TObjArr>("Items");
+            tItems.BindingStrategy = BindingStrategy.Auto;
+            tItems.ElementType = new TLong() { BindingStrategy = BindingStrategy.Auto };
+            dynamic json = new Json() { Template = tSchema };
+
+            var session = new Session();
+            session.StartUsing();
+            try {
+                session.Data = json;
+
+                int testCount;
+                double oldTime;
+                double oldTimePatches;
+                int oldChangeCount;
+                double newTime;
+                double newTimePatches;
+                int newChangeCount;
+                Json items = (Json)json.Items;
+                Action<IEnumerable> oldCheck = items.CheckBoundArray_OLD;
+                Action<IEnumerable> newCheck = items.CheckBoundArray;
+
+                List<long> bound;
+
+                testCount = 5000;
+
+                // 1 item removed in beginning.
+                bound = CreateArray(testCount);
+                bound.RemoveAt(2);
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item removed in beginning.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
+
+                testCount = 50000;
+
+                // 1 item removed in the end.
+                bound = CreateArray(testCount);
+                bound.RemoveAt(testCount - 5);
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item removed in the end.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
+
+                testCount = 1000;
+
+                // array reversed
+                bound = CreateArray(testCount);
+                bound.Reverse();
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array reversed.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
+
+                testCount = 5000;
+
+                // 1 item inserted in beginning.
+                bound = CreateArray(testCount);
+                bound.Insert(2, 5555);
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item inserted in beginning.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
+
+                testCount = 5000;
+
+                // 1 item inserted in the end.
+                bound = CreateArray(testCount);
+                bound.Insert(testCount - 5, 5555);
+
+                // Testing using old code.
+                ResetJsonArray(json, json.Items, testCount);
+                oldTime = ExecuteDirtyCheckBenchmark(oldCheck, json, bound, out oldTimePatches, out oldChangeCount);
+
+                // Testing using new code.
+                ResetJsonArray(json, json.Items, testCount);
+                newTime = ExecuteDirtyCheckBenchmark(newCheck, json, bound, out newTimePatches, out newChangeCount);
+
+                Helper.ConsoleWriteLine("Initial array: " + testCount + " items, bound array 1 item inserted in the end.");
+                Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
+                Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
+                Helper.ConsoleWriteLine("");
+            } finally {
+                session.StopUsing();
+            }
+        }
+
+        private static void ResetJsonArray(Json json, Json items, int nrOfItems) {
+            ((IList)items).Clear();
+            items.Data = CreateArray(nrOfItems);
+            jsonPatch.Generate(json, true, false);
+        }
+
+        private static double ExecuteDirtyCheckBenchmark(Action<IEnumerable> action, Json json, IEnumerable bound, out double patchTime, out int changeCount) {
+            double dirtyTime;
+            byte[] dummy;
+            
+            DateTime start = DateTime.Now;
+            action(bound);
+            DateTime stop = DateTime.Now;
+            dirtyTime = (stop - start).TotalMilliseconds;
+
+            changeCount = ((dynamic)json).Items.ArrayAddsAndDeletes.Count;
+
+            start = DateTime.Now;
+            jsonPatch.Generate(json, true, false, out dummy);
+            stop = DateTime.Now;
+            patchTime = (stop - start).TotalMilliseconds;
+
+            return dirtyTime;
+        }
+
+        private static List<long> CreateArray(int count) {
+            List<long> list = new List<long>();
+
+            for (int i = 1; i < count + 1; i++) {
+                list.Add(i);
+            }
+            return list;
         }
     }
 }
