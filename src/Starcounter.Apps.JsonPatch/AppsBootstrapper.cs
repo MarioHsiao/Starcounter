@@ -322,7 +322,10 @@ namespace Starcounter.Internal {
                     Dictionary<String, String> headersDictionary = new Dictionary<string, string>();
                     headersDictionary.Add("Location", string.Format("{0}/{1}/{2}", req.Uri, HttpUtility.UrlEncode(reverseProxy.MatchingHost), reverseProxy.StarcounterProxyPort));
 
-                    return new Response() { HeadersDictionary = headersDictionary, StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = reverseProxyJson.ToJson() };
+                    Response resp = new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = reverseProxyJson.ToJson() };
+                    resp.SetHeadersDictionary(headersDictionary);
+
+                    return resp;
                 }
                 catch (Exception e) {
 

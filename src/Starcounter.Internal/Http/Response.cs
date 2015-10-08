@@ -1478,34 +1478,11 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Headers dictionary accessors.
+        /// Setting new headers dictionary for response.
         /// </summary>
-        public Dictionary<String, String> HeadersDictionary
-        {
-            get 
-            {
-                if (null == customHeaderFields_)
-                {
-                    String headersString = headersString_;
-                    if (headersString == null)
-                    {
-                        unsafe
-                        {
-                            if (null != httpResponseStruct_)
-                                headersString = httpResponseStruct_->GetHeadersStringUtf8_Slow();
-                        }
-                    }
-
-                    customHeaderFields_ = CreateHeadersDictionaryFromHeadersString(headersString);
-                }
-
-                return customHeaderFields_;
-            }
-
-            set
-            {
-                customHeaderFields_ = value;
-            }
+        public void SetHeadersDictionary(Dictionary<String, String> headersDict) {
+            customHeaderFields_ = headersDict;
+            customFields_ = true;
         }
 
         /// <summary>

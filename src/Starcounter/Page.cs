@@ -47,7 +47,13 @@ namespace Starcounter {
             resultingMimeType = mimeType;
 
             if (mimeType == MimeType.Text_Html) {
-                return Self.GET<Byte[]>(Html);
+                Byte[] byteRepres = Self.GET<Byte[]>(Html);
+
+                // Checking if file not found.
+                if (null == byteRepres) {
+                    throw new ArgumentOutOfRangeException("Can not find file in Page->Html property: \"" + Html + "\"");
+                }
+                return byteRepres;
             }
 
             return base.AsMimeType(mimeType, out resultingMimeType, request);
@@ -56,7 +62,13 @@ namespace Starcounter {
         public override string AsMimeType(MimeType mimeType) {
 
             if (mimeType == MimeType.Text_Html) {
-                return Self.GET<String>(Html);
+                String stringRepres = Self.GET<String>(Html);
+
+                // Checking if file not found.
+                if (null == stringRepres) {
+                    throw new ArgumentOutOfRangeException("Can not find file in Page->Html property: \"" + Html + "\"");
+                }
+                return stringRepres;
             }
             return base.AsMimeType(mimeType);
         }

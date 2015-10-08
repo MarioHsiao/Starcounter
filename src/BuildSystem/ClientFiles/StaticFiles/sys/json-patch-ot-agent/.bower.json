@@ -19,7 +19,8 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    "gruntfile.js"
   ],
   "devDependencies": {
     "fast-json-patch": "~0.5.0"
@@ -27,11 +28,11 @@
   "dependencies": {
     "json-patch-queue": "PuppetJs/JSON-Patch-queue#gh-pages"
   },
-  "_release": "b67f32cd0c",
+  "_release": "d1ce630561",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "b67f32cd0c2abb21329344c179f17a2f5a9b78e1"
+    "commit": "d1ce6305618b7d946f961c448ce9a59767db33b1"
   },
   "_source": "git://github.com/PuppetJs/JSON-Patch-OT-agent.git",
   "_target": "gh-pages",

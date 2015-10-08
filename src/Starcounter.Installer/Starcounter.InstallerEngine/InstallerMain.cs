@@ -98,14 +98,14 @@ namespace Starcounter.InstallerEngine
             if (!useExistingServerInstallation) {
 
                 File.Copy(
-                    Path.Combine(InstallerMain.InstallationDir, ConstantsBank.ScGatewayConfigName),
-                    Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                    Path.Combine(InstallerMain.InstallationDir, StarcounterEnvironment.FileNames.GatewayConfigSampleFileName),
+                    Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName),
                     true);
             }
 
             // Overwriting server config values.
             if (!Utilities.ReplaceXMLParameterInFile(
-                Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName),
                 MixedCodeConstants.GatewayInternalSystemPortSettingName,
                 internalSystemPort))
             {
@@ -113,7 +113,7 @@ namespace Starcounter.InstallerEngine
             }
 
             if (!Utilities.ReplaceXMLParameterInFile(
-                Path.Combine(serverDir, ConstantsBank.ScGatewayConfigName),
+                Path.Combine(serverDir, StarcounterEnvironment.FileNames.GatewayConfigFileName),
                 MixedCodeConstants.GatewayAggregationPortSettingName,
                 aggregationPort)) {
                 throw ErrorCode.ToException(Error.SCERRINSTALLERINTERNALPROBLEM, "Can't replace gateway aggregation port.");

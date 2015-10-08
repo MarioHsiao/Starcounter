@@ -24,10 +24,13 @@ namespace Starcounter.XSON {
     public class JsonPatch {
         private static byte[] testRemoteVersionPatchStart = Encoding.UTF8.GetBytes(@"{""op"":""test"",""path"":""/");
         private static byte[] replaceLocalVersionPatchStart = Encoding.UTF8.GetBytes(@"{""op"":""replace"",""path"":""/");
-        private static byte[] versionPatchEndToValue = Encoding.UTF8.GetBytes(@""",""value"":");
-
-        private static byte[][] _patchOpUtf8Arr;
-        private static byte[] _emptyPatchArr = { (byte)'[', (byte)']' };
+        private static byte[] patchStartToOp = Encoding.UTF8.GetBytes(@"{""op"":""");
+        private static byte[] patchEndToPath = Encoding.UTF8.GetBytes(@""",""path"":""");
+        private static byte[] patchEndToFrom = Encoding.UTF8.GetBytes(@""",""from"":""");
+        private static byte[] patchEndToValue = Encoding.UTF8.GetBytes(@""",""value"":");
+        
+        private static byte[][] patchOpUtf8Arr;
+        private static byte[] emptyPatchArr = { (byte)'[', (byte)']' };
 
         private Action<Json, JsonPatchOperation, JsonPointer, IntPtr, int> patchHandler = DefaultPatchHandler.Handle;
 
@@ -39,12 +42,13 @@ namespace Starcounter.XSON {
         }
 
         static JsonPatch() {
-            _patchOpUtf8Arr = new byte[5][];
-            _patchOpUtf8Arr[(int)JsonPatchOperation.Undefined] = Encoding.UTF8.GetBytes("undefined");
-            _patchOpUtf8Arr[(int)JsonPatchOperation.Remove] = Encoding.UTF8.GetBytes("remove");
-            _patchOpUtf8Arr[(int)JsonPatchOperation.Replace] = Encoding.UTF8.GetBytes("replace");
-            _patchOpUtf8Arr[(int)JsonPatchOperation.Add] = Encoding.UTF8.GetBytes("add");
-            _patchOpUtf8Arr[(int)JsonPatchOperation.Test] = Encoding.UTF8.GetBytes("test");    
+            patchOpUtf8Arr = new byte[6][];
+            patchOpUtf8Arr[(int)JsonPatchOperation.Undefined] = Encoding.UTF8.GetBytes("undefined");
+            patchOpUtf8Arr[(int)JsonPatchOperation.Remove] = Encoding.UTF8.GetBytes("remove");
+            patchOpUtf8Arr[(int)JsonPatchOperation.Replace] = Encoding.UTF8.GetBytes("replace");
+            patchOpUtf8Arr[(int)JsonPatchOperation.Add] = Encoding.UTF8.GetBytes("add");
+            patchOpUtf8Arr[(int)JsonPatchOperation.Move] = Encoding.UTF8.GetBytes("move");
+            patchOpUtf8Arr[(int)JsonPatchOperation.Test] = Encoding.UTF8.GetBytes("test");    
         }
 
         public JsonPatch() {
@@ -104,13 +108,13 @@ namespace Starcounter.XSON {
                 // If versioning is enabled two patches are fixed: test clientversion and replace serverversion.
                 size += testRemoteVersionPatchStart.Length;
                 size += changeLog.Version.RemoteVersionPropertyName.Length;
-                size += versionPatchEndToValue.Length;
+                size += patchEndToValue.Length;
                 size += GetSizeOfIntAsUtf8(changeLog.Version.RemoteVersion);
                 size += 2; // +2 for "},"
 
                 size += replaceLocalVersionPatchStart.Length;
                 size += changeLog.Version.LocalVersionPropertyName.Length;
-                size += versionPatchEndToValue.Length;
+                size += patchEndToValue.Length;
                 size += GetSizeOfIntAsUtf8(changeLog.Version.LocalVersion);
                 size += 2; // +2 for "},"
             }
@@ -136,14 +140,14 @@ namespace Starcounter.XSON {
                     if (versioning) {
                         writer.Write(replaceLocalVersionPatchStart);
                         writer.Write(changeLog.Version.LocalVersionPropertyName);
-                        writer.Write(versionPatchEndToValue);
+                        writer.Write(patchEndToValue);
                         writer.Write(changeLog.Version.LocalVersion);
                         writer.Write('}');
                         writer.Write(',');
 
                         writer.Write(testRemoteVersionPatchStart);
                         writer.Write(changeLog.Version.RemoteVersionPropertyName);
-                        writer.Write(versionPatchEndToValue);
+                        writer.Write(patchEndToValue);
                         writer.Write(changeLog.Version.RemoteVersion);
                         writer.Write('}');
 
@@ -195,24 +199,41 @@ namespace Starcounter.XSON {
         private bool WritePatch(Change change, ref Utf8Writer writer, bool includeNamespace) {
             int size;
             int writerStart = writer.Written;
+//            int pathStart;
+//            int pathEnd;
             TypedJsonSerializer serializer;
 
-            // TODO:
-            // dont write static strings as strings. convert them once and copy arrays.
-            writer.Write("{\"op\":\"");
-            writer.Write(_patchOpUtf8Arr[change.ChangeType]);
-            writer.Write("\",\"path\":\"");
+            writer.Write(patchStartToOp);
+            writer.Write(patchOpUtf8Arr[change.ChangeType]);
+            writer.Write(patchEndToPath);
 
             if (change.Property != null) {
+//                pathStart = writer.Written;
                 if (!WritePath(ref writer, change, includeNamespace)) {
                     writer.Skip(writer.Written - writerStart);
                     return false;
                 }
-            } 
-          
-            writer.Write('"');
+
+                if (change.ChangeType == Change.MOVE) {
+                    // TODO: 
+                    // implement move.
+                    throw new NotImplementedException("Move operation is not yet implemented.");
+
+                    //// Copy the contens of the path, changing the index 
+                    //pathEnd = writer.Written;
+                    //writer.Write(patchEndToFrom);
+
+                    ////TODO: 
+                    //// Copy...
+                    //unsafe {
+                    //    byte* pBuf = writer.Buffer;
+                        
+                    //}
+                }
+            }
+
             if (change.ChangeType != (int)JsonPatchOperation.Remove) {
-                writer.Write(",\"value\":");
+                writer.Write(patchEndToValue);
 
                 unsafe {
                     if (change.Property == null) {
@@ -226,7 +247,10 @@ namespace Starcounter.XSON {
                     }
                     writer.Skip(size);
                 }
+            } else {
+                writer.Write('"');
             }
+
             writer.Write('}');
             return true;
         }
@@ -241,9 +265,15 @@ namespace Starcounter.XSON {
 
             // {"op":"???","path":"???"}
             // size = 7 + op + 10 + path + 2 => 19 + var
-            
+
+            if (change.ChangeType == Change.MOVE) {
+                // TODO: 
+                // implement move.
+                throw new NotImplementedException("Move operation is not yet implemented.");
+            }
+
             size = 19;
-            size += _patchOpUtf8Arr[change.ChangeType].Length;
+            size += patchOpUtf8Arr[change.ChangeType].Length;
 
             pathSize = EstimateSizeOfPath(change.Parent, includeNamespace, false);
             if (pathSize == -1) {
@@ -831,20 +861,20 @@ namespace Starcounter.XSON {
 
             switch (current){
                 case (byte)'a':
-                    if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Add], contentArr, offset, valueSize))
+                    if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Add], contentArr, offset, valueSize))
                         op = JsonPatchOperation.Add;
                     break;
                 case (byte)'t':
-                    if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Test], contentArr, offset, valueSize))
+                    if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Test], contentArr, offset, valueSize))
                         op = JsonPatchOperation.Test;
                     break;
                 case (byte)'r':
                     if (valueSize > 2) {
                         if (contentArr[offset + 2] == 'p') {
-                            if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Replace], contentArr, offset, valueSize))
+                            if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Replace], contentArr, offset, valueSize))
                                 op = JsonPatchOperation.Replace;
                         } else {
-                            if (IsPatchOperation(_patchOpUtf8Arr[(int)JsonPatchOperation.Remove], contentArr, offset, valueSize))
+                            if (IsPatchOperation(patchOpUtf8Arr[(int)JsonPatchOperation.Remove], contentArr, offset, valueSize))
                                 op = JsonPatchOperation.Remove;
                         }
                     }

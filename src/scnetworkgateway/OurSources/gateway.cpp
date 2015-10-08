@@ -658,7 +658,7 @@ std::string Gateway::GetConfigXmlContents() {
     config_file_stream.open(setting_config_file_path_);
     if (!config_file_stream.is_open())
     {
-        config_file_stream.open(GW_DEFAULT_CONFIG_NAME);
+        config_file_stream.open(GW_SAMPLE_CONFIG_NAME);
         if (!config_file_stream.is_open())
         {
             g_gateway.LogWriteCritical(L"Gateway XML: Settings file stream can't be opened.");

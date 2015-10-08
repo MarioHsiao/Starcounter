@@ -44,7 +44,7 @@ namespace Starcounter {
         /// <summary>
         /// Proxy delegate trigger.
         /// </summary>
-        public Boolean ProxyDelegateTrigger {
+        internal Boolean ProxyDelegateTrigger {
             get;
             set;
         }
@@ -52,7 +52,7 @@ namespace Starcounter {
         /// <summary>
         /// Type of registered handler.
         /// </summary>
-        public enum TypesOfHandler {
+        internal enum TypesOfHandler {
             Generic,
             OrdinaryMapping,
             OntologyMapping
@@ -108,7 +108,7 @@ namespace Starcounter {
         /// <summary>
         /// Flag that allows only external calls.
         /// </summary>
-        public Boolean CallExternalOnly {
+        internal Boolean CallExternalOnly {
             get; set;
         }
 
@@ -141,7 +141,7 @@ namespace Starcounter {
         /// <summary>
         /// Constructor with handler level.
         /// </summary>
-        public HandlerOptions(HandlerLevels handlerLevel) {
+        internal HandlerOptions(HandlerLevels handlerLevel) {
             handlerLevel_ = handlerLevel;
         }
 
@@ -485,9 +485,9 @@ namespace Starcounter {
         public static List<OutgoingFilter> savedOutgoingFilters_ = new List<OutgoingFilter>();
 
         /// <summary>
-        /// Enable/Disable outgoing filters.
+        /// Enable/Disable response filters.
         /// </summary>
-        public static void EnableDisableOutgoingFilter(Boolean enable) {
+        public static void EnableDisableResponseFilter(Boolean enable) {
 
             if (enable) {
 
