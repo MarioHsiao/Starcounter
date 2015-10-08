@@ -1,6 +1,6 @@
 <!--
 Element: dom-bind-notifier
-version: 1.2.1
+version: 1.2.2
 Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-bind)
 -->
 
@@ -116,9 +116,15 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
     _observer_array: function(arr){
       var change;
       var addedCount, removedCount;
+
+      // do nothing for Polymer's bloatware
+      if(arr.length === 1 && arr[0].name === "splices"){
+        return ;
+      }
+
       for(var changeNo = 0; changeNo < arr.length; changeNo++){
         change = arr[changeNo];
-        // do nothing for Polymers bloatware
+        // do nothing for Polymer's bloatware
         if(change.name === "splices"){
           continue;
         }
@@ -137,7 +143,11 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
             }
           break;
           case "update":
-            notifyTemplate(this, change);
+            if(!isNormalInteger(change.name)){ // array property
+                notifyTemplate(this, change);
+            } else { // if array item
+            this.template._notifySplice(change.object, this.path + getPath(this.observedObject, change.object), parseInt(change.name), 1, [change.oldValue]);
+            }
             // observe new nodes
             if( this.deep ){
               this.unobserve(change.oldValue);
@@ -298,6 +308,11 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
       //prop[last] = value;
     }
     return parts.join('.');
+  }
+
+  function isNormalInteger(str) {
+    var n = ~~Number(str);
+    return String(n) === str && n >= 0;
   }
 
 

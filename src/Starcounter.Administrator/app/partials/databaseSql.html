@@ -25,9 +25,14 @@
                 <span style="vertical-align: middle; margin-top: -1px; font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>
                 <span style="vertical-align: middle">{{ErrorMessage.Message}}</span>
                 <span style="vertical-align: middle">
-                <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">Help. </a>View the <a href="#/server/log">log</a> for more details.
-
+                    <a ng-show="ErrorMessage.HelpLink" href="{{ErrorMessage.HelpLink}}" target="_blank">Help. </a>View the <a href="#/server/log">log</a> for more details.
                 </span>
+
+                <div ng-show="HasSupportedMessage" style="margin-top:10px">
+                    <span style="vertical-align: middle; margin-top: -1px; font-size: 1.2em; color: rgb(9, 81, 138);" class="glyphicon glyphicon-info-sign" aria-hidden="true" title="Supported"></span>
+                    <p style="display: inline;" class="text-warning_">SQL browser currently supports <mark>SELECT</mark>, <mark>CREATE INDEX</mark> and <mark>DELETE</mark> statements. Other operations (equivalent to <mark>INSERT</mark>, <mark>UPDATE</mark>) are done in code. <a target="_blank" href="http://starcounter.io/guides/sql/">Read more about Starcounter's SQL</a></p>
+                </div>
+
             </span>
         </div>
     </div>

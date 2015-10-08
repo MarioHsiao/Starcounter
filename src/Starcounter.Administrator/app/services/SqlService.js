@@ -46,7 +46,14 @@ adminModule.service('SqlService', ['$http', '$log', 'UtilsFactory', 'JobFactory'
                 // Show message
                 //$scope.alerts.push({ type: 'danger', msg: response.sqlException.message, helpLink: response.sqlException.helpLink });
                 if (typeof (errorCallback) == "function") {
+
                     var messageObject = UtilsFactory.createMessage(errorHeader, response.data.sqlException.message, response.data.sqlException.helpLink);
+                    if (response.data.sqlException.scErrorCode == 7021 ||   // SCERRSQLINCORRECTSYNTAX (SCERR7021)
+                        response.data.sqlException.scErrorCode == 7022 ||   // SCERRSQLNOTIMPLEMENTED (SCERR7021)
+                        response.data.sqlException.scErrorCode == 7023) {  // SCERRSQLNOTSUPPORTED (SCERR7021)
+                        messageObject.showSupportedMessage = true;
+                    }
+
                     errorCallback(messageObject);
                 }
                 return;
