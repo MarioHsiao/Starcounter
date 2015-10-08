@@ -542,6 +542,11 @@ namespace Starcounter.Rest
                         throw new ArgumentOutOfRangeException(methodSpaceUri, "HTTP method should be upper-case (HTTP 1.1 RFC).");
                     }
 
+                    // Checking if URI starts with a slash.
+                    if (s[1][0] != '/') {
+                        throw new ArgumentOutOfRangeException(methodSpaceUri, "Handler URI should start with a slash.");
+                    }
+
 #if CASE_INSENSITIVE_URI_MATCHER
                     s[1] = s[1].ToLowerInvariant();
 #endif
