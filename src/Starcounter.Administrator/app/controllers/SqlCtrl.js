@@ -168,6 +168,7 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
                 $scope.isBusy = false;
 
                 $scope.HasErrorMessage = true;
+                $scope.HasSupportedMessage = messageObject.showSupportedMessage;
                 $scope.ErrorMessage = {
                     "Title": messageObject.header,
                     "Message": messageObject.message,
