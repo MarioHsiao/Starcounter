@@ -13,6 +13,10 @@ adminModule.controller('ApplicationCtrl', ['$scope', '$log', '$sce', '$routePara
 
     //var self = this;
 
+    $scope.getHost = function () {
+        return $location.host();
+    }
+
     /**
      * Start Application
      * @param {object} application Application
