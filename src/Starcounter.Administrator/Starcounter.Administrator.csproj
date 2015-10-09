@@ -117,6 +117,7 @@
     <Compile Include="Server\Model\Database.cs" />
     <Compile Include="Server\Model\DatabaseApplication.cs" />
     <Compile Include="Server\Model\Server.cs" />
+    <Compile Include="Server\RangeEnabledObservableCollection.cs" />
     <Compile Include="Server\Utilities\RestUtils.cs" />
     <Compile Include="Server\Representations.JSON\LogApp.json.cs">
       <DependentUpon>LogApp.json</DependentUpon>

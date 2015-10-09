@@ -206,18 +206,43 @@ namespace Administrator.Server.Model {
                 if (this._DatabaseApplication != null) {
                     this._DatabaseApplication.Changed -= _DatabaseApplication_Changed;
                 }
+
+                // Remember old values
+                bool oldHasDatabaseAppliction = this.HasDatabaseAppliction;
+                bool oldIsRunning = this.IsRunning;
+                bool oldIsInstalled = this.IsInstalled;
+                bool oldCanBeUninstalled = this.CanBeUninstalled;
+                bool oldIsDeployed = this.IsDeployed;
+
+                DatabaseApplication oldDatabaseApplication = this.DatabaseApplication;
+
                 this._DatabaseApplication = value;
 
                 if (this._DatabaseApplication != null) {
                     this._DatabaseApplication.Changed += _DatabaseApplication_Changed;
                 }
 
-                this.OnPropertyChanged("HasDatabaseAppliction");
-                this.OnPropertyChanged("DatabaseApplication");
-                this.OnPropertyChanged("IsRunning");
-                this.OnPropertyChanged("IsInstalled");
-                this.OnPropertyChanged("CanBeUninstalled");
-                this.OnPropertyChanged("IsDeployed");
+                // Send events if something changed
+                if (oldHasDatabaseAppliction != this.HasDatabaseAppliction) {
+                    this.OnPropertyChanged("HasDatabaseAppliction");
+                }
+
+                if (oldDatabaseApplication != this.DatabaseApplication) {
+                    this.OnPropertyChanged("DatabaseApplication");
+                }
+
+                if (oldIsRunning != this.IsRunning) {
+                    this.OnPropertyChanged("IsRunning");
+                }
+
+                if (oldIsInstalled != this.IsInstalled) {
+                    this.OnPropertyChanged("IsInstalled");
+                }
+                if (oldCanBeUninstalled != this.CanBeUninstalled) {
+                    this.OnPropertyChanged("CanBeUninstalled");
+                } if (oldIsDeployed != this.IsDeployed) {
+                    this.OnPropertyChanged("IsDeployed");
+                }
             }
         }
 
