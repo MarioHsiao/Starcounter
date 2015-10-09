@@ -286,7 +286,7 @@ namespace Starcounter.InstallerWPF {
             if (finishPage != null && finishPage.GoToWiki) {
 
                 try {
-                    string link = @"https://http://starcounter.io/docs/";
+                    string link = @"https://starcounter.io/docs/";
                     this.OpenBrowser(link);
                 }
                 catch (Win32Exception ee) {
