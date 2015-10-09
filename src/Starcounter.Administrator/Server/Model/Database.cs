@@ -186,8 +186,8 @@ namespace Administrator.Server.Model {
         #endregion
 
         // TODO: Make thread-safe
-        public ObservableCollection<DatabaseApplication> Applications = new ObservableCollection<DatabaseApplication>();
-        public ObservableCollection<AppStoreStore> AppStoreStores = new ObservableCollection<AppStoreStore>();
+        public RangeEnabledObservableCollection<DatabaseApplication> Applications = new RangeEnabledObservableCollection<DatabaseApplication>();
+        public RangeEnabledObservableCollection<AppStoreStore> AppStoreStores = new RangeEnabledObservableCollection<AppStoreStore>();
 
         #endregion
 
@@ -202,8 +202,7 @@ namespace Administrator.Server.Model {
 
             this.PropertyChanged += Database_PropertyChanged;
             this.Applications.CollectionChanged += DatabaseApplications_CollectionChanged;
-            // TODO: Andwah plz fix this: https://github.com/Starcounter/Starcounter/issues/2912
-            //this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
+            this.AppStoreStores.CollectionChanged += AppStoreStores_CollectionChanged;
             this.JsonPatchInstance = new JsonPatch();
         }
 
@@ -235,6 +234,15 @@ namespace Administrator.Server.Model {
 
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
+
+                    IList<AppStoreStore> list = (IList<AppStoreStore>)sender;
+
+                    // Remove listeners on the database instance
+                    foreach (AppStoreStore item in list) {
+                        item.Changed -= Application_Changed;
+                        item.Changed += Application_Changed;
+                        this.UpdateAppStoreItems(item);
+                    }
 
                     break;
             }
@@ -306,11 +314,26 @@ namespace Administrator.Server.Model {
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
 
+                    IList<DatabaseApplication> list = (IList<DatabaseApplication>)sender;
+
                     // Remove listeners on the database instance
-                    foreach (DatabaseApplication item in this.Applications) {
+                    foreach (DatabaseApplication item in list) {
                         item.Changed -= Application_Changed;
                         item.Changed += Application_Changed;
+                        AppStoreApplication appStoreApplication = this.GetAppStoreApplication(item.SourceUrl);
+                        if (appStoreApplication != null) {
+                            appStoreApplication.DatabaseApplication = item;
+                            appStoreApplication.UpdateUpgradeFlag();
+                        }
+
+                        item.InvalidateModel();
                     }
+
+                    // Remove listeners on the database instance
+                    //foreach (DatabaseApplication item in this.Applications) {
+                    //    item.Changed -= Application_Changed;
+                    //    item.Changed += Application_Changed;
+                    //}
                     break;
             }
 
@@ -567,6 +590,8 @@ namespace Administrator.Server.Model {
             IList<DatabaseApplication> freshApplications;
             ApplicationManager.GetApplications(this.ID, out freshApplications);
 
+            List<DatabaseApplication> addList = new List<DatabaseApplication>();
+
             foreach (DatabaseApplication freshApplication in freshApplications) {
 
                 DatabaseApplication application = GetApplication(freshApplication.ID);
@@ -579,6 +604,10 @@ namespace Administrator.Server.Model {
                         application.IsRunning = freshApplication.IsRunning;
                     }
                 }
+            }
+
+            if (addList.Count > 0) {
+                this.Applications.InsertRange(addList);
             }
 
             // Remove
@@ -610,7 +639,7 @@ namespace Administrator.Server.Model {
         /// </summary>
         public void RefreshAppStoreStores() {
 
-            this.ResetErrorMessage(); 
+            this.ResetErrorMessage();
             this.InvalidateAppStoreStores();
         }
 
@@ -680,25 +709,29 @@ namespace Administrator.Server.Model {
             lock (lockObject_) {
 
                 // Add new stores
-                IList<AppStoreStore> newStoresList = new List<AppStoreStore>();
+                IList<AppStoreStore> addList = new List<AppStoreStore>();
 
                 foreach (AppStoreStore freshStore in freshStores) {
 
                     AppStoreStore store = this.GetStore(freshStore.ID);
                     if (store == null) {
                         // Add store.
-                        newStoresList.Add(freshStore);
+                        freshStore.Database = this;
+                        addList.Add(freshStore);
                     }
                     else {
                         this.UpdateAppStoreItems(store);
                     }
                 }
 
-                foreach (AppStoreStore freshStore in newStoresList) {
-                    freshStore.Database = this;
-                    this.AppStoreStores.Add(freshStore);
-                }
+                //foreach (AppStoreStore freshStore in newStoresList) {
+                //    freshStore.Database = this;
+                //    this.AppStoreStores.Add(freshStore);
+                //}
 
+                if (addList.Count > 0) {
+                    this.AppStoreStores.InsertRange(addList);
+                }
                 // Remove removed stores
                 bool bExist;
                 IList<AppStoreStore> removeStoresList = new List<AppStoreStore>();
@@ -728,16 +761,22 @@ namespace Administrator.Server.Model {
 
             lock (lockObject_) {
                 // Add new stores
+                List<AppStoreApplication> addList = new List<AppStoreApplication>();
+
                 foreach (AppStoreApplication freshApp in freshAppStoreApplications) {
 
                     AppStoreApplication app = this.GetAppStoreApplication(store, freshApp.ID);
                     if (app == null) {
-
-                        store.Applications.Add(freshApp);
+                        addList.Add(freshApp);
+                        //store.Applications.Add(freshApp);
                     }
                     else {
                         // TODO: update app properties with freshApp properties
                     }
+                }
+
+                if (addList.Count > 0) {
+                    store.Applications.InsertRange(addList);
                 }
 
                 // Remove removed stores

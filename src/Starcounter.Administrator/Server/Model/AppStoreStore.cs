@@ -26,7 +26,7 @@ namespace Administrator.Server.Model {
 
         public Administrator.Server.Model.Database Database;
 
-        public ObservableCollection<AppStoreApplication> Applications = new ObservableCollection<AppStoreApplication>();
+        public RangeEnabledObservableCollection<AppStoreApplication> Applications = new RangeEnabledObservableCollection<AppStoreApplication>();
 
         #endregion
 
@@ -77,10 +77,13 @@ namespace Administrator.Server.Model {
                     break;
                 case System.Collections.Specialized.NotifyCollectionChangedAction.Reset:
 
+                    IList<AppStoreApplication> list = (IList<AppStoreApplication>)sender;
+
                     // Remove listeners on the database instance
-                    foreach (AppStoreApplication item in this.Applications) {
+                    foreach (AppStoreApplication item in list) {
                         item.Changed -= AppStoreApplication_Changed;
                         item.Changed += AppStoreApplication_Changed;
+                        item.DatabaseApplication = this.Database.GetApplicationBySourceUrl(item.SourceUrl);
                         item.UpdateUpgradeFlag();
                     }
 

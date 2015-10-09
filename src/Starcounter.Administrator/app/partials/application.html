@@ -33,7 +33,7 @@
                     </td>
 
                     <!-- Buttons -->
-                    <td class="vert-align" style="width: 300px; background: rgba(0, 0, 0, 0.0)">
+                    <td class="vert-align" style="width: 400px; background: rgba(0, 0, 0, 0.0)">
 
                         <div class="btn-group-sm">
                             <button style="min-width: 80px" class="btn btn-success" ng-hide="application.IsRunning" ng-click="btnStartApplication(application)" title="Start Application">Start</button>
@@ -41,7 +41,9 @@
                             <button style="min-width: 110px" class="btn btn-default" ng-show="!application.IsInstalled && application.IsDeployed" ng-click="btnInstallApplication(application)" title="Start Application when database starts">Auto-Start (OFF)</button>
                             <button style="min-width: 110px" class="btn btn-primary" ng-show="application.IsInstalled && application.IsDeployed" ng-click="btnUninstallApplication(application)" title="Start Application when database starts">Auto-Start (ON)</button>
                             <button style="min-width: 80px" class="btn btn-default" ng-show="application.IsDeployed && application.IsDeployed" ng-click="btnDeleteApplication(application)" title="Delete Application">Delete...</button>
+                            <a target="_blank" style="min-width: 80px" ng-disabled="!application.IsRunning" class="btn btn-success" href="http://{{getHost()}}:{{database.UserHttpPort}}/{{application.AppName}}">Open</a>
                         </div>
+
                     </td>
 
                     <!-- Error message -->

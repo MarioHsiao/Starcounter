@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:pages="clr-namespace:Starcounter.InstallerWPF.Pages"
     xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
-    DisplayName="Error">
+    DisplayName="Cancelled">
 
 
     <pages:BasePage.Resources>
@@ -36,7 +36,7 @@
                         <GroupBox.Header>
                             <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
                         </GroupBox.Header>
-                        <TextBlock Text="Starcounter Software Setup Error." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                        <TextBlock Text="Something went wrong or the task has been cancelled" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
                     </GroupBox>
                     
                     <!-- Content -->

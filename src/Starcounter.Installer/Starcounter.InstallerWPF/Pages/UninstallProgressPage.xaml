@@ -197,7 +197,7 @@
 
                                 </Border>
 
-                                <TextBlock Margin="0,20,0,0" Grid.Row="1"  Text="Please wait while components are uninstalled..." HorizontalAlignment="Center"/>
+                                <TextBlock Margin="0,20,0,0" Grid.Row="1"  Text="Please wait while we uninstall components..." HorizontalAlignment="Center"/>
 
                             </Grid>
 

@@ -37,7 +37,7 @@
                         <GroupBox.Header>
                             <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
                         </GroupBox.Header>
-                        <TextBlock Text="Thank you for downloading Starcounter!" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                        <TextBlock Text="Thank you for installing Starcounter!" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
                     </GroupBox>
 
                     <!-- Content -->
@@ -45,16 +45,14 @@
                         <!-- Welcome text -->
                         <Grid Margin="0,7.5,0,7.5">
                             <TextBlock TextWrapping="Wrap" Style="{DynamicResource PageWelcomeHeaderStyle}">
-                                Starcounter is the worlds fastest concurrent ACID database engine.
+                                Starcounter is an In-memory Application Engine. It is a fusion of your C# code, in-memory database, and a built in web server.
                                 <LineBreak/>
-                                <LineBreak/>                               
-                                Starcounter offers extreme performance using a unique memory-centric design. 
-                                <LineBreak/> 
-                                It uses RAM as the main medium while maintaining enterprise level durability using transaction logging and database images on disk.
+                                <LineBreak/>
+                                Starcounter supports SQL queries and is fully ACID-compliant. It also features integration with web standards such as HTTP, REST and JSON.                               
                                 <LineBreak/>
                                 <LineBreak/>
                                 Please check the  
-                                <Hyperlink x:Name="systemRequirementsHyperlink" CommandParameter="https://github.com/Starcounter/Starcounter/wiki/Installing-Starcounter#system-requirements" Command="NavigationCommands.GoToPage"  >system requirements.</Hyperlink>
+                                <Hyperlink x:Name="systemRequirementsHyperlink" CommandParameter="http://starcounter.io/download/#system-requirements" Command="NavigationCommands.GoToPage"  >system requirements.</Hyperlink>
                                 <LineBreak/>
                                 <LineBreak/>
                                 <LineBreak/>

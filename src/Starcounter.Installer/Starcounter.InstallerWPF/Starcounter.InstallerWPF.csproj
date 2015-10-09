@@ -142,6 +142,9 @@
     <Compile Include="LicenseAgreementWindow.xaml.cs">
       <DependentUpon>LicenseAgreementWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\InstallProgressPage.xaml.cs">
+      <DependentUpon>InstallProgressPage.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\WelcomeAndLicenseAgreementPage.xaml.cs">
       <DependentUpon>WelcomeAndLicenseAgreementPage.xaml</DependentUpon>
     </Compile>
@@ -210,6 +213,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Pages\InstallProgressPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Pages\WelcomeAndLicenseAgreementPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -244,13 +251,13 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\ProgressPage.xaml">
+    <Page Include="Pages\MovieProgressPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="Pages\FinishedPage.xaml">
+    <Page Include="Pages\InstallFinishedPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
       <Generator>MSBuild:Compile</Generator>
@@ -403,11 +410,11 @@
     <Compile Include="Pages\LicenseAgreementPage.xaml.cs">
       <DependentUpon>LicenseAgreementPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\ProgressPage.xaml.cs">
-      <DependentUpon>ProgressPage.xaml</DependentUpon>
+    <Compile Include="Pages\MovieProgressPage.xaml.cs">
+      <DependentUpon>MovieProgressPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\FinishedPage.xaml.cs">
-      <DependentUpon>FinishedPage.xaml</DependentUpon>
+    <Compile Include="Pages\InstallFinishedPage.xaml.cs">
+      <DependentUpon>InstallFinishedPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\RemoveComponentsFinishedPage.xaml.cs">
       <DependentUpon>RemoveComponentsFinishedPage.xaml</DependentUpon>

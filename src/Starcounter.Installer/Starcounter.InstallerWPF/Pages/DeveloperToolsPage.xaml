@@ -42,10 +42,10 @@
                         <Grid>
 
                             <!-- Add Components header text -->
-                            <TextBlock Text="Select the components you want to install" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                            <TextBlock Text="Check the options of your installation" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
 
                             <!-- Remove Components header text -->
-                            <TextBlock Text="Select the components you want to uninstall" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                            <TextBlock Text="Check the options of your installation" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
 
                         </Grid>
 
@@ -98,7 +98,7 @@
                                     <!-- Header Description -->
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                                                 Starcounter for Visual Studio 2010 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
-                                                <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                                <!--<Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>-->
                                     </TextBlock>
 
                                 </StackPanel>
@@ -142,7 +142,7 @@
                                     <!-- Header Description -->
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                                                 Starcounter for Visual Studio 2012 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
-                                                <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension2012" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                                <!--<Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension2012" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>-->
                                     </TextBlock>
 
                                 </StackPanel>
@@ -189,7 +189,7 @@
                                     <!-- Header Description -->
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                                                 Starcounter for Visual Studio 2013 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
-                                                <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension2013" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                                <!--<Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension2013" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>-->
                                     </TextBlock>
 
                                 </StackPanel>
@@ -236,7 +236,7 @@
                                     <!-- Header Description -->
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                                                 Starcounter for Visual Studio 2015 is a Visual Studio extension designed to make it easy to develop Starcounter applications from within Visual Studio.
-                                                <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension2015" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                                                <!--<Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Starcounter_Visual_Studio_extension2015" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>-->
                                     </TextBlock>
 
                                 </StackPanel>
