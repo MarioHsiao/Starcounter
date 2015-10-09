@@ -230,24 +230,24 @@ public class CInstallationBase : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Creating environment variables for installation base...");
 
+        // Path to .NET framework that we add in installer.
+        String frameworkPath = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
+
         // No matter what type of installation is it we need to create/overwrite
         // StarcounterBin user environment variable.
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            ComponentPath,
-            EnvironmentVariableTarget.User);
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName, ComponentPath, EnvironmentVariableTarget.User);
         PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.User);
+        PathVariable.AddPath(frameworkPath, EnvironmentVariableTarget.User);
 
         // Also setting variable for current process (so that subsequently
         // started processes can find the installation path).
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            ComponentPath,
-            EnvironmentVariableTarget.Process);
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName, ComponentPath, EnvironmentVariableTarget.Process);
         PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Process);
+        PathVariable.AddPath(frameworkPath, EnvironmentVariableTarget.Process);
 
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            ComponentPath,
-            EnvironmentVariableTarget.Machine);
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName, ComponentPath, EnvironmentVariableTarget.Machine);
         PathVariable.AddPath(ComponentPath, EnvironmentVariableTarget.Machine);
+        PathVariable.AddPath(frameworkPath, EnvironmentVariableTarget.Machine);
 
         // Logging event.
         Utilities.ReportSetupEvent("Creating base Start Menu items...");
@@ -332,16 +332,17 @@ public class CInstallationBase : CComponentBase
         // Logging event.
         Utilities.ReportSetupEvent("Deleting Starcounter base environment variables...");
 
-        // Removing environment variable.
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            null,
-            EnvironmentVariableTarget.User);
-        PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.User);
+        // Path to .NET framework that we add in installer.
+        String frameworkPath = System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory();
 
-        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName,
-            null,
-            EnvironmentVariableTarget.Machine);
+        // Removing environment variable.
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName, null, EnvironmentVariableTarget.User);
+        PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.User);
+        PathVariable.RemovePath(frameworkPath, EnvironmentVariableTarget.User);
+
+        Environment.SetEnvironmentVariable(ConstantsBank.SCEnvVariableName, null, EnvironmentVariableTarget.Machine);
         PathVariable.RemovePath(ComponentPath, EnvironmentVariableTarget.Machine);
+        PathVariable.RemovePath(frameworkPath, EnvironmentVariableTarget.Machine);
 
         // Logging event.
         Utilities.ReportSetupEvent("Deleting Starcounter entry from the 'Add/Remove Programs' list...");
