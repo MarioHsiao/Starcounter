@@ -180,7 +180,7 @@
 
                         </Border>
 
-                        <TextBlock x:Name="_textBox" Margin="0,20,0,0" Grid.Row="1"  Text="Please wait while components are installed..." HorizontalAlignment="Center"/>
+                        <TextBlock x:Name="_textBox" Margin="0,20,0,0" Grid.Row="1"  Text="Please wait while we install components..." HorizontalAlignment="Center"/>
 
                     </Grid>
 

@@ -38,7 +38,7 @@
                         <GroupBox.Header>
                             <TextBlock  Text="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type pages:BasePage}},Path=DisplayName}" Style="{DynamicResource PageHeaderTitleStyle}"/>
                         </GroupBox.Header>
-                        <TextBlock Text="General settings." Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                        <TextBlock Text="General settings" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
                     </GroupBox>
 
                     <!-- Content -->

@@ -286,7 +286,7 @@ namespace Starcounter.InstallerWPF {
             if (finishPage != null && finishPage.GoToWiki) {
 
                 try {
-                    string link = @"https://github.com/starcounter/starcounter/wiki";
+                    string link = @"https://http://starcounter.io/docs/";
                     this.OpenBrowser(link);
                 }
                 catch (Win32Exception ee) {
@@ -1009,8 +1009,10 @@ namespace Starcounter.InstallerWPF {
             //    this.RegisterPage(new DeveloperToolsPage());
             //}
 
-            this.RegisterPage(new ProgressPage());
-            //this.RegisterPage(new FinishedPage());
+//            this.RegisterPage(new MovieProgressPage());
+
+            this.RegisterPage(new InstallProgressPage());
+            this.RegisterPage(new InstallFinishedPage());
         }
 
         /// <summary>

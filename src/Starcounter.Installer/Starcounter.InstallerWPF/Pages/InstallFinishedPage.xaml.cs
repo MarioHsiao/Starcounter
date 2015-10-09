@@ -18,24 +18,36 @@ namespace Starcounter.InstallerWPF.Pages
     /// <summary>
     /// Interaction logic for Page5.xaml
     /// </summary>
-    public partial class FinishedPage : BasePage, IFinishedPage
+    public partial class InstallFinishedPage : BasePage, IFinishedPage
     {
 
+        //public bool GoToWiki {
+        //    get {
+        //        return false;
+        //    }
+        //    set {
+        //        throw new NotImplementedException();
+        //    }
+        //}
+
+        private bool _GoToWiki = true;
         public bool GoToWiki {
             get {
-                return false;
+                return _GoToWiki;
             }
             set {
-                throw new NotImplementedException();
+                this._GoToWiki = value;
+                this.OnPropertyChanged("GoToWiki");
             }
         }
+
         public override bool CanGoBack {
             get {
                 return false;
             }
         }
 
-        public FinishedPage()
+        public InstallFinishedPage()
         {
             InitializeComponent();
         }

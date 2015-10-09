@@ -5,7 +5,7 @@
     xmlns:rules="clr-namespace:Starcounter.InstallerWPF.Rules"
     xmlns:converters="clr-namespace:Starcounter.InstallerWPF.Converters"
     xmlns:main="clr-namespace:Starcounter.InstallerWPF"
-    DisplayName="Database Engine"
+    DisplayName="Options"
 >
 
 
@@ -51,10 +51,10 @@
                         <Grid>
 
                             <!-- Add Components header text -->
-                            <TextBlock Text="Select the components you want to install" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                            <TextBlock Text="Check the options of your installation" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=ADDCOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
 
                             <!-- Remove Components header text -->
-                            <TextBlock Text="Select the components you want to uninstall" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
+                            <TextBlock Text="Check the options of your installation" Visibility="{Binding Path=MainWindow.SetupOptions, Source={x:Static Application.Current}, Converter={StaticResource commandToVisibilityConverter}, ConverterParameter=REMOVECOMPONENTS}" Style="{DynamicResource PageHeaderDescriptionStyle}"/>
 
                         </Grid>
 
@@ -102,13 +102,13 @@
                                     <!-- Header Description -->
                                     <TextBlock Style="{DynamicResource ComponentDescription}">
                         The server is designed with the developer in focus. It is a lightweight server installation with a minimum impact on the target computer. It will typically run as a standard Windows process under the credentials of the currently logged in user.
-                        <Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>
+                        <!--<Hyperlink CommandParameter="https://github.com/starcounter/starcounter/wiki/Server" Command="NavigationCommands.GoToPage"  >Read more...</Hyperlink>-->
                                     </TextBlock>
 
                                     <!-- Properties -->
                                     <StackPanel Margin="0,5,0,2.5" Visibility="{Binding Path=ShowProperties, Converter={StaticResource booleanToVisibilityConverter}}" >
 
-                                        <Label Padding="0" Target="{Binding ElementName=tb_PersonalServerPath}" Margin="0,0,0,5"  Content="_Server (databases repository) path"   />
+                                        <Label Padding="0" Target="{Binding ElementName=tb_PersonalServerPath}" Margin="0,0,0,5"  Content="_Databases repository path"   />
 
                                         <Grid>
                                             <Grid.ColumnDefinitions>
