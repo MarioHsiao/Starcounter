@@ -8,6 +8,10 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$location', '
     $scope.database = null;
     $scope.viewmode = "list";
 
+    $scope.getHost = function () {
+        return $location.host();
+    }
+
     $scope.appsFilter = function (application) {
 
         return application.Status == 0 && application.IsInstalled && (application.HasErrorMessage || application.IsRunning == false);
