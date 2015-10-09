@@ -321,6 +321,29 @@ namespace Starcounter.Internal.Test
         }
 
         /// <summary>
+        /// Tests wrong URI call.
+        /// </summary>
+        [Test]
+        public void TestWrongUri() {
+
+            UriHandlersManager.ResetUriHandlersManagers();
+
+            try {
+                Handle.GET("uriWithoutSlash", (Request req) => { return 200; });
+                Assert.IsTrue(false);
+            } catch (ArgumentOutOfRangeException) {
+
+            }
+
+            try {
+                Response resp = Self.GET("uriWithoutSlash");
+                Assert.IsTrue(false);
+            } catch(ArgumentOutOfRangeException) {
+
+            }
+        }
+
+        /// <summary>
         /// Tests simple correct HTTP request.
         /// </summary>
         [Test]

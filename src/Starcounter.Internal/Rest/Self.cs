@@ -330,6 +330,11 @@ namespace Starcounter {
             HandlerOptions handlerOptions,
             Request req) {
 
+            // Checking if URI starts with a slash.
+            if (relativeUri[0] != '/') {
+                throw new ArgumentOutOfRangeException(relativeUri, "Self should be called with URI starting with a slash.");
+            }
+
             // Checking if port is not specified.
             if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == portNumber) {
                 if (StarcounterEnvironment.IsAdministratorApp) {
