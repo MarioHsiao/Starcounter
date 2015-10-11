@@ -12,6 +12,7 @@
 - Renamed the scnetworkgateway.xml in StarcounterBin to scnetworkgateway.sample.xml
 - Moved requirement to have at least 2 CPU cores to recommendations, as 4Gb RAM now.
 - `Response.HeadersDictionary` is gone and replaced with function `Response.SetHeadersDictionary`. To set individual headers use `response["HeaderName"] = "HeaderValue"` syntax.
+- `HandlerOptions.ProxyDelegateTrigger` is now an internal flag that is no longer exposed to user applications (affected Launcher app).
 
 ### Fixed
 - Unhandled exceptions in UDP/TCP handlers:
