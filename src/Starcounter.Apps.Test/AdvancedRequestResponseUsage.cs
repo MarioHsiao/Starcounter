@@ -164,6 +164,75 @@ namespace Starcounter.Internal.Test
     public class RequestResponseUsage
     {
         /// <summary>
+        /// Testing usage of headers dictionary
+        /// </summary>
+        [Test]
+        public void TestHeadersDictionary() {
+
+            String headers = "HeaderWithValue: haha\r\nHeaderWithoutValue: \r\n";
+            Dictionary<String, String> dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("haha" == dict["HeaderWithValue"]);
+            Assert.IsTrue("" == dict["HeaderWithoutValue"]);
+
+            headers = "Header1: hahaha\r\nHeader2: haha\r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("hahaha" == dict["Header1"]);
+            Assert.IsTrue("haha" == dict["Header2"]);
+
+            headers = "Header1:  hahaha\r\nHeader2:  haha\r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("hahaha" == dict["Header1"]);
+            Assert.IsTrue("haha" == dict["Header2"]);
+
+            headers = "Header1: hahaha \r\nHeader2: haha \r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("hahaha " == dict["Header1"]);
+            Assert.IsTrue("haha " == dict["Header2"]);
+
+            headers = "Header1: ha ha ha\r\nHeader2:    ha ha\r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("ha ha ha" == dict["Header1"]);
+            Assert.IsTrue("ha ha" == dict["Header2"]);
+
+            headers = "Header1: ha ha ha\r\nHeader2:\r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("ha ha ha" == dict["Header1"]);
+            Assert.IsTrue("" == dict["Header2"]);
+
+            headers = "Header1:\r\nHeader2:\r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("" == dict["Header1"]);
+            Assert.IsTrue("" == dict["Header2"]);
+
+            headers = "Header1: \r\nHeader2: \r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("" == dict["Header1"]);
+            Assert.IsTrue("" == dict["Header2"]);
+
+            headers = "Header1: abc\r\nHeader2: def\r\nHeader3: \r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("abc" == dict["Header1"]);
+            Assert.IsTrue("def" == dict["Header2"]);
+            Assert.IsTrue("" == dict["Header3"]);
+
+            headers = "Header1: abc\r\nHeader2:  \r\nHeader3: f\r\n";
+            dict = Response.CreateHeadersDictionaryFromHeadersString(headers);
+
+            Assert.IsTrue("abc" == dict["Header1"]);
+            Assert.IsTrue("" == dict["Header2"]);
+            Assert.IsTrue("f" == dict["Header3"]);
+        }
+
+        /// <summary>
         /// Tests simple correct HTTP request.
         /// </summary>
         [Test]

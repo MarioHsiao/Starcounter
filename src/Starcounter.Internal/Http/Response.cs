@@ -1358,19 +1358,31 @@ namespace Starcounter
             if (headersString == null)
                 return customHeaderFields;
 
+            // Splitting individual headers by CRLF.
             String[] headersAndValues = headersString.Split(new String[] { StarcounterConstants.NetworkConstants.CRLF }, StringSplitOptions.RemoveEmptyEntries);
             foreach (String headerAndValue in headersAndValues)
             {
                 for (Int32 i = 0; i < headerAndValue.Length; i++)
                 {
+                    // Looking for colon to get headers value.
                     if (headerAndValue[i] == ':')
                     {
+                        // Getting the header name.
                         String headerName = headerAndValue.Substring(0, i);
-                        Int32 k = i + 1;
-                        while (Char.IsWhiteSpace(headerAndValue[k]))
-                            k++;
 
-                        customHeaderFields[headerName] = headerAndValue.Substring(k);
+                        // Skipping preceding whitespace.
+                        Int32 k = i + 1;
+                        while ((k < headerAndValue.Length) && Char.IsWhiteSpace(headerAndValue[k])) {
+                            k++;
+                        }
+
+                        // Checking if there is any space left.
+                        if (k < headerAndValue.Length) {
+                            customHeaderFields[headerName] = headerAndValue.Substring(k);
+                        } else {
+                            customHeaderFields[headerName] = "";
+                        }
+
                         break;
                     }
                 }

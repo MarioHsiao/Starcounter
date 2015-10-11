@@ -20,3 +20,5 @@ https://github.com/Starcounter/Starcounter/issues/2886
 - Setting AppName in DbSession.* calls, as well as processing unhandled exceptions there.
 - Code rewritten for detecting changes on bound arrays in TypedJSON to avoid producing unnecessary changes: [#2920](https://github.com/Starcounter/Starcounter/issues/2920).
 - Bug fixed concerning indexes on database objects. Combined indexes might need to be recreated to work properly: [#2933](https://github.com/Starcounter/Starcounter/issues/2933). 
+- Bug fixed regarding headers dictionary creation (CreateHeadersDictionaryFromHeadersString):
+[#2939](https://github.com/Starcounter/Starcounter/issues/2939).
