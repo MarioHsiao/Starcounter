@@ -188,10 +188,13 @@ namespace Starcounter.Tracking {
                 this.SendData("/api/usage/installer/start", content, completeCallback);
 
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
-            }
 
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
+            }
         }
 
         /// <summary>
@@ -232,8 +235,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/installer/executing", content, completeCallback);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
             }
 
         }
@@ -277,8 +283,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/installer/abort", content, completeCallback);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
             }
 
         }
@@ -317,8 +326,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/installer/exceptions", contentJson.ToString(), completeCallback);
             }
-            catch (Exception) {
+            catch (Exception ee) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(ee));
+                }
             }
 
         }
@@ -358,8 +370,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/installer/finish", content, completeCallback);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
             }
 
         }
@@ -396,8 +411,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/installer/end", content, completeCallback);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
             }
         }
 
@@ -440,8 +458,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/starcounter", content, completeCallback);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
             }
 
 
@@ -482,8 +503,11 @@ namespace Starcounter.Tracking {
                 // Send json content to server
                 this.SendData("/api/usage/general", content, completeCallback);
             }
-            catch (Exception) {
+            catch (Exception e) {
                 // TODO: Logging
+                if (completeCallback != null) {
+                    completeCallback(this, new CompletedEventArgs(e));
+                }
             }
 
         }
