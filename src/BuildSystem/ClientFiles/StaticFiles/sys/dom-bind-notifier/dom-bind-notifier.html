@@ -1,6 +1,6 @@
 <!--
 Element: dom-bind-notifier
-version: 1.2.2
+version: 1.2.3
 Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-bind)
 -->
 
@@ -12,6 +12,7 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
 <script type="text/javascript">(function() {
   Polymer({
     is: 'dom-bind-notifier',
+    _isAttached: false,
     properties: {
       ref: {
         type: String,
@@ -39,10 +40,12 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
 
     },
     attached: function() {
+      this._isAttached = true;
       this._stamp();
       this.observe();
     },
     detached: function() {
+      this._isAttached = false;
       this.unobserve();
     },
     _refChanged: function(newRef, oldRef) {
@@ -54,7 +57,7 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
       if (oldObj) {
         this.unobserve(oldObj);
       }
-      this.observe();
+      this._isAttached && this.observe();
     },
     _deepChanged: function(oldVal, newVal){
       if(oldVal != newVal){

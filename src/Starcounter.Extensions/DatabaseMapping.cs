@@ -27,6 +27,10 @@ namespace Starcounter.Extensions {
     }
 
     public class DbMapping {
+        /// <summary>
+        /// Tempate for default mapping uri.
+        /// </summary>
+        private const String defaultMapUri_ = "/{0}/{{?}}";
 
         /// <summary>
         /// Used for registration exclusive access.
@@ -90,6 +94,29 @@ namespace Starcounter.Extensions {
         }
 
         /// <summary>
+        /// Getting one specific mapped object. Returns null of no mapped objects exists and
+        /// throws exception in case of the source object is mapped to several destination objects.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="from"></param>
+        /// <returns></returns>
+        public static T GetMappedObject<T>(Object from) {
+            if (from == null)
+                return default(T);
+
+            List<UInt64> mappedOids = DbMapping.GetMappedOids(from.GetObjectNo());
+            if (mappedOids.Count == 0)
+                return default(T);
+
+            // TODO:
+            // Throw proper error with errorcode.
+            if (mappedOids.Count > 1)
+                throw new Exception("Invalid mapping. Should be mapped to one object but found " + mappedOids.Count + " mapped objects.");
+
+            return (T)DbHelper.FromID(mappedOids[0]);
+        }
+
+        /// <summary>
         /// Remaps the existing mapping relation.
         /// </summary>
         public static void Remap(UInt64 fromOid, UInt64 toOid, UInt64 newToOid) {
@@ -106,13 +133,46 @@ namespace Starcounter.Extensions {
                 rel.ToOid = newToOid;
             });
         }
-        
+
+        private static String CreateUri<T>() {
+            return string.Format(defaultMapUri_, typeof(T).FullName);
+        }
+
         /// <summary>
         /// Maps creation of a new object.
         /// </summary>
         public static void MapCreation(String fromUri, String toUri, Func<UInt64, UInt64> converter) {
             Map("POST", fromUri, toUri, (UInt64 createdOid, UInt64 unusedOid) => { 
                 return converter(createdOid); 
+            });
+        }
+
+        /// <summary>
+        /// Maps creation of a new object using the fullname of each type as uris.
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        public static void MapCreation<TFrom, TTo>(Func<UInt64, UInt64> converter) where TTo : new() {
+            var fromUri = CreateUri<TFrom>();
+            var toUri = CreateUri<TTo>();
+
+            DbMapping.MapCreation(fromUri, toUri, converter);
+        }
+
+        /// <summary>
+        /// Maps creation of a new object using the fullname of each type as uris and 
+        /// creates a new instance of the type specified in <typeparamref name="TTo"/> 
+        /// using the default constructor.
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        public static void MapCreation<TFrom, TTo>() where TTo : new() {
+            var fromUri = CreateUri<TFrom>();
+            var toUri = CreateUri<TTo>();
+
+            DbMapping.MapCreation(fromUri, toUri, (UInt64 fromOid) => {
+                TTo newObj = new TTo();
+                return newObj.GetObjectNo();
             });
         }
 
@@ -127,6 +187,35 @@ namespace Starcounter.Extensions {
         }
 
         /// <summary>
+        /// Maps deletion of an object using the fullname of each type as uris.
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        public static void MapDeletion<TFrom, TTo>(Action<UInt64, UInt64> converter) {
+            var fromUri = CreateUri<TFrom>();
+            var toUri = CreateUri<TTo>();
+
+            DbMapping.MapDeletion(fromUri, toUri, converter);
+        }
+
+        /// <summary>
+        /// Maps deletion of an object using the fullname of each type as uris and calls 
+        /// Delete method on the object from <typeparamref name="TTo" />
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        public static void MapDeletion<TFrom, TTo>() {
+            var fromUri = CreateUri<TFrom>();
+            var toUri = CreateUri<TTo>();
+
+            DbMapping.MapDeletion(fromUri, toUri, (UInt64 fromOid, UInt64 toOid) => {
+                TTo obj = (TTo)DbHelper.FromID(toOid);
+                if (obj != null)
+                    obj.Delete();
+            });
+        }
+
+        /// <summary>
         /// Maps modification of an object.
         /// </summary>
         public static void MapModification(String fromUri, String toUri, Action<UInt64, UInt64> converter) {
@@ -135,7 +224,68 @@ namespace Starcounter.Extensions {
                 return 0;
             });
         }
-        
+
+        /// <summary>
+        /// Maps modification of an object using the fullname of each type as uris.
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        /// <param name="converter"></param>
+        public static void MapModification<TFrom, TTo>(Action<UInt64, UInt64> converter) {
+            var fromUri = CreateUri<TFrom>();
+            var toUri = CreateUri<TTo>();
+
+            DbMapping.MapModification(fromUri, toUri, converter);
+        }
+
+        /// <summary>
+        /// Maps modification of an object using the fullname of each type as uris and maps all 
+        /// properties (using database metadata) that match.
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        /// <param name="converter"></param>
+        public static void MapModification<TFrom, TTo>() {
+            Action<ulong, ulong> modificationConverter;
+
+            modificationConverter = ModificationMapGenerator.Create<TFrom, TTo>();
+            DbMapping.MapModification<TFrom, TTo>(modificationConverter);
+        }
+
+        /// <summary>
+        /// Adds default mappings for creation, deletion and modification. For modifications
+        /// all properties that have the same name and type in both specified generic types are
+        /// mapped, including single object relations.
+        /// </summary>
+        /// <typeparam name="TFrom"></typeparam>
+        /// <typeparam name="TTo"></typeparam>
+        /// <param name="twoWay">If true default maps in both directions are created.</param>
+        public static void MapDefault<TFrom, TTo>(bool twoWay = true)
+            where TFrom : new()
+            where TTo : new() {
+            Action<ulong, ulong> modificationConverterFrom;
+            Action<ulong, ulong> modificationConverterTo;
+            
+            // We start with generating the delegates for the modifications since they might fail
+            // if we have some unsupported values.
+            modificationConverterTo = ModificationMapGenerator.Create<TFrom, TTo>();
+            modificationConverterFrom = null;
+
+            if (twoWay) {
+                modificationConverterFrom = ModificationMapGenerator.Create<TTo, TFrom>();
+            }
+
+            DbMapping.MapCreation<TFrom, TTo>();
+            DbMapping.MapDeletion<TFrom, TTo>();
+            DbMapping.MapModification<TFrom, TTo>(modificationConverterTo);
+
+            if (twoWay) {
+                DbMapping.MapCreation<TTo, TFrom>();
+                DbMapping.MapDeletion<TTo, TFrom>();
+                DbMapping.MapModification<TTo, TFrom>(modificationConverterFrom);
+            }
+        }
+
         /// <summary>
         /// Map database classes for replication.
         /// </summary>
