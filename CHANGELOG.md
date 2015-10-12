@@ -22,3 +22,4 @@ https://github.com/Starcounter/Starcounter/issues/2886
 - Bug fixed concerning indexes on database objects. Combined indexes might need to be recreated to work properly: [#2933](https://github.com/Starcounter/Starcounter/issues/2933). 
 - Bug fixed regarding headers dictionary creation (CreateHeadersDictionaryFromHeadersString):
 [#2939](https://github.com/Starcounter/Starcounter/issues/2939).
+- Fixed extraction of CRT libraries in installer GUI that caused the issue [#2759](https://github.com/Starcounter/Starcounter/issues/2759)
