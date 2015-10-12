@@ -10,7 +10,7 @@ DOM stays in sync with any JS object you provide.
 ## Demo
 
 [Check it live!](http://Juicy.github.io/dom-bind-notifier)
-
+m   
 ## Install
 
 Install the component using [Bower](http://bower.io/):
@@ -23,10 +23,15 @@ Or [download as ZIP](https://github.com/Juicy/dom-bind-notifier/archive/gh-pages
 
 ## Usage
 
-1. Import Web Components' polyfill, if needed:
+1. Import polyfills, if needed:
 
     ```html
+    <!-- Web Component's Polyfill -->
     <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
+    <!-- Object.observe's Polyfill -->
+    <script src="bower_components/object.observe/dist/object-observe.js"></script>
+    <!-- Array.observe's Polyfill -->
+    <script src="bower_components/array.observe/array-observe.js"></script>
     ```
 
 2. Import Custom Element:
@@ -48,7 +53,7 @@ Or [download as ZIP](https://github.com/Juicy/dom-bind-notifier/archive/gh-pages
 
 ## Object.observe
 
-Please note, that we use [`Object.observe` & `Array.observe`](http://wiki.ecmascript.org/doku.php?id=harmony:observe), so if your environment does not support it, you will need a shim.
+Please note, that we use [`Object.observe` & `Array.observe`](http://wiki.ecmascript.org/doku.php?id=harmony:observe), so if your environment does not support it, you will need a shim (for example [MaxArt2501/object-observe](https://github.com/MaxArt2501/object-observe) + [MaxArt2501/array-observe](https://github.com/MaxArt2501/array-observe)).
 
 ## Polymer 0.5.x to 1.0.x
 
