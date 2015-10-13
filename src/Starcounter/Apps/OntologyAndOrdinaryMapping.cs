@@ -685,6 +685,11 @@ namespace Starcounter {
 
                     // Finding the handler based on type name.
                     tempClassInfo = tempClassInfo.Inherits;
+
+                    // Checking if there is no parent.
+                    if (null == tempClassInfo)
+                        break;
+
                     classInfoTemp = FindHandlersInClassHierarchy(ref tempClassInfo);
                 }
 
@@ -701,6 +706,11 @@ namespace Starcounter {
 
                 // Finding the handler based on type name.
                 classMetadataTable = classMetadataTable.Inherits;
+
+                // Checking if there is no parent.
+                if (null == classMetadataTable)
+                    break;
+
                 classInfo = FindHandlersInClassHierarchy(ref classMetadataTable);
             }
 
