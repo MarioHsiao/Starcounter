@@ -152,7 +152,7 @@ namespace Starcounter.Extensions {
         /// </summary>
         /// <typeparam name="TFrom"></typeparam>
         /// <typeparam name="TTo"></typeparam>
-        public static void MapCreation<TFrom, TTo>(Func<UInt64, UInt64> converter) where TTo : new() {
+        public static void MapCreation<TFrom, TTo>(Func<UInt64, UInt64> converter) {
             var fromUri = CreateUri<TFrom>();
             var toUri = CreateUri<TTo>();
 
