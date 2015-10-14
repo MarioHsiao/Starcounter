@@ -23,3 +23,4 @@ https://github.com/Starcounter/Starcounter/issues/2886
 - Bug fixed regarding headers dictionary creation (CreateHeadersDictionaryFromHeadersString):
 [#2939](https://github.com/Starcounter/Starcounter/issues/2939).
 - Fixed extraction of CRT libraries in installer GUI that caused the issue [#2759](https://github.com/Starcounter/Starcounter/issues/2759)
+- Bug fixed when handling error from indexcreation, that caused an assertion failure instead of returning the error to usercode: [#2951](https://github.com/Starcounter/Starcounter/issues/2951) 
