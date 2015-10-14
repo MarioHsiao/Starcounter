@@ -331,7 +331,7 @@ namespace Starcounter {
             Request req) {
 
             // Checking if URI starts with a slash.
-            if (relativeUri[0] != '/') {
+            if (String.IsNullOrEmpty(relativeUri) || relativeUri[0] != '/') {
                 throw new ArgumentOutOfRangeException(relativeUri, "Self should be called with URI starting with a slash.");
             }
 
