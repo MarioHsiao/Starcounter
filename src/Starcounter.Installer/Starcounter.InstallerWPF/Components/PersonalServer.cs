@@ -175,7 +175,7 @@ namespace Starcounter.InstallerWPF.Components {
             IsLocalPathRule pathRule = new Rules.IsLocalPathRule();
             if (pathRule.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
 
-            DirectoryContainsFilesRule r = new DirectoryContainsFilesRule();
+            DatabaseRepositoryFolderRule r = new DatabaseRepositoryFolderRule();
             r.UseWarning = true;
             r.CheckEmptyString = true;
             if (r.Validate(this.Path, CultureInfo.CurrentCulture).IsValid == false) return false;
