@@ -1,5 +1,5 @@
 <!--
-imported-template.html version: 1.0.1
+imported-template.html version: 1.0.2
 (c) 2013 Joachim Wester
 MIT license
 https://github.com/Juicy/imported-template
@@ -21,6 +21,29 @@ https://github.com/Juicy/imported-template
             } else {
                 //val is HTML code, insert the partial from the string
                 this.reattachTemplate_(val);
+            }
+        };
+
+        /**
+         * Clone all <script> tags to force script execution in IE and Firefox.
+         */
+        ImportedTemplatePrototype._cloneScriptNodes = function (node) {
+            var scripts = node.querySelectorAll("script");
+
+            for (var i = 0; i < scripts.length; i++) {
+                var oldScript = scripts[i];
+                var newScript = document.createElement("script");
+
+                newScript.text = oldScript.text;
+
+                for (var i = 0; i < oldScript.attributes.length; i++) {
+                    var attr = oldScript.attributes[i];
+
+                    newScript.setAttribute(attr.name, oldScript.getAttribute(attr.name));
+                }
+
+                node.insertBefore(newScript, oldScript);
+                node.removeChild(oldScript);
             }
         };
 
@@ -84,6 +107,7 @@ https://github.com/Juicy/imported-template
                 xhtml.stampedNodes = Array.prototype.slice.call(fragment.childNodes);
                 // attach models
                 xhtml.attributeChangedCallback("model", undefined, xhtml.model || xhtml.getAttribute("model"));
+                ImportedTemplatePrototype._cloneScriptNodes(fragment);
                 xhtml.parentNode.insertBefore(fragment, xhtml.nextSibling);
 
             };

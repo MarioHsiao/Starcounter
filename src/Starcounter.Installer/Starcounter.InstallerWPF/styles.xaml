@@ -1159,7 +1159,7 @@
     <!-- PageButtonBar -->
     <Style x:Key="PageButtonBar" TargetType="{x:Type GroupBox}">
         <Setter Property="Padding" Value="15,10,15,10"/>
-        <Setter Property="Margin" Value="0,0,0,0"/>
+        <Setter Property="Margin" Value="0,0,25,0"/>
         <Setter Property="Background" Value="#00ffffff" />
 
         <Setter Property="Template">

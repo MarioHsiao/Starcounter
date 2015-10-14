@@ -30,11 +30,20 @@ namespace Starcounter.InstallerWPF.Rules {
 
             try {
 
-                string installationPath = System.IO.Path.Combine(value.ToString(), CurrentVersion.Version);
-
-                if (Directory.Exists(installationPath)) {
-                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Version folder (" + CurrentVersion.Version + ") already exists" });
+                //  Path.GetFullPath
+                if (!this.IsPathRooted(value.ToString())) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path, specified path dosent contains a root" });
                 }
+
+                if (!Directory.Exists(value.ToString())) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Folder does not exists" });
+                }
+
+                //string installationPath = System.IO.Path.Combine(value.ToString(), CurrentVersion.Version);
+
+                //if (Directory.Exists(installationPath)) {
+                //    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Version folder (" + CurrentVersion.Version + ") already exists" });
+                //}
             }
             catch (System.UnauthorizedAccessException e) {
                 return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid folder" + Environment.NewLine + e.Message });
@@ -42,9 +51,19 @@ namespace Starcounter.InstallerWPF.Rules {
 
             return new ValidationResult(true, null);
         }
+        private bool IsPathRooted(string path) {
+
+            try {
+                return Path.IsPathRooted(path);
+            }
+            catch (Exception) {
+                return false;
+            }
+        }
     }
 
-    public class DirectoryContainsFilesRule : ValidationRule {
+
+    public class DatabaseRepositoryFolderRule : ValidationRule {
 
         public bool UseWarning { get; set; }
         public bool CheckEmptyString { get; set; }
@@ -62,9 +81,57 @@ namespace Starcounter.InstallerWPF.Rules {
 
             try {
 
-                bool bDirectoryContainsFiles = MainWindow.DirectoryContainsFiles(value.ToString(), true);
+                string folder = value.ToString();
+
+                // If folder points to an existing repository then it's all okey
+                string config = Path.Combine(Path.Combine(folder, "Personal"), "Personal.server.config");
+                if (File.Exists(config)) {
+                    return new ValidationResult(true, null);
+                }
+
+                bool bDirectoryContainsFiles = MainWindow.DirectoryContainsFiles(folder, true);
                 if (bDirectoryContainsFiles) {
-                    return new ValidationResult(true, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files" });
+                    return new ValidationResult(false, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files (" + folder + ")" });
+                }
+            }
+            catch (System.UnauthorizedAccessException e) {
+                return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid path" + Environment.NewLine + e.Message });
+            }
+
+            return new ValidationResult(true, null);
+
+        }
+    }
+
+
+    public class DirectoryContainsFilesRule : ValidationRule {
+
+        public bool UseWarning { get; set; }
+        public bool CheckEmptyString { get; set; }
+        public bool AddStarcounter { get; set; }
+
+        public override ValidationResult Validate(object value, CultureInfo cultureInfo) {
+
+            if (value == null || string.IsNullOrEmpty(value.ToString()) || string.IsNullOrEmpty(value.ToString().Trim())) {
+                if (this.CheckEmptyString) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Please enter a path" });
+                }
+                else {
+                    return new ValidationResult(true, null);
+                }
+            }
+
+            try {
+
+                string folder = value.ToString();
+
+                if (this.AddStarcounter) {
+                    folder = Path.Combine(folder, ConstantsBank.SCProductName);
+                }
+
+                bool bDirectoryContainsFiles = MainWindow.DirectoryContainsFiles(folder, true);
+                if (bDirectoryContainsFiles) {
+                    return new ValidationResult(false, new ErrorObject() { IsError = !UseWarning, Message = "Directory contains files (" + folder+")" });
                 }
             }
             catch (System.UnauthorizedAccessException e) {
@@ -101,7 +168,7 @@ namespace Starcounter.InstallerWPF.Rules {
 
                 // Installation path is not allowed to be in SystemServerPath or PersonalServerPath.
                 if (this.IsInFolder(this.InstallationPath, enteredPath) || this.IsInFolder(enteredPath, this.InstallationPath)) {
-                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid folder, Installation folder and server folder can not be placed inside eachothers folders"});
+                    return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Invalid folder, Installation folder and server folder can not be placed inside eachothers folders" });
                 }
 
                 if (this.Type == SelfType.PersonalServerPath) {
@@ -147,7 +214,7 @@ namespace Starcounter.InstallerWPF.Rules {
                 return false;
             }
 
-            if ( Path.GetFullPath(folder1.ToUpperInvariant()).StartsWith(Path.GetFullPath(folder2.ToUpperInvariant())))  {
+            if (Path.GetFullPath(folder1.ToUpperInvariant()).StartsWith(Path.GetFullPath(folder2.ToUpperInvariant()))) {
                 return true;
             }
             return false;

@@ -9,6 +9,7 @@ using Starcounter.InstallerWPF.Rules;
 using System.Globalization;
 using System.Windows.Controls;
 using Starcounter.Internal;
+using System.IO;
 
 namespace Starcounter.InstallerWPF.Components {
     public class InstallationBase : BaseComponent {
@@ -47,15 +48,19 @@ namespace Starcounter.InstallerWPF.Components {
         //    }
         //}
 
-        private string _Path;
         public string Path {
             get {
-                return this._Path;
-            }
-            set {
-                if (string.Compare(this._Path, value) == 0) return;
-                this._Path = value;
-                this.OnPropertyChanged("Path");
+
+                if (string.IsNullOrEmpty(this.BasePath)) {
+                    return null;
+                }
+
+                if ( Utilities.IsDeveloperFolder(this.BasePath)) {
+                    // Developer folder, do not add product name "Starcounter"
+                    return this.BasePath;
+                }
+               
+                return System.IO.Path.Combine(this.BasePath, ConstantsBank.SCProductName);
             }
         }
 
@@ -70,16 +75,8 @@ namespace Starcounter.InstallerWPF.Components {
                 if (string.Compare(this._BasePath, value) == 0) return;
                 this._BasePath = value;
 
-                // Append version number to selected installation path
-                if (!string.IsNullOrEmpty(this._BasePath) && !Utilities.IsDeveloperFolder(this._BasePath) ) {
-                    this.Path = System.IO.Path.Combine(this._BasePath, CurrentVersion.Version);
-                }
-                else {
-                    this.Path = this._BasePath;
-                }
-
-
                 this.OnPropertyChanged("BasePath");
+                this.OnPropertyChanged("Path");
             }
 
         }
@@ -122,15 +119,29 @@ namespace Starcounter.InstallerWPF.Components {
 
             this.SendUsageAndCrashReports = true;
 
+
             // Setting installation path (new path is created if not installed).
 #if !SIMULATE_CLEAN_INSTALLATION
-            this.Path = CInstallationBase.GetInstalledDirFromEnv();
+
+            //this.Path = CInstallationBase.GetInstalledDirFromEnv();
+            string currentInstallationPath = CInstallationBase.GetInstalledDirFromEnv();
+
+            string installationBaseFolder = this.GetInstallationBaseFolder(currentInstallationPath);
+            if (string.IsNullOrEmpty(installationBaseFolder)) {
+                // Invalid folder
+                this.BasePath = null;
+            }
+            else {
+                this.BasePath = installationBaseFolder;
+            }
+
 #endif
             if (string.IsNullOrEmpty(this.Path)) {
                 String programFilesPath = ConstantsBank.ProgramFilesPath;
 
                 //this.Path = System.IO.Path.Combine(programFilesPath, System.IO.Path.Combine(ConstantsBank.SCProductName, CurrentVersion.Version));
-                this.BasePath = System.IO.Path.Combine(programFilesPath, ConstantsBank.SCProductName);
+                this.BasePath = programFilesPath;
+//                this.BasePath = System.IO.Path.Combine(programFilesPath, ConstantsBank.SCProductName);
             }
 
             switch (this.Command) {
@@ -166,20 +177,42 @@ namespace Starcounter.InstallerWPF.Components {
             return properties;
         }
 
-
         public override bool ValidateSettings() {
 
-            //DirectoryContainsFilesRule r = new DirectoryContainsFilesRule();
-            //r.UseWarning = true;
-            //r.CheckEmptyString = true;
-            //ValidationResult result = r.Validate(this.Path, CultureInfo.CurrentCulture);
+            InstallationFolderRule installationFolderRule = new InstallationFolderRule();
+            installationFolderRule.UseWarning = true;
+            installationFolderRule.CheckEmptyString = true;
+            ValidationResult installationFolderRuleResult = installationFolderRule.Validate(this.BasePath, CultureInfo.CurrentCulture);
+            if (!installationFolderRuleResult.IsValid) return false;
 
-            InstallationFolderRule r = new InstallationFolderRule();
-            r.UseWarning = true;
-            r.CheckEmptyString = true;
-            ValidationResult result = r.Validate(this.BasePath, CultureInfo.CurrentCulture);
+            DirectoryContainsFilesRule directoryContainsFilesRule = new DirectoryContainsFilesRule();
+            directoryContainsFilesRule.UseWarning = true;
+            directoryContainsFilesRule.CheckEmptyString = true;
+            directoryContainsFilesRule.AddStarcounter = true;
+            ValidationResult directoryContainsFilesRuleResult = directoryContainsFilesRule.Validate(this.BasePath, CultureInfo.CurrentCulture);
+            if (!directoryContainsFilesRuleResult.IsValid) return false;
 
-            return result.IsValid;
+            DuplicatPathCheckRule duplicatPathCheckRule = new DuplicatPathCheckRule();
+            duplicatPathCheckRule.Type = DuplicatPathCheckRule.SelfType.InstallationPath;
+            ValidationResult duplicatPathCheckRuleResult = duplicatPathCheckRule.Validate(this.BasePath, CultureInfo.CurrentCulture);
+            if (!duplicatPathCheckRuleResult.IsValid) return false;
+
+            return true;
+        }
+
+        public String GetInstallationBaseFolder(string folder) {
+
+            try {
+                DirectoryInfo di = new DirectoryInfo(folder);
+
+                if (string.Equals(di.Name, ConstantsBank.SCProductName, StringComparison.InvariantCultureIgnoreCase)) {
+                    return di.Parent.FullName;
+                }
+                return folder;
+            }
+            catch (Exception) {
+                return null;
+            }
         }
     }
 }

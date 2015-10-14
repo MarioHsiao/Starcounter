@@ -121,14 +121,14 @@
                                                     <Binding Path="Path" NotifyOnValidationError="True"  UpdateSourceTrigger="PropertyChanged" >
                                                         <Binding.ValidationRules>
                                                             <rules:IsLocalPathRule ValidatesOnTargetUpdated="True"/>
-                                                            <rules:DirectoryContainsFilesRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
+                                                            <rules:DatabaseRepositoryFolderRule UseWarning="True" CheckEmptyString="true"  ValidatesOnTargetUpdated="True"/>
                                                             <rules:DuplicatPathCheckRule Type="{x:Static rules:DuplicatPathCheckRule+SelfType.SystemServerPath}" ValidatesOnTargetUpdated="True"/>
                                                         </Binding.ValidationRules>
                                                     </Binding>
                                                 </TextBox.Text>
                                             </TextBox>
 
-                                            <Button MinWidth="0" Content="..." Grid.Column="1" Margin="5,0,0,0"  Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the Server repository will be installed" CommandTarget="{Binding ElementName=tb_PersonalServerPath}"  />
+                                            <Button MinWidth="0" Content="_Change" Grid.Column="1" Margin="5,0,0,0"  Command="ApplicationCommands.Open" CommandParameter="Please select a directory where the Server repository will be installed" CommandTarget="{Binding ElementName=tb_PersonalServerPath}"  />
                                         </Grid>
 
                                         <Grid Margin="0,7.5,0,0">
