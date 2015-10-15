@@ -43,13 +43,14 @@ namespace Starcounter.Templates {
 		public void SetCustomAccessors(Func<Json, Arr<OT>> getter, 
 									   Action<Json, Arr<OT>> setter, 
 									   bool overwriteExisting = true) {
-            customSetter = setter;
 			bool overwrite = (overwriteExisting || !hasCustomAccessors);
 
 			if (overwrite || UnboundGetter == null)
 				UnboundGetter = getter;
-			if (overwrite || UnboundSetter == null)
-				UnboundSetter = SetParentAndUseCustomSetter;	
+            if (overwrite || UnboundSetter == null) {
+                customSetter = setter;
+                UnboundSetter = SetParentAndUseCustomSetter;
+            }
 
 			base.SetCustomAccessors(
 				(parent) => { return (Json)getter(parent); }, 
