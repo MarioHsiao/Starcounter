@@ -52,6 +52,10 @@ namespace Starcounter.Extensions {
             if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON DbMappingRelation (FromOid ASC)");
             }
+
+            if (Db.SQL("SELECT i FROM MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidAndNameIndex").First == null) {
+                Db.SQL("CREATE INDEX DbMappingRelationFromOidAndNameIndex ON DbMappingRelation (FromOid ASC, ToClassFullName ASC)");
+            }
         }
 
         /// <summary>
@@ -100,20 +104,30 @@ namespace Starcounter.Extensions {
         /// <typeparam name="T"></typeparam>
         /// <param name="from"></param>
         /// <returns></returns>
-        public static T GetMappedObject<T>(Object from) {
+        public static T GetMappedObject<T>(object from) {
             if (from == null)
                 return default(T);
 
-            List<UInt64> mappedOids = DbMapping.GetMappedOids(from.GetObjectNo());
-            if (mappedOids.Count == 0)
+            ulong fromOid = from.GetObjectNo();
+            ulong toOid = 0;
+
+            Db.Transact(() => {
+                foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid=? AND o.ToClassFullName=?", fromOid, typeof(T).FullName)) {
+                    // TODO:
+                    // Maybe we can never have more than 0 or 1 relations for a specific type? In that case this check is unnecessary
+                    if (toOid > 0) { // toOid already set. We only support 0 or 1 objects from this method.
+                        // TODO:
+                        // Throw proper error with errorcode.
+                        throw new Exception("Invalid mapping. Should be mapped to one object but found several maps.");
+                    }
+                    toOid = rel.ToOid;
+                }
+            });
+
+            if (toOid == 0)
                 return default(T);
 
-            // TODO:
-            // Throw proper error with errorcode.
-            if (mappedOids.Count > 1)
-                throw new Exception("Invalid mapping. Should be mapped to one object but found " + mappedOids.Count + " mapped objects.");
-
-            return (T)DbHelper.FromID(mappedOids[0]);
+            return (T)DbHelper.FromID(toOid);
         }
 
         /// <summary>
