@@ -1,0 +1,5 @@
+﻿{
+    "SimpleValue": "Inherited",
+	"ArrValue": [ { "$": { "Reuse": "simple" } } ],
+	"ObjValue": { "$": { "Reuse": "simple" } }
+}

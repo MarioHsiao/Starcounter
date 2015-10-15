@@ -56,6 +56,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FakeX.cs" />
+    <Compile Include="Json\InheritedJson.json.cs">
+      <DependentUpon>InheritedJson.json</DependentUpon>
+    </Compile>
+    <Compile Include="Json\BaseJson.json.cs">
+      <DependentUpon>BaseJson.json</DependentUpon>
+    </Compile>
     <Compile Include="Json\simplewithcodebehind.json.cs">
       <DependentUpon>simplewithcodebehind.json</DependentUpon>
     </Compile>
@@ -120,6 +126,16 @@
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
     <TypedJSON Include="Json\SingleValue.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Json\BaseJson.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="Json\InheritedJson.json">
       <Generator>MsBuild:Compile</Generator>
     </TypedJSON>
   </ItemGroup>

@@ -1,0 +1,5 @@
+﻿{
+    "SimpleValue": "Base",
+	"ArrValue": [ { "$": { "Reuse": "simple" } } ],
+	"ObjValue": { "$": { "Reuse": "simple" } }
+}
