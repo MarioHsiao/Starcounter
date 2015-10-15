@@ -10,6 +10,7 @@ using NUnit.Framework;
 using Starcounter.Advanced;
 using Starcounter.Templates;
 using Starcounter.XSON.Tests;
+using CJ = Starcounter.Internal.XSON.Tests.CompiledJson;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -421,7 +422,20 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.IsInstanceOf<Json>(p1);
             Assert.IsInstanceOf<MyFieldMessage>(n1);
             Assert.IsInstanceOf<MyFieldMessage>(n2);
+        }
 
+        [Test]
+        public static void TestInheritanceForArraysAndObjects() {
+            var baseJson = new CJ.BaseJson();
+            var inheritedJson = new CJ.InheritedJson();
+
+            Assert.AreEqual("Base", baseJson.SimpleValue);
+            Assert.IsNotNull(baseJson.ArrValue);
+            Assert.IsNotNull(baseJson.ObjValue);
+
+            Assert.AreEqual("Inherited", inheritedJson.SimpleValue);
+            Assert.IsNotNull(inheritedJson.ArrValue, "Inherited array is null");
+            Assert.IsNotNull(inheritedJson.ObjValue, "Inherited object is null");
         }
 
         [Test]
@@ -852,5 +866,7 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual(value3, json.MixedValues[2]);
             Assert.AreEqual("JSON!", json.MixedValues[2].Title);
         }
+
+
     }
 }
