@@ -1,6 +1,7 @@
 ## [Unreleased][unreleased]
 ### Changed
 ### Fixed
+Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
 
 ## [2.1.163] - 2015-10-14
 ### Changed
