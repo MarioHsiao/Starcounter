@@ -142,11 +142,8 @@ public:
 
 		LangOptions& lang_options = ci.getLangOpts();
 		lang_options.GNUMode = 1;
-		lang_options.CXXExceptions = 1;
-		lang_options.RTTI = 1;
 		lang_options.Bool = 1;
 		lang_options.CPlusPlus = 1;
-		lang_options.CPlusPlus11 = 1;
 
 		if (do_optimizations) {
 			lang_options.Optimize = 1;
