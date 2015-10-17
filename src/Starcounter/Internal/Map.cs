@@ -22,6 +22,9 @@ namespace Starcounter.Internal {
             get {
                 return isMappingEnabled_;
             }
+            set {
+                isMappingEnabled_ = value;
+            }
         }
     }
 
@@ -37,12 +40,16 @@ namespace Starcounter.Internal {
         /// created.</param>
         public static void POST(string uri) {
 
-            Self.POST(uri, null, null, null, 0, new HandlerOptions() { 
-                ProxyDelegateTrigger = true,
-                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-            });
+            if (MapConfig.Enabled) {
 
-            //Console.WriteLine("MAP POST on {0}", uri);
+                Self.POST(uri, null, null, null, 0, new HandlerOptions() {
+                    ProxyDelegateTrigger = true,
+                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                });
+
+                //Console.WriteLine("MAP POST on {0}", uri);
+            }
+
         }
 
         /// <summary>
@@ -53,12 +60,15 @@ namespace Starcounter.Internal {
         /// updated.</param>
         public static void PUT(string uri) {
 
-            Self.PUT(uri, null, null, null, 0, new HandlerOptions() {
-                ProxyDelegateTrigger = true,
-                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-            });
+            if (MapConfig.Enabled) {
 
-            //Console.WriteLine("MAP PUT on {0}", uri);
+                Self.PUT(uri, null, null, null, 0, new HandlerOptions() {
+                    ProxyDelegateTrigger = true,
+                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                });
+
+                //Console.WriteLine("MAP PUT on {0}", uri);
+            }
         }
 
         /// <summary>
@@ -69,12 +79,15 @@ namespace Starcounter.Internal {
         /// deleted.</param>
         public static void DELETE(string uri) {
 
-            Self.DELETE(uri, null, null, null, 0, new HandlerOptions() {
-                ProxyDelegateTrigger = true,
-                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-            });
+            if (MapConfig.Enabled) {
 
-            //Console.WriteLine("MAP DELETE on {0}", uri);
+                Self.DELETE(uri, null, null, null, 0, new HandlerOptions() {
+                    ProxyDelegateTrigger = true,
+                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                });
+
+                //Console.WriteLine("MAP DELETE on {0}", uri);
+            }
         }
     }
 }

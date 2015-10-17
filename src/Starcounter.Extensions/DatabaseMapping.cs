@@ -566,14 +566,24 @@ namespace Starcounter.Extensions {
                 // Checking if we already have a map.
                 if (null == Db.SQL("SELECT o FROM DbMapInfo o WHERE o.MethodSpaceProcessedFromUriSpace = ? AND o.ToClassFullName = ?", methodSpaceProcessedFromUriSpace, toClassFullName).First) {
 
-                    Db.Transact(() => {
+                    Boolean curDbMappingFlag = MapConfig.Enabled;
+                    MapConfig.Enabled = false;
 
-                        DbMapInfo dbi = new DbMapInfo() {
-                            ToClassFullName = toClassFullName,
-                            FromClassFullName = fromClassFullName,
-                            MethodSpaceProcessedFromUriSpace = methodSpaceProcessedFromUriSpace
-                        };
-                    });
+                    try {
+
+                        Db.Transact(() => {
+
+                            DbMapInfo dbi = new DbMapInfo() {
+                                ToClassFullName = toClassFullName,
+                                FromClassFullName = fromClassFullName,
+                                MethodSpaceProcessedFromUriSpace = methodSpaceProcessedFromUriSpace
+                            };
+                        });
+
+                    } finally {
+
+                        MapConfig.Enabled = curDbMappingFlag;
+                    }
                 }
             }
         }
