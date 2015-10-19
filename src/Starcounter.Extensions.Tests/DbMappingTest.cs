@@ -106,7 +106,6 @@ namespace DbMappingTest {
                 NameClass2 nc2;
                 NameClass3 nc3;
                 NameClass4 nc4;
-                List<UInt64> mappedOids;
 
                 Assert.IsTrue(Db.SQL<NameClass2>("SELECT o FROM NameClass2 o").First != null);
                 Assert.IsTrue(Db.SQL<NameClass3>("SELECT o FROM NameClass3 o").First != null);
@@ -123,16 +122,14 @@ namespace DbMappingTest {
                 Assert.IsTrue(true == DbMapping.HasMappedObjects(nc2.GetObjectNo()));
                 Assert.IsTrue(true == DbMapping.HasMappedObjects(nc3.GetObjectNo()));
 
-                mappedOids = DbMapping.GetMappedOids(nc1.GetObjectNo());
-                Assert.IsTrue(mappedOids[0] == nc2.GetObjectNo());
-                Assert.IsTrue(mappedOids[1] == nc3.GetObjectNo());
+                Assert.IsTrue(DbMapping.GetMappedObject<NameClass2>(nc1).GetObjectNo() == nc2.GetObjectNo());
+                Assert.IsTrue(DbMapping.GetMappedObject<NameClass3>(nc1).GetObjectNo() == nc3.GetObjectNo());
 
                 nc4 = Db.SQL<NameClass4>("SELECT o FROM NameClass4 o").First;
                 Assert.IsTrue(nc4.FirstName == "HahaJohn");
 
                 Assert.IsTrue(true == DbMapping.HasMappedObjects(nc4.GetObjectNo()));
-                mappedOids = DbMapping.GetMappedOids(nc3.GetObjectNo());
-                Assert.IsTrue(mappedOids[0] == nc4.GetObjectNo());
+                Assert.IsTrue(DbMapping.GetMappedObject<NameClass4>(nc3).GetObjectNo() == nc4.GetObjectNo());
 
                 nc1.LastName = "Doe";
 
