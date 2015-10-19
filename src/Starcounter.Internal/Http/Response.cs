@@ -861,12 +861,7 @@ namespace Starcounter
                         writer.Write(HttpHeadersUtf8.Http11);
 
                         UInt16 statusCode = statusCode_;
-                        if (Handle.OutgoingStatusCode > 0)
-                            statusCode = Handle.OutgoingStatusCode;
-
                         String statusDescription = statusDescription_;
-                        if (Handle.OutgoingStatusDescription != null)
-                            statusDescription = Handle.OutgoingStatusDescription;
 
                         if (statusCode > 0) {
                             writer.Write(statusCode);
@@ -947,27 +942,6 @@ namespace Starcounter
                         }
                     }
 
-                    // Checking the outgoing cookies list.
-                    if (null != Handle.OutgoingCookies) {
-                        foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
-                            writer.Write(HttpHeadersUtf8.SetCookieStart);
-                            writer.Write(c.Key);
-                            writer.Write("=");
-                            writer.Write(c.Value);
-                            writer.Write(HttpHeadersUtf8.CRLF);
-                        }
-                    }
-
-                    // Checking the outgoing headers list.
-                    if (null != Handle.OutgoingHeaders) {
-                        foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
-                            writer.Write(h.Key);
-                            writer.Write(": ");
-                            writer.Write(h.Value);
-                            writer.Write(HttpHeadersUtf8.CRLF);
-                        }
-                    }
-
                     if (null != bodyString_) {
                         if (null != bytes)
                             throw new ArgumentException("Either body string, body bytes or resource can be set for Response.");
@@ -1024,8 +998,6 @@ namespace Starcounter
             }
 
             String statusDescription = statusDescription_;
-            if (Handle.OutgoingStatusDescription != null)
-                statusDescription = Handle.OutgoingStatusDescription;
 
             if (statusDescription != null)
                 size += statusDescription.Length;
@@ -1046,21 +1018,6 @@ namespace Starcounter
                     size += HttpHeadersUtf8.SetCookieStart.Length;
                     size += c.Length;
                     size += HttpHeadersUtf8.CRLF.Length;
-                }
-            }
-
-            // Checking the outgoing cookies list.
-            if (null != Handle.OutgoingCookies) {
-                foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
-                    size += HttpHeadersUtf8.SetCookieStart.Length;
-                    size += c.Key.Length + c.Value.Length + 3; // 3 for equal sign and CRLF
-                }
-            }
-
-            // Checking the outgoing headers list.
-            if (null != Handle.OutgoingHeaders) {
-                foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
-                    size += (h.Key.Length + h.Value.Length + 4); // 4 for colon, space, CRLF
                 }
             }
 
