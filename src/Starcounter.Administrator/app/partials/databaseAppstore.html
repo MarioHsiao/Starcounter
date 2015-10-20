@@ -38,19 +38,45 @@
     </div>
 </div>
 
+<div class="panel panel-default" ng-show="database">
+
+    <table class="table">
+
+        <tbody>
+
+            <tr>
+
+                <!-- Status -->
+                <td class="vert-align" style="padding-left: 40px">
+
+                    <div class="checkbox" style="margin-top: 5px; margin-bottom:5px">
+                        <label title="Show compatible versions with installed Starcounter version">
+                            <input type="checkbox" ng-model="showCompatibleVersions" >Show Compatible
+                        </label>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
 <div ng-show="database" class="panel panel-default">
 
-    <div class="panel-heading">AppStore, visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications.</div>
 
-    <ul>
-        <li ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
+
+<!--    <div class="panel-body">
+    </div>-->
+
+    <ul class="list-group">
+        <li  ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
             <h1>{{store.DisplayName}} store</h1>
 
             <table class="table">
 
                 <tbody>
 
-                    <tr ng-repeat="item in store.Applications | orderBy:['DisplayName'] ">
+                    <tr ng-repeat="item in store.Applications | semver:serverModel.settings.Version:showCompatibleVersions | orderBy:['DisplayName'] ">
 
                         <td style="width: 41px; padding-top:12px; padding-left: 15px">
                             <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
@@ -75,7 +101,6 @@
                                 </span>
                             </span>
                         </td>
-
            
                         <td >
                             <div class="fixedwidth_">
@@ -89,17 +114,19 @@
                                 <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                                 View the <a href="#/server/log">log</a> for more details.
                             </span>
-
+                            <span title="Compatible with" style="margin-right:5px" class="label label-danger" ng-repeat="dep in item.Dependencies">{{dep.Key}} : {{dep.Value}}</span>
                         </td>
 
                         <td class="text-right">{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
                     </tr>
                 </tbody>
-
             </table>
-
         </li>
     </ul>
+
+    <div class="panel-footer">Visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications.
+    </div>
+
 </div>
 
 <div ng-hide="database" class="panel panel-default">

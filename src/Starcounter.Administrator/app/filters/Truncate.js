@@ -87,6 +87,27 @@ adminModule.filter('fixdate', function ($filter) {
     };
 })
 
+adminModule.filter('semver', function () {
+    return function (items, scversion, showCompatibleVersions) {
+        var filtered = [];
+
+        if (showCompatibleVersions == false) return items;
+
+        angular.forEach(items, function (item) {
+
+            angular.forEach(item.Dependencies, function (dep) {
+
+                if (dep.Key == "Starcounter") {
+                    if (semver.satisfies(scversion, dep.Value)) {
+                        filtered.push(item);
+                    }
+                }
+            });
+        });
+        return filtered;
+    };
+});
+
 String.prototype.replaceAt = function (index, character) {
     return this.substr(0, index) + character + this.substr(index + character.length);
 }

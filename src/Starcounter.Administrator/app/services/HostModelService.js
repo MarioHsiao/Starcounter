@@ -4,7 +4,7 @@
  * Refreshes the server model
  * ----------------------------------------------------------------------------
  */
-adminModule.service('HostModelService', ['$http', '$q', '$rootScope', '$log', function ($http, $q, $rootScope, $log) {
+adminModule.service('HostModelService', ['$http', '$q', '$rootScope', '$log', 'ServerService', function ($http, $q, $rootScope, $log, ServerService) {
 
     this.data = {
         model: {},
@@ -24,9 +24,20 @@ adminModule.service('HostModelService', ['$http', '$q', '$rootScope', '$log', fu
         callback: function () {
             $rootScope.$apply();
             self.data.model = self.serverStatus.obj;
-            self.IsLoaded = true;
-            self.data.selectedDatabase = self.getDatabase(self._wantedSelectedDatabaseName);
-            self._deferred.resolve('loaded');
+
+            ServerService.refreshServerSettings(function () {
+                // Success
+                self.IsLoaded = true;
+                self.data.selectedDatabase = self.getDatabase(self._wantedSelectedDatabaseName);
+                self._deferred.resolve('loaded');
+
+            },
+            function (messageObject) {
+                // Error
+                self.IsLoaded = true;
+                self.data.selectedDatabase = self.getDatabase(self._wantedSelectedDatabaseName);
+                self._deferred.resolve('loaded');
+            });
         }
     });
 

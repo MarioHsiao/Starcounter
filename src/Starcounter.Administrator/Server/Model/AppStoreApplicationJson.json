@@ -16,7 +16,7 @@
 	"Size" : 0,
 
 	"Store" : { "$" : { "Reuse" : "Administrator.Server.Model.AppStoreStoreJson" } },
-
+	"Dependencies" : [ { "Key" : "", "Value": "" }],
 	"IsDeployed" : false,
 	"IsRunning" : false,
 	"IsInstalled" : false,

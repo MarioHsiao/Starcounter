@@ -57,6 +57,8 @@ namespace Administrator.Server.Model {
         public string StoreID;         // Store id
         public string StoreUrl;        // Store source
 
+        public Dictionary<string, string> Dependencies;
+
         public string Heading;
         public long Rating;
 

@@ -23,7 +23,7 @@ namespace Administrator.Server.Model {
         public string DisplayName;
         public string SourceID;         // App Store store id
         public string SourceUrl;        // App Store store source
-
+        public bool ShowCompatibleVersions; 
         public Administrator.Server.Model.Database Database;
 
         public RangeEnabledObservableCollection<AppStoreApplication> Applications = new RangeEnabledObservableCollection<AppStoreApplication>();

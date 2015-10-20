@@ -26,5 +26,14 @@ namespace Administrator.Server.Model {
         public string Heading;          // Heading
         public string ImageUri;         // Image
         public DateTime VersionDate;    // Version date
+        [XmlElement("Dependency")]
+        public Dependency[] Dependencies { get; set; }
+    }
+
+    public class Dependency {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+        [XmlText]
+        public string Value;
     }
 }

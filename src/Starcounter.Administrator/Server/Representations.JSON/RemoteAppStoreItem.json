@@ -17,5 +17,9 @@
 	"LatestVersion": {
 		"ID" : "",
 		"Url" : ""
-	}
+	},
+	"Dependencies" : [ {
+		"Name" : "",
+		"Value" : ""
+	} ]
 }

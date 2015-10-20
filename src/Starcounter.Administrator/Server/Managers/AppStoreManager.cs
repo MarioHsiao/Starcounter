@@ -51,7 +51,9 @@ namespace Administrator.Server.Managers {
 
                 try {
 
-                    Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
+                    Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+
+                    Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
 
                         try {
 
@@ -98,7 +100,9 @@ namespace Administrator.Server.Managers {
             // TODO:
             message = null;
 
-            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, 10000);
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+
+            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, 10000);
 
             if (!response.IsSuccessStatusCode) {
                 StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0002] GetApplications(): StatusCode:" + response.StatusCode);
@@ -136,6 +140,8 @@ namespace Administrator.Server.Managers {
 
                 foreach (var remoteApp in remoteStore.Items) {
 
+                    //                    Starcounter.Internal.CurrentVersion.Version;
+
                     AppStoreApplication application = RemoteAppStoreApplicationToAppStoreApplication(remoteApp);
                     application.Database = store.Database;
                     application.StoreID = store.ID;
@@ -156,7 +162,10 @@ namespace Administrator.Server.Managers {
 
             lock (lockObject_) {
 
-                Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, null, (Response response, Object userObject) => {
+                Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+//                Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/appstore.polyjuice.apps-v2+json,application/json" } };
+
+                Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
 
                     if (response.IsSuccessStatusCode) {
                         if (completionCallback != null) {
@@ -189,7 +198,9 @@ namespace Administrator.Server.Managers {
             // TODO:
             message = null;
 
-            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", null, 10000);
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+
+            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, 10000);
 
             if (!response.IsSuccessStatusCode) {
                 StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0004] GetStores(): StatusCode:" + response.StatusCode);
@@ -257,6 +268,13 @@ namespace Administrator.Server.Managers {
             application.Rating = remoteApp.Rating;
 
             application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.SourceUrl); // Use namespace+channel+version ?
+
+            // Add dependencies
+            application.Dependencies = new Dictionary<string, string>();
+
+            foreach (var dependency in remoteApp.Dependencies) {
+                application.Dependencies.Add(dependency.Name, dependency.Value);
+            }
 
             return application;
         }

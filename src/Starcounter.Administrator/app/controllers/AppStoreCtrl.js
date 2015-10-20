@@ -3,9 +3,11 @@
  * AppStore page Controller
  * ----------------------------------------------------------------------------
  */
-var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 'HostModelService', function ($scope, $routeParams, HostModelService) {
+var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 'HostModelService', 'ServerService', function ($scope, $routeParams, HostModelService, ServerService) {
 
     $scope.database = null;
+    $scope.showCompatibleVersions = true;
+    $scope.serverModel = ServerService.model;
 
     /**
      * Download Application
