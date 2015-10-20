@@ -7,6 +7,7 @@
 using Starcounter.Templates;
 using System;
 using System.Text;
+using Starcounter.Advanced.XSON;
 
 namespace Starcounter {
 	public partial class Json {
@@ -19,24 +20,44 @@ namespace Starcounter {
         }
 
 		private static void WriteToDebugString(Json json, StringBuilder sb, int indentation, bool includeStepsiblings) {
-			if (json.Data != null) {
-				sb.Append(" <data=" + json.Data.GetType().Name + ">");
-			}
-			if (json._Dirty) {
-				sb.Append(" <dirty>");
-			}
-			if (json.Parent != null) {
-				WriteChildStatus(json.Parent, sb, json.IndexInParent);
-			}
+            json.Scope(() => {
+                if (json.Data != null) {
+                    sb.Append(" <data=" + json.Data.GetType().Name + ">");
+                }
+                if (json._Dirty) {
+                    sb.Append(" <dirty>");
+                }
+                if (json.Parent != null) {
+                    WriteChildStatus(json.Parent, sb, json.IndexInParent);
+                }
 
-			if (json.IsArray) {
-				WriteArrayToDebugString(json, sb, indentation);
-            } else if (json.IsObject) {
-                WriteObjectToDebugString(json, sb, indentation, includeStepsiblings);
-            } else { // Single primitive value
-                WriteChildStatus(json, sb, -1);
-            }
+                WriteAdditionalInfo(json, sb);
+
+                if (json.IsArray) {
+                    WriteArrayToDebugString(json, sb, indentation);
+                } else if (json.IsObject) {
+                    WriteObjectToDebugString(json, sb, indentation, includeStepsiblings);
+                } else { // Single primitive value
+                    WriteChildStatus(json, sb, -1);
+                }
+            });
 		}
+
+        private static void WriteAdditionalInfo(Json json, StringBuilder sb) {
+            sb.Append("<app: ");
+            if (json._appName != null)
+                sb.Append(json._appName);
+            else 
+                sb.Append("<null>");
+
+            if (json._appNameForLayout != null)
+                sb.Append(", appNameForLayout: " + json._appNameForLayout);
+
+            if (json._wrapInAppName)
+                sb.Append(", addNamespaces");
+
+            sb.Append('>');
+        }
 
 		private static void WriteArrayToDebugString(Json array, StringBuilder sb, int indentation) {
 
@@ -73,12 +94,6 @@ namespace Starcounter {
 			}
             template = json.Template as TObject;
             
-            if (json.Parent != null && json._wrapInAppName) {
-                sb.Append("<appname: ");
-                sb.Append(json._appName);
-                sb.Append(">");
-            }
-
 			sb.AppendLine("{");
 
 			i += 3;
