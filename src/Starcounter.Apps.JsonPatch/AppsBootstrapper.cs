@@ -51,7 +51,7 @@ namespace Starcounter.Internal {
 
             // Setting the check for handler registration.
             Handle.isHandlerRegistered_ = UriManagedHandlersCodegen.IsHandlerRegistered;
-            Handle.ResolveStaticResource = AppServer_.ResolveAndPrepareFile;
+            Handle.resolveStaticResource_ = AppServer_.ResolveAndPrepareFile;
 
             // Setting some configuration settings.
             StarcounterEnvironment.Default.UserHttpPort = defaultUserHttpPort;

@@ -386,7 +386,21 @@ namespace Starcounter {
         /// <summary>
         /// Resolves static resource with given URI and incoming request object.
         /// </summary>
-        public static Func<String, Request, Response> ResolveStaticResource;
+        internal static Func<String, Request, Response> resolveStaticResource_;
+
+        /// <summary>
+        /// Resolves static resource with given URI and incoming request object.
+        /// </summary>
+        public static Response ResolveStaticResource(String uri, Request req) {
+            return resolveStaticResource_(uri, req);
+        }
+
+        /// <summary>
+        /// Resolves static resource with given URI and incoming request object.
+        /// </summary>
+        public static Response ResolveStaticResource(Request req) {
+            return resolveStaticResource_(req.Uri, req);
+        }
 
         internal static Func<String, HandlerOptions, Boolean> isHandlerRegistered_;
 

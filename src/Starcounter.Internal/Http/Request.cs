@@ -1178,24 +1178,49 @@ namespace Starcounter {
         /// </summary>
         public void SendResponse(Response resp, Byte[] serializationBuf)
         {
+            Response savedResp = resp;
+
             try {
 
                 // Checking if there are any outgoing filters.
                 Response filteredResp = Handle.RunOutgoingFilters(this, resp);
                 if (null != filteredResp) {
-
-                    filteredResp.ConstructFromFields(this, serializationBuf);
-                    SendResponse(filteredResp.ResponseBytes, 0, filteredResp.ResponseSizeBytes, filteredResp.ConnFlags);
-
-                } else {
-
-                    resp.ConstructFromFields(this, serializationBuf);
-                    SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+                    resp = filteredResp;
                 }
+
+                // Checking if global response status code is set.
+                if (Handle.OutgoingStatusCode > 0) {
+                    resp.StatusCode = Handle.OutgoingStatusCode;
+                }
+
+                // Checking if global response status description is set.
+                if (Handle.OutgoingStatusDescription != null) {
+                    resp.StatusDescription = Handle.OutgoingStatusDescription;
+                }
+
+                // Checking the global response headers list.
+                if (null != Handle.OutgoingHeaders) {
+                    foreach (KeyValuePair<String, String> h in Handle.OutgoingHeaders) {
+                        resp[h.Key] = h.Value;
+                    }
+                }
+
+                // Checking the global response cookies list.
+                if (null != Handle.OutgoingCookies) {
+                    foreach (KeyValuePair<String, String> c in Handle.OutgoingCookies) {
+                        resp.Cookies.Add(c.Key + "=" + c.Value);
+                    }
+                }
+
+                // Constructing response bytes.
+                resp.ConstructFromFields(this, serializationBuf);
+
+                // Sending the response.
+                SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
 
             } finally {
 
-                resp.Destroy();
+                savedResp.Destroy();
             }
         }
 

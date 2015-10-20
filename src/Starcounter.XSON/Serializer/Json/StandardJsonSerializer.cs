@@ -176,7 +176,7 @@ namespace Starcounter.Advanced.XSON {
             Session session = json.Session;
             int sizeBytes = 0;
             string partialConfigId = null;
-            string activeAppName;
+            string appNameForLayout = null;
             string htmlUriMerged = null;
 
             if (json.Template == null) {
@@ -217,32 +217,32 @@ namespace Starcounter.Advanced.XSON {
             if (wrapInAppName) {
                 sizeBytes += json._appName.Length + 4; // 2 for ":{" and 2 for quotation marks around string.
 
-                // Checking if active application is defined.
-                if (json._activeAppName != null) {
+                // Checking if siblings contains info for layout.
+                if (json._appNameForLayout != null) {
                     if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
-                        // Serializing every sibling first.
                         for (int s = 0; s < json.StepSiblings.Count; s++) {
                             var pp = json.StepSiblings[s];
 
                             if (pp == json)
                                 continue;
 
-                            // Checking if application name is the same.
-                            if (json._activeAppName == pp._appName) {
+                            if (json._appNameForLayout.Equals(pp._appName, StringComparison.InvariantCultureIgnoreCase)) { // This is the sibling we want.
                                 // Checking if there is any partial Html provided.
                                 partialConfigId = pp.GetHtmlPartialUrl();
                                 break;
                             }
                         }
                     }
-                    activeAppName = json._activeAppName;
-                } else {
+                    appNameForLayout = json._appNameForLayout;
+                } 
+                
+                if (partialConfigId == null) {
                     // Checking if there is any partial Html provided.
                     partialConfigId = json.GetHtmlPartialUrl();
-                    activeAppName = json._appName;
+                    appNameForLayout = json._appName;
 
                     if (!String.IsNullOrEmpty(partialConfigId)) {
-                        htmlUriMerged = activeAppName + "=" + partialConfigId;
+                        htmlUriMerged = appNameForLayout + "=" + partialConfigId;
                         sizeBytes += 15 + partialConfigId.Length; // "PartialId":"",
                     }
                 }
@@ -288,7 +288,7 @@ namespace Starcounter.Advanced.XSON {
                     if (!string.IsNullOrEmpty(partialConfigId)) {
 
                         // "AppName":"",
-                        sizeBytes += 13 + activeAppName.Length;
+                        sizeBytes += 13 + appNameForLayout.Length;
 
                         // "PartialId":"",
                         sizeBytes += 15 + partialConfigId.Length;
@@ -400,7 +400,7 @@ namespace Starcounter.Advanced.XSON {
             List<Template> exposedProperties;
             string htmlUriMerged = null;
             string partialConfigId = null;
-            string activeAppName = null;
+            string appNameForLayout = null;
             Session session = json.Session;
 
             // Checking if application name should wrap the JSON.
@@ -420,7 +420,7 @@ namespace Starcounter.Advanced.XSON {
 
                 if (wrapInAppName) {
                     // Checking if active application is defined.
-                    if (json._activeAppName != null) {
+                    if (json._appNameForLayout != null) {
                         if (!json.calledFromStepSibling && json.StepSiblings != null && json.StepSiblings.Count != 1) {
                             // Serializing every sibling first.
                             for (int s = 0; s < json.StepSiblings.Count; s++) {
@@ -430,7 +430,7 @@ namespace Starcounter.Advanced.XSON {
                                     continue;
 
                                 // Checking if application name is the same.
-                                if (json._activeAppName == pp._appName) {
+                                if (json._appNameForLayout.Equals(pp._appName, StringComparison.InvariantCultureIgnoreCase)) {
                                     // Checking if there is any partial Html provided.
                                     partialConfigId = pp.GetHtmlPartialUrl();
                                     break;
@@ -438,15 +438,16 @@ namespace Starcounter.Advanced.XSON {
                             }
                         }
 
-                        activeAppName = json._activeAppName;
-                        json._activeAppName = null;
-                    } else {
+                        appNameForLayout = json._appNameForLayout;
+                    } 
+                    
+                    if (partialConfigId == null) {
                         // Checking if there is any partial Html provided.
                         partialConfigId = json.GetHtmlPartialUrl();
-                        activeAppName = json._appName;
+                        appNameForLayout = json._appName;
 
                         if (!String.IsNullOrEmpty(partialConfigId)) {
-                            htmlUriMerged = activeAppName + "=" + partialConfigId;
+                            htmlUriMerged = appNameForLayout + "=" + partialConfigId;
                         }
                     }
 
@@ -603,7 +604,7 @@ namespace Starcounter.Advanced.XSON {
                             *pfrag++ = (byte)':';
                             used++;
 
-                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, activeAppName);
+                            valueSize = JsonHelper.WriteString((IntPtr)pfrag, destSize - used, appNameForLayout);
                             used += valueSize;
                             pfrag += valueSize;
 
