@@ -489,14 +489,16 @@ namespace Starcounter.InstallerWPF {
                 mainWindow.Left = position.X - (mainWindow.Width / 2);
                 mainWindow.Top = position.Y - (mainWindow.Height / 2);
             }
-
+            mainWindow.Topmost = true;  // Hack to get window on top.
             mainWindow.Show();
+            mainWindow.Topmost = false; // Hack to get window on top.
 
             // Move focus from WaitWindow to MainWindow
             if (bWaitWindowGotFocus) {
                 //mainWindow.Focus();
                 mainWindow.Activate();
             }
+
         }
 
         private System.Windows.Forms.Screen GetCurrentScreen() {
