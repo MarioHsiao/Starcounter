@@ -39,7 +39,7 @@
 #include "../common/pid_type.hpp"
 #include "../common/owner_id.hpp"
 #include "../common/config_param.hpp"
-#include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
+#include <sccoreerr.h>
 #include "../common/spinlock.hpp"
 #include "../common/macro_definitions.hpp"
 

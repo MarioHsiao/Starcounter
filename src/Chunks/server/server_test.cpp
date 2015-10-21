@@ -42,7 +42,7 @@
 #include "server.hpp"
 #include "scheduler.hpp"
 
-#include <scerrres.h>
+#include <sccoreerr.h>
 
 #define _E_UNSPECIFIED SCERRUNSPECIFIED
 #define _E_INVALID_SERVER_NAME SCERRINVALIDSERVERNAME

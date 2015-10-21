@@ -20,9 +20,7 @@ set(scipcmonitor_HEADER_FILES
 add_executable(scipcmonitor ${scipcmonitor_SOURCE_FILES} ${scipcmonitor_HEADER_FILES})
 set_property(TARGET scipcmonitor PROPERTY FOLDER "level1/Chunks")
 target_link_libraries(scipcmonitor
-    scerrres
+    sccoreerr
     sccorelog
     sccoredbg
-    sccorelib
-    sccorelog
 )

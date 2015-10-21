@@ -18,7 +18,7 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include "../common/config_param.hpp"
-#include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
+#include <sccoreerr.h>
 
 #if defined(_MSC_VER)
 # define WIN32_LEAN_AND_MEAN

@@ -26,7 +26,7 @@
 #include "../common/scheduler_mask.hpp"
 #include "../common/bit_operations.hpp"
 #include "../common/config_param.hpp"
-#include <scerrres.h>
+#include <sccoreerr.h>
 
 namespace starcounter {
 namespace core {

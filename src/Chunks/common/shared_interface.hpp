@@ -41,7 +41,7 @@
 #include "../common/interprocess.hpp"
 #include "../common/name_definitions.hpp"
 
-#include <scerrres.h>
+#include <sccoreerr.h>
 
 namespace starcounter {
 namespace core {

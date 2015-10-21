@@ -24,8 +24,7 @@
 #include <string.h>
 #include <cwchar>
 //---
-#include "../../Starcounter.ErrorCodes/scerrres/scerrres.h"
-#include "../../Starcounter.ErrorCodes/scerrres/format.h"
+#include "../../../../Level0/src/include/sccoreerr.h"
 
 // Level0 includes.
 #include "../../../../Level0/src/include/sccorelog.h"

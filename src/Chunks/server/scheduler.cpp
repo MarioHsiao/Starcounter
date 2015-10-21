@@ -47,7 +47,7 @@
 #include "../common/owner_id_value_type.h"
 #include "../common/monitor_interface.hpp"
 
-#include <scerrres.h>
+#include <sccoreerr.h>
 
 #define _E_UNSPECIFIED SCERRUNSPECIFIED
 #define _E_INVALID_SERVER_NAME SCERRINVALIDSERVERNAME
