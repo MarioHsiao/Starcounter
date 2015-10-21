@@ -4652,6 +4652,12 @@
                 Gateway tried to bind a socket on network port that is occupied.
             </message>
         </code>
+
+        <code hex="0007" severity="Error" name="ScErrNetworkGatewayAlreadyRunning">
+            <message>
+                An instance of network gateway is already running.
+            </message>
+        </code>
         
     </facility>
 
