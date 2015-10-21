@@ -73,7 +73,7 @@ public:
 };
 
 typedef simple_shared_memory_allocator<chunk_index> shm_alloc_for_channels;
-typedef scheduler_channel<chunk_index, shm_alloc_for_channels> scheduler_channel_type;
+typedef scheduler_channel<uint64_t, shm_alloc_for_channels> scheduler_channel_type;
 
 } // namespace core
 } // namespace starcounter

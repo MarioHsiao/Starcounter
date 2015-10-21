@@ -63,30 +63,23 @@ typedef struct _sc_io_event
 {
 	unsigned long client_index_;
 
-	//
-	// Server has no need for channel index so we don't output this (yes, this
-	// is a bit inconsistent with the interface since send takes the channel
-	// index and not the client index).
-	//
-//	unsigned long channel_index_;
-
-	unsigned long chunk_index_;
+	unsigned long long chunk_index_;
 } sc_io_event;
 
 EXTERN_C unsigned long server_initialize_port(void *port_mem128, const char *name, unsigned long port_number, owner_id_value_type owner_id_value, uint32_t channels_size);
 EXTERN_C unsigned long server_get_next_signal_or_task(void *port, unsigned int timeout_milliseconds, sc_io_event *pio_event);
-EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long *pchunk_index);
+EXTERN_C unsigned long server_get_next_signal(void *port, unsigned int timeout_milliseconds, unsigned long long *pchunk_index);
 EXTERN_C long server_has_task(void *port);
 #if 0
 EXTERN_C unsigned long sc_try_receive_from_client(void *port, unsigned long channel_index, unsigned long *pchunk_index);
 #endif
 EXTERN_C unsigned long sc_send_to_client(void *port, unsigned long channel_index, unsigned long chunk_index);
-EXTERN_C unsigned long server_send_task_to_scheduler(void *port, unsigned long port_number, unsigned long message);
-EXTERN_C unsigned long server_send_signal_to_scheduler(void *port, unsigned long port_number, unsigned long message);
+EXTERN_C unsigned long server_send_task_to_scheduler(void *port, unsigned long port_number, unsigned long long message);
+EXTERN_C unsigned long server_send_signal_to_scheduler(void *port, unsigned long port_number, unsigned long long message);
 EXTERN_C unsigned long sc_acquire_shared_memory_chunk(void *port, unsigned long *pchunk_index);
 EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index, unsigned long needed_size);
 EXTERN_C unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigned long start_chunk_index, unsigned long num_chunks);
-EXTERN_C void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index);
+EXTERN_C void *sc_get_shared_memory_chunk(void *port, unsigned long long chunk_index);
 EXTERN_C unsigned long sc_release_linked_shared_memory_chunks(void *port, unsigned long start_chunk_index);
 #if 0
 EXTERN_C void sc_add_ref_to_channel(void *port, unsigned long channel_index);
@@ -159,14 +152,14 @@ public:
 	
 	unsigned long init(const char *name, std::size_t id, owner_id oid, uint32_t channels_size);
 	unsigned long get_next_signal_or_task(unsigned int timeout_milliseconds, sc_io_event &the_io_event);
-	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index);
+	unsigned long get_next_signal(unsigned int timeout_milliseconds, unsigned long long *pchunk_index);
 	long has_task();
 	void send_to_client(unsigned long the_channel_index, chunk_index the_chunk_index);
 #if 0
 	unsigned long try_receive_from_client(unsigned long the_channel_index, chunk_index &the_chunk_index);
 #endif
-	unsigned long send_task_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
-	unsigned long send_signal_to_scheduler(unsigned long port_number, chunk_index the_chunk_index);
+	unsigned long send_task_to_scheduler(unsigned long port_number, unsigned long long the_chunk_index);
+	unsigned long send_signal_to_scheduler(unsigned long port_number, unsigned long long the_chunk_index);
 #if 0
 	void add_ref_to_channel(unsigned long the_channel_index);
 	
@@ -540,21 +533,23 @@ sc_io_event& the_io_event) try {
 	chunk_index the_chunk_index;
 	
 	while (true) {
-		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index) == true)
+        uint64_t the_chunk_index64;
+
+		if (this_scheduler_signal_channel_->in.try_pop_back(&the_chunk_index64) == true)
 		{
 			the_io_event.client_index_ = no_client_number;
 //			the_io_event.channel_index_ = invalid_channel_number;
-			the_io_event.chunk_index_ = the_chunk_index;
+			the_io_event.chunk_index_ = the_chunk_index64;
 			return 0;
 		}
 
 		// Check the in queue of this scheduler.
-		if (this_scheduler_task_channel_->in.try_pop_back(&the_chunk_index) == true)
+		if (this_scheduler_task_channel_->in.try_pop_back(&the_chunk_index64) == true)
 		{
 			// Got an internal message from some scheduler.
 			the_io_event.client_index_ = no_client_number;
 //			the_io_event.channel_index_ = invalid_channel_number;
-			the_io_event.chunk_index_ = the_chunk_index;
+			the_io_event.chunk_index_ = the_chunk_index64;
 			return 0;
 		}
 
@@ -882,12 +877,12 @@ catch (...) {
 	return (unsigned long) -1;
 }
 
-unsigned long server_port::get_next_signal(unsigned int timeout_milliseconds, unsigned long *pchunk_index)
+unsigned long server_port::get_next_signal(unsigned int timeout_milliseconds, unsigned long long *pchunk_index)
 {
 	unsigned long r;
 	do
 	{
-		if (this_scheduler_signal_channel_->in.try_pop_back((chunk_index *)pchunk_index)) {
+		if (this_scheduler_signal_channel_->in.try_pop_back(pchunk_index)) {
 			return 0;
 		}
 		r = prepare_wait_or_wait_for_signal(timeout_milliseconds);
@@ -1001,7 +996,7 @@ chunk_index the_chunk_index) {
 }
 
 unsigned long server_port::send_task_to_scheduler(unsigned long port_number,
-chunk_index the_chunk_index) {
+unsigned long long the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_task_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
 		scheduler_interface_[port_number].notify();
@@ -1011,7 +1006,7 @@ chunk_index the_chunk_index) {
 }
 
 unsigned long server_port::send_signal_to_scheduler(unsigned long port_number,
-chunk_index the_chunk_index) {
+unsigned long long the_chunk_index) {
 	scheduler_channel_type& the_channel = scheduler_signal_channel_[port_number];
 	if (the_channel.in.try_push_front(the_chunk_index)) {
 		scheduler_interface_[port_number].notify();
@@ -1516,7 +1511,7 @@ timeout_milliseconds, sc_io_event *pio_event) {
 }
 
 unsigned long server_get_next_signal(void *port, unsigned int
-timeout_milliseconds, unsigned long *pchunk_index) {
+timeout_milliseconds, unsigned long long *pchunk_index) {
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	return the_port->get_next_signal(timeout_milliseconds, pchunk_index);
@@ -1564,14 +1559,14 @@ unsigned long chunk_index) {
 }
 
 unsigned long server_send_task_to_scheduler(void *port, unsigned long
-port_number, unsigned long message) {
+port_number, unsigned long long message) {
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	return the_port->send_task_to_scheduler(port_number, message);
 }
 
 unsigned long server_send_signal_to_scheduler(void *port, unsigned long
-port_number, unsigned long message) {
+port_number, unsigned long long message) {
 	using namespace starcounter::core;
 	server_port *the_port = (server_port *)port;
 	return the_port->send_signal_to_scheduler(port_number, message);
@@ -1622,7 +1617,7 @@ unsigned long sc_acquire_linked_shared_memory_chunks_counted(void *port, unsigne
     return the_port->acquire_linked_chunk_indexes_counted(start_chunk_index, num_chunks);
 }
 
-void *sc_get_shared_memory_chunk(void *port, unsigned long chunk_index)
+void *sc_get_shared_memory_chunk(void *port, unsigned long long chunk_index)
 {
 	using namespace starcounter::core;
 
