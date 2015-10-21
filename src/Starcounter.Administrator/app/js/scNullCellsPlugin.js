@@ -29,3 +29,21 @@
 Handsontable.DataMap.prototype.getCopyableText = function(start, end) {
   return this.getRange(start, end, this.DESTINATION_CLIPBOARD_GENERATOR);
 };
+
+Handsontable.hooks.add('beforeKeyDown', function(event) {
+  if (getSelectionText()) {
+    Handsontable.dom.stopImmediatePropagation(event);
+  }
+})
+
+function getSelectionText() {
+  var text = '';
+
+  if (window.getSelection) {
+    text = window.getSelection().toString();
+  } else if (document.selection && document.selection.type !== 'Control') {
+    text = document.selection.createRange().text;
+  }
+
+  return text;
+}

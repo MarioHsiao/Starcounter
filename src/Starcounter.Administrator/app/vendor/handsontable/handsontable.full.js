@@ -15355,6 +15355,9 @@ window.Handsontable = {
       var stopImmediatePropagation = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {
         default: $___46__46__47__46__46__47_helpers_47_dom_47_event__
       }).stopImmediatePropagation;
+      var isImmediatePropagationStopped = ($___46__46__47__46__46__47_helpers_47_dom_47_event__ = require("helpers/dom/event"), $___46__46__47__46__46__47_helpers_47_dom_47_event__ && $___46__46__47__46__46__47_helpers_47_dom_47_event__.__esModule && $___46__46__47__46__46__47_helpers_47_dom_47_event__ || {
+        default: $___46__46__47__46__46__47_helpers_47_dom_47_event__
+      }).isImmediatePropagationStopped;
       var proxy = ($___46__46__47__46__46__47_helpers_47_function__ = require("helpers/function"), $___46__46__47__46__46__47_helpers_47_function__ && $___46__46__47__46__46__47_helpers_47_function__.__esModule && $___46__46__47__46__46__47_helpers_47_function__ || {
         default: $___46__46__47__46__46__47_helpers_47_function__
       }).proxy;
@@ -15440,6 +15443,9 @@ window.Handsontable = {
             return;
           }
           if (instance.getActiveEditor() && instance.getActiveEditor().isOpened()) {
+            return;
+          }
+          if (isImmediatePropagationStopped(event)) {
             return;
           }
           if (isCtrlKey(event.keyCode)) {
