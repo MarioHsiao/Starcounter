@@ -6,6 +6,9 @@
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+
 #include "../common/bounded_buffer.hpp"
 #include "../common/config_param.hpp"
 #include "../common/circular_buffer.hpp"

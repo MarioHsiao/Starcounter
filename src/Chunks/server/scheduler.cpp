@@ -5,6 +5,11 @@
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
+#pragma warning(disable:4005)
+#pragma warning(disable:4244)
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+
 #include <iostream> // debug
 #include <iomanip> // debug
 #include <ios> // debug

@@ -7,6 +7,9 @@
 // This IPC monitor is for the Windows platform.
 //
 
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+
 // The IPC monitor watches over up to 64 database processes, and up to 256
 // client processes. These limits are compile time configurable.
 //

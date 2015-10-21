@@ -8,6 +8,9 @@
 // Use -DBOOST_CB_DISABLE_DEBUG or -DNDEBUG flags
 #define BOOST_CB_DISABLE_DEBUG
 
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+
 #include <cstdlib>
 #include <iostream>
 #include <string>

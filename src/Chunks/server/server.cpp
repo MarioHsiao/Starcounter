@@ -5,6 +5,9 @@
 // Starcounter® is a registered trademark of Starcounter AB.
 //
 
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+
 #include <cstdlib>
 #include <iostream>
 #include <string>
