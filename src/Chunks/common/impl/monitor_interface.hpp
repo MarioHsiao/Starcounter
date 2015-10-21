@@ -668,7 +668,7 @@ monitor_interface::active_databases::update(const std::set<std::string>& databas
 	}
 			
 	::SetEvent(active_databases_set_update_);
-	return size_ = i;
+	return size_ = static_cast<size_type>(i);
 }
 
 inline void monitor_interface::active_databases::copy
