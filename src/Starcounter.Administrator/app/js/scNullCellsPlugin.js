@@ -33,7 +33,8 @@ Handsontable.DataMap.prototype.getCopyableText = function(start, end) {
 Handsontable.hooks.add('beforeKeyDown', function(event) {
   var activeElement = document.activeElement;
 
-  if (getSelectionText() || (activeElement && activeElement.className !== 'copyPaste')) {
+  if (getSelectionText() ||
+      (activeElement && activeElement.nodeName === 'TEXTAREA' && activeElement.className !== 'copyPaste')) {
     Handsontable.dom.stopImmediatePropagation(event);
   }
 })
