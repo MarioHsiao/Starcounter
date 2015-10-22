@@ -150,13 +150,13 @@ namespace Starcounter
                 {
                     fixed (byte* sameKey = firstKey)
                     {
-                        err = sccoredb.SCIteratorCreate(
+                        err = sccoredb.star_context_create_iterator(
+                            ThreadData.ContextHandle,
                             indexHandle,
                             rangeFlags,
                             sameKey,
                             sameKey,
-                            &hCursor,
-                            &verify
+                            &hCursor
                         );
                     }
                 }
@@ -167,13 +167,13 @@ namespace Starcounter
                 {
                     fixed (byte* fk = firstKey, lk = lastKey)
                     {
-                        err = sccoredb.SCIteratorCreate(
+                        err = sccoredb.star_context_create_iterator(
+                            ThreadData.ContextHandle,
                             indexHandle,
                             rangeFlags,
                             fk,
                             lk,
-                            &hCursor,
-                            &verify
+                            &hCursor
                         );
                     }
                 }
@@ -182,6 +182,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
+                verify = ThreadData.ContextHandle; // TODO EOH: ?
                 cachedEnum.UpdateCached(hCursor, verify);
                 return;
             }

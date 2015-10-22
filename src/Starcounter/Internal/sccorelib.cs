@@ -219,10 +219,6 @@ namespace Starcounter.Internal
             /// </summary>
             public byte cpuc;
             /// <summary>
-            /// The hmenv
-            /// </summary>
-            public ulong hmenv;
-            /// <summary>
             /// The is_system
             /// </summary>
             public int is_system;
@@ -440,30 +436,6 @@ namespace Starcounter.Internal
         /// <returns>UInt32.</returns>
         [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static unsafe UInt32 cm3_get_stash(void* ignore, UInt32** ppstash);
-
-        public const uint MH4_MENV_MAX_SLABS = (uint)((0x4000000000UL - 1) / 8192);
-
-        /// <summary>
-        /// Mh4_menv_creates the specified mem128.
-        /// </summary>
-        /// <param name="mem128">The mem128.</param>
-        /// <param name="slabs">The slabs.</param>
-        /// <returns>System.UInt64.</returns>
-        [DllImport("sunflower.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe ulong mh4_menv_create(void* mem128, uint slabs);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sunflower.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern void mh4_menv_alert_lowmem(ulong hmenv);
-
-        /// <summary>
-        /// Mh4_menv_trim_caches the specified hmenv.
-        /// </summary>
-        /// <param name="hmenv">The hmenv.</param>
-        /// <param name="periodic">The periodic.</param>
-        [DllImport("sunflower.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern void mh4_menv_trim_cache(ulong hmenv, int periodic);
 
         /// <summary>
         /// </summary>

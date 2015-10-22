@@ -31,27 +31,17 @@ namespace Starcounter.Server {
         internal static unsafe void Configure(ServerConfiguration configuration) {
             byte* mem = (byte*) BitsAndBytes.Alloc(128);
 
-            ulong hmenv = ConfigureMemory(configuration, mem);
-            mem += 128;
-
-            ulong hlogs = ConfigureLogging(configuration, hmenv);
+            ulong hlogs = ConfigureLogging(configuration);
         }
 
-        static unsafe ulong ConfigureMemory(ServerConfiguration configuration, void* mem128) {
-            uint slabs = (64 * 1024 * 1024) / 8192;  // 64 MB
-            ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
-            if (hmenv != 0) return hmenv;
-            throw ErrorCode.ToException(Error.SCERROUTOFMEMORY);
-        }
-
-        static unsafe ulong ConfigureLogging(ServerConfiguration c, ulong hmenv) {
+        static unsafe ulong ConfigureLogging(ServerConfiguration c) {
             uint e;
 
-            e = sccorelog.sccorelog_init(hmenv);
+            e = sccorelog.sccorelog_init();
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.sccorelog_connect_to_logs(ScUri.MakeServerUri(Environment.MachineName, c.Name), c.LogDirectory, null, &hlogs);
+            e = sccorelog.star_connect_to_logs(ScUri.MakeServerUri(Environment.MachineName, c.Name), c.LogDirectory, null, &hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
             LogManager.Setup(hlogs);

@@ -11,6 +11,7 @@ static void *__hlogs = 0;
 
 
 static void __critical_log_handler(void *c, uint32_t error_code);
+static void __critical_log_handler(void *c, const char *message);
 static void __critical_log_handler(void *c, const wchar_t *message);
 static LONG WINAPI __unhandled_exception_filter(EXCEPTION_POINTERS *eps);
 static LONG WINAPI __vectored_exception_handler(EXCEPTION_POINTERS *eps);
@@ -38,12 +39,12 @@ void _log_critical(const wchar_t *message)
 
 void __critical_log_handler(void *c, uint32_t error_code)
 {
-	HMODULE hmodule;
 	DWORD dr;
 	wchar_t message[256];
 
 	dr = 0;
 
+	HMODULE hmodule;
 	hmodule = LoadLibrary(L"scerrres.dll");
 	if (hmodule)
 	{
@@ -69,6 +70,21 @@ void __critical_log_handler(void *c, uint32_t error_code)
 	__critical_log_handler(c, message);
 }
 
+void __critical_log_handler(void *c, const char *message)
+{
+	uint64_t hlogs = (uint64_t)__hlogs;
+	if (hlogs)
+	{
+		if (message)
+		{
+			star_kernel_write_to_logs_utf8(
+				hlogs, SC_ENTRY_CRITICAL, 0, message
+				);
+		}
+		star_flush_to_logs(hlogs);
+	}
+}
+
 void __critical_log_handler(void *c, const wchar_t *message)
 {
 	uint64_t hlogs = (uint64_t)__hlogs;
@@ -76,11 +92,11 @@ void __critical_log_handler(void *c, const wchar_t *message)
 	{
 		if (message)
 		{
-			sccorelog_kernel_write_to_logs(
-				hlogs, SC_ENTRY_CRITICAL, 0, message
+			star_kernel_write_to_logs(
+				hlogs, SC_ENTRY_CRITICAL, 0, (const ucs2_char *)message
 				);
 		}
-		sccorelog_flush_to_logs(hlogs);
+		star_flush_to_logs(hlogs);
 	}
 }
 

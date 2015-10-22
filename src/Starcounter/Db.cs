@@ -46,14 +46,17 @@ namespace Starcounter
         {
             unsafe
             {
-                sccoredb.SCCOREDB_TABLE_INFO tableInfo;
-                var r = sccoredb.sccoredb_get_table_info_by_name(name, out tableInfo);
-                if (r == 0)
-                {
-                    return TableDef.ConstructTableDef(tableInfo);
+                ulong token = sccoredb.GetTokenFromString(name);
+                if (token != 0) {
+                    sccoredb.STARI_LAYOUT_INFO tableInfo;
+                    var r = sccoredb.stari_context_get_layout_info_by_token(ThreadData.ContextHandle, token, out tableInfo);
+                    if (r == 0) {
+                        return TableDef.ConstructTableDef(tableInfo);
+                    }
+                    if (r == Error.SCERRTABLENOTFOUND) return null;
+                    throw ErrorCode.ToException(sccoredb.star_get_last_error());
                 }
-                if (r == Error.SCERRTABLENOTFOUND) return null;
-                throw ErrorCode.ToException(sccoredb.star_get_last_error());
+                return null;
             }
         }
 
@@ -76,7 +79,7 @@ namespace Starcounter
             unsafe
             {
                 int implicitColumnCount;
-                ushort inheritedTableId = UInt16.MaxValue;
+                ushort inheritedTableId = 0;
                 if (inheritedTableDef == null)
                 {
                     implicitColumnCount = 1; // Implicit key column.
@@ -92,33 +95,46 @@ namespace Starcounter
                     inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                sccoredb.SC_COLUMN_DEFINITION[] column_definitions = new sccoredb.SC_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
+                sccoredb.STARI_COLUMN_DEFINITION[] column_definitions = new sccoredb.STARI_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
                 Debug.Assert(column_definitions.Length > 0);
-                char* name = null;
                 try
                 {
                     for (int cc = column_definitions.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++)
                     {
-                        column_definitions[di].name = (char *)Marshal.StringToCoTaskMemUni(columns[ci].Name);
+                        column_definitions[di].token = sccoredb.AssureTokenForString(columns[ci].Name);
                         column_definitions[di].type = columns[ci].Type;
                         column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
-                    name = (char*)Marshal.StringToCoTaskMemUni(tableDef.Name);
-                    fixed (sccoredb.SC_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
-                    {
-                        uint e = sccoredb.star_create_table(0, name, inheritedTableId, fixed_column_definitions, 0);
+                    ulong token = sccoredb.AssureTokenForString(tableDef.Name);
+                    Db.Transact(() => {
+                        fixed (sccoredb.STARI_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
+                        {
+                            uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
+                            if (e != 0) throw ErrorCode.ToException(e);
+                        }
+                    });
+
+                    // TODO EOH: Same transaction. Handle errors (comes pretty automatically if same transaction).
+                    Db.Transact(() => {
+                        uint e;
+                        sccoredb.STARI_LAYOUT_INFO layoutInfo;
+                        e = sccoredb.stari_context_get_layout_info_by_token(ThreadData.ContextHandle, token, out layoutInfo);
                         if (e != 0) throw ErrorCode.ToException(e);
-                    }
+
+                        ushort tableId = layoutInfo.layout_handle;
+                        ulong indexToken = sccoredb.AssureTokenForString(tableDef.Name + "_Default"); // TODO EOH: Default index name?
+
+                        short *columnIndexes = stackalloc short[2];
+                        columnIndexes[0] = 0;
+                        columnIndexes[1] = -1;
+
+                        e = sccoredb.stari_context_create_index(
+                            ThreadData.ContextHandle, indexToken, sccoredb.TableIdToSetSpec(tableId), tableId, columnIndexes, 0, 0
+                            );
+                        if (e != 0) throw ErrorCode.ToException(e);
+                    });
                 }
-                finally
-                {
-                    if (name != null) Marshal.FreeCoTaskMem((IntPtr)name);
-                    for (int i = 0; i < column_definitions.Length; i++)
-                    {
-                        if (column_definitions[i].name != null)
-                            Marshal.FreeCoTaskMem((IntPtr)column_definitions[i].name);
-                    }
-                }
+                finally { }
             }
         }
 
@@ -181,20 +197,25 @@ namespace Starcounter
 
             retries = 0;
 
+            // TODO EOH: Lock transaction on thread. Not supported currently.
+
             for (; ; ) {
-                r = sccoredb.sccoredb_create_transaction_and_set_current(flags, 1, out handle, out verify);
+                r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
                 if (r == 0) {
+                    verify = sccorelib.GetCpuNumber(); // TODO EOH:
+                    r = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle); // TODO EOH: Handle error.
+
                     // We only set the handle to none here, since Transaction.Current will follow this value.
                     var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
                     try {
                         action();
-                        TransactionManager.Commit(1, 1);
+                        TransactionManager.Commit(handle, 1, 1);
                         return;
                     } catch (Exception ex) {
                         if (
-                            sccoredb.sccoredb_set_current_transaction(1, 0, 0) == 0 &&
-                            sccoredb.sccoredb_free_transaction(handle, verify) == 0
+                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle) == 0 &&
+                            sccoredb.star_transaction_free(handle) == 0
                             ) {
                             if (ex is ITransactionConflictException) {
                                 if (++retries <= maxRetries) continue;
@@ -231,7 +252,7 @@ namespace Starcounter
         }
 
         internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transact(action, sccoredb.MDB_TRANSCREATE_SYSTEM_PRIVILEGES, forceSnapshot, maxRetries);
+            Transact(action, 0, forceSnapshot, maxRetries);
         }
 
         public static void Scope(Action action, bool isReadOnly = false) {

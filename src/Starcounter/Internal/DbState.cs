@@ -105,20 +105,31 @@ namespace Starcounter.Internal
         /// <param name="address">The current (opaque) address of the new object
         /// in the database, assigned before this method returns.</param>
         public static void Insert(ushort tableId, ref ulong oid, ref ulong address) {
-            uint dr;
+            ulong contextHandle;
+            uint r;
             ulong oid_local;
-            ulong addr_local;
+            ulong ref_local;
 
             unsafe {
-                dr = sccoredb.sccoredb_insert(tableId, &oid_local, &addr_local);
-            }
-            if (dr == 0) {
-                oid = oid_local;
-                address = addr_local;
-                return;
+                contextHandle = ThreadData.ContextHandle;
+                r = sccoredb.star_context_insert(contextHandle, tableId, &oid_local, &ref_local);
+                if (r == 0) {
+                    string setpec = sccoredb.TableIdToSetSpec(tableId);
+                    fixed (char* p = setpec) {
+                        r = sccoredb.star_context_put_setspec(
+                            contextHandle, oid_local, ref_local, p
+                            );
+                    }
+                    if (r == 0) {
+                        oid = oid_local;
+                        address = ref_local;
+                        return;
+                    }
+                    // TODO EOH: Delete on failure to set setpec.
+                }
+                throw ErrorCode.ToException(r);
             }
 
-            throw ErrorCode.ToException(dr);
         }
 
         internal static void SystemInsert(ushort tableId, ref ulong oid, ref ulong address) {
@@ -400,7 +411,9 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_long(oid, address, index, &value);
+                r = sccoredb.star_context_get_long(
+                    ThreadData.ContextHandle, oid, address, index, &value
+                    );
             }
             if (r == 0) {
                 return value;
@@ -586,7 +599,9 @@ namespace Starcounter.Internal
                 byte* value;
                 int sl;
 
-                r = sccoredb.star_get_string(oid, address, index, &value);
+                r = sccoredb.star_context_get_string(
+                    ThreadData.ContextHandle, oid, address, index, &value
+                    );
                 if (r == 0) {
                     sl = *((Int32*)value);
                     return new String((Char*)(value + 4), 0, sl);
@@ -1004,7 +1019,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteInt64(ulong oid, ulong address, Int32 index, Int64 value) {
             uint r;
-            r = sccoredb.star_put_long(oid, address, index, value);
+            r = sccoredb.star_context_put_long(ThreadData.ContextHandle, oid, address, index, value);
             if (r == 0) {
                 return;
             }
@@ -1162,12 +1177,9 @@ namespace Starcounter.Internal
             uint r;
             unsafe {
                 fixed (char* p = value) {
-                    r = sccoredb.star_put_string(
-                        oid,
-                        address,
-                        index,
-                        p
-                    );
+                    r = sccoredb.star_context_put_string(
+                        ThreadData.ContextHandle, oid, address, index, p
+                        );
                 }
             }
             if (r == 0) {

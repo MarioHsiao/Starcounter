@@ -347,7 +347,7 @@ namespace Starcounter {
         internal Byte OwnerCpu { get { return (byte)_verify; } }
 
         internal void Cleanup() {
-            uint r = sccoredb.sccoredb_free_transaction(_handle, _verify);
+            uint r = sccoredb.star_transaction_free(_handle);
             if (r == 0) return;
             throw ErrorCode.ToException(r);
         }

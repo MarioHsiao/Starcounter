@@ -3630,10 +3630,10 @@ uint32_t Gateway::OpenStarcounterLog()
 //		make_sc_server_uri(setting_sc_server_type_.c_str(), host_name, &host_name_size);
 		make_sc_process_uri(setting_sc_server_type_upper_.c_str(), GW_PROCESS_NAME, host_name, &host_name_size);
 
-		err_code = sccorelog_init(0);
+		err_code = sccorelog_init();
 		if (err_code) goto err;
 
-		err_code = sccorelog_connect_to_logs(host_name, setting_server_output_dir_.c_str(), NULL, &sc_log_handle_);
+		err_code = star_connect_to_logs((const ucs2_char *)host_name, (const ucs2_char *)setting_server_output_dir_.c_str(), NULL, &sc_log_handle_);
 		if (err_code) goto err;
 
 		goto end;
@@ -3649,9 +3649,14 @@ end:
 // Closes Starcounter log.
 void Gateway::CloseStarcounterLog()
 {
-    uint32_t err_code = sccorelog_release_logs(sc_log_handle_);
+    uint32_t err_code = star_release_logs(sc_log_handle_);
 
     GW_ASSERT(0 == err_code);
+}
+
+void Gateway::LogWriteCritical(const char* msg)
+{
+    LogWriteGeneral(msg, SC_ENTRY_CRITICAL);
 }
 
 void Gateway::LogWriteCritical(const wchar_t* msg)
@@ -3674,6 +3679,26 @@ void Gateway::LogWriteNotice(const wchar_t* msg)
     LogWriteGeneral(msg, SC_ENTRY_NOTICE);
 }
 
+void Gateway::LogWriteGeneral(const char* msg, uint32_t log_type)
+{
+	// NOTE:
+	// No asserts in critical log handler. Assertion fails calls critical log
+	// handler to log.
+
+    uint32_t err_code = 0;
+	
+	if (msg)
+	{
+	    err_code = star_kernel_write_to_logs_utf8(sc_log_handle_, log_type, 0, msg);
+	
+	    //GW_ASSERT(0 == err_code);
+	}
+
+    err_code = star_flush_to_logs(sc_log_handle_);
+
+    //GW_ASSERT(0 == err_code);
+}
+
 void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 {
 	// NOTE:
@@ -3684,12 +3709,12 @@ void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 	
 	if (msg)
 	{
-	    err_code = sccorelog_kernel_write_to_logs(sc_log_handle_, log_type, 0, msg);
+	    err_code = star_kernel_write_to_logs(sc_log_handle_, log_type, 0, (const ucs2_char *)msg);
 	
 	    //GW_ASSERT(0 == err_code);
 	}
 
-    err_code = sccorelog_flush_to_logs(sc_log_handle_);
+    err_code = star_flush_to_logs(sc_log_handle_);
 
     //GW_ASSERT(0 == err_code);
 }
@@ -3697,7 +3722,7 @@ void Gateway::LogWriteGeneral(const wchar_t* msg, uint32_t log_type)
 } // namespace network
 } // namespace starcounter
 
-VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
+VOID LogGatewayCrash(VOID *pc, const char *str)
 {
     starcounter::network::g_gateway.LogWriteCritical(str);
 }

@@ -112,11 +112,7 @@ EXTERN_C void __stdcall sc_profiler_reset(
 // well as sending any responses back.
 uint32_t sc_handle_incoming_chunks(CM2_TASK_DATA* task_data)
 {
-    _SC_BEGIN_FUNC
-
     return g_bmx_data->HandleBmxChunk(task_data);
-
-    _SC_END_FUNC
 }
 
 // Registers port handler.
@@ -128,8 +124,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     BMX_HANDLER_TYPE* phandler_info
     )
 {
-    _SC_BEGIN_FUNC
-
     _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
@@ -143,8 +137,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_port_handler(
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     return err_code;
-
-    _SC_END_FUNC
 };
 
 EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
@@ -157,8 +149,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
     BMX_HANDLER_TYPE* phandler_info
     )
 {
-    _SC_BEGIN_FUNC
-
     _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
@@ -172,8 +162,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     return err_code;
-
-    _SC_END_FUNC
 };
 
 EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
@@ -188,8 +176,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     BMX_HANDLER_TYPE* phandler_info
     )
 {
-    _SC_BEGIN_FUNC
-
     _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
@@ -213,15 +199,11 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     return err_code;
-
-    _SC_END_FUNC
 }
 
 // Unregisters a handler.
 uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
 {
-    _SC_BEGIN_FUNC
-
     bool is_empty_handler;
 
     // Checking if handler exists.
@@ -234,14 +216,10 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
     LeaveSafeBmxManagement(g_bmx_data_copy);
 
     return err_code;
-
-    _SC_END_FUNC
 }
 
 uint32_t sc_bmx_unregister_uri(uint16_t port_num, char* processed_uri_info)
 {
-    _SC_BEGIN_FUNC
-
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code;
 
@@ -252,14 +230,10 @@ uint32_t sc_bmx_unregister_uri(uint16_t port_num, char* processed_uri_info)
     err_code = sc_bmx_unregister_handler(handler_index);
 
     return err_code;
-
-    _SC_END_FUNC
 }
 
 uint32_t sc_bmx_unregister_port(uint16_t port_num)
 {
-    _SC_BEGIN_FUNC
-
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code;
 
@@ -270,8 +244,6 @@ uint32_t sc_bmx_unregister_port(uint16_t port_num)
     err_code = sc_bmx_unregister_handler(handler_index);
 
     return err_code;
-
-    _SC_END_FUNC
 }
 
 // Construct BMX Ping message.

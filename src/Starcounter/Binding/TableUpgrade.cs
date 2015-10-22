@@ -453,6 +453,7 @@ namespace Starcounter.Binding
         {
             TableDef[] output = null;
 
+#if false // TODO EOH:
             Db.Transact(() =>
             {
                 sccoredb.SCCOREDB_TABLE_INFO tableInfo;
@@ -477,6 +478,9 @@ namespace Starcounter.Binding
 
                 output = tableDefs.ToArray();
             });
+#else
+            output = new TableDef[0];
+#endif
 
             return output;
         }

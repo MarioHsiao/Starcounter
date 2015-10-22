@@ -1,14 +1,3 @@
 LIBRARY
 
 EXPORTS
-	sccoredbh_init
-	sccoredbh_thread_enter
-	sccoredbh_thread_leave
-	sccoredbh_thread_reset
-	sccoredbh_vproc_bgtask
-	sccoredbh_vproc_ctick
-	sccoredbh_vproc_idle
-	sccoredbh_vproc_wait
-	sccoredbh_alert_lowmem
-	sccoredbh_get_image_version
-	sccoredbh_get_image_magic

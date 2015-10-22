@@ -56,9 +56,10 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.sccoredb_create_transaction(flags, out handle, out verify);
+            ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
             if (ec == 0) {
                 try {
+                    verify = sccorelib.GetCpuNumber(); // TODO EOH:
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
 
                     if (index < ShortListCount) {
@@ -79,7 +80,7 @@ namespace Starcounter.Internal {
 
                     return th;
                 } catch {
-                    sccoredb.sccoredb_free_transaction(handle, verify);
+                    sccoredb.star_transaction_free(handle);
                     throw;
                 }
             }
@@ -115,9 +116,12 @@ namespace Starcounter.Internal {
             if (readOnly)
                 flags |= TransactionHandle.FLAG_TRANSCREATE_READ_ONLY;
 
-            ec = sccoredb.sccoredb_create_transaction_and_set_current(flags, 0, out handle, out verify);
+            ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
             if (ec == 0) {
                 try {
+                    verify = sccorelib.GetCpuNumber(); // TODO EOH:
+                    ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle); // TODO EOH: Handle error.
+
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
                     if (isImplicit)
                         th.flags |= TransactionHandle.FLAG_IMPLICIT;
@@ -141,7 +145,7 @@ namespace Starcounter.Internal {
 
                     return th;
                 } catch {
-                    sccoredb.sccoredb_free_transaction(handle, verify);
+                    sccoredb.star_transaction_free(handle);
                     throw;
                 }
             }
@@ -160,7 +164,7 @@ namespace Starcounter.Internal {
                 SetCurrentTransaction(TransactionHandle.Invalid);
 
             if (handle.IsAlive) {
-                ec  = sccoredb.sccoredb_free_transaction(handle.handle, handle.verify);
+                ec = sccoredb.star_transaction_free(handle.handle);
                 if (ec != 0)
                     return ec;
             }
@@ -214,7 +218,7 @@ namespace Starcounter.Internal {
                     if (!keptHandle.HasTemporaryRef()) {
                         ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
                         if (ec == 0)
-                            ec = sccoredb.sccoredb_free_transaction(handle.handle, handle.verify);
+                            ec = sccoredb.star_transaction_free(handle.handle);
 
                         if (ec == 0) {
                             Refs[handle.index] = TransactionHandle.Invalid;
@@ -236,7 +240,7 @@ namespace Starcounter.Internal {
                 if (!keptHandle.HasTemporaryRef()) {
                     ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
                     if (ec == 0)
-                        ec = sccoredb.sccoredb_free_transaction(handle.handle, handle.verify);
+                        ec = sccoredb.star_transaction_free(handle.handle);
 
                     if (ec == 0) {
                         SlowList[calcIndex] = TransactionHandle.Invalid;
@@ -333,7 +337,7 @@ namespace Starcounter.Internal {
             if (CurrentHandle == handle)
                 return;
 
-            uint ec = sccoredb.sccoredb_set_current_transaction(0, handle.handle, handle.verify);
+            uint ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle.handle);
             if (ec == 0) {
                 CurrentHandle = handle;
                 return;
@@ -371,7 +375,7 @@ namespace Starcounter.Internal {
 
                 th = Refs[i];
                 if (!th.HasTransferedOwnership()) {
-                    ec = sccoredb.sccoredb_free_transaction(th.handle, th.verify);
+                    ec = sccoredb.star_transaction_free(th.handle);
                     if (ec == 0)
                         continue;
                     // TODO:
@@ -385,7 +389,7 @@ namespace Starcounter.Internal {
                 for (int i = 0; i < slowList.Count; i++) {
                     th = slowList[i];
                     if (!th.HasTransferedOwnership()) {
-                        ec = ec  = sccoredb.sccoredb_free_transaction(th.handle, th.verify);
+                        ec = ec = sccoredb.star_transaction_free(th.handle);
                         if (ec == 0)
                             continue;
 
@@ -604,7 +608,7 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(0, 0);
+                Commit(handle.handle, 0, 0);
             });
         }
 
@@ -613,7 +617,15 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="tran_locked_on_thread"></param>
         /// <param name="detach_and_free"></param>
-        internal static void Commit(int tran_locked_on_thread, int detach_and_free) {
+        internal static void Commit(ulong transaction_handle, int tran_locked_on_thread, int detach_and_free) {
+            if (detach_and_free == 0) throw new NotSupportedException(); // TODO EOH:
+
+            uint r;
+
+            r = sccoredb.star_transaction_commit(transaction_handle, 1);
+            if (r != 0) throw ErrorCode.ToException(r);
+
+#if false // TODO EOH:
             uint r;
             ulong hiter;
             ulong viter;
@@ -698,6 +710,7 @@ namespace Starcounter.Internal {
                 }
                 throw ErrorCode.ToException(r, additionalErrorInfo);
             }
+#endif
         }
 
         /// <summary>

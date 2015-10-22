@@ -323,11 +323,11 @@ namespace Starcounter.Hosting {
                 using (var transaction = new Transaction(true)) {
                     if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
                         transaction.Scope(() => {
-                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
+                            //Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(); // TODO EOH:
 
                             OnRuntimeMetadataPopulated();
                             // Call CLR class clean up
-                            Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata();
+                            //Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(); // TODO EOH:
                             OnCleanClrMetadata();
                         });
                         transaction.Scope(() => {
@@ -364,10 +364,11 @@ namespace Starcounter.Hosting {
 
                     foreach (TypeDef typeDef in updateColumns)
                         Db.SystemTransact(delegate {
-                            MetadataPopulation.CreateColumnInstances(typeDef);
+                            //MetadataPopulation.CreateColumnInstances(typeDef); // TODO EOH:
                             //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
                         });
 
+#if false // TODO EOH:
 #if DEBUG   // Assure that parents were set.
                     transaction.Scope(() => {
                         foreach (TypeDef typeDef in updateColumns) {
@@ -384,6 +385,7 @@ namespace Starcounter.Hosting {
                                 matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
                         }
                     });
+#endif
 #endif
                     OnColumnsCheckedAndUpdated();
 
@@ -415,7 +417,7 @@ namespace Starcounter.Hosting {
                         OnTypeSpecificationsInitialized();
                     }
 
-                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
+                    //MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs); // TODO EOH:
 
                     OnPopulateClrMetadata();
                 }
@@ -478,7 +480,7 @@ namespace Starcounter.Hosting {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
                 Db.SystemTransact(delegate {
-                    MetadataPopulation.CreateRawTableInstance(typeDef);
+                    //MetadataPopulation.CreateRawTableInstance(typeDef); // TODO EOH:
                     updated = true;
                 });
             } else if (!storedTableDef.Equals(tableDef)) {

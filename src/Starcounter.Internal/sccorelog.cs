@@ -54,12 +54,9 @@ namespace Starcounter.Internal
         public const uint SC_ENTRY_CRITICAL = 6;
 
         /// <summary>
-        /// SCs the init module_ LOG.
         /// </summary>
-        /// <param name="hmenv">The hmenv.</param>
-        /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sccorelog_init(ulong hmenv);
+        public static extern uint sccorelog_init();
 
         /// <summary>
         /// SCs the connect to logs.
@@ -69,7 +66,7 @@ namespace Starcounter.Internal
         /// <param name="phlogs">The phlogs.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe uint sccorelog_connect_to_logs(string host_name, string directory, void* ignore, ulong* phlogs);
+        public static extern unsafe uint star_connect_to_logs(string host_name, string directory, void* ignore, ulong* phlogs);
 
         /// <summary>
         /// SCs the write to logs.
@@ -81,7 +78,7 @@ namespace Starcounter.Internal
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_write_to_logs(ulong h, uint type, string source, uint error_code, string message);
+        public static extern uint star_write_to_logs(ulong h, uint type, string source, uint error_code, string message);
 
         /// <summary>
         /// SCs the kernel write to logs.
@@ -92,7 +89,7 @@ namespace Starcounter.Internal
         /// <param name="message">The message.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint sccorelog_kernel_write_to_logs(ulong h, uint type, uint error_code, string message);
+        public static extern uint star_kernel_write_to_logs(ulong h, uint type, uint error_code, string message);
 
         /// <summary>
         /// SCs the flush to logs.
@@ -100,6 +97,6 @@ namespace Starcounter.Internal
         /// <param name="h">The h.</param>
         /// <returns>System.UInt32.</returns>
         [DllImport("sccorelog.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sccorelog_flush_to_logs(ulong h);
+        public static extern uint star_flush_to_logs(ulong h);
     }
 }

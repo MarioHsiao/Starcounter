@@ -627,7 +627,6 @@ namespace Starcounter.InstallerWPF {
             "sccorelib.dll",
             "sccorelog.dll",
             "server.dll",
-            "sunflower.dll",
             "msvcp110.dll",
             "msvcr110.dll"
         };

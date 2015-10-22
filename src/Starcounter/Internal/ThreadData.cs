@@ -29,6 +29,19 @@ namespace Starcounter
         [ThreadStatic]
         public static ThreadData Current;
 
+        [ThreadStatic]
+        private static unsafe ulong contextHandle_ = 0;
+
+        internal static ulong ContextHandle {
+            get {
+                if (contextHandle_ != 0) return contextHandle_;
+                throw ErrorCode.ToException(Error.SCERRTHREADNOTATTACHED); // TODO EOH: Reattach if auto detached?
+            }
+            set {
+                contextHandle_ = value;
+            }
+        }
+
         /// <summary>
         /// Gets the current if attached and reattach if auto detached.
         /// </summary>

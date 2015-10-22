@@ -69,8 +69,6 @@ EXTERN_C void __stdcall sc_bmx_plain_copy_and_release_chunks(
     uint8_t* const buffer,
     const int32_t buf_len)
 {
-    _SC_BEGIN_FUNC
-
     uint32_t err_code;
     int32_t cur_offset = 0;
 
@@ -103,8 +101,6 @@ EXTERN_C void __stdcall sc_bmx_plain_copy_and_release_chunks(
 
     // Terminating the first chunk.
     first_smc->terminate_link();
-
-    _SC_END_FUNC
 }
 
 // Writing all chunks data to given buffer.
@@ -460,8 +456,6 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     const uint32_t conn_flags
     )
 {
-    _SC_BEGIN_FUNC
-
     _SC_ASSERT(shared_memory_chunk::link_terminator != *the_chunk_index);
     _SC_ASSERT(buf_len_bytes >= 0);
 
@@ -514,20 +508,14 @@ EXTERN_C uint32_t __stdcall sc_bmx_send_buffer(
     }
 
     return err_code;
-
-    _SC_END_FUNC
 }
 
 // Releases given linked chunks.
 EXTERN_C void __stdcall sc_bmx_release_linked_chunks(starcounter::core::chunk_index* the_chunk_index)
 {
-    _SC_BEGIN_FUNC
-
     uint32_t err_code = cm_release_linked_shared_memory_chunks(*the_chunk_index);
     _SC_ASSERT(0 == err_code);
 
     *the_chunk_index = shared_memory_chunk::link_terminator;
-
-    _SC_END_FUNC
 }
 

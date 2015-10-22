@@ -50,21 +50,11 @@ static void __shutdown_event_handler()
 	_set_event(hcontrol_event);
 }
 
-// Is called when scservice crashes.
-VOID LogGatewayCrash(VOID *pc, LPCWSTR str)
-{
-	LogWriteCritical(str);
-}
-
 int Start(wchar_t* serverName, BOOL logSteps) {
 	BOOL exit_code_is_scerr;
     DWORD process_exit_code;
 	wchar_t logmessagebuffer[LOG_BUFFER_MESSAGE_SIZE];
 	logsteps = logSteps;
-
-	// Catching all unhandled exceptions in this thread.
-	_SC_BEGIN_FUNC
-	set_critical_log_handler(LogGatewayCrash, NULL);
 
 	uint32_t r;
 	const wchar_t *srv_name = L"PERSONAL";
@@ -745,7 +735,7 @@ log_scerr:
 			LogWriteError(error_msg_buf);
 
             if ((process_exit_code > 0) && (process_exit_code != MAXDWORD)) {
-                if (exit_code_is_scerr && process_exit_code > 1) 
+                if (exit_code_is_scerr && process_exit_code > 1)
                     FormatStarcounterErrorMessage(process_exit_code, error_msg_buf, 4096);
                 else 
                     swprintf(error_msg_buf, 100, L"Process exitcode: %i", process_exit_code);
@@ -796,9 +786,6 @@ end:
 	}
 
 	return (int32_t)r;
-
-	// Catching all unhandled exceptions in this thread.
-	_SC_END_FUNC
 }
 
 int Stop() {

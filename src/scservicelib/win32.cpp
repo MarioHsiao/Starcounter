@@ -8,6 +8,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <TlHelp32.h>
+#include <stdio.h>
 
 _STATIC_ASSERT(sizeof(HANDLE) == sizeof(void *));
 
@@ -23,7 +24,7 @@ static void (*__shutdown_event_handler)();
 static BOOL WINAPI __console_handler(DWORD console_event);
 static void __kill_and_cleanup_children(DWORD process_id);
 
-BOOL _set_shutdown_event_handler(void (*shutdown_event_handler)())
+int _set_shutdown_event_handler(void (*shutdown_event_handler)())
 {
     __shutdown_event_handler = shutdown_event_handler;
     return SetConsoleCtrlHandler(__console_handler, TRUE);

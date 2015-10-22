@@ -32,12 +32,18 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
        enumeratorCreated = false; // True after execution enumerator is created.
        //dataStreamChanged = false; // True if data stream has changed.
 
+#if false // TODO EOH: Native filter.
     FilterEnumerator enumerator = null; // Handle to execution enumerator.
+#else
+    Enumerator enumerator = null; // Handle to execution enumerator.
+#endif
     Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
+#if false // TODO EOH: Native filter.
     Byte[] filterDataStream = null; // Points to the created data stream.
     UInt64 filterHandle = 0; // Contains latest filter handle in use.
+#endif
 
     // First and second key defining the full range.
     ByteArrayBuilder firstKeyBuilder = null,
@@ -95,7 +101,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
         // Creating empty enumerator at caching time (without any managed post privateFilter).
+#if false // TODO EOH: Native filter
         enumerator = new FilterEnumerator();
+#else
+        enumerator = new Enumerator();
+#endif
 
         // Checking if private filter has already been created for us.
         if (privateFilter == null)
@@ -361,7 +371,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 lastKey = secondKeyBuffer;
 
             // Trying to recreate the enumerator from key.
+#if false // TODO EOH: Native filter.
             if (iterHelper.RecreateEnumerator_CodeGenFilter(recreationKey, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
+#else
+            if (iterHelper.RecreateEnumerator_NoCodeGenFilter(recreationKey, enumerator, _flags, lastKey)) {
+#endif
                 // Indicating that enumerator has been created.
                 enumeratorCreated = true;
 
@@ -404,6 +418,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
 #endif
 
+#if false // TODO EOH: Native filter.
         // Trying to get existing/create new privateFilter.
         filterHandle = privateFilter.GetFilterHandle();
         iterHelper.AddGeneratedFilter(filterHandle);
@@ -412,6 +427,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         // the context object from some previous extent).
         filterDataStream = privateFilter.GetDataStream(contextObject);
         iterHelper.AddDataStream(filterDataStream);
+#endif
         
         // Trying to recreate the enumerator.
         unsafe
@@ -442,6 +458,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         }
 
 
+#if false // TODO EOH: Native filter.
         // Creating native iterator.
         if (descending)
         {
@@ -459,6 +476,23 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 secondKeyBuffer,
                 enumerator);
         }
+#else
+        // Creating native iterator.
+        if (descending) {
+            iterHelper.GetEnumeratorCached_NoCodeGenFilter(
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY | sccoredb.SC_ITERATOR_SORTED_DESCENDING,
+                secondKeyBuffer,
+                firstKeyBuffer,
+                enumerator);
+        }
+        else {
+            iterHelper.GetEnumeratorCached_NoCodeGenFilter(
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY,
+                firstKeyBuffer,
+                secondKeyBuffer,
+                enumerator);
+        }
+#endif
 
         // Indicating that enumerator has been created.
         enumeratorCreated = true;

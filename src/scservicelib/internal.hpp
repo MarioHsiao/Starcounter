@@ -13,7 +13,7 @@
 #include <stdint.h>
 
 
-extern BOOL _set_shutdown_event_handler(void (*shutdown_event_handler)());
+extern int _set_shutdown_event_handler(void (*shutdown_event_handler)());
 
 extern uint32_t _create_event(const wchar_t *name, void **phandle);
 extern void _destroy_event(void *handle);

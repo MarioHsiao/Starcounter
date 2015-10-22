@@ -123,14 +123,7 @@ namespace StarcounterInternal.Bootstrap {
                 byte* mem = (byte*)Kernel32.VirtualAlloc((void*)0, (IntPtr)memSize, Kernel32.MEM_COMMIT, Kernel32.PAGE_READWRITE);
                 OnGlobalMemoryAllocated();
 
-                // Note that we really only need 128 bytes. See method
-                // CalculateAmountOfMemoryNeededForRuntimeEnvironment for details.
-
-                ulong hmenv = ConfigureMemory(configuration, mem);
-                mem += 512;
-                OnKernelMemoryConfigured();
-
-                ulong hlogs = ConfigureLogging(configuration, hmenv);
+                ulong hlogs = ConfigureLogging(configuration);
                 var activateTraceLogging = Diagnostics.IsGlobalTraceLoggingEnabled 
                     || arguments.ContainsFlag(StarcounterConstants.BootstrapOptionNames.EnableTraceLogging);
                 if (activateTraceLogging) {
@@ -179,7 +172,7 @@ namespace StarcounterInternal.Bootstrap {
                 OnHostConfigured();
 
                 // Configuring schedulers.
-                hsched_ = ConfigureScheduler(configuration, mem, hmenv, schedulerCount);
+                hsched_ = ConfigureScheduler(configuration, mem, schedulerCount);
                 mem += (1024 + (schedulerCount * 512));
                 OnSchedulerConfigured();
 
@@ -208,7 +201,7 @@ namespace StarcounterInternal.Bootstrap {
                     ConfigureDatabase(configuration);
                     OnDatabaseConfigured();
 
-                    ConnectDatabase(schedulerCount, hmenv, hlogs);
+                    ConnectDatabase(schedulerCount, hlogs);
                     OnDatabaseConnected();
                 }
 
@@ -259,10 +252,12 @@ namespace StarcounterInternal.Bootstrap {
                 ManagementService.Setup(configuration.DefaultSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
                 OnServerCommandHandlersRegistered();
 
+#if false // TODO EOH:
                 if (withdb_) {
                     Loader.AddBasePackage(hsched_, stopwatch_);
                     OnBasePackageLoaded();
                 }
+#endif
 
                 // NOTE: Disabling skip for middleware filters since no more system handlers are expected at this line.
                 StarcounterEnvironment.SkipMiddlewareFiltersGlobal = false;
@@ -362,15 +357,7 @@ namespace StarcounterInternal.Bootstrap {
         /// <summary>
         /// Cleanups this instance.
         /// </summary>
-        private void Cleanup() {
-            try {
-
-                if (withdb_)
-                    DisconnectDatabase();
-
-            }
-            finally { OnEndCleanup(); }
-        }
+        private void Cleanup() { OnEndCleanup(); }
 
         /// <summary>
         /// The process control_
@@ -420,37 +407,15 @@ namespace StarcounterInternal.Bootstrap {
         }
 
         /// <summary>
-        /// Configures the memory.
         /// </summary>
-        /// <param name="c">The c.</param>
-        /// <param name="mem128">The mem128.</param>
-        /// <returns>System.UInt64.</returns>
-        private unsafe ulong ConfigureMemory(Configuration c, void* mem128) {
-            Kernel32.MEMORYSTATUSEX m;
-            m.dwLength = (uint)sizeof(Kernel32.MEMORYSTATUSEX);
-            Kernel32.GlobalMemoryStatusEx(&m);
-            uint slabs = (uint)(m.ullTotalPhys / 8192);
-            if (slabs > sccorelib.MH4_MENV_MAX_SLABS)
-                slabs = sccorelib.MH4_MENV_MAX_SLABS;
-            ulong hmenv = sccorelib.mh4_menv_create(mem128, slabs);
-            if (hmenv != 0) return hmenv;
-            throw ErrorCode.ToException(Starcounter.Error.SCERROUTOFMEMORY);
-        }
-
-        /// <summary>
-        /// Configures the logging.
-        /// </summary>
-        /// <param name="c">The c.</param>
-        /// <param name="hmenv">The hmenv.</param>
-        /// <returns>System.UInt64.</returns>
-        private unsafe ulong ConfigureLogging(Configuration c, ulong hmenv) {
+        private unsafe ulong ConfigureLogging(Configuration c) {
             uint e;
 
-            e = sccorelog.sccorelog_init(hmenv);
+            e = sccorelog.sccorelog_init();
             if (e != 0) throw ErrorCode.ToException(e);
 
             ulong hlogs;
-            e = sccorelog.sccorelog_connect_to_logs(
+            e = sccorelog.star_connect_to_logs(
                 ScUri.MakeDatabaseUri(ScUri.GetMachineName(), c.ServerName, c.Name),
                 c.OutputDirectory,
                 null,
@@ -480,10 +445,7 @@ namespace StarcounterInternal.Bootstrap {
         /// <param name="mem">The mem.</param>
         /// <param name="hmenv">The hmenv.</param>
         /// <param name="schedulerCount">The scheduler count.</param>
-        private unsafe void* ConfigureScheduler(Configuration c, void* mem, ulong hmenv, uint schedulerCount) {
-            if (withdb_) orange.orange_setup(hmenv);
-            else orange_nodb.orange_setup(hmenv);
-
+        private unsafe void* ConfigureScheduler(Configuration c, void* mem, uint schedulerCount) {
             uint space_needed_for_scheduler = 1024 + (schedulerCount * 512);
             sccorelib.CM2_SETUP setup = new sccorelib.CM2_SETUP();
             setup.name = (char*)Marshal.StringToHGlobalUni(c.ServerName + "_" + c.Name);
@@ -494,7 +456,6 @@ namespace StarcounterInternal.Bootstrap {
             setup.gateway_num_workers = c.GatewayNumberOfWorkers;
             setup.mem = mem;
             setup.mem_size = space_needed_for_scheduler;
-            setup.hmenv = hmenv;
             setup.cpuc = (byte)schedulerCount;
             if (withdb_) orange.orange_configure_scheduler_callbacks(ref setup);
             else orange_nodb.orange_configure_scheduler_callbacks(ref setup);
@@ -521,57 +482,29 @@ namespace StarcounterInternal.Bootstrap {
         private unsafe void ConfigureDatabase(Configuration c) {
             uint e;
 
-            e = sccoredb.sccoredb_set_system_variable("NAME", c.Name);
-            if (e != 0) throw ErrorCode.ToException(e);
+            uint installationId = 1; // TODO EOH:
 
-            e = sccoredb.sccoredb_set_system_variable("IMAGEDIR", c.DatabaseDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.sccoredb_set_system_variable("OLOGDIR", c.DatabaseDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.sccoredb_set_system_variable("TLOGDIR", c.TransactionLogDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.sccoredb_set_system_variable("TEMPDIR", c.TempDirectory);
-            if (e != 0) throw ErrorCode.ToException(e);
-
-            e = sccoredb.sccoredb_set_system_variable("OUTDIR", c.OutputDirectory);
+            e = sccoredb.star_configure(installationId, c.Name);
             if (e != 0) throw ErrorCode.ToException(e);
 
             var callbacks = new sccoredb.sccoredb_callbacks();
             orange.orange_configure_database_callbacks(ref callbacks);
-            e = sccoredb.sccoredb_set_system_callbacks(&callbacks);
+            e = sccoredb.star_set_system_callbacks(&callbacks);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
         /// <summary>
         /// </summary>
-        private unsafe void ConnectDatabase(uint schedulerCount, ulong hmenv, ulong hlogs) {
+        private unsafe void ConnectDatabase(uint schedulerCount, ulong hlogs) {
             uint e;
 
-            uint flags = 0;
-            flags |= sccoredb.SCCOREDB_LOAD_DATABASE;
-            flags |= sccoredb.SCCOREDB_USE_BUFFERED_IO;
-            flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_LOAD;
-            //flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_CHECKP;
-            flags |= sccoredb.SCCOREDB_ENABLE_CHECK_FILE_ON_BACKUP;
-            flags |= sccoredb.SCCOREDB_ENABLE_CHECK_MEMORY_ON_CHECKP;
-
-            e = sccoredb.sccoredb_connect(flags, schedulerCount, hmenv, hlogs, sccorelib.fix_get_performance_counter_file_map());
+            e = sccoredb.sccoredb_connect(schedulerCount, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
 
+#if false // TODO EOH:
             e = filter.init_filter_lib(hmenv, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
-        }
-
-        /// <summary>
-        /// Disconnects the database.
-        /// </summary>
-        private void DisconnectDatabase() {
-            uint e = sccoredb.sccoredb_disconnect(0);
-            if (e == 0) return;
-            throw ErrorCode.ToException(e);
+#endif
         }
 
         private long ticksElapsedBetweenProcessStartAndMain_;
@@ -600,7 +533,6 @@ namespace StarcounterInternal.Bootstrap {
         private void OnConfigurationLoaded() { Trace("Configuration loaded."); }
         private void OnAssuredNoOtherProcessWithTheSameName() { Trace("Assured no other process with the same name."); }
         private void OnGlobalMemoryAllocated() { Trace("Global memory allocated."); }
-        private void OnKernelMemoryConfigured() { Trace("Kernel memory configured."); }
         private void OnBmxManagerInitialized() { Trace("BMX manager initialized."); }
         private void OnLoggingConfigured() { Trace("Logging configured."); }
         private void OnHostConfigured() { Trace("Host configured."); }

@@ -83,6 +83,7 @@ namespace StarcounterInternal.Bootstrap
             }
         }
 
+#if false // TODO EOH: Remove these from command-line.
         /// <summary>
         /// Gets the database directory.
         /// </summary>
@@ -116,6 +117,7 @@ namespace StarcounterInternal.Bootstrap
                 return dir;
             }
         }
+#endif
 
         /// <summary>
         /// Gets the output directory.

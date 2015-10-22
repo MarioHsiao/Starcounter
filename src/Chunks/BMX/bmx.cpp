@@ -547,8 +547,10 @@ release_chunks:
 
 finish:
 
+#if 0 // TODO EOH:
     // Resetting current transaction.
     sccoredb_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
+#endif
 
     return err_code;
 
