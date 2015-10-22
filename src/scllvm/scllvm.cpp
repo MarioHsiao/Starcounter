@@ -248,7 +248,8 @@ public:
 		float seconds_parsing = (float)(end_parsing - start_parsing) / CLOCKS_PER_SEC,
 			seconds_jiting = (float)(end_jiting - start_jiting) / CLOCKS_PER_SEC;
 
-		std::cout << "Codegen took seconds: " << seconds_parsing + seconds_jiting << " (" << seconds_parsing << ", " << seconds_jiting << ")." << std::endl;
+		if (print_to_console)
+			std::cout << "Codegen took seconds: " << seconds_parsing + seconds_jiting << " (" << seconds_parsing << ", " << seconds_jiting << ")." << std::endl;
 
 		return 0;
 	}
