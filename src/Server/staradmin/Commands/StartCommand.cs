@@ -36,6 +36,9 @@ namespace staradmin.Commands {
 
                 ICommand command = null;
                 switch (typeToStart) {
+                    case ObjectType.Server:
+                        command = new StartServerCommand();
+                        break;
                     case ObjectType.Database:
                     default:
                         command = CreateUnrecognizedType(type);
