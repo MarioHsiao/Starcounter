@@ -59,6 +59,7 @@
     <Compile Include="Commands\NewCommand.cs" />
     <Compile Include="Commands\ReloadCommand.cs" />
     <Compile Include="Commands\StartCommand.cs" />
+    <Compile Include="Commands\StartServerCommand.cs" />
     <Compile Include="Commands\StopAppCommand.cs" />
     <Compile Include="Commands\StopCodeHostCommand.cs" />
     <Compile Include="Commands\StopCommand.cs" />
