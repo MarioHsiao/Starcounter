@@ -89,14 +89,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86\include\boost-1_46_1\;..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\1_58_0-vc140\include\boost-1_58;..\..\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>c:\boost\x86\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>server.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -107,14 +107,14 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86_64\include\boost-1_46_1\;..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\1_58_0-vc140\include\boost-1_58;..\..\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>server.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -127,7 +127,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86\include\boost-1_46_1\;..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\1_58_0-vc140\include\boost-1_58;..\..\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -136,7 +136,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>c:\boost\x86\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>server.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>
@@ -149,7 +149,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\x86_64\include\boost-1_46_1\;..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Starcounter.ErrorCodes\scerrres;c:\boost\1_58_0-vc140\include\boost-1_58;..\..\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <AssemblerOutput>AssemblyCode</AssemblerOutput>
       <TreatWarningAsError>true</TreatWarningAsError>
@@ -160,7 +160,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>server.def</ModuleDefinitionFile>
     </Link>
   </ItemDefinitionGroup>

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -14,14 +14,15 @@
     <ProjectGuid>{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}</ProjectGuid>
     <RootNamespace>interprocess_communication_test</RootNamespace>
     <ProjectName>test</ProjectName>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -38,24 +39,24 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\1_58_0-vc140\include\boost-1_58;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <WarningLevel>Level2</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>c:\boost\x86_64\include\boost-1_46_1;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\1_58_0-vc140\include\boost-1_58;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <WarningLevel>Level2</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
