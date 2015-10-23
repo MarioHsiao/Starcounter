@@ -1,30 +1,31 @@
 /*!
- * Handsontable 0.15.0-beta6
+ * Handsontable 0.19.0
  * Handsontable is a JavaScript library for editable tables with basic copy-paste compatibility with Excel and Google Docs
  *
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * http://handsontable.com/
  *
- * Date: Fri Jun 05 2015 09:18:04 GMT+0200 (CEST)
+ * Date: Fri Oct 02 2015 12:37:12 GMT+0200 (CEST)
  */
 
 .handsontable {
   position: relative;
 }
 
-.handsontable .hide{
+.handsontable .hide {
   display: none;
 }
+
 .handsontable .relative {
   position: relative;
 }
 
-.handsontable.htAutoColumnSize {
+.handsontable.htAutoSize {
   visibility: hidden;
-  left: 0;
+  left: -99000px;
   position: absolute;
-  top: 0;
+  top: -99000px;
 }
 
 .handsontable .wtHider {
@@ -33,7 +34,8 @@
 
 .handsontable .wtSpreader {
   position: relative;
-  width: 0; /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
+  width: 0;
+  /*must be 0, otherwise blank space appears in scroll demo after scrolling max to the right */
   height: auto;
 }
 
@@ -102,7 +104,8 @@
 }
 
 .handsontable td.htInvalid {
-  background-color: #ff4c42 !important; /*gives priority over td.area selection background*/
+  background-color: #ff4c42 !important;
+  /*gives priority over td.area selection background*/
 }
 
 .handsontable td.htNoWrap {
@@ -125,9 +128,12 @@
 
 .handsontable th:first-child,
 .handsontable td:first-of-type,
-.handsontable thead tr th:nth-child(2),
 .handsontable .htNoFrame + th,
 .handsontable .htNoFrame + td {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable.htRowHeaders thead tr th:nth-child(2) {
   border-left: 1px solid #CCC;
 }
 
@@ -137,8 +143,7 @@
 }
 
 .ht_master:not(.innerBorderLeft) ~ .handsontable tbody tr th,
-.ht_master:not(.innerBorderLeft) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child
-{
+.ht_master:not(.innerBorderLeft) ~ .handsontable:not(.ht_clone_top) thead tr th:first-child {
   border-right-width: 0;
 }
 
@@ -213,7 +218,7 @@
 .handsontable .manualColumnMover:hover,
 .handsontable .manualColumnMover.active,
 .handsontable .manualRowMover:hover,
-.handsontable .manualRowMover.active{
+.handsontable .manualRowMover.active {
   background-color: #88F;
 }
 
@@ -294,24 +299,65 @@
   right: -15px;
 }
 
+.handsontable th.beforeHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.beforeHiddenColumn::after,
+.handsontable th.afterHiddenColumn::before {
+  content: '\25C0';
+  color: #bbb;
+  position: absolute;
+  right: 1px;
+  top: 2px;
+  font-size: 5pt;
+}
+
+.handsontable th.afterHiddenColumn {
+  position: relative;
+}
+
+.handsontable th.afterHiddenColumn::before {
+  left: 1px;
+  top: 2px;
+  right: auto;
+  content: '\25B6';
+}
+
+.handsontable td.afterHiddenColumn.firstVisible {
+  border-left: 1px solid #CCC;
+}
+
+.handsontable thead th.hiddenHeader {
+  display: none;
+}
+
 /* border line */
 
 .handsontable .wtBorder {
   position: absolute;
   font-size: 0;
 }
-.handsontable .wtBorder.hidden{
-  display:none !important;
+
+.handsontable .wtBorder.hidden {
+  display: none !important;
 }
 
 .handsontable td.area {
-  background: -moz-linear-gradient(top,  rgba(181,209,255,0.34) 0%, rgba(181,209,255,0.34) 100%); /* FF3.6+ */
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(181,209,255,0.34)), color-stop(100%,rgba(181,209,255,0.34))); /* Chrome,Safari4+ */
-  background: -webkit-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* Chrome10+,Safari5.1+ */
-  background: -o-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* Opera 11.10+ */
-  background: -ms-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* IE10+ */
-  background: linear-gradient(to bottom,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%); /* W3C */
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#57b5d1ff', endColorstr='#57b5d1ff',GradientType=0 ); /* IE6-9 */
+  background: -moz-linear-gradient(top,  rgba(181,209,255,0.34) 0%, rgba(181,209,255,0.34) 100%);
+  /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(181,209,255,0.34)), color-stop(100%,rgba(181,209,255,0.34)));
+  /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%);
+  /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%);
+  /* Opera 11.10+ */
+  background: -ms-linear-gradient(top,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%);
+  /* IE10+ */
+  background: linear-gradient(to bottom,  rgba(181,209,255,0.34) 0%,rgba(181,209,255,0.34) 100%);
+  /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#57b5d1ff', endColorstr='#57b5d1ff',GradientType=0 );
+  /* IE6-9 */
   background-color: #fff;
 }
 
@@ -329,9 +375,9 @@
 }
 
 .handsontableInput {
-  border:none;
+  border: none;
   outline-width: 0;
-  margin: 0 ;
+  margin: 0;
   padding: 1px 5px 0 5px;
   font-family: inherit;
   line-height: 21px;
@@ -371,7 +417,7 @@ TextRenderer readOnly cell
   position: relative;
 }
 
-.handsontable .htSubmenu :after{
+.handsontable .htSubmenu :after {
   content: '▶';
   color: #777;
   position: absolute;
@@ -382,28 +428,33 @@ TextRenderer readOnly cell
 /*
 TextRenderer horizontal alignment
 */
-.handsontable .htLeft{
+.handsontable .htLeft {
   text-align: left;
 }
-.handsontable .htCenter{
+
+.handsontable .htCenter {
   text-align: center;
 }
-.handsontable .htRight{
+
+.handsontable .htRight {
   text-align: right;
 }
-.handsontable .htJustify{
+
+.handsontable .htJustify {
   text-align: justify;
 }
 /*
 TextRenderer vertical alignment
 */
-.handsontable .htTop{
+.handsontable .htTop {
   vertical-align: top;
 }
-.handsontable .htMiddle{
+
+.handsontable .htMiddle {
   vertical-align: middle;
 }
-.handsontable .htBottom{
+
+.handsontable .htBottom {
   vertical-align: bottom;
 }
 
@@ -444,6 +495,12 @@ CheckboxRenderer
   opacity: 0.5;
 }
 
+.handsontable .htCheckboxRendererLabel {
+  cursor: pointer;
+  display: inline-block;
+  width: 100%;
+}
+
 /*
 NumericRenderer
 */
@@ -455,10 +512,11 @@ NumericRenderer
 /*
 Comment For Cell
 */
-.htCommentCell{
+.htCommentCell {
   position: relative;
 }
-.htCommentCell:after{
+
+.htCommentCell:after {
   content: '';
   position: absolute;
   top: 0;
@@ -471,16 +529,19 @@ Comment For Cell
   from {
     opacity: 1;
   }
+
   to {
     opacity: 0;
     /*display: none;*/
   }
 }
+
 @keyframes opacity-hide {
   from {
     /*display: block;*/
     opacity: 1;
   }
+
   to {
     opacity: 0;
     /*display: none;*/
@@ -492,16 +553,19 @@ Comment For Cell
     opacity: 0;
     /*display: none;*/
   }
+
   to {
     opacity: 1;
     /*display: block;*/
   }
 }
+
 @keyframes opacity-show {
   from {
     opacity: 0;
     /*display: none;*/
   }
+
   to {
     opacity: 1;
     /*display: block;*/
@@ -518,8 +582,8 @@ Comment For Cell
 
 /* removing shadows, TODO: remove the commented code and this comment  */
 /*.handsontable .handsontable:not(.ht_master) table {*/
-  /*-webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
-  /*box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
+/*-webkit-box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
+/*box-shadow: 1px 2px 5px rgba(0, 0, 0, 0.4);*/
 /*}*/
 
 /**
@@ -528,6 +592,7 @@ Comment For Cell
 .handsontable .autocompleteEditor.handsontable {
   padding-right: 17px;
 }
+
 .handsontable .autocompleteEditor.handsontable.htMacScroll {
   padding-right: 15px;
 }
@@ -552,7 +617,7 @@ Comment For Cell
 .handsontable.listbox tr:last-child th,
 .handsontable.listbox tr:first-child td,
 .handsontable.listbox td {
-  border-width: 0;
+  border-color: transparent;
 }
 
 .handsontable.listbox th,
@@ -576,20 +641,6 @@ Comment For Cell
   background: #eee;
 }
 
-.htContextMenu {
-  display: none;
-  position: absolute;
-  z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
-  overflow: hidden;
-}
-
-.htContextMenu .ht_clone_top,
-.htContextMenu .ht_clone_left,
-.htContextMenu .ht_clone_corner,
-.htContextMenu .ht_clone_debug {
-  display: none;
-}
-
 .ht_clone_top {
   z-index: 101;
 }
@@ -598,72 +649,13 @@ Comment For Cell
   z-index: 102;
 }
 
-.ht_clone_corner {
+.ht_clone_top_left_corner,
+.ht_clone_bottom_left_corner {
   z-index: 103;
 }
 
 .ht_clone_debug {
   z-index: 103;
-}
-
-.htContextMenu table.htCore {
-  border: 1px solid #bbb;
-}
-
-.htContextMenu .wtBorder {
-  visibility: hidden;
-}
-
-.htContextMenu table tbody tr td {
-  background: white;
-  border-width: 0;
-  padding: 4px 6px 0px 6px;
-  cursor: pointer;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.htContextMenu table tbody tr td:first-child {
-  border: 0;
-}
-
-.htContextMenu table tbody tr td.htDimmed{
-  font-style: normal;
-  color: #323232;
-}
-
-.htContextMenu table tbody tr td.current,
-.htContextMenu table tbody tr td.zeroclipboard-is-hover {
-  background: rgb(233, 233, 233);
-}
-
-.htContextMenu table tbody tr td.htSeparator {
-  border-top: 1px solid #bbb;
-  height: 0;
-  padding: 0;
-}
-
-.htContextMenu table tbody tr td.htDisabled {
-  color: #999;
-}
-
-.htContextMenu table tbody tr td.htDisabled:hover {
-  background: white;
-  color: #999;
-  cursor: default;
-}
-.htContextMenu table tbody tr td div{
-  padding-left: 10px;
-}
-.htContextMenu table tbody tr td div span.selected{
-  margin-top: -2px;
-  position: absolute;
-  left: 4px;
-}
-
-.htContextMenu .ht_master .wtHolder {
-  overflow: hidden;
 }
 
 .handsontable td.htSearchResult {
@@ -674,28 +666,32 @@ Comment For Cell
 /*
 Cell borders
 */
-.htBordered{
+.htBordered {
   /*box-sizing: border-box !important;*/
   border-width: 1px;
 }
-.htBordered.htTopBorderSolid{
+
+.htBordered.htTopBorderSolid {
   border-top-style: solid;
   border-top-color: #000;
 }
-.htBordered.htRightBorderSolid{
+
+.htBordered.htRightBorderSolid {
   border-right-style: solid;
   border-right-color: #000;
 }
-.htBordered.htBottomBorderSolid{
+
+.htBordered.htBottomBorderSolid {
   border-bottom-style: solid;
   border-bottom-color: #000;
 }
-.htBordered.htLeftBorderSolid{
+
+.htBordered.htLeftBorderSolid {
   border-left-style: solid;
   border-left-color: #000;
 }
 
-.htCommentTextArea{
+.htCommentTextArea {
   -moz-box-shadow: 1px 1px 2px #bbb;
   -webkit-box-shadow: 1px 1px 2px #bbb;
   background-color: #FFFACD;
@@ -704,67 +700,17 @@ Cell borders
   font-family: 'Arial';
 }
 
-
-/* Grouping indicators */
-.handsontable colgroup col.rowHeader.htGroupCol {
-  width: 25px !important;
-}
-.handsontable colgroup col.rowHeader.htGroupColClosest {
-  width: 30px !important;
-}
-
-.handsontable .htGroupIndicatorContainer {
-  background: #fff;
-  border: 0px;
-  padding-bottom: 0px;
-  vertical-align: bottom;
-  position: relative;
-}
-
-.handsontable thead .htGroupIndicatorContainer {
-  vertical-align: top;
-  border-bottom: 0px;
-}
-
 .handsontable tbody tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
 }
 
-.handsontable thead tr:nth-last-child(2) th {
+.handsontable thead tr:nth-last-child(2) th.htGroupIndicatorContainer {
   border-bottom: 1px solid #CCC;
   padding-bottom: 5px;
 }
 
-
-.ht_clone_corner thead tr th:nth-last-child(2) {
+.ht_clone_top_left_corner thead tr th:nth-last-child(2) {
   border-right: 1px solid #CCC;
-}
-
-.htVerticalGroup {
-  height: 100%;
-}
-
-.htHorizontalGroup {
-  width: 100%;
-  height: 100%;
-}
-
-.htVerticalGroup:not(.htCollapseButton):after {
-  content: "";
-  height: 100%;
-  width: 1px;
-  display: block;
-  background: #ccc;
-  margin-left: 5px;
-}
-
-.htHorizontalGroup:not(.htCollapseButton):after {
-  content: "";
-  width: 100%;
-  height: 1px;
-  display: block;
-  background: #ccc;
-  margin-top: 20%;
 }
 
 .htCollapseButton {
@@ -793,7 +739,6 @@ Cell borders
   bottom: 10px;
 }
 
-
 thead .htCollapseButton {
   right: 5px;
   position: absolute;
@@ -808,37 +753,6 @@ thead .htCollapseButton:after {
   top: 4px;
 }
 
-.handsontable tr th .htGroupStart:after {
-  background: transparent;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  width: 5px;
-  position: relative;
-  top: 50%;
-}
-
-.handsontable thead tr th .htGroupStart:after {
-  background: transparent;
-  border-left: 1px solid #ccc;
-  border-top: 1px solid #ccc;
-  height: 5px;
-  width: 50%;
-  position: relative;
-  top: 0px;
-  left: 50%;
-}
-
-.handsontable .htGroupLevelTrigger {
-  -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
-  width: 15px;
-  height: 15px;
-  margin: 4px auto;
-  padding: 0px;
-  line-height: 15px;
-  cursor: pointer;
-}
-
 .handsontable tr th .htExpandButton {
   position: absolute;
   width: 10px;
@@ -850,7 +764,7 @@ thead .htCollapseButton:after {
   -webkit-box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.4);
   cursor: pointer;
-  top: 0px;
+  top: 0;
   display: none;
 }
 
@@ -863,8 +777,31 @@ thead .htCollapseButton:after {
   display: block;
 }
 
+.collapsibleIndicator {
+  position: absolute;
+  top: 50%;
+  transform: translate(0% ,-50%);
+  right: 5px;
+  border: 1px solid #A6A6A6;
+  line-height: 10px;
+  color: #222;
+  border-radius: 10px;
+  font-size: 10px;
+  width: 10px;
+  height: 10px;
+  cursor: pointer;
+  -webkit-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  -moz-box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  box-shadow: 0px 0px 0px 6px rgba(238,238,238,1);
+  background: #eee;
+}
+
 .handsontable col.hidden {
-  width: 0px !important;
+  width: 0 !important;
+}
+
+.handsontable table tr th.lightRightBorder {
+  border-right: 1px solid #E6E6E6;
 }
 
 .handsontable tr.hidden,
@@ -875,7 +812,8 @@ thead .htCollapseButton:after {
 
 .ht_master,
 .ht_clone_left,
-.ht_clone_top {
+.ht_clone_top,
+.ht_clone_bottom {
   overflow: hidden;
 }
 
@@ -888,7 +826,8 @@ thead .htCollapseButton:after {
   overflow-y: auto;
 }
 
-.ht_clone_top .wtHolder {
+.ht_clone_top .wtHolder,
+.ht_clone_bottom .wtHolder {
   overflow-x: auto;
   overflow-y: hidden;
 }
@@ -949,13 +888,13 @@ thead .htCollapseButton:after {
 
 .handsontable.mobile,
 .handsontable.mobile .wtHolder {
-  -webkit-touch-callout:none;
-  -webkit-user-select:none;
-  -khtml-user-select:none;
-  -moz-user-select:none;
-  -ms-user-select:none;
-  user-select:none;
-  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
   -webkit-overflow-scrolling: touch;
 }
 
@@ -1022,7 +961,6 @@ thead .htCollapseButton:after {
   height: 0;
   width: 0;
   left: 30px;
-
   border-left: 13pt solid transparent;
   border-right: 13pt solid transparent;
   border-bottom: 13pt solid #ebebeb;
@@ -1040,7 +978,6 @@ thead .htCollapseButton:after {
   height: 0;
   width: 0;
   left: -13pt;
-
   border-left: 13pt solid transparent;
   border-right: 13pt solid transparent;
   border-bottom: 13pt solid #f8f8f8;
@@ -1105,6 +1042,7 @@ thead .htCollapseButton:after {
   /*margin-top: 17pt;*/
   /*margin-left: 20pt;*/
 }
+
 .htMobileEditorContainer .leftButton:active:after {
   border-color: #cfcfcf;
 }
@@ -1116,6 +1054,7 @@ thead .htCollapseButton:after {
   /*margin-top: 17pt;*/
   /*margin-left: 10pt;*/
 }
+
 .htMobileEditorContainer .rightButton:active:after {
   border-color: #cfcfcf;
 }
@@ -1128,6 +1067,7 @@ thead .htCollapseButton:after {
   /*margin-top: 22pt;*/
   /*margin-left: 15pt;*/
 }
+
 .htMobileEditorContainer .upButton:active:after {
   border-color: #cfcfcf;
 }
@@ -1139,6 +1079,7 @@ thead .htCollapseButton:after {
   /*margin-top: 15pt;*/
   /*margin-left: 15pt;*/
 }
+
 .htMobileEditorContainer .downButton:active:after {
   border-color: #cfcfcf;
 }
@@ -1163,7 +1104,8 @@ thead .htCollapseButton:after {
 .htContextMenu {
   display: none;
   position: absolute;
-  z-index: 1060; /*needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569)*/
+  z-index: 1060;
+  /* needs to be higher than 1050 - z-index for Twitter Bootstrap modal (#1569) */
 }
 
 .htContextMenu .ht_clone_top,
@@ -1174,7 +1116,9 @@ thead .htCollapseButton:after {
 }
 
 .htContextMenu table.htCore {
-  outline: 1px solid #bbb;
+  border: 1px solid #bbb;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
 }
 
 .htContextMenu .wtBorder {
@@ -1184,7 +1128,7 @@ thead .htCollapseButton:after {
 .htContextMenu table tbody tr td {
   background: white;
   border-width: 0;
-  padding: 4px 6px 0px 6px;
+  padding: 4px 6px 0 6px;
   cursor: pointer;
   overflow: hidden;
   white-space: nowrap;
@@ -1195,14 +1139,14 @@ thead .htCollapseButton:after {
   border: 0;
 }
 
-.htContextMenu table tbody tr td.htDimmed{
+.htContextMenu table tbody tr td.htDimmed {
   font-style: normal;
   color: #323232;
 }
 
 .htContextMenu table tbody tr td.current,
 .htContextMenu table tbody tr td.zeroclipboard-is-hover {
-  background: rgb(233, 233, 233);
+  background: #e9e9e9;
 }
 
 .htContextMenu table tbody tr td.htSeparator {
@@ -1216,18 +1160,26 @@ thead .htCollapseButton:after {
 }
 
 .htContextMenu table tbody tr td.htDisabled:hover {
-  background: white;
+  background: #fff;
   color: #999;
   cursor: default;
 }
-.htContextMenu table tbody tr td div{
-  padding-left: 10px;
+
+.htContextMenu table tbody tr td .htItemWrapper {
+  margin-left: 10px;
+  margin-right: 6px;
 }
-.htContextMenu table tbody tr td div span.selected{
+
+.htContextMenu table tbody tr td div span.selected {
   margin-top: -2px;
   position: absolute;
   left: 4px;
 }
+
+.htContextMenu .ht_master .wtHolder {
+  overflow: hidden;
+}
+
 @charset "UTF-8";
 
 /*!
@@ -1236,14 +1188,14 @@ thead .htCollapseButton:after {
  */
 
 .pika-single {
-    z-index: 9999;
-    display: block;
-    position: relative;
-    color: #333;
-    background: #fff;
-    border: 1px solid #ccc;
-    border-bottom-color: #bbb;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  z-index: 9999;
+  display: block;
+  position: relative;
+  color: #333;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-bottom-color: #bbb;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
 /*
@@ -1252,182 +1204,206 @@ http://nicolasgallagher.com/micro-clearfix-hack/
 */
 .pika-single:before,
 .pika-single:after {
-    content: " ";
-    display: table;
+  content: " ";
+  display: table;
 }
-.pika-single:after { clear: both }
-.pika-single { *zoom: 1 }
+
+.pika-single:after {
+  clear: both
+}
+
+.pika-single {
+  *zoom: 1
+}
 
 .pika-single.is-hidden {
-    display: none;
+  display: none;
 }
 
 .pika-single.is-bound {
-    position: absolute;
-    box-shadow: 0 5px 15px -5px rgba(0,0,0,.5);
+  position: absolute;
+  box-shadow: 0 5px 15px -5px rgba(0,0,0,.5);
 }
 
 .pika-lendar {
-    float: left;
-    width: 240px;
-    margin: 8px;
+  float: left;
+  width: 240px;
+  margin: 8px;
 }
 
 .pika-title {
-    position: relative;
-    text-align: center;
+  position: relative;
+  text-align: center;
 }
 
 .pika-label {
-    display: inline-block;
-    *display: inline;
-    position: relative;
-    z-index: 9999;
-    overflow: hidden;
-    margin: 0;
-    padding: 5px 3px;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: bold;
-    background-color: #fff;
+  display: inline-block;
+  *display: inline;
+  position: relative;
+  z-index: 9999;
+  overflow: hidden;
+  margin: 0;
+  padding: 5px 3px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: bold;
+  background-color: #fff;
 }
+
 .pika-title select {
-    cursor: pointer;
-    position: absolute;
-    z-index: 9998;
-    margin: 0;
-    left: 0;
-    top: 5px;
-    filter: alpha(opacity=0);
-    opacity: 0;
+  cursor: pointer;
+  position: absolute;
+  z-index: 9998;
+  margin: 0;
+  left: 0;
+  top: 5px;
+  filter: alpha(opacity=0);
+  opacity: 0;
 }
 
 .pika-prev,
 .pika-next {
-    display: block;
-    cursor: pointer;
-    position: relative;
-    outline: none;
-    border: 0;
-    padding: 0;
-    width: 20px;
-    height: 30px;
-    /* hide text using text-indent trick, using width value (it's enough) */
-    text-indent: 20px;
-    white-space: nowrap;
-    overflow: hidden;
-    background-color: transparent;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-size: 75% 75%;
-    opacity: .5;
-    *position: absolute;
-    *top: 0;
+  display: block;
+  cursor: pointer;
+  position: relative;
+  outline: none;
+  border: 0;
+  padding: 0;
+  width: 20px;
+  height: 30px;
+  /* hide text using text-indent trick, using width value (it's enough) */
+  text-indent: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  background-color: transparent;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: 75% 75%;
+  opacity: .5;
+  *position: absolute;
+  *top: 0;
 }
 
 .pika-prev:hover,
 .pika-next:hover {
-    opacity: 1;
+  opacity: 1;
 }
 
 .pika-prev,
 .is-rtl .pika-next {
-    float: left;
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAUklEQVR42u3VMQoAIBADQf8Pgj+OD9hG2CtONJB2ymQkKe0HbwAP0xucDiQWARITIDEBEnMgMQ8S8+AqBIl6kKgHiXqQqAeJepBo/z38J/U0uAHlaBkBl9I4GwAAAABJRU5ErkJggg==');
-    *left: 0;
+  float: left;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAUklEQVR42u3VMQoAIBADQf8Pgj+OD9hG2CtONJB2ymQkKe0HbwAP0xucDiQWARITIDEBEnMgMQ8S8+AqBIl6kKgHiXqQqAeJepBo/z38J/U0uAHlaBkBl9I4GwAAAABJRU5ErkJggg==');
+  *left: 0;
 }
 
 .pika-next,
 .is-rtl .pika-prev {
-    float: right;
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAU0lEQVR42u3VOwoAMAgE0dwfAnNjU26bYkBCFGwfiL9VVWoO+BJ4Gf3gtsEKKoFBNTCoCAYVwaAiGNQGMUHMkjGbgjk2mIONuXo0nC8XnCf1JXgArVIZAQh5TKYAAAAASUVORK5CYII=');
-    *right: 0;
+  float: right;
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAeCAYAAAAsEj5rAAAAU0lEQVR42u3VOwoAMAgE0dwfAnNjU26bYkBCFGwfiL9VVWoO+BJ4Gf3gtsEKKoFBNTCoCAYVwaAiGNQGMUHMkjGbgjk2mIONuXo0nC8XnCf1JXgArVIZAQh5TKYAAAAASUVORK5CYII=');
+  *right: 0;
 }
 
 .pika-prev.is-disabled,
 .pika-next.is-disabled {
-    cursor: default;
-    opacity: .2;
+  cursor: default;
+  opacity: .2;
 }
 
 .pika-select {
-    display: inline-block;
-    *display: inline;
+  display: inline-block;
+  *display: inline;
 }
 
 .pika-table {
-    width: 100%;
-    border-collapse: collapse;
-    border-spacing: 0;
-    border: 0;
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  border: 0;
 }
 
 .pika-table th,
 .pika-table td {
-    width: 14.285714285714286%;
-    padding: 0;
+  width: 14.285714285714286%;
+  padding: 0;
 }
 
 .pika-table th {
-    color: #999;
-    font-size: 12px;
-    line-height: 25px;
-    font-weight: bold;
-    text-align: center;
+  color: #999;
+  font-size: 12px;
+  line-height: 25px;
+  font-weight: bold;
+  text-align: center;
 }
 
 .pika-button {
-    cursor: pointer;
-    display: block;
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    outline: none;
-    border: 0;
-    margin: 0;
-    width: 100%;
-    padding: 5px;
-    color: #666;
-    font-size: 12px;
-    line-height: 15px;
-    text-align: right;
-    background: #f5f5f5;
+  cursor: pointer;
+  display: block;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  outline: none;
+  border: 0;
+  margin: 0;
+  width: 100%;
+  padding: 5px;
+  color: #666;
+  font-size: 12px;
+  line-height: 15px;
+  text-align: right;
+  background: #f5f5f5;
 }
 
 .pika-week {
-    font-size: 11px;
-    color: #999;
+  font-size: 11px;
+  color: #999;
 }
 
 .is-today .pika-button {
-    color: #33aaff;
-    font-weight: bold;
+  color: #33aaff;
+  font-weight: bold;
 }
 
 .is-selected .pika-button {
-    color: #fff;
-    font-weight: bold;
-    background: #33aaff;
-    box-shadow: inset 0 1px 3px #178fe5;
-    border-radius: 3px;
+  color: #fff;
+  font-weight: bold;
+  background: #33aaff;
+  box-shadow: inset 0 1px 3px #178fe5;
+  border-radius: 3px;
+}
+
+.is-inrange .pika-button {
+  background: #D5E9F7;
+}
+
+.is-startrange .pika-button {
+  color: #fff;
+  background: #6CB31D;
+  box-shadow: none;
+  border-radius: 3px;
+}
+
+.is-endrange .pika-button {
+  color: #fff;
+  background: #33aaff;
+  box-shadow: none;
+  border-radius: 3px;
 }
 
 .is-disabled .pika-button {
-    pointer-events: none;
-    cursor: default;
-    color: #999;
-    opacity: .3;
+  pointer-events: none;
+  cursor: default;
+  color: #999;
+  opacity: .3;
 }
 
 .pika-button:hover {
-    color: #fff !important;
-    background: #ff8000 !important;
-    box-shadow: none !important;
-    border-radius: 3px !important;
+  color: #fff;
+  background: #ff8000;
+  box-shadow: none;
+  border-radius: 3px;
 }
 
 /* styling for abbr */
 .pika-table abbr {
-    border-bottom: none;
-    cursor: help;
+  border-bottom: none;
+  cursor: help;
 }
-
