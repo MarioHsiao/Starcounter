@@ -20,7 +20,7 @@ namespace Starcounter {
         PatchVersioning = 2,
         StrictPatchRejection = 4,
 //        DisableProtocolOT = 8,
-        IncludeNamespaces = 16,
+        IncludeNamespaces = 16
     }
 
     /// <summary>
@@ -35,7 +35,7 @@ namespace Starcounter {
         [ThreadStatic]
         private static Session _current;
 
-        private static JsonPatch jsonPatch_ = new JsonPatch();​
+        private static JsonPatch jsonPatch_ = new JsonPatch();
 
         /// <summary>
         /// Event which is called when session is being destroyed (timeout, manual, etc).

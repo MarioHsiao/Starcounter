@@ -25,7 +25,8 @@ namespace Starcounter.Query.Execution {
         public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
 
         //Boolean enableRecreateObjectCheck = false; // Enables check for deleted object during enumerator recreation.
-        //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+        //Boolean triedEnumeratorRecreation = false; // Indicates if we should try enumerator recreation with supplied key.
+
         internal ObjectIdentityLookup(byte nodeId, RowTypeBinding rowTypeBind,
         Int32 extNum,
         IValueExpression expr,
@@ -49,7 +50,7 @@ namespace Starcounter.Query.Execution {
             expression = expr;
             condition = cond;
 
-            this.fetchNumberExpr = fetchNumberExpr;
+            this.fetchNumberExpr = fetchNumExpr;
             this.fetchOffsetExpr = fetchOffsetExpr;
             this.fetchOffsetKeyExpr = fetchOffsetKeyExpr;
 
