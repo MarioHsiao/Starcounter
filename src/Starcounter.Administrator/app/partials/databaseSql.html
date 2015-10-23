@@ -45,25 +45,23 @@
         <div style="margin-top: 15px; margin-bottom: -15px">
 
             <tabset>
-                <tab heading="Result">
+                <tab heading="Result" select="onResultTabSelect()">
                     <div id="handsontableContainer">
                         <hot-table
+                                hot-id="sql-result"
                                 id="handsontable"
-                                stretchh="'last'"
-                                selectedindex="SelectedIndex"
-                                outsideclickdeselects="false"
-                                selectedindex="currentSelection"
+                                stretch-h="'last'"
+                                outside-click-deselects="true"
                                 columns="database._queryState.columns"
-                                minsparerows="0"
-                                startrows="0"
-                                fillHandle="false"
+                                min-spare-rows="0"
+                                start-rows="0"
+                                fill-handle="false"
                                 datarows="database._queryState.rows"
-                                currentrowclassname="'currentRow'"
-                                manualcolumnmove="false"
-                                manualcolumnresize="true"
-                                columnsorting="false"
-                                afterrender="afterRender"
-                                fragmentselection="true">
+                                current-row-class-name="'currentRow'"
+                                manual-column-resize
+                                on-after-render="afterRender"
+                                read-only
+                                fragment-selection="'cell'">
                         </hot-table>
                     </div>
                 </tab>
