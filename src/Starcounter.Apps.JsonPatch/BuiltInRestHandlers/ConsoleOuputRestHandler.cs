@@ -142,9 +142,6 @@ namespace Starcounter.Internal {
                                 return;
                             }
                     }
-
-                    //if (ConsoleWebSockets.Contains(wsId))
-                    //    ConsoleWebSockets.Remove(wsId);
                 }
             });
 
@@ -208,7 +205,15 @@ namespace Starcounter.Internal {
 
                         lock (ConsoleWebSocketGroupName) {
 
-                            if( !ConsoleWebSockets.ContainsKey(consoleEvent.applicationName.ToLower())) {
+                            // Send to listeners that want to get "all" messages from all apps
+                            if (ConsoleWebSockets.ContainsKey("")) {
+                                foreach (ulong wsId in ConsoleWebSockets[""]) {
+                                    WebSocket ws = new WebSocket(wsId);
+                                    ws.Send(s);
+                                }
+                            }
+
+                            if (!ConsoleWebSockets.ContainsKey(consoleEvent.applicationName.ToLower())) {
                                 return;
                             }
 
@@ -216,12 +221,6 @@ namespace Starcounter.Internal {
                                 WebSocket ws = new WebSocket(wsId);
                                 ws.Send(s);
                             }
-
-
-                            //foreach (UInt64 wsId in ConsoleWebSockets) {
-                            //    WebSocket ws = new WebSocket(wsId);
-                            //    ws.Send(s);
-                            //}
                         }
                     });
                 }
@@ -276,7 +275,7 @@ namespace Starcounter.Internal {
 
             foreach (ConsoleEventArgs item in ConsoleWriteEvents) {
 
-                if (appName != null && !appName.Equals(item.ApplicationName, StringComparison.InvariantCultureIgnoreCase) ) {
+                if (appName != null && !appName.Equals(item.ApplicationName, StringComparison.InvariantCultureIgnoreCase)) {
                     continue;
                 }
 
