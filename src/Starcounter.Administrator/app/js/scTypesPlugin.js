@@ -33,17 +33,33 @@ Handsontable.cellTypes.LargeBinary = Handsontable.cellTypes.text;
 Handsontable.cellTypes.Key = Handsontable.cellTypes.text;
 
 (function() {
+  // maxWidth renderer
+  Handsontable.renderers.MaxWidthRenderer = function(instance, TD, row, col, prop, value, cellProperties) {
+    var maxWidth = cellProperties.maxWidth;
+    var columnWidth = instance.getPlugin('autoColumnSize').getColumnWidth(col);
+
+    if (maxWidth && columnWidth >= maxWidth) {
+      Handsontable.cellTypes.logMessage.renderer.apply(this, arguments);
+      instance.getPlugin('autoColumnSize').widths[col] = maxWidth;
+    } else {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+    }
+  };
+
   // logMessage renderer
   Handsontable.cellTypes.logMessage = {
     renderer: function(instance, TD, row, col, prop, value, cellProperties) {
-      var escaped = Handsontable.helper.stringify(value),
+      var
+        escaped = Handsontable.helper.stringify(value),
         className = 'wrapper',
         logElement;
 
+      Handsontable.Dom.addClass(TD, 'log-message');
       Handsontable.renderers.BaseRenderer.apply(this, arguments);
       logElement = getLogTemplate(escaped);
 
-      if (/\n/.test(escaped)) {
+      // Detect width for multiline logs or json data
+      if (/\n/.test(escaped) || /^\{"(.*)\}$/.test(escaped)) {
         logElement.firstChild.style.width = detectLogWidth(escaped) + 'px';
       }
       Handsontable.Dom.empty(TD);
