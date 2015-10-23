@@ -583,9 +583,30 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 	r = _exec(gateway_cmd, INHERIT_CONSOLE_GATEWAY, &handles[ID_GATEWAY]);
 	if (r) goto log_winerr;
 
-	if (logsteps != 0 ) { 
-		LogVerboseMessage(L"Network gateway started");
-	}
+    // Waiting for gateway process to initialize.
+    int32_t num_retries = 100;
+    for (; num_retries > 0; num_retries--) {
+
+        // Try to open a mutex named "scnetworkgateway_is_ready_lock", and acquire the lock.
+        HANDLE gateway_is_ready_lock = ::OpenMutex(SYNCHRONIZE, FALSE,
+            TEXT("Local\\scnetworkgateway_is_ready_lock"));
+
+        if (NULL != gateway_is_ready_lock) { 
+            break;
+        }
+
+        Sleep(50);
+    }
+
+    // Checking if gateway process was not initialized properly.
+    if (0 == num_retries) {
+        r = SCERRSTARTNETWORKGATEWAY;
+        goto log_scerr;
+    }
+
+    if (logsteps != 0 ) { 
+        LogVerboseMessage(L"Network gateway started");
+    }
 
 #ifdef START_PROLOG
 
