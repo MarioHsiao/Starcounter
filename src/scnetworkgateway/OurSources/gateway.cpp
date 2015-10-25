@@ -1974,6 +1974,8 @@ uint32_t Gateway::Init()
         GW_ERR_CHECK(err_code);
     }
 
+    g_gateway.LogWriteNotice(L"After CreateListeningSocketAndBindToPorts");
+
     // Obtaining function pointers (AcceptEx, ConnectEx, DisconnectEx).
     uint32_t temp;
     SOCKET temp_socket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, NULL, 0, WSA_FLAG_OVERLAPPED);
@@ -2002,8 +2004,12 @@ uint32_t Gateway::Init()
     }
     closesocket(temp_socket);
 
+    g_gateway.LogWriteNotice(L"After obtaining AcceptEx, ConnectEx, DisconnectEx");
+
     // Global HTTP init.
     HttpGlobalInit();
+
+    g_gateway.LogWriteNotice(L"After HttpGlobalInit");
 
     // Initializing Gateway logger.
     gw_log_writer_.Init(setting_log_file_path_);
@@ -2011,6 +2017,8 @@ uint32_t Gateway::Init()
     // Loading URI codegen matcher.
     codegen_uri_matcher_ = GwNewConstructor(CodegenUriMatcher);
     codegen_uri_matcher_->Init();
+
+    g_gateway.LogWriteNotice(L"After codegen_uri_matcher_->Init();");
 
     // Loading Clang for URI matching.
     HMODULE clang_dll = LoadLibrary(L"scllvm.dll");
@@ -2040,6 +2048,8 @@ uint32_t Gateway::Init()
     void* out_functions[2];
     void* exec_module = NULL;
 
+    g_gateway.LogWriteNotice(L"After getting clang functions");
+
     uint32_t err_code = g_gateway.clangCompileCodeAndGetFuntions_(
         clang_engine_addr, // Pointer to Clang engine.
         false, // Accumulate Clang modules.
@@ -2057,11 +2067,15 @@ uint32_t Gateway::Init()
     GW_ASSERT(0 == err_code);
     GW_ASSERT(NULL != exec_module);
 
+    g_gateway.LogWriteNotice(L"After clangCompileCodeAndGetFuntions_");
+
     // Calling test function.
     typedef int (*example_func_type) ();
     GW_ASSERT(124 == (example_func_type(out_functions[0]))());
 
     g_gateway.clangDestroyFunc_(clang_engine);
+
+    g_gateway.LogWriteNotice(L"After calling clang test functions");
 
     // Registering shared memory monitor interface.
     shm_monitor_int_name_ = setting_sc_server_type_upper_ + "_" + MONITOR_INTERFACE_SUFFIX;
@@ -2072,6 +2086,8 @@ uint32_t Gateway::Init()
     // Get monitor_interface_ptr for monitor_interface_name.
     shm_monitor_interface_.init(shm_monitor_int_name_.c_str());
     GW_COUT << "opened!" << GW_ENDL;
+
+    g_gateway.LogWriteNotice(L"After opening shm_monitor_interface_");
 
 #if 0
     // Send registration request to the monitor and try to acquire an owner_id.
@@ -2091,6 +2107,8 @@ uint32_t Gateway::Init()
     err_code = RegisterGatewayHandlers();
     if (err_code)
         return err_code;
+
+    g_gateway.LogWriteNotice(L"After RegisterGatewayHandlers");
 
     // Indicating begin of new logging session.
     time_t raw_time;
@@ -3273,6 +3291,8 @@ int32_t Gateway::StartGateway()
         return err_code;
     }
 
+    g_gateway.LogWriteNotice(L"After AssertCorrectState");
+
     // Initialize WinSock.
     WSADATA wsaData = { 0 };
     err_code = WSAStartup(MAKEWORD(2, 2), &wsaData);
@@ -3290,10 +3310,14 @@ int32_t Gateway::StartGateway()
         return err_code;
     }
 
+    g_gateway.LogWriteNotice(L"After LoadSettings");
+
     // Creating data structures and binding sockets.
     err_code = Init();
     if (err_code)
         return err_code;
+
+    g_gateway.LogWriteNotice(L"After Init");
 
     // Initializing profilers.
     utils::Profiler::InitAll(setting_num_workers_);
@@ -3730,6 +3754,8 @@ int wmain(int argc, wchar_t* argv[], wchar_t* envp[])
     err_code = g_gateway.ProcessArgumentsAndInitLog(argc, argv);
     if (err_code)
         return err_code;
+
+    g_gateway.LogWriteNotice(L"After ProcessArgumentsAndInitLog");
 
     // Stating the network gateway.
     err_code = g_gateway.StartGateway();
