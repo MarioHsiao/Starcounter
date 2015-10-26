@@ -29,29 +29,28 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <seealso cref="CLIClientCommand.Run"/>
         protected override void Run() {
+            if (this.Parent != null) {
+                RunWithinContext();
+                return;
+            }
+
             try {
                 Status.StartNewJob("Starting server");
-
-                // What if it's not the personal one? Don't try anything fancy.
-                // And what if the server service is running, we can at least verify
-                // it, can't we?
-                // TODO:
-
-                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(ServerName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowStatus("retrieving server status", true);
-                    if (!ServerServiceProcess.IsOnline()) {
-                        ServerServiceProcess.StartInteractiveOnDemand();
-                    }
-                    ShowStatus("server is online", true);
-                }
-
+                RunWithinContext();
                 ShowStartResultAndSetExitCode(this.Node);
-
             } catch (Exception e) {
                 SharedCLI.ShowErrorAndSetExitCode(e, true, false);
                 WriteErrorLogsToConsoleAfterRun = true;
-                return;
             }
+        }
+
+        private void RunWithinContext() {
+            ShowStatus("retrieving server status", true);
+            if (!ServerServiceProcess.IsOnline()) {
+                ShowStatus("starting server");
+                ServerServiceProcess.StartInteractiveOnDemand();
+            }
+            ShowStatus("server is running", true);
         }
 
         void ShowStartResultAndSetExitCode(Node node) {
