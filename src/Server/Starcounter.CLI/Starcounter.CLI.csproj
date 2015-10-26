@@ -77,7 +77,7 @@
     <Compile Include="StartDatabaseCLICommand.cs" />
     <Compile Include="StartServerCLICommand.cs" />
     <Compile Include="StatusConsole.cs" />
-    <Compile Include="StopApplicationCommand.cs" />
+    <Compile Include="StopApplicationCLICommand.cs" />
     <Compile Include="StopDatabaseCommand.cs" />
   </ItemGroup>
   <ItemGroup>
