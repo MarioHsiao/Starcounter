@@ -43,6 +43,8 @@ namespace staradmin.Commands {
                         command = new NewAppCommand(templateName);
                         break;
                     case ObjectType.Database:
+                        command = new NewDatabaseCommand();
+                        break;
                     default:
                     
                         // Lets try if its the name of a CLI template,

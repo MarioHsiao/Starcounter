@@ -57,6 +57,7 @@
     <Compile Include="Commands\ListLogsCommand.cs" />
     <Compile Include="Commands\NewAppCommand.cs" />
     <Compile Include="Commands\NewCommand.cs" />
+    <Compile Include="Commands\NewDatabaseCommand.cs" />
     <Compile Include="Commands\ReloadCommand.cs" />
     <Compile Include="Commands\StartCommand.cs" />
     <Compile Include="Commands\StartDatabaseCommand.cs" />
