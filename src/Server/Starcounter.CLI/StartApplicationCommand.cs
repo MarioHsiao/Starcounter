@@ -21,7 +21,7 @@ namespace Starcounter.CLI {
     /// Implements a <see cref="ApplicationCLICommand"/> that support
     /// starting an application.
     /// </summary>
-    public class StartApplicationCommand : ApplicationCLICommand {
+    public class StartApplicationCLICommand : ApplicationCLICommand {
         readonly internal ApplicationBase Application;
         internal string[] EntrypointArguments;
 
@@ -45,16 +45,16 @@ namespace Starcounter.CLI {
         public string ApplicationStartingDescription { get; set; }
 
         /// <summary>
-        /// Initialize a new <see cref="StartApplicationCommand"/>.
+        /// Initialize a new <see cref="StartApplicationCLICommand"/>.
         /// </summary>
         /// <param name="application">The application being targetted.</param>
-        internal StartApplicationCommand(ApplicationBase application)
+        internal StartApplicationCLICommand(ApplicationBase application)
             : base(application.Name) {    
             Application = application;
         }
 
         /// <summary>
-        /// Creates a new instance of the <see cref="StartApplicationCommand"/>
+        /// Creates a new instance of the <see cref="StartApplicationCLICommand"/>
         /// class based on the given arguments. This instance can thereafter be
         /// executed with the <see cref="CLIClientCommand.Execute"/> method.
         /// </summary>
@@ -63,8 +63,8 @@ namespace Starcounter.CLI {
         /// <param name="args">Arguments given to the CLI host.</param>
         /// <param name="entrypointArgs">Arguments that are to be passed along
         /// to the application entrypoint.</param>
-        /// <returns>An instance of <see cref="StartApplicationCommand"/>.</returns>
-        public static StartApplicationCommand FromFile(
+        /// <returns>An instance of <see cref="StartApplicationCLICommand"/>.</returns>
+        public static StartApplicationCLICommand FromFile(
             string applicationFilePath,
             string exePath,
             ApplicationArguments args,
@@ -82,7 +82,7 @@ namespace Starcounter.CLI {
 
             SharedCLI.ResolveDatabase(args, out databaseName);
 
-            var command = new StartApplicationCommand(app) {
+            var command = new StartApplicationCLICommand(app) {
                 DatabaseName = databaseName,
                 AdminAPI = new AdminAPI(),
                 CLIArguments = args,
