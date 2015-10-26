@@ -25,7 +25,6 @@
     <ProjectGuid>{D5F60A3B-457B-4462-8CB2-F9B12188B311}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>urihelp</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

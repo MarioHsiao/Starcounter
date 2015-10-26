@@ -14,7 +14,6 @@
     <ProjectGuid>{E3390A15-3D80-4166-9D2F-BBEF33BB95A0}</ProjectGuid>
     <RootNamespace>interprocess_communication_test</RootNamespace>
     <ProjectName>test</ProjectName>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

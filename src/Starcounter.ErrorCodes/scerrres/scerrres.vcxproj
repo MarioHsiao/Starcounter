@@ -24,7 +24,6 @@
     <RootNamespace>scerrres</RootNamespace>
     <PlatformToolset>v140</PlatformToolset>
     <AssemblyName>scerrres</AssemblyName>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
