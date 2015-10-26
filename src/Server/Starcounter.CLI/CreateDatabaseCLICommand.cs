@@ -1,6 +1,7 @@
 ﻿
 using Starcounter.CommandLine;
 using Starcounter.Rest.ExtensionMethods;
+using Starcounter.Server;
 using Starcounter.Server.Rest;
 using Starcounter.Server.Rest.Representations.JSON;
 using System;
@@ -43,8 +44,15 @@ namespace Starcounter.CLI {
                 return;
             }
 
+            ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
+
             try {
                 Status.StartNewJob(string.Format("Creating database {0}", this.DatabaseName));
+                ShowStatus("retrieving server status", true);
+                if (!ServerServiceProcess.IsOnline()) {
+                    SharedCLI.ShowErrorAndSetExitCode(ErrorCode.ToMessage(Error.SCERRSERVERNOTAVAILABLE), true);
+                }
+
                 RunWithinContext();
                 ShowStartResultAndSetExitCode(this.Node);
             } catch (Exception e) {
