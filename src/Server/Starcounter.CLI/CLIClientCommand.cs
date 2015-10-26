@@ -101,6 +101,10 @@ namespace Starcounter.CLI {
             }
         }
 
+        /// <summary>
+        /// Execute the current command as a child of the given one.
+        /// </summary>
+        /// <param name="context">The parent command.</param>
         public void ExecuteWithin(CLIClientCommand context) {
             Parent = context;
             Node = context.Node;
