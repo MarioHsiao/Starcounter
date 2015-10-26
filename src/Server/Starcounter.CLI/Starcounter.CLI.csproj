@@ -73,7 +73,7 @@
     <Compile Include="ServerReference.cs" />
     <Compile Include="SharedCLI.cs" />
     <Compile Include="SourceCodeCompiler.cs" />
-    <Compile Include="StartApplicationCommand.cs" />
+    <Compile Include="StartApplicationCLICommand.cs" />
     <Compile Include="StartDatabaseCLICommand.cs" />
     <Compile Include="StartServerCLICommand.cs" />
     <Compile Include="StatusConsole.cs" />
