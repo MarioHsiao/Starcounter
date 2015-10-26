@@ -54,14 +54,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>c:\boost\1_58_0-vc140\include\boost-1_58;..\..\..\..\Level0\src\include;$(UniversalCRT_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\include\boost-1_58;..\..\..\..\Level0\src\include;$(UniversalCRT_IncludePath)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;PROFILING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\1_58_0-vc140\lib;$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\lib;$(OutDir)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>bmx.def</ModuleDefinitionFile>
       <AdditionalDependencies>sccoredb.lib;sccoredbg.lib;coalmine.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
@@ -72,7 +72,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>c:\boost\1_58_0-vc140\include\boost-1_58;..\..\..\..\Level0\src\include;$(UniversalCRT_IncludePath)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\include\boost-1_58;..\..\..\..\Level0\src\include;$(UniversalCRT_IncludePath)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <SDLCheck>true</SDLCheck>
@@ -81,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\1_58_0-vc140\lib;$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\lib;$(OutDir)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>bmx.def</ModuleDefinitionFile>
       <AdditionalDependencies>sccoredb.lib;sccoredbg.lib;coalmine.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>

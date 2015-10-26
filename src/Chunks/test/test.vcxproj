@@ -38,24 +38,24 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>c:\boost\1_58_0-vc140\include\boost-1_58;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\include\boost-1_58;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <WarningLevel>Level2</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>c:\boost\1_58_0-vc140\include\boost-1_58;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\include\boost-1_58;..\Chunks;..\..\..\..\Level0\src\include;..\..\Starcounter.ErrorCodes\scerrres</AdditionalIncludeDirectories>
       <WarningLevel>Level2</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>c:\boost\1_58_0-vc140\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>c:\boost\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
