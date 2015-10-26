@@ -51,6 +51,9 @@ namespace Starcounter.CLI {
 
             try {
                 Status.StartNewJob(string.Format("Starting {0}", DatabaseName.ToLowerInvariant()));
+                ShowStatus("assuring server is running", true);
+                StartServerCLICommand.Create().ExecuteWithin(this);
+
                 var engine = RunWithinContext();
                 Status.CompleteJob(string.Format("started, code host PID: {0}", engine.CodeHostProcess.PID));
 
@@ -62,9 +65,6 @@ namespace Starcounter.CLI {
         }
 
         private Engine RunWithinContext() {
-            ShowStatus("assuring server is running", true);
-            StartServerCLICommand.Create().ExecuteWithin(this);
-
             ErrorDetail errorDetail;
             EngineReference engineRef;
             var node = Node;
