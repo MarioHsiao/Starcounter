@@ -7,12 +7,16 @@ using System;
 
 namespace Starcounter.CLI {
 
+    /// <summary>
+    /// Represents a CLI operation that creates a database.
+    /// </summary>
     public sealed class CreateDatabaseCLICommand : CLIClientCommand {
         internal CreateDatabaseCLICommand() : base() { }
 
         /// <summary>
         /// Factory method used to create new commands.
         /// </summary>
+        /// /// <param name="name">Optional explicit database name.</param>
         /// <param name="args">Optional well-known CLI-level arguments.</param>
         /// <returns>A new command</returns>
         public static CreateDatabaseCLICommand Create(string name = null, ApplicationArguments args = null) {
