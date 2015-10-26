@@ -126,14 +126,7 @@ namespace Starcounter.CLI {
                     Node.BaseAddress.Host,
                     Node.BaseAddress.Port));
 
-                if (StarcounterEnvironment.ServerNames.PersonalServer.Equals(ServerName, StringComparison.CurrentCultureIgnoreCase)) {
-                    ShowStatus("retrieving server status", true);
-                    if (!ServerServiceProcess.IsOnline()) {
-                        ShowStatus("starting server");
-                        ServerServiceProcess.StartInteractiveOnDemand();
-                    }
-                    ShowStatus("server is online", true);
-                }
+                StartServerCLICommand.Create().ExecuteWithin(this);
 
                 try {
                     Engine engine;
@@ -154,9 +147,7 @@ namespace Starcounter.CLI {
         }
 
         void DoStart(out Engine engine, out Executable exe) {
-            ErrorDetail errorDetail;
             EngineReference engineRef;
-            int statusCode;
 
             var node = Node;
             var admin = AdminAPI;
@@ -168,54 +159,10 @@ namespace Starcounter.CLI {
 
             ResponseExtensions.OnUnexpectedResponse = HandleUnexpectedResponse;
 
-            // GET or START the engine
-            ShowStatus("retreiving engine status", true);
+            StartDatabaseCLICommand.Create(this.CLIArguments).ExecuteWithin(this);
 
             var response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
-            statusCode = response.FailIfNotSuccessOr(404);
-
-            if (statusCode == 404) {
-                errorDetail = new ErrorDetail();
-                try {
-                    errorDetail.PopulateFromJson(response.Body);
-                } catch {
-                    // The content of the response is not ErrorDetail json. It might be some other 
-                    // 404 sent from a different source, that sets the content to the original 
-                    // exception message. Lets handle it as an unexpected response.
-                    HandleUnexpectedResponse(response);
-                }
-
-                if (errorDetail.ServerCode == Error.SCERRDATABASENOTFOUND) {
-                    var allowed = !args.ContainsFlag(Option.NoAutoCreateDb);
-                    if (!allowed) {
-                        var notAllowed =
-                            ErrorCode.ToMessage(Error.SCERRDATABASENOTFOUND,
-                            string.Format("Database: \"{0}\". Remove --{1} to create automatically.", databaseName, Option.NoAutoCreateDb));
-                        SharedCLI.ShowErrorAndSetExitCode(notAllowed, true);
-                    }
-
-                    ShowStatus("creating database");
-                    CreateDatabase(node, uris, databaseName);
-                }
-
-                ShowStatus("starting database");
-                engineRef = new EngineReference();
-                engineRef.Name = databaseName;
-                engineRef.NoDb = args.ContainsFlag(Option.NoDb);
-                engineRef.LogSteps = args.ContainsFlag(Option.LogSteps);
-
-                string codeHostCommands;
-                if (args.TryGetProperty(UnofficialOption.CodeHostCommandLineOptions, out codeHostCommands)) {
-                    engineRef.CodeHostCommandLineAdditions = codeHostCommands;
-                }
-
-                response = node.POST(admin.FormatUri(uris.Engines), engineRef.ToJson(), null);
-                response.FailIfNotSuccess();
-
-                response = node.GET(admin.FormatUri(uris.Engine, databaseName), null);
-                response.FailIfNotSuccess();
-            }
-
+            response.FailIfNotSuccess();
             engine = new Engine();
             engine.PopulateFromJson(response.Body);
 
@@ -344,13 +291,6 @@ namespace Starcounter.CLI {
             c.Open();
             started.WaitOne();
             c.Close();
-        }
-
-        void CreateDatabase(Node node, AdminAPI.ResourceUris uris, string databaseName) {
-            var db = new Database();
-            db.Name = databaseName;
-            var response = node.POST(uris.Databases, db.ToJson(), null);
-            response.FailIfNotSuccess();
         }
     }
 }
