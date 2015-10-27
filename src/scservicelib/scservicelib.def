@@ -1,5 +1,5 @@
 
-LIBRARY "scservice"
+LIBRARY "scservicelib"
 
 EXPORTS
   Start

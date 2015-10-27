@@ -175,7 +175,7 @@ smp::spinlock::milliseconds timeout) {
 					elem_[n] = id.get();
 					mask_[i] = mask & ~(1 << bit);
 					--size_;
-					*item = n;
+					*item = static_cast<value_type>(n);
 
 					// Successfully acquired.
 					return true;

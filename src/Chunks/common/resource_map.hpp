@@ -79,7 +79,7 @@ public:
 		// Releasing the channel_number by inserting it into the scheduler_interface
 		// with the channel_number queue from where it originally came from.
 
-		scheduler_number_for_owned_channel_[channel_num] = scheduler_num;
+		scheduler_number_for_owned_channel_[channel_num] = static_cast<uint32_t>(scheduler_num);
 		
 		// Force the order here. This is important because the stored scheduler
 		// number must be valid in case of a crash.

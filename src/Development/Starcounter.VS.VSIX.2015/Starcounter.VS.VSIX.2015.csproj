@@ -12,7 +12,7 @@
     <ProjectGuid>{C62E1AB7-7F7B-4BC7-AC55-EA7ABE5D0FDF}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.VS.VSIX.2015</RootNamespace>
+    <RootNamespace>Starcounter.VS14</RootNamespace>
     <AssemblyName>Starcounter.VS14</AssemblyName>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
