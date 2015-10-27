@@ -47,7 +47,8 @@ namespace Starcounter.Weaver {
                 "Starcounter.XSON.JsTemplateParser.dll",
                 "Mono.CSharp.dll",
                 "NetworkIoTest.exe",
-                "Starcounter.XSON.JsonByExample"
+                "Starcounter.XSON.JsonByExample",
+                "FSharp.Core"
             }) {
                 AddExcludeExpression(exclude, excludes);
             }
