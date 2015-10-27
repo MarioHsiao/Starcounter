@@ -45,7 +45,7 @@ internal sealed class CodeGenFilterCacheEntry
     {
         unsafe
         {
-            CodeGenFilterNativeInterface.release_filter(filterHandle);
+            CodeGenFilterNativeInterface.star_filter_release(filterHandle);
         }
         filterHandle = 0;
         numVarTypes = null;
@@ -181,12 +181,14 @@ internal sealed class CodeGenFilterCacheShared
             fixed (UInt32* instrPointer = instrArray.GetArrayRef)
             {
                 // Using native interface to create a filter.
-                errorCode = CodeGenFilterNativeInterface.create_filter(tb.TableId,
-                                                                       maxStackSize,
-                                                                       dataCount,
-                                                                       instrCount,
-                                                                       instrPointer,
-                                                                       &newFilterHandle);
+                errorCode = CodeGenFilterNativeInterface.star_context_create_filter(
+                    ThreadData.ContextHandle,
+                    tb.TableId,
+                    maxStackSize,
+                    dataCount,
+                    instrCount,
+                    instrPointer,
+                    &newFilterHandle);
             }
         }
         

@@ -500,11 +500,6 @@ namespace StarcounterInternal.Bootstrap {
 
             e = sccoredb.sccoredb_connect(schedulerCount, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
-
-#if false // TODO EOH:
-            e = filter.init_filter_lib(hmenv, hlogs);
-            if (e != 0) throw ErrorCode.ToException(e);
-#endif
         }
 
         private long ticksElapsedBetweenProcessStartAndMain_;

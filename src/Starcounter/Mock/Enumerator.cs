@@ -426,7 +426,7 @@ namespace Starcounter
 
             // Removing reference to current object.
             _current = null;
-            UInt32 err = sccoredb.filter_iterator_free(_handle, _verify);
+            UInt32 err = sccoredb.star_filter_iterator_free(_handle);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
@@ -469,7 +469,6 @@ namespace Starcounter
             UInt32 ir;
             ObjectRef currentRef;
             UInt16 currentCCI;
-            UInt64 dummy;
             Boolean br;
             current = null;
             previousCCI = UInt16.MaxValue;
@@ -478,7 +477,7 @@ namespace Starcounter
             //Application.Profiler.Start("filter_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe {
-                ir = sccoredb.filter_iterator_next(_handle, _verify, &currentRef.ObjectID, &currentRef.ETI, &currentCCI, &dummy);
+                ir = sccoredb.star_filter_iterator_next(_handle, &currentRef.ObjectID, &currentRef.ETI);
             }
             //Application.Profiler.Stop(2);
 
@@ -496,6 +495,8 @@ namespace Starcounter
 
             if (currentRef.ObjectID == sccoredb.MDBIT_OBJECTID)
                 goto last;
+
+            currentCCI = (ushort)(currentRef.ETI & 0xFFFF);
 
             // Check if the current object has the same code class as the
             // previous object. If so we re-use the instance instead of

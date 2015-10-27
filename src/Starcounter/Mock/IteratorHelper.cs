@@ -239,6 +239,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
+                verify = ThreadData.ContextHandle; // TODO EOH: ?
                 cachedEnum.UpdateCached(hCursor, verify);
                 return true;
             }
@@ -278,15 +279,15 @@ namespace Starcounter
                 fixed (byte* vs = dataStream, fk = firstKey, sk = secondKey)
                 {
                     // Recreating enumerator using key.
-                    err = sccoredb.create_filter_iterator(
+                    err = sccoredb.star_context_create_filter_iterator(
+                        ThreadData.ContextHandle,
                         indexHandle,
                         rangeFlags,
                         fk,
                         sk,
                         filterHandle,
-                        (IntPtr)vs,
-                        &hCursor,
-                        &verify
+                        vs,
+                        &hCursor
                     );
                 }
             }
@@ -294,6 +295,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
+                verify = ThreadData.ContextHandle; // TODO EOH: ?
                 cachedEnum.UpdateCached(hCursor, verify);
                 return;
             }
@@ -334,21 +336,22 @@ namespace Starcounter
             //SqlDebugHelper.PrintByteBuffer("FullTableScan Using Recreation Key", recreationKey, true);
             fixed (Byte* varStream = filterDataStream, lastKeyPointer = lastKey) {
                 // Recreating iterator using obtained data.
-                err = sccoredb.recreate_filter_iterator(
+                err = sccoredb.star_context_recreate_filter_iterator(
+                    ThreadData.ContextHandle,
                     indexHandle,
                     flags,
                     recreationKey,
                     lastKeyPointer,
                     filterHandle,
                     varStream,
-                    &hCursor,
-                    &verify
+                    &hCursor
                 );
             }
 
             // Checking error code.
             if (err == 0)
             {
+                verify = ThreadData.ContextHandle; // TODO EOH: ?
                 cachedEnum.UpdateCached(hCursor, verify);
                 return true;
             }

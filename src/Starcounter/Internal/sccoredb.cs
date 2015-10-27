@@ -11,15 +11,6 @@ using System.Security;
 namespace Starcounter.Internal
 {
 
-    [SuppressUnmanagedCodeSecurity]
-    public static class filter {
-
-        /// <summary>
-        /// </summary>
-        [DllImport("filter.dll")]
-        public extern static uint init_filter_lib(ulong hmenv, ulong hlogs);
-    }
-
     /// <summary>
     /// Class sccoredb
     /// </summary>
@@ -1005,16 +996,11 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 create_filter_iterator(
-            UInt64 hIndex,
-            UInt32 flags,
-            Byte* lesserKey,
-            Byte* greaterKey,
-            UInt64 hfilter,
-            IntPtr varstr,
-            UInt64* ph,
-            UInt64* pv
-        );
+        internal static extern unsafe uint star_context_create_filter_iterator(
+            ulong handle, ulong index_handle, uint flags, void *first_key,
+            void *last_key, ulong filter_handle, void *filter_varstr,
+            ulong *piterator_handle
+            );
 
         /// <summary>
         /// SCs the iterator next.
@@ -1039,14 +1025,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 filter_iterator_next(
-            UInt64 h,
-            UInt64 v,
-            UInt64* pObjectOID,
-            UInt64* pObjectETI,
-            UInt16* pClassIndex,
-            UInt64* pData
-        );
+        internal static extern unsafe uint star_filter_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref
+            );
 
 #if false
         /// <summary>
@@ -1108,15 +1089,10 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 recreate_filter_iterator(
-            UInt64 hindex,
-            UInt32 flags,
-            Byte* recreate_key,
-            Byte* last_key,
-            UInt64 hfilter,
-            Byte* varstr,
-            UInt64* ph,
-            UInt64* pv
+        internal static extern unsafe uint star_context_recreate_filter_iterator(
+            ulong handle, ulong index_handle, uint flags, void *recreate_key,
+            void *last_key, ulong filter_handle, void *filter_varstr,
+            ulong *piterator_handle
             );
 
 #if false
@@ -1165,10 +1141,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 filter_iterator_free(
-            UInt64 h,
-            UInt64 v
-        );
+        internal static extern uint star_filter_iterator_free(ulong handle);
 
         /// <summary>
         /// SCs the convert UT F16 string to native.
@@ -1317,7 +1290,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe UInt32 create_filter(
+        internal static extern unsafe UInt32 star_context_create_filter(
+            ulong handle,
             ushort tableId,
             UInt32 stackSize,
             UInt32 varCount,
@@ -1329,7 +1303,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern UInt32 release_filter(UInt64 h);
+        internal static extern UInt32 star_filter_release(UInt64 handle);
     }
 
     /// <summary>
