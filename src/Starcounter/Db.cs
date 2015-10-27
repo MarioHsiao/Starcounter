@@ -82,7 +82,7 @@ namespace Starcounter
                 ushort inheritedTableId = 0;
                 if (inheritedTableDef == null)
                 {
-                    implicitColumnCount = 1; // Implicit key column.
+                    implicitColumnCount = 2; // Implicit key column.
                 }
                 else
                 {
