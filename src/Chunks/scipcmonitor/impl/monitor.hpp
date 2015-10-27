@@ -435,9 +435,9 @@ namespace starcounter {
             if (!monitor->database_process_group(group).event_.empty()) {
                // Wait for database process events, or for an APC.
                event_code = ::WaitForMultipleObjectsEx(
-                  monitor->database_process_group(group).event_.size(),
-                  event::const_iterator(&monitor->database_process_group(group).event_[0]),
-                  false, INFINITE, true);
+				   static_cast<DWORD>(monitor->database_process_group(group).event_.size()), 
+				   event::const_iterator(&monitor->database_process_group(group).event_[0]), 
+				   false, INFINITE, true);
             }
             else {
                // No process exit_event(s) to wait for, just wait for an APC.
