@@ -13,7 +13,7 @@ namespace staradmin.Commands {
         public class UserCommand : IUserCommand {
             CommandLine.Command delete = new CommandLine.Command() {
                 Name = "delete",
-                ShortText = "Deletes various types of objects, e.g. databases or logs.",
+                ShortText = "Deletes various types of objects, e.g. databases.",
                 Usage = "staradmin delete [--force] [--failMissing] <type>"
             };
 
@@ -39,8 +39,6 @@ namespace staradmin.Commands {
 
                 ICommand command = null;
                 switch (typeToDelete) {
-                    case ObjectType.ServerLog:
-                        throw new NotImplementedException();
                     case ObjectType.Database:
                         command = new DeleteDatabaseCommand();
                         break;
@@ -69,7 +67,6 @@ namespace staradmin.Commands {
                 var rows = new Dictionary<string, string>();
                 table.Title = "Types:";
                 rows.Add("db", "Deletes a database");
-                rows.Add("log", "Deletes the server log");
                 table.Write(rows);
             }
 
