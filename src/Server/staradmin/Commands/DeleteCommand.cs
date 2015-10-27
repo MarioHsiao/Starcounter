@@ -14,12 +14,13 @@ namespace staradmin.Commands {
             CommandLine.Command delete = new CommandLine.Command() {
                 Name = "delete",
                 ShortText = "Deletes various types of objects, e.g. databases or logs.",
-                Usage = "staradmin delete [--force] <type>"
+                Usage = "staradmin delete [--force] [--failMissing] <type>"
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
                 var cmd = appSyntax.DefineCommand(delete.Name, delete.ShortText, 0, 3);
                 cmd.DefineFlag("force", "Force the delete, without any confirmation.");
+                cmd.DefineFlag("failMissing", "Make the delete fail if the artifact is missing.");
                 return cmd;
             }
 
@@ -85,11 +86,13 @@ namespace staradmin.Commands {
         protected UserCommand FactoryCommand { get; private set; }
         protected ObjectType TypeToDelete { get; private set; }
         protected bool Force { get; private set; }
+        protected bool FailIfMissing { get; private set; }
 
         protected abstract void Delete();
 
         public override void Execute() {
             Force = Context.ContainsCommandFlag("force");
+            FailIfMissing = Context.ContainsCommandFlag("failMissing");
             Delete();
         }
     }
