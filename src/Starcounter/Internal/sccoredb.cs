@@ -1158,19 +1158,11 @@ namespace Starcounter.Internal
         );
 
         /// <summary>
-        /// SCs the convert UT F16 string to native2.
         /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="outlen">The outlen.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe UInt32 SCConvertUTF16StringToNative2(
-            String input,
-            UInt32 flags,
-            Byte* output,
-            UInt32 outlen);
+        internal static extern unsafe uint star_convert_ucs2_to_turbotext(
+            string input, uint flags, byte* output, uint outlen
+            );
 
 #if false
         /// <summary>

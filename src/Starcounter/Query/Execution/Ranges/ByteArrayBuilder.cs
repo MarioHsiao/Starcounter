@@ -664,7 +664,7 @@ public sealed class ByteArrayBuilder
         Int32 outputLen = -1;
         fixed (Byte *buf = dataBuffer)
         {
-            errorCode = sccoredb.SCConvertUTF16StringToNative2(value, flags, buf + position, (UInt32)(SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES - position));
+            errorCode = sccoredb.star_convert_ucs2_to_turbotext(value, flags, buf + position, (UInt32)(SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES - position));
             outputLen = *(Int32 *)(buf + position); // Calculating output string length.
         }
 
