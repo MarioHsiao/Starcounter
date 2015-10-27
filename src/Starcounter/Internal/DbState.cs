@@ -161,7 +161,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &value);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return (value != 0);
@@ -181,7 +181,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &value);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return (value != 0);
@@ -228,7 +228,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &ticks);
             }
             if (r == 0) {
                 return new DateTime((long)ticks);
@@ -248,7 +248,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &ticks);
             }
             if (r == 0) {
                 return new DateTime((long)ticks);
@@ -273,7 +273,7 @@ namespace Starcounter.Internal
 			long value;
 
             unsafe {
-                r = sccoredb.star_get_decimal(recordID, recordAddr, columnIndex, &value);
+                r = sccoredb.star_context_get_decimal(ThreadData.ContextHandle, recordID, recordAddr, columnIndex, &value);
             }
             if (r == 0) {
                 return X6Decimal.FromRaw(value);
@@ -295,7 +295,7 @@ namespace Starcounter.Internal
             uint r;
             
             unsafe {
-                r = sccoredb.star_get_decimal(recordID, recordAddr, columnIndex, &value);
+                r = sccoredb.star_context_get_decimal(ThreadData.ContextHandle, recordID, recordAddr, columnIndex, &value);
             }
             if (r == 0) {
                 return X6Decimal.FromRaw(value);
@@ -320,7 +320,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_double(oid, address, index, &value);
+                r = sccoredb.star_context_get_double(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -342,7 +342,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_double(oid, address, index, &value);
+                r = sccoredb.star_context_get_double(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -435,7 +435,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_long(oid, address, index, &value);
+                r = sccoredb.star_context_get_long(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -457,20 +457,21 @@ namespace Starcounter.Internal
         /// <returns></returns>
         public static IObjectView ReadObject(ulong oid, ulong address, Int32 index) {
             uint r;
-            ObjectRef value;
             ushort cci;
 
             unsafe {
-                r = sccoredb.star_get_reference(
+                ulong* value = stackalloc ulong[2];
+
+                r = sccoredb.star_context_get_reference(
+                    ThreadData.ContextHandle,
                     oid,
                     address,
                     index,
-                    &value.ObjectID,
-                    &value.ETI,
-                    &cci
+                    value
                     );
                 if (r == 0) {
-                    return Bindings.GetTypeBinding(cci).NewInstance(value.ETI, value.ObjectID);
+                    cci = (ushort)(value[1] & 0xFFFF);
+                    return Bindings.GetTypeBinding(cci).NewInstance(value[1], value[2]);
                 }
                 else if (r == Error.SCERRVALUEUNDEFINED) {
                     return null;
@@ -548,7 +549,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_float(oid, address, index, &value);
+                r = sccoredb.star_context_get_float(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -570,7 +571,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_float(oid, address, index, &value);
+                r = sccoredb.star_context_get_float(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -628,7 +629,7 @@ namespace Starcounter.Internal
                 byte* pValue;
                 uint r;
 
-                r = sccoredb.star_get_binary(oid, address, index, &pValue);
+                r = sccoredb.star_context_get_binary(ThreadData.ContextHandle, oid, address, index, &pValue);
                 if (r == 0) {
                     return Binary.FromNative(pValue);
                 }
@@ -664,7 +665,7 @@ namespace Starcounter.Internal
             uint r;
             
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &ticks);
             }
             if (r == 0) {
                 return new TimeSpan((long)ticks);
@@ -689,7 +690,7 @@ namespace Starcounter.Internal
             uint r;
 
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &ticks);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &ticks);
             }
             if (r == 0) {
                 return (long)ticks;
@@ -755,7 +756,7 @@ namespace Starcounter.Internal
             ulong value;
             
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &value);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -777,7 +778,7 @@ namespace Starcounter.Internal
             ulong value;
             
             unsafe {
-                r = sccoredb.star_get_ulong(oid, address, index, &value);
+                r = sccoredb.star_context_get_ulong(ThreadData.ContextHandle, oid, address, index, &value);
             }
             if (r == 0) {
                 return value;
@@ -798,7 +799,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteBoolean(ulong oid, ulong address, Int32 index, Boolean value) {
             uint r;
-            r = sccoredb.star_put_ulong(oid, address, index, value ? 1UL : 0UL);
+            r = sccoredb.star_context_put_ulong(ThreadData.ContextHandle, oid, address, index, value ? 1UL : 0UL);
             if (r == 0) return;
 
             throw ErrorCode.ToException(r);
@@ -885,7 +886,7 @@ namespace Starcounter.Internal
                 throw new NotImplementedException("Negative timestamps are currently not supported.");
             }
             
-            r = sccoredb.star_put_ulong(oid, address, index, (UInt64)value);
+            r = sccoredb.star_context_put_ulong(ThreadData.ContextHandle, oid, address, index, (UInt64)value);
             if (r == 0) {
                 return;
             }
@@ -904,7 +905,7 @@ namespace Starcounter.Internal
             UInt32 ec;
             long value2 = X6Decimal.ToRaw(value);
 
-            ec = sccoredb.star_put_decimal(recordID, recordAddr, columnIndex, value2);
+            ec = sccoredb.star_context_put_decimal(ThreadData.ContextHandle, recordID, recordAddr, columnIndex, value2);
             if (ec == 0)
                 return;
 
@@ -935,7 +936,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteDouble(ulong oid, ulong address, Int32 index, Double value) {
             uint r;
-            r = sccoredb.star_put_double(oid, address, index, value);
+            r = sccoredb.star_context_put_double(ThreadData.ContextHandle, oid, address, index, value);
             if (r == 0) {
                 return;
             }
@@ -1058,10 +1059,11 @@ namespace Starcounter.Internal
                 valueRef.ETI = value.ThisHandle;
             } else {
                 valueRef.ObjectID = sccoredb.MDBIT_OBJECTID;
-                valueRef.ETI = sccoredb.INVALID_RECORD_ADDR;
+                valueRef.ETI = sccoredb.INVALID_RECORD_REF;
             }
             
-            r = sccoredb.star_put_reference(
+            r = sccoredb.star_context_put_reference(
+                     ThreadData.ContextHandle,
                      oid,
                      address,
                      index,
@@ -1143,7 +1145,7 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteSingle(ulong oid, ulong address, Int32 index, Single value) {
             uint r;
-            r = sccoredb.star_put_float(oid, address, index, value);
+            r = sccoredb.star_context_put_float(ThreadData.ContextHandle, oid, address, index, value);
             if (r == 0) {
                 return;
             }
@@ -1235,7 +1237,7 @@ namespace Starcounter.Internal
             if (value < 0) {
                 throw new NotImplementedException("Negative timestamps are currently not supported.");
             }
-            r = sccoredb.star_put_ulong(oid, address, index, (UInt64)value);
+            r = sccoredb.star_context_put_ulong(ThreadData.ContextHandle, oid, address, index, (UInt64)value);
             if (r == 0) {
                 return;
             }
@@ -1303,7 +1305,7 @@ namespace Starcounter.Internal
         /// <param name="index"></param>
         /// <param name="value"></param>
         public static void WriteUInt64(ulong oid, ulong address, Int32 index, UInt64 value) {
-            var r = sccoredb.star_put_ulong(oid, address, index, value);
+            var r = sccoredb.star_context_put_ulong(ThreadData.ContextHandle, oid, address, index, value);
             if (r == 0) return;
 
             throw ErrorCode.ToException(r);
@@ -1333,7 +1335,8 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteBinary(ulong oid, ulong address, Int32 index, Binary value) {
             uint r;
-            r = sccoredb.star_put_binary(
+            r = sccoredb.star_context_put_binary(
+                      ThreadData.ContextHandle,
                       oid,
                       address,
                       index,
@@ -1353,7 +1356,7 @@ namespace Starcounter.Internal
         /// <param name="address"></param>
         /// <param name="index"></param>
         internal static void WriteNull(ulong oid, ulong address, Int32 index) {
-            var r = sccoredb.star_put_default(oid, address, index);
+            var r = sccoredb.star_context_put_default(ThreadData.ContextHandle, oid, address, index);
             if (r == 0) return;
 
             throw ErrorCode.ToException(r);

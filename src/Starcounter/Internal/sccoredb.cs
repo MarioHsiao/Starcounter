@@ -75,18 +75,12 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// The MDBI t_ OBJECTID
         /// </summary>
         public const ulong MDBIT_OBJECTID = 0; // TODO:
 
         /// <summary>
-        /// The INVALI d_ DEFINITIO n_ ADDR
         /// </summary>
-        public const ulong INVALID_DEFINITION_ADDR = 0xFFFFFFFFFF;
-        /// <summary>
-        /// The INVALI d_ RECOR d_ ADDR
-        /// </summary>
-        public const ulong INVALID_RECORD_ADDR = 0xFFFFFFFFFF;
+        public const ulong INVALID_RECORD_REF = 0;
 
         /// <summary>
         /// </summary>
@@ -825,17 +819,23 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_binary(ulong record_id, ulong record_addr, int column_index, /*OUT*/ byte **pvalue);
+        internal static extern unsafe uint star_context_get_binary(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, byte** pvalue
+          );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_decimal(ulong record_id, ulong record_addr, int column_index, long *pvalue);
+        internal static extern unsafe uint star_context_get_decimal(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, long* pvalue
+          );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_double(ulong record_id, ulong record_addr, int column_index, double* pvalue);
+        internal static extern unsafe uint star_context_get_double(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, double* pvalue
+          );
 
         /// <summary>
         /// </summary>
@@ -847,24 +847,16 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_long(ulong record_id, ulong record_addr, int column_index, long *pvalue);
+        internal static extern unsafe uint star_context_get_reference(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, ulong* pvalue
+          );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_reference(
-	        ulong record_id,
-            ulong record_addr,
-	        int column_index,
-            ulong* ptarget_record_id,
-            ulong* ptarget_record_addr,
-            ushort* ptarget_table_id
-	        );            
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_float(ulong record_id, ulong record_addr, int column_index, float* pvalue);
+        internal static extern unsafe uint star_context_get_float(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, float* pvalue
+          );
 
         /// <summary>
         /// </summary>
@@ -876,22 +868,30 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_get_ulong(ulong record_id, ulong record_addr, int column_index, ulong* pvalue);
+        internal static extern unsafe uint star_context_get_ulong(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, ulong* pvalue
+          );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_binary(ulong record_id, ulong record_addr, int column_index, byte[] value);
+        internal static extern uint star_context_put_binary(
+            ulong handle, ulong record_id, ulong record_ref, int column_index, byte[] value
+            );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 star_put_decimal(ulong record_id, ulong record_addr, int column_index, long value);
+        internal static extern uint star_context_put_decimal(
+            ulong handle, ulong record_id, ulong record_ref, int column_index, long value
+            );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_double(ulong record_id, ulong record_addr, int column_index, double value);
+        internal static extern uint star_context_put_double(
+            ulong handle, ulong record_id, ulong record_ref, int column_index, double value
+            );
 
         /// <summary>
         /// </summary>
@@ -903,22 +903,24 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_long(ulong record_id, ulong record_addr, int column_index, long value);
+        internal static extern uint star_context_put_reference(
+          ulong handle, ulong record_id, ulong record_ref, int column_index, ulong value_record_id,
+          ulong value_record_ref
+          );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_reference(ulong record_id, ulong record_addr, int column_index, ulong target_record_id, ulong target_record_addr);
+        internal static extern uint star_context_put_float(
+            ulong handle, ulong record_id, ulong record_ref, int column_index, float value
+            );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_float(ulong record_id, ulong record_addr, int column_index, float value);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_default(ulong record_id, ulong record_addr, int column_index);
+        internal static extern uint star_context_put_default(
+            ulong handle, ulong record_id, ulong record_ref, int column_index
+            );
 
         /// <summary>
         /// </summary>
@@ -930,7 +932,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_put_ulong(ulong record_id, ulong record_addr, int column_index, ulong value);
+        internal static extern uint star_context_put_ulong(
+            ulong handle, ulong record_id, ulong record_ref, int column_index, ulong value
+            );
 
 #if true // TODO EOH: Flags obsolete. Replace with new one. Make sure used correctly.
         /// <summary>

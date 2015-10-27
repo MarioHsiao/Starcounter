@@ -947,24 +947,25 @@ namespace Starcounter.Binding
             unsafe
             {
                 uint r;
-                ObjectRef value;
-                ushort cci;
+                ulong* value = stackalloc ulong[2];
+                ObjectRef or;
 
-                r = sccoredb.star_get_reference(
+                r = sccoredb.star_context_get_reference(
+                    ThreadData.ContextHandle,
                     source.ObjectID,
                     source.ETI,
                     sourceIndex_,
-                    &value.ObjectID,
-                    &value.ETI,
-                    &cci
+                    value
                     );
                 if (r == 0) {
-                    return value;
+                    or.ObjectID = value[0];
+                    or.ETI = value[1];
+                    return or;
                 }
                 else if (r == Error.SCERRVALUEUNDEFINED) {
-                    value.ObjectID = sccoredb.MDBIT_OBJECTID;
-                    value.ETI = sccoredb.INVALID_RECORD_ADDR;
-                    return value;
+                    or.ObjectID = sccoredb.MDBIT_OBJECTID;
+                    or.ETI = sccoredb.INVALID_RECORD_REF;
+                    return or;
                 }
                 else {
                     throw ErrorCode.ToException(r);
@@ -981,7 +982,8 @@ namespace Starcounter.Binding
             if (value_.ObjectID != sccoredb.MDBIT_OBJECTID)
             {
                 uint r;
-                r = sccoredb.star_put_reference(
+                r = sccoredb.star_context_put_reference(
+                         ThreadData.ContextHandle,
                          target.ObjectID,
                          target.ETI,
                          targetIndex_,
