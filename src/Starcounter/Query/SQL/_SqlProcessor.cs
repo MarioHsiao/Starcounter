@@ -239,21 +239,26 @@ internal static class SqlProcessor
         attributeIndexArr[attributeIndexArr.Length - 1] = -1;
 
         // Call kenrel
-        ushort tableId = typeBind.TableId;
-        unsafe
-        {
-            fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+        Db.Transact(() => {
+            ushort tableId = typeBind.TableId;
+            unsafe
             {
-                errorCode = sccoredb.star_create_index(0, tableId, indexName, sortMask, attributeIndexesPointer, flags);
+                fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+                {
+                    errorCode = sccoredb.stari_context_create_index(
+                        ThreadData.ContextHandle, sccoredb.AssureTokenForString(indexName),
+                        sccoredb.TableIdToSetSpec(tableId), tableId, attributeIndexesPointer,
+                        sortMask, flags
+                        );
+                }
             }
-        }
-        if (errorCode != 0)
-        {
-            Exception ex = ErrorCode.ToException(errorCode);
-            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
-            throw ex;
-        }
+            if (errorCode != 0) {
+                Exception ex = ErrorCode.ToException(errorCode);
+                if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                    ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+                throw ex;
+            }
+        });
         AddMetadataIndex(typeBind.Name, indexName);
     }
 
@@ -415,6 +420,7 @@ internal static class SqlProcessor
     }
 
     internal static void AddMetadataIndex(string tableName, string indexName) {
+#if false // TODO EOH:
         Db.SystemTransact(delegate {
             MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
                 "select i from materializedindex i where i.table.name = ? and name = ?",
@@ -422,9 +428,11 @@ internal static class SqlProcessor
             Debug.Assert(matIndx != null);
             Starcounter.SqlProcessor.MetadataPopulation.CreateAnIndexInstance(matIndx);
         });
+#endif
     }
 
     internal static void DeleteMetadataIndex(string tableName, string indexName) {
+#if false // TODO EOH:
         Db.SystemTransact(delegate {
             Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
                 "select i from starcounter.metadata.\"index\" i where i.table.fullname = ? and name = ?",
@@ -435,9 +443,11 @@ internal static class SqlProcessor
                 colIndx.Delete();
             indx.Delete();
         });
+#endif
     }
 
     internal static void DeleteMetadataDroppedTable(string tableName) {
+#if false // TODO EOH:
         Db.SystemTransact(delegate {
             var tbl = Db.SQL<Starcounter.Metadata.RawView>(
                 "select v from starcounter.metadata.RawView v where fullname = ?", 
@@ -449,6 +459,7 @@ internal static class SqlProcessor
                 col.Delete();
             tbl.Delete();
         });
+#endif
     }
 
     internal static Exception CheckSingleDelimitedIdentifiers(string query) {
