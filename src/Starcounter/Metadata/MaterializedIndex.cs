@@ -18,11 +18,11 @@ namespace Starcounter.Internal.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_index_id = 1;
-            internal static int columnHandle_table_id = 2;
-            internal static int columnHandle_table = 3;
-            internal static int columnHandle_name = 4;
-            internal static int columnHandle_unique = 5;
+            internal static int columnHandle_index_id = 2;
+            internal static int columnHandle_table_id = 3;
+            internal static int columnHandle_table = 4;
+            internal static int columnHandle_name = 5;
+            internal static int columnHandle_unique = 6;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -44,6 +44,7 @@ namespace Starcounter.Internal.Metadata {
                 new ColumnDef[]
                 {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
+                    new ColumnDef("__setspec", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("index_id", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("table_id", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("table", sccoredb.STAR_TYPE_REFERENCE, true, false),
@@ -125,10 +126,10 @@ namespace Starcounter.Internal.Metadata {
         internal sealed class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_index = 1;
-            internal static int columnHandle_place = 2;
-            internal static int columnHandle_column = 3;
-            internal static int columnHandle_order = 4;
+            internal static int columnHandle_index = 2;
+            internal static int columnHandle_place = 3;
+            internal static int columnHandle_column = 4;
+            internal static int columnHandle_order = 5;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -150,6 +151,7 @@ namespace Starcounter.Internal.Metadata {
                 new ColumnDef[]
                 {
                     new ColumnDef("__id", sccoredb.STAR_TYPE_KEY, false, false),
+                    new ColumnDef("__setspec", sccoredb.STAR_TYPE_STRING, true, false),
                     new ColumnDef("index", sccoredb.STAR_TYPE_REFERENCE, true, false),
                     new ColumnDef("place", sccoredb.STAR_TYPE_ULONG, false, false),
                     new ColumnDef("column", sccoredb.STAR_TYPE_REFERENCE, true, false),
