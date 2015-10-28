@@ -92,8 +92,8 @@ namespace Starcounter.Internal.XSON.Tests {
             var tmp = json.FirstName;
             tmp = json.Street;
             
-            Assert.AreEqual(typeof(Person), firstNameTemplate.dataTypeForBinding);
-            Assert.AreEqual(typeof(Person), streetTemplate.dataTypeForBinding);
+            Assert.AreEqual(typeof(Company), firstNameTemplate.dataTypeForBinding);
+            Assert.AreEqual(typeof(Company), streetTemplate.dataTypeForBinding);
         }
 
         [Test]
