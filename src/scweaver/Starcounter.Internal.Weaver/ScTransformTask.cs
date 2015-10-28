@@ -253,6 +253,13 @@ namespace Starcounter.Internal.Weaver {
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 
                 typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
+                foreach (DatabaseAttribute dba in dbc.Attributes) {
+                    if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
+                        field = typeDef.Fields.GetByName(dba.Name);
+                        typeSpecification.IncludeField(field);
+                    }
+                }
+
                 ImplementIObjectProxy(typeDef);
                 ImplementEquality(typeDef);
             }
@@ -268,7 +275,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        var columnHandleField = typeSpecification.IncludeField(field);
+                        var columnHandleField = typeSpecification.GetColumnHandle(dba.DeclaringClass.Name, dba.Name);
                         GenerateFieldAccessors(analysisTask, dba, field, typeSpecification, columnHandleField);
                     }
                 }
