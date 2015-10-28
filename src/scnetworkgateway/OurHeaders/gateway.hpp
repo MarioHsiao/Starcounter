@@ -41,8 +41,8 @@
 // Internal includes.
 #include "utilities.hpp"
 
-#pragma warning(pop)
-#pragma warning(pop)
+//#pragma warning(pop)
+//#pragma warning(pop)
 
 namespace starcounter {
 namespace network {

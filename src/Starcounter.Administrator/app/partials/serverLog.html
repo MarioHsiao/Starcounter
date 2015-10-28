@@ -50,26 +50,20 @@
             <div id="handsontableContainer" style="margin-top: 15px; margin-bottom: 0px">
                 <hot-table
                     id="handsontable"
-                    stretchh="'last'"
-                    selectedindex="SelectedIndex"
-                    outsideclickdeselects="false"
-                    selectedindex="currentSelection"
-                    minsparerows="0"
-                    startrows="0"
-                    fillHandle="false"
+                    stretch-h="'last'"
+                    outside-click-deselects="true"
+                    min-spare-rows="0"
+                    start-rows="0"
+                    fill-handle="false"
                     datarows="model.LogEntries"
-                    currentrowclassname="'currentRow'"
-                    manualcolumnmove="false"
-                    manualcolumnresize="false"
-                    columnsorting="false"
-                    afterrender="afterRender"
-                    fragmentselection="true">
-
-                    <hot-column readOnly="true" data="DateTimeStr" title="'Date'"></hot-column>
-                    <hot-column readOnly="true" data="TypeStr" title="'Type'"></hot-column>
-                    <hot-column readOnly="true" data="HostName" title="'Host'" type="'logHost'"></hot-column>
-                    <hot-column readOnly="true" data="Source" title="'Source'"></hot-column>
-                    <hot-column readOnly="true" data="Message" title="'Message'" classname="log-message" type="'logMessage'"></hot-column>
+                    current-row-class-name="'currentRow'"
+                    after-render="afterRender"
+                    fragment-selection="'cell'">
+                    <hot-column read-only data="DateTimeStr" title="'Date'"></hot-column>
+                    <hot-column read-only data="TypeStr" title="'Type'"></hot-column>
+                    <hot-column read-only data="HostName" title="'Host'" type="'logHost'"></hot-column>
+                    <hot-column read-only data="Source" title="'Source'"></hot-column>
+                    <hot-column read-only data="Message" title="'Message'" type="'logMessage'"></hot-column>
                 </hot-table>
             </div>
         </div>

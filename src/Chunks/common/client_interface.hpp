@@ -213,7 +213,7 @@ public:
 	bool wait_for_work(std::size_t& work_event_index, const HANDLE* work_event,
 	std::size_t number_of_work_events, bool reset = true, uint32_t
 	timeout_milliseconds = INFINITE) {
-		uint32_t event_code = ::WaitForMultipleObjects(number_of_work_events,
+		uint32_t event_code = ::WaitForMultipleObjects(static_cast<DWORD>(number_of_work_events),
 		work_event, false, timeout_milliseconds);
 
 		if (event_code < static_cast<uint32_t>(number_of_work_events)) {

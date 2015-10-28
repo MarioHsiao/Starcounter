@@ -20,7 +20,7 @@
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
-    <MinimumVisualStudioVersion>11.0</MinimumVisualStudioVersion>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <UpgradeBackupLocation>
@@ -66,7 +66,7 @@
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>
     </Content>
-	<Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSTypedJsonWithCode.zip">
+    <Content Include="$(OutputPath)\ItemTemplates\CSharp\Starcounter\1033\CSTypedJsonWithCode.zip">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
       <VSIXSubPath>ItemTemplates\CSharp\Starcounter\1033</VSIXSubPath>

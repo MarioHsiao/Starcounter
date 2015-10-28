@@ -42,9 +42,10 @@ namespace Starcounter.Administrator.Server.Handlers {
 
                 try {
 
+                    Uri serverUri = new Uri("http://downloads.starcounter.com:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest");
+
                     // Retrive the latest available version for a specific edition and version
-                    Response response = Http.GET(
-                        "http://downloads.starcounter.com:80/api/versions/" + CurrentVersion.EditionName + "/" + CurrentVersion.ChannelName + "/latest", null, 5000);
+                    Response response = Http.GET(serverUri.AbsoluteUri, null, 5000);
 
                     if (!response.IsSuccessStatusCode) {
                         // TODO: Add "Retry-After" header
@@ -65,7 +66,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                     result.VersionCheck.latestVersion = incomingJson.version;
                     DateTime latestVersionDate = DateTime.Parse(incomingJson.versionDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
                     result.VersionCheck.latestVersionDate = latestVersionDate.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fff'Z'");
-                    result.VersionCheck.latestVersionDownloadUri = incomingJson.downloadUrl;
+                    result.VersionCheck.latestVersionDownloadUri = string.Format("http://{0}:{1}{2}", serverUri.Host, serverUri.Port, incomingJson.downloadUrl);
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = result.ToJsonUtf8() };
                 }

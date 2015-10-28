@@ -752,7 +752,7 @@ check_next_channel:
 			for (mask_type mask = (this_scheduler_interface_
 			->get_channel_mask_word(mask_word_counter) >> prev) << prev;
 			mask; mask &= mask -1) {
-				channel_number this_channel = bit_scan_forward(mask);
+				channel_number this_channel = static_cast<channel_number>(bit_scan_forward(mask));
 				this_channel += mask_word_counter << 6;
 				// next_channel_ = (this_channel +1) % channels;
 				next_channel_ = (this_channel +1) & (channels -1);
@@ -897,7 +897,7 @@ long server_port::has_task() {
 	for (channel_number n = 0; n < channel_masks_; ++n) {
 		for (mask_type mask = this_scheduler_interface_
 		->get_channel_mask_word(n); mask; mask &= mask -1) {
-			uint32_t ch = bit_scan_forward(mask);
+			uint32_t ch = static_cast<uint32_t>(bit_scan_forward(mask));
 			ch += n << 6;
 			if (channel_[ch].in.has_more()) return 1;
 		}
@@ -1361,7 +1361,7 @@ void server_port::acquire_chunk_index(unsigned long& the_chunk_index)
 unsigned long server_port::acquire_linked_chunk_indexes(unsigned long start_chunk_index, unsigned long needed_size)
 {
 	lldiv_t div_value = div((int64_t)needed_size, (int64_t)chunk_type::static_data_size);
-	uint32_t num_needed_chunks = div_value.quot;
+	uint32_t num_needed_chunks = static_cast<uint32_t>(div_value.quot);
 	if (div_value.rem != 0)
         num_needed_chunks++;
 
@@ -1445,7 +1445,7 @@ unsigned long server_port::release_linked_chunks(chunk_index start_chunk_index)
         return SCERRUNSPECIFIED;
 
     // Checking if we have more chunks in private pool then needed.
-    int32_t num_to_return = this_scheduler_interface_->chunk_pool().size() - a_bunch_of_chunks;
+    int32_t num_to_return = static_cast<int32_t>(this_scheduler_interface_->chunk_pool().size() - a_bunch_of_chunks);
     if (num_to_return > 0)
     {
         // Checking that number of returned chunks is correct.

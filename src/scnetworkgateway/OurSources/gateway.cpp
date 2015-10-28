@@ -2092,10 +2092,6 @@ uint32_t Gateway::Init()
     if (err_code)
         return err_code;
 
-    // Indicating that network gateway is ready
-    // (should be first line of the output).
-    GW_COUT << "Gateway is ready!" << GW_ENDL;
-
     // Indicating begin of new logging session.
     time_t raw_time;
     time(&raw_time);
@@ -2104,6 +2100,23 @@ uint32_t Gateway::Init()
     char temp_time_str[32];
     asctime_s(temp_time_str, 32, &timeinfo);
     GW_PRINT_GLOBAL << "New logging session: " << temp_time_str << GW_ENDL;
+
+    // Try to create a mutex named "scnetworkgateway_is_ready_lock", and acquire the lock.
+    HANDLE gateway_is_ready_lock = ::CreateMutex(NULL, TRUE,
+        TEXT("Local\\scnetworkgateway_is_ready_lock"));
+
+    if (gateway_is_ready_lock == NULL) {
+        GW_ASSERT("Gateway was not able to create a ready mutex" == NULL);
+    } else {
+        if (::GetLastError() == ERROR_ALREADY_EXISTS) {
+            // An instance of gateway is already running in the same session.
+            return SCERRNETWORKGATEWAYALREADYRUNNING;
+        }
+    }
+
+    // Indicating that network gateway is ready
+    // (should be first line of the output).
+    GW_COUT << "Gateway is ready!" << GW_ENDL;
 
     return 0;
 }
@@ -2667,7 +2680,7 @@ uint32_t Gateway::OpenActiveDatabasesUpdatedEvent()
     // Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
     if ((length = _snprintf_s(active_databases_updated_event_name, _countof
         (active_databases_updated_event_name), active_databases_updated_event_name_size
-        -1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, setting_sc_server_type_upper_.c_str())) < 0) {
+        -1 /* null */, "Local\\%s_" ACTIVE_DATABASES_UPDATED_EVENT, setting_sc_server_type_upper_.c_str())) < 0) {
             return SCERRFORMATACTIVEDBUPDATEDEVNAME;
     }
     active_databases_updated_event_name[length] = '\0';
