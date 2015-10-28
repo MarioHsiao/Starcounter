@@ -7,7 +7,8 @@
 - Fixed an issue when Administrator was starting faster than gateway process in scservice: [#2962](https://github.com/Starcounter/Starcounter/issues/2962)
 - Fixed text input and text selection issues in Administrator[#2942](https://github.com/Starcounter/Starcounter/issues/2942), [#2400](https://github.com/Starcounter/Starcounter/issues/2400), [#1993](https://github.com/Starcounter/Starcounter/issues/1993)
 - Fixed max column width issue in Administrator[#2828](https://github.com/Starcounter/Starcounter/issues/2828)
-- Fixed incorrect invalidation of databinding for bound properties in TypedJSON: [#2998](https://github.com/Starcounter/Starcounter/issues/2998) 
+- Fixed incorrect invalidation of databinding for bound properties in TypedJSON: [#2998](https://github.com/Starcounter/Starcounter/issues/2998)
+- Fixed bug caused by using synonyms in new builds: [#2997] (https://github.com/Starcounter/Starcounter/issues/2997)
 
 ## [2.1.163] - 2015-10-14
 ### Changed
