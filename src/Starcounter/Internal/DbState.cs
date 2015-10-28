@@ -471,7 +471,7 @@ namespace Starcounter.Internal
                     );
                 if (r == 0) {
                     cci = (ushort)(value[1] & 0xFFFF);
-                    return Bindings.GetTypeBinding(cci).NewInstance(value[1], value[2]);
+                    return Bindings.GetTypeBinding(cci).NewInstance(value[1], value[0]);
                 }
                 else if (r == Error.SCERRVALUEUNDEFINED) {
                     return null;
