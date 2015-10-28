@@ -51,10 +51,12 @@ namespace Starcounter.XSON {
                 if (dataObject != null) {
                     bInfo = GetBindingPath(dataObject.GetType(), dataObject, bindingName, template, throwException);
                     bInfo.IsBoundToParent = false;
-                    if (bInfo.Member != null) {
-                        bInfo.BoundToType = bInfo.Member.DeclaringType;
-                    } else {
-                        bInfo.BoundToType = dataObject.GetType();
+                    if (bInfo.BoundToType == null) {
+                        if (bInfo.Member != null) {
+                            bInfo.BoundToType = bInfo.Member.DeclaringType;
+                        } else {
+                            bInfo.BoundToType = dataObject.GetType();
+                        }
                     }
                 }
             } 
@@ -135,6 +137,10 @@ namespace Starcounter.XSON {
 			binfo.Path = memberPath;
             binfo.BoundToType = null;
             binfo.IsBoundToParent = false;
+
+            if (memberPath != null && memberPath.Count > 0) {
+                binfo.BoundToType = memberPath[0].DeclaringType;
+            } 
             return binfo;
         }
 
