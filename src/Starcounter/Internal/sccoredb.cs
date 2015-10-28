@@ -1219,17 +1219,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sccoredb_begin_delete(ulong record_id, ulong record_addr);
-        
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sccoredb_complete_delete(ulong record_id, ulong record_addr);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint sccoredb_abort_delete(ulong record_id, ulong record_addr);
+        internal static extern uint star_context_delete(
+            ulong handle, ulong record_id, ulong record_ref
+            );
     }
 
     /// <summary>

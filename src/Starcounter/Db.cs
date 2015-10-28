@@ -412,6 +412,10 @@ namespace Starcounter
             oid = proxy.Identity;
             address = proxy.ThisHandle;
 
+            var r = sccoredb.star_context_delete(ThreadData.ContextHandle, oid, address);
+            if (r == 0) return;
+
+#if false // TODO EOH: Triggers.
             var r = sccoredb.sccoredb_begin_delete(oid, address);
             if (r != 0) {
                 // If the error is because the delete already was issued then
@@ -457,6 +461,7 @@ namespace Starcounter
 
             r = sccoredb.sccoredb_complete_delete(oid, address);
             if (r == 0) return;
+#endif
 
             throw ErrorCode.ToException(r);
         }
