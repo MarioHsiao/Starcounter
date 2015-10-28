@@ -73,6 +73,30 @@ namespace Starcounter.Internal.XSON.Tests {
 		}
 
         [Test]
+        public static void TestBoundToCorrectDataType() {
+            Person person = new Person() { FirstName = "Arne", LastName = "Anka" };
+            person.Address = new Address() { Street = "Nybrogatan" };
+            Company company = new Company() { Person = person };
+            
+            var jsonTemplate = new TObject();
+            var streetTemplate = jsonTemplate.Add<TString>("Street", "Person.Address.Street");
+            streetTemplate.BindingStrategy = BindingStrategy.Bound;
+
+            var firstNameTemplate = jsonTemplate.Add<TString>("FirstName", "Person.FirstName");
+            firstNameTemplate.BindingStrategy = BindingStrategy.Bound;
+
+            dynamic json = (Json)jsonTemplate.CreateInstance();
+            json.Data = company;
+
+            // Make sure bindings are created.
+            var tmp = json.FirstName;
+            tmp = json.Street;
+            
+            Assert.AreEqual(typeof(Company), firstNameTemplate.dataTypeForBinding);
+            Assert.AreEqual(typeof(Company), streetTemplate.dataTypeForBinding);
+        }
+
+        [Test]
         public static void TestDefaultAutoBinding() {
             Person p = new Person();
             p.FirstName = "Albert";
