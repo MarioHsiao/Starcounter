@@ -46,6 +46,6 @@ set(server_HEADER_FILES
 
 add_library(server SHARED ${server_SOURCE_FILES} ${server_HEADER_FILES})
 set_property(TARGET server PROPERTY FOLDER "level1/Chunks")
-target_link_libraries(scipcmonitor
+target_link_libraries(server
     sccoreerr
 )
