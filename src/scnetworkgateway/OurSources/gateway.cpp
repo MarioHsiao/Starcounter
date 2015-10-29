@@ -2680,7 +2680,7 @@ uint32_t Gateway::OpenActiveDatabasesUpdatedEvent()
     // Example: "Local\PERSONAL_ipc_monitor_cleanup_event"
     if ((length = _snprintf_s(active_databases_updated_event_name, _countof
         (active_databases_updated_event_name), active_databases_updated_event_name_size
-        -1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, setting_sc_server_type_upper_.c_str())) < 0) {
+        -1 /* null */, "Local\\%s_" ACTIVE_DATABASES_UPDATED_EVENT, setting_sc_server_type_upper_.c_str())) < 0) {
             return SCERRFORMATACTIVEDBUPDATEDEVNAME;
     }
     active_databases_updated_event_name[length] = '\0';

@@ -31,7 +31,6 @@
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
     <ClangGatewayUriMatcherBinary Include="..\scllvm\scllvm.dll" />
-    <MonoCsharpBinary Include="..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll" />
     
     <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
 
@@ -45,10 +44,10 @@
   <Target Name="BuildLevel0" Condition="Exists('$(LocalLevel0Solution)')" >
   
     <!-- Building Level0 solution if any. -->
-    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe $(LocalLevel0Solution) /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="c:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe $(LocalLevel0Solution) /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
     <!-- Building SqlProcessor solution. -->
-    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="C:\Windows\Microsoft.NET\Framework\v4.0.30319\msbuild.exe ..\..\..\Level0\msbuild\SqlProcessor\SqlProcessor.sln /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
+    <Exec Condition="'$(LEVEL0_CONFIGURATION)' != ''" Command="c:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe ..\..\..\Level0\msbuild\SqlProcessor\SqlProcessor.sln /property:Configuration=$(Level0Configuration);Platform=x64;GenerateFullPaths=true /consoleloggerparameters:Summary /verbosity:minimal /maxcpucount" />
     
     <!-- Creating dynamic copied files lists. -->
     <ItemGroup>
@@ -70,7 +69,6 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
 	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
 

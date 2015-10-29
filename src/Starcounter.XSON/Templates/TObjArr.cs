@@ -87,8 +87,8 @@ namespace Starcounter.Templates {
 				p.UnboundSetter = UnboundSetter;
 				p.hasCustomAccessors = hasCustomAccessors;
 #if DEBUG
-				DebugUnboundGetter = DebugUnboundGetter;
-				DebugUnboundSetter = DebugUnboundSetter;
+				p.DebugUnboundGetter = DebugUnboundGetter;
+				p.DebugUnboundSetter = DebugUnboundSetter;
 #endif
 			}
 		}

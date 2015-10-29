@@ -114,7 +114,7 @@ try {
 	//--------------------------------------------------------------------------
 	// Create a new segment with given name and size.
 	global_segment_shared_memory_object.init_create(segment_name, 
-	shared_memory_segment_size, is_system);
+	static_cast<uint32_t>(shared_memory_segment_size), is_system);
 	
 	if (!global_segment_shared_memory_object.is_valid()) {
 	    return SCERRINVALIDGLOBALSEGMENTSHMOBJ;
@@ -128,14 +128,14 @@ try {
 	
 	simple_shared_memory_manager* psegment_manager
 	= new (global_mapped_region.get_address()) simple_shared_memory_manager;
-	psegment_manager->reset(shared_memory_segment_size);
+	psegment_manager->reset(static_cast<uint32_t>(shared_memory_segment_size));
 
 	//--------------------------------------------------------------------------
 	// Construct the chunk array in shared memory.
     //
     // Allocate from end of segment to align first chunk offset to page size.
 	void* p = psegment_manager->create_named_block_end
-	(starcounter_core_shared_memory_chunks_name, chunk_memory_size);
+	(starcounter_core_shared_memory_chunks_name, static_cast<int32_t>(chunk_memory_size));
 	
 	chunk_type* chunk = static_cast<chunk_type*>(p);
 	
@@ -194,7 +194,7 @@ try {
 	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_scheduler_interfaces_name,
-	sizeof(scheduler_interface_type) * schedulers);
+	static_cast<int32_t>(sizeof(scheduler_interface_type) * schedulers));
 	
 	scheduler_interface_type* scheduler_interface
 	= (scheduler_interface_type*) p;
@@ -203,14 +203,14 @@ try {
 		new (scheduler_interface +i) scheduler_interface_type
         (channels_size, chunks_total_number, chunks_total_number,
 		scheduler_interface_alloc_inst2, scheduler_interface_alloc_inst2,
-		segment_name, server_name, i);
+		segment_name, server_name, static_cast<int32_t>(i));
 	}
 	
 	// Initialize the scheduler_interface by pushing in channel_number(s).
 	// These channel_number(s) represents free channels. For now, the
 	// channels are more or less evenly distributed among the schedulers.
 	for (std::size_t n = 0; n < channels_size; ++n) {
-		scheduler_interface[n % schedulers].insert(n, 1 /* user id */,
+		scheduler_interface[n % schedulers].insert(static_cast<channel_number>(n), 1 /* user id */,
 		smp::spinlock::milliseconds(10000));
 	}
 	
@@ -230,7 +230,7 @@ try {
 	
 	for (std::size_t i = 0; i < max_number_of_clients; ++i) {
 		new (client_interface +i) client_interface_type
-		(client_interface_alloc_inst, segment_name, i);
+		(client_interface_alloc_inst, segment_name, static_cast<int32_t>(i));
 	}
 	
 	//--------------------------------------------------------------------------
@@ -268,8 +268,7 @@ try {
 	
 	channel_interface_type* channel_interface = (channel_interface_type*) p;
 	
-	new (channel_interface) channel_interface_type(channel_interface_alloc_inst,
-	channels_size);
+	new (channel_interface) channel_interface_type(channel_interface_alloc_inst, static_cast<uint32_t>(channels_size));
 	
 	//--------------------------------------------------------------------------
 	// Construct the channel array in shared memory.
@@ -280,8 +279,8 @@ try {
 	
 	// Allocate the channel array.
 	p = psegment_manager->create_named_block
-	(starcounter_core_shared_memory_channels_name, sizeof(channel_type)
-	* channels_size);
+	(starcounter_core_shared_memory_channels_name, 
+		static_cast<int32_t>(sizeof(channel_type) * channels_size));
 	
 	channel_type* channel = (channel_type*) p;
 	
@@ -299,13 +298,13 @@ try {
 	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_scheduler_task_channels_name,
-	sizeof(scheduler_channel_type) * schedulers);
+	static_cast<int32_t>(sizeof(scheduler_channel_type) * schedulers));
 	
 	scheduler_channel_type* scheduler_task_channel = (scheduler_channel_type*) p;
 	
 	p = psegment_manager->create_named_block
 	(starcounter_core_shared_memory_scheduler_signal_channels_name,
-	sizeof(scheduler_channel_type) * schedulers);
+	static_cast<int32_t>(sizeof(scheduler_channel_type) * schedulers));
 	
 	scheduler_channel_type* scheduler_signal_channel = (scheduler_channel_type*) p;
 	

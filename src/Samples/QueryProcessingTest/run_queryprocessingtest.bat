@@ -49,7 +49,11 @@ START CMD /C "scipcmonitor.exe PERSONAL %DB_OUT_DIR%"
 SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 
 :: Re-signing the assembly.
-"c:\Program Files (x86)\Microsoft SDKs\Windows\v8.0A\bin\NETFX 4.0 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
+"c:\Program Files (x86)\Microsoft SDKs\Windows\v8.1A\bin\NETFX 4.5.1 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
+IF ERRORLEVEL 1 (
+    ECHO Error: Re-signing the assembly failed!
+    EXIT /b 1
+)
 
 :: Starting database memory management process.
 START CMD /C "scdata.exe %DB_NAME% %DB_NAME% %DB_OUT_DIR%"

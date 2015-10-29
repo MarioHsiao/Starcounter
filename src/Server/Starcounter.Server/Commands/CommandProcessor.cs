@@ -522,7 +522,7 @@ namespace Starcounter.Server.Commands {
         /// If an exception is raised from the given action, this method
         /// does invoke the end method for the task.
         /// </remarks>
-        /// <param name="condition">If <see langrod cref="true"/>, the
+        /// <param name="condition">If <c>true</c>, the
         /// action is executed; otherwise, this method instantly return.
         /// </param>
         /// <param name="task">The <see cref="CommandTask"/> that is

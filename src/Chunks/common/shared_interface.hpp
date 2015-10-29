@@ -452,7 +452,7 @@ public:
 	 */
 	/// This function is from class client_port.
 	uint32_t number_of_active_schedulers() {
-		return common_scheduler_interface().number_of_active_schedulers();
+		return static_cast<uint32_t>(common_scheduler_interface().number_of_active_schedulers());
 	}
 		
 	/// Get the segment_name in the format

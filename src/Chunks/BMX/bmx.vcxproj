@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -18,13 +18,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -54,14 +54,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>c:\boost\x86_64\include\boost-1_46_1;..\..\..\..\Level0\src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\include\boost-1_58;..\..\..\..\Level0\src\include;$(UniversalCRT_IncludePath)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>_WINDLL;PROFILING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\;$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\lib;$(OutDir)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>bmx.def</ModuleDefinitionFile>
       <AdditionalDependencies>sccoredb.lib;sccoredbg.lib;coalmine.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>
@@ -72,7 +72,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>c:\boost\x86_64\include\boost-1_46_1;..\..\..\..\Level0\src\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>c:\boost\include\boost-1_58;..\..\..\..\Level0\src\include;$(UniversalCRT_IncludePath)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <SDLCheck>true</SDLCheck>
@@ -81,7 +81,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>c:\boost\x86_64\lib\;$(OutDir)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(UniversalCRT_LibraryPath_x64);c:\boost\lib;$(OutDir)</AdditionalLibraryDirectories>
       <ModuleDefinitionFile>bmx.def</ModuleDefinitionFile>
       <AdditionalDependencies>sccoredb.lib;sccoredbg.lib;coalmine.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies);</AdditionalDependencies>
     </Link>

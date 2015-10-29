@@ -190,7 +190,7 @@ namespace starcounter {
             // Example: "Local\PERSONAL_active_databases_updated_event"
             if ((length = _snprintf_s(active_databases_updated_event_name, _countof
                (active_databases_updated_event_name), active_databases_updated_event_name_size
-               -1 /* null */, "Local\\%s_"ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str()))
+               -1 /* null */, "Local\\%s_" ACTIVE_DATABASES_UPDATED_EVENT, server_name_.c_str()))
                < 0) {
                   log().error(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
                   throw ipc_monitor_exception(SCERRIPCMFORMATACTIVEDBUPDATEDEV);
@@ -435,9 +435,9 @@ namespace starcounter {
             if (!monitor->database_process_group(group).event_.empty()) {
                // Wait for database process events, or for an APC.
                event_code = ::WaitForMultipleObjectsEx(
-                  monitor->database_process_group(group).event_.size(),
-                  event::const_iterator(&monitor->database_process_group(group).event_[0]),
-                  false, INFINITE, true);
+				   static_cast<DWORD>(monitor->database_process_group(group).event_.size()), 
+				   event::const_iterator(&monitor->database_process_group(group).event_[0]), 
+				   false, INFINITE, true);
             }
             else {
                // No process exit_event(s) to wait for, just wait for an APC.

@@ -5,5 +5,6 @@
     <ProjectGuid>{14D17AAB-6669-4A4B-8087-BA0FC953ED07}</ProjectGuid>
   </PropertyGroup>
   <Import Project="Starcounter.Rest.csproj" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- Import commented out to avoid warnings since the import of the project above also includes it -->
+  <!-- <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" /> -->
 </Project>
