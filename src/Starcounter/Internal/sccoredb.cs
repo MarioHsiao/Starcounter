@@ -1198,18 +1198,24 @@ namespace Starcounter.Internal
 #endif
 
         /// <summary>
-        /// SCs the compare UT F16 strings.
+        /// Compares two UCS-2 strings according to the default collation.
         /// </summary>
-        /// <param name="str1">The STR1.</param>
-        /// <param name="str2">The STR2.</param>
-        /// <param name="result">The result.</param>
-        /// <returns>UInt32.</returns>
+        /// <param name="handle">Context handle.</param>
+        /// <param name="str1">First string to compare.</param>
+        /// <param name="str2">Second string to compare.</param>
+        /// <returns>
+        /// Comparison result or error. 0 or positive value on success, negative value on failure.
+        /// 
+        /// To maintain the C runtime convention of comparing strings, the value 1 can be subtracted
+        /// from a nonzero return value.Then, the meaning of <0, ==0, and >0 is consistent with the
+        /// C runtime.
+        ///
+        /// On error return value is negative error code.
+        /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern static UInt32 SCCompareUTF16Strings(
-            String str1,
-            String str2,
-            out Int32 result
-            );
+        internal static extern int star_context_compare_strings(
+          ulong handle, string str1, string str2
+          );
 
         /// <summary>
         /// </summary>

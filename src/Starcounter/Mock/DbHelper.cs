@@ -20,27 +20,21 @@ namespace Starcounter {
     public static class DbHelper {
 
         /// <summary>
-        /// Strings the compare.
+        /// Compares two strings according to the default collation.
         /// </summary>
-        /// <param name="str1">The STR1.</param>
-        /// <param name="str2">The STR2.</param>
-        /// <returns>System.Int32.</returns>
-        /// <exception cref="System.ArgumentNullException">str1</exception>
+        /// <param name="str1">First string to compare.</param>
+        /// <param name="str2">Second string to compare.</param>
+        /// <returns>
+        /// Negative value is first string is less then second, positive value is first string is
+        /// greater then second and 0 if equal.
+        /// </returns>
         public static int StringCompare(string str1, string str2) {
             // TODO: Implement efficient string comparison.
-            UInt32 ec;
-            Int32 result;
-            if (str1 == null) {
-                throw new ArgumentNullException("str1");
-            }
-            if (str2 == null) {
-                throw new ArgumentNullException("str2");
-            }
-            ec = sccoredb.SCCompareUTF16Strings(str1, str2, out result);
-            if (ec == 0) {
-                return result;
-            }
-            throw ErrorCode.ToException(ec);
+            if (str1 == null) throw new ArgumentNullException("str1");
+            if (str2 == null) throw new ArgumentNullException("str2");
+            int r = sccoredb.star_context_compare_strings(ThreadData.ContextHandle, str1, str2);
+            if (r >= 0) return r - 1;
+            throw ErrorCode.ToException((uint)(-r));
         }
 
         /// <summary>
