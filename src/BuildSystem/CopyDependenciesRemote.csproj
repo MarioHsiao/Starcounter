@@ -26,7 +26,7 @@
   </PropertyGroup>
   
   <PropertyGroup>
-    <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
+    <LocalLevel0Solution>..\..\..\Level0\cmake_vs2015\BlueCmake.sln</LocalLevel0Solution>
   </PropertyGroup>
 
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

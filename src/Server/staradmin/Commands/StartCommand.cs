@@ -2,55 +2,55 @@
 using Starcounter.CLI;
 using Starcounter.CommandLine;
 using Starcounter.CommandLine.Syntax;
-using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace staradmin.Commands {
 
-    internal abstract class DeleteCommand : ContextAwareCommand {
+    internal abstract class StartCommand : ContextAwareCommand {
 
         public class UserCommand : IUserCommand {
-            CommandLine.Command delete = new CommandLine.Command() {
-                Name = "delete",
-                ShortText = "Deletes various types of objects, e.g. databases.",
-                Usage = "staradmin delete [--force] [--failMissing] <type>"
+            CommandLine.Command start = new CommandLine.Command() {
+                Name = "start",
+                ShortText = "Starts various types of objects, e.g. databases or the server.",
+                Usage = "staradmin [-d=<name>] start <type>"
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
-                var cmd = appSyntax.DefineCommand(delete.Name, delete.ShortText, 0, 3);
-                cmd.DefineFlag("force", "Force the delete, without any confirmation.");
-                cmd.DefineFlag("failMissing", "Make the delete fail if the artifact is missing.");
+                var cmd = appSyntax.DefineCommand(start.Name, start.ShortText, 0, 2);
                 return cmd;
             }
 
             public CommandLine.Command Info {
-                get { return delete; }
+                get { return start; }
             }
 
             public ICommand CreateCommand(ApplicationArguments args) {
                 if (args.CommandParameters.Count == 0) {
-                    var helpOnDelete = ShowHelpCommand.CreateAsInternalHelp(delete.Name);
-                    return new ReportBadInputCommand("Specify the type of artifact to delete.", helpOnDelete);
+                    var helpOnStart = ShowHelpCommand.CreateAsInternalHelp(start.Name);
+                    return new ReportBadInputCommand("Specify the type of object to start.", helpOnStart);
                 }
 
                 var type = args.CommandParameters[0];
-                var typeToDelete = DeleteCommand.GetTypeToDelete(type);
+                var typeToStart = StartCommand.GetTypeToStart(type);
 
                 ICommand command = null;
-                switch (typeToDelete) {
+                switch (typeToStart) {
+                    case ObjectType.Server:
+                        command = new StartServerCommand();
+                        break;
                     case ObjectType.Database:
-                        command = new DeleteDatabaseCommand();
+                        command = new StartDatabaseCommand();
                         break;
                     default:
                         command = CreateUnrecognizedType(type);
                         break;
                 }
 
-                var deleteCommand = command as DeleteCommand;
-                if (deleteCommand != null) {
-                    deleteCommand.FactoryCommand = this;
-                    deleteCommand.TypeToDelete = typeToDelete;
+                var startCommand = command as StartCommand;
+                if (startCommand != null) {
+                    startCommand.FactoryCommand = this;
+                    startCommand.TypeToStart = typeToStart;
                 }
 
                 return command;
@@ -66,31 +66,28 @@ namespace staradmin.Commands {
                 var table = new KeyValueTable() { LeftMargin = 2, ColumnSpace = 4 };
                 var rows = new Dictionary<string, string>();
                 table.Title = "Types:";
-                rows.Add("db", "Deletes a database");
+                rows.Add("db", "Start a database");
+                rows.Add("server", "Starts the server");
                 table.Write(rows);
             }
 
             internal ICommand CreateUnrecognizedType(string type) {
                 var help = ShowHelpCommand.CreateAsInternalHelp(Info.Name);
-                return new ReportBadInputCommand(string.Format("Don't know how to delete type '{0}'.", type), help);
+                return new ReportBadInputCommand(string.Format("Don't know how to start type '{0}'.", type), help);
             }
         }
 
-        static ObjectType GetTypeToDelete(string type) {
+        static ObjectType GetTypeToStart(string type) {
             return type.ToObjectType();
         }
 
         protected UserCommand FactoryCommand { get; private set; }
-        protected ObjectType TypeToDelete { get; private set; }
-        protected bool Force { get; private set; }
-        protected bool FailIfMissing { get; private set; }
+        protected ObjectType TypeToStart { get; private set; }
 
-        protected abstract void Delete();
+        protected abstract void Start();
 
         public override void Execute() {
-            Force = Context.ContainsCommandFlag("force");
-            FailIfMissing = Context.ContainsCommandFlag("failMissing");
-            Delete();
+            Start();
         }
     }
 }

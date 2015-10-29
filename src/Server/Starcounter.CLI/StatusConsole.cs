@@ -165,6 +165,18 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Completes the job bound to the current console after first
+        /// chaging it to <paramref name="job"/>.
+        /// </summary>
+        /// <param name="job">The final job, now being completed.</param>
+        /// <param name="result">An optional result to display.</param>
+        /// <returns>Reference to self.</returns>
+        public virtual StatusConsole CompleteWithFinalJob(string job, string result = null) {
+            currentJob = job ?? string.Empty;
+            return CompleteJob(result);
+        }
+
+        /// <summary>
         /// Instructs the current console to display a message that
         /// a new task is ongoing.
         /// </summary>

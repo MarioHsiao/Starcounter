@@ -253,6 +253,13 @@ namespace Starcounter.Internal.Weaver {
                 databaseEntityClass = dbc as DatabaseEntityClass;
                 
                 typeSpecification = assemblySpecification.IncludeDatabaseClass(typeDef);
+                foreach (DatabaseAttribute dba in dbc.Attributes) {
+                    if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
+                        field = typeDef.Fields.GetByName(dba.Name);
+                        typeSpecification.IncludeField(field);
+                    }
+                }
+
                 ImplementIObjectProxy(typeDef);
                 ImplementEquality(typeDef);
             }
@@ -268,7 +275,7 @@ namespace Starcounter.Internal.Weaver {
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo == null) {
                         field = typeDef.Fields.GetByName(dba.Name);
-                        var columnHandleField = typeSpecification.IncludeField(field);
+                        var columnHandleField = typeSpecification.GetColumnHandle(dba.DeclaringClass.Name, dba.Name);
                         GenerateFieldAccessors(analysisTask, dba, field, typeSpecification, columnHandleField);
                     }
                 }
@@ -276,8 +283,10 @@ namespace Starcounter.Internal.Weaver {
                 EnhanceConstructors(typeDef, dbc, typeSpecification);
                 
                 // Generate field accessors for synonyms
+                ScTransformTrace.Instance.WriteLine("Generating synonym field accessors for {0}.", dbc);
                 foreach (DatabaseAttribute dba in dbc.Attributes) {
                     if (dba.IsField && dba.IsPersistent && dba.SynonymousTo != null) {
+                        ScTransformTrace.Instance.WriteLine("Generating synonym field accessor for {0}.{1}, synonmous to {2}.{3}", dbc.Name, dba.Name, dba.SynonymousTo.DeclaringClass.Name, dba.SynonymousTo.Name);
                         field = typeDef.Fields.GetByName(dba.Name);
                         var columnHandleField = typeSpecification.GetColumnHandle(dba.SynonymousTo.DeclaringClass.Name, dba.SynonymousTo.Name);
                         GenerateFieldAccessors(analysisTask, dba, field, typeSpecification, columnHandleField);

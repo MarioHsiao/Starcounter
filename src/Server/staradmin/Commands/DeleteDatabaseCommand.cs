@@ -1,4 +1,5 @@
 ﻿using Starcounter.CLI;
+using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,8 +22,8 @@ namespace staradmin.Commands {
                 }
             }
 
-            var result = cli.DeleteDatabase(database, true);
-            if (result == 0) {
+            var result = cli.DeleteDatabase(database, true, FailIfMissing);
+            if (result == 0 || (!FailIfMissing && result == Error.SCERRDATABASENOTFOUND)) {
                 ConsoleUtil.ToConsoleWithColor(
                     string.Format("Database {0} successfully deleted", database),
                     ConsoleColor.Green
