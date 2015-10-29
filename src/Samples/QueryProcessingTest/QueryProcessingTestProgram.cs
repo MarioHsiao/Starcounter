@@ -37,7 +37,9 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
+#if false // TODO EOH: Meta-data.
                 MetadataTest.TestPopulatedMetadata();
+#endif
                 TestKinds.RunKindsTest();
                 if (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") == "True")
                     BenchmarkQueryCache.BenchQueryCache();
@@ -72,7 +74,7 @@ namespace QueryProcessingTest {
             return Starcounter.Db.SQL("select i from \"Index\" i where name = ?", indexName).First != null;
 #else
             return false;
- #endif
+#endif
         }
 
         internal static void CreateIndexes() {
