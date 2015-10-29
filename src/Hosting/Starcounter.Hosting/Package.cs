@@ -322,10 +322,10 @@ namespace Starcounter.Hosting {
                 // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
                 using (var transaction = new Transaction(true)) {
                     if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
-                        transaction.Scope(() => {
-                            //Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(transaction.); // TODO EOH:
+                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle); // TODO EOH:
 
                             OnRuntimeMetadataPopulated();
+                        transaction.Scope(() => {
                             // Call CLR class clean up
                             //Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(); // TODO EOH:
                             OnCleanClrMetadata();
