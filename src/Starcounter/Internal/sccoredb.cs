@@ -552,36 +552,6 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Struct SCCOREDB_SORT_SPEC_ELEM
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public unsafe struct SCCOREDB_SORT_SPEC_ELEM
-        {
-            /// <summary>
-            /// The column_index
-            /// </summary>
-            public short column_index;
-            /// <summary>
-            /// The sort
-            /// </summary>
-            public byte sort; // 0 ascending, 1 descending.
-        };
-
-        /// <summary>
-        /// Sccoredb_get_index_info_by_sorts the specified definition_addr.
-        /// </summary>
-        /// <param name="table_id"></param>
-        /// <param name="sort_spec">The sort_spec.</param>
-        /// <param name="pii">The pii.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sccoredb_get_index_info_by_sort(
-            ushort table_id,
-            SCCOREDB_SORT_SPEC_ELEM *sort_spec,
-            SC_INDEX_INFO *pii
-            );
-
-        /// <summary>
         /// Sccoredb_get_index_infoses the specified definition_addr.
         /// </summary>
         /// <param name="table_id"></param>
