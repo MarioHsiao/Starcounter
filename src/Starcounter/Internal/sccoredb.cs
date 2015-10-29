@@ -613,15 +613,8 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        /// <param name="table_name"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static UInt32 star_drop_index(
-            uint transaction_flags,
-            string table_name,
-            string name
-            );
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint stari_context_drop_index(ulong handle, ulong token);
 
         /// <summary>
         /// </summary>

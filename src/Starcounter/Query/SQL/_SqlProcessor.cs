@@ -370,17 +370,23 @@ internal static class SqlProcessor
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found", exc);
 
         // Call kernel
-        UInt32 errorCode;
-        unsafe
-        {
-            errorCode = sccoredb.star_drop_index(0, typeBind.Name, indexName);
-        }
-        if (errorCode != 0) {
-            Exception ex = ErrorCode.ToException(errorCode);
-            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
-            throw ex;
-        }
+        Db.Transact(() => {
+            UInt32 errorCode;
+            unsafe
+            {
+                var token = sccoredb.GetTokenFromString(indexName);
+                if (token != 0) {
+                    errorCode = sccoredb.stari_context_drop_index(ThreadData.ContextHandle, token);
+                }
+                else errorCode = Error.SCERRINDEXNOTFOUND;
+            }
+            if (errorCode != 0) {
+                Exception ex = ErrorCode.ToException(errorCode);
+                if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                    ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+                throw ex;
+            }
+        });
         DeleteMetadataIndex(typeBind.Name, indexName);
     }
 
