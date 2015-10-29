@@ -705,7 +705,9 @@ public sealed class ByteArrayBuilder
         Byte[] dataArray = null;
 
         Byte *valuePtr = null;
-        UInt32 errorCode = sccoredb.SCConvertUTF16StringToNative(value, flags, &valuePtr);
+        UInt32 errorCode = sccoredb.star_context_convert_ucs2_to_turbotext(
+            ThreadData.ContextHandle, value, flags, &valuePtr
+            );
 
         if (errorCode != 0)
         {

@@ -571,7 +571,9 @@ namespace Starcounter.Binding
                             break;
                         case sccoredb.STAR_TYPE_STRING:
                             byte* s;
-                            sccoredb.SCConvertUTF16StringToNative("", 1, &s);
+                            sccoredb.star_context_convert_ucs2_to_turbotext(
+                                ThreadData.ContextHandle, "", 1, &s
+                                );
                             uint sl = *((uint*)s) + 4;
                             for (uint si = 0; si < sl; si++) *h++ = *s++;
                             break;
