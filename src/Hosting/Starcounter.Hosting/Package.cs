@@ -323,7 +323,7 @@ namespace Starcounter.Hosting {
                 using (var transaction = new Transaction(true)) {
                     if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
                         transaction.Scope(() => {
-                            //Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(); // TODO EOH:
+                            //Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(transaction.); // TODO EOH:
 
                             OnRuntimeMetadataPopulated();
                             // Call CLR class clean up

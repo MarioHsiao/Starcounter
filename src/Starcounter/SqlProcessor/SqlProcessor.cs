@@ -16,8 +16,8 @@ namespace Starcounter.SqlProcessor {
         public static extern uint scsql_free_memory();
         [DllImport("scsqlprocessor.dll")]
         public static extern uint scsql_dump_memory_leaks();
-        [DllImport("scsqlprocessor.dll")]
-        private static extern uint scsql_create_runtime_metadata();
+        [DllImport("scdbmetalayer.dll")]
+        private static extern uint star_prepare_system_tables(ulong context);
         [DllImport("scsqlprocessor.dll")]
         private static extern uint scsql_clean_clrclass();
 
@@ -50,8 +50,8 @@ namespace Starcounter.SqlProcessor {
             throw ex;
         }
 
-        public static void PopulateRuntimeMetadata() {
-            uint err = scsql_create_runtime_metadata();
+        public static void PopulateRuntimeMetadata(ulong context) {
+            uint err = star_prepare_system_tables(context);
             if (err != 0)
                 throw ErrorCode.ToException(err);
         }
