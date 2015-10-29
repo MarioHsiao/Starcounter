@@ -11,14 +11,14 @@ namespace Starcounter.CLI {
     /// <summary>
     /// Provides functionality for a client to stop hosts and databases.
     /// </summary>
-    public class StopDatabaseCommand : CLIClientCommand {
+    public class StopDatabaseCLICommand : CLIClientCommand {
         /// <summary>
         /// Indicates stopping of the code host only. Other processes
         /// running as part of the target database will remain.
         /// </summary>
         public bool StopCodeHostOnly { get; set; }
 
-        internal StopDatabaseCommand()
+        internal StopDatabaseCLICommand()
             : base() {
         }
 
@@ -27,9 +27,9 @@ namespace Starcounter.CLI {
         /// </summary>
         /// <param name="args">Optional well-known CLI-level arguments.</param>
         /// <returns>A new command</returns>
-        public static StopDatabaseCommand Create(ApplicationArguments args = null) {
+        public static StopDatabaseCLICommand Create(ApplicationArguments args = null) {
             args = args ?? ApplicationArguments.Empty;
-            var cmd = new StopDatabaseCommand() {
+            var cmd = new StopDatabaseCLICommand() {
                 AdminAPI = new AdminAPI()
             };
             cmd.ResolveServer(args);

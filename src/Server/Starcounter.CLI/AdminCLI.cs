@@ -140,7 +140,9 @@ namespace Starcounter.CLI {
         /// <returns>Zero on success; an error code otherwise. If an error
         /// is returned, a formatted error has already been written to the
         /// console, depending on the value of </returns>
-        public int DeleteDatabase(string database, bool writeErrorToConsole = false) {
+        /// <param name="failIfMissing">Indicates if the method should
+        /// treat it as a failure of the database does not exist.</param>
+        public int DeleteDatabase(string database, bool writeErrorToConsole = false, bool failIfMissing = false) {
             if (string.IsNullOrWhiteSpace(database)) {
                 throw new ArgumentNullException("database");
             }
@@ -153,8 +155,11 @@ namespace Starcounter.CLI {
                 try {
                     var detail = new ErrorDetail();
                     detail.PopulateFromJson(response.Body);
+                    
                     if (writeErrorToConsole) {
-                        SharedCLI.ShowErrorAndSetExitCode(detail);
+                        if (failIfMissing || detail.ServerCode != Error.SCERRDATABASENOTFOUND) {
+                            SharedCLI.ShowErrorAndSetExitCode(detail);
+                        }
                     }
                     return (int) detail.ServerCode;
                 }

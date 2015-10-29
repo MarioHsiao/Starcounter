@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
     <Compile Include="CLIClientCommand.cs" />
+    <Compile Include="CreateDatabaseCLICommand.cs" />
     <Compile Include="FilterableLogReader.cs" />
     <Compile Include="KeyValueTable\KeyValueTable.cs" />
     <Compile Include="KeyValueTable\ValueSplitOptions.cs" />
@@ -72,10 +73,12 @@
     <Compile Include="ServerReference.cs" />
     <Compile Include="SharedCLI.cs" />
     <Compile Include="SourceCodeCompiler.cs" />
-    <Compile Include="StartApplicationCommand.cs" />
+    <Compile Include="StartApplicationCLICommand.cs" />
+    <Compile Include="StartDatabaseCLICommand.cs" />
+    <Compile Include="StartServerCLICommand.cs" />
     <Compile Include="StatusConsole.cs" />
-    <Compile Include="StopApplicationCommand.cs" />
-    <Compile Include="StopDatabaseCommand.cs" />
+    <Compile Include="StopApplicationCLICommand.cs" />
+    <Compile Include="StopDatabaseCLICommand.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
