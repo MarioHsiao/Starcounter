@@ -17,7 +17,7 @@
     <RootNamespace>CopyDependenciesLocal</RootNamespace>
     <AssemblyName>CopyDependenciesLocal</AssemblyName>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <LocalLevel0Solution>..\..\..\Level0\msbuild\Blue.sln</LocalLevel0Solution>
+    <LocalLevel0Solution>..\..\..\Level0\cmake_vs2015\BlueCmake.sln</LocalLevel0Solution>
 	<Level0Configuration>$(LEVEL0_CONFIGURATION)</Level0Configuration>
 	<Level0Configuration Condition=" '$(Level0Configuration)' == '' ">$(Configuration)</Level0Configuration>
     <ServiceConfigFile>Personal.xml</ServiceConfigFile>
