@@ -1202,6 +1202,9 @@ namespace Starcounter.Internal.Weaver {
                     errorCount++;
 
                 } else {
+                    ScAnalysisTrace.Instance.WriteLine("ProcessSynonymousToAttributes: synonym resolved to {0}.{1}.",
+                        targetAttribute.DeclaringClass.Name, targetAttribute.Name);
+                    
                     databaseAttribute.SynonymousTo = targetAttribute;
                 }
             }

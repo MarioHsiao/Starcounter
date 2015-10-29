@@ -1,5 +1,10 @@
 ## [Unreleased][unreleased]
 ### Changed
+- New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
+- New staradmin command `staradmin start database`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/). By default, this command also automatically create the specified database if it does not exist.
+- Support for new command `staradmin new db` allowing simple creation of databases from the command-line, as requested in [#2973](https://github.com/Starcounter/Starcounter/issues/2973) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
+- Added support for new command option --failmissing to `staradmin delete`, forcing the operation to fail if the specified artifact does not exist, as described in [#2995](https://github.com/Starcounter/Starcounter/issues/2995). Documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
+
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
 - Fixed issue with setting outgoing fields and using outgoing filters in relation to static file resources responses: [#2961](https://github.com/Starcounter/Starcounter/issues/2961).
@@ -7,6 +12,9 @@
 - Fixed an issue when Administrator was starting faster than gateway process in scservice: [#2962](https://github.com/Starcounter/Starcounter/issues/2962)
 - Fixed text input and text selection issues in Administrator[#2942](https://github.com/Starcounter/Starcounter/issues/2942), [#2400](https://github.com/Starcounter/Starcounter/issues/2400), [#1993](https://github.com/Starcounter/Starcounter/issues/1993)
 - Fixed max column width issue in Administrator[#2828](https://github.com/Starcounter/Starcounter/issues/2828)
+- Fixed incorrect invalidation of databinding for bound properties in TypedJSON: [#2998](https://github.com/Starcounter/Starcounter/issues/2998)
+- Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
+- Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
 
 ## [2.1.163] - 2015-10-14
 ### Changed

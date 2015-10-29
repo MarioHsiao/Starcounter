@@ -11,6 +11,7 @@ namespace staradmin {
         Unknown,
         Database,
         Application,
+        Server,
         ServerLog,
         CodeHost
     }
@@ -35,6 +36,9 @@ namespace staradmin {
                 case "host":
                 case "codehost":
                     return ObjectType.CodeHost;
+                case "srv":
+                case "server":
+                    return ObjectType.Server;
                 default:
                     return ObjectType.Unknown;
             }

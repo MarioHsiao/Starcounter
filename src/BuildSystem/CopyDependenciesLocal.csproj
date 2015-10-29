@@ -31,7 +31,6 @@
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
     <ClangGatewayUriMatcherBinary Include="..\scllvm\scllvm.dll" />
-    <MonoCsharpBinary Include="..\packages\Mono.CSharp.3.0.6\Lib\net40\Mono.CSharp.dll" />
     
     <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
 
@@ -70,7 +69,6 @@
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(MonoCsharpBinary)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="!Exists('$(ServiceConfigTargetFile)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(LocalServiceConfig)" DestinationFolder="$(OutputPathConfig)" />
 	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClientFiles)" DestinationFiles="@(ClientFiles->'$(OutputPath)\ClientFiles\%(RecursiveDir)%(Filename)%(Extension)')" />
 

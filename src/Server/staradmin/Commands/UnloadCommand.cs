@@ -103,7 +103,7 @@ namespace staradmin.Commands {
                 );
             SourceCodeCompiler.CompileSingleFileToExecutable(appFile, out exeFile);
 
-            var unload = StartApplicationCommand.FromFile(appFile, exeFile, CreateUnloadApplicationArguments());
+            var unload = StartApplicationCLICommand.FromFile(appFile, exeFile, CreateUnloadApplicationArguments());
             unload.JobDescription = string.Format("Unloading {0}", unload.DatabaseName);
             unload.JobCompletionDescription = "done";
             unload.ApplicationStartingDescription = "unloading";

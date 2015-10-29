@@ -49,6 +49,12 @@ namespace Starcounter.CLI {
         protected StatusConsole Status { get; private set; }
 
         /// <summary>
+        /// Gets the <see cref="CLIClientCommand"/> parent command,
+        /// that is the context of the current one. Can be null.
+        /// </summary>
+        protected CLIClientCommand Parent { get; private set; }
+
+        /// <summary>
         /// Gets the name of the database the current command
         /// target, if applicable.
         /// </summary>
@@ -93,6 +99,18 @@ namespace Starcounter.CLI {
             if (SharedCLI.ShowLogs) {
                 WriteLogsToConsole(executionStartTime);
             }
+        }
+
+        /// <summary>
+        /// Execute the current command as a child of the given one.
+        /// </summary>
+        /// <param name="context">The parent command.</param>
+        public void ExecuteWithin(CLIClientCommand context) {
+            Parent = context;
+            Node = context.Node;
+            Status = context.Status;
+
+            Run();
         }
 
         /// <summary>
