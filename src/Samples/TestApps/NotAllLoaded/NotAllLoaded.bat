@@ -9,8 +9,7 @@ SET DB_NAME=NotAllLoadedDb
 
 if "%SC_RUNNING_ON_BUILD_SERVER%"=="True" GOTO skipdbdrop
 ECHO Delete database after server is started
-star --database=%DB_NAME% ..\EmptyScApp.cs
-staradmin --database=%DB_NAME% stop db
+staradmin start server
 staradmin --database=%DB_NAME% delete --force db
 
 :skipdbdrop
