@@ -63,8 +63,8 @@ namespace Starcounter.InstallerEngine
         public const String ScGlobalSettingsXmlName = "SetupSettings.xml";
         public const String ScGUISetupXmlName = "GUISetupSettings.xml";
 
-        public static String ScPostSetupFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScPostSetupTemp.txt");
-        public static String ScStartDemosTemp = Path.Combine(Environment.GetEnvironmentVariable("TEMP", EnvironmentVariableTarget.User), "ScStartDemosTemp.txt");
+        public static String ScPostSetupFilePath = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "ScPostSetupTemp.txt");
+        public static String ScStartDemosTemp = Path.Combine(Environment.GetEnvironmentVariable("TEMP"), "ScStartDemosTemp.txt");
         public const String ScPostSetupFileArgsSeparator = "###";
 
         internal const String SCDemoName = "SimpleBenchmark";
