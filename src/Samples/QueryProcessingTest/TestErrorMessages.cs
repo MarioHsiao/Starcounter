@@ -15,7 +15,9 @@ namespace QueryProcessingTest {
             RunErrorQuery("select from fro fro");
             Trace.Assert(ignored == 0);
             Trace.Assert(sqlexceptions == 2);
+#if false // TODO EOH:
             TestSomeExceptions();
+#endif
             HelpMethods.LogEvent("Finished test of error messages");
         }
 

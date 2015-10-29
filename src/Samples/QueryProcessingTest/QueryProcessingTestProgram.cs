@@ -26,7 +26,9 @@ namespace QueryProcessingTest {
                 TestErrorMessages.RunTestErrorMessages();
                 NamespacesTest.TestClassesNamespaces();
                 WebVisitTests.TestVisits();
+#if false // TODO EOH:
                 InsertIntoTests.TestValuesInsertIntoWebVisits();
+#endif
                 PopulateData();
                 SqlBugsTest.QueryTests();
                 FetchTest.RunFetchTest();
@@ -65,28 +67,36 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Finished data population");
         }
 
+        private static bool CheckIfIndexExists(string indexName) {
+#if false // TODO EOH:
+            return Starcounter.Db.SQL("select i from \"Index\" i where name = ?", indexName).First != null;
+#else
+            return false;
+ #endif
+        }
+
         internal static void CreateIndexes() {
-            if (Starcounter.Db.SQL("select i from \"Index\" i where name = ?", "accountidindx").First == null)
+            if (!CheckIfIndexExists("accountidindx"))
                 Starcounter.Db.SQL("create index AccountTypeActiveIndx on Account (notactive, AccountType)");
-            if (Starcounter.Db.SQL("select i from \"Index\" i where name = ?", "AccountTypeIndx").First == null) {
+            if (!CheckIfIndexExists("AccountTypeIndx")) {
                 Starcounter.Db.SQL("create index AccountTypeIndx on Account (AccountType)");
                 Starcounter.Db.SQL("create index accountidindx on Account(accountid)");
             }
-            if (Starcounter.Db.SQL("select i from \"Index\" i where name = ?", "nicknameindx").First == null) {
+            if (!CheckIfIndexExists("nicknameindx")) {
                 Starcounter.Db.SlowSQL("create index nicknameindx on User(NickName)");
                 Starcounter.Db.SlowSQL("create index anothernicknameindx on User(AnotherNickName)");
             }
-            if (Starcounter.Db.SQL("select i from \"Index\" i where name = ?", "UserCompoundIndx").First == null)
+            if (!CheckIfIndexExists("UserCompoundIndx"))
                 Starcounter.Db.SlowSQL("create index UserCompoundIndx on user(NickName, LastName)");
-            if (Starcounter.Db.SQL("SELECT i FROM \"Index\" i WHERE Name=?", "VersionSourceBuildErrorChannelIndex").First == null) {
+            if (!CheckIfIndexExists("VersionSourceBuildErrorChannelIndex")) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorChannelIndex ON VersionSource (BuildError,Channel)");
             }
 
-            if (Starcounter.Db.SQL("SELECT i FROM \"Index\" i WHERE Name=?", "VersionSourceBuildErrorIndex").First == null) {
+            if (!CheckIfIndexExists("VersionSourceBuildErrorIndex")) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceBuildErrorIndex ON VersionSource (BuildError)");
             }
 
-            if (Starcounter.Db.SQL("SELECT i FROM \"Index\" i WHERE Name=?", "VersionSourceVersionIndex").First == null) {
+            if (!CheckIfIndexExists("VersionSourceVersionIndex")) {
                 Starcounter.Db.SQL("CREATE INDEX VersionSourceVersionIndex ON VersionSource (Version)");
             }
         }

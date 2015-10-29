@@ -61,6 +61,7 @@ namespace QueryProcessingTest {
             timer.Stop();
             Console.WriteLine(String.Format("Optimizing the query tree took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
 
+#if false // TODO EOH:
             timer.Reset();
             timer.Start();
             for (int i = 0; i < nrIterations; i++) {
@@ -68,6 +69,7 @@ namespace QueryProcessingTest {
             }
             timer.Stop();
             Console.WriteLine(String.Format("Parsing query in Bison took {0:N2} mcs.", (decimal)timer.ElapsedMilliseconds * 1000 / nrIterations));
+#endif
         }
     }
 }
