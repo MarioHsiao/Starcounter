@@ -552,36 +552,6 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// Struct SCCOREDB_SORT_SPEC_ELEM
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 4)]
-        public unsafe struct SCCOREDB_SORT_SPEC_ELEM
-        {
-            /// <summary>
-            /// The column_index
-            /// </summary>
-            public short column_index;
-            /// <summary>
-            /// The sort
-            /// </summary>
-            public byte sort; // 0 ascending, 1 descending.
-        };
-
-        /// <summary>
-        /// Sccoredb_get_index_info_by_sorts the specified definition_addr.
-        /// </summary>
-        /// <param name="table_id"></param>
-        /// <param name="sort_spec">The sort_spec.</param>
-        /// <param name="pii">The pii.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sccoredb_get_index_info_by_sort(
-            ushort table_id,
-            SCCOREDB_SORT_SPEC_ELEM *sort_spec,
-            SC_INDEX_INFO *pii
-            );
-
-        /// <summary>
         /// Sccoredb_get_index_infoses the specified definition_addr.
         /// </summary>
         /// <param name="table_id"></param>
@@ -613,15 +583,8 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        /// <param name="table_name"></param>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static UInt32 star_drop_index(
-            uint transaction_flags,
-            string table_name,
-            string name
-            );
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint stari_context_drop_index(ulong handle, ulong token);
 
         /// <summary>
         /// </summary>
@@ -1148,54 +1111,18 @@ namespace Starcounter.Internal
         internal static extern uint star_filter_iterator_free(ulong handle);
 
         /// <summary>
-        /// SCs the convert UT F16 string to native.
-        /// </summary>
-        /// <param name="input">The input.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="output">The output.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe UInt32 SCConvertUTF16StringToNative(
-            String input,
-            UInt32 flags,
-            Byte** output
-        );
-
-        /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern unsafe uint star_convert_ucs2_to_turbotext(
             string input, uint flags, byte* output, uint outlen
             );
 
-#if false
         /// <summary>
-        /// SCs the convert native string to UT F16.
         /// </summary>
-        /// <param name="inBuf">The in buf.</param>
-        /// <param name="inlen">The inlen.</param>
-        /// <param name="output">The output.</param>
-        /// <param name="poutlen">The poutlen.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern unsafe UInt32 SCConvertNativeStringToUTF16(
-            Byte* inBuf,
-            UInt32 inlen,
-            Char* output,
-            UInt32* poutlen);
-
-        /// <summary>
-        /// SCs the compare native strings.
-        /// </summary>
-        /// <param name="str1">The STR1.</param>
-        /// <param name="str2">The STR2.</param>
-        /// <returns>Int32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe Int32 SCCompareNativeStrings(
-            /* const */ Byte* str1,
-            /* const */ Byte* str2
-            );
-#endif
+        internal static extern unsafe uint star_context_convert_ucs2_to_turbotext(
+          ulong handle, string input, uint flags, byte** pout
+          );
 
         /// <summary>
         /// Compares two UCS-2 strings according to the default collation.
@@ -1220,7 +1147,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_lookup(ulong record_id, /*OUT*/ ulong *precord_addr, /*OUT*/ ushort *ptable_id);
+        public static extern unsafe uint star_context_lookup(
+            ulong handle, ulong record_id, ulong* precord_ref
+            );
 
         /// <summary>
         /// </summary>

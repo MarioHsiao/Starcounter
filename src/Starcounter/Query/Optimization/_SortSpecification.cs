@@ -142,8 +142,9 @@ internal class SortSpecification
 
     private static IndexUseInfo GetIndexUseInfo(TypeBinding typeBind, List<IPathComparer> pathComparerList)
     {
+        return null;
 
-#if true
+#if false // TODO EOH: This doesn't work with the new kernel. Query works anyway, but maybe worse performance. Re-implement?
         unsafe
         {
             sccoredb.SCCOREDB_SORT_SPEC_ELEM[] sort_spec = new sccoredb.SCCOREDB_SORT_SPEC_ELEM[pathComparerList.Count + 1];

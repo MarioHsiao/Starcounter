@@ -47,10 +47,12 @@ namespace QueryProcessingTest {
                 cc.Delete();
                 cCc.Delete();
             });
+#if false // TODO EOH: Test no longer work. Index names are now per database unique.
             Db.SQL("create index commonclassindex on commonclass (nonamespaceproperty)");
             Db.SQL("create index commonclassindex on lowercasenamespace.commonclass(lowercaseintproperty)");
             Db.SQL("drop index commonclassindex on commonclass");
             Db.SQL("drop index commonclassindex on lowercasenamespace.commonclass");
+#endif
             HelpMethods.LogEvent("Finished testing queries with classes in different namespaces");
         }
     }
