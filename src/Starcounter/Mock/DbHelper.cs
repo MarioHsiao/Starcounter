@@ -45,12 +45,12 @@ namespace Starcounter {
         public static IObjectView FromID(ulong oid) {
             unsafe {
                 uint r;
-                ulong addr;
-                ushort tableId;
+                ulong record_ref;
 
-                r = sccoredb.star_lookup(oid, &addr, &tableId);
+                r = sccoredb.star_context_lookup(ThreadData.ContextHandle, oid, &record_ref);
                 if (r == 0) {
-                    return Bindings.GetTypeBinding(tableId).NewInstance(addr, oid);
+                    ushort tableId = (ushort)(record_ref & 0xFFFF);
+                    return Bindings.GetTypeBinding(tableId).NewInstance(record_ref, oid);
                 }
                 else if (r == Error.SCERRRECORDNOTFOUND) {
                     return null;

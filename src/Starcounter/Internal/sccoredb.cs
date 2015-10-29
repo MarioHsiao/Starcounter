@@ -1213,7 +1213,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint star_lookup(ulong record_id, /*OUT*/ ulong *precord_addr, /*OUT*/ ushort *ptable_id);
+        public static extern unsafe uint star_context_lookup(
+            ulong handle, ulong record_id, ulong* precord_ref
+            );
 
         /// <summary>
         /// </summary>
