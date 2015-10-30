@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Starcounter.Internal;
+using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -21,7 +22,7 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scsqlprocessor.dll")]
         private static extern uint scsql_clean_clrclass();
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        private static unsafe extern uint star_get_token(ulong transaction_handle, string spelling, ulong* token_id);
+        private static unsafe extern uint star_get_token(ulong context_handle, string spelling, ulong* token_id);
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -66,7 +67,7 @@ namespace Starcounter.SqlProcessor {
 
         public static unsafe ulong GetTokenFromName(string Name) {
             ulong token;
-            uint err = star_get_token(Transaction.Current.Handle.handle, Name, &token);
+            uint err = star_get_token(ThreadData.ContextHandle, Name, &token);
             if (err != 0)
                 throw ErrorCode.ToException(err);
             return token;

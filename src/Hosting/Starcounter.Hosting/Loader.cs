@@ -69,7 +69,7 @@ namespace StarcounterInternal.Hosting
             else
                 stopwatch_ = new Stopwatch();
 
-#if false // TODO RF:
+#if false // TODO RUS:
             var sysTableTypeDef = Starcounter.Internal.Metadata.MaterializedTable.CreateTypeDef();
             var sysColumnTypeDef = Starcounter.Internal.Metadata.MaterializedColumn.CreateTypeDef();
             var sysIndexTypeDef = Starcounter.Internal.Metadata.MaterializedIndex.CreateTypeDef();

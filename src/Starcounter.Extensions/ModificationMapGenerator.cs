@@ -74,7 +74,7 @@ namespace Starcounter.Extensions {
             blockExpressions.Add(expr);
 
             foreach (var toColumn in Db.SQL<MappedProperty>(sqlAllColumnsForTableSelect, toTable)) {
-                if (toColumn.Type.Name.Equals("key")) // __id field.
+                if (toColumn.DataType.Name.Equals("key")) // __id field.
                     continue;
 
                 // Checking if we have a corresponding property in source table.
@@ -82,10 +82,10 @@ namespace Starcounter.Extensions {
                 if (fromColumn == null)
                     continue;
 
-                if (toColumn.Type is ClrClass) {
-                    if (!(fromColumn.Type is ClrClass))
+                if (toColumn.DataType is ClrClass) {
+                    if (!(fromColumn.DataType is ClrClass))
                         continue;
-                } else if (!fromColumn.Type.Equals(toColumn.Type)) // Same name but different types.
+                } else if (!fromColumn.DataType.Equals(toColumn.DataType)) // Same name but different types.
                     continue;
 
                 toProperty = typeof(TTo).GetProperty(toColumn.Name);
@@ -97,7 +97,7 @@ namespace Starcounter.Extensions {
                 fromPropertyExpr = Expression.Property(fromObjExpr, fromProperty);
                 toPropertyExpr = Expression.Property(toObjExpr, toProperty);
 
-                if (toColumn.Type is ClrClass) {
+                if (toColumn.DataType is ClrClass) {
                     // Resulting code should look like this (RefObj = name of property):
                     //
                     // if (fromObj.RefObj != null) {

@@ -94,7 +94,7 @@ namespace Starcounter.Metadata {
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_MaterializedTable;
+            internal static int columnHandle_LayoutId;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -109,14 +109,14 @@ namespace Starcounter.Metadata {
             DbState.SystemInsert(__starcounterTypeSpecification.tableHandle, ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
-        public Starcounter.Internal.Metadata.MaterializedTable MaterializedTable {
+        public UInt16 LayoutId {
             get {
-                return (Starcounter.Internal.Metadata.MaterializedTable)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                __starcounterTypeSpecification.columnHandle_MaterializedTable);
+                return DbState.ReadUInt16(__sc__this_id__, __sc__this_handle__,
+                __starcounterTypeSpecification.columnHandle_LayoutId);
             }
             internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedTable, value);
+                DbState.WriteUInt16(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_LayoutId, value);
             }
         }
     }

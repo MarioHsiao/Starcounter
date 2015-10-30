@@ -12,7 +12,7 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_Name;
             internal static int columnHandle_Table;
             internal static int columnHandle_Unique;
-            internal static int columnHandle_MaterializedIndex;
+            internal static int columnHandle_IndexHandle;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -63,14 +63,14 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public Starcounter.Internal.Metadata.MaterializedIndex MaterializedIndex {
+        public UInt64 IndexHandle {
             get {
-                return (Starcounter.Internal.Metadata.MaterializedIndex)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedIndex);
+                return DbState.ReadUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_IndexHandle);
             }
             internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedIndex, value);
+                DbState.WriteUInt64(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_IndexHandle, value);
             }
         }
     }
@@ -85,7 +85,6 @@ namespace Starcounter.Metadata {
             internal static int columnHandle_Column;
             internal static int columnHandle_Position;
             internal static int columnHandle_Ascending;
-            internal static int columnHandle_MaterializedIndexColumn;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -141,17 +140,6 @@ namespace Starcounter.Metadata {
             internal set {
                 DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
                     __starcounterTypeSpecification.columnHandle_Ascending, value);
-            }
-        }
-
-        public Starcounter.Internal.Metadata.MaterializedIndexColumn MaterializedIndexColumn {
-            get {
-                return (Starcounter.Internal.Metadata.MaterializedIndexColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedIndexColumn);
-            }
-            internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedIndexColumn, value);
             }
         }
     }

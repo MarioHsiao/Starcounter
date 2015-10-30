@@ -63,7 +63,7 @@ namespace Starcounter.SqlProcessor {
                                 CodeProperty codeProp = new CodeProperty {
                                     Table = theView,
                                     Name = propDef.Name,
-                                    Type = propType,
+                                    DataType = propType,
                                     Get = true,
                                     Set = true
                                 };
@@ -78,7 +78,7 @@ namespace Starcounter.SqlProcessor {
                                     Column = rawCol,
                                     Inherited = rawCol.Inherited,
                                     Name = propDef.Name,
-                                    Type = propType,
+                                    DataType = propType,
                                     Set = true,
                                     Get = true
                                 };
@@ -102,6 +102,7 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void CreateRawTableInstance(TypeDef typeDef) {
+#if false // TODO RUS: should be removed since meta-data populated during creation in metalayer
             Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
                 "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
             Debug.Assert(matTab != null);
@@ -120,9 +121,11 @@ namespace Starcounter.SqlProcessor {
             };
             rawView.UniqueIdentifier = GetUniqueIdentifier(matTab.Name);
             rawView.UniqueIdentifierReversed = GetFullNameReversed(matTab.Name);
+#endif
         }
 
         internal static void UpgradeRawTableInstance(TypeDef typeDef) {
+#if false // TODO RUS: upgrade has to be implemented differently
             Debug.Assert(Db.SQL<ClrClass>("select v from clrclass v where v.Fullname = ?",
                 typeDef.TableDef.Name).First == null); // Always dropped and new created
             RawView thisType = Db.SQL<RawView>("select v from rawview v where UniqueIdentifier = ?",
@@ -145,6 +148,7 @@ namespace Starcounter.SqlProcessor {
                 thisType.Inherits = newParent;
             }
             UpgradeInheritedRawTableInstance(thisType);
+#endif
         }
 
         /// <summary>
@@ -156,6 +160,7 @@ namespace Starcounter.SqlProcessor {
         /// <param name="typeDef"></param>
         /// <param name="rawView"></param>
         internal static void UpgradeInheritedRawTableInstance(RawView rawView) {
+#if false // TODO RUS: upgrade has to be implemented differently
             RemoveColumnInstances(rawView);
             foreach (RawView inherited in Db.SQL<RawView>("select v from rawview v where inherits = ?", rawView)) {
                 Debug.Assert(Db.SQL("select materializedtable from rawview v where v = ?", inherited).First == null);
@@ -167,6 +172,7 @@ namespace Starcounter.SqlProcessor {
                 // Repeat for children
                 UpgradeInheritedRawTableInstance(inherited);
             }
+#endif
         }
 
         internal static void RemoveColumnInstances(RawView thisView) {
@@ -179,6 +185,7 @@ namespace Starcounter.SqlProcessor {
         }
 
         internal static void CreateColumnInstances(TypeDef typeDef) {
+#if false // TODO RUS: remove it, meta-data for rawview populated in meta-layer
             RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
         typeDef.TableDef.Name).First;
             Debug.Assert(thisView != null);
@@ -217,6 +224,7 @@ namespace Starcounter.SqlProcessor {
                 if (inheritingTypeDef != null)
                     CreateColumnInstances(inheritingTypeDef);
             }
+#endif
         }
 
         internal static void CreateAnIndexInstance(MaterializedIndex matIndx) {

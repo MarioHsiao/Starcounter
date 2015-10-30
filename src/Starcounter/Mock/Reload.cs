@@ -45,12 +45,12 @@ namespace Starcounter {
 
             var typeDef = Bindings.GetTypeDef(((RawView)col.Table).FullName);
             var prop = typeDef.PropertyDefs.FirstOrDefault((candidate) => {
-                return candidate.ColumnName == col.MaterializedColumn.Name;
+                return candidate.ColumnName == col.Name;
             });
             if (prop == null) {
                 throw ErrorCode.ToException(
                     Error.SCERRCOLUMNHASNOPROPERTY, 
-                    string.Format("Missing property for {0}.{1}", col.Table.Name, col.MaterializedColumn.Name));
+                    string.Format("Missing property for {0}.{1}", col.Table.Name, col.Name));
             }
 
             return prop.Name;

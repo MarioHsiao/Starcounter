@@ -11,7 +11,7 @@ namespace Starcounter.Metadata {
             internal static TypeBinding typeBinding;
             internal static int columnHandle_Table;
             internal static int columnHandle_Name;
-            internal static int columnHandle_Type;
+            internal static int columnHandle_DataType;
             internal static int columnHandle_Inherited;
         }
 #pragma warning disable 0628, 0169
@@ -46,14 +46,14 @@ namespace Starcounter.Metadata {
             }
         }
 
-        public Starcounter.Metadata.Type Type {
+        public Starcounter.Metadata.Type DataType {
             get {
                 return (Starcounter.Metadata.Type)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_Type);
+                    __starcounterTypeSpecification.columnHandle_DataType);
             }
             internal set {
                 DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_Type, value);
+                    __starcounterTypeSpecification.columnHandle_DataType, value);
             }
         }
 
@@ -69,14 +69,14 @@ namespace Starcounter.Metadata {
         }
     }
 
-    public sealed class Column : Member {
+    public abstract class Column : Member {
         #region Infrastructure, reflecting what is emitted by the weaver.
 #pragma warning disable 0649, 0169
         internal new class __starcounterTypeSpecification {
             internal static ushort tableHandle;
             internal static TypeBinding typeBinding;
-            internal static int columnHandle_MaterializedColumn;
-            internal static int columnHandle_Unique;
+            internal static int columnHandle_Nullable;
+            internal static int columnHandle_AlwaysUnique;
         }
 #pragma warning disable 0628, 0169
         #endregion
@@ -94,25 +94,25 @@ namespace Starcounter.Metadata {
                     ref this.__sc__this_id__, ref this.__sc__this_handle__);
         }
 
-        public Starcounter.Internal.Metadata.MaterializedColumn MaterializedColumn {
-            get {
-                return (Starcounter.Internal.Metadata.MaterializedColumn)DbState.ReadObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedColumn);
-            }
-            internal set {
-                DbState.WriteObject(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_MaterializedColumn, value);
-            }
-        }
-
-        public Boolean Unique {
+        public Boolean Nullable {
             get {
                 return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_Unique);
+                    __starcounterTypeSpecification.columnHandle_Nullable);
             }
             internal set {
                 DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
-                    __starcounterTypeSpecification.columnHandle_Unique, value);
+                    __starcounterTypeSpecification.columnHandle_Nullable, value);
+            }
+        }
+
+        public Boolean AlwaysUnique {
+            get {
+                return DbState.ReadBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_AlwaysUnique);
+            }
+            internal set {
+                DbState.WriteBoolean(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_AlwaysUnique, value);
             }
         }
     }
@@ -234,4 +234,42 @@ namespace Starcounter.Metadata {
             }
         }
     }
+}
+namespace Starcounter.Internal.Metadata {
+    public sealed class RawColumn : Starcounter.Metadata.Column {
+        #region Infrastructure, reflecting what is emitted by the weaver.
+#pragma warning disable 0649, 0169
+        internal new class __starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding typeBinding;
+            internal static int columnHandle_ColumnIndex;
+        }
+#pragma warning disable 0628, 0169
+        #endregion
+
+        static internal new TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(
+                System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        }
+
+        public RawColumn(Uninitialized u) : base(u) { }
+
+        internal RawColumn()
+            : this(null) {
+            DbState.SystemInsert(__starcounterTypeSpecification.tableHandle,
+                ref this.__sc__this_id__, ref this.__sc__this_handle__);
+        }
+
+        public UInt16 ColumnIndex {
+            get {
+                return DbState.ReadUInt16(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_ColumnIndex);
+            }
+            internal set {
+                DbState.WriteUInt16(__sc__this_id__, __sc__this_handle__,
+                    __starcounterTypeSpecification.columnHandle_ColumnIndex, value);
+            }
+        }
+    }
+
 }

@@ -321,7 +321,7 @@ namespace Starcounter.Hosting {
                 // Using transaction directly here instead of Db.Scope and scope it several times because of 
                 // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
                 using (var transaction = new Transaction(true)) {
-                    if (unregisteredTypeDefs[0].Name == "Starcounter.Internal.Metadata.MaterializedTable") {
+                    if (unregisteredTypeDefs[0].Name == "Starcounter.Metadata.Type") {
                             Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle); // TODO EOH:
 
                             OnRuntimeMetadataPopulated();
