@@ -101,6 +101,8 @@ Mono.Cecil.dll
 Mono.Cecil.Pdb.dll
 Mono.CSharp.dll
 MSG00001.bin
+msvcp110.dll
+msvcr110.dll
 ucrtbase.dll
 msvcp140.dll
 vccorlib140.dll
