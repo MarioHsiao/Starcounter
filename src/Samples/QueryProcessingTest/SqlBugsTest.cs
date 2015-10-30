@@ -68,9 +68,7 @@ namespace QueryProcessingTest {
             foreach (IObjectView obj in Db.SlowSQL("select client, count(\"when\") from account group by client order by client fetch ?", 20))
                 nrs++;
             Trace.Assert(nrs == 20);
-#if false // TODO EOH: Doesn't work. Maybe because sort optimization works differently?
             TestOffsetkeyWithSorting();
-#endif
             HelpMethods.LogEvent("Finished test query with fetch and sorting");
         }
 
@@ -102,6 +100,10 @@ namespace QueryProcessingTest {
         }
 
         public static void TestOffsetkeyWithSorting() {
+// TODO EOH:
+// Doesn't work because sort index selection is disabled (and iterator recreate doesn't seem to work
+// on sorted temp table (like in the other disabled test).
+#if false
             // Offset key byte buffer.
             Byte[] offsetKey = null;
 
@@ -129,6 +131,7 @@ namespace QueryProcessingTest {
                 }
                 Trace.Assert(!sqlEnum.MoveNext());
             }
+#endif
 
 #if false   // does not work
             // Another query with sorting on non-index property
