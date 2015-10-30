@@ -46,7 +46,7 @@ namespace Starcounter
         {
             unsafe
             {
-                ulong token = sccoredb.GetTokenFromString(name);
+                ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
                 if (token != 0) {
                     sccoredb.STARI_LAYOUT_INFO tableInfo;
                     var r = sccoredb.stari_context_get_layout_info_by_token(ThreadData.ContextHandle, token, out tableInfo);

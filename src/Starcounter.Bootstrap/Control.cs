@@ -252,7 +252,7 @@ namespace StarcounterInternal.Bootstrap {
                 ManagementService.Setup(configuration.DefaultSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
                 OnServerCommandHandlersRegistered();
 
-#if false // TODO EOH:
+#if true // TODO EOH:
                 if (withdb_) {
                     Loader.AddBasePackage(hsched_, stopwatch_);
                     OnBasePackageLoaded();
