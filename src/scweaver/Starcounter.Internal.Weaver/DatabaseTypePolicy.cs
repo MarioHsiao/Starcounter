@@ -27,13 +27,30 @@ namespace Starcounter.Internal.Weaver {
         }
 
         public bool IsDatabaseType(TypeDefDeclaration typeDef) {
+            // The order here is important: we must allow the user to fine
+            // tune by explicit tagging, so check that first.
+            var tagged = IsTaggedWithDatabaseAttribute(typeDef);
+            if (tagged) return true;
+
+            // We should support transient on database types to allow
+            // them to be part of a assembly tagged or configured, but
+            // to override the default, and become not considered database
+            // classes (even if public)
+            // TODO:
+
+            if (IsInDatabaseAttributeAssembly(typeDef)) {
+                if (typeDef.IsPublic()) {
+                    return true;
+                }
+            }
+
             if (config.IsConfiguredDatabaseType(typeDef.Name)) {
                 if (typeDef.IsPublic()) {
                     return true;
                 }
             }
 
-            return IsTaggedWithDatabaseAttribute(typeDef);
+            return false;
         }
 
         public bool ImplementSetValueCallback(TypeDefDeclaration typeDef) {
@@ -54,6 +71,10 @@ namespace Starcounter.Internal.Weaver {
             return typeDef.InterfaceImplementations.Any((candidate) => {
                 return candidate.ImplementedInterface.GetReflectionName() == interfaceName;
             });
+        }
+
+        bool IsInDatabaseAttributeAssembly(TypeDefDeclaration typeDef) {
+            return typeDef.Module.AssemblyManifest.CustomAttributes.Contains(databaseAttributeType);
         }
 
         bool IsTaggedWithDatabaseAttribute(TypeDefDeclaration typeDef) {
