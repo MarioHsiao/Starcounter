@@ -34,7 +34,7 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var cmd = new StartExecutableCommand(engine, name, exe.ToApplicationInfo()) {
                 EnableWaiting = !async,
-                RunEntrypointAsynchronous = !exe.IsTool
+                RunEntrypointAsynchronous = exe.AsyncEntrypoint
             };
 
             var commandInfo = runtime.Execute(cmd);
@@ -108,7 +108,7 @@ namespace Starcounter.Administrator.API.Handlers {
                 newArg.dummy = arg.dummy;
             }
 
-            exeCreated.IsTool = exe.IsTool;
+            exeCreated.AsyncEntrypoint = exe.AsyncEntrypoint;
             headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);

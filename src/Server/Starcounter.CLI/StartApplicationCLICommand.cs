@@ -241,7 +241,7 @@ namespace Starcounter.CLI {
             exe.Name = app.Name;
             exe.WorkingDirectory = app.WorkingDirectory;
             exe.StartedBy = ClientContext.GetCurrentContextInfo();
-            exe.IsTool = !args.ContainsFlag(Option.Async);
+            exe.AsyncEntrypoint = args.ContainsFlag(Option.Async);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
                     exe.Arguments.Add().dummy = arg;

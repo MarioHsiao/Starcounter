@@ -47,7 +47,7 @@ namespace Administrator.Server.Managers {
             executable.ApplicationFilePath = path;
             executable.Name = string.IsNullOrEmpty(name) ? Path.GetFileNameWithoutExtension(path) : name;
             executable.WorkingDirectory = resourceFolder; // TODO: Path can not end with "/"
-            executable.IsTool = true; // ?
+            executable.AsyncEntrypoint = false;
 
             // TODO: Arguments
             //Executable.ArgumentsElementJson arg = new Executable.ArgumentsElementJson();
