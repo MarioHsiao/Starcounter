@@ -397,7 +397,8 @@ namespace Starcounter.Internal.Weaver {
             _typeNameAttributeType = FindStarcounterType(typeof(TypeNameAttribute));
             databaseTypePolicy = new DatabaseTypePolicy(
                 CodeWeaver.Current.FileManager.TypeConfiguration, 
-                FindStarcounterType(typeof(Starcounter.DatabaseAttribute))
+                FindStarcounterType(typeof(Starcounter.DatabaseAttribute)),
+                _transientAttributeType
                 );
             SetValueCallbacksInCurrentModule = new List<DatabaseClass>();
         }

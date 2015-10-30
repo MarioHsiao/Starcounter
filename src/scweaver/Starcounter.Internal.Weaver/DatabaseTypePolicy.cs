@@ -10,6 +10,7 @@ namespace Starcounter.Internal.Weaver {
     internal class DatabaseTypePolicy {
         DatabaseTypeConfiguration config;
         IType databaseAttributeType;
+        IType transientAttributeType;
 
         /// <summary>
         /// Gets the underlying <see cref="DatabaseTypeConfiguration"/> influencing
@@ -21,36 +22,32 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
-        public DatabaseTypePolicy(DatabaseTypeConfiguration typeConfiguration, IType databaseAttribute) {
+        public DatabaseTypePolicy(DatabaseTypeConfiguration typeConfiguration, IType databaseAttribute, IType transientAttribute) {
             config = typeConfiguration;
             databaseAttributeType = databaseAttribute;
+            transientAttributeType = transientAttribute;
         }
 
         public bool IsDatabaseType(TypeDefDeclaration typeDef) {
-            // The order here is important: we must allow the user to fine
-            // tune by explicit tagging, so check that first.
-            var tagged = IsTaggedWithDatabaseAttribute(typeDef);
-            if (tagged) return true;
+            // Explicit transient attribute overrides everything else
+            var transient = IsTaggedWithTransientAttribute(typeDef);
+            if (transient) return false;
 
-            // We should support transient on database types to allow
-            // them to be part of a assembly tagged or configured, but
-            // to override the default, and become not considered database
-            // classes (even if public)
-            // TODO:
+            // For public types, we allow them to be database classes by
+            // means of configuration / assembly level constructs. Check
+            // that first.
+            if (typeDef.IsPublic()) {
+                if (IsInDatabaseAttributeAssembly(typeDef)) {
+                    return true;
+                }
 
-            if (IsInDatabaseAttributeAssembly(typeDef)) {
-                if (typeDef.IsPublic()) {
+                if (config.IsConfiguredDatabaseType(typeDef.Name)) {
                     return true;
                 }
             }
-
-            if (config.IsConfiguredDatabaseType(typeDef.Name)) {
-                if (typeDef.IsPublic()) {
-                    return true;
-                }
-            }
-
-            return false;
+            
+            // Finally the standard path
+            return IsTaggedWithDatabaseAttribute(typeDef);
         }
 
         public bool ImplementSetValueCallback(TypeDefDeclaration typeDef) {
@@ -80,6 +77,18 @@ namespace Starcounter.Internal.Weaver {
         bool IsTaggedWithDatabaseAttribute(TypeDefDeclaration typeDef) {
             var cursor = typeDef;
             while (!cursor.CustomAttributes.Contains(databaseAttributeType)) {
+                if (cursor.BaseType != null) {
+                    cursor = cursor.BaseType.GetTypeDefinition();
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool IsTaggedWithTransientAttribute(TypeDefDeclaration typeDef) {
+            var cursor = typeDef;
+            while (!cursor.CustomAttributes.Contains(transientAttributeType)) {
                 if (cursor.BaseType != null) {
                     cursor = cursor.BaseType.GetTypeDefinition();
                 } else {
