@@ -50,6 +50,10 @@ namespace Starcounter.CLI {
         /// Provides the name of the folder storing CLI utility applications.
         /// </summary>
         public const string CLIAppFolderName = "cli-apps";
+        /// <summary>
+        /// Provides the name of the folder storing CLI configuration / assets.
+        /// </summary>
+        public const string CLIConfigFolderName = "cli-config";
 
         /// <summary>
         /// Assures a given CLI context is properly initialized when it
