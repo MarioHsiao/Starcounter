@@ -8,7 +8,7 @@ namespace Starcounter {
     /// meaning it will not be stored in the database nor accessible using
     /// SQL.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Field | AttributeTargets.Property)]
     public sealed class TransientAttribute : Attribute {
     }
 }
