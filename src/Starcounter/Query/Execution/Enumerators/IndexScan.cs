@@ -148,7 +148,9 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
                     // Checking if its the same object.
                     // TODO/Entity:
                     // Enough to compare by identity, no?
-                    if ((keyOID != dbObject.Identity) && (keyETI != dbObject.ThisHandle)) {
+                    //ulong keyEti2 = dbObject.ThisHandle;
+                    ulong keyEti2 = (dbObject.ThisHandle >> 16) << 1; // TODO EOH:
+                    if ((keyOID != dbObject.Identity) && (keyETI != keyEti2)) {
                         isAtRecreatedKey = false;
                         variableArray.FailedToRecreateObject = true;
                     } else isAtRecreatedKey = true;

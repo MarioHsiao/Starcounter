@@ -504,7 +504,9 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                     // Checking if its the same object.
                     // TODO/Entity:
                     // It should be enough to compare by identity, no?
-                    if ((keyOID != dbObject.Identity) && (keyETI != dbObject.ThisHandle)) {
+                    //ulong keyEti2 = dbObject.ThisHandle;
+                    ulong keyEti2 = (dbObject.ThisHandle >> 16) << 1; // TODO EOH:
+                    if ((keyOID != dbObject.Identity) && (keyETI != keyEti2)) {
                         isAtRecreatedKey = false;
                         variableArray.FailedToRecreateObject = true;
                     } else
