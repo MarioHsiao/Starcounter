@@ -225,13 +225,9 @@ namespace Starcounter
             //SqlDebugHelper.PrintByteBuffer("IndexScan Using Recreation Key", recreationKey, true);
             //Application.Profiler.Start("sc_recreate_iterator", 7);
             fixed (Byte* lastKeyPointer = lastKey) {
-                err = sccoredb.sc_recreate_iterator(
-                    indexHandle,
-                    flags,
-                    recreationKey,
-                    lastKeyPointer,
-                    &hCursor,
-                    &verify
+                err = sccoredb.star_context_recreate_iterator(
+                    ThreadData.ContextHandle, indexHandle, flags, recreationKey, lastKeyPointer,
+                    &hCursor
                 );
             }
             //Application.Profiler.Stop(7);
