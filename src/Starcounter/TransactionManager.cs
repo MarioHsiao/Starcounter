@@ -216,7 +216,7 @@ namespace Starcounter.Internal {
                 unsafe {
                     keptHandle = Refs[handle.index];
                     if (!keptHandle.HasTemporaryRef()) {
-                        ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
+                        ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty);
                         if (ec == 0)
                             ec = sccoredb.star_transaction_free(handle.handle);
 
@@ -238,7 +238,7 @@ namespace Starcounter.Internal {
                 int calcIndex = handle.index - ShortListCount;
                 keptHandle = SlowList[calcIndex];
                 if (!keptHandle.HasTemporaryRef()) {
-                    ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
+                    ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty);
                     if (ec == 0)
                         ec = sccoredb.star_transaction_free(handle.handle);
 
@@ -594,7 +594,7 @@ namespace Starcounter.Internal {
                 return false;
 
             unsafe {
-                ec = sccoredb.Mdb_TransactionIsReadWrite(handle.handle, handle.verify, &isDirty);
+                ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty);
             }
 
             if (ec == 0) return (isDirty != 0);

@@ -769,15 +769,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
-        /// <param name="hTrans">Transaction handle.</param>
-        /// <param name="verify">Transaction handle.</param>
-        /// <param name="pValue">True if there are any changes.</param>
-        /// <returns>Error code.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 Mdb_TransactionIsReadWrite(
-            UInt64 hTrans,
-            UInt64 verify,
-            Int32* pValue);
+        internal static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
 
         /// <summary>
         /// </summary>
