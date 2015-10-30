@@ -1018,31 +1018,12 @@ namespace Starcounter.Internal
 #endif
 
         /// <summary>
-        /// Sc_get_index_position_keys the specified index_addr.
         /// </summary>
-        /// <param name="index_addr">The index_addr.</param>
-        /// <param name="record_id">The record_id.</param>
-        /// <param name="record_addr">The record_addr.</param>
-        /// <param name="precreate_key">The precreate_key.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_get_index_position_key(
-            UInt64 index_addr,
-            UInt64 record_id,
-            UInt64 record_addr,
-            Byte** precreate_key
-            );
+        internal static extern unsafe uint star_context_get_index_position_key(
+          ulong handle, ulong index_handle, ulong record_id, ulong record_ref, byte** precreate_key
+          );
 
-        /// <summary>
-        /// Sc_recreate_iterators the specified hindex.
-        /// </summary>
-        /// <param name="hindex">The hindex.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="recreate_key">The recreate_key.</param>
-        /// <param name="last_key">The last_key.</param>
-        /// <param name="ph">The ph.</param>
-        /// <param name="pv">The pv.</param>
-        /// <returns>UInt32.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public unsafe extern static UInt32 sc_recreate_iterator(
             UInt64 hindex,
@@ -1053,6 +1034,14 @@ namespace Starcounter.Internal
             UInt64* pv
             );
 
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe uint star_context_recreate_iterator(
+          ulong handle, ulong index_handle, uint flags, void* recreate_key, void* last_key,
+          ulong* piterator_handle
+          );
+ 
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
