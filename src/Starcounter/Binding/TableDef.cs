@@ -226,114 +226,21 @@ namespace Starcounter.Binding
         /// </summary>
         internal IndexInfo GetIndexInfo(string name) {
             unsafe {
-                // TODO EOH: Need to check that index belongs to specific table.
-                sccoredb.STARI_INDEX_INFO ii;
                 ulong token = sccoredb.GetTokenFromString(name);
                 if (token != 0) {
-                    uint r = sccoredb.stari_context_get_index_info_by_token(
-                        ThreadData.ContextHandle, token, &ii
-                        );
-                    if (r == 0) return CreateIndexInfo(&ii);
-                    if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
-                    throw ErrorCode.ToException(r);
+                    var indexInfos = GetAllIndexInfos();
+                    for (var i = 0; i < indexInfos.Length; i++) {
+                        if (indexInfos[i].Token == token) {
+                            return indexInfos[i];
+                        }
+                    }
                 }
                 return null;
             }
         }
 
-        /// <summary>
-        /// Creates the index info.
-        /// </summary>
-        /// <param name="pii">The pii.</param>
-        /// <returns>IndexInfo.</returns>
-        internal unsafe IndexInfo CreateIndexInfo(sccoredb.SC_INDEX_INFO* pii)
-        {
-            string name;
-            short attributeCount;
-            ushort tempSortMask;
-            SortOrder[] sortOrderings;
-            int[] columnIndexes;
-            ColumnDef[] columnDefs;
-
-            name = new String(pii->name);
-            // Get the number of attributes.
-            attributeCount = pii->attributeCount;
-            if (attributeCount < 1 || attributeCount > 10)
-            {
-                throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect attributeCount.");
-            }
-            // Get the sort orderings.
-            sortOrderings = new SortOrder[attributeCount];
-            tempSortMask = pii->sortMask;
-            for (Int32 j = 0; j < attributeCount; j++)
-            {
-                if ((tempSortMask & 1) == 1)
-                {
-                    sortOrderings[j] = SortOrder.Descending;
-                }
-                else
-                {
-                    sortOrderings[j] = SortOrder.Ascending;
-                }
-                tempSortMask = (UInt16)(tempSortMask >> 1);
-            }
-            // Get the column definitions.
-            columnIndexes = new int[attributeCount];
-            columnDefs = new ColumnDef[attributeCount];
-            for (Int32 j = 0; j < attributeCount; j++)
-            {
-                switch (j)
-                {
-                    case 0:
-                        columnIndexes[j] = pii->attrIndexArr_0;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_0];
-                        break;
-                    case 1:
-                        columnIndexes[j] = pii->attrIndexArr_1;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_1];
-                        break;
-                    case 2:
-                        columnIndexes[j] = pii->attrIndexArr_2;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_2];
-                        break;
-                    case 3:
-                        columnIndexes[j] = pii->attrIndexArr_3;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_3];
-                        break;
-                    case 4:
-                        columnIndexes[j] = pii->attrIndexArr_4;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_4];
-                        break;
-                    case 5:
-                        columnIndexes[j] = pii->attrIndexArr_5;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_5];
-                        break;
-                    case 6:
-                        columnIndexes[j] = pii->attrIndexArr_6;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_6];
-                        break;
-                    case 7:
-                        columnIndexes[j] = pii->attrIndexArr_7;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_7];
-                        break;
-                    case 8:
-                        columnIndexes[j] = pii->attrIndexArr_8;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_8];
-                        break;
-                    case 9:
-                        columnIndexes[j] = pii->attrIndexArr_9;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_9];
-                        break;
-                    case 10:
-                        columnIndexes[j] = pii->attrIndexArr_10;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_10];
-                        break;
-                }
-            }
-            return new IndexInfo(pii->handle, TableId, name, columnIndexes, columnDefs, sortOrderings);
-        }
-
         internal unsafe IndexInfo CreateIndexInfo(sccoredb.STARI_INDEX_INFO* pii) {
+            ulong token;
             string name;
             short attributeCount;
             ushort tempSortMask;
@@ -341,7 +248,8 @@ namespace Starcounter.Binding
             int[] columnIndexes;
             ColumnDef[] columnDefs;
 
-            name = sccoredb.GetStringFromToken(pii->token);
+            token = pii->token;
+            name = sccoredb.GetStringFromToken(token);
             // Get the number of attributes.
             attributeCount = pii->attributeCount;
             if (attributeCount < 1 || attributeCount > 10) {
@@ -410,7 +318,9 @@ namespace Starcounter.Binding
                         break;
                 }
             }
-            return new IndexInfo(pii->handle, TableId, name, columnIndexes, columnDefs, sortOrderings);
+            return new IndexInfo(
+                pii->handle, TableId, token, name, columnIndexes, columnDefs, sortOrderings
+                );
         }
     }
 }
