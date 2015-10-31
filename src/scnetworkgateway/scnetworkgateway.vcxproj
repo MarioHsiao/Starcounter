@@ -120,7 +120,7 @@
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -137,7 +137,7 @@
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
@@ -156,7 +156,7 @@
     <Link>
       <AdditionalLibraryDirectories>$(OutDir);c:\boost\lib</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelib.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>coalmine.lib;sccoredbg.lib;sccorelog.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
   </ItemDefinitionGroup>
