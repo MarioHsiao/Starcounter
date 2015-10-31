@@ -54,7 +54,7 @@ namespace Starcounter
                         return TableDef.ConstructTableDef(tableInfo);
                     }
                     if (r == Error.SCERRTABLENOTFOUND) return null;
-                    throw ErrorCode.ToException(sccoredb.star_get_last_error());
+                    throw ErrorCode.ToException(r);
                 }
                 return null;
             }
@@ -213,17 +213,18 @@ namespace Starcounter
                         TransactionManager.Commit(handle, 1, 1);
                         return;
                     } catch (Exception ex) {
-                        if (
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle) == 0 &&
-                            sccoredb.star_transaction_free(handle) == 0
-                            ) {
+                        uint cr = sccoredb.star_context_set_current_transaction(
+                            ThreadData.ContextHandle, handle
+                            );
+                        if (cr == 0) cr = sccoredb.star_transaction_free(handle);
+                        if (cr == 0) {
                             if (ex is ITransactionConflictException) {
                                 if (++retries <= maxRetries) continue;
                                 throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
                             }
                             throw;
                         }
-                        HandleFatalErrorInTransactionScope();
+                        HandleFatalErrorInTransactionScope(cr);
                     } finally {
                         TransactionManager.SetCurrentTransaction(currentTransaction);
                     }
@@ -494,9 +495,8 @@ namespace Starcounter
             }
         }
 
-        private static void HandleFatalErrorInTransactionScope()
+        private static void HandleFatalErrorInTransactionScope(uint e)
         {
-            uint e = sccoredb.star_get_last_error();
             ExceptionManager.HandleInternalFatalError(e);
         }
     }
