@@ -457,10 +457,15 @@ namespace Starcounter.Internal
           public ushort flags;
         };
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe uint stari_context_get_index_info_by_token(
+            ulong handle, ulong token, STARI_INDEX_INFO *pii
+            );
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern unsafe uint stari_context_get_index_infos_by_setspec(
-          ulong handle, string setspec, uint *pic, STARI_INDEX_INFO *piis
-          );
+            ulong handle, string setspec, uint *pic, STARI_INDEX_INFO *piis
+            );
 
         /// <summary>
         /// </summary>

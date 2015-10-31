@@ -223,19 +223,21 @@ namespace Starcounter.Binding
         }
 
         /// <summary>
-        /// Gets the index info.
         /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>IndexInfo.</returns>
-        internal IndexInfo GetIndexInfo(string name)
-        {
-            unsafe
-            {
-                sccoredb.SC_INDEX_INFO ii;
-                uint r = sccoredb.sccoredb_get_index_info_by_name(TableId, name, &ii);
-                if (r == 0) return CreateIndexInfo(&ii);
-                if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
-                throw ErrorCode.ToException(r);
+        internal IndexInfo GetIndexInfo(string name) {
+            unsafe {
+                // TODO EOH: Need to check that index belongs to specific table.
+                sccoredb.STARI_INDEX_INFO ii;
+                ulong token = sccoredb.GetTokenFromString(name);
+                if (token != 0) {
+                    uint r = sccoredb.stari_context_get_index_info_by_token(
+                        ThreadData.ContextHandle, token, &ii
+                        );
+                    if (r == 0) return CreateIndexInfo(&ii);
+                    if (r == Error.SCERRINDEXNOTFOUND) return null; // Index not found.
+                    throw ErrorCode.ToException(r);
+                }
+                return null;
             }
         }
 
