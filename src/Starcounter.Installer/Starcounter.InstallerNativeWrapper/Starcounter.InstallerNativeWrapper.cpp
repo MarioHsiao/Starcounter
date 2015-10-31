@@ -48,6 +48,38 @@ static bool IsNet45Installed()
 }
 
 /// <summary>
+/// Checks if CRT x64 installed.
+/// </summary>
+/// <returns>True if yes.</returns>
+static bool IsCRTx64Installed()
+{
+	const wchar_t* key_path = L"SOFTWARE\\Microsoft\\DevDiv\\VC\\Servicing\\14.0";
+	HKEY key = nullptr;
+
+	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
+	if (ERROR_SUCCESS == result)
+		return true;
+
+	return false;
+}
+
+/// <summary>
+/// Checks if CRT x86 installed.
+/// </summary>
+/// <returns>True if yes.</returns>
+static bool IsCRTx86Installed()
+{
+	const wchar_t* key_path = L"SOFTWARE\\Wow6432Node\\Microsoft\\DevDiv\\VC\\Servicing\\14.0";
+	HKEY key = nullptr;
+
+	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
+	if (ERROR_SUCCESS == result)
+		return true;
+
+	return false;
+}
+
+/// <summary>
 /// Runs specified program and waits for it.
 /// </summary>
 /// <param name="exeFilePath"></param>
@@ -325,46 +357,56 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		if (err_code)
 			goto SETUP_FAILED;
 
-        wchar_t temp_vs2015_redist_exe_path[MAX_PATH_LEN];
-        wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
-        wcscat_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, Vs2015Redistx64ResName);
-
-        // Extracting setup file.
-        if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X64_EXE, temp_vs2015_redist_exe_path)))
-        {
-            if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
-            {
-				swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x64 failed.");
-			}
-		}
-		else {
-
-			swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x64 setup failed.");
-		}
-
-		// Checking if any errors occurred.
-		if (err_code)
-			goto SETUP_FAILED;
-
-		wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
-		wcscat_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, Vs2015Redistx86ResName);
-
-		// Extracting setup file.
-		if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X86_EXE, temp_vs2015_redist_exe_path)))
+		// Checking if VS CRT is installed.
+		if (!IsCRTx64Installed() || !IsCRTx86Installed())
 		{
-			if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
+			MessageBox(
+				NULL,
+				L"Microsoft Visual Studio C-runtime is not detected on your computer. It will be installed now. Thank you for patience.",
+				L"Starcounter setup...",
+				MB_OK | MB_ICONINFORMATION);
+
+			wchar_t temp_vs2015_redist_exe_path[MAX_PATH_LEN];
+			wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
+			wcscat_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, Vs2015Redistx64ResName);
+
+			// Extracting setup file.
+			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X64_EXE, temp_vs2015_redist_exe_path)))
 			{
-				swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x86 failed.");
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
+				{
+					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x64 failed.");
+				}
 			}
-		}
-		else {
+			else {
 
-			swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x86 setup failed.");
-		}
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x64 setup failed.");
+			}
 
-		// Checking if any errors occurred.
-		if (err_code)
-			goto SETUP_FAILED;
+			// Checking if any errors occurred.
+			if (err_code)
+				goto SETUP_FAILED;
+
+			wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
+			wcscat_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, Vs2015Redistx86ResName);
+
+			// Extracting setup file.
+			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X86_EXE, temp_vs2015_redist_exe_path)))
+			{
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
+				{
+					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x86 failed.");
+				}
+			}
+			else {
+
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x86 setup failed.");
+			}
+
+			// Checking if any errors occurred.
+			if (err_code)
+				goto SETUP_FAILED;
+		}
 
         // Checking if .NET 4.5 is installed.
         if (!IsNet45Installed())
