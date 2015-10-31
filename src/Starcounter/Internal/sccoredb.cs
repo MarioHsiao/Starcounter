@@ -286,76 +286,6 @@ namespace Starcounter.Internal
             );
         
         /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal extern static uint sccoredb_get_table_info_by_name(
-	        string name,
-	        out SCCOREDB_TABLE_INFO table_info
-	        );
-
-        /// <summary>
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_COLUMN_INFO {
-            /// <summary>
-            /// </summary>
-            public char* name;
-
-            /// <summary>
-            /// </summary>
-            public ushort index;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-
-            /// <summary>
-            /// </summary>
-            public byte type;
-        };
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_get_column_info(
-	        ushort table_id,
-	        ushort index,
-	        out SCCOREDB_COLUMN_INFO column_info
-	        );
-
-        /// <summary>
-        /// Struct SC_COLUMN_DEFINITION
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct SC_COLUMN_DEFINITION
-        {
-            /// <summary>
-            /// The type
-            /// </summary>
-            public byte type;
-            /// <summary>
-            /// The is_nullable
-            /// </summary>
-            public byte is_nullable;
-
-            /// <summary>
-            /// The name
-            /// </summary>
-            public char* name;
-        }
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_create_table(
-            uint transaction_flags,
-            char *name,
-            ushort base_table_id,
-            SC_COLUMN_DEFINITION *column_definitions,
-            uint flags
-            );
-
-        /// <summary>
         /// Sc_rename_tables the specified table_id.
         /// </summary>
         /// <param name="table_id">The table_id.</param>
@@ -529,19 +459,6 @@ namespace Starcounter.Internal
             /// </summary>
             public UInt16 flags;
         };
-
-        /// <summary>
-        /// </summary>
-        /// <param name="table_id"></param>
-        /// <param name="name"></param>
-        /// <param name="pii"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public unsafe extern static uint sccoredb_get_index_info_by_name(
-            ushort table_id,
-            string name,
-            SC_INDEX_INFO* pii
-            );
 
         /// <summary>
         /// Sccoredb_get_index_infoses the specified definition_addr.
