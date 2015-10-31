@@ -294,7 +294,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 NULL,
                 L"Starcounter requires 64-bit version of operating system.",
                 L"Starcounter setup...",
-                MB_OK | MB_ICONERROR);
+                MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 
             return 0;
         }
@@ -309,7 +309,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 NULL,
                 L"Another Starcounter setup instance is already running.",
                 L"Starcounter setup...",
-                MB_OK | MB_ICONEXCLAMATION);
+                MB_OK | MB_ICONEXCLAMATION | MB_SYSTEMMODAL);
 
             return ERR_ANOTHER_SETUP_RUNNING;
         }
@@ -362,9 +362,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		{
 			MessageBox(
 				NULL,
-				L"Microsoft Visual Studio C-runtime is not detected on your computer. It will be installed now. Thank you for patience.",
+				L"Microsoft Visual Studio C-runtime is not detected on your machine. It will be installed now. Thank you for your patience.",
 				L"Starcounter setup...",
-				MB_OK | MB_ICONINFORMATION);
+				MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 
 			wchar_t temp_vs2015_redist_exe_path[MAX_PATH_LEN];
 			wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
@@ -373,7 +373,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			// Extracting setup file.
 			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X64_EXE, temp_vs2015_redist_exe_path)))
 			{
-				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
 				{
 					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x64 failed.");
 				}
@@ -393,7 +393,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			// Extracting setup file.
 			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X86_EXE, temp_vs2015_redist_exe_path)))
 			{
-				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
 				{
 					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x86 failed.");
 				}
@@ -415,7 +415,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 NULL,
                 L"Microsoft .NET Framework 4.5 is not detected on your computer. It will be installed now.",
                 L"Starcounter setup...",
-                MB_OK | MB_ICONINFORMATION);
+                MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 
             wchar_t temp_net45_exe_path[MAX_PATH_LEN];
             wcscpy_s(temp_net45_exe_path, MAX_PATH_LEN, extract_temp_dir);
@@ -486,7 +486,7 @@ SETUP_FAILED:
         NULL,
         err_str,
         L"Starcounter setup...",
-        MB_OK | MB_ICONERROR);
+        MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 
     return err_code;
 }
