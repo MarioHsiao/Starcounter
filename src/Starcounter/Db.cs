@@ -122,7 +122,7 @@ namespace Starcounter
                         if (e != 0) throw ErrorCode.ToException(e);
 
                         ushort tableId = layoutInfo.layout_handle;
-                        ulong indexToken = sccoredb.AssureTokenForString(tableDef.Name + "_Default"); // TODO EOH: Default index name?
+                        ulong indexToken = sccoredb.AssureTokenForString(tableDef.Name + "_auto"); // TODO EOH: Default index name?
 
                         short *columnIndexes = stackalloc short[2];
                         columnIndexes[0] = 0;
