@@ -373,7 +373,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			// Extracting setup file.
 			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X64_EXE, temp_vs2015_redist_exe_path)))
 			{
-				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
 				{
 					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x64 failed.");
 				}
@@ -393,7 +393,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			// Extracting setup file.
 			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X86_EXE, temp_vs2015_redist_exe_path)))
 			{
-				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /quiet /norestart", true, true, true)))
 				{
 					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x86 failed.");
 				}
