@@ -731,6 +731,29 @@ namespace Starcounter.Internal
             ulong handle, ulong record_id, ulong record_ref, int column_index, ulong value
             );
 
+        internal const int DELETE_PENDING = 1;
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe int star_context_get_trans_flags(
+          ulong handle, ulong record_id, ulong record_ref
+          );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern int star_context_set_trans_flags(
+            ulong handle, ulong record_id, ulong record_ref, int flags
+            );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern int star_context_reset_trans_flags(
+            ulong handle, ulong record_id, ulong record_ref, int flags
+            );
+
 #if true // TODO EOH: Flags obsolete. Replace with new one. Make sure used correctly.
         /// <summary>
         /// </summary>
