@@ -95,26 +95,36 @@ namespace Starcounter
                     inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                sccoredb.STARI_COLUMN_DEFINITION[] column_definitions = new sccoredb.STARI_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
-                Debug.Assert(column_definitions.Length > 0);
+                SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[] column_defs =
+                    new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[columns.Length - implicitColumnCount + 1];
+                //sccoredb.STARI_COLUMN_DEFINITION[] column_definitions = new sccoredb.STARI_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
+                Debug.Assert(column_defs.Length > 0);
+    
                 try
                 {
-                    for (int cc = column_definitions.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++)
+                    for (int cc = column_defs.Length - 1, ci = implicitColumnCount, di = 0; di < cc; ci++, di++)
                     {
-                        column_definitions[di].token = sccoredb.AssureTokenForString(columns[ci].Name);
-                        column_definitions[di].type = columns[ci].Type;
-                        column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
+                        column_defs[di].name = (char*)Marshal.StringToCoTaskMemUni(columns[ci].Name);
+                        column_defs[di].primitive_type = columns[ci].Type;
+                        column_defs[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
+                        //column_definitions[di].token = sccoredb.AssureTokenForString(columns[ci].Name);
+                        //column_definitions[di].type = columns[ci].Type;
+                        //column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
-                    ulong token = sccoredb.AssureTokenForString(tableDef.Name);
+                    //ulong token = sccoredb.AssureTokenForString(tableDef.Name);
                     Db.Transact(() => {
-                        fixed (sccoredb.STARI_COLUMN_DEFINITION* fixed_column_definitions = column_definitions)
+                        fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
                         {
-                            uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
+                            ushort layou_id;
+                            uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
+                                tableDef.Name, tableDef.BaseName, fixed_column_defs, &layou_id);
+                            //uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
                             if (e != 0) throw ErrorCode.ToException(e);
                         }
                     });
 
                     // TODO EOH: Same transaction. Handle errors (comes pretty automatically if same transaction).
+#if false // TODO RUS: create index with metadata
                     Db.Transact(() => {
                         uint e;
                         sccoredb.STARI_LAYOUT_INFO layoutInfo;
@@ -133,6 +143,7 @@ namespace Starcounter
                             );
                         if (e != 0) throw ErrorCode.ToException(e);
                     });
+#endif
                 }
                 finally { }
             }

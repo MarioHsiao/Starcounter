@@ -25,8 +25,8 @@ namespace QueryProcessingTest {
                 HelpMethods.LogEvent("Finished test query preparation performance.");
                 TestErrorMessages.RunTestErrorMessages();
                 NamespacesTest.TestClassesNamespaces();
-                WebVisitTests.TestVisits();
 #if false // TODO EOH:
+                WebVisitTests.TestVisits();
                 InsertIntoTests.TestValuesInsertIntoWebVisits();
 #endif
                 PopulateData();

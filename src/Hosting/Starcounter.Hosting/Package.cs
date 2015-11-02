@@ -412,7 +412,7 @@ namespace Starcounter.Hosting {
                     // the installed host manager on first use (via an emitted call
                     // in the static class constructor). For system classes, we
                     // have to do this by hand.
-                    if (unregisteredTypeDefs[0].TableDef.Name == "materialized_table") {
+                    if (unregisteredTypeDefs[0].TableDef.Name == "Starcounter.Metadata.Type") {
                         InitTypeSpecifications();
                         OnTypeSpecificationsInitialized();
                     }
@@ -425,10 +425,10 @@ namespace Starcounter.Hosting {
         }
 
         private void InitTypeSpecifications() {
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedTable.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedColumn.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndex.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndexColumn.__starcounterTypeSpecification));
+            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedTable.__starcounterTypeSpecification));
+            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedColumn.__starcounterTypeSpecification));
+            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndex.__starcounterTypeSpecification));
+            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndexColumn.__starcounterTypeSpecification));
 
             HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
             HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.DbPrimitiveType.__starcounterTypeSpecification));

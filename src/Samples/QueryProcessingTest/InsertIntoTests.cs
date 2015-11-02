@@ -7,7 +7,7 @@ namespace QueryProcessingTest {
         public static void TestValuesInsertIntoWebVisits() {
             HelpMethods.LogEvent("Test insert into statements with values on web visit data model");
 //            UInt64 vId = (UInt64)Int64.MaxValue + 1;
-#if true
+#if false
             // Find a record key that isn't in use.
             //
             // We need to do this before deletes since otherwise the key could
@@ -17,7 +17,6 @@ namespace QueryProcessingTest {
             Db.Transact(delegate {
                 while (DbHelper.FromID(vId) != null) vId += 1000000;
             });
-#endif
             Db.Transact(delegate {
                 if (Db.SQL("select c from company c").First != null) {
                     WebPage w1 = Db.SQL<WebPage>("select w from webpage w where title = ?", "MyCompany, AboutUs").First;
@@ -199,6 +198,7 @@ namespace QueryProcessingTest {
             foreach (Company cc in Db.SQL<Company>("select c from company c where c.Country.name = ?", "Unknown"))
                 nrUnknCOmpA++;
             Trace.Assert(nrUnknCOmp + 2 == nrUnknCOmpA);
+#endif
             HelpMethods.LogEvent("Finished testing insert into statements with values on web visit data model");
         }
     }

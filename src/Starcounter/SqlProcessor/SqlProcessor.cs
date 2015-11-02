@@ -27,6 +27,22 @@ namespace Starcounter.SqlProcessor {
         private static unsafe extern uint star_get_token_name(ulong context_handle, ulong token_id,
             char** label);
 
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        internal unsafe struct STAR_COLUMN_DEFINITION_HIGH {
+            public byte primitive_type;
+            public char* type_name; // Always null if primitive type is not reference
+            public byte is_nullable;
+            public char* name;
+        };
+
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_create_table_high(ulong context,
+            string name,
+            string base_table_name,
+            SqlProcessor.STAR_COLUMN_DEFINITION_HIGH *column_definitions,
+			ushort* layout_id);
+
+
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
             if (err == 0)
