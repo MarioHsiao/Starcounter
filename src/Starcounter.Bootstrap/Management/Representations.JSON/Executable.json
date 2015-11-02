@@ -8,5 +8,6 @@
 	"Arguments": [{"dummy":""}],
     "ResourceDirectories": [{"dummy":""}],
 	"WorkingDirectory": "", // "C:\path\to\default\resource\directory",
-	"RunEntrypointAsynchronous":true
+    "RunEntrypointAsynchronous": false,
+    "TransactEntrypoint":  false
 }
