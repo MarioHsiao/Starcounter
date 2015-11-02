@@ -144,6 +144,14 @@ namespace Starcounter.CLI {
             /// executable to return.
             /// </summary>
             public const string Async = "async";
+
+            /// <summary>
+            /// Gets the option name of the parameter that specifies the
+            /// starting applications entrypoint should run in a write
+            /// transactions, as opposed to a readonly transaction, which
+            /// is the default.
+            /// </summary>
+            public const string TransactMain = "transact";
         }
 
         /// <summary>
