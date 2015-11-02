@@ -22,7 +22,7 @@ namespace Starcounter.Binding
         /// <summary>
         /// </summary>
         internal unsafe static TableDef ConstructTableDef(sccoredb.STARI_LAYOUT_INFO tableInfo) {
-            string name = sccoredb.GetStringFromToken(tableInfo.token);
+            string name = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
             ushort tableId = tableInfo.layout_handle;
             uint columnCount = tableInfo.column_count;
             string baseName = null;
@@ -31,7 +31,7 @@ namespace Starcounter.Binding
             if (tableInfo.inherited_layout_handle != 0) {
                 var r = sccoredb.stari_context_get_layout_info(ThreadData.ContextHandle, tableInfo.inherited_layout_handle, out tableInfo);
                 if (r == 0) {
-                    baseName = sccoredb.GetStringFromToken(tableInfo.token);
+                    baseName = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
                     inheritedColumnCount = tableInfo.column_count;
                 }
                 else {
@@ -45,7 +45,7 @@ namespace Starcounter.Binding
                 var r = sccoredb.stari_context_get_column_info(ThreadData.ContextHandle, tableId, i, out columnInfo);
                 if (r == 0) {
                     columns[i] = new ColumnDef(
-                        sccoredb.GetStringFromToken(columnInfo.token),
+                        SqlProcessor.SqlProcessor.GetNameFromToken(columnInfo.token),
                         columnInfo.type,
                         columnInfo.nullable != 0,
                         i < inheritedColumnCount
@@ -339,7 +339,7 @@ namespace Starcounter.Binding
             int[] columnIndexes;
             ColumnDef[] columnDefs;
 
-            name = sccoredb.GetStringFromToken(pii->token);
+            name = Starcounter.SqlProcessor.SqlProcessor.GetNameFromToken(pii->token);
             // Get the number of attributes.
             attributeCount = pii->attributeCount;
             if (attributeCount < 1 || attributeCount > 10) {

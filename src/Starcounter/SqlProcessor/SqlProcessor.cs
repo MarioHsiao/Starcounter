@@ -23,6 +23,9 @@ namespace Starcounter.SqlProcessor {
         private static extern uint scsql_clean_clrclass();
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_get_token(ulong context_handle, string spelling, ulong* token_id);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private static unsafe extern uint star_get_token_name(ulong context_handle, ulong token_id,
+            char** label);
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -69,8 +72,17 @@ namespace Starcounter.SqlProcessor {
             ulong token;
             uint err = star_get_token(ThreadData.ContextHandle, Name, &token);
             if (err != 0)
-                throw ErrorCode.ToException(err);
+                return 0;
+            Debug.Assert(token != 0);
             return token;
+        }
+
+        public static unsafe string GetNameFromToken(ulong Token) {
+            char* name;
+            uint err = star_get_token_name(ThreadData.ContextHandle, Token, &name);
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+            return new String(name);
         }
 
         /// <summary>

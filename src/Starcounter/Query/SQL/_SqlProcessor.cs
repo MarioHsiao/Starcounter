@@ -374,7 +374,7 @@ internal static class SqlProcessor
             UInt32 errorCode;
             unsafe
             {
-                var token = sccoredb.GetTokenFromString(indexName);
+                var token = Starcounter.SqlProcessor.SqlProcessor.GetTokenFromName(indexName);
                 if (token != 0) {
                     errorCode = sccoredb.stari_context_drop_index(ThreadData.ContextHandle, token);
                 }
