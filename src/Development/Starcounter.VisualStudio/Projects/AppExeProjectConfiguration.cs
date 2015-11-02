@@ -291,6 +291,7 @@ namespace Starcounter.VisualStudio.Projects {
 
             exe.WorkingDirectory = debugConfig.WorkingDirectory;
             exe.StartedBy = ClientContext.GetCurrentContextInfo();
+            exe.TransactEntrypoint = args.ContainsFlag(Option.TransactMain);
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;
             }
