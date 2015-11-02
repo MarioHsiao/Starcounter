@@ -520,9 +520,14 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
+            var transactMain = true;
+
             // No need to keep track of this transaction. It will be cleaned up later.
-            if (Db.Environment.HasDatabase)
-                TransactionManager.CreateImplicitAndSetCurrent(true);
+            TransactionHandle th = TransactionHandle.Invalid;
+            if (Db.Environment.HasDatabase) {
+                var readOnly = !transactMain;
+                th = TransactionManager.CreateImplicitAndSetCurrent(readOnly);
+            }
 
             var entrypoint = assembly_.EntryPoint;
 
@@ -532,6 +537,9 @@ namespace Starcounter.Hosting {
                 } else {
                     var arguments = application.Arguments ?? new string[0];
                     entrypoint.Invoke(null, new object[] { arguments });
+                }
+                if (transactMain && th != TransactionHandle.Invalid) {
+                    new Transaction(th).Commit();
                 }
 
             } catch (TargetInvocationException te) {
