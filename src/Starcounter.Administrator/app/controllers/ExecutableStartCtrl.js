@@ -99,6 +99,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', '$
             "ResourceDirectories": [],
             "WorkingDirectory": null,
             "AsyncEntrypoint": false,
+            "TransactEntrypoint": false,
             "StartedBy": "Starcounter Administrator",
             "Engine": { "Uri": "" },
             "RuntimeInfo": {

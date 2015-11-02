@@ -34,7 +34,8 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var cmd = new StartExecutableCommand(engine, name, exe.ToApplicationInfo()) {
                 EnableWaiting = !async,
-                RunEntrypointAsynchronous = exe.AsyncEntrypoint
+                RunEntrypointAsynchronous = exe.AsyncEntrypoint,
+                TransactEntrypoint = exe.TransactEntrypoint
             };
 
             var commandInfo = runtime.Execute(cmd);
@@ -109,6 +110,7 @@ namespace Starcounter.Administrator.API.Handlers {
             }
 
             exeCreated.AsyncEntrypoint = exe.AsyncEntrypoint;
+            exeCreated.TransactEntrypoint = exe.TransactEntrypoint;
             headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
