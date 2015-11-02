@@ -9,11 +9,13 @@ This Starcounter is a fused ACID memory centric database engine and C# VM.
 This repository is reserved for the public Starcounter bits.
 
 # Download installer
-* [Windows](http://downloads.starcounter.com/download/Starcounter/StableBuilds/latest)
+* [Windows](http://downloads.starcounter.com/download/Starcounter/Stable/latest)
 
 # More information
 
-* [Wiki](http://www.github.com/starcounter/starcounter/wiki) 
+* [Report an issue](https://github.com/Starcounter/Starcounter/issues/new)
+* [Ask a question](https://github.com/Starcounter/Starcounter/issues/new)
+* [Read the docs](http://starcounter.io/docs/) 
 * [Starcounter home page](http://www.starcounter.com) 
 * [Contributors home page](http://starcounter.github.com) 
 
