@@ -42,6 +42,10 @@ namespace Starcounter.SqlProcessor {
             SqlProcessor.STAR_COLUMN_DEFINITION_HIGH *column_definitions,
 			ushort* layout_id);
 
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private static unsafe extern uint star_assure_token(ulong context_handle,
+            string label, ulong* token_id);
+
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
@@ -99,6 +103,14 @@ namespace Starcounter.SqlProcessor {
             if (err != 0)
                 throw ErrorCode.ToException(err);
             return new String(name);
+        }
+
+        public static unsafe ulong AssureToken(string Name) {
+            ulong token;
+            uint err = star_assure_token(ThreadData.ContextHandle, Name, &token);
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+            return token;
         }
 
         /// <summary>

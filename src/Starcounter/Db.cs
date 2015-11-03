@@ -124,15 +124,16 @@ namespace Starcounter
                     });
 
                     // TODO EOH: Same transaction. Handle errors (comes pretty automatically if same transaction).
-#if false // TODO RUS: create index with metadata
+#if true // TODO RUS: create index with metadata
                     Db.Transact(() => {
                         uint e;
                         sccoredb.STARI_LAYOUT_INFO layoutInfo;
+                        ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(tableDef.Name);
                         e = sccoredb.stari_context_get_layout_info_by_token(ThreadData.ContextHandle, token, out layoutInfo);
                         if (e != 0) throw ErrorCode.ToException(e);
 
                         ushort tableId = layoutInfo.layout_handle;
-                        ulong indexToken = sccoredb.AssureTokenForString(tableDef.Name + "_Default"); // TODO EOH: Default index name?
+                        ulong indexToken = SqlProcessor.SqlProcessor.AssureToken(tableDef.Name + "_Default"); // TODO EOH: Default index name?
 
                         short *columnIndexes = stackalloc short[2];
                         columnIndexes[0] = 0;
