@@ -1,4 +1,6 @@
 ﻿using Administrator.Server.Managers;
+using Administrator.Server.Model;
+using Starcounter.Internal;
 using Starcounter.Logging;
 using Starcounter.Server;
 using Starcounter.Server.PublicModel;
@@ -78,6 +80,43 @@ namespace Starcounter.Administrator.Server.Handlers {
             StarcounterAdminAPI.CollationFiles_GET(port, server);
 
             StarcounterAdminAPI.ServerLog_GET(port);
+            StarcounterAdminAPI.Redirects();
+        }
+
+        /// <summary>
+        /// Register redirect
+        /// </summary>
+        static void Redirects() {
+
+            Handle.GET("/sql", (Request req) => {
+
+                if (ServerManager.ServerInstance.Databases.Count == 0) {
+                    // No databases available
+                    return System.Net.HttpStatusCode.NotFound;
+                }
+
+                // Get 'default' database or first one found.
+                Database database = ServerManager.ServerInstance.GetDatabase(StarcounterConstants.DefaultDatabaseName);
+                if (database == null) {
+                    // No 'default' database, then pick the first one in the list.
+                    database = ServerManager.ServerInstance.Databases[0];
+                }
+
+                return Self.GET(req.Uri + "/" + database.ID);
+            });
+
+            Handle.GET("/sql/{?}", (string databaseName, Request req) => {
+
+                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                if (database == null) {
+                    return System.Net.HttpStatusCode.NotFound;
+                }
+
+                Response response = new Response();
+                response["location"] = "/#/databases/" + database.ID + "/sql";
+                response.StatusCode = (ushort)System.Net.HttpStatusCode.TemporaryRedirect;
+                return response;
+            });
         }
     }
 }
