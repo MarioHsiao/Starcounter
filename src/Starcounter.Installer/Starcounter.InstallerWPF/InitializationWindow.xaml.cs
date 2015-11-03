@@ -627,8 +627,6 @@ namespace Starcounter.InstallerWPF {
             "sccorelib.dll",
             "sccorelog.dll",
             "server.dll",
-            "msvcp110.dll",
-            "msvcr110.dll"
         };
 
         // PID of the parent process.
