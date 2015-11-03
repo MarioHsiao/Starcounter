@@ -3604,7 +3604,10 @@
     <code hex="0051" severity="Error" name="ScErrColumnHasNoProperty">
       <message>The column is not exposed with a property, it can not be accessed.</message>
     </code>
- </facility>
+    <code hex="0052" severity="Error" name="ScErrUnexpectedConnectTimeout">
+      <message>Unexpected connect timeout.</message>
+    </code>
+  </facility>
 
   <!-- Error codes related to query processing. -->
   <facility name="Sql" hex="0007">
