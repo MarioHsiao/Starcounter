@@ -430,7 +430,7 @@ namespace SQLTest.EmployeeDb
             Db.SlowSQL("drop index SalaryEmployee_NSalarySByte on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_LastName on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_SalaryUInt16 on SqlTest.EmployeeDb.SalaryEmployee");
-            Db.SlowSQL("drop index SalaryEmployee_nsalaryUInt16 on SqlTest.EmployeeDb.SalaryEmployee");
+            Db.SlowSQL("drop index SalaryEmployee_NSalaryUInt16 on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_SalaryUInt32 on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_NSalaryUInt32 on SqlTest.EmployeeDb.SalaryEmployee");
             Db.SlowSQL("drop index SalaryEmployee_SalaryUInt64 on SqlTest.EmployeeDb.SalaryEmployee");

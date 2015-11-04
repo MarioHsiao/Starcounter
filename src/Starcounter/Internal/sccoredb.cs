@@ -120,19 +120,6 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_get_last_error(char **padditional_error_infomation);
-
-        /// <summary>
-        /// </summary>
-        public static uint star_get_last_error() {
-            unsafe {
-                return star_get_last_error((char **)0);
-            }
-        }
-
-        /// <summary>
-        /// </summary>
         public delegate void ON_INDEX_UPDATED(uint context_index, ulong generation);
 
         /// <summary>
@@ -165,11 +152,6 @@ namespace Starcounter.Internal
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern unsafe uint star_get_context(uint context_index, ulong* pcontext_handle);
-
-        /// <summary>
-        /// The MD b_ ATTRFLA g_ NULLABLE
-        /// </summary>
-        public const ushort MDB_ATTRFLAG_NULLABLE = 0x0040;
 
         /// <summary>
         /// </summary>
@@ -299,76 +281,6 @@ namespace Starcounter.Internal
             );
         
         /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal extern static uint sccoredb_get_table_info_by_name(
-	        string name,
-	        out SCCOREDB_TABLE_INFO table_info
-	        );
-
-        /// <summary>
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_COLUMN_INFO {
-            /// <summary>
-            /// </summary>
-            public char* name;
-
-            /// <summary>
-            /// </summary>
-            public ushort index;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-
-            /// <summary>
-            /// </summary>
-            public byte type;
-        };
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_get_column_info(
-	        ushort table_id,
-	        ushort index,
-	        out SCCOREDB_COLUMN_INFO column_info
-	        );
-
-        /// <summary>
-        /// Struct SC_COLUMN_DEFINITION
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        public unsafe struct SC_COLUMN_DEFINITION
-        {
-            /// <summary>
-            /// The type
-            /// </summary>
-            public byte type;
-            /// <summary>
-            /// The is_nullable
-            /// </summary>
-            public byte is_nullable;
-
-            /// <summary>
-            /// The name
-            /// </summary>
-            public char* name;
-        }
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_create_table(
-            uint transaction_flags,
-            char *name,
-            ushort base_table_id,
-            SC_COLUMN_DEFINITION *column_definitions,
-            uint flags
-            );
-
-        /// <summary>
         /// Sc_rename_tables the specified table_id.
         /// </summary>
         /// <param name="table_id">The table_id.</param>
@@ -457,10 +369,15 @@ namespace Starcounter.Internal
           public ushort flags;
         };
 
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe uint stari_context_get_index_info_by_token(
+            ulong handle, ulong token, STARI_INDEX_INFO *pii
+            );
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern unsafe uint stari_context_get_index_infos_by_setspec(
-          ulong handle, string setspec, uint *pic, STARI_INDEX_INFO *piis
-          );
+            ulong handle, string setspec, uint *pic, STARI_INDEX_INFO *piis
+            );
 
         /// <summary>
         /// </summary>
@@ -537,19 +454,6 @@ namespace Starcounter.Internal
             /// </summary>
             public UInt16 flags;
         };
-
-        /// <summary>
-        /// </summary>
-        /// <param name="table_id"></param>
-        /// <param name="name"></param>
-        /// <param name="pii"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public unsafe extern static uint sccoredb_get_index_info_by_name(
-            ushort table_id,
-            string name,
-            SC_INDEX_INFO* pii
-            );
 
         /// <summary>
         /// Sccoredb_get_index_infoses the specified definition_addr.
@@ -629,42 +533,6 @@ namespace Starcounter.Internal
         public static extern uint star_transaction_commit(ulong handle, int free);
 
         /// <summary>
-        /// Sccoredb_begin_commits the specified tran_locked_on_thread.
-        /// </summary>
-        /// <param name="tran_locked_on_thread">The tran_locked_on_thread.</param>
-        /// <param name="hiter">The hiter.</param>
-        /// <param name="viter">The viter.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_begin_commit(
-            int tran_locked_on_thread,
-            out ulong hiter,
-            out ulong viter
-            );
-
-        /// <summary>
-        /// Sccoredb_complete_commits the specified tran_locked_on_thread.
-        /// </summary>
-        /// <param name="tran_locked_on_thread">The tran_locked_on_thread.</param>
-        /// <param name="detach_and_free">The detach_and_free.</param>
-        /// <param name="flags">flags.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_complete_commit(
-            int tran_locked_on_thread, int detach_and_free
-            );
-
-        /// <summary>
-        /// Sccoredb_abort_commits the specified tran_locked_on_thread.
-        /// </summary>
-        /// <param name="tran_locked_on_thread">The tran_locked_on_thread.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_abort_commit(
-            int tran_locked_on_thread
-            );
-
-        /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_rollback();
@@ -717,15 +585,6 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static uint sccoredb_insert(
-            ushort table_id,
-            ulong* pnew_oid,
-            ulong* pnew_addr
-            );
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal unsafe extern static uint star_insert_system(
             ushort table_id,
             ulong* pnew_oid,
@@ -747,37 +606,10 @@ namespace Starcounter.Internal
         public extern static uint SCObjectFakeWrite(ulong record_id, ulong record_addr);
 
         /// <summary>
-        /// The MDB_ data value flag_ null
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_Null = 0x0001;
-
-        /// <summary>
-        /// The MDB_ data value flag_ error
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_Error = 0x1000;
-
-        /// <summary>
-        /// The MDB_ data value flag_ would block
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_WouldBlock = 0x2000;
-
-        /// <summary>
-        /// The MDB_ data value flag_ exceptional
-        /// </summary>
-        public const ushort Mdb_DataValueFlag_Exceptional = Mdb_DataValueFlag_Error;
-
-        /// <summary>
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
-        /// <param name="hTrans">Transaction handle.</param>
-        /// <param name="verify">Transaction handle.</param>
-        /// <param name="pValue">True if there are any changes.</param>
-        /// <returns>Error code.</returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 Mdb_TransactionIsReadWrite(
-            UInt64 hTrans,
-            UInt64 verify,
-            Int32* pValue);
+        internal static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
 
         /// <summary>
         /// </summary>
@@ -897,6 +729,29 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_context_put_ulong(
             ulong handle, ulong record_id, ulong record_ref, int column_index, ulong value
+            );
+
+        internal const int DELETE_PENDING = 1;
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe int star_context_get_trans_flags(
+          ulong handle, ulong record_id, ulong record_ref
+          );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern int star_context_set_trans_flags(
+            ulong handle, ulong record_id, ulong record_ref, int flags
+            );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern int star_context_reset_trans_flags(
+            ulong handle, ulong record_id, ulong record_ref, int flags
             );
 
 #if true // TODO EOH: Flags obsolete. Replace with new one. Make sure used correctly.
@@ -1024,16 +879,6 @@ namespace Starcounter.Internal
           ulong handle, ulong index_handle, ulong record_id, ulong record_ref, byte** precreate_key
           );
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sc_recreate_iterator(
-            UInt64 hindex,
-            UInt32 flags,
-            Byte* recreate_key,
-            Byte* last_key,
-            UInt64* ph,
-            UInt64* pv
-            );
-
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
@@ -1051,31 +896,6 @@ namespace Starcounter.Internal
             ulong *piterator_handle
             );
 
-#if false
-        /// <summary>
-        /// Sccoredb_iterator_get_local_times the specified iter_handle.
-        /// </summary>
-        /// <param name="iter_handle">The iter_handle.</param>
-        /// <param name="iter_verify">The iter_verify.</param>
-        /// <param name="plocal_time">The plocal_time.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 sccoredb_iterator_get_local_time(
-            UInt64 iter_handle,
-            UInt64 iter_verify,
-            UInt32* plocal_time
-            );
-
-        /// <summary>
-        /// </summary>
-        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 filter_iterator_get_local_time(
-            UInt64 iter_handle,
-            UInt64 iter_verify,
-            UInt32* plocal_time
-            );
-#endif
-
         /// <summary>
         /// SCs the iterator free.
         /// </summary>
@@ -1088,12 +908,6 @@ namespace Starcounter.Internal
             UInt64 v
         );
         
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 SCIteratorFreeAnyThread(
-            UInt64 h,
-            UInt64 v
-        );
-
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]

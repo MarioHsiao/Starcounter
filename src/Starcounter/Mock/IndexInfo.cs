@@ -16,12 +16,16 @@ namespace Starcounter.Binding
     {
         private UInt64 _handle;
         private UInt64 _tableId;
+        private ulong _token;
         private String _name;
         private int[] _columnIndexes;
         private ColumnDef[] _columnDefs;
         private SortOrder[] _sortOrderings;
 
-        internal IndexInfo(UInt64 handle, UInt64 tableid, String name, int[] columnIndexes, ColumnDef[] columnDefs, SortOrder[] sortOrderings)
+        internal IndexInfo(
+            UInt64 handle, UInt64 tableid, ulong token, String name, int[] columnIndexes,
+            ColumnDef[] columnDefs, SortOrder[] sortOrderings
+            )
         {
 #if false
             if (columnDefs.Length != sortOrderings.Length)
@@ -31,14 +35,17 @@ namespace Starcounter.Binding
 #endif
             _handle = handle;
             _tableId = tableid;
+            _token = token;
             _name = name;
             _columnIndexes = columnIndexes;
             _columnDefs = columnDefs;
             _sortOrderings = sortOrderings;
         }
 
-        internal IndexInfo(IndexInfo indexInfo) :
-            this(indexInfo._handle, indexInfo._tableId, indexInfo._name, indexInfo._columnIndexes, indexInfo._columnDefs, indexInfo._sortOrderings) { }
+        internal IndexInfo(IndexInfo indexInfo) : this(
+            indexInfo._handle, indexInfo._tableId, indexInfo._token, indexInfo._name,
+            indexInfo._columnIndexes, indexInfo._columnDefs, indexInfo._sortOrderings
+            ) { }
 
         /// <summary>
         /// Index handle. Used to access the index.
@@ -76,6 +83,10 @@ namespace Starcounter.Binding
                 return _name;
             }
         }
+
+        /// <summary>
+        /// </summary>
+        internal ulong Token { get { return _token; } }
 
         /// <summary>
         /// The number of attributes (paths) in the (combined) index.

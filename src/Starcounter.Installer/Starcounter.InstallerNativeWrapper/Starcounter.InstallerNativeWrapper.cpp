@@ -10,6 +10,8 @@
 const int32_t MAX_PATH_LEN = 1024;
 
 const wchar_t* Net45ResName = L"\\dotnetfx45_full_x86_x64.exe";
+const wchar_t* Vs2015Redistx64ResName = L"\\vc_redist.x64.exe";
+const wchar_t* Vs2015Redistx86ResName = L"\\vc_redist.x86.exe";
 const wchar_t* ScSetupExtractName = L"\\Starcounter-Setup.exe";
 const wchar_t* ScServiceName = L"\\scservice.exe";
 const wchar_t* ScPersonalServerXmlName = L"\\personal.xml";
@@ -43,6 +45,38 @@ static bool IsNet45Installed()
         return true;
 
     return false;
+}
+
+/// <summary>
+/// Checks if CRT x64 installed.
+/// </summary>
+/// <returns>True if yes.</returns>
+static bool IsCRTx64Installed()
+{
+	const wchar_t* key_path = L"SOFTWARE\\Microsoft\\DevDiv\\VC\\Servicing\\14.0";
+	HKEY key = nullptr;
+
+	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
+	if (ERROR_SUCCESS == result)
+		return true;
+
+	return false;
+}
+
+/// <summary>
+/// Checks if CRT x86 installed.
+/// </summary>
+/// <returns>True if yes.</returns>
+static bool IsCRTx86Installed()
+{
+	const wchar_t* key_path = L"SOFTWARE\\Wow6432Node\\Microsoft\\DevDiv\\VC\\Servicing\\14.0";
+	HKEY key = nullptr;
+
+	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
+	if (ERROR_SUCCESS == result)
+		return true;
+
+	return false;
 }
 
 /// <summary>
@@ -246,6 +280,9 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         is_elevated = true;
 
     int32_t err_code = 0;
+	const int32_t k_err_message_max_len = 1024;
+	wchar_t err_message[k_err_message_max_len];
+	swprintf_s(err_message, k_err_message_max_len, L"No specific reason.");
 
     // Simply exiting if another setup is running.
     if (!is_elevated)
@@ -257,7 +294,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 NULL,
                 L"Starcounter requires 64-bit version of operating system.",
                 L"Starcounter setup...",
-                MB_OK | MB_ICONERROR);
+                MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 
             return 0;
         }
@@ -272,7 +309,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 NULL,
                 L"Another Starcounter setup instance is already running.",
                 L"Starcounter setup...",
-                MB_OK | MB_ICONEXCLAMATION);
+                MB_OK | MB_ICONEXCLAMATION | MB_SYSTEMMODAL);
 
             return ERR_ANOTHER_SETUP_RUNNING;
         }
@@ -308,9 +345,68 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         // Creating TEMP extract directory.
         if (!CreateDirectory(extract_temp_dir, NULL))
         {
-            if (ERROR_ALREADY_EXISTS != GetLastError())
-                return ERR_CANT_CREATE_TEMP_DIR;
+			if (ERROR_ALREADY_EXISTS != GetLastError()) {
+
+				swprintf_s(err_message, k_err_message_max_len, L"Can't create extraction temp directory.");
+
+				err_code = ERR_CANT_CREATE_TEMP_DIR;
+			}
         }
+
+		// Checking if any errors occurred.
+		if (err_code)
+			goto SETUP_FAILED;
+
+		// Checking if VS CRT is installed.
+		if (!IsCRTx64Installed() || !IsCRTx86Installed())
+		{
+			MessageBox(
+				NULL,
+				L"Microsoft Visual Studio C-runtime is not detected on your machine. It will be installed now. Thank you for your patience.",
+				L"Starcounter setup...",
+				MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
+
+			wchar_t temp_vs2015_redist_exe_path[MAX_PATH_LEN];
+			wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
+			wcscat_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, Vs2015Redistx64ResName);
+
+			// Extracting setup file.
+			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X64_EXE, temp_vs2015_redist_exe_path)))
+			{
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
+				{
+					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x64 failed.");
+				}
+			}
+			else {
+
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x64 setup failed.");
+			}
+
+			// Checking if any errors occurred.
+			if (err_code)
+				goto SETUP_FAILED;
+
+			wcscpy_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, extract_temp_dir);
+			wcscat_s(temp_vs2015_redist_exe_path, MAX_PATH_LEN, Vs2015Redistx86ResName);
+
+			// Extracting setup file.
+			if (0 == (err_code = ExtractResourceToFile(IDR_VCREDIST_X86_EXE, temp_vs2015_redist_exe_path)))
+			{
+				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
+				{
+					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x86 failed.");
+				}
+			}
+			else {
+
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x86 setup failed.");
+			}
+
+			// Checking if any errors occurred.
+			if (err_code)
+				goto SETUP_FAILED;
+		}
 
         // Checking if .NET 4.5 is installed.
         if (!IsNet45Installed())
@@ -319,22 +415,34 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
                 NULL,
                 L"Microsoft .NET Framework 4.5 is not detected on your computer. It will be installed now.",
                 L"Starcounter setup...",
-                MB_OK | MB_ICONINFORMATION);
+                MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 
             wchar_t temp_net45_exe_path[MAX_PATH_LEN];
             wcscpy_s(temp_net45_exe_path, MAX_PATH_LEN, extract_temp_dir);
             wcscat_s(temp_net45_exe_path, MAX_PATH_LEN, Net45ResName);
 
-            // Extracting .NET 4.5 setup file.
-            if (0 == (err_code = ExtractResourceToFile(IDR_EXE2, temp_net45_exe_path)))
+            // Extracting setup file.
+            if (0 == (err_code = ExtractResourceToFile(IDR_DOTNETSETUP_EXE, temp_net45_exe_path)))
             {
                 if (0 == (err_code = RunAndWaitForProgram(temp_net45_exe_path, L"", true, true, true)))
                 {
                     // Double checking that now .NET version has really installed.
-                    if (!IsNet45Installed())
-                        err_code = ERR_CANT_INSTALL_DOTNET;
+					if (!IsNet45Installed()) {
+
+						swprintf_s(err_message, k_err_message_max_len, L"Microsoft .NET Framework 4.5 seems not to be installed properly.");
+
+						err_code = ERR_CANT_INSTALL_DOTNET;
+					}
                 }
-            }
+				else {
+
+					swprintf_s(err_message, k_err_message_max_len, L"Microsoft .NET Framework 4.5 produced errors during installation.");
+				}
+			}
+			else {
+
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Microsoft .NET Framework 4.5 setup failed.");
+			}
         }
 
         // Checking if any errors occurred.
@@ -347,7 +455,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
         wcscat_s(temp_setup_exe_path, MAX_PATH_LEN, ScSetupExtractName);
 
         // Extracting installer and starting it.
-        if (0 == (err_code = ExtractResourceToFile(IDR_EXE1, temp_setup_exe_path)))
+        if (0 == (err_code = ExtractResourceToFile(IDR_STARCOUNTER_SETUP_EXE, temp_setup_exe_path)))
         {
             // Skipping waiting for installer, just quiting.
             if (0 == (err_code = RunAndWaitForProgram(temp_setup_exe_path, L"DontCheckOtherInstances", true, true, true)))
@@ -360,19 +468,25 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 
                 return 0;
             }
-        }
+			else {
+				swprintf_s(err_message, k_err_message_max_len, L"Internal Starcounter setup failed.");
+			}
+		}
+		else {
+			swprintf_s(err_message, k_err_message_max_len, L"Extraction of Starcounter setup failed.");
+		}
     }
 
 SETUP_FAILED:
 
-    wchar_t err_str[256];
-    swprintf_s(err_str, 256, L"Starcounter setup failed. Returned error code: %d", err_code);
+    wchar_t err_str[2048];
+    swprintf_s(err_str, 2048, L"Starcounter setup failed. Returned error code: %d. Error message: %s", err_code, err_message);
 
     MessageBox(
         NULL,
         err_str,
         L"Starcounter setup...",
-        MB_OK | MB_ICONERROR);
+        MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
 
     return err_code;
 }

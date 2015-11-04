@@ -4,7 +4,7 @@
 namespace starcounter {
 namespace network {
 
-#ifdef GW_DEV_DEBUG
+#ifdef GW_TRACK_ALLOCATIONS
 int64_t g_NumAllocationsCounter = 0;
 int64_t g_NumAlignedAllocationsCounter = 0;
 #endif

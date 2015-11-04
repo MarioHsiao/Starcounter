@@ -54,7 +54,7 @@ namespace Starcounter
                         return TableDef.ConstructTableDef(tableInfo);
                     }
                     if (r == Error.SCERRTABLENOTFOUND) return null;
-                    throw ErrorCode.ToException(sccoredb.star_get_last_error());
+                    throw ErrorCode.ToException(r);
                 }
                 return null;
             }
@@ -133,7 +133,7 @@ namespace Starcounter
                         if (e != 0) throw ErrorCode.ToException(e);
 
                         ushort tableId = layoutInfo.layout_handle;
-                        ulong indexToken = SqlProcessor.SqlProcessor.AssureToken(tableDef.Name + "_Default"); // TODO EOH: Default index name?
+                        ulong indexToken = SqlProcessor.SqlProcessor.AssureToken(tableDef.Name + "_auto"); // TODO EOH: Default index name?
 
                         short *columnIndexes = stackalloc short[2];
                         columnIndexes[0] = 0;
@@ -225,17 +225,18 @@ namespace Starcounter
                         TransactionManager.Commit(handle, 1, 1);
                         return;
                     } catch (Exception ex) {
-                        if (
-                            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle) == 0 &&
-                            sccoredb.star_transaction_free(handle) == 0
-                            ) {
+                        uint cr = sccoredb.star_context_set_current_transaction(
+                            ThreadData.ContextHandle, handle
+                            );
+                        if (cr == 0) cr = sccoredb.star_transaction_free(handle);
+                        if (cr == 0) {
                             if (ex is ITransactionConflictException) {
                                 if (++retries <= maxRetries) continue;
                                 throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
                             }
                             throw;
                         }
-                        HandleFatalErrorInTransactionScope();
+                        HandleFatalErrorInTransactionScope(cr);
                     } finally {
                         TransactionManager.SetCurrentTransaction(currentTransaction);
                     }
@@ -424,20 +425,25 @@ namespace Starcounter
             oid = proxy.Identity;
             address = proxy.ThisHandle;
 
-            var r = sccoredb.star_context_delete(ThreadData.ContextHandle, oid, address);
-            if (r == 0) return;
+            int ir = sccoredb.star_context_set_trans_flags(
+                ThreadData.ContextHandle, oid, address, sccoredb.DELETE_PENDING
+                );
+            if (ir != 0) {
+                // Positive value contains previously set flags, negative value indicates and error.
 
-#if false // TODO EOH: Triggers.
-            var r = sccoredb.sccoredb_begin_delete(oid, address);
-            if (r != 0) {
-                // If the error is because the delete already was issued then
-                // we ignore it and just return. We are processing the delete
-                // of this object so it will be deleted eventually.
-
-                if (r == Error.SCERRDELETEPENDING) return;
-
-                throw ErrorCode.ToException(r);
+                if (ir > 0)
+                {
+                    if ((ir & sccoredb.DELETE_PENDING) != 0)
+                    {
+                        // Delete already was issued. We ignore it and just return. We are
+                        // processing the delete of this object so it will be deleted eventually.
+                        return;
+                    }
+                }
+                else throw ErrorCode.ToException((uint)(-ir));
             }
+
+            // TODO EOH: Lock transaction on thread executing hook callback.
 
             // Invoke all callbacks. If any of theese throws an exception then
             // we rollback the issued delete and pass on the thrown exception
@@ -466,15 +472,15 @@ namespace Starcounter
                 // issued is released and this will be the case as long as none
                 // of the above errors occur.
 
-                sccoredb.sccoredb_abort_delete(oid, address);
+                sccoredb.star_context_reset_trans_flags(
+                    ThreadData.ContextHandle, oid, address, sccoredb.DELETE_PENDING
+                    );
                 if (ex is System.Threading.ThreadAbortException) throw;
                 throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
             }
 
-            r = sccoredb.sccoredb_complete_delete(oid, address);
+            uint r = sccoredb.star_context_delete(ThreadData.ContextHandle, oid, address);
             if (r == 0) return;
-#endif
-
             throw ErrorCode.ToException(r);
         }
 
@@ -506,9 +512,8 @@ namespace Starcounter
             }
         }
 
-        private static void HandleFatalErrorInTransactionScope()
+        private static void HandleFatalErrorInTransactionScope(uint e)
         {
-            uint e = sccoredb.star_get_last_error();
             ExceptionManager.HandleInternalFatalError(e);
         }
     }

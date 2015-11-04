@@ -68,9 +68,7 @@ namespace QueryProcessingTest {
             foreach (IObjectView obj in Db.SlowSQL("select client, count(\"when\") from account group by client order by client fetch ?", 20))
                 nrs++;
             Trace.Assert(nrs == 20);
-#if false // TODO EOH: Doesn't work. Maybe because sort optimization works differently?
             TestOffsetkeyWithSorting();
-#endif
             HelpMethods.LogEvent("Finished test query with fetch and sorting");
         }
 

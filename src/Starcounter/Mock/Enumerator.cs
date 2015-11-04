@@ -213,8 +213,7 @@ namespace Starcounter
             }
             //Application.Profiler.Stop(2);
 
-            if (ir != 0)
-                goto err;
+            if (ir != 0) goto err;
             Debug.Assert(_handle != 0);
 
             if (newIterator) {
@@ -264,7 +263,7 @@ namespace Starcounter
             return false;
 
         err:
-            throw TranslateErrorCode(sccoredb.star_get_last_error());
+            throw TranslateErrorCode(ir);
         }
 
 #if false
@@ -481,8 +480,7 @@ namespace Starcounter
             }
             //Application.Profiler.Stop(2);
 
-            if (ir != 0)
-                goto err;
+            if (ir != 0) goto err;
             Debug.Assert(_handle != 0);
 
             if (newIterator) {
@@ -530,7 +528,7 @@ namespace Starcounter
             return false;
 
         err:
-            throw TranslateErrorCode(sccoredb.star_get_last_error());
+            throw TranslateErrorCode(ir);
         }
 
 #if false

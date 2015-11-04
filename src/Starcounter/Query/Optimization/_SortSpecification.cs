@@ -140,63 +140,74 @@ internal class SortSpecification
         return found;
     }
 
-    private static IndexUseInfo GetIndexUseInfo(TypeBinding typeBind, List<IPathComparer> pathComparerList)
-    {
-        return null;
+    private struct SortSpec {
+        public int columnIndex;
+        public SortOrder sortOrdering;
+    }
 
-#if false // TODO EOH: This doesn't work with the new kernel. Query works anyway, but maybe worse performance. Re-implement?
-        unsafe
-        {
-            sccoredb.SCCOREDB_SORT_SPEC_ELEM[] sort_spec = new sccoredb.SCCOREDB_SORT_SPEC_ELEM[pathComparerList.Count + 1];
-            for (int i = 0; i < pathComparerList.Count; i++)
-            {
-                PropertyBinding prop = typeBind.GetPropertyBinding(pathComparerList[i].Path.FullName);
-                if (prop == null)
-                    return null;
-                sort_spec[i].column_index = (Int16)prop.GetDataIndex();
-                if (sort_spec[i].column_index < 0)
-                    return null;
-                sort_spec[i].sort = (Byte)pathComparerList[i].SortOrdering;
-            }
-            sort_spec[pathComparerList.Count].column_index = -1;
+    private static IndexInfo GetIndexBySortSpecification(IndexInfo[] indexInfos, SortSpec[] sortSpecs) {
+        for (var i = 0; i < indexInfos.Length; i++) {
+            var indexInfo = indexInfos[i];
 
-            fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
-            {
-                sccoredb.SC_INDEX_INFO kernel_index_info;
-                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
-                if (r == 0)
-                {
-                    return new IndexUseInfo(
-                        new IndexInfo2(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), typeBind.TypeDef),
-                        SortOrder.Ascending
-                        );
+            if (indexInfo.AttributeCount != sortSpecs.Length) continue;
+
+            for (var s = 0; s < sortSpecs.Length; s++) {
+                var sortSpec = sortSpecs[s];
+                if (
+                    sortSpec.columnIndex != indexInfo.GetColumnIndex(s) ||
+                    sortSpec.sortOrdering != indexInfo.GetSortOrdering(s)) {
+                    indexInfo = null;
+                    break;
                 }
-                if (r != Error.SCERRINDEXNOTFOUND) throw ErrorCode.ToException(r);
             }
 
-            // Try find index with matching decending sort.
+            if (indexInfo == null) continue;
 
-            for (int i = 0; i < (sort_spec.Length - 1); i++)
-            {
-                sort_spec[i].sort = sort_spec[i].sort == 0 ? (byte)1 : (byte)0;
-            }
-            sort_spec[pathComparerList.Count].column_index = -1;
-
-            fixed (sccoredb.SCCOREDB_SORT_SPEC_ELEM* fixed_sort_spec = sort_spec)
-            {
-                sccoredb.SC_INDEX_INFO kernel_index_info;
-                uint r = sccoredb.sccoredb_get_index_info_by_sort(typeBind.TableId, fixed_sort_spec, &kernel_index_info);
-                if (r == 0)
-                {
-                    return new IndexUseInfo(
-                        new IndexInfo2(typeBind.TypeDef.TableDef.CreateIndexInfo(&kernel_index_info), typeBind.TypeDef),
-                        SortOrder.Descending
-                        );
-                }
-                if (r == Error.SCERRINDEXNOTFOUND) return null;
-                throw ErrorCode.ToException(r);
-            }
+            return indexInfo;
         }
+        return null;
+    }
+
+    private static IndexUseInfo GetIndexUseInfo(TypeBinding typeBind, List<IPathComparer> pathComparerList) {
+#if true
+        SortSpec[] sortSpecs = new SortSpec[pathComparerList.Count];
+        for (int i = 0; i < pathComparerList.Count; i++)
+        {
+            PropertyBinding prop = typeBind.GetPropertyBinding(pathComparerList[i].Path.FullName);
+            if (prop == null)
+                return null;
+            sortSpecs[i].columnIndex = prop.GetDataIndex();
+            if (sortSpecs[i].columnIndex < 0)
+                return null;
+            sortSpecs[i].sortOrdering = pathComparerList[i].SortOrdering;
+        }
+
+        IndexInfo[] indexInfos = typeBind.TypeDef.TableDef.GetAllIndexInfos();
+        IndexInfo indexInfo = GetIndexBySortSpecification(indexInfos, sortSpecs);
+
+        if (indexInfo != null) {
+            return new IndexUseInfo(
+                new IndexInfo2(indexInfo, typeBind.TypeDef), SortOrder.Ascending
+                );
+        }
+
+        // Try find index with matching decending sort.
+
+        for (int i = 0; i < (sortSpecs.Length - 1); i++)
+        {
+            sortSpecs[i].sortOrdering =
+                sortSpecs[i].sortOrdering == SortOrder.Ascending ? SortOrder.Descending :
+                SortOrder.Ascending;
+        }
+
+        indexInfo = GetIndexBySortSpecification(indexInfos, sortSpecs);
+        if (indexInfo != null) {
+            return new IndexUseInfo(
+                new IndexInfo2(indexInfo, typeBind.TypeDef), SortOrder.Descending
+                );
+        }
+
+        return null;
 #endif
 
 #if false // TODO: Remove!
@@ -213,7 +224,7 @@ internal class SortSpecification
             );
         return indexUseInfo; // Might be "null".
 #endif
-    }
+        }
 
 #if false
     private static String CreateIndexDictionaryKey(TypeDef typeBind, List<IPathComparer> pathComparerList)
@@ -285,7 +296,7 @@ internal class SortSpecification
     }
 #endif
 
-    private static SortOrder Reverse(SortOrder sortOrdering)
+        private static SortOrder Reverse(SortOrder sortOrdering)
     {
         if (sortOrdering == SortOrder.Ascending)
             return SortOrder.Descending;
