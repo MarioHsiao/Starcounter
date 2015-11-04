@@ -246,8 +246,10 @@ namespace Starcounter.Binding
             SortOrder[] sortOrderings;
             int[] columnIndexes;
             ColumnDef[] columnDefs;
+            ulong token;
 
-            name = Starcounter.SqlProcessor.SqlProcessor.GetNameFromToken(pii->token);
+            token = pii->token;
+            name = Starcounter.SqlProcessor.SqlProcessor.GetNameFromToken(token);
             // Get the number of attributes.
             attributeCount = pii->attributeCount;
             if (attributeCount < 1 || attributeCount > 10) {
