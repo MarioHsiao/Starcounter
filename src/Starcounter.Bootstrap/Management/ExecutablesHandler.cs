@@ -56,7 +56,9 @@ namespace Starcounter.Bootstrap.Management {
                     exe.Path,
                     exe.WorkingDirectory,
                     userArgs,
-                    !exe.RunEntrypointAsynchronous
+                    !exe.RunEntrypointAsynchronous,
+                    null,
+                    exe.TransactEntrypoint
                 );
             } catch (Exception e) {
                 if (!ExceptionManager.HandleUnhandledException(e)) throw;

@@ -12,7 +12,7 @@ namespace Starcounter {
     /// dependency on the weaver class, since it clashes with the
     /// class with the same name in Sc.Weaver.Schema.
     /// </remarks>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple=false, Inherited=true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Assembly, AllowMultiple=false, Inherited=true)]
     public sealed class DatabaseAttribute : Attribute {
     }
 }

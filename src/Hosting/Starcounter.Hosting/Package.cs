@@ -520,18 +520,36 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
+            var transactMain = application.TransactEntrypoint;
+
             // No need to keep track of this transaction. It will be cleaned up later.
-            if (Db.Environment.HasDatabase)
-                TransactionManager.CreateImplicitAndSetCurrent(true);
+            // @chrhol, does the same apply even if we make it a write transaction?
+            // TODO:
+            TransactionHandle th = TransactionHandle.Invalid;
+            if (Db.Environment.HasDatabase) {
+                var readOnly = !transactMain;
+                th = TransactionManager.CreateImplicitAndSetCurrent(readOnly);
+            }
 
             var entrypoint = assembly_.EntryPoint;
 
             try {
+
                 if (entrypoint.GetParameters().Length == 0) {
                     entrypoint.Invoke(null, null);
                 } else {
                     var arguments = application.Arguments ?? new string[0];
                     entrypoint.Invoke(null, new object[] { arguments });
+                }
+
+                // Not sure about this pattern with the new transaction API's,
+                // and also not sure how to react to an error in the entrypoint.
+                // If one occur, we'll restart the host, but is that enough?
+                // Ask @chrhol about this.
+                // TODO:
+
+                if (transactMain && th != TransactionHandle.Invalid) {
+                    new Transaction(th).Commit();
                 }
 
             } catch (TargetInvocationException te) {

@@ -134,6 +134,8 @@ namespace StarcounterInternal.Hosting
         /// <param name="execEntryPointSynchronously">Indicates if the entrypoint
         /// should be executed synchrounously, i.e. before this method return.</param>
         /// <param name="stopwatch">An optional stopwatch to use for timing.</param>
+        /// <param name="transactEntrypoint">Optional parameter indicating if the
+        /// entrypoint call should be scoped by a write transaction.</param>
         public static unsafe void ExecuteApplication(
             void* hsched,
             string applicationName,
@@ -143,9 +145,18 @@ namespace StarcounterInternal.Hosting
             string workingDirectory,
             string[] entrypointArguments,
             bool execEntryPointSynchronously = false,
-            Stopwatch stopwatch = null) {
+            Stopwatch stopwatch = null,
+            bool transactEntrypoint = false) {
 
-            var application = new Application(applicationName, applicationFile, applicationBinaryFile, applicationHostFile, workingDirectory, entrypointArguments);
+            var application = new Application(
+                applicationName, 
+                applicationFile, 
+                applicationBinaryFile, 
+                applicationHostFile, 
+                workingDirectory, 
+                entrypointArguments,
+                transactEntrypoint
+            );
 
             stopwatch_ = stopwatch ?? Stopwatch.StartNew();
 

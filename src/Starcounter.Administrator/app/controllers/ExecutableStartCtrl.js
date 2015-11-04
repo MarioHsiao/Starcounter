@@ -98,7 +98,8 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', '$
             "DefaultUserPort": 0,
             "ResourceDirectories": [],
             "WorkingDirectory": null,
-            "IsTool": true,
+            "AsyncEntrypoint": false,
+            "TransactEntrypoint": false,
             "StartedBy": "Starcounter Administrator",
             "Engine": { "Uri": "" },
             "RuntimeInfo": {

@@ -114,6 +114,7 @@ namespace Starcounter.Server.Commands {
                 
                 app = new DatabaseApplication(command.Application);
                 app.IsStartedWithAsyncEntrypoint = command.RunEntrypointAsynchronous;
+                app.IsStartedWithTransactEntrypoint = command.TransactEntrypoint;
                 var exe = app.ToExecutable();
 
                 // It's within the below scope the database model might

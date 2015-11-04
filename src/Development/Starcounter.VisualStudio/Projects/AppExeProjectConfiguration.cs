@@ -291,12 +291,13 @@ namespace Starcounter.VisualStudio.Projects {
 
             exe.WorkingDirectory = debugConfig.WorkingDirectory;
             exe.StartedBy = ClientContext.GetCurrentContextInfo();
+            exe.TransactEntrypoint = args.ContainsFlag(Option.TransactMain);
             foreach (var arg in args.CommandParameters.ToArray()) {
                 exe.Arguments.Add().dummy = arg;
             }
 
             // If the debugger is not attached, we run the executable
-            // as a "tool", meaning that the we will not regain control
+            // synchronously, meaning that the we will not regain control
             // until the whole code host boot sequence, including the
             // entrypoint, has finished running.
             //
@@ -304,7 +305,7 @@ namespace Starcounter.VisualStudio.Projects {
             // we need to let VS start stepping the entrypoint, something
             // it does not do if the debugger is attached and we have the
             // VS thread wait for it.
-            exe.IsTool = !attachDebugger;
+            exe.AsyncEntrypoint = attachDebugger;
             
             // To run the whole starting of the executable asynchrnously,
             // enable the following header:

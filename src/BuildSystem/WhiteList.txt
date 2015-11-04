@@ -9,6 +9,7 @@ sys\
 
 # Some folders
 cli-apps\
+cli-config\
 cli-templates\
 Configuration\
 Input\

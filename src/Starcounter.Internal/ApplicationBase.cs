@@ -65,6 +65,12 @@ namespace Starcounter.Hosting {
         public readonly string[] Arguments;
 
         /// <summary>
+        /// Gets or sets a value that, if set, instruct the code host to wrap
+        /// the call to the entrypoint within a write transaction.
+        /// </summary>
+        public bool TransactEntrypoint { get; set; }
+
+        /// <summary>
         /// Initializes a new <see cref="ApplicationBase"/>.
         /// </summary>
         /// <param name="name">The name of the application.</param>
@@ -87,6 +93,7 @@ namespace Starcounter.Hosting {
             this.BinaryFilePath = applicationBinaryFile ?? applicationFile;
             this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
             this.Arguments = arguments;
+            this.TransactEntrypoint = false;
         }
 
         /// <summary>
