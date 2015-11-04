@@ -122,8 +122,12 @@ namespace Starcounter.Administrator.API.Handlers {
             foreach (Executable.ArgumentsElementJson arg in exe.Arguments) {
                 userArgs[i++] = arg.dummy;
             }
+            
+            var app = new AppInfo(
+                exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs, exe.StartedBy);
+            app.TransactEntrypoint = exe.TransactEntrypoint;
 
-            return new AppInfo(exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs, exe.StartedBy);
+            return app;
         }
     }
 }
