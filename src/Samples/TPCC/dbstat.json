@@ -1,0 +1,18 @@
+{
+  "TransactionsCount":  0,
+  "Collisions":[
+    {
+      "TransactionName": "",
+      "CollisionsNumber":  0
+    }
+  ],
+  "Customers": 0,
+  "Distcicts": 0,
+  "Histories": 0,
+  "Items": 0,
+  "NewOrders": 0,
+  "Orders": 0,
+  "OrderLines": 0,
+  "Stocks": 0,
+  "Warehouses": 0
+}

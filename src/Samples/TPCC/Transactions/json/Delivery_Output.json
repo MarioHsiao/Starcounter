@@ -1,0 +1,3 @@
+{
+  $: { DataType: "tpcc.Transactions.DeliveryTransaction.OutputData" },
+}
