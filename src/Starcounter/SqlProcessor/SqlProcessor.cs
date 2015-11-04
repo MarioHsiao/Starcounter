@@ -26,8 +26,25 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_get_token_name(ulong context_handle, ulong token_id,
             char** label);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private static unsafe extern uint star_assure_token(ulong context_handle,
+            string label, ulong* token_id);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_table_ref_by_layout_id(ulong context_handle, 
+            ushort layout_id, ulong* table_oid, ulong* table_ref);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_create_index(ulong context,
+            ulong table_oid, ulong table_ref, string name, ushort sort_mask,
+            short* column_indexes, uint attribute_flags);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_create_index_ids(ulong context,
+        ushort layout_id,
+        string name,
+        ushort sort_mask,
+        short* column_indexes,
+        uint attribute_flags);
 
-        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        [StructLayout(LayoutKind.Sequential)]
         internal unsafe struct STAR_COLUMN_DEFINITION_HIGH {
             public byte primitive_type;
             public char* type_name; // Always null if primitive type is not reference
@@ -42,10 +59,21 @@ namespace Starcounter.SqlProcessor {
             SqlProcessor.STAR_COLUMN_DEFINITION_HIGH *column_definitions,
 			ushort* layout_id);
 
-        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        private static unsafe extern uint star_assure_token(ulong context_handle,
-            string label, ulong* token_id);
+        [StructLayout(LayoutKind.Sequential)]
+        internal unsafe struct STAR_INDEXED_COLUMN {
+            public char* column_name;
+            public byte ascending;
+        };
 
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_create_index_high(ulong context,
+            string index_name,
+            string table_name,
+            STAR_INDEXED_COLUMN *columns,
+			bool is_unique);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_drop_index_by_table_and_name(ulong context,
+            string table_full_name, string index_name);
 
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
