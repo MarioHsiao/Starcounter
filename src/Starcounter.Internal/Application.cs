@@ -32,6 +32,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets indicator if the host should wrap the entrypoint call in a
+        /// write transaction.
+        /// </summary>
+        internal bool TransactEntrypoint {
+            get { return state.TransactEntrypoint; }
+        }
+
+        /// <summary>
         /// Gets the name of the application.
         /// </summary>
         public string Name {
@@ -205,9 +213,11 @@ namespace Starcounter {
             string applicationBinaryFile,
             string applicationHostFile,
             string workingDirectory, 
-            string[] arguments) {
+            string[] arguments,
+            bool transactEntrypoint) {
             state = new ApplicationBase(name, applicationFile, applicationBinaryFile, workingDirectory, arguments);
             state.HostedFilePath = applicationHostFile;
+            state.TransactEntrypoint = transactEntrypoint;
         }
 
         /// <summary>
