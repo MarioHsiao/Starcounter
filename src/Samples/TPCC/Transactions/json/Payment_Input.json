@@ -1,0 +1,12 @@
+{
+  $: { DataType: "tpcc.Transactions.PaymentTransaction.InputData" },
+
+  "W_ID": 0,
+  "D_ID": 0,
+  "C_W_ID": 0,
+  "C_D_ID": 0,
+  "C_LAST": "",
+  "C_ID": 0,
+  "H_AMOUNT": 0.0,
+  "H_DATE": ""
+}
