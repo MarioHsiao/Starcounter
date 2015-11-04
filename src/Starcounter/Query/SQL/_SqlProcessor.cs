@@ -226,7 +226,8 @@ internal static class SqlProcessor
         if (typeBind == null)
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
             attributeIndexArr = new Int16[propertyList.Count + 1];
-            unsafe {
+            unsafe
+            {
                 Starcounter.SqlProcessor.SqlProcessor.STAR_INDEXED_COLUMN[] indexedColumns =
                     new Starcounter.SqlProcessor.SqlProcessor.STAR_INDEXED_COLUMN[propertyList.Count + 1];
                 for (Int32 i = 0; i < propertyList.Count; i++) {
@@ -243,14 +244,21 @@ internal static class SqlProcessor
 
                 // Set the last position in the array to -1 (terminator).
                 attributeIndexArr[attributeIndexArr.Length - 1] = -1;
-
-                fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
-                {
-                    errorCode = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
-                        ThreadData.ContextHandle, typeBind.TableId,
-                        indexName, sortMask, attributeIndexesPointer, flags);
+                Db.Scope(() => {
+                    fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+                    {
+                        errorCode = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
+                            ThreadData.ContextHandle, typeBind.TableId,
+                            indexName, sortMask, attributeIndexesPointer, flags);
                     }
-                }
+                    if (errorCode != 0) {
+                        Exception ex = ErrorCode.ToException(errorCode);
+                        if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                            ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+                        throw ex;
+                    }
+                });
+            }
             // Call kenrel
 #if false // TODO RUS: remove it
             Db.Transact(() => {
@@ -268,12 +276,6 @@ internal static class SqlProcessor
             }
         });
 #endif
-            if (errorCode != 0) {
-                Exception ex = ErrorCode.ToException(errorCode);
-                if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                    ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
-                throw ex;
-            }
 #if false // TODO RUS: remove it
             AddMetadataIndex(typeBind.Name, indexName);
 #endif
