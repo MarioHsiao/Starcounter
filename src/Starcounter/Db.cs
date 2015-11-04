@@ -214,7 +214,7 @@ namespace Starcounter
                         return;
                     } catch (Exception ex) {
                         uint cr = sccoredb.star_context_set_current_transaction(
-                            ThreadData.ContextHandle, handle
+                            ThreadData.ContextHandle, 0
                             );
                         if (cr == 0) cr = sccoredb.star_transaction_free(handle);
                         if (cr == 0) {
