@@ -29,7 +29,6 @@ IF ERRORLEVEL 1 (
 :: start servers
 START scipcmonitor.exe PERSONAL .db.output
 START scdata.exe 1 SQLTEST .db.output SqlTest .db .db.output
-START scdblog.exe SqlTest SqlTest .db.output
 START 32bitComponents\scsqlparser.exe 8066
 
 :: start the program
