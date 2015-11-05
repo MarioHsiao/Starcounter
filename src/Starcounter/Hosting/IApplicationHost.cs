@@ -9,6 +9,11 @@ namespace Starcounter.Hosting {
     /// which can run in parallel of applications are started in an async
     /// fashion).
     /// </summary>
+    /// <remarks>
+    /// Since classes implementing this interface will be instantiated by the
+    /// code host, we tag it [Transient] to assure that constraint.
+    /// </remarks>
+    [Transient]
     public interface IApplicationHost {
         /// <summary>
         /// Invoked by the code host when the given application are hosted but
