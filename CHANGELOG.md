@@ -8,6 +8,7 @@
 - New feature: assembly level [Database] declaration, [#3005](https://github.com/Starcounter/Starcounter/issues/3005).
 - Simplifications when passing source code to `star.exe`, [#3004](https://github.com/Starcounter/Starcounter/issues/3004) and [#3011](https://github.com/Starcounter/Starcounter/issues/3011).
 - Introduced support for transacted entrypoints with `star --transact`, [#3008](https://github.com/Starcounter/Starcounter/issues/3008).
+- Native code binaries are switched to use Visual Studio 2015 CRT. Installer now contains CRT setups that are installed in the system, if not present. The installer size increased because of that.
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
