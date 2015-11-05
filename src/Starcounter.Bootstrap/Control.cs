@@ -18,6 +18,7 @@ using StarcounterInternal.Hosting;
 using System.Text.RegularExpressions;
 using System.IO;
 using Starcounter.Bootstrap.Management;
+using Starcounter.Ioc;
 
 namespace StarcounterInternal.Bootstrap {
     /// <summary>
@@ -185,6 +186,9 @@ namespace StarcounterInternal.Bootstrap {
 
                 // Initialize the Db environment (database name)
                 Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
+
+                // Enable host level IOC services
+                new HostServices();
 
                 // Initializing system profilers.
                 Profiler.Init();
