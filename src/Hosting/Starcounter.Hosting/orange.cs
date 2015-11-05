@@ -6,6 +6,8 @@
 
 using Starcounter;
 using Starcounter.Internal;
+using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace StarcounterInternal.Hosting
@@ -95,11 +97,19 @@ namespace StarcounterInternal.Hosting
         /// <summary>
         /// </summary>
         private static unsafe void orange_thread_enter(void* hsched, byte cpun, void* p, int init) {
+            Debug.Assert(ThreadData.contextHandle_ == 0); // Only called on a detached thread.
             ulong contextHandle;
             uint r = sccoredb.star_get_context(cpun, &contextHandle);
             if (r == 0) {
-                ThreadData.ContextHandle = contextHandle;
-                return;
+                ThreadData.contextHandle_ = contextHandle;
+
+                ulong storedTransactionHandle = ThreadData.storedTransactionHandle_;
+                ThreadData.storedTransactionHandle_ = 0;
+
+                r = sccoredb.star_context_set_current_transaction(
+                    contextHandle, storedTransactionHandle
+                    );
+                if (r == 0) return;
             }
             orange_fatal_error(r);
         }
@@ -107,7 +117,21 @@ namespace StarcounterInternal.Hosting
         /// <summary>
         /// </summary>
         private static unsafe void orange_thread_leave(void* hsched, byte cpun, void* p, uint yr) {
-            ThreadData.ContextHandle = 0;
+            ulong contextHandle = ThreadData.contextHandle_;
+            Debug.Assert(contextHandle != 0); // Only called on an attached thread.
+            ThreadData.contextHandle_ = 0;
+
+            ulong currentTransactionHandle;
+            uint r = sccoredb.star_context_get_current_transaction(
+                contextHandle, out currentTransactionHandle
+                );
+            if (r == 0) {
+                if (currentTransactionHandle == 0) return;
+                ThreadData.storedTransactionHandle_ = currentTransactionHandle;
+                r = sccoredb.star_context_set_current_transaction(contextHandle, 0);
+                if (r == 0) return;
+            }
+            orange_fatal_error(r);
         }
 
         /// <summary>
@@ -124,7 +148,12 @@ namespace StarcounterInternal.Hosting
         }
 
         private static unsafe void orange_thread_reset(void* hsched, byte cpun, void* p) {
-            sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, 0);
+            Debug.Assert(ThreadData.storedTransactionHandle_ == 0);
+            ulong contextHandle = ThreadData.contextHandle_;
+            Debug.Assert(contextHandle != 0); // Only called on an attached thread.
+            uint r = sccoredb.star_context_set_current_transaction(contextHandle, 0);
+            if (r == 0) return;
+            orange_fatal_error(r);
         }
 
         /// <summary>
