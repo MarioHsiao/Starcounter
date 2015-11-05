@@ -81,6 +81,7 @@
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
+    <Compile Include="Ioc\IServiceContainer.cs" />
     <Compile Include="Ioc\IServices.cs" />
     <Compile Include="Ioc\ServiceContainer.cs" />
     <Compile Include="Rest\Http.cs" />
