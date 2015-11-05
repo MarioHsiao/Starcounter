@@ -183,9 +183,10 @@ namespace Starcounter.Binding
 
             unsafe
             {
+                string setspec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(TableId);
                 ec = sccoredb.stari_context_get_index_infos_by_setspec(
                     ThreadData.ContextHandle,
-                    sccoredb.TableIdToSetSpec(TableId),
+                    setspec,
                     &ic,
                     null
                     );
@@ -203,7 +204,7 @@ namespace Starcounter.Binding
                 {
                     ec = sccoredb.stari_context_get_index_infos_by_setspec(
                         ThreadData.ContextHandle,
-                        sccoredb.TableIdToSetSpec(TableId),
+                        setspec,
                         &ic,
                         pii
                         );

@@ -44,7 +44,7 @@ namespace Starcounter.SqlProcessor {
         short* column_indexes,
         uint attribute_flags);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static unsafe extern uint star_setspec_ref_by_table_ref(ulong context_handle, 
+        private static unsafe extern uint star_setspec_ref_by_table_ref(ulong context_handle, 
             ulong table_oid, ulong table_ref, ulong* setspec_oid, ulong* setspec_ref);
 
         [StructLayout(LayoutKind.Sequential)]
@@ -105,6 +105,21 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(err == (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY]);
             Debug.Assert(err < 10000);
             throw ex;
+        }
+
+        internal static unsafe string GetSetSpecifier(ushort layoutId) {
+            ulong rawviewRecordOid;
+            ulong rawviewRecordAddr;
+            ulong setspecRecordOid;
+            ulong setspecRecordAddr;
+            uint err = Starcounter.SqlProcessor.SqlProcessor.star_table_ref_by_layout_id(
+                ThreadData.ContextHandle, layoutId, &rawviewRecordOid, &rawviewRecordAddr);
+            if (err != 0) throw ErrorCode.ToException(err);
+            err = Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
+                ThreadData.ContextHandle, rawviewRecordOid, rawviewRecordAddr,
+                &setspecRecordOid, &setspecRecordAddr);
+            if (err != 0) throw ErrorCode.ToException(err);
+            return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 2);
         }
 
         public static void PopulateRuntimeMetadata(ulong context) {

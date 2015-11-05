@@ -114,7 +114,7 @@ namespace Starcounter.Internal
                 contextHandle = ThreadData.ContextHandle;
                 r = sccoredb.star_context_insert(contextHandle, tableId, &oid_local, &ref_local);
                 if (r == 0) {
-                    string setpec = sccoredb.TableIdToSetSpec(tableId);
+                    string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
                     fixed (char* p = setpec) {
                         r = sccoredb.star_context_put_setspec(
                             contextHandle, oid_local, ref_local, p

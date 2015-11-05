@@ -379,7 +379,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         public const UInt32 SC_UNIQUE_CONSTRAINT = 1;
-
+       
+#if false // TODO RUS: does not exist in kernel: remove
         /// <summary>
         /// Struct SC_INDEX_INFO
         /// </summary>
@@ -451,7 +452,9 @@ namespace Starcounter.Internal
             /// </summary>
             public UInt16 flags;
         };
+#endif
 
+#if false // TODO RUS: does not exist in the kernel. Remove?
         /// <summary>
         /// Sccoredb_get_index_infoses the specified definition_addr.
         /// </summary>
@@ -465,6 +468,7 @@ namespace Starcounter.Internal
             uint* pic,
             SC_INDEX_INFO* piis
             );
+#endif
 
         /// <summary>
         /// </summary>
@@ -534,7 +538,7 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint sccoredb_rollback();
 
-        #region Commit hook signatures and symbols
+#region Commit hook signatures and symbols
 
         // Flags correlating to kernel configuration
         // flags, using in hookMask in star_set_commit_hooks
@@ -558,7 +562,7 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public extern static uint star_set_commit_hooks(uint transactionFlags, ushort tableId, uint hookMask);
 
-        #endregion
+#endregion
 
         /// <summary>
         /// </summary>

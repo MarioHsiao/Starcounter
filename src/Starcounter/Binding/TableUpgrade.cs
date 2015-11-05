@@ -308,8 +308,8 @@ namespace Starcounter.Binding
             short[] attrIndexArr;
             bool createIndex;
             uint ec;
-            sccoredb.SC_INDEX_INFO index;
-            sccoredb.SC_INDEX_INFO[] indexArr;
+            sccoredb.STARI_INDEX_INFO index;
+            sccoredb.STARI_INDEX_INFO[] indexArr;
             uint indexCount;
             ColumnDef newColumn;
             ColumnDef oldColumn;
@@ -317,20 +317,23 @@ namespace Starcounter.Binding
             
             unsafe 
             {
-                ec = sccoredb.sccoredb_get_index_infos(
-                    oldTableDef_.TableId,
+                string setspec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(oldTableDef_.TableId);
+                ec = sccoredb.stari_context_get_index_infos_by_setspec(
+                    ThreadData.ContextHandle,
+                    setspec,
                     &indexCount,
                     null
                     );
                 if (ec != 0) throw ErrorCode.ToException(ec);
                 if (indexCount == 0) return;
 
-                indexArr = new sccoredb.SC_INDEX_INFO[indexCount];
-                fixed (sccoredb.SC_INDEX_INFO* pii = &(indexArr[0])) 
+                indexArr = new sccoredb.STARI_INDEX_INFO[indexCount];
+                fixed (sccoredb.STARI_INDEX_INFO* pii = &(indexArr[0])) 
                 {
-                    ec = sccoredb.sccoredb_get_index_infos(
-                        oldTableDef_.TableId,
-                        &indexCount,
+                    ec = sccoredb.stari_context_get_index_infos_by_setspec(
+                        ThreadData.ContextHandle,
+                        setspec,
+                            &indexCount,
                         pii
                         );
                 }
@@ -340,7 +343,7 @@ namespace Starcounter.Binding
                 // the createindex function, so we need to store them locally before we create any new indexes.
                 indexNameArr = new string[indexCount];
                 for (int i = 0; i < indexCount; i++) {
-                    indexNameArr[i] = new string(indexArr[i].name);
+                    indexNameArr[i] = Starcounter.SqlProcessor.SqlProcessor.GetNameFromToken(indexArr[i].token);
                 }
 
                 for (int i = 0; i < indexCount; i++)
