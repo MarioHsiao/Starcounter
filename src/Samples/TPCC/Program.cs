@@ -76,8 +76,6 @@ namespace tpcc
 
     public static void Main(string[] args)
     {
-      System.Diagnostics.Debugger.Launch();
-
       Customer.CreateIndex();
       District.CreateIndex();
       Item.CreateIndex();
