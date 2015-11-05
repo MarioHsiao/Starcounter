@@ -81,6 +81,7 @@
     <Compile Include="Handle.GET.cs" />
     <Compile Include="Handle.cs" />
     <Compile Include="HelperFunctions.cs" />
+    <Compile Include="Ioc\IServices.cs" />
     <Compile Include="Rest\Http.cs" />
     <Compile Include="Http\Cookie.cs" />
     <Compile Include="Http\HttpHeadersUtf8.cs" />
