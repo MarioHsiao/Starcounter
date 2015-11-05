@@ -88,7 +88,7 @@ namespace Starcounter.Internal.Weaver {
 
         bool IsTaggedWithTransientAttribute(TypeDefDeclaration typeDef) {
             var cursor = typeDef;
-            while (!cursor.CustomAttributes.Contains(transientAttributeType)) {
+            while (!TypeOrInterfacesTransient(typeDef)) {
                 if (cursor.BaseType != null) {
                     cursor = cursor.BaseType.GetTypeDefinition();
                 } else {
@@ -96,6 +96,20 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             return true;
+        }
+
+        bool TypeOrInterfacesTransient(TypeDefDeclaration typeDef) {
+            var transient = typeDef.CustomAttributes.Contains(transientAttributeType);
+            if (!transient) {
+                var interfaces = typeDef.InterfaceImplementations;
+                if (interfaces != null) {
+                    transient = interfaces.Any((i) => {
+                        var interfaceType = i.ImplementedInterface.GetTypeDefinition(BindingOptions.Default | BindingOptions.DontThrowException);
+                        return interfaceType != null && interfaceType.CustomAttributes.Contains(transientAttributeType);
+                    });
+                }
+            }
+            return transient;
         }
     }
 }
