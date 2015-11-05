@@ -15,15 +15,11 @@ namespace Starcounter.Ioc {
     /// already installed does not fail, nor use any chainin, instead the
     /// latest installed service takes precedance.
     /// </remarks>
-    public sealed class ServiceContainer : IServices {
+    public sealed class ServiceContainer : IServiceContainer {
         ConcurrentDictionary<Type, object> instances = new ConcurrentDictionary<Type, object>();
         ConcurrentDictionary<Type, Func<ServiceContainer, object>> methods = new ConcurrentDictionary<Type, Func<ServiceContainer, object>>();
 
-        /// <summary>
-        /// Register a single instance service.
-        /// </summary>
-        /// <typeparam name="T">Service interface.</typeparam>
-        /// <param name="instance">Implementation of that service.</param>
+        /// <inheritdoc/>
         public void Register<T>(T instance) where T : class {
             if (instance == null) {
                 throw new ArgumentNullException("instance");
@@ -32,18 +28,13 @@ namespace Starcounter.Ioc {
             instances[typeof(T)] = instance;
         }
 
-        /// <summary>
-        /// Register a service using a delegate, invoked the every time
-        /// the service is retreived.
-        /// </summary>
-        /// <typeparam name="T">Service interface.</typeparam>
-        /// <param name="instance">Implementation of that service.</param>
-        public void Register<T>(Func<ServiceContainer, object> factory) {
+        /// <inheritdoc/>
+        public void Register<T>(Func<ServiceContainer, T> factory) where T : class {
             methods[typeof(T)] = factory;
         }
 
         /// <inheritdoc/>
-        T IServices.Get<T>() {
+        public T Get<T>() {
             object instance;
             if (!instances.TryGetValue(typeof(T), out instance)) {
                 instance = methods[typeof(T)](this);
