@@ -69,22 +69,6 @@ namespace Starcounter.Internal
         public unsafe delegate int THREAD_YIELD(void* hsched, byte cpun, void* p, uint yr);
 
         /// <summary>
-        /// Delegate VPROC_BGTASK
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="p">The p.</param>
-        public unsafe delegate void VPROC_BGTASK(void* hsched, byte cpun, void* p);
-
-        /// <summary>
-        /// Delegate VPROC_CTICK
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="psec">The psec.</param>
-        public unsafe delegate void VPROC_CTICK(void* hsched, byte cpun, uint psec);
-
-        /// <summary>
         /// Delegate VPROC_IDLE
         /// </summary>
         /// <param name="hsched">The hsched.</param>
@@ -191,14 +175,6 @@ namespace Starcounter.Internal
             /// The th_yield
             /// </summary>
             public void* th_yield;
-            /// <summary>
-            /// The vp_bgtask
-            /// </summary>
-            public void* vp_bgtask;
-            /// <summary>
-            /// The vp_ctick
-            /// </summary>
-            public void* vp_ctick;
             /// <summary>
             /// The vp_idle
             /// </summary>

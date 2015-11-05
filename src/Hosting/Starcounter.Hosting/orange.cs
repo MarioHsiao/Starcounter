@@ -30,8 +30,6 @@ namespace StarcounterInternal.Hosting
         /// The th_yield
         /// </summary>
         private static unsafe sccorelib.THREAD_YIELD th_yield = new sccorelib.THREAD_YIELD(orange_thread_yield);
-        private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
-        private static unsafe sccorelib.VPROC_CTICK vp_ctick = new sccorelib.VPROC_CTICK(orange_vproc_ctick);
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
 
         public static void GetRuntimeImageSymbols(out uint imageVersion, out uint magic) {
@@ -49,8 +47,6 @@ namespace StarcounterInternal.Hosting
             setup.th_start = (void*)Marshal.GetFunctionPointerForDelegate(th_start);
             setup.th_reset = (void*)Marshal.GetFunctionPointerForDelegate(th_reset);
             setup.th_yield = (void*)Marshal.GetFunctionPointerForDelegate(th_yield);
-            setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(vp_bgtask);
-            setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(vp_ctick);
             setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(vp_idle);
             //setup.pex_ctxt = null;
         }
@@ -161,10 +157,6 @@ namespace StarcounterInternal.Hosting
             }
         }
 
-        private static unsafe void orange_vproc_bgtask(void* hsched, byte cpun, void* p) { }
-
-        private static unsafe void orange_vproc_ctick(void* hsched, byte cpun, uint psec) { }
-
         private static unsafe int orange_vproc_idle(void* hsched, byte cpun, void* p) { return 0; }
 
         private static void SetYieldBlock() {
@@ -232,12 +224,6 @@ namespace StarcounterInternal.Hosting
         private static unsafe sccorelib.THREAD_YIELD th_yield = new sccorelib.THREAD_YIELD(orange_thread_yield);
         /// <summary>
         /// </summary>
-        private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
-        /// <summary>
-        /// </summary>
-        private static unsafe sccorelib.VPROC_CTICK vp_ctick = new sccorelib.VPROC_CTICK(orange_vproc_ctick);
-        /// <summary>
-        /// </summary>
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
 
         /// <summary>
@@ -251,8 +237,6 @@ namespace StarcounterInternal.Hosting
             setup.th_start = (void*)Marshal.GetFunctionPointerForDelegate(th_start);
             setup.th_reset = (void*)Marshal.GetFunctionPointerForDelegate(th_reset);
             setup.th_yield = (void*)Marshal.GetFunctionPointerForDelegate(th_yield);
-            setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(vp_bgtask);
-            setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(vp_ctick);
             setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(vp_idle);
             //setup.pex_ctxt = null;
         }
@@ -317,22 +301,6 @@ namespace StarcounterInternal.Hosting
                     return 1;
             }
         }
-
-        /// <summary>
-        /// Orange_vproc_bgtasks the specified hsched.
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="p">The p.</param>
-        private static unsafe void orange_vproc_bgtask(void* hsched, byte cpun, void* p) { }
-
-        /// <summary>
-        /// Orange_vproc_cticks the specified hsched.
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="psec">The psec.</param>
-        private static unsafe void orange_vproc_ctick(void* hsched, byte cpun, uint psec) { }
 
         /// <summary>
         /// Orange_vproc_idles the specified hsched.
