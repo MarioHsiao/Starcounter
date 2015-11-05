@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 namespace Starcounter.Ioc {
 
@@ -16,8 +16,8 @@ namespace Starcounter.Ioc {
     /// latest installed service takes precedance.
     /// </remarks>
     public sealed class ServiceContainer : IServices {
-        Dictionary<Type, object> instances = new Dictionary<Type, object>();
-        Dictionary<Type, Func<ServiceContainer, object>> methods = new Dictionary<Type, Func<ServiceContainer, object>>();
+        ConcurrentDictionary<Type, object> instances = new ConcurrentDictionary<Type, object>();
+        ConcurrentDictionary<Type, Func<ServiceContainer, object>> methods = new ConcurrentDictionary<Type, Func<ServiceContainer, object>>();
 
         /// <summary>
         /// Register a single instance service.
@@ -39,7 +39,7 @@ namespace Starcounter.Ioc {
         /// <typeparam name="T">Service interface.</typeparam>
         /// <param name="instance">Implementation of that service.</param>
         public void Register<T>(Func<ServiceContainer, object> factory) {
-            methods.Add(typeof(T), factory);
+            methods[typeof(T)] = factory;
         }
 
         /// <inheritdoc/>
