@@ -227,7 +227,7 @@ namespace Starcounter.Binding
         /// </summary>
         internal IndexInfo GetIndexInfo(string name) {
             unsafe {
-                ulong token = sccoredb.GetTokenFromString(name);
+                ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
                 if (token != 0) {
                     var indexInfos = GetAllIndexInfos();
                     for (var i = 0; i < indexInfos.Length; i++) {

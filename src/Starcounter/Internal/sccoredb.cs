@@ -17,63 +17,6 @@ namespace Starcounter.Internal
     [SuppressUnmanagedCodeSecurity]
     public static class sccoredb
     {
-
-#if true // TODO EOH:
-        private static System.Collections.Generic.Dictionary<string,ulong> stringToToken_ =
-            new System.Collections.Generic.Dictionary<string,ulong>();
-
-        private static System.Collections.Generic.Dictionary<ulong,string> tokenToString_ =
-            new System.Collections.Generic.Dictionary<ulong,string>();
-
-        private static ulong nextToken_ = 10;
-
-        static sccoredb() {
-            var s = "__id";
-            stringToToken_.Add(s, 1);
-            tokenToString_.Add(1, s);
-            s = "__setspec";
-            stringToToken_.Add(s, 2);
-            tokenToString_.Add(2, s);
-        }
-
-        internal static ulong AssureTokenForString(string v) {
-            ulong r;
-            if (!stringToToken_.TryGetValue(v, out r)) {
-                r = nextToken_++;
-                stringToToken_.Add(v, r);
-                tokenToString_.Add(r, v);
-            }
-            return r;
-        }
-
-        /// <summary>
-        /// </summary>
-        internal static ulong GetTokenFromString(string v) {
-            ulong r;
-            if (stringToToken_.TryGetValue(v, out r)) return r;
-            return 0;
-        }
-
-        /// <summary>
-        /// </summary>
-        internal static string GetStringFromToken(ulong v) {
-            string r;
-            if (tokenToString_.TryGetValue(v, out r)) return r;
-            return null;
-        }
-#endif
-
-        internal static string TableIdToSetSpec(ushort tableId) {
-            // TODO EOH:
-            unsafe {
-                char* v = stackalloc char[4];
-                v[0] = v[2] = '~';
-                v[1] = (char)(97 + tableId);
-                v[3] = '\0';
-                return new string(v);
-            }
-        }
-
         /// <summary>
         /// </summary>
         public const ulong MDBIT_OBJECTID = 0; // TODO:
