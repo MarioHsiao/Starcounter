@@ -33,13 +33,6 @@ namespace StarcounterInternal.Hosting
         private static unsafe sccorelib.VPROC_BGTASK vp_bgtask = new sccorelib.VPROC_BGTASK(orange_vproc_bgtask);
         private static unsafe sccorelib.VPROC_CTICK vp_ctick = new sccorelib.VPROC_CTICK(orange_vproc_ctick);
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
-        private static unsafe sccorelib.VPROC_WAIT vp_wait = new sccorelib.VPROC_WAIT(orange_vproc_wait);
-
-        /// <summary>
-        /// </summary>
-        private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
-
-        private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
 
         public static void GetRuntimeImageSymbols(out uint imageVersion, out uint magic) {
             throw new System.NotSupportedException();
@@ -59,9 +52,6 @@ namespace StarcounterInternal.Hosting
             setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(vp_bgtask);
             setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(vp_ctick);
             setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(vp_idle);
-            setup.vp_wait = (void*)Marshal.GetFunctionPointerForDelegate(vp_wait);
-            setup.al_stall = (void*)Marshal.GetFunctionPointerForDelegate(al_stall);
-            setup.al_lowmem = (void*)Marshal.GetFunctionPointerForDelegate(al_lowmem);
             //setup.pex_ctxt = null;
         }
 
@@ -73,14 +63,6 @@ namespace StarcounterInternal.Hosting
         /// </summary>
         public static unsafe void orange_configure_database_callbacks(ref sccoredb.sccoredb_callbacks callbacks)
         {
-#if false // TODO EOH: ... (Note that we never actual set the alert so at the moment this callback will never be called.
-            void* hModule = Kernel32.LoadLibraryA("coalmine.dll");
-            callbacks.query_highmem_cond = Kernel32.GetProcAddress(hModule, "cm5_query_highmem_cond");
-            if (callbacks.query_highmem_cond == null) throw Starcounter.ErrorCode.ToException(Error.SCERRUNSPECIFIED);
-#else
-            callbacks.query_highmem_cond = null;
-#endif
-
             callbacks.on_index_updated = (void*)Marshal.GetFunctionPointerForDelegate(orange_on_index_updated);
         }
 
@@ -185,23 +167,6 @@ namespace StarcounterInternal.Hosting
 
         private static unsafe int orange_vproc_idle(void* hsched, byte cpun, void* p) { return 0; }
 
-        private static unsafe void orange_vproc_wait(void* hsched, byte cpun, void* p) { }
-
-        /// <summary>
-        /// Orange_alert_stalls the specified hsched.
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="p">The p.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="sr">The sr.</param>
-        /// <param name="sc">The sc.</param>
-        private static unsafe void orange_alert_stall(void* hsched, void* p, byte cpun, uint sr, uint sc)
-        {
-            // We have a stalling scheduler....
-        }
-
-        private static unsafe void orange_alert_lowmem(void* hsched, void* p, uint lr) { }
-
         private static void SetYieldBlock() {
             uint r = sccorelib.cm3_set_yblk((System.IntPtr)0);
             if (r == 0) return;
@@ -274,15 +239,6 @@ namespace StarcounterInternal.Hosting
         /// <summary>
         /// </summary>
         private static unsafe sccorelib.VPROC_IDLE vp_idle = new sccorelib.VPROC_IDLE(orange_vproc_idle);
-        /// <summary>
-        /// </summary>
-        private static unsafe sccorelib.VPROC_WAIT vp_wait = new sccorelib.VPROC_WAIT(orange_vproc_wait);
-        /// <summary>
-        /// </summary>
-        private static unsafe sccorelib.ALERT_STALL al_stall = new sccorelib.ALERT_STALL(orange_alert_stall);
-        /// <summary>
-        /// </summary>
-        private static unsafe sccorelib.ALERT_LOWMEM al_lowmem = new sccorelib.ALERT_LOWMEM(orange_alert_lowmem);
 
         /// <summary>
         /// Orange_configure_scheduler_callbackses the specified setup.
@@ -298,11 +254,7 @@ namespace StarcounterInternal.Hosting
             setup.vp_bgtask = (void*)Marshal.GetFunctionPointerForDelegate(vp_bgtask);
             setup.vp_ctick = (void*)Marshal.GetFunctionPointerForDelegate(vp_ctick);
             setup.vp_idle = (void*)Marshal.GetFunctionPointerForDelegate(vp_idle);
-            setup.vp_wait = (void*)Marshal.GetFunctionPointerForDelegate(vp_wait);
-            setup.al_stall = (void*)Marshal.GetFunctionPointerForDelegate(al_stall);
-            setup.al_lowmem = (void*)Marshal.GetFunctionPointerForDelegate(al_lowmem);
             //setup.pex_ctxt = null;
-
         }
 
         /// <summary>
@@ -393,32 +345,6 @@ namespace StarcounterInternal.Hosting
         {
             return 0;
         }
-
-        /// <summary>
-        /// Orange_vproc_waits the specified hsched.
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="p">The p.</param>
-        private static unsafe void orange_vproc_wait(void* hsched, byte cpun, void* p) { }
-
-        /// <summary>
-        /// Orange_alert_stalls the specified hsched.
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="p">The p.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="sr">The sr.</param>
-        /// <param name="sc">The sc.</param>
-        private static unsafe void orange_alert_stall(void* hsched, void* p, byte cpun, uint sr, uint sc) { }
-
-        /// <summary>
-        /// Orange_alert_lowmems the specified hsched.
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="p">The p.</param>
-        /// <param name="lr">The lr.</param>
-        private static unsafe void orange_alert_lowmem(void* hsched, void* p, uint lr) { }
 
         /// <summary>
         /// Orange_fatal_errors the specified e.

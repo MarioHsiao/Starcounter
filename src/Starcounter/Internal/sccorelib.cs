@@ -94,57 +94,6 @@ namespace Starcounter.Internal
         public unsafe delegate int VPROC_IDLE(void* hsched, byte cpun, void* p);
 
         /// <summary>
-        /// Delegate VPROC_WAIT
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="p">The p.</param>
-        public unsafe delegate void VPROC_WAIT(void* hsched, byte cpun, void* p);
-
-        /// <summary>
-        /// The C M5_ STAL l_ REASO n_ UNRESPOSIV e_ THREAD
-        /// </summary>
-        public const uint CM5_STALL_REASON_UNRESPOSIVE_THREAD = 1;
-
-        /// <summary>
-        /// The C M5_ STAL l_ REASO n_ THREAD s_ BLOCKED
-        /// </summary>
-        public const uint CM5_STALL_REASON_THREADS_BLOCKED = 2;
-
-        /// <summary>
-        /// The C M5_ STAL l_ REASO n_ UNYIELDIN g_ THREAD
-        /// </summary>
-        public const uint CM5_STALL_REASON_UNYIELDING_THREAD = 3;
-
-        /// <summary>
-        /// Delegate ALERT_STALL
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="p">The p.</param>
-        /// <param name="cpun">The cpun.</param>
-        /// <param name="sr">The sr.</param>
-        /// <param name="sc">The sc.</param>
-        public unsafe delegate void ALERT_STALL(void* hsched, void* p, byte cpun, uint sr, uint sc);
-
-        /// <summary>
-        /// The C M5_ LOWME m_ REASO n_ PHYSICA l_ MEMORY
-        /// </summary>
-        public const uint CM5_LOWMEM_REASON_PHYSICAL_MEMORY = 1;
-
-        /// <summary>
-        /// The C M5_ LOWME m_ REASO n_ ADDRES s_ SPACE
-        /// </summary>
-        public const uint CM5_LOWMEM_REASON_ADDRESS_SPACE = 2;
-
-        /// <summary>
-        /// Delegate ALERT_LOWMEM
-        /// </summary>
-        /// <param name="hsched">The hsched.</param>
-        /// <param name="p">The p.</param>
-        /// <param name="lr">The lr.</param>
-        public unsafe delegate void ALERT_LOWMEM(void* hsched, void* p, uint lr);
-
-        /// <summary>
         /// The C M5_ YIEL d_ REASO n_ TIME s_ UP
         /// </summary>
         public const uint CM5_YIELD_REASON_TIMES_UP = 1;
@@ -254,18 +203,6 @@ namespace Starcounter.Internal
             /// The vp_idle
             /// </summary>
             public void* vp_idle;
-            /// <summary>
-            /// The vp_wait
-            /// </summary>
-            public void* vp_wait;
-            /// <summary>
-            /// The al_stall
-            /// </summary>
-            public void* al_stall;
-            /// <summary>
-            /// The al_lowmem
-            /// </summary>
-            public void* al_lowmem;
             /// <summary>
             /// The pex_ctxt
             /// </summary>
