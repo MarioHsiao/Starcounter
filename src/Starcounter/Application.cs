@@ -49,6 +49,24 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets the display name of the current application.
+        /// </summary>
+        public string DisplayName {
+            get {
+                return ApplicationBase.CreateDisplayName(Db.Environment.DatabaseNameLower, Name);
+            }
+        }
+
+        /// <summary>
+        /// Gets the full name of the current application.
+        /// </summary>
+        public string FullName {
+            get {
+                return ApplicationBase.CreateFullName(Db.Environment.DatabaseNameLower, Name);
+            }
+        }
+
+        /// <summary>
         /// Gets the file that was used to launch the current
         /// application.
         /// </summary>
@@ -85,6 +103,8 @@ namespace Starcounter {
                 return state.HostedFilePath;
             }
         }
+
+
 
         /// <summary>
         /// Gets the current application, running in the current Starcounter
@@ -165,6 +185,11 @@ namespace Starcounter {
                 }
             }
             return application;
+        }
+
+        /// <inheritdoc />
+        public override string ToString() {
+            return DisplayName;
         }
 
         /// <summary>
