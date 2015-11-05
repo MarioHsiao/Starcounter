@@ -482,11 +482,6 @@ namespace StarcounterInternal.Bootstrap {
         private unsafe void ConfigureDatabase(Configuration c) {
             uint e;
 
-            uint installationId = 1; // TODO EOH:
-
-            e = sccoredb.star_configure(installationId, c.Name);
-            if (e != 0) throw ErrorCode.ToException(e);
-
             var callbacks = new sccoredb.sccoredb_callbacks();
             orange.orange_configure_database_callbacks(ref callbacks);
             e = sccoredb.star_set_system_callbacks(&callbacks);
@@ -496,9 +491,11 @@ namespace StarcounterInternal.Bootstrap {
         /// <summary>
         /// </summary>
         private unsafe void ConnectDatabase(uint schedulerCount, ulong hlogs) {
+            uint instanceid = 1; // TODO EOH:
+
             uint e;
 
-            e = sccoredb.sccoredb_connect(schedulerCount, hlogs);
+            e = sccoredb.sccoredb_connect(instanceid, schedulerCount, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 

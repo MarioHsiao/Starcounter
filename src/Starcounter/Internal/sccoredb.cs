@@ -140,13 +140,10 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_configure(uint installation_id, string database_name);
-
-        /// <summary>
-        /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sccoredb_connect(uint scheduler_count, ulong hlogs);
+        public static extern unsafe uint sccoredb_connect(
+            uint instance_id, uint context_count, ulong hlogs
+            );
 
         /// <summary>
         /// </summary>
