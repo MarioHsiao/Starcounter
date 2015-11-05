@@ -156,7 +156,8 @@ namespace Starcounter.Binding
         {
             bool b =
                 Name == tableDef.Name &&
-                BaseName == tableDef.BaseName &&
+                (BaseName == tableDef.BaseName || 
+                tableDef.BaseName.Equals("Starcounter.Metadata.MetadataEntity")) &&
                 ColumnDefs.Length == tableDef.ColumnDefs.Length
                 ;
             if (b)

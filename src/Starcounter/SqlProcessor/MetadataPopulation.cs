@@ -68,9 +68,9 @@ namespace Starcounter.SqlProcessor {
                                     Set = true
                                 };
                             } else {
-                                Starcounter.Metadata.Column rawCol =
-                                    Db.SQL<Starcounter.Metadata.Column>(
-                                    "select c from column c where c.table = ? and name = ?",
+                                Starcounter.Internal.Metadata.RawColumn rawCol =
+                                    Db.SQL<Starcounter.Internal.Metadata.RawColumn>(
+                                    "select c from starcounter.internal.metadata.rawcolumn c where c.table = ? and name = ?",
                                     theView.Mapper, propDef.ColumnName).First;
                                 Debug.Assert(rawCol != null);
                                 MappedProperty prop = new MappedProperty {
@@ -226,7 +226,7 @@ namespace Starcounter.SqlProcessor {
             }
 #endif
         }
-
+#if false // TODO RUS: remove
         internal static void CreateAnIndexInstance(MaterializedIndex matIndx) {
             Debug.Assert(matIndx != null);
             Index rawIndx = new Index {
@@ -293,5 +293,6 @@ namespace Starcounter.SqlProcessor {
             Debug.Assert(Db.SQL<long>("select count(i) from \"index\" i, rawview v where i.table = v and v.materializedtable = ?", matTbl).First ==
                 Db.SQL<long>("select count(i) from materializedindex i where i.table = ?", matTbl).First);
         }
+#endif
     }
 }
