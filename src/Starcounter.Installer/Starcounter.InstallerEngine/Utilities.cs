@@ -321,26 +321,6 @@ namespace Starcounter.InstallerEngine
         }
 
         /// <summary>
-        /// Checks if the given path is on local drive not network.
-        /// </summary>
-        public static Boolean IsLocalPath(String fullDirPath)
-        {
-            DirectoryInfo dirInfo = new DirectoryInfo(fullDirPath);
-            String rootFullName = dirInfo.Root.FullName;
-            if (rootFullName.StartsWith("\\"))
-                return false;
-
-            // Checking each local drive (including mapped network drives).
-            foreach (DriveInfo d in DriveInfo.GetDrives())
-            {
-                if (String.Compare(rootFullName, d.Name, StringComparison.OrdinalIgnoreCase) == 0)
-                    return (d.DriveType != DriveType.Network);
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// Check if the path is a "developer" path i.e \bin\debug where developers build to.
         /// </summary>
         /// <param name="path"></param>

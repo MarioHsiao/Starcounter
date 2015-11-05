@@ -202,5 +202,23 @@ DLLS_LOADED:
 			ret += GetClassDeclarationSyntax(type, genericArgs, ref genericArgIndex);
             return ret;
         }
+
+        /// <summary>
+        /// Checks if the given path is on local drive not network.
+        /// </summary>
+        public static Boolean IsDirectoryLocal(String fullDirPath) {
+            DirectoryInfo dirInfo = new DirectoryInfo(fullDirPath);
+            String rootFullName = dirInfo.Root.FullName;
+            if (rootFullName.StartsWith("\\"))
+                return false;
+
+            // Checking each local drive (including mapped network drives).
+            foreach (DriveInfo d in DriveInfo.GetDrives()) {
+                if (String.Compare(rootFullName, d.Name, StringComparison.OrdinalIgnoreCase) == 0)
+                    return (d.DriveType != DriveType.Network);
+            }
+
+            return false;
+        }
     }
 }

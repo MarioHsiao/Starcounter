@@ -230,7 +230,7 @@ namespace Starcounter.InstallerWPF.Rules {
                 if (value == null ||
                     string.IsNullOrEmpty(value.ToString()) ||
                     string.IsNullOrEmpty(value.ToString().Trim()) ||
-                    Utilities.IsLocalPath(value.ToString()) == false) {
+                    HelperFunctions.IsDirectoryLocal(value.ToString()) == false) {
                     return new ValidationResult(false, new ErrorObject() { IsError = true, Message = "Directory needs to point to a local drive" });
                 }
             }

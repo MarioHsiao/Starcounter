@@ -215,6 +215,11 @@ namespace Starcounter.Internal {
         /// <param name="appName">Application name.</param>
         internal static void InternalAddStaticFileDirectory(UInt16 port, String webResourcesDir, String appName) {
 
+            // Checking that we don't have a network path registered for resource directory.
+            if (!HelperFunctions.IsDirectoryLocal(webResourcesDir)) {
+                throw new ArgumentOutOfRangeException("You are trying to use a resource directory that is on network drive (file modifications are not observable on network drives): " + webResourcesDir);
+            }
+
             // Obtaining full path to directory.
             String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
 
