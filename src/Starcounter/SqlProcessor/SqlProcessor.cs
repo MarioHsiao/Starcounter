@@ -43,6 +43,9 @@ namespace Starcounter.SqlProcessor {
         ushort sort_mask,
         short* column_indexes,
         uint attribute_flags);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_setspec_ref_by_table_ref(ulong context_handle, 
+            ulong table_oid, ulong table_ref, ulong* setspec_oid, ulong* setspec_ref);
 
         [StructLayout(LayoutKind.Sequential)]
         internal unsafe struct STAR_COLUMN_DEFINITION_HIGH {

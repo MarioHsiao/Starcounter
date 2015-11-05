@@ -138,9 +138,21 @@ namespace Starcounter
                         short *columnIndexes = stackalloc short[2];
                         columnIndexes[0] = 0;
                         columnIndexes[1] = -1;
-
+                        ulong rawviewRecordOid;
+                        ulong rawviewRecordAddr;
+                        ulong setspecRecordOid;
+                        ulong setspecRecordAddr;
+                        e = Starcounter.SqlProcessor.SqlProcessor.star_table_ref_by_layout_id(
+                            ThreadData.ContextHandle, tableId, &rawviewRecordOid, &rawviewRecordAddr);
+                        if (e != 0) throw ErrorCode.ToException(e);
+                        e = Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
+                            ThreadData.ContextHandle, rawviewRecordOid, rawviewRecordAddr,
+                            &setspecRecordOid, &setspecRecordAddr);
+                        if (e != 0) throw ErrorCode.ToException(e);
+                        String setspec = DbState.ReadString(setspecRecordOid, setspecRecordAddr, 2);
                         e = sccoredb.stari_context_create_index(
-                            ThreadData.ContextHandle, indexToken, sccoredb.TableIdToSetSpec(tableId), tableId, columnIndexes, 0, 0
+                            ThreadData.ContextHandle, indexToken, setspec, 
+                            tableId, columnIndexes, 0, 0
                             );
                         if (e != 0) throw ErrorCode.ToException(e);
                     });
