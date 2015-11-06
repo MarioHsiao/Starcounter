@@ -110,6 +110,7 @@
     <Compile Include="Hosting\ApplicationBase.cs" />
     <Compile Include="Hosting\CodeHost.cs" />
     <Compile Include="Hosting\CodeHostExtensions.cs" />
+    <Compile Include="Hosting\DefaultHost.cs" />
     <Compile Include="Hosting\IApplicationHost.cs" />
     <Compile Include="ICodeHost.cs" />
     <Compile Include="InheritsAttribute.cs" />
