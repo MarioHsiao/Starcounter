@@ -35,11 +35,15 @@ namespace Starcounter.Ioc {
 
         /// <inheritdoc/>
         public T Get<T>() {
-            object instance;
+            object instance = null;
             if (!instances.TryGetValue(typeof(T), out instance)) {
-                instance = methods[typeof(T)](this);
+                Func<ServiceContainer, object> factory;
+                if (methods.TryGetValue(typeof(T), out factory)) {
+                    instance = factory(this);
+                }
             }
-            return (T)instance;
+
+            return instance == null ? default(T) : (T)instance;
         }
     }
 }
