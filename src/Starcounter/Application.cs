@@ -230,19 +230,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initialize an <see cref="Application"/>.
         /// </summary>
-        internal Application(
-            string name, 
-            string applicationFile, 
-            string applicationBinaryFile,
-            string applicationHostFile,
-            string workingDirectory, 
-            string[] arguments,
-            bool transactEntrypoint) {
-            state = new ApplicationBase(name, applicationFile, applicationBinaryFile, workingDirectory, arguments);
-            state.HostedFilePath = applicationHostFile;
-            state.TransactEntrypoint = transactEntrypoint;
+        /// <param name="appBase">The underlying state.</param>
+        internal Application(ApplicationBase appBase) {
+            state = appBase;
         }
 
         /// <summary>
