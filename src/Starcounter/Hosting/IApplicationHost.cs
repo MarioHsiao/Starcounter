@@ -19,9 +19,8 @@ namespace Starcounter.Hosting {
         /// Invoked by the code host when the given application are hosted but
         /// before it's entrypoint is invoked.
         /// </summary>
-        /// <param name="codeHost">Reference to the code host</param>
         /// <param name="application">The application that is being booted.
         /// </param>
-        void HostApplication(CodeHost codeHost, Application application);
+        void HostApplication(Application application);
     }
 }

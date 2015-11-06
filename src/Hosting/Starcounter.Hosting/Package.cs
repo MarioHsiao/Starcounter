@@ -234,7 +234,12 @@ namespace Starcounter.Hosting {
                 // The host must always be executed in this context, even if the
                 // application start synchronously.
                 if (application != null) {
-                    ExecuteHost(application);
+                    try {
+                        ExecuteHost(application);
+                    }
+                    finally {
+                        LegacyContext.Exit(application);
+                    }
                 }
 
                 // Starting user Main() here.
@@ -500,17 +505,17 @@ namespace Starcounter.Hosting {
             if (entrypoint != null) {
                 var declaringClass = entrypoint.DeclaringType;
                 if (typeof(IApplicationHost).IsAssignableFrom(declaringClass)) {
-                    using (var codeHost = new CodeHost(application)) {
-                        try {
-                            var appHost = Activator.CreateInstance(declaringClass) as IApplicationHost;
-                            if (appHost == null) {
-                                throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, string.Format(
-                                    "Unable to create instance of {0}. Is it public? Does it have a default constructor?", declaringClass.Name));
-                            }
-                            appHost.HostApplication(codeHost, application);
-                        } catch (Exception e) {
-                            throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, e);
+                    try {
+                        var appHost = Activator.CreateInstance(declaringClass) as IApplicationHost;
+                        if (appHost == null) {
+                            throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, string.Format(
+                                "Unable to create instance of {0}. Is it public? Does it have a default constructor?", declaringClass.Name));
                         }
+
+                        appHost.HostApplication(application);
+
+                    } catch (Exception e) {
+                        throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, e);
                     }
                 }
             }
