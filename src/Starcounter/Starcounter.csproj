@@ -137,7 +137,6 @@
     <Compile Include="Internal\StarcounterAssemblyAttribute.cs" />
     <Compile Include="Internal\TaskHelper.cs" />
     <Compile Include="Binding\IObjectProxy.cs" />
-    <Compile Include="Ioc\HostServices.cs" />
     <Compile Include="ITransactionConflictException.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="Internal\Fix.cs" />

@@ -187,8 +187,11 @@ namespace StarcounterInternal.Bootstrap {
                 // Initialize the Db environment (database name)
                 Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
-                // Enable host level IOC services
-                new HostServices();
+                // Create and initialize the default host for the current
+                // process. This enables services to be installed/retreived,
+                // so possibly we should do this earlier once we switch to
+                // a more DI-based envioronment.
+                DefaultHost.InstallCurrent();
 
                 // Initializing system profilers.
                 Profiler.Init();
