@@ -144,6 +144,7 @@
     <Compile Include="Internal\ThreadData.cs" />
     <Compile Include="Legacy\BoundClass.cs" />
     <Compile Include="Legacy\LegacyContext.cs" />
+    <Compile Include="Legacy\LegacyHostExtensions.cs" />
     <Compile Include="Legacy\LegacyRuntimeSupport.cs" />
     <Compile Include="Metadata\MaterializedColumn.cs" />
     <Compile Include="Metadata\MaterializedIndex.cs" />
