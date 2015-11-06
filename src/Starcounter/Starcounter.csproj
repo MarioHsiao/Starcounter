@@ -168,6 +168,7 @@
     <Compile Include="Mock\Schema\DatabaseAttributeFlags.cs" />
     <Compile Include="ObjectView\DefaultPropertyReader.cs" />
     <Compile Include="ObjectView\ValueFormatter.cs" />
+    <Compile Include="ObjectView\ViewReader.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="Query\IQueryRowsResponse.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
@@ -452,6 +453,7 @@
   <ItemGroup>
     <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
