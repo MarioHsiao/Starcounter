@@ -14,7 +14,7 @@ namespace Starcounter {
     /// to run in, a Starcounter code host.
     /// </summary>
     public sealed class Application {
-
+        readonly ICodeHost host;
         readonly ApplicationBase state;
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -29,6 +29,14 @@ namespace Starcounter {
             set {
                 StarcounterEnvironment.AppName = ((value == null) ? null : value.Name);
             }
+        }
+
+        /// <summary>
+        /// Gets the <see cref="ICodeHost"/> the current application
+        /// execute within.
+        /// </summary>
+        public ICodeHost Host {
+            get { return host;  }
         }
 
         /// <summary>
@@ -233,8 +241,11 @@ namespace Starcounter {
         /// Initialize an <see cref="Application"/>.
         /// </summary>
         /// <param name="appBase">The underlying state.</param>
-        internal Application(ApplicationBase appBase) {
-            state = appBase;
+        /// <param name="host">The code host the application runs
+        /// within.</param>
+        internal Application(ApplicationBase appBase, ICodeHost host) {
+            this.state = appBase;
+            this.host = host;
         }
 
         /// <summary>

@@ -134,7 +134,7 @@ namespace StarcounterInternal.Hosting
             stopwatch_ = stopwatch ?? Stopwatch.StartNew();
             OnLoaderStarted();
 
-            var application = new Application(appBase);
+            var application = new Application(appBase, DefaultHost.Current);
 
             var filePath = application.HostedFilePath;
             try {
