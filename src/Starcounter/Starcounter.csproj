@@ -166,6 +166,7 @@
     <Compile Include="Mock\LogSources.cs" />
     <Compile Include="Mock\Reload.cs" />
     <Compile Include="Mock\Schema\DatabaseAttributeFlags.cs" />
+    <Compile Include="ObjectView\DefaultPropertyReader.cs" />
     <Compile Include="ObjectView\ValueFormatter.cs" />
     <Compile Include="Page.cs" />
     <Compile Include="Query\IQueryRowsResponse.cs" />
