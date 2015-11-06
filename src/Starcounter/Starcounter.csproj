@@ -110,6 +110,7 @@
     <Compile Include="Hosting\ApplicationBase.cs" />
     <Compile Include="Hosting\CodeHost.cs" />
     <Compile Include="Hosting\IApplicationHost.cs" />
+    <Compile Include="ICodeHost.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
     <Compile Include="Internal\Map.cs" />
