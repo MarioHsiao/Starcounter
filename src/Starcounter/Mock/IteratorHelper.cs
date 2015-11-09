@@ -182,7 +182,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
-                verify = ThreadData.ContextHandle; // TODO EOH: ?
+                verify = ThreadData.ObjectVerify;
                 cachedEnum.UpdateCached(hCursor, verify);
                 return;
             }
@@ -235,7 +235,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
-                verify = ThreadData.ContextHandle; // TODO EOH: ?
+                verify = ThreadData.ObjectVerify;
                 cachedEnum.UpdateCached(hCursor, verify);
                 return true;
             }
@@ -291,7 +291,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
-                verify = ThreadData.ContextHandle; // TODO EOH: ?
+                verify = ThreadData.ObjectVerify;
                 cachedEnum.UpdateCached(hCursor, verify);
                 return;
             }
@@ -347,7 +347,7 @@ namespace Starcounter
             // Checking error code.
             if (err == 0)
             {
-                verify = ThreadData.ContextHandle; // TODO EOH: ?
+                verify = ThreadData.ObjectVerify;
                 cachedEnum.UpdateCached(hCursor, verify);
                 return true;
             }

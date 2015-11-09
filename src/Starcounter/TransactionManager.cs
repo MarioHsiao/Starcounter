@@ -59,7 +59,7 @@ namespace Starcounter.Internal {
             ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
             if (ec == 0) {
                 try {
-                    verify = sccorelib.GetCpuNumber(); // TODO EOH:
+                    verify = ThreadData.ObjectVerify;
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
 
                     if (index < ShortListCount) {
@@ -122,7 +122,7 @@ namespace Starcounter.Internal {
             ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
             if (ec == 0) {
                 try {
-                    verify = sccorelib.GetCpuNumber(); // TODO EOH:
+                    verify = ThreadData.ObjectVerify;
                     ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle); // TODO EOH: Handle error.
 
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);

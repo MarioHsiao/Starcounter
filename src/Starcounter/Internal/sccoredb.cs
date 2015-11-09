@@ -732,8 +732,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         /// <remarks>
-        /// Calling thread must be the owning thread of the context where the iterator resides.
-        /// TODO EOH: Will implicitly switch to the transaction of the iterator.
+        /// Calling thread must be the owning thread of the context where the iterator is created
+        /// and the current transaction of context must be the transaction the iterator belongs to.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_iterator_next(
