@@ -106,6 +106,9 @@ namespace Starcounter.Internal {
         }
 
         private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit) {
+            if (ThreadData.inTransactionScope_ != 0)
+                throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+
             int index = Used;
 
             ulong handle;
@@ -337,10 +340,18 @@ namespace Starcounter.Internal {
             if (CurrentHandle == handle)
                 return;
 
-            uint ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle.handle);
-            if (ec == 0) {
-                CurrentHandle = handle;
-                return;
+            uint ec;
+            if (ThreadData.inTransactionScope_ == 0) {
+                ec = sccoredb.star_context_set_current_transaction(
+                    ThreadData.ContextHandle, handle.handle
+                    );
+                if (ec == 0) {
+                    CurrentHandle = handle;
+                    return;
+                }
+            }
+            else {
+                ec = Error.SCERRTRANSACTIONLOCKEDONTHREAD;
             }
             throw ErrorCode.ToException(ec);
         }
