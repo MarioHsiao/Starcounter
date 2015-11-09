@@ -483,7 +483,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint star_transaction_commit(ulong handle, int free);
+        public static extern uint star_context_commit(ulong handle, int free);
 
         /// <summary>
         /// </summary>

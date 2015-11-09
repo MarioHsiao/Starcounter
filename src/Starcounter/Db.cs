@@ -112,16 +112,14 @@ namespace Starcounter
                         //column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
                     //ulong token = sccoredb.AssureTokenForString(tableDef.Name);
-                    Db.Transact(() => {
-                        fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
-                        {
-                            ushort layou_id;
-                            uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
-                                tableDef.Name, tableDef.BaseName, fixed_column_defs, &layou_id);
-                            //uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
-                            if (e != 0) throw ErrorCode.ToException(e);
-                        }
-                    });
+                    fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
+                    {
+                        ushort layou_id;
+                        uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
+                            tableDef.Name, tableDef.BaseName, fixed_column_defs, &layou_id);
+                        //uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
+                        if (e != 0) throw ErrorCode.ToException(e);
+                    }
 
                     // TODO EOH: Same transaction. Handle errors (comes pretty automatically if same transaction).
 #if true // TODO RUS: create index with metadata
@@ -225,13 +223,12 @@ namespace Starcounter
 
                     try {
                         action();
-                        TransactionManager.Commit(handle, 1, 1);
+                        TransactionManager.Commit(1);
                         return;
                     } catch (Exception ex) {
-                        uint cr = sccoredb.star_context_set_current_transaction(
-                            ThreadData.ContextHandle, 0
-                            );
-                        if (cr == 0) cr = sccoredb.star_transaction_free(handle);
+                        // Make sure thread is attached.
+                        ulong contextHandle = ThreadData.ContextHandle;
+                        uint cr = sccoredb.star_transaction_free(handle);
                         if (cr == 0) {
                             if (ex is ITransactionConflictException) {
                                 if (++retries <= maxRetries) continue;
