@@ -519,7 +519,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_external_abort();
+        public extern static uint star_context_external_abort(ulong handle);
 
         /// <summary>
         /// </summary>

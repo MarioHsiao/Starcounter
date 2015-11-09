@@ -36,6 +36,16 @@ namespace Starcounter
         [ThreadStatic]
         internal static ulong storedTransactionHandle_ = 0;
 
+        /// <summary>
+        /// Indicates if the thread is in a transaction scope.
+        /// </summary>
+        /// <remarks>
+        /// While transaction is in a transaction scope then application code is
+        /// not allowed to switch current transaction on the thread.
+        /// </remarks>
+        [ThreadStatic]
+        internal static int inTransactionScope_;
+
         private static ulong GetContextHandleExcept() {
             // Thread not attached. There could be a number of reasons for this,
             // the thread might not be a Starcounter worker thread for example,
