@@ -225,40 +225,45 @@ internal static class SqlProcessor
         //    TypeRepository.TryGetTypeBindingByShortName(typePath, out typeBind);
         if (typeBind == null)
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
-            attributeIndexArr = new Int16[propertyList.Count + 1];
-            unsafe
-            {
-                Starcounter.SqlProcessor.SqlProcessor.STAR_INDEXED_COLUMN[] indexedColumns =
-                    new Starcounter.SqlProcessor.SqlProcessor.STAR_INDEXED_COLUMN[propertyList.Count + 1];
-                for (Int32 i = 0; i < propertyList.Count; i++) {
-                    propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
-                    if (propBind == null)
-                        throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Column " + propertyList[i] + " is not found in table " + typeBind.Name);
-                    if (propBind._dataIndex == -1)
-                        throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Property " + propertyList[i] + " in table " + typeBind.Name + " is not a stored property.");
-                    attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
-                    indexedColumns[i].column_name = (char*)Marshal.StringToCoTaskMemUni(propBind.Name);
-                    if ((sortMask & (1 << i)) == 0)
-                        indexedColumns[i].ascending = 1;
-                }
 
-                // Set the last position in the array to -1 (terminator).
-                attributeIndexArr[attributeIndexArr.Length - 1] = -1;
-                Db.Scope(() => {
-                    fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
-                    {
-                        errorCode = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
-                            ThreadData.ContextHandle, typeBind.TableId,
-                            indexName, sortMask, attributeIndexesPointer, flags);
-                    }
-                    if (errorCode != 0) {
-                        Exception ex = ErrorCode.ToException(errorCode);
-                        if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                            ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
-                        throw ex;
-                    }
-                });
+        // Operation creates its own transaction. Not allowed if transaction is locked on thread.
+        if (ThreadData.inTransactionScope_ != 0)
+            throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+
+        attributeIndexArr = new Int16[propertyList.Count + 1];
+        unsafe
+        {
+            Starcounter.SqlProcessor.SqlProcessor.STAR_INDEXED_COLUMN[] indexedColumns =
+                new Starcounter.SqlProcessor.SqlProcessor.STAR_INDEXED_COLUMN[propertyList.Count + 1];
+            for (Int32 i = 0; i < propertyList.Count; i++) {
+                propBind = typeBind.GetPropertyBindingInsensitive(propertyList[i]);
+                if (propBind == null)
+                    throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Column " + propertyList[i] + " is not found in table " + typeBind.Name);
+                if (propBind._dataIndex == -1)
+                    throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Property " + propertyList[i] + " in table " + typeBind.Name + " is not a stored property.");
+                attributeIndexArr[i] = (Int16)propBind.GetDataIndex();
+                indexedColumns[i].column_name = (char*)Marshal.StringToCoTaskMemUni(propBind.Name);
+                if ((sortMask & (1 << i)) == 0)
+                    indexedColumns[i].ascending = 1;
             }
+
+            // Set the last position in the array to -1 (terminator).
+            attributeIndexArr[attributeIndexArr.Length - 1] = -1;
+            Db.Scope(() => {
+                fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
+                {
+                    errorCode = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
+                        ThreadData.ContextHandle, typeBind.TableId,
+                        indexName, sortMask, attributeIndexesPointer, flags);
+                }
+                if (errorCode != 0) {
+                    Exception ex = ErrorCode.ToException(errorCode);
+                    if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
+                        ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
+                    throw ex;
+                }
+            });
+        }
             // Call kenrel
 #if false // TODO RUS: remove it
             Db.Transact(() => {
@@ -388,8 +393,12 @@ internal static class SqlProcessor
         if (typeBind == null)
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found", exc);
 
-            uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
-                ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
+        // Operation creates its own transaction. Not allowed if transaction is locked on thread.
+        if (ThreadData.inTransactionScope_ != 0)
+            throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+
+        uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
+            ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
 #if false // TODO RUS: remove
             // Call kernel
             Db.Transact(() => {

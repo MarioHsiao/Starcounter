@@ -8,6 +8,7 @@
 
 using Starcounter.Internal;
 using System;
+using System.Diagnostics;
 
 namespace Starcounter
 {
@@ -30,15 +31,45 @@ namespace Starcounter
         public static ThreadData Current;
 
         [ThreadStatic]
-        private static unsafe ulong contextHandle_ = 0;
+        internal static ulong contextHandle_ = 0;
+
+        [ThreadStatic]
+        internal static ulong storedTransactionHandle_ = 0;
+
+        /// <summary>
+        /// Indicates if the thread is in a transaction scope.
+        /// </summary>
+        /// <remarks>
+        /// While transaction is in a transaction scope then application code is
+        /// not allowed to switch current transaction on the thread.
+        /// </remarks>
+        [ThreadStatic]
+        internal static int inTransactionScope_;
+
+        private static ulong GetContextHandleExcept() {
+            // Thread not attached. There could be a number of reasons for this,
+            // the thread might not be a Starcounter worker thread for example,
+            // but if it the reason is that the thread has been implicitly
+            // detached by block detection we should implicitly attach it again.
+            //
+            // So we try ending auto detach. If detached for some other reason,
+            // or not a worker thread, operation will fail, in which case we
+            // raise an exception. Otherwise it will wait until scheduler
+            // attaches the thread again and we will have ownership of the
+            // context once more.
+
+            uint r = sccorelib.cm3_eautodet(IntPtr.Zero);
+            if (r == 0) {
+                Debug.Assert(contextHandle_ != 0);
+                return contextHandle_;
+            }
+            throw ErrorCode.ToException(Error.SCERRTHREADNOTATTACHED);
+        }
 
         internal static ulong ContextHandle {
             get {
                 if (contextHandle_ != 0) return contextHandle_;
-                throw ErrorCode.ToException(Error.SCERRTHREADNOTATTACHED); // TODO EOH: Reattach if auto detached?
-            }
-            set {
-                contextHandle_ = value;
+                return GetContextHandleExcept();
             }
         }
 

@@ -76,6 +76,11 @@ namespace Starcounter
         /// <param name="inheritedTableDef">The inherited table def.</param>
         public static void CreateTable(TableDef tableDef, TableDef inheritedTableDef)
         {
+            // Operation creates its own transaction. Not allowed if transaction is locked on
+            // thread.
+            if (ThreadData.inTransactionScope_ != 0)
+                throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+
             unsafe
             {
                 int implicitColumnCount;
@@ -112,16 +117,14 @@ namespace Starcounter
                         //column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
                     //ulong token = sccoredb.AssureTokenForString(tableDef.Name);
-                    Db.Transact(() => {
-                        fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
-                        {
-                            ushort layou_id;
-                            uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
-                                tableDef.Name, tableDef.BaseName, fixed_column_defs, &layou_id);
-                            //uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
-                            if (e != 0) throw ErrorCode.ToException(e);
-                        }
-                    });
+                    fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
+                    {
+                        ushort layou_id;
+                        uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
+                            tableDef.Name, tableDef.BaseName, fixed_column_defs, &layou_id);
+                        //uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
+                        if (e != 0) throw ErrorCode.ToException(e);
+                    }
 
                     // TODO EOH: Same transaction. Handle errors (comes pretty automatically if same transaction).
 #if true // TODO RUS: create index with metadata
@@ -200,7 +203,6 @@ namespace Starcounter
             int retries;
             uint r;
             ulong handle;
-            ulong verify;
 
             if (maxRetries < 0) {
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
@@ -212,59 +214,69 @@ namespace Starcounter
 
             retries = 0;
 
-            // TODO EOH: Lock transaction on thread. Not supported currently.
+            if (ThreadData.inTransactionScope_ == 0) {
+                for (;;) {
+                    r = sccoredb.star_context_create_transaction(
+                        ThreadData.ContextHandle, flags, out handle
+                        );
+                    if (r == 0) {
+                        // We only set the handle to none here, since Transaction.Current will
+                        // follow this value.
+                        var currentTransaction =
+                            TransactionManager.GetCurrentAndSetToNoneManagedOnly();
 
-            for (; ; ) {
-                r = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
-                if (r == 0) {
-                    verify = sccorelib.GetCpuNumber(); // TODO EOH:
-                    r = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle); // TODO EOH: Handle error.
+                        try {
+                            ThreadData.inTransactionScope_ = 1;
 
-                    // We only set the handle to none here, since Transaction.Current will follow this value.
-                    var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
-
-                    try {
-                        action();
-                        TransactionManager.Commit(handle, 1, 1);
-                        return;
-                    } catch (Exception ex) {
-                        uint cr = sccoredb.star_context_set_current_transaction(
-                            ThreadData.ContextHandle, 0
-                            );
-                        if (cr == 0) cr = sccoredb.star_transaction_free(handle);
-                        if (cr == 0) {
-                            if (ex is ITransactionConflictException) {
-                                if (++retries <= maxRetries) continue;
-                                throw ErrorCode.ToException(Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex);
+                            r = sccoredb.star_context_set_current_transaction(
+                                ThreadData.ContextHandle, handle
+                                );
+                            if (r == 0) {
+                                action();
+                                TransactionManager.Commit(1);
+                                return;
                             }
-                            throw;
                         }
-                        HandleFatalErrorInTransactionScope(cr);
-                    } finally {
-                        TransactionManager.SetCurrentTransaction(currentTransaction);
-                    }
-                }
+                        catch (Exception ex) {
+                            // Make sure thread is attached.
+                            ulong contextHandle = ThreadData.ContextHandle;
+                            uint cr = sccoredb.star_transaction_free(handle);
+                            if (cr == 0) {
+                                if (ex is ITransactionConflictException) {
+                                    if (++retries <= maxRetries) continue;
+                                    throw ErrorCode.ToException(
+                                        Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex
+                                        );
+                                }
+                                throw;
+                            }
+                            HandleFatalErrorInTransactionScope(cr);
+                        }
+                        finally {
+                            Debug.Assert(ThreadData.inTransactionScope_ == 1);
+                            ThreadData.inTransactionScope_ = 0;
 
-                if (r == Error.SCERRTRANSACTIONLOCKEDONTHREAD) {
-                    // We already have a transaction locked on thread so we're
-                    // already in a transaction scope (possibly an implicit one if
-                    // for example in the context of a trigger): Just invoke the
-                    // callback and exit.
-
-                    try {
-                        action();
-                    } catch {
-                        // Operation will fail only if transaction is already
-                        // aborted (in which case we need not abort it).
-
-                        sccoredb.sccoredb_external_abort();
-                        throw;
+                            TransactionManager.SetCurrentTransaction(currentTransaction);
+                        }
                     }
                     return;
                 }
-
-                throw ErrorCode.ToException(r);
             }
+
+            // We already have a transaction locked on thread so we're already in a transaction
+            // scope (possibly an implicit one if for example in the context of a trigger): Just
+            // invoke the callback and exit.
+
+            try {
+                action();
+            } catch {
+                // Operation will fail only if transaction is already aborted (in which case we need
+                // not abort it).
+
+                sccoredb.star_context_external_abort(ThreadData.ContextHandle);
+                throw;
+            }
+            return;
         }
 
         internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
@@ -462,6 +474,7 @@ namespace Starcounter
                 MapInvoke.DELETE(proxy.TypeBinding.Name, oid);
             }
 
+            ThreadData.inTransactionScope_++;
             try {
                 InvokeOnDelete(proxy);
             } catch (Exception ex) {
@@ -480,6 +493,9 @@ namespace Starcounter
                     );
                 if (ex is System.Threading.ThreadAbortException) throw;
                 throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
+            }
+            finally {
+                ThreadData.inTransactionScope_--;
             }
 
             uint r = sccoredb.star_context_delete(ThreadData.ContextHandle, oid, address);

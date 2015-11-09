@@ -437,7 +437,16 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_context_set_current_transaction(ulong handle, ulong transaction_handle);
+        internal static extern uint star_context_get_current_transaction(
+            ulong handle, out ulong transaction_handle
+            );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint star_context_set_current_transaction(
+            ulong handle, ulong transaction_handle
+            );
 
         /// <summary>
         /// </summary>
@@ -474,7 +483,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint star_transaction_commit(ulong handle, int free);
+        public static extern uint star_context_commit(ulong handle, int free);
 
         /// <summary>
         /// </summary>
@@ -510,7 +519,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_external_abort();
+        public extern static uint star_context_external_abort(ulong handle);
 
         /// <summary>
         /// </summary>

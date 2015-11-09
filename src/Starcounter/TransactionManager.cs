@@ -106,6 +106,9 @@ namespace Starcounter.Internal {
         }
 
         private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit) {
+            if (ThreadData.inTransactionScope_ != 0)
+                throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+
             int index = Used;
 
             ulong handle;
@@ -337,10 +340,18 @@ namespace Starcounter.Internal {
             if (CurrentHandle == handle)
                 return;
 
-            uint ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle.handle);
-            if (ec == 0) {
-                CurrentHandle = handle;
-                return;
+            uint ec;
+            if (ThreadData.inTransactionScope_ == 0) {
+                ec = sccoredb.star_context_set_current_transaction(
+                    ThreadData.ContextHandle, handle.handle
+                    );
+                if (ec == 0) {
+                    CurrentHandle = handle;
+                    return;
+                }
+            }
+            else {
+                ec = Error.SCERRTRANSACTIONLOCKEDONTHREAD;
             }
             throw ErrorCode.ToException(ec);
         }
@@ -608,21 +619,17 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(handle.handle, 0, 0);
+                Commit(0);
             });
         }
 
         /// <summary>
         /// Commits current transaction.
         /// </summary>
-        /// <param name="tran_locked_on_thread"></param>
-        /// <param name="detach_and_free"></param>
-        internal static void Commit(ulong transaction_handle, int tran_locked_on_thread, int detach_and_free) {
-            if (detach_and_free == 0) throw new NotSupportedException(); // TODO EOH:
-
+        internal static void Commit(int free) {
             uint r;
 
-            r = sccoredb.star_transaction_commit(transaction_handle, 1);
+            r = sccoredb.star_context_commit(ThreadData.ContextHandle, free);
             if (r != 0) throw ErrorCode.ToException(r);
 
 #if false // TODO EOH:
