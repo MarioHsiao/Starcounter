@@ -254,6 +254,10 @@ namespace Starcounter.Internal
 
           /// <summary>
           /// </summary>
+          public ushort layout_handle;
+
+          /// <summary>
+          /// </summary>
           public short attributeCount;
 
           /// <summary>
