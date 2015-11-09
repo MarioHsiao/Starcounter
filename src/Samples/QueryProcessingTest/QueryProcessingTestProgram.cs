@@ -74,11 +74,7 @@ namespace QueryProcessingTest {
         }
 
         private static bool CheckIfIndexExists(string indexName) {
-#if false // TODO EOH:
-            return Starcounter.Db.SQL("select i from \"Index\" i where name = ?", indexName).First != null;
-#else
-            return false;
-#endif
+            return Starcounter.Db.SQL("select i from Starcounter.Metadata.\"Index\" i where name = ?", indexName).First != null;
         }
 
         internal static void CreateIndexes() {

@@ -30,17 +30,3 @@ IF ERRORLEVEL 1 (
 START scipcmonitor.exe PERSONAL .db.output
 START scdata.exe 1 SQLTEST .db.output SqlTest .db .db.output
 START 32bitComponents\scsqlparser.exe 8066
-
-:: Sleeping some time using ping.
-ping -n 3 127.0.0.1 > nu
-
-:: start the program
-CALL sccode.exe SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
-
-IF ERRORLEVEL 1 (
-    ECHO Error: SQL regression test is failed!
-    EXIT /b 1
-) ELSE (
-    ECHO SQL regression test succeeded.
-    EXIT /b 0
-)

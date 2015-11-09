@@ -608,21 +608,17 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(handle.handle, 0, 0);
+                Commit(0);
             });
         }
 
         /// <summary>
         /// Commits current transaction.
         /// </summary>
-        /// <param name="tran_locked_on_thread"></param>
-        /// <param name="detach_and_free"></param>
-        internal static void Commit(ulong transaction_handle, int tran_locked_on_thread, int detach_and_free) {
-            if (detach_and_free == 0) throw new NotSupportedException(); // TODO EOH:
-
+        internal static void Commit(int free) {
             uint r;
 
-            r = sccoredb.star_transaction_commit(transaction_handle, 1);
+            r = sccoredb.star_context_commit(ThreadData.ContextHandle, free);
             if (r != 0) throw ErrorCode.ToException(r);
 
 #if false // TODO EOH:

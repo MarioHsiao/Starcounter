@@ -475,21 +475,24 @@ namespace Starcounter.Hosting {
                     updated = true;
                 });
             }
-            //Thread.Sleep(2000);
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
+#if false // TODO RUS: already populated in meta-layer
                 Db.SystemTransact(delegate {
-                    //MetadataPopulation.CreateRawTableInstance(typeDef); // TODO EOH:
+                    MetadataPopulation.CreateRawTableInstance(typeDef); // TODO EOH:
                     updated = true;
                 });
+#endif
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
+#if false // TODO RUS: already populated in meta-layer
                 Db.SystemTransact(delegate {
                     MetadataPopulation.UpgradeRawTableInstance(typeDef);
                     updated = true;
                 });
+#endif
             }
             typeDef.TableDef = storedTableDef;
 
