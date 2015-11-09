@@ -40,7 +40,7 @@ namespace StarcounterInternal.Hosting
         /// Orange_configure_scheduler_callbackses the specified setup.
         /// </summary>
         /// <param name="setup">The setup.</param>
-        public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup) // TODO EOH:
+        public static unsafe void orange_configure_scheduler_callbacks(ref sccorelib.CM2_SETUP setup)
         {
             setup.th_enter = (void*)Marshal.GetFunctionPointerForDelegate(th_enter);
             setup.th_leave = (void*)Marshal.GetFunctionPointerForDelegate(th_leave);

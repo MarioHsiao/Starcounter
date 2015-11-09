@@ -458,8 +458,6 @@ namespace Starcounter
                 else throw ErrorCode.ToException((uint)(-ir));
             }
 
-            // TODO EOH: Lock transaction on thread executing hook callback.
-
             // Invoke all callbacks. If any of theese throws an exception then
             // we rollback the issued delete and pass on the thrown exception
             // to the caller.
