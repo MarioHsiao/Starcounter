@@ -7,7 +7,7 @@
 using Starcounter.Query.Execution;
 using Starcounter.Internal;
 using System;
-using System.Text;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Starcounter.Binding
@@ -179,7 +179,7 @@ namespace Starcounter.Binding
             uint ec;
             uint ic;
             sccoredb.STARI_INDEX_INFO[] iis;
-            IndexInfo[] iil;
+            List<IndexInfo> iil;
 
             unsafe
             {
@@ -213,12 +213,16 @@ namespace Starcounter.Binding
                         throw ErrorCode.ToException(ec);
                     }
 
-                    iil = new IndexInfo[ic];
-                    for (int i = 0; i < ic; i++)
-                    {
-                        iil[i] = CreateIndexInfo(pii + i);
+                    // Index infos array contains all indexes including inherited ones, which we do
+                    // not want here. So we filter them by filtering all indexes with a different
+                    // then expected layout (assuming them to be inherited).
+                    iil = new List<IndexInfo>((int)ic);
+                    for (int i = 0; i < ic; i++) {
+                        if ((pii + i)->layout_handle == TableId) {
+                            iil.Add(CreateIndexInfo(pii + i));
+                        }
                     }
-                    return iil;
+                    return iil.ToArray();
                 }
             }
         }
