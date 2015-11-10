@@ -46,10 +46,7 @@ namespace GenerateMetadataClasses.CodeGenerator {
 
             var ctors = GenerateConstructors(c);
             c.Members.AddRange(ctors);
-
-            var createTypeDef = GenerateCreateTypeDef(table, c);
-            c.Members.Add(createTypeDef);
-
+            
             var ns = GetNamespace(table);
             ns.Types.Add(c);
 
@@ -91,27 +88,6 @@ namespace GenerateMetadataClasses.CodeGenerator {
             xctor.BaseConstructorArgs.Add(new CodeVariableReferenceExpression("table"));
 
             return new[] { uctor, ictor, xctor };
-        }
-
-        CodeMemberMethod GenerateCreateTypeDef(Table table, CodeTypeDeclaration classDecl) {
-            // Define CreateTypeDef
-            //static internal TypeDef CreateTypeDef() {
-            //  return TypeDef.CreateTypeTableDef(typeof(Table.Name));
-            //}
-
-            var typeDef = "TypeDef";
-            var m = new CodeMemberMethod();
-            m.Name = "CreateTypeDef";
-            m.Attributes = MemberAttributes.Static | MemberAttributes.Assembly | MemberAttributes.New;
-
-            m.ReturnType = new CodeTypeReference(typeDef);
-
-            var typeOfExpr = new CodeTypeOfExpression(table.TableName);
-            var call = new CodeMethodInvokeExpression(new CodeTypeReferenceExpression(typeDef), "CreateTypeTableDef", typeOfExpr);
-            var returnExpr = new CodeMethodReturnStatement(call);
-
-            m.Statements.Add(returnExpr);
-            return m;
         }
     }
 }
