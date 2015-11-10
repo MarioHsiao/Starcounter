@@ -1,10 +1,7 @@
-﻿using Starcounter.Binding;
-using System;
-using System.Collections.Generic;
+﻿
+using Starcounter.Binding;
+using Starcounter.Internal.Metadata;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Starcounter.Hosting {
 
@@ -13,9 +10,7 @@ namespace Starcounter.Hosting {
     /// loaded and maintained in every host.
     /// </summary>
     public class StarcounterPackage : Package {
-        private StarcounterPackage(TypeDef[] types, Stopwatch watch) : base(types, watch) {
-
-        }
+        private StarcounterPackage(TypeDef[] types, Stopwatch watch) : base(types, watch) {}
 
         /// <summary>
         /// Create a <see cref="StarcounterPackage"/>, governing the right set of
@@ -24,24 +19,20 @@ namespace Starcounter.Hosting {
         /// <param name="watch">Stop watch for diagnostics</param>
         /// <returns>The package, ready to be processed.</returns>
         public static StarcounterPackage Create(Stopwatch watch) {
-            var defs = DefineTypes();
+            var defs = MetaBinder.Instance.GetDefinitions();
             return new StarcounterPackage(defs, watch);
         }
 
-        static TypeDef[] DefineTypes() {
-            /*             Package package = new Package(
-                new TypeDef[] { //sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
-                    Starcounter.Metadata.Type.CreateTypeDef(), Starcounter.Metadata.DbPrimitiveType.CreateTypeDef(), 
-                    Starcounter.Metadata.MapPrimitiveType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
-                    Table.CreateTypeDef(), RawView.CreateTypeDef(),
-                    VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), 
-                    Member.CreateTypeDef(), Column.CreateTypeDef(), 
-                    Property.CreateTypeDef(), CodeProperty.CreateTypeDef(), MappedProperty.CreateTypeDef(),
-                    Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
-                },
-                stopwatch_
-                );*/
-            return null;
+        protected override void InitTypeSpecifications() {
+            // User-level classes are self registering and report in to
+            // the installed host manager on first use (via an emitted call
+            // in the static class constructor). For system classes, we
+            // have to do this by hand.
+
+            var metaBinder = MetaBinder.Instance;
+            foreach (var type in metaBinder.GetSpecifications()) {
+                HostManager.InitTypeSpecification(type);
+            }
         }
     }
 }
