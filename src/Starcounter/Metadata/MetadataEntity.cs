@@ -4,9 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Starcounter.Internal;
+using Starcounter.Binding;
 
 namespace Starcounter.Metadata {
+    /// <summary>
+    /// Defines a base class used by all generated metadata classes.
+    /// By having it a normal database class / table, we can do queries
+    /// on all objects relating to metadata.
+    /// </summary>
     public abstract class MetadataEntity : SystemEntity {
+        #region Binding/hosting specific code
+        internal static TypeDef CreateTypeDef() {
+            return TypeDef.CreateTypeTableDef(typeof(MetadataEntity));
+        }
+        internal class @__starcounterTypeSpecification {
+            internal static ushort tableHandle;
+            internal static TypeBinding TypeBinding;
+        }
+        #endregion
+
         /// <inheritdoc />
         protected MetadataEntity(Uninitialized u) : base(u) {}
 
