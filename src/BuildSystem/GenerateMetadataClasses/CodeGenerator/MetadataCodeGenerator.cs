@@ -39,10 +39,15 @@ namespace GenerateMetadataClasses.CodeGenerator {
             internalNamespace.Imports.AddRange(usings);
 
             var classGenerator = new ClassGenerator(publicNamespace, internalNamespace);
+            var binderGenerator = new BinderGenerator();
 
             foreach (var table in schema.Tables.Values) {
-                classGenerator.Generate(table);
+                var c = classGenerator.Generate(table);
+                var ns = classGenerator.GetNamespace(table);
+                binderGenerator.Include(c, ns);
             }
+
+            binderGenerator.Generate(internalNamespace);
 
             unit.Namespaces.AddRange(new[] { publicNamespace, internalNamespace });
             return unit;
