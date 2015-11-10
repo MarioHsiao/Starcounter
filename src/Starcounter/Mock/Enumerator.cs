@@ -205,6 +205,7 @@ namespace Starcounter
             previousCCI = UInt16.MaxValue;
 
         next:
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             //Application.Profiler.Start("SCIteratorNext", 2);
             Boolean newIterator = _handle == 0;
             unsafe
@@ -473,6 +474,7 @@ namespace Starcounter
             previousCCI = UInt16.MaxValue;
 
         next:
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             //Application.Profiler.Start("filter_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe {
