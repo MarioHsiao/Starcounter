@@ -396,30 +396,10 @@ internal static class SqlProcessor
         // Operation creates its own transaction. Not allowed if transaction is locked on thread.
         if (ThreadData.inTransactionScope_ != 0)
             throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
-
-        uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
-            ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
-#if false // TODO RUS: remove
-            // Call kernel
-            Db.Transact(() => {
-            UInt32 errorCode;
-            unsafe
-            {
-                var token = Starcounter.SqlProcessor.SqlProcessor.GetTokenFromName(indexName);
-                if (token != 0) {
-                    errorCode = sccoredb.stari_context_drop_index(ThreadData.ContextHandle, token);
-                }
-                else errorCode = Error.SCERRINDEXNOTFOUND;
-            }
-            if (errorCode != 0) {
-                Exception ex = ErrorCode.ToException(errorCode);
-                if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                    ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
-                throw ex;
-            }
-        });
-        DeleteMetadataIndex(typeBind.Name, indexName);
-#endif
+            Db.Scope(() => {
+                uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
+                    ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
+            });
     }
 
     /// <summary>
