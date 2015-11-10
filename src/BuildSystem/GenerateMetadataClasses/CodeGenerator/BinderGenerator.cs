@@ -11,6 +11,13 @@ namespace GenerateMetadataClasses.CodeGenerator {
         List<string> names = new List<string>();
 
         /// <summary>
+        /// Initialize a new <see cref="BinderGenerator"/>.
+        /// </summary>
+        public BinderGenerator() {
+            names.Add("Starcounter.Metadata.MetadataEntity");
+        }
+
+        /// <summary>
         /// Includes a metadata class.
         /// </summary>
         /// <param name="metadataClass">The class to include</param>
