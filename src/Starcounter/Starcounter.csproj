@@ -141,6 +141,7 @@
     <Compile Include="Legacy\BoundClass.cs" />
     <Compile Include="Legacy\LegacyContext.cs" />
     <Compile Include="Legacy\LegacyRuntimeSupport.cs" />
+    <Compile Include="Metadata\MetaBinder.cs" />
     <Compile Include="Metadata\MetadataEntity.cs" />
     <Compile Include="Metadata\GeneratedMetadataClasses.cs" />
     <Compile Include="Mock\Db.cs" />
