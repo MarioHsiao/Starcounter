@@ -50,13 +50,22 @@ namespace GenerateMetadataClasses.CodeGenerator {
             var createTypeDef = GenerateCreateTypeDef(table, c);
             c.Members.Add(createTypeDef);
 
-            var ns = table.PublicNamespace ? PublicNamespace : InternalNamespace;
+            var ns = GetNamespace(table);
             ns.Types.Add(c);
 
             done.Add(table.TableName, c);
             return c;
         }
 
+        /// <summary>
+        /// Return the namespace the generated class will end up in.
+        /// </summary>
+        /// <param name="table">The table</param>
+        /// <returns>The namespace</returns>
+        public CodeNamespace GetNamespace(Table table) {
+            return table.PublicNamespace? PublicNamespace : InternalNamespace;
+        }
+        
         CodeConstructor[] GenerateConstructors(CodeTypeDeclaration classDecl) {
             // public [Name](Uninitialized u): base(u) {}
             // internal [Name](): base(__starcounterTypeSpecification.tableHandle) {}
