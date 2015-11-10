@@ -93,10 +93,8 @@ namespace GenerateMetadataClasses.CodeGenerator {
             var typeDef = "TypeDef";
             var m = new CodeMemberMethod();
             m.Name = "CreateTypeDef";
-            m.Attributes = MemberAttributes.Static | MemberAttributes.Assembly;
-            if (table.HasBaseTable) {
-                m.Attributes |= MemberAttributes.New;
-            }
+            m.Attributes = MemberAttributes.Static | MemberAttributes.Assembly | MemberAttributes.New;
+
             m.ReturnType = new CodeTypeReference(typeDef);
 
             var typeOfExpr = new CodeTypeOfExpression(table.TableName);
