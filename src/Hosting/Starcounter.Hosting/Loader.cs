@@ -59,9 +59,11 @@ namespace StarcounterInternal.Hosting
         }
 
         /// <summary>
-        /// Adds the base package.
+        /// Adds the package defined by Starcounter, part of every code host
+        /// and always loaded first.
         /// </summary>
-        /// <param name="hsched">The hsched.</param>
+        /// <param name="hsched">Pointer to scheduler.</param>
+        /// <param name="stopwatch">Optional stop watch</param>
         public static unsafe void AddBasePackage(void* hsched, Stopwatch stopwatch = null)
         {
             if (stopwatch != null)
@@ -75,21 +77,7 @@ namespace StarcounterInternal.Hosting
             var sysIndexTypeDef = Starcounter.Internal.Metadata.MaterializedIndex.CreateTypeDef();
             var sysIndexColumnTypeDef = Starcounter.Internal.Metadata.MaterializedIndexColumn.CreateTypeDef();
 #endif
-
-            // Add view meta-data
-
-            Package package = new Package(
-                new TypeDef[] { //sysTableTypeDef, sysColumnTypeDef, sysIndexTypeDef, sysIndexColumnTypeDef,
-                    Starcounter.Metadata.Type.CreateTypeDef(), Starcounter.Metadata.DbPrimitiveType.CreateTypeDef(), 
-                    Starcounter.Metadata.MapPrimitiveType.CreateTypeDef(), ClrPrimitiveType.CreateTypeDef(),
-                    Table.CreateTypeDef(), RawView.CreateTypeDef(),
-                    VMView.CreateTypeDef(), ClrClass.CreateTypeDef(), 
-                    Member.CreateTypeDef(), Column.CreateTypeDef(), 
-                    Property.CreateTypeDef(), CodeProperty.CreateTypeDef(), MappedProperty.CreateTypeDef(),
-                    Index.CreateTypeDef(), IndexedColumn.CreateTypeDef()
-                },
-                stopwatch_
-                );
+            var package = StarcounterPackage.Create(stopwatch_);
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
             OnPackageCreated();
