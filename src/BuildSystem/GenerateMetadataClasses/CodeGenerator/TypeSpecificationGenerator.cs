@@ -11,7 +11,7 @@ namespace GenerateMetadataClasses.CodeGenerator {
         public const string ThisHandle = "__sc__this_handle__";
         public const string ColumnHandlePrefix = "columnHandle_";
         public const string TableHandle = "tableHandle";
-        public const string TypeBinding = "TypeBinding";
+        public const string TypeBinding = "typeBinding";
 
         public readonly Table Table;
         public readonly CodeTypeDeclaration DatabaseClass;
