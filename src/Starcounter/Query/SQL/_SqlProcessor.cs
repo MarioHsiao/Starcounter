@@ -264,26 +264,6 @@ internal static class SqlProcessor
                 }
             });
         }
-            // Call kenrel
-#if false // TODO RUS: remove it
-            Db.Transact(() => {
-            ushort tableId = typeBind.TableId;
-            unsafe
-            {
-                fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
-                {
-                    errorCode = sccoredb.stari_context_create_index(
-                        ThreadData.ContextHandle, sccoredb.AssureTokenForString(indexName),
-                        sccoredb.TableIdToSetSpec(tableId), tableId, attributeIndexesPointer,
-                        sortMask, flags
-                        );
-                }
-            }
-        });
-#endif
-#if false // TODO RUS: remove it
-            AddMetadataIndex(typeBind.Name, indexName);
-#endif
     }
 
     internal static bool ProcessDQuery(bool slowSQL, String statement, params Object[] values)

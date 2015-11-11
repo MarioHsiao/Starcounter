@@ -71,12 +71,6 @@ namespace StarcounterInternal.Hosting
             else
                 stopwatch_ = new Stopwatch();
 
-#if false // TODO RUS:
-            var sysTableTypeDef = Starcounter.Internal.Metadata.MaterializedTable.CreateTypeDef();
-            var sysColumnTypeDef = Starcounter.Internal.Metadata.MaterializedColumn.CreateTypeDef();
-            var sysIndexTypeDef = Starcounter.Internal.Metadata.MaterializedIndex.CreateTypeDef();
-            var sysIndexColumnTypeDef = Starcounter.Internal.Metadata.MaterializedIndexColumn.CreateTypeDef();
-#endif
             var package = StarcounterPackage.Create(stopwatch_);
             IntPtr hPackage = (IntPtr)GCHandle.Alloc(package, GCHandleType.Normal);
 
