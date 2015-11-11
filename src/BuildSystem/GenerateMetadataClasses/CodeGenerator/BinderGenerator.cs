@@ -14,7 +14,6 @@ namespace GenerateMetadataClasses.CodeGenerator {
         /// Initialize a new <see cref="BinderGenerator"/>.
         /// </summary>
         public BinderGenerator() {
-            names.Add("Starcounter.Metadata.MetadataEntity");
         }
 
         /// <summary>
