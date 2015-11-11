@@ -6,7 +6,7 @@ using System.IO;
 namespace QueryProcessingTest {
     class QueryProcessingTestProgram {
         static void Main(string[] args) {
-            try {
+          try {
                 HelpMethods.LogEvent("Query processing tests are started");
                 Starcounter.Internal.ErrorHandling.TestTraceListener.ReplaceDefault("QueryProcessingListener");
                 var secondRun = File.Exists(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
@@ -29,6 +29,7 @@ namespace QueryProcessingTest {
                 WebVisitTests.TestVisits();
                 InsertIntoTests.TestValuesInsertIntoWebVisits();
 #endif
+                UpdateTest.Run();
                 PopulateData();
                 SqlBugsTest.QueryTests();
                 FetchTest.RunFetchTest();

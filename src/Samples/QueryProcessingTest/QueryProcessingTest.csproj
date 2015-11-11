@@ -71,6 +71,7 @@
     <Compile Include="SqlBugsTest.cs" />
     <Compile Include="TestErrorMessages.cs" />
     <Compile Include="TestKinds.cs" />
+    <Compile Include="UpdateTest.cs" />
     <Compile Include="VersionSourceModel.cs" />
   </ItemGroup>
   <ItemGroup>
