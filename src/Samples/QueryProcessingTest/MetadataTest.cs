@@ -432,6 +432,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestRuntimeIndexBasedOnMat() {
+#if false // TODO RUS:
             int nrIndexes = 0;
             Int64 nrIndColumns = 0;
             foreach (MaterializedIndex matIndx in Db.SQL<MaterializedIndex>(
@@ -465,6 +466,7 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(nrIndexes == 36);
             Trace.Assert(nrIndColumns == 39);
+#endif
         }
 
         public static void TestRuntimeIndex() {

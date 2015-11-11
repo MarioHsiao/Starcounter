@@ -321,7 +321,7 @@ namespace Starcounter.Hosting {
                 // Using transaction directly here instead of Db.Scope and scope it several times because of 
                 // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
                 using (var transaction = new Transaction(true)) {
-                    if (unregisteredTypeDefs[0].Name == "Starcounter.Metadata.Type") {
+                    if (this is StarcounterPackage) {
                             Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle); // TODO EOH:
 
                             OnRuntimeMetadataPopulated();
@@ -402,14 +402,8 @@ namespace Starcounter.Hosting {
 
                     OnQueryModuleSchemaInfoUpdated();
 
-                    // User-level classes are self registering and report in to
-                    // the installed host manager on first use (via an emitted call
-                    // in the static class constructor). For system classes, we
-                    // have to do this by hand.
-                    if (unregisteredTypeDefs[0].TableDef.Name == "Starcounter.Metadata.Type") {
-                        InitTypeSpecifications();
-                        OnTypeSpecificationsInitialized();
-                    }
+                    InitTypeSpecifications();
+                    OnTypeSpecificationsInitialized();
 
                     //MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs); // TODO EOH:
 
@@ -418,30 +412,11 @@ namespace Starcounter.Hosting {
             }
         }
 
-        private void InitTypeSpecifications() {
-            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedTable.__starcounterTypeSpecification));
-            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedColumn.__starcounterTypeSpecification));
-            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndex.__starcounterTypeSpecification));
-            //HostManager.InitTypeSpecification(typeof(Starcounter.Internal.Metadata.MaterializedIndexColumn.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.Type.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.DbPrimitiveType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Starcounter.Metadata.MapPrimitiveType.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(ClrPrimitiveType.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(Table.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(RawView.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(VMView.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(ClrClass.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(Member.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Column.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(Property.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(CodeProperty.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(MappedProperty.__starcounterTypeSpecification));
-
-            HostManager.InitTypeSpecification(typeof(Index.__starcounterTypeSpecification));
-            HostManager.InitTypeSpecification(typeof(IndexedColumn.__starcounterTypeSpecification));
+        protected virtual void InitTypeSpecifications() {
+            // User-level classes are self registering and report in to
+            // the installed host manager on first use (via an emitted call
+            // in the static class constructor). Thus, we dont have to take
+            // any action.
         }
 
         /// <summary>

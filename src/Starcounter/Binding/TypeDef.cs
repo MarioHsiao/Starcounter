@@ -135,7 +135,7 @@ namespace Starcounter.Binding
             string typeName = sysType.FullName;
             System.Type baseSysType = sysType.BaseType;
             string baseTypeName = null;
-            if (!baseSysType.Equals(typeof(Starcounter.Internal.SystemEntity)))
+            if (!baseSysType.Equals(typeof(Starcounter.Metadata.MetadataEntity)))
                 baseTypeName = baseSysType.FullName;
             string tableName = typeName;
             string baseTableName = baseTypeName;
@@ -152,13 +152,7 @@ namespace Starcounter.Binding
         /// </summary>
         internal void PopulatePropertyDef(TypeDef[] typeDefs) {
 #if DEBUG
-            if (Name == "Starcounter.Internal.Metadata.MaterializedTable" || 
-                Name == "Starcounter.Internal.Metadata.MaterializedColumn" ||
-                Name == "Starcounter.Internal.Metadata.MaterializedIndex" ||
-                Name == "Starcounter.Internal.Metadata.MaterializedIndexColumn")
-                Debug.Assert(_PropertyDefs != null);
-            else
-                Debug.Assert(_PropertyDefs == null);
+            Debug.Assert(_PropertyDefs == null);
 #endif
             if (_PropertyDefs == null) {
                 TableDef tblDef = Db.LookupTable(Name);
@@ -175,7 +169,7 @@ namespace Starcounter.Binding
 
                 // Find and use inherited properties in their order
                 int nrInheritedProperties = 0;
-                if (BaseName != null) {
+                if (BaseName != null && !BaseName.Equals("Starcounter.Metadata.MetadataEntity")) {
                     // Find Based on typedef
                     int based = 0;
                     while (based < typeDefs.Length && typeDefs[based].Name != BaseName)
