@@ -362,12 +362,6 @@ namespace Starcounter.Hosting {
 
                     OnTypeDefsRegistered();
 
-                    foreach (TypeDef typeDef in updateColumns)
-                        Db.SystemTransact(delegate {
-                            //MetadataPopulation.CreateColumnInstances(typeDef); // TODO EOH:
-                            //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
-                        });
-
 #if DEBUG   // Assure that parents were set.
                     transaction.Scope(() => {
                         foreach (TypeDef typeDef in updateColumns) {
@@ -405,7 +399,7 @@ namespace Starcounter.Hosting {
                     InitTypeSpecifications();
                     OnTypeSpecificationsInitialized();
 
-                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs); // TODO EOH:
+                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
 
                     OnPopulateClrMetadata();
                 }
@@ -439,10 +433,12 @@ namespace Starcounter.Hosting {
             if (pendingUpgradeTableDef != null) {
                 var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
                 storedTableDef = continueTableUpgrade.ContinueEval();
+#if false // TODO RUS: remove since it should be done in metalayer
                 Db.SystemTransact(delegate {
                     MetadataPopulation.UpgradeRawTableInstance(typeDef);
                     updated = true;
                 });
+#endif
             }
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
