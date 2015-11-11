@@ -265,6 +265,7 @@ namespace QueryProcessingTest {
         }
 
         public static void TestComparison() {
+#if false // TODO RUS:
             HelpMethods.LogEvent("Start testing queries on comparison bug");
             ulong accountTableId = Db.SQL<ulong>("select TableId from MaterializedTable where name = ?", "QueryProcessingTest.Account").First;
             var e = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>("select s from MaterializedTable s where TableId = ?", 
@@ -290,6 +291,7 @@ namespace QueryProcessingTest {
             Trace.Assert(e.MoveNext());
             e.Dispose();
             HelpMethods.LogEvent("Finished testing queries on comparison bug");
+#endif
         }
 
         public static void TestConjunctionBug1350() {

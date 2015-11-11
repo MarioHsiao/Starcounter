@@ -76,6 +76,7 @@
     <Compile Include="Processor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="sccoreapp.cs" />
+    <Compile Include="StarcounterPackage.cs" />
     <Compile Include="TaskSchedulerImpl.cs" />
   </ItemGroup>
   <ItemGroup>

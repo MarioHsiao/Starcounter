@@ -141,13 +141,9 @@
     <Compile Include="Legacy\BoundClass.cs" />
     <Compile Include="Legacy\LegacyContext.cs" />
     <Compile Include="Legacy\LegacyRuntimeSupport.cs" />
-    <Compile Include="Metadata\MaterializedColumn.cs" />
-    <Compile Include="Metadata\MaterializedIndex.cs" />
-    <Compile Include="Metadata\MaterializedTable.cs" />
-    <Compile Include="Metadata\BaseType.cs" />
-    <Compile Include="Metadata\RuntimeIndex.cs" />
-    <Compile Include="Metadata\RuntimeMember.cs" />
-    <Compile Include="Metadata\RuntimeView.cs" />
+    <Compile Include="Metadata\MetaBinder.cs" />
+    <Compile Include="Metadata\MetadataEntity.cs" />
+    <Compile Include="Metadata\GeneratedMetadataClasses.cs" />
     <Compile Include="Mock\Db.cs" />
     <Compile Include="Mock\DbHelper.cs" />
     <Compile Include="Mock\Enumerator.cs" />
@@ -446,7 +442,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
+    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs
+$(TargetDir)GenerateMetadataClasses.exe $(TargetDir)metaschema.json $(ProjectDir)Metadata</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

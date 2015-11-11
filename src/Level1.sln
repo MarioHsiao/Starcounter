@@ -157,6 +157,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter", "Starcounter\Starcounter.csproj", "{7BF06E68-1088-47EE-B06C-DE546AFABDB0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{5A65D606-6613-4139-8853-B5F26313E4DF} = {5A65D606-6613-4139-8853-B5F26313E4DF}
+		{841F8C90-1351-4E9D-96B5-9FA181E508ED} = {841F8C90-1351-4E9D-96B5-9FA181E508ED}
 		{9E8D97FC-87A3-4A7C-B318-9414B5EEA60E} = {9E8D97FC-87A3-4A7C-B318-9414B5EEA60E}
 		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
 	EndProjectSection
@@ -428,6 +429,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Extensions", "Starcounter.Extensions\Starcounter.Extensions.csproj", "{1985666E-AC62-4ACE-A8B8-FD11F78CB37E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Extensions.Tests", "Starcounter.Extensions.Tests\Starcounter.Extensions.Tests.csproj", "{08E41128-E0E2-4A2D-A101-62C6499627A0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateMetadataClasses", "BuildSystem\GenerateMetadataClasses\GenerateMetadataClasses.csproj", "{841F8C90-1351-4E9D-96B5-9FA181E508ED}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -839,6 +842,10 @@ Global
 		{08E41128-E0E2-4A2D-A101-62C6499627A0}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
 		{08E41128-E0E2-4A2D-A101-62C6499627A0}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{08E41128-E0E2-4A2D-A101-62C6499627A0}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -971,5 +978,6 @@ Global
 		{C62E1AB7-7F7B-4BC7-AC55-EA7ABE5D0FDF} = {B39115F7-A3E8-42CE-AAB8-932AB8D4DFB4}
 		{1985666E-AC62-4ACE-A8B8-FD11F78CB37E} = {008E66B7-6B07-4F1C-9937-B98D52AF5027}
 		{08E41128-E0E2-4A2D-A101-62C6499627A0} = {008E66B7-6B07-4F1C-9937-B98D52AF5027}
+		{841F8C90-1351-4E9D-96B5-9FA181E508ED} = {E64C1F28-D2C1-47D2-A62B-151A6968D158}
 	EndGlobalSection
 EndGlobal
