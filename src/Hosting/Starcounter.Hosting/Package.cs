@@ -322,7 +322,7 @@ namespace Starcounter.Hosting {
                 // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
                 using (var transaction = new Transaction(true)) {
                     if (this is StarcounterPackage) {
-                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle); // TODO EOH:
+                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle);
 
                             OnRuntimeMetadataPopulated();
                         transaction.Scope(() => {
@@ -443,12 +443,6 @@ namespace Starcounter.Hosting {
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
-#if false // TODO RUS: already populated in meta-layer
-                Db.SystemTransact(delegate {
-                    MetadataPopulation.CreateRawTableInstance(typeDef); // TODO EOH:
-                    updated = true;
-                });
-#endif
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();

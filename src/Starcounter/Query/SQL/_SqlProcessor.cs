@@ -402,8 +402,9 @@ internal static class SqlProcessor
             throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Found token after end of statement.");
         }
 
-        // Call kernel
-        UInt32 errorCode;
+#if false // TODO RUS: not supported, should be implemented through metalayer in new way
+            // Call kernel
+            UInt32 errorCode;
         unsafe
         {
             errorCode = sccoredb.star_drop_table(0, typePath);
@@ -415,50 +416,10 @@ internal static class SqlProcessor
             throw ex;
         }
         DeleteMetadataDroppedTable(typePath);
-    }
-
-    internal static void AddMetadataIndex(string tableName, string indexName) {
-#if false // TODO EOH:
-        Db.SystemTransact(delegate {
-            MaterializedIndex matIndx = Db.SQL<MaterializedIndex>(
-                "select i from materializedindex i where i.table.name = ? and name = ?",
-                tableName, indexName).First;
-            Debug.Assert(matIndx != null);
-            Starcounter.SqlProcessor.MetadataPopulation.CreateAnIndexInstance(matIndx);
-        });
+#else
+            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
-    }
-
-    internal static void DeleteMetadataIndex(string tableName, string indexName) {
-#if false // TODO EOH:
-        Db.SystemTransact(delegate {
-            Starcounter.Metadata.Index indx = Db.SQL<Starcounter.Metadata.Index>(
-                "select i from starcounter.metadata.\"index\" i where i.table.fullname = ? and name = ?",
-                tableName, indexName).First;
-            Debug.Assert(indx != null);
-            foreach (Starcounter.Metadata.IndexedColumn colIndx in Db.SQL<Starcounter.Metadata.IndexedColumn>(
-                "select c from starcounter.metadata.indexedcolumn c where \"index\" = ?", indx))
-                colIndx.Delete();
-            indx.Delete();
-        });
-#endif
-    }
-
-    internal static void DeleteMetadataDroppedTable(string tableName) {
-#if false // TODO EOH:
-        Db.SystemTransact(delegate {
-            var tbl = Db.SQL<Starcounter.Metadata.RawView>(
-                "select v from starcounter.metadata.RawView v where fullname = ?", 
-                tableName).First;
-            Debug.Assert(tbl != null);
-            foreach (var col in Db.SQL<Starcounter.Metadata.Column>(
-                "select c from starcounter.metadata.column c where c.table = ?",
-                tbl))
-                col.Delete();
-            tbl.Delete();
-        });
-#endif
-    }
+        }
 
     internal static Exception CheckSingleDelimitedIdentifiers(string query) {
         List<String> tokenList = Tokenizer.Tokenize(query);
