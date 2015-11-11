@@ -40,9 +40,13 @@ namespace GenerateMetadataClasses.CodeGenerator {
             // Generate the class, don't add it.
             var ts = new CodeTypeDeclaration(TypeSpecificationGenerator.ClassName);
             ts.IsClass = true;
-            ts.Attributes = MemberAttributes.Static | MemberAttributes.New;
+            ts.Attributes = MemberAttributes.Static;
             ts.TypeAttributes = TypeAttributes.NestedAssembly;
-            
+
+            if (Table.HasBaseTable) {
+                ts.Attributes |= MemberAttributes.New;
+            }
+
             var tableHandle = new CodeMemberField();
             tableHandle.Name = TypeSpecificationGenerator.TableHandle;
             tableHandle.Type = new CodeTypeReference(typeof(ushort));
