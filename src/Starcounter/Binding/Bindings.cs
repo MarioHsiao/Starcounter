@@ -431,17 +431,21 @@ namespace Starcounter.Binding {
         private unsafe static Exception CreateExceptionOnTypeDefNotFound(int tableId) {
             // This can happen if a class was not loaded for the existing table,
             // while data was read for the table to be presented by the class.
-            sccoredb.SCCOREDB_TABLE_INFO tableInfo;
-            sccoredb.sccoredb_get_table_info((ushort)tableId, out tableInfo);
-            String tableName = new String(tableInfo.name);
-            Type theType = Type.GetType(tableName);
+            sccoredb.STARI_LAYOUT_INFO layoutInfo;
+            sccoredb.stari_context_get_layout_info(
+                ThreadData.ContextHandle, (ushort)tableId, out layoutInfo
+                );
+            string layoutName = SqlProcessor.SqlProcessor.GetNameFromToken(
+                layoutInfo.token
+                );
+            Type theType = Type.GetType(layoutName);
             if (theType == null)
                 throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH,
-                    "CLR Class is not loaded for table " + tableName);
+                    "CLR Class is not loaded for table " + layoutName);
             else
                 throw ErrorCode.ToException(Error.SCERRSCHEMACODEMISMATCH,
                     "Internal error: TypeDef cannot be found for the given tableId " 
-                    + tableId + ", while it has name - " + tableName + 
+                    + tableId + ", while it has name - " + layoutName + 
                     ", and CLR class is loaded.");
         }
     }

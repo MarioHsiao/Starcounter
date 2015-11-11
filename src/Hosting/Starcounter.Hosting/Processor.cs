@@ -26,6 +26,13 @@ namespace StarcounterInternal.Hosting
             ScrapHeap.Setup(hsched);
         }
 
+        private static unsafe void StartMessageLoop() {
+            byte schedulerNumber = sccorelib.GetCpuNumber();
+            // TODO EOH: Prefix needed because iterator verify 0 is treated as invalid.
+            ThreadData.objectVerify_ = (1U << 8) | schedulerNumber;
+            ThreadData.Current = new ThreadData(schedulerNumber, sccorelib.GetStateShare());
+        }
+
         /// <summary>
         /// Runs the message loop.
         /// </summary>
@@ -34,7 +41,7 @@ namespace StarcounterInternal.Hosting
         {
             try
             {
-                ThreadData.Current = new ThreadData(sccorelib.GetCpuNumber(), sccorelib.GetStateShare());
+                StartMessageLoop();
 
                 for (; ; )
                 {

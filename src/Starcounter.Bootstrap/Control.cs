@@ -252,12 +252,10 @@ namespace StarcounterInternal.Bootstrap {
                 ManagementService.Setup(configuration.DefaultSystemHttpPort, hsched_, !configuration.NoNetworkGateway);
                 OnServerCommandHandlersRegistered();
 
-#if true // TODO EOH:
                 if (withdb_) {
                     Loader.AddBasePackage(hsched_, stopwatch_);
                     OnBasePackageLoaded();
                 }
-#endif
 
                 // NOTE: Disabling skip for middleware filters since no more system handlers are expected at this line.
                 StarcounterEnvironment.SkipMiddlewareFiltersGlobal = false;

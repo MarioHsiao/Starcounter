@@ -44,7 +44,10 @@ namespace Starcounter
         /// not allowed to switch current transaction on the thread.
         /// </remarks>
         [ThreadStatic]
-        internal static int inTransactionScope_;
+        internal static int inTransactionScope_ = 0;
+
+        [ThreadStatic]
+        internal static uint objectVerify_;
 
         private static ulong GetContextHandleExcept() {
             // Thread not attached. There could be a number of reasons for this,
@@ -72,6 +75,8 @@ namespace Starcounter
                 return GetContextHandleExcept();
             }
         }
+
+        internal static ulong ObjectVerify { get { return objectVerify_; } }
 
         /// <summary>
         /// Gets the current if attached and reattach if auto detached.

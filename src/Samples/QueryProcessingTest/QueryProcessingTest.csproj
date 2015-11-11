@@ -73,6 +73,8 @@
     <Compile Include="TestKinds.cs" />
     <Compile Include="UpdateTest.cs" />
     <Compile Include="VersionSourceModel.cs" />
+    <Compile Include="WebVisitDataModel.cs" />
+    <Compile Include="WebVisitTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

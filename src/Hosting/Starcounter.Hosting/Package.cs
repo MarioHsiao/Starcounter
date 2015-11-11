@@ -368,24 +368,18 @@ namespace Starcounter.Hosting {
                             //MetadataPopulation.UpdateIndexInstances(typeDef.TableDef.TableId);
                         });
 
-#if false // TODO EOH:
 #if DEBUG   // Assure that parents were set.
                     transaction.Scope(() => {
                         foreach (TypeDef typeDef in updateColumns) {
                             RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
                         typeDef.TableDef.Name).First;
-                            Starcounter.Internal.Metadata.MaterializedTable matTab = Db.SQL<Starcounter.Internal.Metadata.MaterializedTable>(
-                                "select t from materializedtable t where name = ?", typeDef.TableDef.Name).First;
-                            Debug.Assert(thisView.MaterializedTable.Equals(matTab));
-                            Debug.Assert(matTab != null);
+                            Debug.Assert(thisView != null);
                             RawView parentTab = Db.SQL<RawView>(
                                 "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-                            Debug.Assert(matTab.BaseTable == null && parentTab == null ||
-                                matTab.BaseTable != null && parentTab != null &&
-                                matTab.BaseTable.Equals(parentTab.MaterializedTable) && thisView.Inherits.Equals(parentTab));
+                            Debug.Assert(String.IsNullOrEmpty(typeDef.TableDef.BaseName) && parentTab == null ||
+                                parentTab != null && thisView.Inherits.Equals(parentTab));
                         }
                     });
-#endif
 #endif
                     OnColumnsCheckedAndUpdated();
 
