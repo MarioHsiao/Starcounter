@@ -9,7 +9,7 @@ namespace Starcounter.SqlProcessor {
         public static unsafe extern uint scsql_process_query([MarshalAs(UnmanagedType.LPWStr)]string query);
             /*void* caller, void* executor, */
         [DllImport("scsqlprocessor.dll")]
-        internal static unsafe extern uint scsql_process_modifyquery([MarshalAs(UnmanagedType.LPWStr)]string query, 
+        internal static unsafe extern uint scsql_process_modifyquery(ulong transaction_handle, [MarshalAs(UnmanagedType.LPWStr)]string query, 
             int* nrObjs);
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern ScError* scsql_get_error();
@@ -94,7 +94,8 @@ namespace Starcounter.SqlProcessor {
 
         internal static unsafe int ExecuteQuerySqlProcessor(String query) {
             int nrObjs = 0;
-            uint err = scsql_process_modifyquery(query, &nrObjs);
+
+            uint err = scsql_process_modifyquery(ThreadData.ContextHandle, query, &nrObjs);
             if (err == 0)
                 return nrObjs;
             Exception ex = GetSqlException(err, query);
