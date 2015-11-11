@@ -542,10 +542,9 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal unsafe extern static uint star_insert_system(
-            ushort table_id,
-            ulong* pnew_oid,
-            ulong* pnew_addr
+        internal unsafe extern static uint star_context_insert_system(
+            ulong handle, ushort layout_handle, ulong* pnew_record_id,
+            ulong* pnew_record_ref
             );
 
         /// <summary>

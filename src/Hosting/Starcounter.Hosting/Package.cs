@@ -405,7 +405,7 @@ namespace Starcounter.Hosting {
                     InitTypeSpecifications();
                     OnTypeSpecificationsInitialized();
 
-                    //MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs); // TODO EOH:
+                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs); // TODO EOH:
 
                     OnPopulateClrMetadata();
                 }

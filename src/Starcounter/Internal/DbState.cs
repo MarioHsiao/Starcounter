@@ -138,7 +138,8 @@ namespace Starcounter.Internal
             ulong addr_local;
 
             unsafe {
-                dr = sccoredb.star_insert_system(tableId, &oid_local, &addr_local);
+                dr = sccoredb.star_context_insert_system(ThreadData.ContextHandle, 
+                    tableId, &oid_local, &addr_local);
             }
             if (dr == 0) {
                 oid = oid_local;
