@@ -48,6 +48,16 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets a value indicating if the current application was,
+        /// or will be, started with its entrypoint being invoked within the
+        /// scope of a write transaction.
+        /// </summary>
+        internal bool IsStartedWithTransactEntrypoint {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Creates a snapshot of this <see cref="DatabaseApplication"/> in the
         /// form of a public model <see cref="AppInfo"/>.
         /// </summary>
@@ -78,6 +88,7 @@ namespace Starcounter.Server {
                 }
             }
             exe.RunEntrypointAsynchronous = this.IsStartedWithAsyncEntrypoint;
+            exe.TransactEntrypoint = this.IsStartedWithTransactEntrypoint;
             return exe;
         }
     }

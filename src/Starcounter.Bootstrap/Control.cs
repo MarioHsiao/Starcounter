@@ -18,6 +18,7 @@ using StarcounterInternal.Hosting;
 using System.Text.RegularExpressions;
 using System.IO;
 using Starcounter.Bootstrap.Management;
+using Starcounter.Ioc;
 
 namespace StarcounterInternal.Bootstrap {
     /// <summary>
@@ -186,6 +187,12 @@ namespace StarcounterInternal.Bootstrap {
                 // Initialize the Db environment (database name)
                 Db.SetEnvironment(new DbEnvironment(configuration.Name, withdb_));
 
+                // Create and initialize the default host for the current
+                // process. This enables services to be installed/retreived,
+                // so possibly we should do this earlier once we switch to
+                // a more DI-based envioronment.
+                DefaultHost.InstallCurrent();
+
                 // Initializing system profilers.
                 Profiler.Init();
 
@@ -317,18 +324,17 @@ namespace StarcounterInternal.Bootstrap {
 
                     OnArgumentsParsed();
 
-                    // Loading the given application.
-                    Loader.ExecuteApplication(
-                        hsched_,
+                    var app = new ApplicationBase(
                         Path.GetFileName(configuration.AutoStartExePath),
                         configuration.AutoStartExePath,
                         configuration.AutoStartExePath,
-                        configuration.AutoStartExePath,
                         workingDir,
-                        userArgsArray,
-                        true,
-                        stopwatch_
+                        userArgsArray
                     );
+                    app.HostedFilePath = configuration.AutoStartExePath;
+                    
+                    // Loading the given application.
+                    Loader.ExecuteApplication(hsched_, app, true, stopwatch_);
 
                     OnAutoStartModuleExecuted();
                 }

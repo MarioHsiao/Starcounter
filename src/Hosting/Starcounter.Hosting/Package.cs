@@ -234,7 +234,12 @@ namespace Starcounter.Hosting {
                 // The host must always be executed in this context, even if the
                 // application start synchronously.
                 if (application != null) {
-                    ExecuteHost(application);
+                    try {
+                        ExecuteHost(application);
+                    }
+                    finally {
+                        LegacyContext.Exit(application);
+                    }
                 }
 
                 // Starting user Main() here.
@@ -500,17 +505,17 @@ namespace Starcounter.Hosting {
             if (entrypoint != null) {
                 var declaringClass = entrypoint.DeclaringType;
                 if (typeof(IApplicationHost).IsAssignableFrom(declaringClass)) {
-                    using (var codeHost = new CodeHost(application)) {
-                        try {
-                            var appHost = Activator.CreateInstance(declaringClass) as IApplicationHost;
-                            if (appHost == null) {
-                                throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, string.Format(
-                                    "Unable to create instance of {0}. Is it public? Does it have a default constructor?", declaringClass.Name));
-                            }
-                            appHost.HostApplication(codeHost, application);
-                        } catch (Exception e) {
-                            throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, e);
+                    try {
+                        var appHost = Activator.CreateInstance(declaringClass) as IApplicationHost;
+                        if (appHost == null) {
+                            throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, string.Format(
+                                "Unable to create instance of {0}. Is it public? Does it have a default constructor?", declaringClass.Name));
                         }
+
+                        appHost.HostApplication(application);
+
+                    } catch (Exception e) {
+                        throw ErrorCode.ToException(Error.SCERRINVOKEAPPLICATIONHOST, e);
                     }
                 }
             }
@@ -520,18 +525,36 @@ namespace Starcounter.Hosting {
         /// Executes the entry point.
         /// </summary>
         private void ExecuteEntryPoint(Application application) {
+            var transactMain = application.TransactEntrypoint;
+
             // No need to keep track of this transaction. It will be cleaned up later.
-            if (Db.Environment.HasDatabase)
-                TransactionManager.CreateImplicitAndSetCurrent(true);
+            // @chrhol, does the same apply even if we make it a write transaction?
+            // TODO:
+            TransactionHandle th = TransactionHandle.Invalid;
+            if (Db.Environment.HasDatabase) {
+                var readOnly = !transactMain;
+                th = TransactionManager.CreateImplicitAndSetCurrent(readOnly);
+            }
 
             var entrypoint = assembly_.EntryPoint;
 
             try {
+
                 if (entrypoint.GetParameters().Length == 0) {
                     entrypoint.Invoke(null, null);
                 } else {
                     var arguments = application.Arguments ?? new string[0];
                     entrypoint.Invoke(null, new object[] { arguments });
+                }
+
+                // Not sure about this pattern with the new transaction API's,
+                // and also not sure how to react to an error in the entrypoint.
+                // If one occur, we'll restart the host, but is that enough?
+                // Ask @chrhol about this.
+                // TODO:
+
+                if (transactMain && th != TransactionHandle.Invalid) {
+                    new Transaction(th).Commit();
                 }
 
             } catch (TargetInvocationException te) {

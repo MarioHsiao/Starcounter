@@ -113,7 +113,9 @@ namespace Starcounter.CLI {
                 AddAssemblyReferencesFromDirectory(parameters, libFolder);
             }
 
-            var result = provider.CompileAssemblyFromFile(parameters, sourceCode);
+            var assemblyDirectives = Path.Combine(CLIConfig.FullPath, CLIConfig.AssemblyDirectivesFile);
+
+            var result = provider.CompileAssemblyFromFile(parameters, sourceCode, assemblyDirectives);
             if (result.Errors.Count > 0) {
                 assemblyPath = null;
 

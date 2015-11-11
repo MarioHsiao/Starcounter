@@ -1,0 +1,150 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TPCC</RootNamespace>
+    <AssemblyName>TPCC</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\..\bin\Debug\s\TPCC\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>x64</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\..\..\bin\Release\s\TPCC\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="DataLoader.cs" />
+    <Compile Include="LoadEmulation.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DbWrap.cs" />
+    <Compile Include="Tables\Customer.cs" />
+    <Compile Include="Tables\District.cs" />
+    <Compile Include="Tables\History.cs" />
+    <Compile Include="Tables\Item.cs" />
+    <Compile Include="Tables\NewOrder.cs" />
+    <Compile Include="Tables\Order.cs" />
+    <Compile Include="Tables\OrderLine.cs" />
+    <Compile Include="Tables\Stock.cs" />
+    <Compile Include="Tables\Warehouse.cs" />
+    <Compile Include="TerminalEmulator.cs" />
+    <Compile Include="TpccValuesGenerator.cs" />
+    <Compile Include="Transactions\DeliveryTransaction.cs" />
+    <Compile Include="Transactions\json\converters\Display_Input_converter.cs" />
+    <Compile Include="Transactions\json\converters\StockLevel_Input_converter.cs" />
+    <Compile Include="Transactions\json\converters\Payment_Input_converter.cs" />
+    <Compile Include="Transactions\json\converters\OrderStatus_Input_converter.cs" />
+    <Compile Include="Transactions\json\converters\NewOrder_Input_converter.cs" />
+    <Compile Include="Transactions\NewOrderTransaction.cs" />
+    <Compile Include="Transactions\OrderStatusTransaction.cs" />
+    <Compile Include="Transactions\PaymentTransaction.cs" />
+    <Compile Include="Transactions\StockLevelTransaction.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <TypedJSON Include="doall_stat.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Logging\Starcounter.Logging.csproj">
+      <Project>{a1fae6e5-8ebb-42c3-9fc2-33d67917067d}</Project>
+      <Name>Starcounter.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
+      <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
+      <Name>Starcounter.XSON.JsonByExample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.XSON\Starcounter.XSON.csproj">
+      <Project>{3ec74b8e-3599-41fd-b336-384861c8971a}</Project>
+      <Name>Starcounter.XSON</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
+      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
+      <Name>Starcounter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <TypedJSON Include="dbstat.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\Delivery_Input.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\Delivery_Output.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\NewOrder_Input.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\NewOrder_Output.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\OrderStatus_Input.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\OrderStatus_Output.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\Payment_Input.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\Payment_Output.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\StockLevel_Input.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+    <TypedJSON Include="Transactions\json\StockLevel_Output.json">
+      <Generator>MsBuild:Compile</Generator>
+    </TypedJSON>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\Starcounter.MsBuild\Starcounter.MsBuild.Develop.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

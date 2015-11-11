@@ -14,7 +14,7 @@ namespace Starcounter {
     /// to run in, a Starcounter code host.
     /// </summary>
     public sealed class Application {
-
+        readonly ICodeHost host;
         readonly ApplicationBase state;
         static object monitor = new object();
         static Dictionary<string, Application> indexName = new Dictionary<string, Application>(StringComparer.InvariantCultureIgnoreCase);
@@ -32,11 +32,45 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets the <see cref="ICodeHost"/> the current application
+        /// execute within.
+        /// </summary>
+        public ICodeHost Host {
+            get { return host;  }
+        }
+
+        /// <summary>
+        /// Gets indicator if the host should wrap the entrypoint call in a
+        /// write transaction.
+        /// </summary>
+        internal bool TransactEntrypoint {
+            get { return state.TransactEntrypoint; }
+        }
+
+        /// <summary>
         /// Gets the name of the application.
         /// </summary>
         public string Name {
             get {
                 return state.Name;
+            }
+        }
+
+        /// <summary>
+        /// Gets the display name of the current application.
+        /// </summary>
+        public string DisplayName {
+            get {
+                return ApplicationBase.CreateDisplayName(Db.Environment.DatabaseNameLower, Name);
+            }
+        }
+
+        /// <summary>
+        /// Gets the full name of the current application.
+        /// </summary>
+        public string FullName {
+            get {
+                return ApplicationBase.CreateFullName(Db.Environment.DatabaseNameLower, Name);
             }
         }
 
@@ -77,6 +111,8 @@ namespace Starcounter {
                 return state.HostedFilePath;
             }
         }
+
+
 
         /// <summary>
         /// Gets the current application, running in the current Starcounter
@@ -159,6 +195,11 @@ namespace Starcounter {
             return application;
         }
 
+        /// <inheritdoc />
+        public override string ToString() {
+            return DisplayName;
+        }
+
         /// <summary>
         /// Returns a copy of all applications currently indexed.
         /// </summary>
@@ -197,17 +238,14 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Constructor.
+        /// Initialize an <see cref="Application"/>.
         /// </summary>
-        internal Application(
-            string name, 
-            string applicationFile, 
-            string applicationBinaryFile,
-            string applicationHostFile,
-            string workingDirectory, 
-            string[] arguments) {
-            state = new ApplicationBase(name, applicationFile, applicationBinaryFile, workingDirectory, arguments);
-            state.HostedFilePath = applicationHostFile;
+        /// <param name="appBase">The underlying state.</param>
+        /// <param name="host">The code host the application runs
+        /// within.</param>
+        internal Application(ApplicationBase appBase, ICodeHost host) {
+            this.state = appBase;
+            this.host = host;
         }
 
         /// <summary>

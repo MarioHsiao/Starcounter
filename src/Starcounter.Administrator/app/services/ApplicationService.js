@@ -91,7 +91,8 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'UtilsFactor
                 "DefaultUserPort": 0,
                 "ResourceDirectories": [],
                 "WorkingDirectory": application.WorkingDirectory,
-                "IsTool": true,
+                "AsyncEntrypoint": false,
+                "TransactEntrypoint": false,
                 "StartedBy": application.StartedBy,
                 "Engine": { "Uri": "" },
                 "RuntimeInfo": {

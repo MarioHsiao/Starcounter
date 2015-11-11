@@ -3303,6 +3303,18 @@
         understand the data manager.
       </message>
     </code>
+    <code hex="012A" severity="Error" name="ScErrLogWriterStillRunning">
+      <message>
+        Could not proceed because log writer is still running and won't shut
+        down.
+      </message>
+      <remarks>
+        Database load can not proceed while log writer is still running and for
+        some reason it won't shut down within an expected time frame. This could
+        be because is stalled or because flushing pending log writes takes
+        longer then expected.
+      </remarks>
+    </code>
   </facility>
   
   <!-- Session error codes. -->
@@ -3604,7 +3616,10 @@
     <code hex="0051" severity="Error" name="ScErrColumnHasNoProperty">
       <message>The column is not exposed with a property, it can not be accessed.</message>
     </code>
- </facility>
+    <code hex="0052" severity="Error" name="ScErrUnexpectedConnectTimeout">
+      <message>Unexpected connect timeout.</message>
+    </code>
+  </facility>
 
   <!-- Error codes related to query processing. -->
   <facility name="Sql" hex="0007">
@@ -4606,6 +4621,17 @@
         At least one file considered a Starcounter edition library was found
         locally deployed with an application, i.e. residing in the same directory
         as the application file.
+      </message>
+    </code>
+    <code hex="0014" severity="Error" name="ScErrCantAccessAppResourceDir">
+      <message>
+        Specified application resource directory is not accessible. Please check it existence and
+        correct access rights.
+      </message>
+    </code>
+    <code hex="0015" severity="Error" name="ScErrAppResourceDirIsOnNetworkDrive">
+      <message>
+        Seems that specified application resource directory is mapped to a network drive. 
       </message>
     </code>
   </facility>

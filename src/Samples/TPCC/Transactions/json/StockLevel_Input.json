@@ -1,0 +1,7 @@
+{
+  $: { DataType: "tpcc.Transactions.StockLevelTransaction.InputData" },
+
+  "W_ID": 0,
+  "D_ID": 0,
+  "threshold": 0
+}

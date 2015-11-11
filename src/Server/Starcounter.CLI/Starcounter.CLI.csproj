@@ -58,6 +58,7 @@
   <ItemGroup>
     <Compile Include="AdminCLI.cs" />
     <Compile Include="CLIClientCommand.cs" />
+    <Compile Include="CLIConfig.cs" />
     <Compile Include="CreateDatabaseCLICommand.cs" />
     <Compile Include="FilterableLogReader.cs" />
     <Compile Include="KeyValueTable\KeyValueTable.cs" />
@@ -82,6 +83,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="cli-templates\+.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="cli-config\StarcounterAssembly.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="cli-apps\UnloadDatabase.cs">

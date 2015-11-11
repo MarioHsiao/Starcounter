@@ -24,7 +24,10 @@ const int32_t TEMP_BIG_BUFFER_SIZE = 4096;
 #endif
 */
 
-#ifdef GW_DEV_DEBUG
+#define GW_TRACK_ALLOCATIONS
+
+#ifdef GW_TRACK_ALLOCATIONS
+
 extern int64_t g_NumAllocationsCounter;
 extern int64_t g_NumAlignedAllocationsCounter;
 

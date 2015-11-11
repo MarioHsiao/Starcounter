@@ -1,0 +1,17 @@
+{
+  $: { DataType: "tpcc.Transactions.NewOrderTransaction.OutputData" },
+
+  "O_ID": 0,
+  "C_LAST": "",
+  "C_CREDIT": "",
+  "C_DISCOUNT": 0.0,
+  "W_TAX": 0.0,
+  "D_TAX": 0.0,
+
+  "items": [
+    {
+      "I_NAME": "",
+      "I_PRICE": 0.0
+    }
+  ]
+}
