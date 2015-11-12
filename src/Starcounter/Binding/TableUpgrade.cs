@@ -613,14 +613,15 @@ namespace Starcounter.Binding
             ulong viter;
             fixed (byte* ulk = lk, uhk = hk)
             {
-                e = sccoredb.SCIteratorCreate(
+                e = sccoredb.star_context_create_iterator(
+                    ThreadData.ContextHandle,
                     indexHandle,
                     0,
                     ulk,
                     uhk,
-                    &hiter,
-                    &viter
+                    &hiter
                     );
+                viter = ThreadData.ObjectVerify;
             }
             if (e == 0)
             {
@@ -630,13 +631,15 @@ namespace Starcounter.Binding
                     {
                         ObjectRef source;
                         ushort tableId;
-                        ulong dummy;
 
-                        e = sccoredb.SCIteratorNext(hiter, viter, &source.ObjectID, &source.ETI, &tableId, &dummy);
+                        e = sccoredb.star_iterator_next(
+                            hiter, &source.ObjectID, &source.ETI, viter
+                            );
                         if (e == 0)
                         {
                             if (source.ObjectID != sccoredb.MDBIT_OBJECTID)
                             {
+                                tableId = (ushort)(source.ETI & 0xFFFF);
                                 if (tableId == filterTableId)
                                 {
                                     handler(source);
@@ -650,7 +653,7 @@ namespace Starcounter.Binding
                 }
                 finally
                 {
-                    e = sccoredb.SCIteratorFree(hiter, viter);
+                    e = sccoredb.star_iterator_free(hiter, viter);
                 }
             }
             if (e != 0) throw ErrorCode.ToException(e);
