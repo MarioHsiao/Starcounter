@@ -238,9 +238,8 @@ namespace Starcounter
                             }
                         }
                         catch (Exception ex) {
-                            // Make sure thread is attached.
-                            ulong contextHandle = ThreadData.ContextHandle;
-                            uint cr = sccoredb.star_transaction_free(handle);
+                            ulong verify = ThreadData.ObjectVerify;
+                            uint cr = sccoredb.star_transaction_free(handle, verify);
                             if (cr == 0) {
                                 if (ex is ITransactionConflictException) {
                                     if (++retries <= maxRetries) continue;

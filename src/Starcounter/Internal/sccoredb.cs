@@ -380,7 +380,14 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_transaction_free(ulong handle);
+        private extern static uint star_transaction_free(ulong handle);
+
+        internal static uint star_transaction_free(ulong handle, ulong verify) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_transaction_free(handle);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// Merges transaction into the current transaction.
@@ -475,7 +482,17 @@ namespace Starcounter.Internal
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
+        private static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
+
+        internal static unsafe uint star_transaction_is_dirty(
+            ulong handle, int* pvalue, ulong verify
+            )
+        {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_transaction_is_dirty(handle, pvalue);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
@@ -647,9 +664,18 @@ namespace Starcounter.Internal
         /// and the current transaction of context must be the transaction the iterator belongs to.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_iterator_next(
-            ulong handle, out ulong record_id, out ulong record_ref
+        private static extern unsafe uint star_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref
             );
+
+        internal static unsafe uint star_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+            ) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_iterator_next(handle, precord_id, precord_ref);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
@@ -657,7 +683,14 @@ namespace Starcounter.Internal
         /// Calling thread must be the owning thread of the context where the iterator resides.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_iterator_free(ulong handle);
+        private static extern uint star_iterator_free(ulong handle);
+
+        internal static uint star_iterator_free(ulong handle, ulong verify) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_iterator_free(handle);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// SCs the iterator create.
@@ -711,9 +744,18 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint star_filter_iterator_next(
+        private static extern unsafe uint star_filter_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref
             );
+
+        internal static unsafe uint star_filter_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+            ) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_filter_iterator_next(handle, precord_id, precord_ref);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
 #if false
         /// <summary>
@@ -775,7 +817,14 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_filter_iterator_free(ulong handle);
+        private static extern uint star_filter_iterator_free(ulong handle);
+
+        internal static uint star_filter_iterator_free(ulong handle, ulong verify) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_filter_iterator_free(handle);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
