@@ -474,11 +474,6 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint SCObjectFakeWrite(ulong record_id, ulong record_addr);
-
-        /// <summary>
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]

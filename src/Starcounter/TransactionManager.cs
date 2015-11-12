@@ -448,8 +448,10 @@ namespace Starcounter.Internal {
         /// <param name="proxy">The proxy referencing the kernel
         /// object to be added to the transaction write list.</param>
         internal static void Touch(IObjectProxy proxy) {
-            var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
-            if (dr != 0) throw ErrorCode.ToException(dr);
+            var ir = sccoredb.star_context_set_trans_flags(
+                ThreadData.ContextHandle, proxy.ThisHandle, proxy.Identity, 0
+                );
+            if (ir < 0) throw ErrorCode.ToException((uint)(-ir));
         }
 
         /// <summary>
