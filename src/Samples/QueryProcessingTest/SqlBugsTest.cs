@@ -31,9 +31,7 @@ namespace QueryProcessingTest {
             QueryResultMismatch();
             TestIndexQueryOptimization();
             TestShortClassNames();
-#if false // TODO EOH: Doesn't work: Meta-data tables.
             TestDDLStmts();
-#endif
             TestSearchByObject();
             OuterJoinBugs();
             TestDelimitedIdentifier();

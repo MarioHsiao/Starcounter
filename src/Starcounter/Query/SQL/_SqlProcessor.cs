@@ -379,6 +379,7 @@ internal static class SqlProcessor
             Db.Scope(() => {
                 uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
                     ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
+                throw ErrorCode.ToException(err);
             });
     }
 
