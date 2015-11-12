@@ -376,10 +376,13 @@ internal static class SqlProcessor
         // Operation creates its own transaction. Not allowed if transaction is locked on thread.
         if (ThreadData.inTransactionScope_ != 0)
             throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
-            Db.Scope(() => {
-                uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
-                    ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
-            });
+
+        Db.Scope(() => {
+            uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
+                ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
+            if (err != 0)
+                throw ErrorCode.ToException(err);
+        });
     }
 
     /// <summary>
