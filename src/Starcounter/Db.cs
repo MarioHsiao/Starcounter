@@ -163,9 +163,14 @@ namespace Starcounter
         /// <param name="newName">The new name.</param>
         public static void RenameTable(ushort tableId, string newName)
         {
+            // Rename table no longer supported by kernel (no tables in kernel even). Used by table
+            // upgrade so probably to be dropped (should not be public).
+            throw new NotSupportedException(); // TODO EOH:
+#if false
             uint e = sccoredb.star_rename_table(0, tableId, newName);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
+#endif
         }
 
         /// <summary>
@@ -174,9 +179,14 @@ namespace Starcounter
         /// <param name="name">The name.</param>
         public static void DropTable(string name)
         {
+            // Drop table no longer supported by kernel (no tables in kernel even). Used by table
+            // upgrade so probably to be dropped (should not be public).
+            throw new NotSupportedException(); // TODO EOH:
+#if false
             uint e = sccoredb.star_drop_table(0, name);
             if (e == 0) return;
             throw ErrorCode.ToException(e);
+#endif
         }
 
         /// <summary>

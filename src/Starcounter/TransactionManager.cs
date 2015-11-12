@@ -621,7 +621,7 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(0);
+                Commit(0); // TODO EOH: New transaction to be created on successful commit.
             });
         }
 
@@ -726,12 +726,16 @@ namespace Starcounter.Internal {
         /// Rollbacks uncommitted changes on transaction.
         /// </summary>
         public void Rollback(TransactionHandle handle) {
+            // Release transaction (without committing) and create a new one to replace it.
+            throw new NotSupportedException(); // TODO EOH:
+#if false
             Scope(handle, () => {
                 uint ec = sccoredb.sccoredb_rollback();
                 if (ec == 0) return;
 
                 throw ErrorCode.ToException(ec);
             });
+#endif
         }
     }
 }

@@ -333,7 +333,7 @@ namespace Starcounter.Binding
                     ec = sccoredb.stari_context_get_index_infos_by_setspec(
                         ThreadData.ContextHandle,
                         setspec,
-                            &indexCount,
+                        &indexCount,
                         pii
                         );
                 }
@@ -414,6 +414,9 @@ namespace Starcounter.Binding
 
                     if (createIndex) 
                     {
+                        // Replace with create index from metadata layer?
+                        throw new NotSupportedException(); // TODO EOH:
+#if false
                         fixed (Int16* paii = &(attrIndexArr[0])) 
                         {
                             ec = sccoredb.star_create_index(0, newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
@@ -425,6 +428,7 @@ namespace Starcounter.Binding
                                 continue;
                             throw ErrorCode.ToException(ec);
                         }
+#endif
                     }
                 }
             }
@@ -510,6 +514,11 @@ namespace Starcounter.Binding
         /// <param name="source">The source.</param>
         private void MoveRecord(ObjectRef source)
         {
+            // REPLACE no longer supported. Just update with new layout instead. Empty update with
+            // new layout will move everything with same token and type to new record (and drop
+            // everything else).
+            throw new NotSupportedException(); // TODO EOH:
+#if false
             ColumnValueTransfer[] columnValueTransfers = columnValueTransferSet_;
             for (int i = 0; i < columnValueTransfers.Length; i++)
             {
@@ -535,6 +544,7 @@ namespace Starcounter.Binding
             {
                 throw ErrorCode.ToException(e);
             }
+#endif
         }
 
         /// <summary>
