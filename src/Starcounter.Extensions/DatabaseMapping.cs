@@ -392,10 +392,13 @@ namespace Starcounter.Extensions {
 
                                         // Calling the converter.
                                         try {
+                                            
                                             MapConfig.Enabled = false;
 
-                                            // Calling the converter.
-                                            resp = Self.POST("/" + mapInfo.FromClassFullName + "/" + createdId.ToString() + "/" + mapInfo.ToClassFullName + "/0", null, null, null, 0, ho);
+                                            StarcounterEnvironment.RunWithinApplication(null, () => {
+                                                // Calling the converter.
+                                                resp = Self.POST("/" + mapInfo.FromClassFullName + "/" + createdId.ToString() + "/" + mapInfo.ToClassFullName + "/0", null, null, null, 0, ho);
+                                            });
 
                                         } finally {
                                             MapConfig.Enabled = true;
@@ -421,26 +424,36 @@ namespace Starcounter.Extensions {
                                         // Checking if object id is real.
                                         if ((0 != toOid) && (UInt64.MaxValue != toOid)) {
 
-                                            Db.Transact(() => {
+                                            Boolean curDbMappingFlag = MapConfig.Enabled;
+                                            MapConfig.Enabled = false;
 
-                                                // Creating a relation between two objects.
-                                                DbMappingRelation relTo = new DbMappingRelation() {
-                                                    FromOid = createdId,
-                                                    ToOid = toOid,
-                                                    ToClassFullName = mapInfo.ToClassFullName
-                                                };
+                                            try {
 
-                                                // Creating a relation between two objects.
-                                                DbMappingRelation relFrom = new DbMappingRelation() {
-                                                    FromOid = toOid,
-                                                    ToOid = createdId,
-                                                    ToClassFullName = mapInfo.FromClassFullName,
-                                                    MirrorRelationRef = relTo
-                                                };
+                                                Db.Transact(() => {
 
-                                                // Setting relation back.
-                                                relTo.MirrorRelationRef = relFrom;
-                                            });
+                                                    // Creating a relation between two objects.
+                                                    DbMappingRelation relTo = new DbMappingRelation() {
+                                                        FromOid = createdId,
+                                                        ToOid = toOid,
+                                                        ToClassFullName = mapInfo.ToClassFullName
+                                                    };
+
+                                                    // Creating a relation between two objects.
+                                                    DbMappingRelation relFrom = new DbMappingRelation() {
+                                                        FromOid = toOid,
+                                                        ToOid = createdId,
+                                                        ToClassFullName = mapInfo.FromClassFullName,
+                                                        MirrorRelationRef = relTo
+                                                    };
+
+                                                    // Setting relation back.
+                                                    relTo.MirrorRelationRef = relFrom;
+                                                });
+
+                                            } finally {
+
+                                                MapConfig.Enabled = curDbMappingFlag;
+                                            }
                                         }
                                     }
                                 }
@@ -509,7 +522,12 @@ namespace Starcounter.Extensions {
                                         // Calling the converter.
                                         try {
                                             MapConfig.Enabled = false;
-                                            resp = Self.PUT("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+
+                                            StarcounterEnvironment.RunWithinApplication(null, () => {
+                                                // Calling the converter.
+                                                resp = Self.PUT("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                            });
+                                            
                                         } finally {
                                             MapConfig.Enabled = true;
                                         }
@@ -587,7 +605,12 @@ namespace Starcounter.Extensions {
                                     if (!touchedClasses_.ContainsKey(rel.ToClassFullName)) {
 
                                         // Calling the deletion delegate.
-                                        Response resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        Response resp = null;
+
+                                        StarcounterEnvironment.RunWithinApplication(null, () => {
+                                            // Calling the converter.
+                                            resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        });
 
                                         // Checking if we have result.
                                         if (null == resp)
