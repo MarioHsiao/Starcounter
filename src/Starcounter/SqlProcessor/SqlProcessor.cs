@@ -78,6 +78,9 @@ namespace Starcounter.SqlProcessor {
         internal static unsafe extern uint star_drop_index_by_table_and_name(ulong context,
             string table_full_name, string index_name);
 
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        private static unsafe extern uint star_clrmetadata_clean(ulong context_handle);
+
         public static unsafe Exception CallSqlProcessor(String query) {
             uint err = scsql_process_query(query);
             if (err == 0)
@@ -129,8 +132,8 @@ namespace Starcounter.SqlProcessor {
                 throw ErrorCode.ToException(err);
         }
 
-        public static void CleanClrMetadata() {
-            uint err = scsql_clean_clrclass();
+        public static void CleanClrMetadata(ulong context) {
+            uint err = star_clrmetadata_clean(context);
             if (err != 0)
                 throw ErrorCode.ToException(err);
         }
