@@ -620,19 +620,17 @@ namespace Starcounter.Internal
             ulong handle, ulong record_id, ulong record_ref, int flags
             );
 
-#if true // TODO EOH: Flags obsolete. Replace with new one. Make sure used correctly.
         /// <summary>
         /// </summary>
-        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_LSKEY = 0x00000010;
+        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY = 0x00000010;
 
         /// <summary>
         /// </summary>
-        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_GRKEY = 0x00000020;
+        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_LAST_KEY = 0x00000020;
 
         /// <summary>
         /// </summary>
         public const UInt32 SC_ITERATOR_SORTED_DESCENDING = 0x00080000;
-#endif
 
         /// <summary>
         /// </summary>

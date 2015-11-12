@@ -19,11 +19,11 @@ namespace Starcounter
         /// <summary>
         /// The include lesser key
         /// </summary>
-        IncludeLesserKey = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY,
+        IncludeFirstKey = sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY,
 
         /// <summary>
         /// The include greater key
         /// </summary>
-        IncludeGreaterKey = sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY,
+        IncludeLastKey = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY,
     }
 }
