@@ -15,7 +15,6 @@ namespace Starcounter.Extensions {
     public class DbMapInfo {
         public String ToClassFullName;
         public String FromClassFullName;
-        public String MethodSpaceProcessedFromUriSpace;
     }
 
     [Database]
@@ -329,8 +328,6 @@ namespace Starcounter.Extensions {
                     throw new ArgumentOutOfRangeException("To class name with given full name does not exist: " + toClassFullName);
                 }
 
-                String methodSpaceProcessedFromUriSpace = httpMethod + " " + processedFromUri + " ";
-
                 HandlerOptions ho = new HandlerOptions() { HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel };
 
                 String converterUri = fromUri + toUri;
@@ -338,6 +335,8 @@ namespace Starcounter.Extensions {
                 if (Handle.IsHandlerRegistered(httpMethod + " " + processedFromUri + processedToUri + " ", ho)) {
                     throw new ArgumentOutOfRangeException("Converter URI handler is already registered: " + httpMethod + " " + converterUri);
                 }
+
+                String methodSpaceProcessedFromUriSpace = httpMethod + " " + processedFromUri + " ";
 
                 switch (httpMethod) {
 
@@ -370,7 +369,18 @@ namespace Starcounter.Extensions {
 
                             try {
 
-                                foreach (DbMapInfo mapInfo in Db.SQL("SELECT o FROM DbMapInfo o WHERE o.MethodSpaceProcessedFromUriSpace = ?", methodSpaceProcessedFromUriSpace)) {
+                                // Going through all mapped objects.
+                                List<DbMapInfo> mapInfos = new List<DbMapInfo>();
+                                List<UInt64> createdIds = new List<UInt64>();
+                                foreach (DbMapInfo mapInfo in Db.SQL("SELECT o FROM DbMapInfo o WHERE o.FromClassFullName = ?", fromClassFullName)) {
+                                    mapInfos.Add(mapInfo);
+                                    createdIds.Add(fromOid);
+                                }
+
+                                for (Int32 i = 0; i < mapInfos.Count; i++) {
+
+                                    DbMapInfo mapInfo = mapInfos[i];
+                                    UInt64 createdId = createdIds[i];
 
                                     // Checking if we already have processed this class.
                                     if (!touchedClasses_.ContainsKey(mapInfo.ToClassFullName)) {
@@ -378,8 +388,18 @@ namespace Starcounter.Extensions {
                                         // Adding class as touched.
                                         touchedClasses_.Add(mapInfo.ToClassFullName, true);
 
+                                        Response resp = null;
+
                                         // Calling the converter.
-                                        Response resp = Self.POST("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + mapInfo.ToClassFullName + "/0", null, null, null, 0, ho);
+                                        try {
+                                            MapConfig.Enabled = false;
+
+                                            // Calling the converter.
+                                            resp = Self.POST("/" + mapInfo.FromClassFullName + "/" + createdId.ToString() + "/" + mapInfo.ToClassFullName + "/0", null, null, null, 0, ho);
+
+                                        } finally {
+                                            MapConfig.Enabled = true;
+                                        }
 
                                         // Checking if we have result.
                                         if (null == resp)
@@ -388,6 +408,16 @@ namespace Starcounter.Extensions {
                                         // Getting new created related object id.
                                         UInt64 toOid = UInt64.Parse(resp.Body);
 
+                                        // Adding chained mappings.
+                                        foreach (DbMapInfo mi in Db.SQL("SELECT o FROM DbMapInfo o WHERE o.FromClassFullName = ?", mapInfo.ToClassFullName)) {
+
+                                            // Checking if we already have processed this class.
+                                            if (!touchedClasses_.ContainsKey(mi.ToClassFullName)) {
+                                                mapInfos.Add(mi);
+                                                createdIds.Add(toOid);
+                                            }
+                                        }
+
                                         // Checking if object id is real.
                                         if ((0 != toOid) && (UInt64.MaxValue != toOid)) {
 
@@ -395,7 +425,7 @@ namespace Starcounter.Extensions {
 
                                                 // Creating a relation between two objects.
                                                 DbMappingRelation relTo = new DbMappingRelation() {
-                                                    FromOid = fromOid,
+                                                    FromOid = createdId,
                                                     ToOid = toOid,
                                                     ToClassFullName = mapInfo.ToClassFullName
                                                 };
@@ -403,14 +433,13 @@ namespace Starcounter.Extensions {
                                                 // Creating a relation between two objects.
                                                 DbMappingRelation relFrom = new DbMappingRelation() {
                                                     FromOid = toOid,
-                                                    ToOid = fromOid,
+                                                    ToOid = createdId,
                                                     ToClassFullName = mapInfo.FromClassFullName,
                                                     MirrorRelationRef = relTo
                                                 };
 
                                                 // Setting relation back.
                                                 relTo.MirrorRelationRef = relFrom;
-
                                             });
                                         }
                                     }
@@ -459,8 +488,15 @@ namespace Starcounter.Extensions {
 
                             try {
 
-                                // Going through all connected objects.
+                                // Going through all mapped objects.
+                                List<DbMappingRelation> rels = new List<DbMappingRelation>();
                                 foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
+                                    rels.Add(rel);
+                                }
+
+                                for (Int32 i = 0; i < rels.Count; i++) {
+
+                                    DbMappingRelation rel = rels[i];
 
                                     // Checking if we already have processed this class.
                                     if (!touchedClasses_.ContainsKey(rel.ToClassFullName)) {
@@ -468,12 +504,24 @@ namespace Starcounter.Extensions {
                                         // Adding class as touched.
                                         touchedClasses_.Add(rel.ToClassFullName, true);
 
-                                        // Calling the converter.
-                                        Response resp = Self.PUT("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        Response resp = null;
 
-                                        // Checking if we have result.
-                                        if (null == resp)
-                                            continue;
+                                        // Calling the converter.
+                                        try {
+                                            MapConfig.Enabled = false;
+                                            resp = Self.PUT("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        } finally {
+                                            MapConfig.Enabled = true;
+                                        }
+                                        
+                                        // Adding chained mappings.
+                                        foreach (DbMappingRelation r in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", rel.ToOid)) {
+
+                                            // Checking if we already have processed this class.
+                                            if (!touchedClasses_.ContainsKey(r.ToClassFullName)) {
+                                                rels.Add(r);
+                                            }
+                                        }
                                     }
                                 }
 
@@ -507,30 +555,39 @@ namespace Starcounter.Extensions {
                         // The actual processing handler that is called by database hooks.
                         Handle.DELETE(fromUri, (UInt64 fromOid) => {
 
+                            // Checking if we have processed this class.
+                            if (null != touchedClasses_) {
+                                if (touchedClasses_.ContainsKey(fromClassFullName)) {
+                                    return 200;
+                                }
+                            }
+
                             Boolean isRootHierarchy = false;
 
                             if (null == touchedClasses_) {
 
                                 isRootHierarchy = true;
                                 touchedClasses_ = new Dictionary<String, Boolean>();
-
-                                // Touching myself here.
-                                touchedClasses_.Add(fromClassFullName, true);
                             }
+
+                            // Touching myself here.
+                            touchedClasses_.Add(fromClassFullName, true);
 
                             try {
 
-                                // Going through all connected objects.
+                                // Going through all mapped objects.
+                                List<DbMappingRelation> rels = new List<DbMappingRelation>();
+                                foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
+                                    rels.Add(rel);
+                                }
+
                                 foreach (DbMappingRelation rel in Db.SQL("SELECT o FROM DbMappingRelation o WHERE o.FromOid = ?", fromOid)) {
 
                                     // Checking if we already have processed this class.
                                     if (!touchedClasses_.ContainsKey(rel.ToClassFullName)) {
 
-                                        // Adding class as touched.
-                                        touchedClasses_.Add(rel.ToClassFullName, true);
-
-                                        // Calling the converter.
-                                        Response resp = Self.DELETE("/" + fromClassFullName + "/" + fromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                        // Calling the deletion delegate.
+                                        Response resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
 
                                         // Checking if we have result.
                                         if (null == resp)
@@ -564,8 +621,10 @@ namespace Starcounter.Extensions {
                 }
 
                 // Checking if we already have a map.
-                if (null == Db.SQL("SELECT o FROM DbMapInfo o WHERE o.MethodSpaceProcessedFromUriSpace = ? AND o.ToClassFullName = ?", methodSpaceProcessedFromUriSpace, toClassFullName).First) {
+                if (null == Db.SQL("SELECT o FROM DbMapInfo o WHERE o.FromClassFullName = ? AND o.ToClassFullName = ?",
+                    fromClassFullName, toClassFullName).First) {
 
+                    // NOTE: Skipping triggers call when creating new mapping info.
                     Boolean curDbMappingFlag = MapConfig.Enabled;
                     MapConfig.Enabled = false;
 
@@ -575,8 +634,7 @@ namespace Starcounter.Extensions {
 
                             DbMapInfo dbi = new DbMapInfo() {
                                 ToClassFullName = toClassFullName,
-                                FromClassFullName = fromClassFullName,
-                                MethodSpaceProcessedFromUriSpace = methodSpaceProcessedFromUriSpace
+                                FromClassFullName = fromClassFullName
                             };
                         });
 

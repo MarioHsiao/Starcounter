@@ -11,6 +11,7 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Variable that stores decision if database mapping is enabled.
         /// </summary>
+        [ThreadStatic]
         static Boolean isMappingEnabled_ = ("True" == Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING"));
 
         /// <summary>
@@ -44,6 +45,7 @@ namespace Starcounter.Internal {
 
                 Self.POST(uri, null, null, null, 0, new HandlerOptions() {
                     ProxyDelegateTrigger = true,
+                    CallingAppName = null,
                     HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
                 });
 
@@ -64,6 +66,7 @@ namespace Starcounter.Internal {
 
                 Self.PUT(uri, null, null, null, 0, new HandlerOptions() {
                     ProxyDelegateTrigger = true,
+                    CallingAppName = null,
                     HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
                 });
 
@@ -83,6 +86,7 @@ namespace Starcounter.Internal {
 
                 Self.DELETE(uri, null, null, null, 0, new HandlerOptions() {
                     ProxyDelegateTrigger = true,
+                    CallingAppName = null,
                     HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
                 });
 
