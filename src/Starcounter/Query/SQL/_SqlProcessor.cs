@@ -119,6 +119,19 @@ internal static class SqlProcessor
         }
     }
 
+    public static void DDLScope(Action action) {
+        if (ThreadData.inTransactionScope_ != 0)
+            throw ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED);
+
+        var currentTransaction = TransactionManager.GetCurrentAndSetToNoneManagedOnly();
+        try {
+            action();
+        }
+        finally {
+            TransactionManager.SetCurrentTransaction(currentTransaction);
+        }
+    }
+
     // CREATE [UNIQUE] INDEX indexName ON typeName (propName1 [ASC/DESC], ...)
     internal static void ProcessCreateIndex(String statement)
     {
@@ -256,7 +269,7 @@ internal static class SqlProcessor
 
             // Set the last position in the array to -1 (terminator).
             attributeIndexArr[attributeIndexArr.Length - 1] = -1;
-            Db.Scope(() => {
+            DDLScope(() => {
                 fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
                 {
                     errorCode = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
@@ -383,7 +396,7 @@ internal static class SqlProcessor
                 );
 #endif
 
-        Db.Scope(() => {
+        DDLScope(() => {
             uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
                 ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
             if (err != 0) throw ErrorCode.ToException(err);
