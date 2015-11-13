@@ -341,6 +341,10 @@ namespace Starcounter.Extensions {
                         throw new ArgumentOutOfRangeException("Converter URI handler is already registered: " + httpMethod + " " + converterUri);
                     }
 
+                    // Adding map for URI mapping (in both directions).
+                    UriMapping.MapClassesInDifferentHierarchies(fromClassFullName, toClassFullName);
+                    UriMapping.MapClassesInDifferentHierarchies(toClassFullName, fromClassFullName);
+
                     String methodSpaceProcessedFromUriSpace = httpMethod + " " + processedFromUri + " ";
 
                     switch (httpMethod) {

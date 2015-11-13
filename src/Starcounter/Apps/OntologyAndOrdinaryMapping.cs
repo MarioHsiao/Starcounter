@@ -18,6 +18,11 @@ namespace Starcounter {
         static Dictionary<string, MappingClassInfo> classesMappingInfo_ = new Dictionary<string, MappingClassInfo>();
 
         /// <summary>
+        /// Mapped classes in different class hierarchies.
+        /// </summary>
+        static Dictionary<String, List<String>> mappedClassesInDifferentHierarchies_ = new Dictionary<String, List<String>>();
+
+        /// <summary>
         /// Custom maps.
         /// </summary>
         static Dictionary<String, List<HandlerInfoForUriMapping>> customMaps_ = new Dictionary<string, List<HandlerInfoForUriMapping>>();
@@ -100,23 +105,22 @@ namespace Starcounter {
         public class MappingClassInfo {
 
             /// <summary>
-            /// Parent in inheritance tree.
-            /// </summary>
-            public MappingClassInfo Inherits;
-
-            /// <summary>
             /// Name of the class type.
             /// </summary>
-            public String Name;
+            public String FullClassName;
 
             /// <summary>
             /// List of handlers.
             /// </summary>
             public List<HandlerInfoForUriMapping> Handlers;
 
+            /// <summary>
+            /// Mapping class info.
+            /// </summary>
+            /// <param name="nm"></param>
             public MappingClassInfo(string nm) {
                 Handlers = new List<HandlerInfoForUriMapping>();
-                Name = nm;
+                FullClassName = nm;
                 Children = new HashSet<MappingClassInfo>();
             }
 
@@ -477,7 +481,7 @@ namespace Starcounter {
                         Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", mappedClassInfo).First;
 
                     if (null == classMetadataTable) {
-                        throw new ArgumentException("Class not found: " + classMetadataTable + ". The second parameter of OntologyMap should be either a fully namespaced existing class name or /sc/db/[FullClassName]/@w.");
+                        throw new ArgumentException("Class not found: " + mappedClassInfo + ". The second parameter of OntologyMap should be either a fully namespaced existing class name or /sc/db/[FullClassName]/@w.");
                     }
 
                     mappedClassInfo = OntologyMappingUriPrefix + "/" + mappedClassInfo + "/@w";
@@ -952,12 +956,85 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Map classes in different class hierarchies.
+        /// </summary>
+        /// <param name="fromFullClassName">Full class name from which to map.</param>
+        /// <param name="toFullClassName">Full class name to which to map.</param>
+        public static void MapClassesInDifferentHierarchies(String fromFullClassName, String toFullClassName) {
+
+            lock (classesMappingInfo_) {
+
+                // First checking that both classes exist.
+                Starcounter.Metadata.Table classMetadataTable = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", fromFullClassName).First;
+
+                if (null == classMetadataTable) {
+                    throw new ArgumentException("Class not found: " + fromFullClassName + ". Class should exist to map it to another class.");
+                }
+
+                classMetadataTable = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", toFullClassName).First;
+
+                if (null == classMetadataTable) {
+                    throw new ArgumentException("Class not found: " + toFullClassName + ". Class should exist to map it to another class.");
+                }
+
+                // Now checking that there is already a mapping in from class.
+                List<String> mappedClassNames = null;
+
+                // If no such mapping yet.
+                if (!mappedClassesInDifferentHierarchies_.TryGetValue(fromFullClassName, out mappedClassNames)) {
+
+                    if (!mappedClassesInDifferentHierarchies_.TryGetValue(toFullClassName, out mappedClassNames)) {
+                        mappedClassNames = new List<String>();
+                        mappedClassNames.Add(toFullClassName);
+                        mappedClassesInDifferentHierarchies_.Add(fromFullClassName, mappedClassNames);
+                        return;
+                    } else {
+                        // Adding existing class names.
+                        mappedClassesInDifferentHierarchies_.Add(fromFullClassName, mappedClassNames);
+
+                        // Checking if this class is not already in the list.
+                        if (!mappedClassNames.Contains(fromFullClassName)) {
+                            mappedClassNames.Add(fromFullClassName);
+                        }
+                    }
+                }
+
+                // Checking if this class is not already in the list.
+                if (!mappedClassNames.Contains(toFullClassName)) {
+                    mappedClassNames.Add(toFullClassName);
+                }
+            }
+        }
+
+        /// <summary>
         /// Handler used to call all handlers in class hierarchy.
         /// </summary>
         static Response ClassHierarchyCallProxy(Request req, String className, String paramStr) {
 
             // Collecting all responses in the tree.
             List<Response> resps = CallAllHandlersInTypeHierarchy(req, className, paramStr);
+
+            // Getting the list of mapped classes in different hierarchies.
+            List<String> mappedClassNames = null;
+
+            // Checking if there are any classes mapped from different hierarchies.
+            if (mappedClassesInDifferentHierarchies_.TryGetValue(className, out mappedClassNames)) {
+
+                foreach (String cn in mappedClassNames) {
+
+                    // Checking if its the same class name.
+                    if (cn == className)
+                        continue;
+
+                    // Collecting all responses in the tree.
+                    List<Response> otherResps = CallAllHandlersInTypeHierarchy(req, cn, paramStr);
+
+                    // Adding responses to class hierarchy.
+                    foreach (Response r in otherResps) {
+                        resps.Add(r);
+                    }
+                }
+            }
 
             if (resps.Count > 0) {
 
@@ -989,6 +1066,7 @@ namespace Starcounter {
             // Registering proxy arbitrary database classes handler.
             Handle.GET<Request, String, String>(OntologyMappingUriPrefix + "/{?}/{?}",
                 (Request req, String className, String paramStr) => {
+
                     return ClassHierarchyCallProxy(req, className, paramStr);
                 },                
                 new HandlerOptions() {
