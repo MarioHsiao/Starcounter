@@ -352,7 +352,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         fixed (Byte* recreationKey = ValidateAndGetRecreateKey(rk)) {
 
             // Creating flags.
-            UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY;
+            UInt32 _flags = sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY;
 
             Byte[] lastKey;
             if (descending)
@@ -446,7 +446,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         if (descending)
         {
             iterHelper.GetEnumeratorCached_CodeGenFilter(
-                sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY | sccoredb.SC_ITERATOR_SORTED_DESCENDING,
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY | sccoredb.SC_ITERATOR_SORTED_DESCENDING,
                 secondKeyBuffer,
                 firstKeyBuffer,
                 enumerator);
@@ -454,7 +454,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         else
         {
             iterHelper.GetEnumeratorCached_CodeGenFilter(
-                sccoredb.SC_ITERATOR_RANGE_INCLUDE_LSKEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_GRKEY,
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY,
                 firstKeyBuffer,
                 secondKeyBuffer,
                 enumerator);

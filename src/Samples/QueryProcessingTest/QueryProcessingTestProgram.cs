@@ -40,21 +40,19 @@ namespace QueryProcessingTest {
                 MetadataTest.TestPopulatedMetadata();
 #endif
                 TestKinds.RunKindsTest();
+                ReloadTest.Run();
                 if (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") == "True")
                     BenchmarkQueryCache.BenchQueryCache();
                 else
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
+
                 HelpMethods.LogEvent("Start unloading query processing database.");
-#if false // TODO EOH: Meta-data.
                 int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                 HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " + 
                     nrUnloaded + " objects.");
-#endif
-#if false // TODO EOH: Meta-data.
                 HelpMethods.LogEvent("Start delete the database data.");
                 Starcounter.Reload.DeleteAll();
                 HelpMethods.LogEvent("Finish delete the database data.");
-#endif
                 HelpMethods.LogEvent("All tests completed");
             } catch (Exception e) {
                 HelpMethods.LogEvent(e.ToString());

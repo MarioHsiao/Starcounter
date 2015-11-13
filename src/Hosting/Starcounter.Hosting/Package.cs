@@ -327,7 +327,7 @@ namespace Starcounter.Hosting {
                             OnRuntimeMetadataPopulated();
                         transaction.Scope(() => {
                             // Call CLR class clean up
-                            Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(ThreadData.ContextHandle); // TODO EOH:
+                            Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(ThreadData.ContextHandle);
                             OnCleanClrMetadata();
                         });
                         transaction.Scope(() => {

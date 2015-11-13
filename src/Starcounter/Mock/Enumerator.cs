@@ -140,7 +140,7 @@ namespace Starcounter
             // Removing reference to current object.
             _current = null;
 
-            UInt32 err = sccoredb.star_iterator_free(_handle);
+            UInt32 err = sccoredb.star_iterator_free(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
@@ -205,12 +205,13 @@ namespace Starcounter
             previousCCI = UInt16.MaxValue;
 
         next:
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             //Application.Profiler.Start("SCIteratorNext", 2);
             Boolean newIterator = _handle == 0;
             unsafe
             {
-                ir = sccoredb.star_iterator_next(_handle, out currentRef.ObjectID, out currentRef.ETI);
+                ir = sccoredb.star_iterator_next(
+                    _handle, &currentRef.ObjectID, &currentRef.ETI, _verify
+                    );
             }
             //Application.Profiler.Stop(2);
 
@@ -426,7 +427,7 @@ namespace Starcounter
 
             // Removing reference to current object.
             _current = null;
-            UInt32 err = sccoredb.star_filter_iterator_free(_handle);
+            UInt32 err = sccoredb.star_filter_iterator_free(_handle, _verify);
 
             // Marking this enumerator as disposed.
             if (err == 0) {
@@ -474,11 +475,12 @@ namespace Starcounter
             previousCCI = UInt16.MaxValue;
 
         next:
-            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
             //Application.Profiler.Start("filter_iterator_next", 2);
             Boolean newIterator = _handle == 0;
             unsafe {
-                ir = sccoredb.star_filter_iterator_next(_handle, &currentRef.ObjectID, &currentRef.ETI);
+                ir = sccoredb.star_filter_iterator_next(
+                    _handle, &currentRef.ObjectID, &currentRef.ETI, _verify
+                    );
             }
             //Application.Profiler.Stop(2);
 

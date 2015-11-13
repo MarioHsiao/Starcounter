@@ -193,7 +193,7 @@ internal class SortSpecification
 
         // Try find index with matching decending sort.
 
-        for (int i = 0; i < (sortSpecs.Length - 1); i++)
+        for (int i = 0; i < sortSpecs.Length; i++)
         {
             sortSpecs[i].sortOrdering =
                 sortSpecs[i].sortOrdering == SortOrder.Ascending ? SortOrder.Descending :

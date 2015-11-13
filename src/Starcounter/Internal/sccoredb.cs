@@ -166,7 +166,8 @@ namespace Starcounter.Internal
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint stari_context_create_layout(
-            ulong handle, ulong token, ushort base_layout_handle, sccoredb.STARI_COLUMN_DEFINITION *column_definitions, uint attribute_flags                                  // IN
+            ulong handle, ulong token, ushort base_layout_handle,
+            sccoredb.STARI_COLUMN_DEFINITION *column_definitions, uint attribute_flags                                  // IN
             );
 
         /// <summary>
@@ -177,69 +178,6 @@ namespace Starcounter.Internal
           ushort layout_handle, short* column_indexes, ushort sort_mask,
           uint attribute_flags
           );
-
-        /// <summary>
-        /// </summary>
-        [StructLayout(LayoutKind.Sequential, Pack=8)]
-        internal unsafe struct SCCOREDB_TABLE_INFO
-        {
-            /// <summary>
-            /// </summary>
-            public char* name;
-
-            /// <summary>
-            /// </summary>
-            public uint column_count;
-
-            /// <summary>
-            /// </summary>
-            public uint inheriting_table_count;
-
-            /// <summary>
-            /// </summary>
-            public ushort* inheriting_table_ids;
-
-            /// <summary>
-            /// </summary>
-            public ushort table_id;
-
-            /// <summary>
-            /// </summary>
-            public ushort inherited_table_id;
-
-            /// <summary>
-            /// </summary>
-            public ushort flags;
-        };
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal extern static uint sccoredb_get_table_info(
-            ushort table_id,
-            out SCCOREDB_TABLE_INFO table_info
-            );
-        
-        /// <summary>
-        /// Sc_rename_tables the specified table_id.
-        /// </summary>
-        /// <param name="table_id">The table_id.</param>
-        /// <param name="new_name">The new_name.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_rename_table(
-            uint transaction_flags,
-            ushort table_id,
-            string new_name
-            );
-
-        /// <summary>
-        /// Sccoredb_drop_tables the specified name.
-        /// </summary>
-        /// <param name="name">The name.</param>
-        /// <returns>System.UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public static extern uint star_drop_table(uint transaction_flags, string name);
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         internal struct STARI_INDEX_INFO
@@ -333,18 +271,6 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        public extern unsafe static uint star_create_index(
-            uint transaction_flags,
-            ushort table_id,
-            string name,
-            ushort sort_mask,
-            short* column_indexes,
-            uint flags
-            );
-
-        /// <summary>
-        /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint stari_context_drop_index(ulong handle, ulong token);
 
@@ -380,29 +306,19 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_transaction_free(ulong handle);
+        private extern static uint star_transaction_free(ulong handle);
 
-        /// <summary>
-        /// Merges transaction into the current transaction.
-        /// </summary>
-        /// <param name="handle"></param>
-        /// <param name="verify"></param>
-        /// <returns></returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_transaction_merge_into_current(
-            ulong handle,
-            ulong verify
-            );
+        internal static uint star_transaction_free(ulong handle, ulong verify) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_transaction_free(handle);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint star_context_commit(ulong handle, int free);
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_rollback();
 
 #region Commit hook signatures and symbols
 
@@ -425,8 +341,10 @@ namespace Starcounter.Internal
         public const uint CommitHookTypeInsert = 0x01;
         public const uint CommitHookTypeUpdate = 0x02;
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_set_commit_hooks(uint transactionFlags, ushort tableId, uint hookMask);
+        public static uint star_set_commit_hooks(uint transactionFlags, ushort tableId, uint hookMask) {
+            // Commit hooks no longer supported by kernel. To be replaced by client solution.
+            throw new NotSupportedException(); // TODO EOH:
+        }
 
 #endregion
 
@@ -458,24 +376,20 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint sccoredb_replace(
-            ulong record_id,
-            ulong record_addr,
-            ushort table_id
-            );
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint SCObjectFakeWrite(ulong record_id, ulong record_addr);
-
-        /// <summary>
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
+        private static extern unsafe uint star_transaction_is_dirty(ulong handle, int* pvalue);
+
+        internal static unsafe uint star_transaction_is_dirty(
+            ulong handle, int* pvalue, ulong verify
+            )
+        {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_transaction_is_dirty(handle, pvalue);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
@@ -620,19 +534,17 @@ namespace Starcounter.Internal
             ulong handle, ulong record_id, ulong record_ref, int flags
             );
 
-#if true // TODO EOH: Flags obsolete. Replace with new one. Make sure used correctly.
         /// <summary>
         /// </summary>
-        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_LSKEY = 0x00000010;
+        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY = 0x00000010;
 
         /// <summary>
         /// </summary>
-        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_GRKEY = 0x00000020;
+        public const UInt32 SC_ITERATOR_RANGE_INCLUDE_LAST_KEY = 0x00000020;
 
         /// <summary>
         /// </summary>
         public const UInt32 SC_ITERATOR_SORTED_DESCENDING = 0x00080000;
-#endif
 
         /// <summary>
         /// </summary>
@@ -649,9 +561,18 @@ namespace Starcounter.Internal
         /// and the current transaction of context must be the transaction the iterator belongs to.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_iterator_next(
-            ulong handle, out ulong record_id, out ulong record_ref
+        private static extern unsafe uint star_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref
             );
+
+        internal static unsafe uint star_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+            ) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_iterator_next(handle, precord_id, precord_ref);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
@@ -659,27 +580,14 @@ namespace Starcounter.Internal
         /// Calling thread must be the owning thread of the context where the iterator resides.
         /// </remarks>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_iterator_free(ulong handle);
+        private static extern uint star_iterator_free(ulong handle);
 
-        /// <summary>
-        /// SCs the iterator create.
-        /// </summary>
-        /// <param name="hIndex">Index of the h.</param>
-        /// <param name="flags">The flags.</param>
-        /// <param name="lesserKey">The lesser key.</param>
-        /// <param name="greaterKey">The greater key.</param>
-        /// <param name="ph">The ph.</param>
-        /// <param name="pv">The pv.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 SCIteratorCreate(
-            UInt64 hIndex,
-            UInt32 flags,
-            Byte* lesserKey,
-            Byte* greaterKey,
-            UInt64* ph,
-            UInt64* pv
-        );
+        internal static uint star_iterator_free(ulong handle, ulong verify) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_iterator_free(handle);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
@@ -691,52 +599,20 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// SCs the iterator next.
-        /// </summary>
-        /// <param name="h">The h.</param>
-        /// <param name="v">The v.</param>
-        /// <param name="pObjectOID">The p object OID.</param>
-        /// <param name="pObjectETI">The p object ETI.</param>
-        /// <param name="pClassIndex">Index of the p class.</param>
-        /// <param name="pData">The p data.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 SCIteratorNext(
-            UInt64 h,
-            UInt64 v,
-            UInt64* pObjectOID,
-            UInt64* pObjectETI,
-            UInt16* pClassIndex,
-            UInt64* pData
-        );
-
-        /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint star_filter_iterator_next(
+        private static extern unsafe uint star_filter_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref
             );
 
-#if false
-        /// <summary>
-        /// SCs the iterator fill up.
-        /// </summary>
-        /// <param name="h">The h.</param>
-        /// <param name="v">The v.</param>
-        /// <param name="results">The results.</param>
-        /// <param name="resultsMaxBytes">The results max bytes.</param>
-        /// <param name="resultsNum">The results num.</param>
-        /// <param name="flags">The flags.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public unsafe extern static UInt32 SCIteratorFillUp(
-            UInt64 h,
-            UInt64 v,
-            Byte* results,
-            UInt32 resultsMaxBytes,
-            UInt32* resultsNum,
-            UInt32* flags);
-#endif
+        internal static unsafe uint star_filter_iterator_next(
+            ulong handle, ulong* precord_id, ulong* precord_ref, ulong verify
+            ) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_filter_iterator_next(handle, precord_id, precord_ref);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>
@@ -763,21 +639,16 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
-        /// SCs the iterator free.
-        /// </summary>
-        /// <param name="h">The h.</param>
-        /// <param name="v">The v.</param>
-        /// <returns>UInt32.</returns>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static UInt32 SCIteratorFree(
-            UInt64 h,
-            UInt64 v
-        );
-        
-        /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint star_filter_iterator_free(ulong handle);
+        private static extern uint star_filter_iterator_free(ulong handle);
+
+        internal static uint star_filter_iterator_free(ulong handle, ulong verify) {
+            var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+            if (verify == ThreadData.ObjectVerify)
+                return star_filter_iterator_free(handle);
+            return Error.SCERRITERATORNOTOWNED;
+        }
 
         /// <summary>
         /// </summary>

@@ -333,7 +333,7 @@ namespace Starcounter.Binding
                     ec = sccoredb.stari_context_get_index_infos_by_setspec(
                         ThreadData.ContextHandle,
                         setspec,
-                            &indexCount,
+                        &indexCount,
                         pii
                         );
                 }
@@ -414,6 +414,9 @@ namespace Starcounter.Binding
 
                     if (createIndex) 
                     {
+                        // Replace with create index from metadata layer?
+                        throw new NotSupportedException(); // TODO EOH:
+#if false
                         fixed (Int16* paii = &(attrIndexArr[0])) 
                         {
                             ec = sccoredb.star_create_index(0, newTableDef_.TableId, indexNameArr[i], index.sortMask, paii, index.flags);
@@ -425,6 +428,7 @@ namespace Starcounter.Binding
                                 continue;
                             throw ErrorCode.ToException(ec);
                         }
+#endif
                     }
                 }
             }
@@ -510,6 +514,11 @@ namespace Starcounter.Binding
         /// <param name="source">The source.</param>
         private void MoveRecord(ObjectRef source)
         {
+            // REPLACE no longer supported. Just update with new layout instead. Empty update with
+            // new layout will move everything with same token and type to new record (and drop
+            // everything else).
+            throw new NotSupportedException(); // TODO EOH:
+#if false
             ColumnValueTransfer[] columnValueTransfers = columnValueTransferSet_;
             for (int i = 0; i < columnValueTransfers.Length; i++)
             {
@@ -535,6 +544,7 @@ namespace Starcounter.Binding
             {
                 throw ErrorCode.ToException(e);
             }
+#endif
         }
 
         /// <summary>
@@ -613,14 +623,15 @@ namespace Starcounter.Binding
             ulong viter;
             fixed (byte* ulk = lk, uhk = hk)
             {
-                e = sccoredb.SCIteratorCreate(
+                e = sccoredb.star_context_create_iterator(
+                    ThreadData.ContextHandle,
                     indexHandle,
                     0,
                     ulk,
                     uhk,
-                    &hiter,
-                    &viter
+                    &hiter
                     );
+                viter = ThreadData.ObjectVerify;
             }
             if (e == 0)
             {
@@ -630,13 +641,15 @@ namespace Starcounter.Binding
                     {
                         ObjectRef source;
                         ushort tableId;
-                        ulong dummy;
 
-                        e = sccoredb.SCIteratorNext(hiter, viter, &source.ObjectID, &source.ETI, &tableId, &dummy);
+                        e = sccoredb.star_iterator_next(
+                            hiter, &source.ObjectID, &source.ETI, viter
+                            );
                         if (e == 0)
                         {
                             if (source.ObjectID != sccoredb.MDBIT_OBJECTID)
                             {
+                                tableId = (ushort)(source.ETI & 0xFFFF);
                                 if (tableId == filterTableId)
                                 {
                                     handler(source);
@@ -650,7 +663,7 @@ namespace Starcounter.Binding
                 }
                 finally
                 {
-                    e = sccoredb.SCIteratorFree(hiter, viter);
+                    e = sccoredb.star_iterator_free(hiter, viter);
                 }
             }
             if (e != 0) throw ErrorCode.ToException(e);

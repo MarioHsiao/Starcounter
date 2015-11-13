@@ -58,8 +58,8 @@ namespace Starcounter.Internal {
 
             ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
             if (ec == 0) {
+                verify = ThreadData.ObjectVerify;
                 try {
-                    verify = ThreadData.ObjectVerify;
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
 
                     if (index < ShortListCount) {
@@ -80,7 +80,7 @@ namespace Starcounter.Internal {
 
                     return th;
                 } catch {
-                    sccoredb.star_transaction_free(handle);
+                    sccoredb.star_transaction_free(handle, verify);
                     throw;
                 }
             }
@@ -121,8 +121,8 @@ namespace Starcounter.Internal {
 
             ec = sccoredb.star_context_create_transaction(ThreadData.ContextHandle, flags, out handle);
             if (ec == 0) {
+                verify = ThreadData.ObjectVerify;
                 try {
-                    verify = ThreadData.ObjectVerify;
                     ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle); // TODO EOH: Handle error.
 
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
@@ -148,7 +148,7 @@ namespace Starcounter.Internal {
 
                     return th;
                 } catch {
-                    sccoredb.star_transaction_free(handle);
+                    sccoredb.star_transaction_free(handle, verify);
                     throw;
                 }
             }
@@ -167,7 +167,7 @@ namespace Starcounter.Internal {
                 SetCurrentTransaction(TransactionHandle.Invalid);
 
             if (handle.IsAlive) {
-                ec = sccoredb.star_transaction_free(handle.handle);
+                ec = sccoredb.star_transaction_free(handle.handle, handle.verify);
                 if (ec != 0)
                     return ec;
             }
@@ -219,9 +219,9 @@ namespace Starcounter.Internal {
                 unsafe {
                     keptHandle = Refs[handle.index];
                     if (!keptHandle.HasTemporaryRef()) {
-                        ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty);
+                        ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty, handle.verify);
                         if (ec == 0)
-                            ec = sccoredb.star_transaction_free(handle.handle);
+                            ec = sccoredb.star_transaction_free(handle.handle, handle.verify);
 
                         if (ec == 0) {
                             Refs[handle.index] = TransactionHandle.Invalid;
@@ -241,9 +241,9 @@ namespace Starcounter.Internal {
                 int calcIndex = handle.index - ShortListCount;
                 keptHandle = SlowList[calcIndex];
                 if (!keptHandle.HasTemporaryRef()) {
-                    ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty);
+                    ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty, handle.verify);
                     if (ec == 0)
-                        ec = sccoredb.star_transaction_free(handle.handle);
+                        ec = sccoredb.star_transaction_free(handle.handle, handle.verify);
 
                     if (ec == 0) {
                         SlowList[calcIndex] = TransactionHandle.Invalid;
@@ -386,7 +386,7 @@ namespace Starcounter.Internal {
 
                 th = Refs[i];
                 if (!th.HasTransferedOwnership()) {
-                    ec = sccoredb.star_transaction_free(th.handle);
+                    ec = sccoredb.star_transaction_free(th.handle, th.verify);
                     if (ec == 0)
                         continue;
                     // TODO:
@@ -400,7 +400,7 @@ namespace Starcounter.Internal {
                 for (int i = 0; i < slowList.Count; i++) {
                     th = slowList[i];
                     if (!th.HasTransferedOwnership()) {
-                        ec = ec = sccoredb.star_transaction_free(th.handle);
+                        ec = ec = sccoredb.star_transaction_free(th.handle, th.verify);
                         if (ec == 0)
                             continue;
 
@@ -448,8 +448,10 @@ namespace Starcounter.Internal {
         /// <param name="proxy">The proxy referencing the kernel
         /// object to be added to the transaction write list.</param>
         internal static void Touch(IObjectProxy proxy) {
-            var dr = sccoredb.SCObjectFakeWrite(proxy.Identity, proxy.ThisHandle);
-            if (dr != 0) throw ErrorCode.ToException(dr);
+            var ir = sccoredb.star_context_set_trans_flags(
+                ThreadData.ContextHandle, proxy.ThisHandle, proxy.Identity, 0
+                );
+            if (ir < 0) throw ErrorCode.ToException((uint)(-ir));
         }
 
         /// <summary>
@@ -605,7 +607,7 @@ namespace Starcounter.Internal {
                 return false;
 
             unsafe {
-                ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty);
+                ec = sccoredb.star_transaction_is_dirty(handle.handle, &isDirty, handle.verify);
             }
 
             if (ec == 0) return (isDirty != 0);
@@ -619,7 +621,7 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(0);
+                Commit(0); // TODO EOH: New transaction to be created on successful commit.
             });
         }
 
@@ -724,12 +726,16 @@ namespace Starcounter.Internal {
         /// Rollbacks uncommitted changes on transaction.
         /// </summary>
         public void Rollback(TransactionHandle handle) {
+            // Release transaction (without committing) and create a new one to replace it.
+            throw new NotSupportedException(); // TODO EOH:
+#if false
             Scope(handle, () => {
                 uint ec = sccoredb.sccoredb_rollback();
                 if (ec == 0) return;
 
                 throw ErrorCode.ToException(ec);
             });
+#endif
         }
     }
 }

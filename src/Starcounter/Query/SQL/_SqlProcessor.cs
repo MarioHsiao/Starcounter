@@ -226,10 +226,6 @@ internal static class SqlProcessor
         if (typeBind == null)
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found");
 
-        // Operation creates its own transaction. Not allowed if transaction is locked on thread.
-        if (ThreadData.inTransactionScope_ != 0)
-            throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
-
         attributeIndexArr = new Int16[propertyList.Count + 1];
         unsafe
         {
@@ -247,6 +243,17 @@ internal static class SqlProcessor
                     indexedColumns[i].ascending = 1;
             }
 
+#if true
+            // Operation creates its own transaction. Not allowed if transaction is locked on
+            // thread.
+            if (ThreadData.inTransactionScope_ != 0) {
+                throw ErrorCode.ToException(
+                    Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED,
+                    "Cannot execute CREATE INDEX statement."
+                    );
+            }
+#endif
+
             // Set the last position in the array to -1 (terminator).
             attributeIndexArr[attributeIndexArr.Length - 1] = -1;
             Db.Scope(() => {
@@ -256,12 +263,7 @@ internal static class SqlProcessor
                         ThreadData.ContextHandle, typeBind.TableId,
                         indexName, sortMask, attributeIndexesPointer, flags);
                 }
-                if (errorCode != 0) {
-                    Exception ex = ErrorCode.ToException(errorCode);
-                    if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                        ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute CREATE INDEX statement.");
-                    throw ex;
-                }
+                if (errorCode != 0) throw ErrorCode.ToException(errorCode);
             });
         }
     }
@@ -373,15 +375,18 @@ internal static class SqlProcessor
         if (typeBind == null)
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found", exc);
 
+#if true
         // Operation creates its own transaction. Not allowed if transaction is locked on thread.
         if (ThreadData.inTransactionScope_ != 0)
-            throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
+            throw ErrorCode.ToException(
+                Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, "Cannot execute DROP INDEX statement."
+                );
+#endif
 
         Db.Scope(() => {
             uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
                 ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
-            if (err != 0)
-                throw ErrorCode.ToException(err);
+            if (err != 0) throw ErrorCode.ToException(err);
         });
     }
 
