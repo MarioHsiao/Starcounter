@@ -97,6 +97,8 @@ log_writer_client.lib
 log_writer_client.pdb
 Microsoft.VisualStudio.Settings.dll
 Microsoft.VisualStudio.Settings.xml
+Microsoft.VisualStudio.Shell.14.0.dll
+Microsoft.VisualStudio.Shell.Immutable.14.0.dll
 misplaced.html
 Mono.Cecil.dll
 Mono.Cecil.Pdb.dll
