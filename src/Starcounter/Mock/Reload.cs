@@ -81,7 +81,7 @@ namespace Starcounter {
                     inStmt.Append("(__id");
                     selectObjs.Append("SELECT __o as __id");
                     foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
-                        if (col.Name != "__id") {
+                        if (col.Name != "__id" && col.Name != "__setspecifier") {
                             inStmt.Append(",");
                             inStmt.Append(QuoteName(col.Name));
                             selectObjs.Append(",");

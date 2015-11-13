@@ -30,8 +30,8 @@ namespace IndexQueryTest.InheritedIndex {
             Db.SlowSQL("CREATE unique INDEX personName ON Person (Name)");
             Db.SlowSQL("CREATE INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher (Name)");
             Db.SlowSQL("CREATE INDEX personBirthdayGender ON Person (Birthday, Gender)");
-            Db.SlowSQL("CREATE INDEX companyIndx ON Employee (Company)");
-            Db.SlowSQL("CREATE INDEX companyIndx On Professor (Company)");
+            Db.SlowSQL("CREATE INDEX companyIndx_employee ON Employee (Company)");
+            Db.SlowSQL("CREATE INDEX companyIndx_professor On Professor (Company)");
             Db.SlowSQL("CREATE INDEX employeeBoss ON Employee (Boss)");
             Db.SlowSQL("create index professorBoss ON Professor (Boss)");
         }
@@ -40,8 +40,8 @@ namespace IndexQueryTest.InheritedIndex {
             CallDropIndex("DROP INDEX personName ON Person");
             CallDropIndex("DROP INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher");
             CallDropIndex("DROP INDEX personBirthdayGender ON Person");
-            CallDropIndex("DROP INDEX companyIndx ON Employee");
-            CallDropIndex("DROP INDEX companyIndx On Professor");
+            CallDropIndex("DROP INDEX companyIndx_employee ON Employee");
+            CallDropIndex("DROP INDEX companyIndx_professor On Professor");
             CallDropIndex("DROP INDEX employeeBoss ON Employee");
             CallDropIndex("DROP index professorBoss ON Professor");
         }
