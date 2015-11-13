@@ -67,14 +67,7 @@ namespace DbMappingTest {
 
     public class TestCrossDeletion {
 
-        public static void RunTest() {
-
-            Db.Transact(() => {
-                Db.SlowSQL("DELETE FROM PrivateClassA");
-                Db.SlowSQL("DELETE FROM PrivateClassB");
-                Db.SlowSQL("DELETE FROM OtherClassA");
-                Db.SlowSQL("DELETE FROM OtherClassB");
-            });
+        public static void Map() {
 
             DbMapping.MapCreation("/DbMappingTest.PrivateClassA/{?}", "/DbMappingTest.OtherClassA/{?}", (UInt64 fromOid) => {
                 OtherClassA dst = new OtherClassA();
@@ -144,8 +137,23 @@ namespace DbMappingTest {
                 PrivateClassB dst = (PrivateClassB)DbHelper.FromID(toOid);
                 dst.Name = src.Name;
             });
+        }
+
+        public static void RunTest() {
 
             Db.Transact(() => {
+                Db.SlowSQL("DELETE FROM PrivateClassA");
+                Db.SlowSQL("DELETE FROM PrivateClassB");
+                Db.SlowSQL("DELETE FROM OtherClassA");
+                Db.SlowSQL("DELETE FROM OtherClassB");
+            });
+
+            Db.Transact(() => {
+
+                // Checking that there are no existing relations.
+                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+                Assert.IsTrue(rel == null);
+
                 // Testing cascading deletes where the other object deletes additional
                 // objects, which will lead to an InvalidObjectAccess in DbMapping.DELETE
                 PrivateClassA privateA = new PrivateClassA();
@@ -187,29 +195,15 @@ namespace DbMappingTest {
                 Assert.IsTrue(privateB == null);
 
                 // Checking that all relations are also deleted.
-                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+                rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
                 Assert.IsTrue(rel == null);
             });
         }
     }
 
-    public class DbMappingTest {
+    public class TestSeveralClassesUsage {
 
-        public static void Main() {
-
-            Db.Transact(() => {
-                Db.SlowSQL("DELETE FROM NameClass1");
-                Db.SlowSQL("DELETE FROM NameClass2");
-                Db.SlowSQL("DELETE FROM NameClass3");
-                Db.SlowSQL("DELETE FROM NameClass4");
-            });
-
-            // Database mapping initialization.
-            DbMapping.Init();
-
-            //Debugger.Launch();
-
-            TestCrossDeletion.RunTest();
+        public static void Map() {
 
             DbMapping.MapCreation("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
@@ -264,8 +258,23 @@ namespace DbMappingTest {
                 NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
                 dst.Delete();
             });
+        }
+
+        public static void RunTest() {
 
             Db.Transact(() => {
+                Db.SlowSQL("DELETE FROM NameClass1");
+                Db.SlowSQL("DELETE FROM NameClass2");
+                Db.SlowSQL("DELETE FROM NameClass3");
+                Db.SlowSQL("DELETE FROM NameClass4");
+            });
+
+            Db.Transact(() => {
+
+                // Checking that there are no existing relations.
+                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+                Assert.IsTrue(rel == null);
+
                 NameClass1 nc1 = new NameClass1();
                 NameClass2 nc2;
                 NameClass3 nc3;
@@ -418,9 +427,81 @@ namespace DbMappingTest {
                 Assert.IsTrue(nc3 == null);
 
                 // Checking that all relations are also deleted.
-                DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+                rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
                 Assert.IsTrue(rel == null);
             });
+        }
+    }
+
+    public class DbMappingTest {
+
+        public static void Main() {
+
+            // Database mapping initialization.
+            DbMapping.Init();
+
+            //Debugger.Launch();
+
+            TestCrossDeletion.Map();
+            TestSeveralClassesUsage.Map();
+
+            TestCrossDeletion.RunTest();
+            TestSeveralClassesUsage.RunTest();
+
+            App1.TestApp1.Init();
+            App2.TestApp2.Init();
+
+            App1.TestApp1.Map();
+            App2.TestApp2.Map();
+
+            App1.TestApp1.RunTest();
+
+            App1.App1Person app1Person;
+            App2.App2Person app2Person;
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
+            App1.App1Person app1Person1Saved = app1Person;
+
+            Assert.IsTrue(app1Person != null);
+            Assert.IsTrue(app1Person.Age == 555);
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(app2Person != null);
+
+            SharedClasses.MySomebody smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(smb != null);
+
+            App2.TestApp2.RunTest();
+            
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
+            Assert.IsTrue(app1Person != null);
+            Assert.IsTrue(app1Person.Age == 555);
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(app2Person != null);
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "Hoho").First;
+            Assert.IsTrue(app1Person != null);
+
+            smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o WHERE o.Name = ?", "Hoho").First;
+            Assert.IsTrue(smb != null);
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o WHERE o.Name = ?", "Hoho").First;
+            Assert.IsTrue(app2Person != null);
+
+            Db.Transact(() => {
+                app1Person1Saved.Delete();
+                app2Person.Delete();
+            });
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o").First;
+            Assert.IsTrue(app2Person == null);
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o").First;
+            Assert.IsTrue(app1Person == null);
+
+            DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+            Assert.IsTrue(rel == null);
         }
     }
 }

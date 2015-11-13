@@ -53,6 +53,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App1.cs" />
+    <Compile Include="App2.cs" />
     <Compile Include="DbMappingTest.cs" />
   </ItemGroup>
   <ItemGroup>
