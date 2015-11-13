@@ -122,6 +122,11 @@ namespace Starcounter
         private static QueryResultRows<T> FullQueryProcess<T>(String query, bool slowSQL, params Object[] values) {
             if (query == null)
                 throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, "Input query string cannot be null");
+
+            // Capture thread. Yield if time slice for current task is up or if there is a higher
+            // priority task to run.
+            Starcounter.Internal.sccorelib.cm3_yieldc(IntPtr.Zero);
+
             int cacheResult = Scheduler.GetInstance().SqlEnumCache.CacheOrExecuteEnumerator<T>(query, slowSQL, values);
             if (cacheResult == -1)
                 return null;

@@ -342,6 +342,11 @@ namespace Starcounter.Internal
         public extern static UInt32 cm3_sleep(IntPtr h_opt, UInt32 time);
 
         /// <summary>
+        /// </summary>
+        [DllImport("coalmine.dll", CallingConvention = CallingConvention.StdCall)]
+        internal extern static UInt32 cm3_yieldc(IntPtr h_opt);
+
+        /// <summary>
         /// Cm3_get_stashes the specified ignore.
         /// </summary>
         /// <param name="ignore">The ignore.</param>
