@@ -328,6 +328,15 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Replaces the transaction with a new one with the same configuration.
+        /// </summary>
+        /// <returns>
+        /// Always 0. Operation can not fail.
+        /// </returns>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern uint star_transaction_reset(ulong handle);
+
+        /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         public static extern uint star_context_commit(ulong handle, int free);

@@ -617,7 +617,16 @@ namespace Starcounter.Internal {
 
         public void Commit(TransactionHandle handle) {
             Scope(handle, () => {
-                Commit(0); // TODO EOH: New transaction to be created on successful commit.
+                Commit(0);
+
+                // Note that transaction is no longer current. We need to restore the scope but
+                // again setting it as the current transaction on context.
+
+                var contextHandle = ThreadData.ContextHandle; // Makes sure thread is attached.
+                sccoredb.star_context_set_current_transaction(  // Can not fail.
+                    contextHandle, handle.handle
+                    );
+                sccoredb.star_transaction_reset(handle.handle); // Can not fail.
             });
         }
 
@@ -722,16 +731,10 @@ namespace Starcounter.Internal {
         /// Rollbacks uncommitted changes on transaction.
         /// </summary>
         public void Rollback(TransactionHandle handle) {
-            // Release transaction (without committing) and create a new one to replace it.
-            throw new NotSupportedException(); // TODO EOH:
-#if false
             Scope(handle, () => {
-                uint ec = sccoredb.sccoredb_rollback();
-                if (ec == 0) return;
-
-                throw ErrorCode.ToException(ec);
+                var contextHandle = ThreadData.ContextHandle; // Make sure thread is attached.
+                sccoredb.star_transaction_reset(handle.handle); // Can not fail.
             });
-#endif
         }
     }
 }
