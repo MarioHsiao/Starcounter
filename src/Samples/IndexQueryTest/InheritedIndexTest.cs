@@ -127,28 +127,28 @@ namespace IndexQueryTest.InheritedIndex {
             IndexInfo[] indexes = Bindings.GetTypeBindingInsensitive("Professor").GetAllInheritedIndexInfos();
             Trace.Assert(indexes.Length == 11);
             // Type Professor
-            Trace.Assert(indexes[0].Name == "auto");
-            Trace.Assert(indexes[1].Name == "companyIndx");
+            Trace.Assert(indexes[0].Name == "IndexQueryTest.InheritedIndex.Professor_auto");
+            Trace.Assert(indexes[1].Name == "companyIndx_professor");
             Trace.Assert(indexes[2].Name == "professorBoss");
             // Type Teacher
-            Trace.Assert(indexes[3].Name == "auto");
+            Trace.Assert(indexes[3].Name == "IndexQueryTest.InheritedIndex.Teacher_auto");
             Trace.Assert(indexes[4].Name == "teacherName");
             // Type Employee
-            Trace.Assert(indexes[5].Name == "auto");
-            Trace.Assert(indexes[6].Name == "companyIndx");
+            Trace.Assert(indexes[5].Name == "IndexQueryTest.InheritedIndex.Employee_auto");
+            Trace.Assert(indexes[6].Name == "companyIndx_employee");
             Trace.Assert(indexes[7].Name == "employeeBoss");
             // Type Person
-            Trace.Assert(indexes[8].Name == "auto");
-            Trace.Assert(indexes[9].Name == "personBirthdayGender");
-            Trace.Assert(indexes[10].Name == "personName");
+            Trace.Assert(indexes[8].Name == "IndexQueryTest.InheritedIndex.Person_auto");
+            Trace.Assert(indexes[10].Name == "personBirthdayGender");
+            Trace.Assert(indexes[9].Name == "personName");
         }
 
         internal static void TestGetInheritedIndexInfo() {
-            IndexInfo indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("companyIndx");
+            IndexInfo indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("companyIndx_professor");
             Trace.Assert(indx != null);
-            indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("companyIndx");
+            indx = Bindings.GetTypeBindingInsensitive("Professor").GetInheritedIndexInfo("companyIndx_employee");
             Trace.Assert(indx != null);
-            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("companyIndx");
+            indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("companyIndx_employee");
             Trace.Assert(indx != null);
             indx = Bindings.GetTypeBindingInsensitive("Teacher").GetInheritedIndexInfo("professorBoss");
             Trace.Assert(indx == null);
