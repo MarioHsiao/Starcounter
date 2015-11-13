@@ -9,9 +9,11 @@ namespace Starcounter.SqlProcessor.Tests {
 
         private static void MeasureQueryPerformance(String query) {
             Stopwatch timer = new Stopwatch();
+            byte queryType;
+            ulong iterator;
             timer.Start();
             for (int i = 0; i < nrIterations; i++)
-                SqlProcessor.CallSqlProcessor(query);
+                SqlProcessor.CallSqlProcessor(query, out queryType, out iterator);
             timer.Stop();
             Console.WriteLine("Performed query: " + query);
             Console.WriteLine(nrIterations + " iterations in " + timer.ElapsedMilliseconds + " ms, " +

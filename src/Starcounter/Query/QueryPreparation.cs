@@ -18,8 +18,11 @@ namespace Starcounter.Query {
         /// <returns>The result enumerated with the execution plan.</returns>
         internal static IExecutionEnumerator PrepareOrExecuteQuery<T>(String query, bool slowSql, params Object[] values) {
 #if !PROLOG_ONLY // Run Bison-based native SQL processor
-            Exception nativeException = SqlProcessor.SqlProcessor.CallSqlProcessor(query);
-            if (nativeException == null)
+            byte queryType;
+            ulong iterator;
+            Exception nativeException = SqlProcessor.SqlProcessor.CallSqlProcessor(query,
+                out queryType, out iterator);
+            if (nativeException == null && queryType > 0)
                 return null; // The query was executed
 #endif // !PROLOG_ONLY
 #if BISON_ONLY

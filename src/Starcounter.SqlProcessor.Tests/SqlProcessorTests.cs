@@ -7,9 +7,16 @@ namespace Starcounter.SqlProcessor.Tests {
     public class SqlProcessorTests {
 
         internal const uint ParseOK = Error.SCERRSQLNOTIMPLEMENTED;
+        internal const uint NoError = 0;
 
         public static unsafe void ProcessQuery(uint expectedError, string query) {
-            Exception ex = SqlProcessor.CallSqlProcessor(query);
+            byte queryType;
+            ulong iterator;
+            Exception ex = SqlProcessor.CallSqlProcessor(query, out queryType, out iterator);
+            if (ex == null)
+                Assert.AreEqual(expectedError, NoError, 
+                    "Query is successfully executed or prepared, while error was expected for query: "+
+                    query);
             Assert.AreEqual(expectedError, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
         }
 

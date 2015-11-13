@@ -5,12 +5,15 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public class SqlProcessor {
-        [DllImport("scsqlprocessor.dll")]
-        public static unsafe extern uint scsql_process_query([MarshalAs(UnmanagedType.LPWStr)]string query);
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall, 
+            CharSet = CharSet.Unicode)]
+        public static unsafe extern uint scsql_process_query(ulong context, 
+            string query, out byte query_type, out ulong iter);
             /*void* caller, void* executor, */
-        [DllImport("scsqlprocessor.dll")]
-        internal static unsafe extern uint scsql_process_modifyquery(ulong transaction_handle, [MarshalAs(UnmanagedType.LPWStr)]string query, 
-            int* nrObjs);
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint scsql_process_modifyquery(ulong context, 
+            string query, out int nrObjectsUpdated);
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern ScError* scsql_get_error();
         [DllImport("scsqlprocessor.dll")]
@@ -81,8 +84,8 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_clrmetadata_clean(ulong context_handle);
 
-        public static unsafe Exception CallSqlProcessor(String query) {
-            uint err = scsql_process_query(query);
+        public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
+            uint err = scsql_process_query(ThreadData.ContextHandle, query, out queryType, out iterator);
             if (err == 0)
                 return null;
             Exception ex = GetSqlException(err, query);
@@ -98,7 +101,7 @@ namespace Starcounter.SqlProcessor {
         internal static unsafe int ExecuteQuerySqlProcessor(String query) {
             int nrObjs = 0;
 
-            uint err = scsql_process_modifyquery(ThreadData.ContextHandle, query, &nrObjs);
+            uint err = scsql_process_modifyquery(ThreadData.ContextHandle, query, out nrObjs);
             if (err == 0)
                 return nrObjs;
             Exception ex = GetSqlException(err, query);

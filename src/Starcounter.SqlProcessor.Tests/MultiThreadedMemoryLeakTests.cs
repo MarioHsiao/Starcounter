@@ -55,14 +55,17 @@ namespace Starcounter.SqlProcessor.Tests {
                 threads[i].Join();
             if (IsFromCMD)
                 for (int i = 0; i < Queries.Length; i++) {
-                    Console.WriteLine(exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    if (exceptions[i] != null)
+                        Console.WriteLine(exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY]);
+                    else
+                        Console.WriteLine("No exception");
                     if ((uint)exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY] != SqlProcessorTests.ParseOK)
                         Console.WriteLine(exceptions[i].Message);
                 }
             for (int i = 0; i < Queries.Length; i++) {
-                Assert.NotNull(exceptions[i], "Query " + i + ": " + Queries[i]);
-                Assert.AreEqual(SqlProcessorTests.ParseOK, exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY],
-                    "Exception for query " + i + ": " + exceptions[i].Message);
+                if (exceptions[i] != null)
+                    Assert.AreEqual(SqlProcessorTests.ParseOK, exceptions[i].Data[ErrorCode.EC_TRANSPORT_KEY],
+                        "Exception for query " + i + ": " + exceptions[i].Message);
             }
 #if DEBUG
             Assert.AreEqual(0, SqlProcessor.scsql_dump_memory_leaks());
@@ -72,9 +75,12 @@ namespace Starcounter.SqlProcessor.Tests {
 
         [Test]
         public static void SequentialTest() {
+            byte queryType;
+            ulong iterator;
             for (int i = 0; i < Queries.Length; i++) {
-                Exception ex = SqlProcessor.CallSqlProcessor(Queries[i]);
-                Assert.AreEqual(SqlProcessorTests.ParseOK, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
+                Exception ex = SqlProcessor.CallSqlProcessor(Queries[i], out queryType, out iterator);
+                if (ex != null)
+                    Assert.AreEqual(SqlProcessorTests.ParseOK, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
             }
 #if DEBUG
             Assert.AreEqual(0, SqlProcessor.scsql_dump_memory_leaks());
@@ -83,7 +89,9 @@ namespace Starcounter.SqlProcessor.Tests {
 
         private static void TestQuery(object o) {
             int i = (int)o;
-            exceptions[i] = SqlProcessor.CallSqlProcessor(Queries[i]);
+            byte queryType;
+            ulong iterator;
+            exceptions[i] = SqlProcessor.CallSqlProcessor(Queries[i], out queryType, out iterator);
         }
     }
 }
