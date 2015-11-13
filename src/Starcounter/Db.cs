@@ -238,14 +238,13 @@ namespace Starcounter
                         try {
                             ThreadData.inTransactionScope_ = 1;
 
-                            r = sccoredb.star_context_set_current_transaction(
+                            sccoredb.star_context_set_current_transaction( // Can not fail.
                                 ThreadData.ContextHandle, handle
                                 );
-                            if (r == 0) {
-                                action();
-                                TransactionManager.Commit(1);
-                                return;
-                            }
+
+                            action();
+                            TransactionManager.Commit(1);
+                            return;
                         }
                         catch (Exception ex) {
                             ulong verify = ThreadData.ObjectVerify;

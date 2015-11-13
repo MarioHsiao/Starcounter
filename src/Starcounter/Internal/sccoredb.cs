@@ -275,14 +275,22 @@ namespace Starcounter.Internal
         internal static extern uint stari_context_drop_index(ulong handle, ulong token);
 
         /// <summary>
+        /// Gets the context current transaction.
         /// </summary>
+        /// <returns>
+        /// Always 0. Operation can not fail.
+        /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_context_get_current_transaction(
             ulong handle, out ulong transaction_handle
             );
 
         /// <summary>
+        /// Sets the context current transaction.
         /// </summary>
+        /// <returns>
+        /// Always 0. Operation can not fail.
+        /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_context_set_current_transaction(
             ulong handle, ulong transaction_handle
@@ -304,7 +312,11 @@ namespace Starcounter.Internal
           );
 
         /// <summary>
+        /// Frees transaction.
         /// </summary>
+        /// <returns>
+        /// Always 0. Operation can not fail.
+        /// </returns>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         private extern static uint star_transaction_free(ulong handle);
 
@@ -575,7 +587,11 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Frees iterator.
         /// </summary>
+        /// <returns>
+        /// Always 0. Operation can not fail.
+        /// </returns>
         /// <remarks>
         /// Calling thread must be the owning thread of the context where the iterator resides.
         /// </remarks>
@@ -599,7 +615,14 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// Frees filter iterator.
         /// </summary>
+        /// <returns>
+        /// Always 0. Operation can not fail.
+        /// </returns>
+        /// <remarks>
+        /// Calling thread must be the owning thread of the context where the iterator resides.
+        /// </remarks>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
         private static extern unsafe uint star_filter_iterator_next(
             ulong handle, ulong* precord_id, ulong* precord_ref

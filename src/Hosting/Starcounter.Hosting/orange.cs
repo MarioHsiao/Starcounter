@@ -83,11 +83,10 @@ namespace StarcounterInternal.Hosting
 
                 ulong storedTransactionHandle = ThreadData.storedTransactionHandle_;
                 ThreadData.storedTransactionHandle_ = 0;
-
-                r = sccoredb.star_context_set_current_transaction(
+                sccoredb.star_context_set_current_transaction( // Can not fail.
                     contextHandle, storedTransactionHandle
                     );
-                if (r == 0) return;
+                return;
             }
             orange_fatal_error(r);
         }
@@ -100,16 +99,12 @@ namespace StarcounterInternal.Hosting
             ThreadData.contextHandle_ = 0;
 
             ulong currentTransactionHandle;
-            uint r = sccoredb.star_context_get_current_transaction(
+            sccoredb.star_context_get_current_transaction( // Can not fail.
                 contextHandle, out currentTransactionHandle
                 );
-            if (r == 0) {
-                if (currentTransactionHandle == 0) return;
-                ThreadData.storedTransactionHandle_ = currentTransactionHandle;
-                r = sccoredb.star_context_set_current_transaction(contextHandle, 0);
-                if (r == 0) return;
-            }
-            orange_fatal_error(r);
+            if (currentTransactionHandle == 0) return;
+            ThreadData.storedTransactionHandle_ = currentTransactionHandle;
+            sccoredb.star_context_set_current_transaction(contextHandle, 0); // Can not fail.
         }
 
         /// <summary>
@@ -129,9 +124,7 @@ namespace StarcounterInternal.Hosting
             Debug.Assert(ThreadData.storedTransactionHandle_ == 0);
             ulong contextHandle = ThreadData.contextHandle_;
             Debug.Assert(contextHandle != 0); // Only called on an attached thread.
-            uint r = sccoredb.star_context_set_current_transaction(contextHandle, 0);
-            if (r == 0) return;
-            orange_fatal_error(r);
+            sccoredb.star_context_set_current_transaction(contextHandle, 0); // Can not fail.
         }
 
         /// <summary>

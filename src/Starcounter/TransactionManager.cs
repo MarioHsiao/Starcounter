@@ -123,7 +123,8 @@ namespace Starcounter.Internal {
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
-                    ec = sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle); // TODO EOH: Handle error.
+                    // Can not fail.
+                    sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
 
                     TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
                     if (isImplicit)
@@ -340,20 +341,15 @@ namespace Starcounter.Internal {
             if (CurrentHandle == handle)
                 return;
 
-            uint ec;
             if (ThreadData.inTransactionScope_ == 0) {
-                ec = sccoredb.star_context_set_current_transaction(
+                sccoredb.star_context_set_current_transaction( // Can not fail.
                     ThreadData.ContextHandle, handle.handle
                     );
-                if (ec == 0) {
-                    CurrentHandle = handle;
-                    return;
-                }
+                CurrentHandle = handle;
+                return;
             }
-            else {
-                ec = Error.SCERRTRANSACTIONLOCKEDONTHREAD;
-            }
-            throw ErrorCode.ToException(ec);
+
+            throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
         }
 
         internal TransactionHandle Get(int index) {
