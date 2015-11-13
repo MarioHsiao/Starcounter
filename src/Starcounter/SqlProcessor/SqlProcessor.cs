@@ -34,7 +34,7 @@ namespace Starcounter.SqlProcessor {
             string label, ulong* token_id);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static unsafe extern uint star_table_ref_by_layout_id(ulong context_handle, 
-            ushort layout_id, ulong* table_oid, ulong* table_ref);
+            ushort layout_id, out ulong table_oid, out ulong table_ref);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static unsafe extern uint star_create_index(ulong context,
             ulong table_oid, ulong table_ref, string name, ushort sort_mask,
@@ -63,7 +63,7 @@ namespace Starcounter.SqlProcessor {
             string name,
             string base_table_name,
             SqlProcessor.STAR_COLUMN_DEFINITION_HIGH *column_definitions,
-			ushort* layout_id);
+			out ushort layout_id);
 
         [StructLayout(LayoutKind.Sequential)]
         internal unsafe struct STAR_INDEXED_COLUMN {
@@ -120,7 +120,7 @@ namespace Starcounter.SqlProcessor {
             ulong setspecRecordOid;
             ulong setspecRecordAddr;
             uint err = Starcounter.SqlProcessor.SqlProcessor.star_table_ref_by_layout_id(
-                ThreadData.ContextHandle, layoutId, &rawviewRecordOid, &rawviewRecordAddr);
+                ThreadData.ContextHandle, layoutId, out rawviewRecordOid, out rawviewRecordAddr);
             if (err != 0) throw ErrorCode.ToException(err);
             err = Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
                 ThreadData.ContextHandle, rawviewRecordOid, rawviewRecordAddr,
