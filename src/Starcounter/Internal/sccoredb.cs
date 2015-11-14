@@ -79,19 +79,23 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_set_system_callbacks(sccoredb_callbacks* pcallbacks);
+        internal static extern unsafe uint star_set_system_callbacks(
+            sccoredb_callbacks* pcallbacks
+            );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint sccoredb_connect(
+        internal static extern unsafe uint sccoredb_connect(
             uint instance_id, uint context_count, ulong hlogs
             );
 
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_get_context(uint context_index, ulong* pcontext_handle);
+        internal static extern unsafe uint star_get_context(
+            uint context_index, ulong* pcontext_handle
+            );
 
         /// <summary>
         /// </summary>
@@ -339,7 +343,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern uint star_context_commit(ulong handle, int free);
+        internal static extern uint star_context_commit(ulong handle, int free);
 
 #region Commit hook signatures and symbols
 
@@ -372,7 +376,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public extern static uint star_context_external_abort(ulong handle);
+        internal extern static uint star_context_external_abort(ulong handle);
 
         /// <summary>
         /// </summary>
@@ -719,7 +723,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        public static extern unsafe uint star_context_lookup(
+        internal static extern unsafe uint star_context_lookup(
             ulong handle, ulong record_id, ulong* precord_ref
             );
 
