@@ -28,8 +28,20 @@ namespace StarcounterInternal.Hosting
 
         private static unsafe void StartMessageLoop() {
             byte schedulerNumber = sccorelib.GetCpuNumber();
-            // TODO EOH: Prefix needed because iterator verify 0 is treated as invalid.
+
+            // Least siginificant byte of ownership verification needs to be the scheduler number to
+            // that the owner of a specific object can be extracted from this value.
+            //
+            // Ownership verification now is the same for both transactions and iterators. This
+            // works somewhat different from previous versions where ownership verification the
+            // scheduler number for transactions and scheduler thread id for iterators. Iterators no
+            // longer belongs to a specific thread (but they are still tied to a specific
+            // transaction).
+            //
+            // Value is basically the the scheduler number. But we need to add a prefix because 0 is
+            // treated as invalid for iterators (and the first scheduler has the number 0).
             ThreadData.objectVerify_ = (1U << 8) | schedulerNumber;
+            
             ThreadData.Current = new ThreadData(schedulerNumber, sccorelib.GetStateShare());
         }
 
