@@ -125,7 +125,10 @@ namespace Starcounter.Internal
                         address = ref_local;
                         return;
                     }
-                    // TODO EOH: Delete on failure to set setpec.
+
+                    // If insert succeeds then setting set specifier is very unlikely to fail. But
+                    // in case it does the transaction will always be aborted. So there is no risk
+                    // that there will be records with no set specifier because of this.
                 }
                 throw ErrorCode.ToException(r);
             }
