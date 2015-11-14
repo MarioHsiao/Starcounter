@@ -623,7 +623,7 @@ namespace Starcounter {
         /// <summary>
         /// Calling all handlers in class hierarchy.
         /// </summary>
-        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String className, String paramStr) {
+        static List<Response> CallAllHandlersInTypeHierarchy(Request req, String className, String paramStr, Boolean alreadyHasResponse) {
 
             // NOTE: We are searching by full name in arbitrary mapping.
             Starcounter.Metadata.Table classMetadataTable = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
@@ -665,8 +665,8 @@ namespace Starcounter {
                 // there is at least one handler belonging to this app in the 
                 // class hierarchy.
 
-                Boolean currentAppHasHandler = false;
-
+                Boolean currentAppHasHandler = alreadyHasResponse;
+                
                 MappingClassInfo classInfoTemp = classInfo;
                 Starcounter.Metadata.Table tempClassInfo = classMetadataTable;
 
@@ -1012,31 +1012,32 @@ namespace Starcounter {
         static Response ClassHierarchyCallProxy(Request req, String className, String paramStr) {
 
             // Collecting all responses in the tree.
-            List<Response> resps = CallAllHandlersInTypeHierarchy(req, className, paramStr);
+            List<Response> resps = CallAllHandlersInTypeHierarchy(req, className, paramStr, false);
 
             // Getting the list of mapped classes in different hierarchies.
             List<String> mappedClassNames = null;
 
-            // Checking if there are any classes mapped from different hierarchies.
-            if (mappedClassesInDifferentHierarchies_.TryGetValue(className, out mappedClassNames)) {
+            // Checking if we got any responses from this class hierarchy.
+            if (resps.Count > 0) {
 
-                foreach (String cn in mappedClassNames) {
+                // Checking if there are any classes mapped from different hierarchies.
+                if (mappedClassesInDifferentHierarchies_.TryGetValue(className, out mappedClassNames)) {
 
-                    // Checking if its the same class name.
-                    if (cn == className)
-                        continue;
+                    foreach (String cn in mappedClassNames) {
 
-                    // Collecting all responses in the tree.
-                    List<Response> otherResps = CallAllHandlersInTypeHierarchy(req, cn, paramStr);
+                        // Checking if its the same class name.
+                        if (cn == className)
+                            continue;
 
-                    // Adding responses to class hierarchy.
-                    foreach (Response r in otherResps) {
-                        resps.Add(r);
+                        // Collecting all responses in the tree.
+                        List<Response> otherResps = CallAllHandlersInTypeHierarchy(req, cn, paramStr, true);
+
+                        // Adding responses to class hierarchy.
+                        foreach (Response r in otherResps) {
+                            resps.Add(r);
+                        }
                     }
                 }
-            }
-
-            if (resps.Count > 0) {
 
                 // Creating merged response.
                 if (StarcounterEnvironment.MergeJsonSiblings) {
