@@ -47,6 +47,9 @@ namespace Starcounter.Extensions {
         /// </summary>
         public static void Init() {
 
+            // Enabling mapping globally.
+            MapConfig.IsGlobalMappingEnabled = true;
+
             if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC)");
             }
@@ -60,10 +63,13 @@ namespace Starcounter.Extensions {
             }
 
             // Adding handler for mapping existing objects.
-            Handle.GET("/sc/map", () => {
-                MapExisting();
-                return 200;
-            });
+            if (!Handle.IsHandlerRegistered("GET /sc/map ", null)) {
+
+                Handle.GET("/sc/map", () => {
+                    MapExisting();
+                    return 200;
+                });
+            }
         }
 
         /// <summary>

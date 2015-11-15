@@ -9,6 +9,11 @@ namespace Starcounter.Internal {
     public static class MapConfig {
 
         /// <summary>
+        /// Global mapping flag.
+        /// </summary>
+        public static Boolean IsGlobalMappingEnabled;
+
+        /// <summary>
         /// Variable that stores decision if database mapping is enabled.
         /// </summary>
         [ThreadStatic]
@@ -22,7 +27,7 @@ namespace Starcounter.Internal {
         public static bool Enabled {
             get {
                 if (null == isMappingEnabled_) {
-                    isMappingEnabled_ = ("True" == Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING"));
+                    isMappingEnabled_ = IsGlobalMappingEnabled;
                 }
 
                 return isMappingEnabled_.Value;
