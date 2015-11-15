@@ -361,6 +361,14 @@ namespace Starcounter.Extensions {
                     // Going through registered mappers.
                     foreach (DbMapInfo mi in Db.SQL("SELECT o FROM Starcounter.Extensions.DbMapInfo o")) {
 
+                        // Checking if class exists.
+                        try {
+                            var v = Db.SQL("SELECT o FROM " + mi.FromClassFullName + " o").First;
+                        } catch {
+                            continue;
+                            // Class does not exist in database so we proceed to next one.
+                        }
+
                         // Selecting all existing objects of class FROM.
                         foreach (var o in Db.SQL("SELECT o FROM " + mi.FromClassFullName + " o")) {
 
