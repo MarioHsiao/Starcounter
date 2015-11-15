@@ -604,7 +604,8 @@ namespace Starcounter.Internal.Weaver {
                     }
                 }
 
-                var emitMapCall = MapConfig.Enabled;
+                // TODO: Consult with Per if we can have database mapping by default.
+                var emitMapCall = true; //MapConfig.Enabled;
 
                 if (!emitSetValueCall && !emitMapCall) {
                     // We can make a tail call since it is the last instruction in the method.
@@ -1026,7 +1027,8 @@ namespace Starcounter.Internal.Weaver {
             _writer.EmitInstructionMethod(OpCodeNumber.Call,
                 _module.FindMethod(_dbStateMethodProvider.DbStateType.GetMethod("Insert"), BindingOptions.Default));
 
-            var emitMapCall = MapConfig.Enabled;
+            // TODO: Consult with Per if we can have database mapping by default.
+            var emitMapCall = true; //MapConfig.Enabled;
 
             if (emitMapCall) {
                 // Setup and call MapInvoke.POST

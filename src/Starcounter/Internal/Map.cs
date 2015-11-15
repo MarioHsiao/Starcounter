@@ -27,7 +27,7 @@ namespace Starcounter.Internal {
         public static bool Enabled {
             get {
                 if (null == isMappingEnabled_) {
-                    isMappingEnabled_ = IsGlobalMappingEnabled;
+                    return IsGlobalMappingEnabled;
                 }
 
                 return isMappingEnabled_.Value;

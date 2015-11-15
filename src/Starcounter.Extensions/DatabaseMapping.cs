@@ -64,7 +64,6 @@ namespace Starcounter.Extensions {
 
             // Adding handler for mapping existing objects.
             if (!Handle.IsHandlerRegistered("GET /sc/map ", null)) {
-
                 Handle.GET("/sc/map", () => {
                     MapExisting();
                     return 200;
@@ -487,6 +486,10 @@ namespace Starcounter.Extensions {
 
                                             // Adding class as touched.
                                             touchedClasses_.Add(mapInfo.ToClassFullName, true);
+
+                                            // Checking if relation exists.
+                                            if (CheckMappedObject(mapInfo.FromClassFullName, createdId, mapInfo.ToClassFullName))
+                                                continue;
 
                                             Response resp = null;
 
