@@ -536,6 +536,13 @@ namespace Starcounter.Hosting {
                 th = TransactionManager.CreateImplicitAndSetCurrent(readOnly);
             }
 
+            // Mapping existing objects if any.
+            if (MapConfig.Enabled) {
+                StarcounterEnvironment.RunWithinApplication(null, () => {
+                    Self.GET("/sc/map");
+                });
+            }
+
             var entrypoint = assembly_.EntryPoint;
 
             try {

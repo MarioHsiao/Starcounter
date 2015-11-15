@@ -58,6 +58,12 @@ namespace Starcounter.Extensions {
             if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMapInfoFromClassFullNameIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMapInfoFromClassFullNameIndex ON Starcounter.Extensions.DbMapInfo (FromClassFullName ASC)");
             }
+
+            // Adding handler for mapping existing objects.
+            Handle.GET("/sc/map", () => {
+                MapExisting();
+                return 200;
+            });
         }
 
         /// <summary>
@@ -300,6 +306,85 @@ namespace Starcounter.Extensions {
                 DbMapping.MapDeletion<TTo, TFrom>();
                 DbMapping.MapModification<TTo, TFrom>(modificationConverterFrom);
             }
+        }
+
+        /// <summary>
+        /// Checks if there is a mapping relation and mapped object to the given object.
+        /// </summary>
+        internal static Boolean CheckMappedObject(String fromClassFullName, UInt64 fromOid, String toClassFullName) {
+
+            // Getting the relation for the source object.
+            DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM Starcounter.Extensions.DbMappingRelation o WHERE o.FromOid = ? AND o.ToClassFullName = ?",
+                fromOid, toClassFullName).First;
+
+            // First checking if there is a relation object.
+            if (rel == null) {
+                return false;
+            }
+
+            // Now checking if mapped object actually exists.
+            if (Db.SQL("SELECT o FROM " + toClassFullName + " o WHERE o.ObjectNo = ?", rel.ToOid).First != null) {
+                return true;
+            }
+
+            // Now we need to delete the orphaned relation that has not mapped object and the source object.
+            Db.Transact(() => {
+
+                // Deleting the source object.
+                var fromObj = Db.SQL("SELECT o FROM " + fromClassFullName + " o WHERE o.ObjectNo = ?", fromOid).First;
+                fromObj.Delete();
+
+                // First deleting other direction map.
+                rel.MirrorRelationRef.Delete();
+
+                // Deleting the relation, since we are about to delete objects.
+                rel.Delete();
+            });
+
+            return false;
+        }
+
+        /// <summary>
+        /// Mapping existing objects.
+        /// </summary>
+        public static void MapExisting() {
+
+            StarcounterEnvironment.RunWithinApplication(null, () => {
+
+                Db.Transact(() => {
+
+                    // Going through registered mappers.
+                    foreach (DbMapInfo mi in Db.SQL("SELECT o FROM Starcounter.Extensions.DbMapInfo o")) {
+
+                        // Selecting all existing objects of class FROM.
+                        foreach (var o in Db.SQL("SELECT o FROM " + mi.FromClassFullName + " o")) {
+
+                            UInt64 objNo = o.GetObjectNo();
+
+                            // Checking if we already having a mapped object.
+                            if (CheckMappedObject(mi.FromClassFullName, objNo, mi.ToClassFullName)) {
+
+                                // Just updating the object now.
+                                Self.PUT(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
+                                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                                });
+
+                                continue;
+                            }
+
+                            // Running objects creation (if relation exists object won't be created).
+                            Self.POST(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
+                                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                            });
+
+                            // Now updating the object.
+                            Self.PUT(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
+                                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                            });
+                        }
+                    }
+                });
+            });
         }
 
         /// <summary>
