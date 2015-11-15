@@ -427,8 +427,8 @@ namespace Starcounter.Extensions {
                     }
 
                     // Adding map for URI mapping (in both directions).
-                    UriMapping.MapClassesInDifferentHierarchies(fromClassFullName, toClassFullName);
-                    UriMapping.MapClassesInDifferentHierarchies(toClassFullName, fromClassFullName);
+//                    UriMapping.MapClassesInDifferentHierarchies(fromClassFullName, toClassFullName);
+//                    UriMapping.MapClassesInDifferentHierarchies(toClassFullName, fromClassFullName);
 
                     String methodSpaceProcessedFromUriSpace = httpMethod + " " + processedFromUri + " ";
 
