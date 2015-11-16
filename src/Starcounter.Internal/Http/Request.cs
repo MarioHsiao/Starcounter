@@ -1165,7 +1165,11 @@ namespace Starcounter {
                     return;
 
                 unsafe {
-                    dataStream_.SendResponse(buffer, offset, length, connFlags);
+
+                   // TODO: Check for the proper fix.
+                   if (null != dataStream_) {
+                       dataStream_.SendResponse(buffer, offset, length, connFlags);
+                   }
                 }
 
             } finally {
