@@ -625,6 +625,8 @@ namespace Starcounter {
         /// </summary>
         static List<Response> CallAllHandlersInTypeHierarchy(Request req, String className, String paramStr, Boolean alreadyHasResponse) {
 
+            List<Response> resps = new List<Response>();
+
             // NOTE: We are searching by full name in arbitrary mapping.
             Starcounter.Metadata.Table classMetadataTable = Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", className).First;
 
@@ -638,10 +640,8 @@ namespace Starcounter {
 
             // Checking if handlers were found.
             if (null == classInfo) {
-                throw new ArgumentException("Can not find the handlers in hierarchy for class type: " + className);
+                return resps;
             }
-
-            List<Response> resps = new List<Response>();
 
             // List of handlers that were already called in hierarchy.
             List<UInt16> alreadyCalledHandlers = new List<UInt16>();
