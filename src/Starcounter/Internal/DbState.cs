@@ -112,9 +112,9 @@ namespace Starcounter.Internal
 
             unsafe {
                 contextHandle = ThreadData.ContextHandle;
+                string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
                 r = sccoredb.star_context_insert(contextHandle, tableId, &oid_local, &ref_local);
                 if (r == 0) {
-                    string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
                     fixed (char* p = setpec) {
                         r = sccoredb.star_context_put_setspec(
                             contextHandle, oid_local, ref_local, p
@@ -125,7 +125,10 @@ namespace Starcounter.Internal
                         address = ref_local;
                         return;
                     }
-                    // TODO EOH: Delete on failure to set setpec.
+
+                    // If insert succeeds then setting set specifier is very unlikely to fail. But
+                    // in case it does the transaction will always be aborted. So there is no risk
+                    // that there will be records with no set specifier because of this.
                 }
                 throw ErrorCode.ToException(r);
             }

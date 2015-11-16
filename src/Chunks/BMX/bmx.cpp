@@ -547,9 +547,9 @@ release_chunks:
 
 finish:
 
-#if 0 // TODO EOH:
+#if 0 // No need to do this here. Current transaction will be reset on task completion.
     // Resetting current transaction.
-    sccoredb_set_current_transaction(0, 0, 0); // You may comment this line to avoid throwing an exception when using NODB.
+    star_context_set_current_transaction(context_handle, 0);
 #endif
 
     return err_code;

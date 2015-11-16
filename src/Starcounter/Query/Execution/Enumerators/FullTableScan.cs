@@ -504,8 +504,16 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                     // Checking if its the same object.
                     // TODO/Entity:
                     // It should be enough to compare by identity, no?
+                    // TODO:
+                    // This check is incorrect. The recreate key does not contain the record
+                    // identity but internal data to be used to find the correct position in the
+                    // index. Id is only valid is only valid if relevant for finding the correct
+                    // position in the index (which is only true if indicating position in shadow
+                    // indexing). Second value (keyETI) can change for a specific record or be used
+                    // to indicate another record. To do this properly then the record id must
+                    // always be available. Issue in tracker: #3066.
                     //ulong keyEti2 = dbObject.ThisHandle;
-                    ulong keyEti2 = (dbObject.ThisHandle >> 16) << 1; // TODO EOH:
+                    ulong keyEti2 = (dbObject.ThisHandle >> 16) << 1;
                     if ((keyOID != dbObject.Identity) && (keyETI != keyEti2)) {
                         isAtRecreatedKey = false;
                         variableArray.FailedToRecreateObject = true;
