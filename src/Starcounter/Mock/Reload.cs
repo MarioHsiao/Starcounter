@@ -8,18 +8,25 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Linq;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 
-namespace Starcounter {
-    public static class Reload {
-        public static string QuoteName(string name) {
+namespace Starcounter
+{
+    public static class Reload
+    {
+        public static string QuoteName(string name)
+        {
             return "\"" + name + "\"";
         }
 
-        public static string QuotePath(string name) {
+        public static string QuotePath(string name)
+        {
             int dotPos = -1;
             char dotChar = '.';
-            StringBuilder quotedPath = new StringBuilder(name.Length+6);
-            while ((dotPos = name.IndexOf(dotChar)) > -1) {
+            StringBuilder quotedPath = new StringBuilder(name.Length + 6);
+            while ((dotPos = name.IndexOf(dotChar)) > -1)
+            {
                 Debug.Assert(dotPos > 0);
                 quotedPath.Append(QuoteName(name.Substring(0, dotPos)));
                 quotedPath.Append(dotChar);
@@ -40,155 +47,319 @@ namespace Starcounter {
         /// INSERT statement using.</param>
         /// <returns>A property that can be used to read the value of
         /// the given column using the high-level SQL API.</returns>
-        private static string GetPropertyName(Column col) {
+        private static string GetPropertyName(Column col)
+        {
             Debug.Assert(col.Table is RawView);
 
             var typeDef = Bindings.GetTypeDef(((RawView)col.Table).FullName);
-            var prop = typeDef.PropertyDefs.FirstOrDefault((candidate) => {
+            var prop = typeDef.PropertyDefs.FirstOrDefault((candidate) =>
+            {
                 return candidate.ColumnName == col.Name;
             });
-            if (prop == null) {
+            if (prop == null)
+            {
                 throw ErrorCode.ToException(
-                    Error.SCERRCOLUMNHASNOPROPERTY, 
+                    Error.SCERRCOLUMNHASNOPROPERTY,
                     string.Format("Missing property for {0}.{1}", col.Table.Name, col.Name));
             }
 
             return prop.Name;
         }
 
-        internal static int Unload(string fileName, ulong shiftId, Boolean unloadAll) {
-            int totalNrObj = 0;
-            // Create empty file
-            using (StreamWriter fileStream = new StreamWriter(fileName, false)) {
-                fileStream.WriteLine("Database dump. DO NOT EDIT!");
-            }
-            foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
+        private static IEnumerable<RawView> GetTablesForUnload(bool unloadAll)
+        {
+            foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true))
+            {
                 Debug.Assert(!String.IsNullOrEmpty(tbl.UniqueIdentifier));
-                if (Binding.Bindings.GetTypeDef(tbl.FullName) == null) {
+
+                if (Binding.Bindings.GetTypeDef(tbl.FullName) == null)
+                {
                     if (unloadAll)
-                        throw ErrorCode.ToException(Error.SCERRUNLOADTABLENOCLASS, 
-                            "Table "+tbl.FullName+" cannot be unloaded.");
+                        throw ErrorCode.ToException(Error.SCERRUNLOADTABLENOCLASS,
+                            "Table " + tbl.FullName + " cannot be unloaded.");
                     else
                         LogSources.Unload.LogWarning("Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
                     //Console.WriteLine("Warning: Table " + tbl.FullName + " cannot be unloaded, since its class is not loaded.");
-                } else {
-                    int tblNrObj = 0;
-                    String insertHeader;
-                    StringBuilder inStmt = new StringBuilder();
-                    StringBuilder selectObjs = new StringBuilder();
-                    inStmt.Append("INSERT INTO ");
-                    inStmt.Append(QuotePath(tbl.UniqueIdentifier));
-                    inStmt.Append("(__id");
-                    selectObjs.Append("SELECT __o as __id");
-                    foreach (Column col in Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)) {
-                        if (col.Name != "__id" && col.Name != "__setspecifier") {
-                            inStmt.Append(",");
-                            inStmt.Append(QuoteName(col.Name));
-                            selectObjs.Append(",");
-                            selectObjs.Append(QuoteName(GetPropertyName(col)));
-                        }
-                    }
-                    inStmt.Append(")");
-                    inStmt.Append("VALUES");
-                    insertHeader = inStmt.ToString();
-                    selectObjs.Append(" FROM ");
-                    selectObjs.Append(QuotePath(tbl.FullName));
-                    selectObjs.Append(" __o");
-                    using (SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs.ToString()).GetEnumerator()) {
-                        Debug.Assert(selectEnum.TypeBinding != null);
-                        while (selectEnum.MoveNext()) {
-                            IObjectView val = selectEnum.Current;
-                            string valTypeName = null;
-                            if (selectEnum.PropertyBinding == null) {
-                                Debug.Assert(selectEnum.TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
-                                Debug.Assert(selectEnum.TypeBinding.PropertyCount > 0);
-                                valTypeName = val.GetObject(0).GetType().ToString();
-                            }
-                            else
-                                valTypeName = val.GetType().ToString();
-                            Debug.Assert(valTypeName != null);
-                            if (valTypeName == tbl.FullName) {
-                                if (tblNrObj == 0)
-                                    inStmt.Append("(");
-                                else
-                                    inStmt.Append(",(");
-                                if (selectEnum.PropertyBinding == null)
-                                    inStmt.Append("object " + (val.GetObject(0).GetObjectNo() + shiftId).ToString()); // Value __id
-                                else
-                                    inStmt.Append("object " + (val.GetObjectNo() + shiftId).ToString()); // Value __id
-                                for (int i = 1; i < selectEnum.TypeBinding.PropertyCount; i++) {
-                                    inStmt.Append(",");
-                                    inStmt.Append(GetString(val, i, shiftId));
-                                }
-                                inStmt.Append(")");
-                                tblNrObj++;
-                                if (tblNrObj == 1000) {
-                                    using (StreamWriter file = new StreamWriter(fileName, true)) {
-                                        file.WriteLine(inStmt.ToString());
-                                    }
-                                    totalNrObj += tblNrObj;
-                                    tblNrObj = 0;
-                                    inStmt = new StringBuilder();
-                                    inStmt.Append(insertHeader);
-                                }
-                            }
-                        }
-                    }
-                    if (tblNrObj > 0)
-                        using (StreamWriter file = new StreamWriter(fileName, true)) {
-                            file.WriteLine(inStmt.ToString());
-                        }
-                    totalNrObj += tblNrObj;
                 }
+                else
+                {
+                    yield return tbl;
+                }
+            }
+        }
+
+        private static IEnumerable<Column> GetColumnsForUnload(Table tbl)
+        {
+            return Db.SQL<Column>("select c from starcounter.metadata.column c where c.table = ?", tbl)
+                     .Where(col => (col.Name != "__id" && col.Name != "__setspecifier"));
+        }
+
+        private static string CreateSelectStatementForTable(Table tbl)
+        {
+            return String.Format("SELECT __o as __id {0} FROM {1} __o",
+                                  String.Concat(GetColumnsForUnload(tbl).Select(col => "," + QuoteName(GetPropertyName(col)))),
+                                  QuotePath(tbl.FullName));
+        }
+
+        private static string CreateInsertIntoHeaderForTable(Table tbl)
+        {
+            return String.Format("INSERT INTO {0}(__id{1})VALUES",
+                                  QuotePath(tbl.UniqueIdentifier),
+                                  String.Concat(GetColumnsForUnload(tbl).Select(col => "," + QuoteName(col.Name))));
+        }
+
+        private class ExportItem
+        {
+            public IObjectView val;
+            public ITypeBinding TypeBinding;
+            public IPropertyBinding PropertyBinding;
+
+            public string GetTypeName()
+            {
+                if (PropertyBinding == null)
+                {
+                    Debug.Assert(TypeBinding.GetPropertyBinding(0).TypeCode == DbTypeCode.Object);
+                    Debug.Assert(TypeBinding.PropertyCount > 0);
+                    return val.GetObject(0).GetType().ToString();
+                }
+                else
+                    return val.GetType().ToString();
+            }
+
+            public ulong GetObjectNo()
+            {
+                return (PropertyBinding == null) ?
+                            val.GetObject(0).GetObjectNo() :
+                            val.GetObjectNo();
+            }
+        }
+
+        private static IEnumerable<ExportItem> GetExportItems(string selectObjs)
+        {
+            using (SqlEnumerator<IObjectView> selectEnum = (SqlEnumerator<IObjectView>)Db.SQL<IObjectView>(selectObjs).GetEnumerator())
+            {
+                Debug.Assert(selectEnum.TypeBinding != null);
+
+                while (selectEnum.MoveNext())
+                {
+                    yield return new ExportItem()
+                    {
+                        val = selectEnum.Current,
+                        PropertyBinding = selectEnum.PropertyBinding,
+                        TypeBinding = selectEnum.TypeBinding
+                    };
+                }
+            }
+        }
+
+
+
+        private static string ToValuesClause(this ExportItem e, ulong shiftId)
+        {
+            Debug.Assert(e.TypeBinding != null);
+
+            return String.Format("(object {0}{1})",
+                                 e.GetObjectNo() + shiftId,
+                                 String.Concat(Enumerable.Range(1, Math.Max(e.TypeBinding.PropertyCount - 1, 0))
+                                                          .Select(i => "," + GetString(e.val, i, shiftId))));
+        }
+
+        private static int UnloadItemsInParallel(BlockingCollection<IEnumerable<ExportItem>> items, string insertHeader, ulong shiftId, string fileName)
+        {
+            int tblNrObj = 0;
+            int curr_row_count = 0;
+
+            var inStmt = new StringBuilder();
+            inStmt.Append(insertHeader);
+
+            foreach (string insert_stmt in items.GetConsumingEnumerable()
+                                                .Select(ie => ie.Select<ExportItem, Func<string>>( e=> ()=>e.ToValuesClause(shiftId)))
+                                                .DoParallelTransact()
+                                                .SelectMany(s=>s))
+            {
+                if (curr_row_count != 0)
+                    inStmt.Append(",");
+
+                inStmt.Append(insert_stmt);
+
+                curr_row_count++;
+                if (curr_row_count == 1000)
+                {
+                    tblNrObj += curr_row_count;
+                    curr_row_count = 0;
+
+                    using (StreamWriter file = new StreamWriter(fileName, true))
+                    {
+                        file.WriteLine(inStmt.ToString());
+                    }
+                    inStmt = new StringBuilder();
+                    inStmt.Append(insertHeader);
+                }
+            }
+            if (curr_row_count != 0)
+            {
+                tblNrObj += curr_row_count;
+                using (StreamWriter file = new StreamWriter(fileName, true))
+                {
+                    file.WriteLine(inStmt.ToString());
+                }
+            }
+
+            return tblNrObj;
+
+        }
+
+        public static IEnumerable<IEnumerable<T>> Partition<T>(this IEnumerable<T> source, int partition_size)
+        {
+            var partition = new List<T>(partition_size);
+
+            foreach (var x in source)
+            {
+                partition.Add(x);
+                if (partition.Count == partition_size)
+                {
+                    yield return partition;
+                    partition = new List<T>(partition_size);
+                }
+            }
+            if (partition.Any())
+            {
+                yield return partition;
+            }
+        }
+
+        internal static int Unload(string fileName, ulong shiftId, Boolean unloadAll)
+        {
+            int totalNrObj = 0;
+            // Create empty file
+            using (StreamWriter fileStream = new StreamWriter(fileName, false))
+            {
+                fileStream.WriteLine("Database dump. DO NOT EDIT!");
+            }
+            foreach (RawView tbl in GetTablesForUnload(unloadAll))
+            {
+                string selectObjs = CreateSelectStatementForTable(tbl);
+                string insertHeader = CreateInsertIntoHeaderForTable(tbl);
+
+                BlockingCollection<IEnumerable<ExportItem>> items = new BlockingCollection<IEnumerable<ExportItem>>(Environment.ProcessorCount);
+                System.Threading.Tasks.Task<int> export = System.Threading.Tasks.Task.Run(() => UnloadItemsInParallel(items, insertHeader, shiftId, fileName));
+
+                try
+                {
+                    foreach (IEnumerable<ExportItem> e in GetExportItems(selectObjs).Where(e => e.GetTypeName() == tbl.FullName).Partition(100))
+                    {
+                        items.Add(e);
+                    }
+                }
+                finally
+                {
+                    items.CompleteAdding();
+                }
+
+                totalNrObj += export.Result;
             }
             return totalNrObj;
         }
 
-        internal static int Load(string filename) {
-            int nrObjs = 0;
-            using (StreamReader file = new StreamReader(filename)) {
-                string stmt = file.ReadLine();
-                if (stmt != "Database dump. DO NOT EDIT!")
-                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
-                stmt = file.ReadLine();
-                while (stmt != null) {
-                    string nextStmt = file.ReadLine();
-                    while (nextStmt != null && !nextStmt.StartsWith("INSERT")) {
-                        stmt += nextStmt;
-                        nextStmt = file.ReadLine();
-                    }
-                    Db.SystemTransact(delegate {
-                        nrObjs += Db.Update(stmt);
-                    });
-                    stmt = nextStmt;
+        private static IEnumerable<IEnumerable<T>> SplitBy<T>(this IEnumerable<T> seq, Func<T, bool> pred)
+        {
+            List<T> current_subseq = new List<T>();
+
+            foreach (var t in seq)
+            {
+                if (pred(t) && current_subseq.Count > 0)
+                {
+                    yield return current_subseq;
+                    current_subseq.Clear();
                 }
+                current_subseq.Add(t);
             }
-            return nrObjs;
+
+            yield return current_subseq;
         }
 
-        internal static void DeleteAll() {
-            foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true)) {
-                Db.Transact(delegate {
+        private static IEnumerable<IEnumerable<T>> DoParallelTransact<T>(this IEnumerable<IEnumerable<Func<T>>> actions)
+        {
+            byte schedulers_count = Starcounter.Internal.StarcounterEnvironment.SchedulerCount;
+            BlockingCollection<byte> free_schedulers = new BlockingCollection<byte>(schedulers_count);
+
+            for (byte scheduler = 0; scheduler < schedulers_count; ++scheduler)
+                free_schedulers.Add(scheduler);
+
+
+            return actions.AsParallel().Select(a =>
+            {
+                string app_name = Starcounter.Internal.StarcounterEnvironment.AppName;
+
+                byte scheduler = free_schedulers.Take();
+                var res = new List<T>(100);
+
+                try
+                {
+                    new DbSession().RunSync(() =>
+                        Starcounter.Internal.StarcounterEnvironment.RunWithinApplication(app_name, () =>
+                        {
+                            Db.Transact(() =>
+                            {
+                                foreach (var i in a)
+                                    res.Add(i());
+                            });
+                        }),
+                        scheduler);
+
+                    return res;
+                }
+                finally
+                {
+                    free_schedulers.Add(scheduler);
+                }
+            });
+        }
+
+        internal static int Load(string filename)
+        {
+            var lines = File.ReadLines(filename);
+
+            if (lines.FirstOrDefault() != "Database dump. DO NOT EDIT!")
+                throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
+
+            return lines.Skip(1)
+                        .SplitBy(line => line.StartsWith("INSERT"))
+                        .Select(lines_collection => String.Concat(lines_collection))
+                        .Select(statement => new Func<int>[] { () => Db.Update(statement) })
+                        .DoParallelTransact()
+                        .SelectMany(n=>n)
+                        .Sum();
+        }
+
+        internal static void DeleteAll()
+        {
+            foreach (RawView tbl in Db.SQL<RawView>("select t from rawview t where updatable = ?", true))
+            {
+                Db.Transact(delegate
+                {
                     Db.SlowSQL("DELETE FROM " + QuotePath(tbl.FullName));
                 });
             }
         }
 
-        public static string GetString(IObjectView values, int index, ulong shiftId) {
+        public static string GetString(IObjectView values, int index, ulong shiftId)
+        {
             string nullStr = "NULL";
             DbTypeCode typeCode = values.TypeBinding.GetPropertyBinding(index).TypeCode;
-            switch (typeCode) {
+            switch (typeCode)
+            {
                 case DbTypeCode.Binary:
                     Binary? binaryVal = values.GetBinary(index);
                     if (binaryVal == null || ((Binary)binaryVal).IsNull)
                         return nullStr;
                     return "BINARY '" + Db.BinaryToHex((Binary)binaryVal) + "'";
-                case DbTypeCode.Boolean: 
+                case DbTypeCode.Boolean:
                     Boolean? boolVal = values.GetBoolean(index);
                     if (boolVal == null)
                         return nullStr;
                     return boolVal.ToString();
-                case DbTypeCode.DateTime: 
+                case DbTypeCode.DateTime:
                     DateTime? timeVal = values.GetDateTime(index);
                     if (timeVal == null)
                         return nullStr;
@@ -198,21 +369,21 @@ namespace Starcounter {
                     if (decVal == null)
                         return nullStr;
                     return ((Decimal)decVal).ToString(CultureInfo.InvariantCulture);
-                case DbTypeCode.Single: 
+                case DbTypeCode.Single:
                 case DbTypeCode.Double:
                     Double? doubVal = values.GetDouble(index);
                     if (doubVal == null)
                         return nullStr;
                     return ((Double)doubVal).ToString(CultureInfo.InvariantCulture);
-                case DbTypeCode.SByte: 
-                case DbTypeCode.Int16: 
-                case DbTypeCode.Int32: 
-                case DbTypeCode.Int64: 
+                case DbTypeCode.SByte:
+                case DbTypeCode.Int16:
+                case DbTypeCode.Int32:
+                case DbTypeCode.Int64:
                     Int64? intVal = values.GetInt64(index);
                     if (intVal == null)
                         return nullStr;
                     return intVal.ToString();
-                case DbTypeCode.Object: 
+                case DbTypeCode.Object:
                     Object objVal = values.GetObject(index);
                     if (objVal == null)
                         return nullStr;
@@ -223,14 +394,14 @@ namespace Starcounter {
                         return nullStr;
                     strVal = strVal.Replace("'", "''");
                     return "'" + strVal + "'";
-                case DbTypeCode.Byte: 
-                case DbTypeCode.UInt16: 
-                case DbTypeCode.UInt32: 
+                case DbTypeCode.Byte:
+                case DbTypeCode.UInt16:
+                case DbTypeCode.UInt32:
                 case DbTypeCode.UInt64:
                     UInt64? uintVal = values.GetUInt64(index);
                     if (uintVal == null)
                         return nullStr;
-                return uintVal.ToString();
+                    return uintVal.ToString();
             }
             throw ErrorCode.ToException(Error.SCERRUNEXPECTEDINTERNALERROR,
                 "Error during unloading a database: type code of selected property is unexpected, " +
