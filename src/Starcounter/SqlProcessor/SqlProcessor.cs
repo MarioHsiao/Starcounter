@@ -22,8 +22,6 @@ namespace Starcounter.SqlProcessor {
         public static extern uint scsql_dump_memory_leaks();
         [DllImport("scdbmetalayer.dll")]
         private static extern uint star_prepare_system_tables(ulong context);
-        [DllImport("scsqlprocessor.dll")]
-        private static extern uint scsql_clean_clrclass();
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_get_token(ulong context_handle, string spelling, ulong* token_id);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
