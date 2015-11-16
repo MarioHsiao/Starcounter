@@ -242,7 +242,8 @@ namespace Administrator.Server.Model {
                 }
                 if (oldCanBeUninstalled != this.CanBeUninstalled) {
                     this.OnPropertyChanged("CanBeUninstalled");
-                } if (oldIsDeployed != this.IsDeployed) {
+                }
+                if (oldIsDeployed != this.IsDeployed) {
                     this.OnPropertyChanged("IsDeployed");
                 }
             }
@@ -493,7 +494,8 @@ namespace Administrator.Server.Model {
             if (currentDatabaseApplication == null) {
                 this.UpgradeError = true;
                 this.OnCommandError("Upgrade Application", "Failed to find the application", null);
-                this.UpgradeApplicationErrorCallbacks.Clear();
+                //this.UpgradeApplicationErrorCallbacks.Clear();
+                this.UpgradeApplicationCallbacks.Clear();
                 this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, "Upgrade Application", "Failed to find the application", null);
                 return;
             }
@@ -503,7 +505,8 @@ namespace Administrator.Server.Model {
                 // Can not upgrade applications from different sources
                 this.UpgradeError = true;
                 this.OnCommandError("Upgrade Application", "Can not upgrade applications from different stores", null);
-                this.UpgradeApplicationErrorCallbacks.Clear();
+                //this.UpgradeApplicationErrorCallbacks.Clear();
+                this.UpgradeApplicationCallbacks.Clear();
                 this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, "Upgrade Application", "Can not upgrade applications from different stores", null);
             }
 
