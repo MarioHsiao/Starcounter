@@ -326,12 +326,20 @@ namespace Starcounter.Extensions {
             if (rel == null) {
                 return false;
             }
+            
+            // Checking if class exists.
+            try {
 
-            // Now checking if mapped object actually exists.
-            if (Db.SQL("SELECT o FROM " + toClassFullName + " o WHERE o.ObjectNo = ?", rel.ToOid).First != null) {
+                // Now checking if mapped object actually exists.
+                if (Db.SQL("SELECT o FROM " + toClassFullName + " o WHERE o.ObjectNo = ?", rel.ToOid).First != null) {
+                    return true;
+                }
+
+            } catch {
+                // When this exception occurs it means that database object is in database, but the code didn't load the .NET class.
                 return true;
             }
-
+            
             // Now we need to delete the orphaned relation that has not mapped object and the source object.
             Db.Transact(() => {
 
