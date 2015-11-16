@@ -37,22 +37,24 @@ namespace IndexQueryTest.InheritedIndex {
         }
 
         internal static void DropIndexes() {
-            CallDropIndex("DROP INDEX personName ON Person");
-            CallDropIndex("DROP INDEX teacherName ON IndexQueryTest.InheritedIndex.Teacher");
-            CallDropIndex("DROP INDEX personBirthdayGender ON Person");
-            CallDropIndex("DROP INDEX companyIndx_employee ON Employee");
-            CallDropIndex("DROP INDEX companyIndx_professor On Professor");
-            CallDropIndex("DROP INDEX employeeBoss ON Employee");
-            CallDropIndex("DROP index professorBoss ON Professor");
+            CallDropIndex("personName","Person");
+            CallDropIndex("teacherName","IndexQueryTest.InheritedIndex.Teacher");
+            CallDropIndex("personBirthdayGender","Person");
+            CallDropIndex("companyIndx_employee","Employee");
+            CallDropIndex("companyIndx_professor","Professor");
+            CallDropIndex("employeeBoss","Employee");
+            CallDropIndex("professorBoss","Professor");
         }
 
-        internal static void CallDropIndex(String statement) {
-            try {
-                Db.SlowSQL(statement);
-            } catch (DbException e) {
-                if (e.ErrorCode != Starcounter.Error.SCERRINDEXNOTFOUND)
-                    throw e;
-            }
+        internal static void CallDropIndex(String indexName, String tableName) {
+            if (Db.SQL("select i from starcounter.metadata.\"index\" i where name = ?",
+                indexName).First != null)
+            //try {
+                Db.SlowSQL("DROP INDEX "+indexName+" ON "+tableName);
+            //} catch (DbException e) {
+            //    if (e.ErrorCode != Starcounter.Error.SCERRINDEXNOTFOUND)
+            //        throw e;
+            //}
         }
 
         internal static void TestInheritedIndexes() {
