@@ -31,26 +31,28 @@ namespace Starcounter.Server {
         /// <returns>An <see cref="ImageFile"/> representing the logical
         /// image file of the given database.</returns>
         public static ImageFile Read(string directory, string databaseName) {
-            var imageFiles = DatabaseStorageService.GetImageFiles(directory, databaseName);
-            var size = Marshal.SizeOf(typeof(KernelAPI.NativeStructImageHeader));
-            var data = new byte[size];
+            throw NotSupported();
 
-            // If we can't properly find, read or interpret/validate the
-            // content of the given image file, we should issue
-            // ScErrCantOpenImageFile and ScErrCantReadImageFile respectively,
-            // adding to them the reason why we could not do so (and the
-            // proper exception, like FileNotFound, or FormatExceltion.
-            // TODO:
+            //var imageFiles = DatabaseStorageService.GetImageFiles(directory, databaseName);
+            //var size = Marshal.SizeOf(typeof(KernelAPI.NativeStructImageHeader));
+            //var data = new byte[size];
 
-            using (var file = File.Open(imageFiles[0], FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
-                var read = file.Read(data, 0, data.Length);
-                if (read != size) {
-                    throw ErrorCode.ToException(Error.SCERRCANTREADIMAGEFILE, 
-                        string.Format("Unable to read image header; only {0} of {1} bytes read.", read, size));
-                }
-            }
+            //// If we can't properly find, read or interpret/validate the
+            //// content of the given image file, we should issue
+            //// ScErrCantOpenImageFile and ScErrCantReadImageFile respectively,
+            //// adding to them the reason why we could not do so (and the
+            //// proper exception, like FileNotFound, or FormatExceltion.
+            //// TODO:
 
-            return ImageFile.FromBytes(data);
+            //using (var file = File.Open(imageFiles[0], FileMode.Open, FileAccess.Read, FileShare.ReadWrite)) {
+            //    var read = file.Read(data, 0, data.Length);
+            //    if (read != size) {
+            //        throw ErrorCode.ToException(Error.SCERRCANTREADIMAGEFILE, 
+            //            string.Format("Unable to read image header; only {0} of {1} bytes read.", read, size));
+            //    }
+            //}
+
+            //return ImageFile.FromBytes(data);
         }
 
         /// <summary>
@@ -59,26 +61,33 @@ namespace Starcounter.Server {
         /// </summary>
         /// <returns>The image version of the current runtime.</returns>
         public static uint GetRuntimeImageVersion() {
-            uint version, ignored;
-            orange.GetRuntimeImageSymbols(out version, out ignored);
-            return version;
+            throw NotSupported();
+            //uint version, ignored;
+            //orange.GetRuntimeImageSymbols(out version, out ignored);
+            //return version;
         }
 
         static ImageFile FromBytes(byte[] data) {
-            uint version, magic;
-            orange.GetRuntimeImageSymbols(out version, out magic);
+            throw NotSupported();
 
-            unsafe {
-                fixed (byte* p = data) {
-                    var ph = (KernelAPI.NativeStructImageHeader*)p;
-                    if (ph->Magic != magic) {
-                        throw ErrorCode.ToException(
-                            Error.SCERRCANTREADIMAGEFILE,
-                            string.Format("Magic number didn't match; {0} != {1}.", ph->Magic, magic));
-                    }
-                    return new ImageFile() { Version = ph->Version };
-                }
-            }
+            //uint version, magic;
+            //orange.GetRuntimeImageSymbols(out version, out magic);
+
+            //unsafe {
+            //    fixed (byte* p = data) {
+            //        var ph = (KernelAPI.NativeStructImageHeader*)p;
+            //        if (ph->Magic != magic) {
+            //            throw ErrorCode.ToException(
+            //                Error.SCERRCANTREADIMAGEFILE,
+            //                string.Format("Magic number didn't match; {0} != {1}.", ph->Magic, magic));
+            //        }
+            //        return new ImageFile() { Version = ph->Version };
+            //    }
+            //}
+        }
+
+        static Exception NotSupported() {
+            return new NotSupportedException("The image file API's are not supported in 2.2. See this post: https://github.com/Starcounter/CompanyTrack/issues/120#issuecomment-157342000");
         }
     }
 }
