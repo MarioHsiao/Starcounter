@@ -53,7 +53,7 @@ START CMD /C "32bitComponents\scsqlparser.exe 8066"
 ping -n 3 127.0.0.1 > nul
 
 :: Starting database with some delay.
-CALL sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
+CALL sccode.exe 1 %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
 IF ERRORLEVEL 1 (
     ECHO Error: The index query regression test failed!
