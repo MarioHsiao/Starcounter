@@ -153,12 +153,13 @@ namespace StarcounterInternal.Bootstrap {
                 "Attaches a debugger to the process during startup."
                 );
 
-            // Define the Start command. Exactly one parameter - the database identity - is
-            // expected. From this, the minimum command line will be:
-            // > prog.exe mydatabase
+            // Define the Start command. Two parameters - the database identity and
+            // the unique instance ID - is expected. From this, the minimum command
+            // line will be:
+            // > prog.exe 123 mydatabase
             // (where we have omitted Start, since its the default).
 
-            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 1);
+            commandDefinition = syntaxDefinition.DefineCommand(StarcounterConstants.BootstrapCommandNames.Start, "Starts the named database", 2);
 
             // Specifies the property set we accept.
             // A full command line could look like

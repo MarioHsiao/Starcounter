@@ -13,8 +13,7 @@ namespace Starcounter.Server.Commands.Processors {
                 ProcessorToken = ProcessorToken,
                 CommandDescription = "Starts a database engine.",
                 Tasks = new TaskInfo[] { 
-                    Task.StartDatabaseProcess.ToPublicModel(), 
-                    Task.StartLogWriterProcess.ToPublicModel(), 
+                    Task.StartDatabaseProcess.ToPublicModel(),
                     Task.StartCodeHostProcess.ToPublicModel(),
                     Task.AwaitCodeHostOnline.ToPublicModel(),
                 }
@@ -29,14 +28,7 @@ namespace Starcounter.Server.Commands.Processors {
                 TaskDuration.UnknownWithProgress,
                 "Starts the database process. The task is marked as cancelled if the process is found already running."
                 );
-
-            public static readonly CommandTask StartLogWriterProcess = new CommandTask(
-                StartDatabaseCommand.DefaultProcessor.Tasks.StartLogWriterProcess,
-                "Starting log writer process",
-                TaskDuration.UnknownWithProgress,
-                "Starts the log writer process. The task is marked as cancelled if the process is found already running."
-                );
-
+            
             internal static readonly CommandTask StartCodeHostProcess = new CommandTask(
                 StartDatabaseCommand.DefaultProcessor.Tasks.StartCodeHostProcess,
                 "Starting code host process",

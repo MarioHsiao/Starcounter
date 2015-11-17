@@ -72,6 +72,16 @@ namespace StarcounterInternal.Bootstrap
         }
 
         /// <summary>
+        /// Gets the instance ID.
+        /// </summary>
+        /// <value>The instance ID.</value>
+        public uint InstanceID {
+            get {
+                return uint.Parse(this.ProgramArguments.CommandParameters[0]);
+            }
+        }
+
+        /// <summary>
         /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
@@ -79,7 +89,7 @@ namespace StarcounterInternal.Bootstrap
         {
             get 
             {
-                return this.ProgramArguments.CommandParameters[0];
+                return this.ProgramArguments.CommandParameters[1];
             }
         }
 

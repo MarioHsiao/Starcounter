@@ -480,12 +480,13 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 #else
 
 	str_template =
-        L"scadminserver.exe %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
+        L"scadminserver.exe %u %s --ServerName=%s --OutputDir=\"%s\" --TempDir=\"%s\" "
         L"--AutoStartExePath=\"%s\" --UserArguments=\"\\\"%s\\\"\" "
         L"--WorkingDir=\"%s\" --DefaultSystemHttpPort=%s --DefaultUserHttpPort=%s --GatewayWorkersNumber=%s --FLAG:NoDb %s";
 
 	str_num_chars +=
 		wcslen(str_template) + 
+		1 +
 		wcslen(admin_dbname_upr) +			// APP name
 		wcslen(srv_name_upr) +				// ServerName
 		wcslen(server_logs_dir) +			// OutputDir
@@ -507,6 +508,7 @@ int Start(wchar_t* serverName, BOOL logSteps) {
 		sccode_cmd,
 		str_num_chars,
 		str_template,
+		0,
 		admin_dbname_upr,
 		srv_name_upr,
 		server_logs_dir,

@@ -111,11 +111,11 @@ namespace Starcounter.Server.Commands {
                     config = DatabaseConfiguration.Load(stream, fakePath);
                 }
 
-                var imageFiles = DatabaseStorageService.GetImageFiles(config.Runtime.ImageDirectory, file.DatabaseName);
+                var dbFiles = DatabaseStorageService.GetDbFiles(config.Runtime.ImageDirectory, file.DatabaseName);
                 var logFiles = DatabaseStorageService.GetTransactionLogFiles(config.Runtime.ImageDirectory, file.DatabaseName);
 
-                foreach (var imageFile in imageFiles) {
-                    File.Delete(imageFile);
+                foreach (var dbFile in dbFiles) {
+                    File.Delete(dbFile);
                 }
                 if (storage.IsNamedKeyDirectory(config.Runtime.ImageDirectory, file.DatabaseName)) {
                     SafeDeleteDirectoryIfEmpty(config.Runtime.ImageDirectory);

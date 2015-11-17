@@ -201,7 +201,7 @@ namespace StarcounterInternal.Bootstrap {
                     ConfigureDatabase(configuration);
                     OnDatabaseConfigured();
 
-                    ConnectDatabase(schedulerCount, hlogs);
+                    ConnectDatabase(configuration.InstanceID, schedulerCount, hlogs);
                     OnDatabaseConnected();
                 }
 
@@ -488,12 +488,10 @@ namespace StarcounterInternal.Bootstrap {
 
         /// <summary>
         /// </summary>
-        private unsafe void ConnectDatabase(uint schedulerCount, ulong hlogs) {
-            uint instanceid = 1; // TODO EOH:
-
+        private unsafe void ConnectDatabase(uint instanceId, uint schedulerCount, ulong hlogs) {
             uint e;
 
-            e = sccoredb.sccoredb_connect(instanceid, schedulerCount, hlogs);
+            e = sccoredb.sccoredb_connect(instanceId, schedulerCount, hlogs);
             if (e != 0) throw ErrorCode.ToException(e);
         }
 
