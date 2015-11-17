@@ -499,9 +499,15 @@ namespace Starcounter.Server {
         ProcessStartInfo GetDatabaseStartInfo(Database database) {
             var arguments = new StringBuilder();
 
-            arguments.Append(database.Name.ToUpperInvariant());
+            // The syntax
+            // scdata.exe <installationId> <hostName> <eventLogDirPath> <databaseName> <logDirPath> <tempDirPath> [<logBufferSize>]
+
+            arguments.Append(database.InstanceID.ToString());
             arguments.Append(' ');
 
+            // What "host name" value should we use?
+            // TODO:
+            
             arguments.Append('\"');
             arguments.Append(database.Uri);
             //arguments.Append(database.Name);
@@ -511,8 +517,29 @@ namespace Starcounter.Server {
             arguments.Append('\"');
             arguments.Append(database.Server.Configuration.LogDirectory.TrimEnd('\\'));
             arguments.Append('\"');
+            arguments.Append(' ');
 
-            return new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+            arguments.Append(database.Name.ToUpperInvariant());
+            arguments.Append(' ');
+
+            var runtimeConfig = database.Configuration.Runtime;
+            arguments.Append('\"');
+            arguments.Append(runtimeConfig.TransactionLogDirectory.TrimEnd('\\'));
+            arguments.Append('\"');
+            arguments.Append(' ');
+
+            arguments.Append('\"');
+            arguments.Append(runtimeConfig.TempDirectory.TrimEnd('\\'));
+            arguments.Append('\"');
+
+            // Support optional log buffer size in configuration too
+            // TODO:
+
+            var psi = new ProcessStartInfo(this.DatabaseExePath, arguments.ToString());
+            psi.CreateNoWindow = true;
+            psi.UseShellExecute = false;
+
+            return psi;
         }
 
         ProcessStartInfo GetCodeHostProcessStartInfo(Database database, bool startWithNoDb = false, bool applyLogSteps = false, string commandLineAdditions = null) {
@@ -522,7 +549,9 @@ namespace Starcounter.Server {
                 args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
             
-            args.Add(database.Name.ToUpper());
+            args.Add(database.Name.ToUpper() + " ");
+            args.Add(database.InstanceID.ToString());
+
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
             var transactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory;
             if (!string.IsNullOrWhiteSpace(transactionLogDirectory)) {
