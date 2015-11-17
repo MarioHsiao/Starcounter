@@ -107,7 +107,7 @@ namespace Starcounter.Server {
         }
 
         internal static string[] GetTransactionLogFiles(string directory, string databaseName) {
-            var pattern = string.Format("{0}.??????????.log", databaseName);
+            var pattern = string.Format("{0}.????????????.log", databaseName);
             return Directory.GetFiles(directory, pattern);
         }
 
