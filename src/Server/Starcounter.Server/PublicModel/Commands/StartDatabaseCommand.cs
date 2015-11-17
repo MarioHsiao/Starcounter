@@ -19,7 +19,6 @@ namespace Starcounter.Server.PublicModel.Commands {
 
             public static class Tasks {
                 public const int StartDatabaseProcess = 1;
-                public const int StartLogWriterProcess = 2;
                 public const int StartCodeHostProcess = 3;
                 public const int AwaitCodeHostOnline = 4;
             }
