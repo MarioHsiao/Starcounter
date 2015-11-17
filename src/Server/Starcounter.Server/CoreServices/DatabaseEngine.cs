@@ -548,10 +548,10 @@ namespace Starcounter.Server {
             if (Debugger.IsAttached) {
                 args.Add("--attachdebugger ");  // Apply to attach a debugger to the boot sequence.
             }
-            
-            args.Add(database.Name.ToUpper() + " ");
-            args.Add(database.InstanceID.ToString());
 
+            args.Add(database.InstanceID.ToString() + " ");
+            args.Add(database.Name.ToUpper());
+            
             args.AddFormat(" --" + StarcounterConstants.BootstrapOptionNames.DatabaseDir + "=\"{0}\"", database.Configuration.Runtime.ImageDirectory);
             var transactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory;
             if (!string.IsNullOrWhiteSpace(transactionLogDirectory)) {
