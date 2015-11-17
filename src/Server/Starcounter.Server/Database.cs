@@ -101,6 +101,15 @@ namespace Starcounter.Server {
         }
 
         /// <summary>
+        /// Gets or sets the instance ID connected with the
+        /// current database.
+        /// </summary>
+        internal ulong InstanceID {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Intializes a <see cref="Database"/>.
         /// </summary>
         /// <param name="server">The server to which the current database belong.</param>
