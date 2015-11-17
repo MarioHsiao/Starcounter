@@ -49,6 +49,7 @@ namespace Starcounter.Extensions {
 
             // Enabling mapping globally.
             MapConfig.IsGlobalMappingEnabled = true;
+            MapConfig.Enabled = true;
 
             if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC)");
@@ -438,6 +439,24 @@ namespace Starcounter.Extensions {
                         }
                     }
                 });
+
+                Db.Transact(() => {
+
+                    // Searching for orhaned relations and deleting them.
+                    foreach (DbMappingRelation rel in Db.SQL<DbMappingRelation>("SELECT o FROM Starcounter.Extensions.DbMappingRelation o")) {
+
+                        // Checking that there are no objects in each direction.
+                        if (null == DbHelper.FromID(rel.FromOid) &&
+                            null == DbHelper.FromID(rel.ToOid)) {
+
+                            // First deleting other direction map.
+                            rel.MirrorRelationRef.Delete();
+
+                            // Deleting the relation, since we are about to delete objects.
+                            rel.Delete();
+                        }
+                    }
+                });
             });
         }
 
@@ -765,14 +784,18 @@ namespace Starcounter.Extensions {
                                             // Calling the deletion delegate.
                                             Response resp = null;
 
-                                            StarcounterEnvironment.RunWithinApplication(null, () => {
-                                                // Calling the converter.
-                                                resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
-                                            });
+                                            // Checking that both objects exist.
+                                            if (null != DbHelper.FromID(rel.ToOid)) {
 
-                                            // Checking if we have result.
-                                            if (null == resp)
-                                                continue;
+                                                StarcounterEnvironment.RunWithinApplication(null, () => {
+                                                    // Calling the converter.
+                                                    resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                                });
+
+                                                // Checking if we have result.
+                                                if (null == resp)
+                                                    continue;
+                                            }
 
                                             // First deleting other direction map.
                                             rel.MirrorRelationRef.Delete();

@@ -10,6 +10,7 @@ using Starcounter.Advanced;
 using System.Net;
 using Starcounter.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ABCTest;
 
 namespace DbMappingTest {
 
@@ -630,6 +631,8 @@ namespace DbMappingTest {
 
             TestSeparateAppsEmulation.RunTest();
             TestMapExisting.RunTest();
+
+            ABCTestClass.RunTest();
         }
     }
 }
