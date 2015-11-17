@@ -367,6 +367,13 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Mapping existing objects.
         /// </summary>
+        public static void MapExisting() {
+            MapExistingObjects();
+        }
+
+        /// <summary>
+        /// Mapping existing objects.
+        /// </summary>
         public static void MapExistingObjects() {
 
             StarcounterEnvironment.RunWithinApplication(null, () => {
