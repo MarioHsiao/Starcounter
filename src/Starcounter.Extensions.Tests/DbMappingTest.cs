@@ -13,6 +13,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace DbMappingTest {
 
+    public static class Utils {
+        public static Int32 NumObjects<T>() {
+            Int32 num = 0;
+            foreach (var o in Db.SQL("SELECT o FROM " + typeof(T).FullName + " o")) {
+                num++;
+            }
+            return num;
+        }
+    }
+
     [Database]
     public class NameClass1 {
         public String FirstName;
@@ -433,26 +443,12 @@ namespace DbMappingTest {
         }
     }
 
-    public class DbMappingTest {
+    public class TestSeparateAppsEmulation {
 
-        public static void Main() {
-
-            // Database mapping initialization.
-            DbMapping.Init();
-
-            //Debugger.Launch();
-
-            TestCrossDeletion.Map();
-            TestSeveralClassesUsage.Map();
-
-            TestCrossDeletion.RunTest();
-            TestSeveralClassesUsage.RunTest();
+        public static void RunTest() {
 
             App1.TestApp1.Init();
             App2.TestApp2.Init();
-
-            App1.TestApp1.Map();
-            App2.TestApp2.Map();
 
             App1.TestApp1.RunTest();
 
@@ -472,7 +468,7 @@ namespace DbMappingTest {
             Assert.IsTrue(smb != null);
 
             App2.TestApp2.RunTest();
-            
+
             app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
             Assert.IsTrue(app1Person != null);
             Assert.IsTrue(app1Person.Age == 555);
@@ -502,6 +498,138 @@ namespace DbMappingTest {
 
             DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
             Assert.IsTrue(rel == null);
+        }
+    }
+
+    public class TestMapExisting {
+
+        public static void RunTest() {
+
+            // Checking that there are no existing relations.
+            DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+            Assert.IsTrue(rel == null);
+
+            App1.TestApp1.Init();
+            App2.TestApp2.Init();
+
+            App1.App1Person app1Person = null;
+            App2.App2Person app2Person = null;
+            SharedClasses.MySomebody smb;
+
+            // Turning off mapping.
+            MapConfig.Enabled = false;
+
+            Db.Transact(() => {
+                app1Person = new App1.App1Person();
+                Assert.IsTrue(null != app1Person);
+
+                app1Person.FirstName = "John";
+                app1Person.LastName = "Doe";
+                app1Person.Age = 555;
+            });
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
+            Assert.IsTrue(app1Person != null);
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o").First;
+            Assert.IsTrue(app2Person == null);
+
+            smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o").First;
+            Assert.IsTrue(smb == null);
+
+            // Turning on mapping.
+            MapConfig.Enabled = true;
+
+            // Triggering mapping of existing objects.
+            DbMapping.MapExistingObjects();
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
+            Assert.IsTrue(app1Person != null);
+            Assert.IsTrue(1 == Utils.NumObjects<App1.App1Person>());
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(app2Person != null);
+            Assert.IsTrue(1 == Utils.NumObjects<App2.App2Person>());
+
+            smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(smb != null);
+            Assert.IsTrue(1 == Utils.NumObjects<SharedClasses.MySomebody>());
+
+            // Again triggering mapping of existing objects.
+            // NOTE: Nothing should change.
+            DbMapping.MapExistingObjects();
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
+            Assert.IsTrue(app1Person != null);
+            Assert.IsTrue(1 == Utils.NumObjects<App1.App1Person>());
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(app2Person != null);
+            Assert.IsTrue(1 == Utils.NumObjects<App2.App2Person>());
+
+            smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(smb != null);
+            Assert.IsTrue(1 == Utils.NumObjects<SharedClasses.MySomebody>());
+
+            // Now disabling mapping and deleting one object, relations and corresponding object should remain untoched.
+            MapConfig.Enabled = false;
+
+            Db.Transact(() => {
+                app2Person.Delete();
+            });
+
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o").First;
+            Assert.IsTrue(app2Person == null);
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o WHERE o.FirstName = ?", "John").First;
+            Assert.IsTrue(app1Person != null);
+            Assert.IsTrue(1 == Utils.NumObjects<App1.App1Person>());
+
+            smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(smb != null);
+            Assert.IsTrue(1 == Utils.NumObjects<SharedClasses.MySomebody>());
+
+            // Reenabling mapping flag.
+            MapConfig.Enabled = true;
+
+            // NOTE: Now we trigger mapping again and the orphaned classes should be deleted.
+            DbMapping.MapExistingObjects();
+
+            // Now everything should be deleted.
+            app2Person = Db.SQL<App2.App2Person>("SELECT o FROM App2.App2Person o").First;
+            Assert.IsTrue(app2Person == null);
+
+            app1Person = Db.SQL<App1.App1Person>("SELECT o FROM App1.App1Person o").First;
+            Assert.IsTrue(app1Person == null);
+
+            smb = Db.SQL<SharedClasses.MySomebody>("SELECT o FROM SharedClasses.MySomebody o").First;
+            Assert.IsTrue(smb == null);
+
+            rel = Db.SQL<DbMappingRelation>("SELECT o FROM DbMappingRelation o").First;
+            Assert.IsTrue(rel == null);
+        }
+    }
+
+    public class DbMappingTest {
+
+        public static void Main() {
+
+            // Database mapping initialization.
+            DbMapping.Init();
+
+            //Debugger.Launch();
+
+            TestCrossDeletion.Map();
+            TestSeveralClassesUsage.Map();
+
+            TestCrossDeletion.RunTest();
+            TestSeveralClassesUsage.RunTest();
+
+            App1.TestApp1.Map();
+            App2.TestApp2.Map();
+
+            TestSeparateAppsEmulation.RunTest();
+            TestMapExisting.RunTest();
         }
     }
 }
