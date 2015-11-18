@@ -354,12 +354,9 @@ namespace Starcounter.Extensions {
             // Now we need to delete the orphaned relation that has not mapped object and the source object.
             if (deleteOrphaned) {
 
-                Db.Transact(() => {
-
-                    // Deleting the source object.
-                    var fromObj = DbHelper.FromID(fromOid);
-                    fromObj.Delete();
-                });
+                // Deleting the source object.
+                var fromObj = DbHelper.FromID(fromOid);
+                fromObj.Delete();
             }
 
             return ObjectCheckState.OnlyObjectAndRelationExisted;
@@ -606,26 +603,23 @@ namespace Starcounter.Extensions {
 
                                                 try {
 
-                                                    Db.Transact(() => {
+                                                    // Creating a relation between two objects.
+                                                    DbMappingRelation relTo = new DbMappingRelation() {
+                                                        FromOid = createdId,
+                                                        ToOid = toOid,
+                                                        ToClassFullName = mapInfo.ToClassFullName
+                                                    };
 
-                                                        // Creating a relation between two objects.
-                                                        DbMappingRelation relTo = new DbMappingRelation() {
-                                                            FromOid = createdId,
-                                                            ToOid = toOid,
-                                                            ToClassFullName = mapInfo.ToClassFullName
-                                                        };
+                                                    // Creating a relation between two objects.
+                                                    DbMappingRelation relFrom = new DbMappingRelation() {
+                                                        FromOid = toOid,
+                                                        ToOid = createdId,
+                                                        ToClassFullName = mapInfo.FromClassFullName,
+                                                        MirrorRelationRef = relTo
+                                                    };
 
-                                                        // Creating a relation between two objects.
-                                                        DbMappingRelation relFrom = new DbMappingRelation() {
-                                                            FromOid = toOid,
-                                                            ToOid = createdId,
-                                                            ToClassFullName = mapInfo.FromClassFullName,
-                                                            MirrorRelationRef = relTo
-                                                        };
-
-                                                        // Setting relation back.
-                                                        relTo.MirrorRelationRef = relFrom;
-                                                    });
+                                                    // Setting relation back.
+                                                    relTo.MirrorRelationRef = relFrom;
 
                                                 } finally {
 
