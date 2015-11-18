@@ -49,6 +49,7 @@ namespace Starcounter.Extensions {
 
             // Enabling mapping globally.
             MapConfig.IsGlobalMappingEnabled = true;
+            MapConfig.Enabled = true;
 
             if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC)");
@@ -65,7 +66,7 @@ namespace Starcounter.Extensions {
             // Adding handler for mapping existing objects.
             if (!Handle.IsHandlerRegistered("GET /sc/map ", null)) {
                 Handle.GET("/sc/map", () => {
-                    MapExisting();
+                    MapExistingObjects();
                     return 200;
                 });
             }
@@ -314,9 +315,19 @@ namespace Starcounter.Extensions {
         }
 
         /// <summary>
+        /// States when checking mapping object.
+        /// </summary>
+        public enum ObjectCheckState {
+            OnlySourceObjectExists,
+            MappedObjectClassIsNotLoaded,
+            OnlyObjectAndRelationExisted,
+            ObjectRelationAndMappedObjectExists
+        };
+
+        /// <summary>
         /// Checks if there is a mapping relation and mapped object to the given object.
         /// </summary>
-        internal static Boolean CheckMappedObject(String fromClassFullName, UInt64 fromOid, String toClassFullName) {
+        internal static ObjectCheckState CheckMappedObjectExistence(String fromClassFullName, UInt64 fromOid, String toClassFullName, Boolean deleteOrphaned) {
 
             // Getting the relation for the source object.
             DbMappingRelation rel = Db.SQL<DbMappingRelation>("SELECT o FROM Starcounter.Extensions.DbMappingRelation o WHERE o.FromOid = ? AND o.ToClassFullName = ?",
@@ -324,43 +335,47 @@ namespace Starcounter.Extensions {
 
             // First checking if there is a relation object.
             if (rel == null) {
-                return false;
+                return ObjectCheckState.OnlySourceObjectExists;
             }
             
             // Checking if class exists.
             try {
 
                 // Now checking if mapped object actually exists.
-                if (Db.SQL("SELECT o FROM " + toClassFullName + " o WHERE o.ObjectNo = ?", rel.ToOid).First != null) {
-                    return true;
+                if (null != DbHelper.FromID(rel.ToOid)) {
+                    return ObjectCheckState.ObjectRelationAndMappedObjectExists;
                 }
 
             } catch {
                 // When this exception occurs it means that database object is in database, but the code didn't load the .NET class.
-                return true;
+                return ObjectCheckState.MappedObjectClassIsNotLoaded;
             }
-            
+
             // Now we need to delete the orphaned relation that has not mapped object and the source object.
-            Db.Transact(() => {
+            if (deleteOrphaned) {
 
-                // Deleting the source object.
-                var fromObj = Db.SQL("SELECT o FROM " + fromClassFullName + " o WHERE o.ObjectNo = ?", fromOid).First;
-                fromObj.Delete();
+                Db.Transact(() => {
 
-                // First deleting other direction map.
-                rel.MirrorRelationRef.Delete();
+                    // Deleting the source object.
+                    var fromObj = DbHelper.FromID(fromOid);
+                    fromObj.Delete();
+                });
+            }
 
-                // Deleting the relation, since we are about to delete objects.
-                rel.Delete();
-            });
-
-            return false;
+            return ObjectCheckState.OnlyObjectAndRelationExisted;
         }
 
         /// <summary>
         /// Mapping existing objects.
         /// </summary>
         public static void MapExisting() {
+            MapExistingObjects();
+        }
+
+        /// <summary>
+        /// Mapping existing objects.
+        /// </summary>
+        public static void MapExistingObjects() {
 
             StarcounterEnvironment.RunWithinApplication(null, () => {
 
@@ -383,25 +398,62 @@ namespace Starcounter.Extensions {
                             UInt64 objNo = o.GetObjectNo();
 
                             // Checking if we already having a mapped object.
-                            if (CheckMappedObject(mi.FromClassFullName, objNo, mi.ToClassFullName)) {
+                            ObjectCheckState state = CheckMappedObjectExistence(mi.FromClassFullName, objNo, mi.ToClassFullName, true);
+                            switch (state) {
 
-                                // Just updating the object now.
-                                Self.PUT(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
-                                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-                                });
+                                case ObjectCheckState.OnlySourceObjectExists: {
 
-                                continue;
+                                    // Running mapped objects creation.
+                                    Self.POST(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
+                                        HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                                    });
+
+                                    // Now updating the objects.
+                                    Self.PUT(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
+                                        HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                                    });
+
+                                    break;
+                                }
+
+                                case ObjectCheckState.OnlyObjectAndRelationExisted: {
+
+                                    break;
+                                }
+
+                                case ObjectCheckState.ObjectRelationAndMappedObjectExists: {
+
+                                    // Just updating the object now.
+                                    Self.PUT(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
+                                        HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                                    });
+
+                                    break;
+                                }
+
+                                case ObjectCheckState.MappedObjectClassIsNotLoaded: {
+
+                                    break;
+                                }
                             }
+                        }
+                    }
+                });
 
-                            // Running objects creation (if relation exists object won't be created).
-                            Self.POST(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
-                                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-                            });
+                Db.Transact(() => {
 
-                            // Now updating the object.
-                            Self.PUT(string.Format("/{0}/{1}", mi.FromClassFullName, objNo), null, null, null, 0, new HandlerOptions() {
-                                HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-                            });
+                    // Searching for orhaned relations and deleting them.
+                    foreach (DbMappingRelation rel in Db.SQL<DbMappingRelation>("SELECT o FROM Starcounter.Extensions.DbMappingRelation o")) {
+
+                        // Checking that there are no objects in each direction.
+                        if (null == DbHelper.FromID(rel.FromOid) &&
+                            null == DbHelper.FromID(rel.ToOid)) {
+
+                            // First deleting other direction map.
+                            rel.MirrorRelationRef.Delete();
+
+                            // Deleting the relation, since we are about to delete objects.
+                            rel.Delete();
                         }
                     }
                 });
@@ -503,10 +555,16 @@ namespace Starcounter.Extensions {
                                             // Adding class as touched.
                                             touchedClasses_.Add(mapInfo.ToClassFullName, true);
 
-                                            // Checking if relation exists.
-                                            if (CheckMappedObject(mapInfo.FromClassFullName, createdId, mapInfo.ToClassFullName))
-                                                continue;
+                                            // Checking if mapped object exists.
+                                            ObjectCheckState state = CheckMappedObjectExistence(mapInfo.FromClassFullName, createdId, mapInfo.ToClassFullName, true);
 
+                                            // We create a new object only if the mapped object does not exist.
+                                            if (ObjectCheckState.ObjectRelationAndMappedObjectExists == state ||
+                                                ObjectCheckState.MappedObjectClassIsNotLoaded == state) {
+
+                                                continue;
+                                            }
+                                                
                                             Response resp = null;
 
                                             // Calling the converter.
@@ -638,6 +696,11 @@ namespace Starcounter.Extensions {
 
                                             Response resp = null;
 
+                                            // Checking that both objects exist.
+                                            if (null == DbHelper.FromID(rel.FromOid) || null == DbHelper.FromID(rel.ToOid)) {
+                                                continue;
+                                            }
+
                                             // Calling the converter.
                                             try {
                                                 MapConfig.Enabled = false;
@@ -721,14 +784,18 @@ namespace Starcounter.Extensions {
                                             // Calling the deletion delegate.
                                             Response resp = null;
 
-                                            StarcounterEnvironment.RunWithinApplication(null, () => {
-                                                // Calling the converter.
-                                                resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
-                                            });
+                                            // Checking that both objects exist.
+                                            if (null != DbHelper.FromID(rel.ToOid)) {
 
-                                            // Checking if we have result.
-                                            if (null == resp)
-                                                continue;
+                                                StarcounterEnvironment.RunWithinApplication(null, () => {
+                                                    // Calling the converter.
+                                                    resp = Self.DELETE("/" + rel.MirrorRelationRef.ToClassFullName + "/" + rel.FromOid.ToString() + "/" + rel.ToClassFullName + "/" + rel.ToOid, null, null, null, 0, ho);
+                                                });
+
+                                                // Checking if we have result.
+                                                if (null == resp)
+                                                    continue;
+                                            }
 
                                             // First deleting other direction map.
                                             rel.MirrorRelationRef.Delete();
