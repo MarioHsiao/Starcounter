@@ -71,16 +71,22 @@ namespace Administrator.Server.Managers {
         /// </summary>
         /// <returns></returns>
         public static string GetDeployFolder(string databaseName) {
-          
-            char? driveLetter = AssureMappingToAppsFolder(RootHandler.Host.Runtime.GetServerInfo().Configuration.DatabaseDirectory);
-            return Path.Combine(driveLetter+":\\", Path.Combine(databaseName, "apps"));
-        }
 
+            try {
+                char? driveLetter = AssureMappingToAppsFolder(RootHandler.Host.Runtime.GetServerInfo().Configuration.DatabaseDirectory);
+                return Path.Combine(driveLetter + ":\\", Path.Combine(databaseName, "apps"));
+            }
+            catch (Exception e) {
+                Starcounter.Administrator.Server.Handlers.StarcounterAdminAPI.AdministratorLogSource.LogException(e);
+                // Fallback folder
+                return GetRawDeployFolder(databaseName);
+            }
+        }
 
         private static char? AppsDrive = null;
         private static char? AssureMappingToAppsFolder(string folder) {
 
-            if(DeployManager.AppsDrive == null) {
+            if (DeployManager.AppsDrive == null) {
                 // No folder mapped yet
 
                 // Check if we already have a mapping
@@ -88,14 +94,14 @@ namespace Administrator.Server.Managers {
                 foreach (DriveInfo di in drives) {
                     string ps = Utilities.Subst.GetDriveMapping(di.Name[0]);
 
-                    if( string.Equals(ps, folder, StringComparison.InvariantCultureIgnoreCase)) {
+                    if (string.Equals(ps, folder, StringComparison.InvariantCultureIgnoreCase)) {
                         // Already mapped
                         return di.Name[0];
                     }
                 }
 
                 char? freeDriveLetter = Utilities.Subst.GetFreeDriveLetter();
-                if(freeDriveLetter == null) {
+                if (freeDriveLetter == null) {
                     throw new IndexOutOfRangeException("Could not find free drive letter to map to apps folder.");
                 }
                 Utilities.Subst.MapDrive((char)freeDriveLetter, folder);
@@ -103,7 +109,7 @@ namespace Administrator.Server.Managers {
             }
             else {
                 string mappedFolder = Utilities.Subst.GetDriveMapping((char)DeployManager.AppsDrive);
-                if( !string.Equals(mappedFolder, folder, StringComparison.InvariantCultureIgnoreCase)) {
+                if (!string.Equals(mappedFolder, folder, StringComparison.InvariantCultureIgnoreCase)) {
                     // Remap
                     DeployManager.AppsDrive = null;
                     return AssureMappingToAppsFolder(folder);
@@ -139,7 +145,7 @@ namespace Administrator.Server.Managers {
                         string imageResourceFolder = System.IO.Path.Combine(Program.ResourceFolder, DeployManager.GetAppImagesFolder());
 
                         // Install package (Unzip)
-                        PackageManager.Unpack(packageZip, application.SourceUrl, application.StoreUrl,  DeployManager.GetDeployFolder(application.DatabaseName), imageResourceFolder, out config);
+                        PackageManager.Unpack(packageZip, application.SourceUrl, application.StoreUrl, DeployManager.GetDeployFolder(application.DatabaseName), imageResourceFolder, out config);
 
                         // Update server modelF
                         DatabaseApplication deployedApplication = DatabaseApplication.ToApplication(config, application.DatabaseName);
