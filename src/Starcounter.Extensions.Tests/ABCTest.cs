@@ -496,6 +496,124 @@ namespace ABCTest {
             Assert.IsTrue(0 == Utils.NumObjects<ABCTest.C>());
         }
 
+        public static void TestCreateAllAndMapExistingObjects() {
+
+            // Disabling mapping so only one object is created.
+            MapConfig.Enabled = false;
+
+            ABCTest.A a;
+            ABCTest.B b;
+            ABCTest.C c;
+
+            Db.Transact(() => {
+
+                a = new ABCTest.A();
+                a.FirstName = "John";
+                a.LastName = "Doe";
+                a.Age = 55;
+
+                b = new ABCTest.B();
+                b.Name = "John Doe";
+                b.YoungerAge = 50;
+
+                c = new ABCTest.C();
+                c.LastName = "Doe";
+                c.OlderAge = 60;
+            });
+
+            Assert.IsTrue(0 == Utils.NumObjects<DbMappingRelation>());
+
+            // Now enabling the mapping and mapping existing objects, so other objects will be created.
+            MapConfig.Enabled = true;
+            DbMapping.MapExistingObjects();
+
+            a = Db.SQL<ABCTest.A>("SELECT o FROM ABCTest.A o WHERE o.FirstName = ?", "John").First;
+            Assert.IsTrue(a != null);
+            Assert.IsTrue(3 == Utils.NumObjects<ABCTest.A>());
+            Assert.IsTrue(a.Age == 55);
+
+            b = Db.SQL<ABCTest.B>("SELECT o FROM ABCTest.B o WHERE o.Name = ?", "John Doe").First;
+            Assert.IsTrue(b != null);
+            Assert.IsTrue(3 == Utils.NumObjects<ABCTest.B>());
+            Assert.IsTrue(b.YoungerAge == 50);
+
+            c = Db.SQL<ABCTest.C>("SELECT o FROM ABCTest.C o WHERE o.LastName = ?", "Doe").First;
+            Assert.IsTrue(c != null);
+            Assert.IsTrue(3 == Utils.NumObjects<ABCTest.C>());
+            Assert.IsTrue(c.OlderAge == 60);
+
+            // Disabling mapping so only one object is deleted.
+            MapConfig.Enabled = false;
+
+            Db.Transact(() => {
+                c.Delete();
+            });
+
+            Assert.IsTrue(0 != Utils.NumObjects<DbMappingRelation>());
+
+            a = Db.SQL<ABCTest.A>("SELECT o FROM ABCTest.A o").First;
+            Assert.IsTrue(a != null);
+            Assert.IsTrue(3 == Utils.NumObjects<ABCTest.A>());
+            Assert.IsTrue(a.Age == 55);
+
+            b = Db.SQL<ABCTest.B>("SELECT o FROM ABCTest.B o").First;
+            Assert.IsTrue(b != null);
+            Assert.IsTrue(3 == Utils.NumObjects<ABCTest.B>());
+            Assert.IsTrue(b.YoungerAge == 50);
+
+            c = Db.SQL<ABCTest.C>("SELECT o FROM ABCTest.C o").First;
+            Assert.IsTrue(c != null);
+            Assert.IsTrue(2 == Utils.NumObjects<ABCTest.C>());
+            Assert.IsTrue(c.OlderAge == 60);
+
+            // Now enabling the mapping and mapping existing objects, so everything should be deleted.
+            MapConfig.Enabled = true;
+            DbMapping.MapExistingObjects();
+
+            a = Db.SQL<ABCTest.A>("SELECT o FROM ABCTest.A o").First;
+            Assert.IsTrue(a != null);
+            Assert.IsTrue(2 == Utils.NumObjects<ABCTest.A>());
+            Assert.IsTrue(a.Age == 55);
+
+            b = Db.SQL<ABCTest.B>("SELECT o FROM ABCTest.B o").First;
+            Assert.IsTrue(b != null);
+            Assert.IsTrue(2 == Utils.NumObjects<ABCTest.B>());
+            Assert.IsTrue(b.YoungerAge == 50);
+
+            c = Db.SQL<ABCTest.C>("SELECT o FROM ABCTest.C o").First;
+            Assert.IsTrue(c != null);
+            Assert.IsTrue(2 == Utils.NumObjects<ABCTest.C>());
+            Assert.IsTrue(c.OlderAge == 60);
+
+            Db.Transact(() => {
+                b.Delete();
+            });
+
+            a = Db.SQL<ABCTest.A>("SELECT o FROM ABCTest.A o").First;
+            Assert.IsTrue(a != null);
+            Assert.IsTrue(1 == Utils.NumObjects<ABCTest.A>());
+            Assert.IsTrue(a.Age == 55);
+
+            b = Db.SQL<ABCTest.B>("SELECT o FROM ABCTest.B o").First;
+            Assert.IsTrue(b != null);
+            Assert.IsTrue(1 == Utils.NumObjects<ABCTest.B>());
+            Assert.IsTrue(b.YoungerAge == 50);
+
+            c = Db.SQL<ABCTest.C>("SELECT o FROM ABCTest.C o").First;
+            Assert.IsTrue(c != null);
+            Assert.IsTrue(1 == Utils.NumObjects<ABCTest.C>());
+            Assert.IsTrue(c.OlderAge == 60);
+
+            Db.Transact(() => {
+                c.Delete();
+            });
+
+            Assert.IsTrue(0 == Utils.NumObjects<DbMappingRelation>());
+            Assert.IsTrue(0 == Utils.NumObjects<ABCTest.A>());
+            Assert.IsTrue(0 == Utils.NumObjects<ABCTest.B>());
+            Assert.IsTrue(0 == Utils.NumObjects<ABCTest.C>());
+        }
+
         public static void RunTest() {
 
             DbMapping.Init();
@@ -516,6 +634,8 @@ namespace ABCTest {
             TestCreateCAndMapExistingObjects();
 
             TestCreateADeleteTwoAndMapExistingObjects();
+
+            TestCreateAllAndMapExistingObjects();
 
             Assert.IsTrue(0 == Utils.NumObjects<DbMappingRelation>());
         }
