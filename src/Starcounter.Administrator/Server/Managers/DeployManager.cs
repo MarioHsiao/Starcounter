@@ -54,14 +54,63 @@ namespace Administrator.Server.Managers {
             return null;
         }
 
+
+        /// <summary>
+        /// Retrive raw deploy root folder 
+        /// (for generating app id)
+        /// </summary>
+        /// <returns></returns>
+        public static string GetRawDeployFolder(string databaseName) {
+
+            string databaseDirectory = RootHandler.Host.Runtime.GetServerInfo().Configuration.GetResolvedDatabaseDirectory();
+            return Path.Combine(databaseDirectory, Path.Combine(databaseName, "apps"));
+        }
+
         /// <summary>
         /// Retrive deploy root folder
         /// </summary>
         /// <returns></returns>
         public static string GetDeployFolder(string databaseName) {
+          
+            char? driveLetter = AssureMappingToAppsFolder(RootHandler.Host.Runtime.GetServerInfo().Configuration.DatabaseDirectory);
+            return Path.Combine(driveLetter+":\\", Path.Combine(databaseName, "apps"));
+        }
 
-            string databaseDirectory = RootHandler.Host.Runtime.GetServerInfo().Configuration.GetResolvedDatabaseDirectory();
-            return Path.Combine(databaseDirectory, Path.Combine(databaseName, "apps"));
+
+        private static char? AppsDrive = null;
+        private static char? AssureMappingToAppsFolder(string folder) {
+
+            if(DeployManager.AppsDrive == null) {
+                // No folder mapped yet
+
+                // Check if we already have a mapping
+                DriveInfo[] drives = DriveInfo.GetDrives();
+                foreach (DriveInfo di in drives) {
+                    string ps = Utilities.Subst.GetDriveMapping(di.Name[0]);
+
+                    if( string.Equals(ps, folder, StringComparison.InvariantCultureIgnoreCase)) {
+                        // Already mapped
+                        return di.Name[0];
+                    }
+                }
+
+                char? freeDriveLetter = Utilities.Subst.GetFreeDriveLetter();
+                if(freeDriveLetter == null) {
+                    throw new IndexOutOfRangeException("Could not find free drive letter to map to apps folder.");
+                }
+                Utilities.Subst.MapDrive((char)freeDriveLetter, folder);
+                DeployManager.AppsDrive = freeDriveLetter;
+            }
+            else {
+                string mappedFolder = Utilities.Subst.GetDriveMapping((char)DeployManager.AppsDrive);
+                if( !string.Equals(mappedFolder, folder, StringComparison.InvariantCultureIgnoreCase)) {
+                    // Remap
+                    DeployManager.AppsDrive = null;
+                    return AssureMappingToAppsFolder(folder);
+                }
+            }
+
+            return DeployManager.AppsDrive;
         }
 
         /// <summary>
