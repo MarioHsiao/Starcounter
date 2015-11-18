@@ -442,13 +442,27 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs
-$(TargetDir)GenerateMetadataClasses.exe $(TargetDir)metaschema.json $(ProjectDir)Metadata</PreBuildEvent>
+    <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>
   </PropertyGroup>
+  <ItemGroup>
+    <MetaSchema Include="$(TargetDir)metaschema.json">
+      <Visible>false</Visible>
+    </MetaSchema>
+    <MetaClasses Include="$(ProjectDir)Metadata\GeneratedMetadataClasses.cs">
+      <Visible>false</Visible>
+    </MetaClasses>
+  </ItemGroup>
+  <Target Name="BeforeBuild">
+    <CallTarget Targets="GenerateMetaClasses" />
+  </Target>
+  <Target Name="GenerateMetaClasses" Inputs="@(MetaSchema)" Outputs="@(MetaClasses)">
+	<Message Text="Generating meta classes"/>
+    <Exec Command="$(TargetDir)GenerateMetadataClasses.exe @(MetaSchema) $(ProjectDir)Metadata" ContinueOnError="false"/>
+    <Message Text="@(MetaSchema) -> @(MetaClasses)" Importance="high" />
+  </Target>
+  
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
   <Target Name="AfterBuild">
   </Target>
   -->
