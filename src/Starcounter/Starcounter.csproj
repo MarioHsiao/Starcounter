@@ -407,11 +407,18 @@
     <Compile Include="UnhandledTransactionConflictException.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="$(OutputPath)\metaschema.json" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Web" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\BuildSystem\GenerateMetadataClasses\GenerateMetadataClasses.csproj">
+      <Project>{841f8c90-1351-4e9d-96b5-9fa181e508ed}</Project>
+      <Name>GenerateMetadataClasses</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FasterThanJson\FasterThanJson.csproj">
       <Project>{dd181012-dd9c-410f-ad8e-01d062cac820}</Project>
       <Name>FasterThanJson</Name>
@@ -456,11 +463,10 @@
     <CallTarget Targets="GenerateMetaClasses" />
   </Target>
   <Target Name="GenerateMetaClasses" Inputs="@(MetaSchema)" Outputs="@(MetaClasses)">
-	<Message Text="Generating meta classes"/>
-    <Exec Command="$(TargetDir)GenerateMetadataClasses.exe @(MetaSchema) $(ProjectDir)Metadata" ContinueOnError="false"/>
-    <Message Text="@(MetaSchema) -> @(MetaClasses)" Importance="high" />
+    <Message Text="Generating meta classes" />
+    <Exec Command="$(TargetDir)GenerateMetadataClasses.exe @(MetaSchema) $(ProjectDir)Metadata" ContinueOnError="false" />
+    <Message Text="@(MetaSchema) -&gt; @(MetaClasses)" Importance="high" />
   </Target>
-  
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="AfterBuild">

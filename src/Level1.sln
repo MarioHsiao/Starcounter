@@ -429,6 +429,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.Extensions.Tests", "Starcounter.Extensions.Tests\Starcounter.Extensions.Tests.csproj", "{08E41128-E0E2-4A2D-A101-62C6499627A0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateMetadataClasses", "BuildSystem\GenerateMetadataClasses\GenerateMetadataClasses.csproj", "{841F8C90-1351-4E9D-96B5-9FA181E508ED}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8B599BFF-B414-41A3-A270-96CDA0C522AF} = {8B599BFF-B414-41A3-A270-96CDA0C522AF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
