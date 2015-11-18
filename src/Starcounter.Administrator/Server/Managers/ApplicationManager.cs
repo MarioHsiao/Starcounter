@@ -292,7 +292,7 @@ namespace Administrator.Server.Managers {
                         ) {
 
                         // Find deployed item
-                        string deployedId = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + deployedItem.GetExecutableFullPath(DeployManager.GetDeployFolder(databaseName)));
+                        string deployedId = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + deployedItem.GetExecutableFullPath(DeployManager.GetRawDeployFolder(databaseName)));
 
                         freshApplication = GetApplication(deployedId, freshApplications);
                         if (freshApplication == null) {
