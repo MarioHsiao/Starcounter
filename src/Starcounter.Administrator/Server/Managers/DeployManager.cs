@@ -72,15 +72,17 @@ namespace Administrator.Server.Managers {
         /// <returns></returns>
         public static string GetDeployFolder(string databaseName) {
 
-            try {
-                char? driveLetter = AssureMappingToAppsFolder(RootHandler.Host.Runtime.GetServerInfo().Configuration.DatabaseDirectory);
-                return Path.Combine(driveLetter + ":\\", Path.Combine(databaseName, "apps"));
-            }
-            catch (Exception e) {
-                Starcounter.Administrator.Server.Handlers.StarcounterAdminAPI.AdministratorLogSource.LogException(e);
-                // Fallback folder
-                return GetRawDeployFolder(databaseName);
-            }
+            return GetRawDeployFolder(databaseName);
+
+            //try {
+            //    char? driveLetter = AssureMappingToAppsFolder(RootHandler.Host.Runtime.GetServerInfo().Configuration.DatabaseDirectory);
+            //    return Path.Combine(driveLetter + ":\\", Path.Combine(databaseName, "apps"));
+            //}
+            //catch (Exception e) {
+            //    Starcounter.Administrator.Server.Handlers.StarcounterAdminAPI.AdministratorLogSource.LogException(e);
+            //    // Fallback folder
+            //    return GetRawDeployFolder(databaseName);
+            //}
         }
 
         private static char? AppsDrive = null;
