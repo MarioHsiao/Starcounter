@@ -358,8 +358,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			goto SETUP_FAILED;
 
 		// Checking if VS CRT is installed.
-		if (!IsCRTInstalled(L"SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x86") ||
-			!IsCRTInstalled(L"SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64"))
+		if (!IsCRTInstalled(L"SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x86") ||
+			!IsCRTInstalled(L"SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64"))
 		{
 			MessageBox(
 				NULL,
