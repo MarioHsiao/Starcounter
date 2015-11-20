@@ -34,54 +34,54 @@ namespace ABCTest {
             // Mapping is the following: A <-> B <-> C.
             // When A is created - B should be created, which in turns creates C.
 
-            DbMapping.MapCreation("/ABCTest.A/{?}", "/ABCTest.B/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("ABCTest.A", "ABCTest.B", (UInt64 fromOid) => {
                 ABCTest.B dst = new ABCTest.B();
                 return dst.GetObjectNo();
             });
 
-            DbMapping.MapCreation("/ABCTest.B/{?}", "/ABCTest.A/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("ABCTest.B", "ABCTest.A", (UInt64 fromOid) => {
                 ABCTest.A dst = new ABCTest.A();
                 return dst.GetObjectNo();
             });
 
-            DbMapping.MapCreation("/ABCTest.C/{?}", "/ABCTest.B/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("ABCTest.C", "ABCTest.B", (UInt64 fromOid) => {
                 ABCTest.B dst = new ABCTest.B();
                 return dst.GetObjectNo();
             });
 
-            DbMapping.MapCreation("/ABCTest.B/{?}", "/ABCTest.C/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("ABCTest.B", "ABCTest.C", (UInt64 fromOid) => {
                 ABCTest.C dst = new ABCTest.C();
                 return dst.GetObjectNo();
             });
 
-            DbMapping.MapDeletion("/ABCTest.A/{?}", "/ABCTest.B/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("ABCTest.A", "ABCTest.B", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.B dst = (ABCTest.B)DbHelper.FromID(toOid);
                 dst.Delete();
             });
 
-            DbMapping.MapDeletion("/ABCTest.B/{?}", "/ABCTest.A/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("ABCTest.B", "ABCTest.A", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.A dst = (ABCTest.A)DbHelper.FromID(toOid);
                 dst.Delete();
             });
 
-            DbMapping.MapDeletion("/ABCTest.C/{?}", "/ABCTest.B/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("ABCTest.C", "ABCTest.B", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.B dst = (ABCTest.B)DbHelper.FromID(toOid);
                 dst.Delete();
             });
 
-            DbMapping.MapDeletion("/ABCTest.B/{?}", "/ABCTest.C/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("ABCTest.B", "ABCTest.C", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.C dst = (ABCTest.C)DbHelper.FromID(toOid);
                 dst.Delete();
             });
 
-            DbMapping.MapModification("/ABCTest.A/{?}", "/ABCTest.B/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("ABCTest.A", "ABCTest.B", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.A a = (ABCTest.A)DbHelper.FromID(fromOid);
                 ABCTest.B b = (ABCTest.B)DbHelper.FromID(toOid);
                 b.Name = a.FirstName + " " + a.LastName;
                 b.YoungerAge = a.Age - 5;
             });
 
-            DbMapping.MapModification("/ABCTest.B/{?}", "/ABCTest.A/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("ABCTest.B", "ABCTest.A", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.B b = (ABCTest.B)DbHelper.FromID(fromOid);
                 ABCTest.A a = (ABCTest.A)DbHelper.FromID(toOid);
 
@@ -96,13 +96,13 @@ namespace ABCTest {
                 a.Age = b.YoungerAge + 5;
             });
 
-            DbMapping.MapModification("/ABCTest.C/{?}", "/ABCTest.B/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("ABCTest.C", "ABCTest.B", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.C c = (ABCTest.C)DbHelper.FromID(fromOid);
                 ABCTest.B b = (ABCTest.B)DbHelper.FromID(toOid);
                 b.YoungerAge = c.OlderAge - 10;
             });
 
-            DbMapping.MapModification("/ABCTest.B/{?}", "/ABCTest.C/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("ABCTest.B", "ABCTest.C", (UInt64 fromOid, UInt64 toOid) => {
                 ABCTest.B b = (ABCTest.B)DbHelper.FromID(fromOid);
                 ABCTest.C c = (ABCTest.C)DbHelper.FromID(toOid);
 

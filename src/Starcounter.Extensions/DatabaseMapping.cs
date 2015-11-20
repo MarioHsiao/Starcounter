@@ -460,25 +460,11 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Map database classes for replication.
         /// </summary>
-        internal static void Map(String httpMethod, String fromUri, String toUri, Func<UInt64, UInt64, UInt64> converter) {
+        internal static void Map(String httpMethod, String fromClassFullName, String toClassFullName, Func<UInt64, UInt64, UInt64> converter) {
 
             lock (registrationLock_) {
 
                 StarcounterEnvironment.RunWithinApplication(null, () => {
-
-                    if (!fromUri.EndsWith("/{?}")) {
-                        throw new ArgumentOutOfRangeException("Handler from URI should end with parameter, e.g. /MyClassName/{?}");
-                    }
-
-                    if (!toUri.EndsWith("/{?}")) {
-                        throw new ArgumentOutOfRangeException("Handler to URI should end with parameter, e.g. /MyClassName/{?}");
-                    }
-
-                    String processedFromUri = fromUri.Replace(Handle.UriParameterIndicator, "@l"),
-                        processedToUri = toUri.Replace(Handle.UriParameterIndicator, "@l");
-
-                    String toClassFullName = toUri.Substring(1).Substring(0, toUri.Length - 5),
-                        fromClassFullName = fromUri.Substring(1).Substring(0, fromUri.Length - 5);
 
                     if (null == Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", fromClassFullName).First) {
                         throw new ArgumentOutOfRangeException("From class name with given full name does not exist: " + fromClassFullName);
@@ -487,6 +473,12 @@ namespace Starcounter.Extensions {
                     if (null == Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", toClassFullName).First) {
                         throw new ArgumentOutOfRangeException("To class name with given full name does not exist: " + toClassFullName);
                     }
+
+                    String processedFromUri = "/" + fromClassFullName + "/@l", 
+                        processedToUri = "/" + toClassFullName + "/@l";
+
+                    String fromUri = "/" + fromClassFullName + "/{?}",
+                        toUri = "/" + toClassFullName + "/{?}";
 
                     HandlerOptions ho = new HandlerOptions() { HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel };
 
