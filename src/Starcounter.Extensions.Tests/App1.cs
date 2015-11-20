@@ -19,35 +19,35 @@ namespace App1 {
 
             StarcounterEnvironment.RunWithinApplication("App1", () => {
 
-                DbMapping.MapCreation("/App1.App1Person/{?}", "/SharedClasses.MySomebody/{?}", (UInt64 fromOid) => {
+                DbMapping.MapCreation("App1.App1Person", "SharedClasses.MySomebody", (UInt64 fromOid) => {
                     SharedClasses.MySomebody dst = new SharedClasses.MySomebody();
                     return dst.GetObjectNo(); // Newly created object ID.
                 });
 
-                DbMapping.MapCreation("/SharedClasses.MySomebody/{?}", "/App1.App1Person/{?}", (UInt64 fromOid) => {
+                DbMapping.MapCreation("SharedClasses.MySomebody", "App1.App1Person", (UInt64 fromOid) => {
                     App1.App1Person dst = new App1.App1Person();
                     return dst.GetObjectNo(); // Newly created object ID.
                 });
 
-                DbMapping.MapDeletion("/App1.App1Person/{?}", "/SharedClasses.MySomebody/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                DbMapping.MapDeletion("App1.App1Person", "SharedClasses.MySomebody", (UInt64 fromOid, UInt64 toOid) => {
                     SharedClasses.MySomebody dst = (SharedClasses.MySomebody)DbHelper.FromID(toOid);
                     if (dst != null)
                         dst.Delete();
                 });
 
-                DbMapping.MapDeletion("/SharedClasses.MySomebody/{?}", "/App1.App1Person/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                DbMapping.MapDeletion("SharedClasses.MySomebody", "App1.App1Person", (UInt64 fromOid, UInt64 toOid) => {
                     App1.App1Person dst = (App1.App1Person)DbHelper.FromID(toOid);
                     if (dst != null)
                         dst.Delete();
                 });
 
-                DbMapping.MapModification("/App1.App1Person/{?}", "/SharedClasses.MySomebody/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                DbMapping.MapModification("App1.App1Person", "SharedClasses.MySomebody", (UInt64 fromOid, UInt64 toOid) => {
                     App1.App1Person src = (App1.App1Person)DbHelper.FromID(fromOid);
                     SharedClasses.MySomebody dst = (SharedClasses.MySomebody)DbHelper.FromID(toOid);
                     dst.Name = src.FirstName + " " + src.LastName;
                 });
 
-                DbMapping.MapModification("/SharedClasses.MySomebody/{?}", "/App1.App1Person/{?}", (UInt64 fromOid, UInt64 toOid) => {
+                DbMapping.MapModification("SharedClasses.MySomebody", "App1.App1Person", (UInt64 fromOid, UInt64 toOid) => {
                     SharedClasses.MySomebody src = (SharedClasses.MySomebody)DbHelper.FromID(fromOid);
                     App1.App1Person dst = (App1.App1Person)DbHelper.FromID(toOid);
 
