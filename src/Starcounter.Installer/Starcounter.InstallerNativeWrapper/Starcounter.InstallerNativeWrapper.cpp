@@ -48,33 +48,33 @@ static bool IsNet45Installed()
 }
 
 /// <summary>
-/// Checks if CRT x64 installed.
+/// Checks if CRT installed.
 /// </summary>
 /// <returns>True if yes.</returns>
-static bool IsCRTx64Installed()
+static bool IsCRTInstalled(const wchar_t* key_path)
 {
-	const wchar_t* key_path = L"SOFTWARE\\Microsoft\\DevDiv\\VC\\Servicing\\14.0";
 	HKEY key = nullptr;
 
-	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
-	if (ERROR_SUCCESS == result)
-		return true;
+	// Trying to open needed registry path.
+	if (!RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key)) {
 
-	return false;
-}
+		DWORD type;
+		DWORD data_len;
+		DWORD data;
 
-/// <summary>
-/// Checks if CRT x86 installed.
-/// </summary>
-/// <returns>True if yes.</returns>
-static bool IsCRTx86Installed()
-{
-	const wchar_t* key_path = L"SOFTWARE\\Wow6432Node\\Microsoft\\DevDiv\\VC\\Servicing\\14.0";
-	HKEY key = nullptr;
+		// Checking if Installed property exists.
+		if (!RegQueryValueEx(key, L"Installed", NULL, &type, (BYTE*)&data, &data_len) != ERROR_SUCCESS) {
 
-	LONG result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key);
-	if (ERROR_SUCCESS == result)
-		return true;
+			// Checking correct type of data field.
+			if (REG_DWORD == type) {
+
+				// Checking that Installed propert is 1.
+				if (1 == data) {
+					return true;
+				}
+			}
+		}
+	}
 
 	return false;
 }
@@ -101,7 +101,7 @@ static int32_t RunAndWaitForProgram(const wchar_t* exe_path, const wchar_t* args
     
     if (show_window)
         process_info.nShow = SW_SHOW;
-
+	 
     process_info.hInstApp = 0;
 
     if (ShellExecuteEx(&process_info))
@@ -358,7 +358,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			goto SETUP_FAILED;
 
 		// Checking if VS CRT is installed.
-		if (!IsCRTx64Installed() || !IsCRTx86Installed())
+		if (!IsCRTInstalled(L"SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x86") ||
+			!IsCRTInstalled(L"SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64"))
 		{
 			MessageBox(
 				NULL,
