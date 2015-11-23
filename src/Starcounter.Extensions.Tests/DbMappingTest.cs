@@ -76,6 +76,23 @@ namespace DbMappingTest {
         public string Name;
     }
 
+    [Database]
+    public class Class1 {
+        public string Name;
+    }
+
+    [Database]
+    public class Class2 {
+        public string Name;
+    }
+
+    public class TestTemplatedMapping {
+
+        public static void Map() {
+            DbMapping.MapDefault<Class1, Class2>();
+        }
+    }
+
     public class TestCrossDeletion {
 
         public static void Map() {
@@ -633,6 +650,8 @@ namespace DbMappingTest {
             TestMapExisting.RunTest();
 
             ABCTestClass.RunTest();
+
+            TestTemplatedMapping.Map();
         }
     }
 }
