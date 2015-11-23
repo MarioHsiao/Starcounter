@@ -12,10 +12,16 @@ namespace Starcounter.TransactionLog
         ReadAfterPosition
     }
 
-    interface ILogReader
+    public class TransactionAndPosition
     {
-        IInputLogStream OpenLog(string path);
+        public ITransaction transaction;
+        public LogPosition position;
+    }
 
-        IInputLogStream OpenLog(string path, LogPosition position, LogPositionOptions position_options);
+    public interface ILogReader
+    {
+        IObservable<TransactionAndPosition> OpenLog(string path);
+
+        IObservable<TransactionAndPosition> OpenLog(string path, LogPosition position, LogPositionOptions position_options);
     }
 }

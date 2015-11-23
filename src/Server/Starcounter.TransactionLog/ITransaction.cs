@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Starcounter.TransactionLog
 {
-    public interface IInputLogStream : IDisposable
+    public interface ITransaction
     {
-        Task<int> ReadAsync(byte[] buffer, int offset, int count);
+        byte[] payload { get; }
+
+        //to do expose fields for filtering
     }
 }

@@ -42,9 +42,9 @@
   <ItemGroup>
     <Compile Include="ILogApplicator.cs" />
     <Compile Include="ILogReader.cs" />
-    <Compile Include="IInputLogStream.cs" />
     <Compile Include="LogPosition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ITransaction.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
