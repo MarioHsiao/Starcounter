@@ -25,7 +25,7 @@
 - Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
 - Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
 
-## [2.1.163] - 2015-10-14
+## [2.1.177] - 2015-10-14
 ### Changed
 - Removal of notion of Polyjuice and major refactoring around this. Full list of changes is here:
 [Starcounter.io blog](http://starcounter.io/nightly-changes/list-breaking-changes-starting-build-2-0-3500-3/)
