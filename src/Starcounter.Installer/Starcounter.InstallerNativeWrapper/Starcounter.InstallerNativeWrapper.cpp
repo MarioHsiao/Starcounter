@@ -53,26 +53,13 @@ static bool IsNet45Installed()
 /// <returns>True if yes.</returns>
 static bool IsCRTInstalled(const wchar_t* key_path)
 {
-	HKEY key = nullptr;
+	DWORD value = 0;
+	DWORD value_len = 4;
 
-	// Trying to open needed registry path.
-	if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ | KEY_WOW64_32KEY, &key)) {
-
-		DWORD type;
-		DWORD data_len;
-		DWORD data;
-
-		// Checking if Installed property exists.
-		if (ERROR_SUCCESS == RegQueryValueEx(key, L"Installed", NULL, &type, (BYTE*)&data, &data_len)) {
-
-			// Checking correct type of data field.
-			if (REG_DWORD == type) {
-
-				// Checking that Installed propert is 1.
-				if (1 == data) {
-					return true;
-				}
-			}
+	LONG result = RegGetValue(HKEY_LOCAL_MACHINE, key_path, L"Installed", RRF_RT_DWORD, NULL, &value, &value_len);
+	if (ERROR_SUCCESS == result) {
+		if (1 == value) {
+			return true;
 		}
 	}
 
