@@ -20,14 +20,15 @@
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    "gruntfile.js"
   ],
   "devDependencies": {},
-  "_release": "a21033cba9",
+  "_release": "618c52e9a7",
   "_resolution": {
     "type": "branch",
     "branch": "gh-pages",
-    "commit": "a21033cba96664d8ff484dffb57f47d6e68223b8"
+    "commit": "618c52e9a75148abfe709add6c47d6af35f896da"
   },
   "_source": "git://github.com/PuppetJs/JSON-Patch-OT.git",
   "_target": "gh-pages",
