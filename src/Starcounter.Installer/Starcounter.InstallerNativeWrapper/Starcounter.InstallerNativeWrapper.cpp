@@ -56,7 +56,7 @@ static bool IsCRTInstalled(const wchar_t* key_path)
 	HKEY key = nullptr;
 
 	// Trying to open needed registry path.
-	if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key)) {
+	if (ERROR_SUCCESS == RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ | KEY_WOW64_32KEY, &key)) {
 
 		DWORD type;
 		DWORD data_len;
