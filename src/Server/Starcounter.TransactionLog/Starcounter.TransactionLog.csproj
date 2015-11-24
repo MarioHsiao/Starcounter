@@ -11,6 +11,7 @@
     <AssemblyName>Starcounter.TransactionLog</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -41,10 +42,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ILogApplicator.cs" />
+    <Compile Include="ILogManager.cs" />
     <Compile Include="ILogReader.cs" />
     <Compile Include="LogPosition.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ITransaction.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -3,25 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Starcounter.TransactionLog
 {
-    public enum LogPositionOptions
+    public class ReadResult
     {
-        ReadFromPosition,
-        ReadAfterPosition
-    }
-
-    public class TransactionAndPosition
-    {
-        public ITransaction transaction;
         public LogPosition position;
+        public int bytes_read; //more than count if buffer is insufficient
     }
 
     public interface ILogReader
     {
-        IObservable<TransactionAndPosition> OpenLog(string path);
-
-        IObservable<TransactionAndPosition> OpenLog(string path, LogPosition position, LogPositionOptions position_options);
+        Task<ReadResult> ReadAsync(byte[] buffer, int offset, int count, CancellationToken ct);
     }
 }
