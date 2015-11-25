@@ -484,6 +484,40 @@ namespace Starcounter.CLI {
         }
 
         /// <summary>
+        /// Resolves any specified resource directories for a given application.
+        /// </summary>
+        /// <param name="args">CLI arguments</param>
+        /// <param name="applicationFilePath">The application file path</param>
+        /// <param name="dirs">Resource directories</param>
+        public static void ResolveResourceDirectories(ApplicationArguments args, string applicationFilePath, out string[] dirs) {
+            var paths = new List<string>();
+            
+            string spec;
+            if (args.TryGetProperty(SharedCLI.Option.ResourceDirectory, out spec)) {
+                var relativeBase = Path.GetDirectoryName(applicationFilePath);
+
+                var tokens = spec.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var token in tokens) {
+                    try {
+                        var candidate = Path.Combine(relativeBase, token);
+                        paths.Add(Path.GetFullPath(candidate));
+                    }
+                    catch (ArgumentException e) {
+                        var detail = string.Format(
+                            "Parameter --{0} contains an illegal element: '{1}', error: {2}", 
+                            SharedCLI.Option.ResourceDirectory, 
+                            token, 
+                            e.Message
+                        );
+                        throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, e, detail);
+                    }
+                }
+            }
+
+            dirs = paths.ToArray();
+        }
+
+        /// <summary>
         /// Writes the given output if the CLI context indicates
         /// it's in verbose mode.
         /// </summary>
