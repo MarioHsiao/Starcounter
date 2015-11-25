@@ -297,6 +297,12 @@ namespace Starcounter.VisualStudio.Projects {
                 arg.StringValue = parameter;
             }
 
+            string[] resDirs;
+            SharedCLI.ResolveResourceDirectories(args, exe.ApplicationFilePath, out resDirs);
+            foreach (var resDir in resDirs) {
+                exe.ResourceDirectories.Add().StringValue = resDir;
+            }
+
             // If the debugger is not attached, we run the executable
             // synchronously, meaning that the we will not regain control
             // until the whole code host boot sequence, including the
