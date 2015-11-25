@@ -36,31 +36,6 @@ namespace Starcounter.Administrator.Server.Handlers {
             StarcounterAdminAPI.Application_GET();
             //StarcounterAdminAPI.InstalledApplication_GET(port, appsRootFolder, appImagesSubFolder);
 
-            // Read Advanced settings file
-#if REMOTE_CONTROL
-            string advSettingsFile = System.IO.Path.Combine(appsRootFolder, "advancedsettings.json");
-            if (System.IO.File.Exists(advSettingsFile)) {
-                AdministratorLogSource.LogNotice("Reading advancedsettings.json");
-
-                try {
-                    Representations.JSON.AdvancedSettings settings = new Representations.JSON.AdvancedSettings();
-                    settings.PopulateFromJson(System.IO.File.ReadAllText(advSettingsFile));
-
-                    if (settings.RemoteAccess) {
-                        if (settings.RemoteAccessPort >= IPEndPoint.MinPort && settings.RemoteAccessPort <= IPEndPoint.MaxPort && settings.RemoteAccessPort != port) {
-                            // NOTE! This allows a remote computer to install/uninstall/update and start/stop applications
-                            StarcounterAdminAPI.ServerTaskHandler_POST((ushort)settings.RemoteAccessPort, appStoreHost, imageResourceFolder);
-                        }
-                    }
-                }
-                catch (Exception e) {
-                    AdministratorLogSource.LogException(e);
-                }
-            }
-
-            StarcounterAdminAPI.ServerTaskHandler_POST(port, appStoreHost, imageResourceFolder);
-#endif
-
             StarcounterAdminAPI.AppStore_GET(port);
 
             StarcounterAdminAPI.Database_GET(port, server);

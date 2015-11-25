@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="Advanced\DbEnvironment.cs" />
     <Compile Include="Advanced\ISetValueCallback.cs" />
+    <Compile Include="Application.cs" />
     <Compile Include="Apps\App.cs" />
     <Compile Include="Apps\GatewayHandlers.cs" />
     <Compile Include="Apps\OntologyAndOrdinaryMapping.cs" />
@@ -106,8 +107,11 @@
     <Compile Include="DbException.cs" />
     <Compile Include="Entity.cs" />
     <Compile Include="Entity.Implementation.cs" />
-    <Compile Include="Hosting\CodeHost.cs" />
+    <Compile Include="Hosting\ApplicationBase.cs" />
+    <Compile Include="Hosting\CodeHostExtensions.cs" />
+    <Compile Include="Hosting\DefaultHost.cs" />
     <Compile Include="Hosting\IApplicationHost.cs" />
+    <Compile Include="ICodeHost.cs" />
     <Compile Include="InheritsAttribute.cs" />
     <Compile Include="Internal\DatabaseObjectRetriever.cs" />
     <Compile Include="Internal\Map.cs" />
@@ -140,6 +144,7 @@
     <Compile Include="Internal\ThreadData.cs" />
     <Compile Include="Legacy\BoundClass.cs" />
     <Compile Include="Legacy\LegacyContext.cs" />
+    <Compile Include="Legacy\LegacyHostExtensions.cs" />
     <Compile Include="Legacy\LegacyRuntimeSupport.cs" />
     <Compile Include="Metadata\MetaBinder.cs" />
     <Compile Include="Metadata\MetadataEntity.cs" />
@@ -157,7 +162,11 @@
     <Compile Include="Mock\LogSources.cs" />
     <Compile Include="Mock\Reload.cs" />
     <Compile Include="Mock\Schema\DatabaseAttributeFlags.cs" />
+    <Compile Include="ObjectView\DefaultPropertyReader.cs" />
+    <Compile Include="ObjectView\ValueFormatter.cs" />
+    <Compile Include="ObjectView\ViewReader.cs" />
     <Compile Include="Page.cs" />
+    <Compile Include="Query\IQueryRowsResponse.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
     <Compile Include="TransactionManager.cs" />
@@ -447,6 +456,7 @@
   <ItemGroup>
     <Content Include="..\Starcounter.ErrorCodes\errorcodes.xml" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>$(SolutionDir)Starcounter.ErrorCodes\ErrorCodeCompiler\scerrcc.exe $(SolutionDir)Starcounter.ErrorCodes\errorcodes.xml -orangestdcs $(ProjectDir)Error.cs</PreBuildEvent>

@@ -8,10 +8,9 @@ namespace TestIApplicationHost {
     public class Program : IApplicationHost {
         static Application application = null;
         
-        public void HostApplication(CodeHost codeHost, Application app) {
+        public void HostApplication(Application app) {
             Trace.Assert(application == null);
             Trace.Assert(app != null);
-            Trace.Assert(codeHost != null);
             
             Console.WriteLine("Application host invoked on application: {0}", app);
             application = app;

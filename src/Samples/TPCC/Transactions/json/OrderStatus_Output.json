@@ -1,0 +1,18 @@
+{
+  $: { DataType: "tpcc.Transactions.OrderStatusTransaction.OutputData" },
+
+  "C_FIRST": "",
+  "C_BALANCE": 0.0,
+  "O_ID": 0,
+  "O_ENTRY_D": "",
+  "O_CARRIER_ID": 0,
+  "items": [
+    {
+      "OL_SUPPLY_W_ID": 0,
+      "OL_I_ID": 0,
+      "OL_QUANTITY": 0,
+      "OL_AMOUNT": 0.0,
+      "OL_DELIVERY_D": ""
+    }
+  ]
+}

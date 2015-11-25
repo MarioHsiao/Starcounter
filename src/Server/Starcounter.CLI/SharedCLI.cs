@@ -50,7 +50,7 @@ namespace Starcounter.CLI {
         /// Provides the name of the folder storing CLI utility applications.
         /// </summary>
         public const string CLIAppFolderName = "cli-apps";
-
+        
         /// <summary>
         /// Assures a given CLI context is properly initialized when it
         /// has been established it is to be used (i.e. when the calling
@@ -144,6 +144,14 @@ namespace Starcounter.CLI {
             /// executable to return.
             /// </summary>
             public const string Async = "async";
+
+            /// <summary>
+            /// Gets the option name of the parameter that specifies the
+            /// starting applications entrypoint should run in a write
+            /// transactions, as opposed to a readonly transaction, which
+            /// is the default.
+            /// </summary>
+            public const string TransactMain = "transact";
         }
 
         /// <summary>

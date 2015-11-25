@@ -24,6 +24,7 @@ namespace star {
         public const string Detailed = SharedCLI.Option.Detailed;
         public const string Logs = SharedCLI.Option.Logs;
         public const string Async = SharedCLI.Option.Async;
+        public const string TransactMain = SharedCLI.Option.TransactMain;
         public const string Syntax = "syntax";
         public const string NoColor = "nocolor";
         public const string CompileOnly = "sc-compile";

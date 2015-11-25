@@ -4623,6 +4623,17 @@
         as the application file.
       </message>
     </code>
+    <code hex="0014" severity="Error" name="ScErrCantAccessAppResourceDir">
+      <message>
+        Specified application resource directory is not accessible. Please check it existence and
+        correct access rights.
+      </message>
+    </code>
+    <code hex="0015" severity="Error" name="ScErrAppResourceDirIsOnNetworkDrive">
+      <message>
+        Seems that specified application resource directory is mapped to a network drive. 
+      </message>
+    </code>
   </facility>
 
     <!-- Error codes related to network gateway -->

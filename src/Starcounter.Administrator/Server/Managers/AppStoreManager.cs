@@ -23,11 +23,7 @@ namespace Administrator.Server.Managers {
     /// </summary>
     public class AppStoreManager {
 
-#if LOCAL_APPSTORE
-        static string appStoreHost = "http://127.0.0.1:8787";
-#else
-        static string appStoreHost = "http://appstore.polyjuice.com:8787";
-#endif
+        public static string AppStoreServerHost;
 
         static Object lockObject_ = new Object();
 
@@ -41,7 +37,7 @@ namespace Administrator.Server.Managers {
 
             lock (lockObject_) {
 
-                if (string.IsNullOrEmpty(AppStoreManager.appStoreHost)) {
+                if (string.IsNullOrEmpty(AppStoreManager.AppStoreServerHost)) {
 
                     if (errorCallback != null) {
                         errorCallback("Configuration error, Unknown App Store host");
@@ -53,7 +49,7 @@ namespace Administrator.Server.Managers {
 
                     Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
 
-                    Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
+                    Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
 
                         try {
 
@@ -102,7 +98,7 @@ namespace Administrator.Server.Managers {
 
             Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
 
-            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, 10000);
+            Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10000);
 
             if (!response.IsSuccessStatusCode) {
                 StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0002] GetApplications(): StatusCode:" + response.StatusCode);
@@ -133,10 +129,10 @@ namespace Administrator.Server.Managers {
 
             foreach (var remoteStore in remoteAppStoreItems.Stores) {
 
-                string id = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
+                string id = RestUtils.GetHashString("http://" + AppStoreManager.AppStoreServerHost + remoteStore.ID);
                 if (store.ID != id) continue;
 
-                string storeUrl = AppStoreManager.appStoreHost + "/appstore/stores/" + remoteStore.ID;    // TODO: Strange url
+                string storeUrl = "http://" + AppStoreManager.AppStoreServerHost + "/appstore/stores/" + remoteStore.ID;    // TODO: Strange url
 
                 foreach (var remoteApp in remoteStore.Items) {
 
@@ -165,7 +161,7 @@ namespace Administrator.Server.Managers {
                 Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
 //                Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/appstore.polyjuice.apps-v2+json,application/json" } };
 
-                Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
+                Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
 
                     if (response.IsSuccessStatusCode) {
                         if (completionCallback != null) {
@@ -200,7 +196,7 @@ namespace Administrator.Server.Managers {
 
             Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
 
-            Response response = Http.GET(AppStoreManager.appStoreHost + "/appstore/apps", headers, 10000);
+            Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10000);
 
             if (!response.IsSuccessStatusCode) {
                 StarcounterAdminAPI.AdministratorLogSource.Debug("[AppStore 0004] GetStores(): StatusCode:" + response.StatusCode);
@@ -229,7 +225,7 @@ namespace Administrator.Server.Managers {
             foreach (var remoteStore in remoteAppStoreItems.Stores) {
 
                 AppStoreStore store = new AppStoreStore();
-                store.ID = RestUtils.GetHashString(AppStoreManager.appStoreHost + remoteStore.ID);
+                store.ID = RestUtils.GetHashString("http://" + AppStoreManager.AppStoreServerHost + remoteStore.ID);
                 store.DisplayName = remoteStore.DisplayName;
                 stores.Add(store);
             }

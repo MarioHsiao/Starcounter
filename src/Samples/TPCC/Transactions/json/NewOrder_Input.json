@@ -1,0 +1,17 @@
+{
+  $: { DataType: "tpcc.Transactions.NewOrderTransaction.InputData" },
+
+  "W_ID": 0,
+  "D_ID": 0,
+  "C_ID": 0,
+  "OL_CNT": 0,
+  "items": [
+    {
+      "OL_I_ID": 0,
+      "OL_SUPPLY_W_ID": 0,
+      "OL_QUANTITY": 0
+    }
+  ],
+
+  "O_ENTRY_D": ""
+}

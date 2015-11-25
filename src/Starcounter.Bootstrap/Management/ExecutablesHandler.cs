@@ -3,6 +3,7 @@ using Starcounter.Advanced;
 using Starcounter.Bootstrap.Management.Representations.JSON;
 using StarcounterInternal.Hosting;
 using System;
+using Starcounter.Hosting;
 
 namespace Starcounter.Bootstrap.Management {
     /// <summary>
@@ -41,23 +42,15 @@ namespace Starcounter.Bootstrap.Management {
                 userArgs[i++] = arg.dummy;
             }
             
-            // Ask the loader to execute the given executable.
-            // If this fails, the process can't really survive since
-            // we have no way to clean up the loaded domain from the
-            // failing code.
-            //   Eventually, we will have a strategy to restart the
-            // host without the now failing executable.
+            var app = new ApplicationBase(
+                exe.Name, 
+                exe.ApplicationFilePath, exe.PrimaryFile, exe.WorkingDirectory, userArgs
+            );
+            app.HostedFilePath = exe.Path;
+            app.TransactEntrypoint = exe.TransactEntrypoint;
+
             try {
-                Loader.ExecuteApplication(
-                    schedulerHandle,
-                    exe.Name,
-                    exe.ApplicationFilePath,
-                    exe.PrimaryFile,
-                    exe.Path,
-                    exe.WorkingDirectory,
-                    userArgs,
-                    !exe.RunEntrypointAsynchronous
-                );
+                Loader.ExecuteApplication(schedulerHandle, app, !exe.RunEntrypointAsynchronous);
             } catch (Exception e) {
                 if (!ExceptionManager.HandleUnhandledException(e)) throw;
             }

@@ -1007,7 +1007,7 @@ namespace Administrator.Server.Model {
             application.SourceID = item.SourceID;
             application.SourceUrl = item.SourceUrl;
             application.CanBeUninstalled = item.CanBeUninstalled;
-            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetDeployFolder(database.ID)));
+            application.ID = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(application.DatabaseName + item.GetExecutableFullPath(DeployManager.GetRawDeployFolder(database.ID)));
             return application;
         }
 

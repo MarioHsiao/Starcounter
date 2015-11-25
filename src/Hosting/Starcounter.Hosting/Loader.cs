@@ -105,35 +105,20 @@ namespace StarcounterInternal.Hosting
         /// Executes an application in the code host.
         /// </summary>
         /// <param name="hsched">Handle to the environment.</param>
-        /// <param name="applicationName">The name of the application.</param>
-        /// <param name="applicationFile">The application file as specified by
-        /// the user, requesting the application to be started.</param>
-        /// <param name="applicationBinaryFile">A compiled version of the
-        /// application file.</param>
-        /// <param name="applicationHostFile">The path to the binary that are
-        /// actually to be loaded (i.e. the assembly).</param>
-        /// <param name="workingDirectory">The application working directory.</param>
-        /// <param name="entrypointArguments">Arguments to be passed to the
-        /// application entrypoint, if one exist.</param>
+        /// <param name="appBase">The application to execute.</param>
         /// <param name="execEntryPointSynchronously">Indicates if the entrypoint
         /// should be executed synchrounously, i.e. before this method return.</param>
         /// <param name="stopwatch">An optional stopwatch to use for timing.</param>
         public static unsafe void ExecuteApplication(
             void* hsched,
-            string applicationName,
-            string applicationFile,
-            string applicationBinaryFile,
-            string applicationHostFile,
-            string workingDirectory,
-            string[] entrypointArguments,
+            ApplicationBase appBase,
             bool execEntryPointSynchronously = false,
             Stopwatch stopwatch = null) {
 
-            var application = new Application(applicationName, applicationFile, applicationBinaryFile, applicationHostFile, workingDirectory, entrypointArguments);
-
             stopwatch_ = stopwatch ?? Stopwatch.StartNew();
-
             OnLoaderStarted();
+
+            var application = new Application(appBase, DefaultHost.Current);
 
             var filePath = application.HostedFilePath;
             try {
@@ -164,7 +149,7 @@ namespace StarcounterInternal.Hosting
 
             OnTargetAssemblyLoaded();
 
-            Package package = new Package(
+            var package = new Package(
                 typeDefs.ToArray(),
                 stopwatch_,
                 assembly,
@@ -213,9 +198,8 @@ namespace StarcounterInternal.Hosting
             } finally {
                 stopwatch_ = null;
             }
-
         }
-
+        
         private static void OnLoaderStarted() { Trace("Loader started."); }
         private static void OnInputVerifiedAndAssemblyResolverUpdated() { Trace("Input verified and assembly resolver updated."); }
         private static void OnSchemaVerifiedAndLoaded() { Trace("Schema verified and loaded."); }

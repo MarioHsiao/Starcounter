@@ -65,6 +65,30 @@ namespace Starcounter.Administrator.Server {
             ServerInfo serverInfo = Program.ServerInterface.GetServerInfo();
             LogApp.Setup(serverInfo.Configuration.LogDirectory);
 
+
+            // Override default appstore host
+            AppStoreManager.AppStoreServerHost = StarcounterEnvironment.InternetAddresses.DefaultAppStoreHost;
+            string appStoreHostFile = System.IO.Path.Combine(Program.ResourceFolder, StarcounterEnvironment.FileNames.OverrideAppStoreHost);
+            if (System.IO.File.Exists(appStoreHostFile)) {
+                try {
+
+                    string appStoreHost = System.IO.File.ReadAllText(appStoreHostFile);
+                    if (appStoreHost != null) {
+                        appStoreHost = appStoreHost.Replace("\r\n", string.Empty).Replace("\n", string.Empty).Replace("\r", string.Empty).Trim();
+                        if (ValidateHost(appStoreHost)) {
+                            AppStoreManager.AppStoreServerHost = appStoreHost;
+                        }
+                        else {
+                            StarcounterAdminAPI.AdministratorLogSource.LogWarning("Invalid settings for the appstore host in file " + appStoreHostFile + ". Supported format is host[:port]");
+                        }
+                    }
+                }
+                catch (Exception e) {
+
+                    StarcounterAdminAPI.AdministratorLogSource.LogException(e, "Failed to read appstore settings host file");
+                }
+            }
+
             // Register and setup the API subsystem handlers
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
@@ -262,6 +286,36 @@ namespace Starcounter.Administrator.Server {
 
         }
 
-    }
+        /// <summary>
+        /// Validate host and/or port string
+        /// </summary>
+        /// <param name="host">String with host and/or port 'mydomain.com:8080</param>
+        /// <returns></returns>
+        private static bool ValidateHost(string host) {
 
+            if (string.IsNullOrEmpty(host)) return false;
+
+            string[] parts = host.Split(':');
+
+            UriHostNameType hTyp = Uri.CheckHostName(parts[0]);
+            if (hTyp == UriHostNameType.Unknown) {
+                return false;
+            }
+
+            if (parts.Length > 1) {
+                int port;
+                if (int.TryParse(parts[1], out port)) {
+                    if (port > IPEndPoint.MaxPort || port < IPEndPoint.MinPort) {
+                        return false;
+                    }
+                }
+                else {
+                    // Invalid port
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
 }

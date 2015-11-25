@@ -10,6 +10,7 @@ namespace Starcounter.Internal.Weaver {
     internal class DatabaseTypePolicy {
         DatabaseTypeConfiguration config;
         IType databaseAttributeType;
+        IType transientAttributeType;
 
         /// <summary>
         /// Gets the underlying <see cref="DatabaseTypeConfiguration"/> influencing
@@ -21,18 +22,31 @@ namespace Starcounter.Internal.Weaver {
             }
         }
 
-        public DatabaseTypePolicy(DatabaseTypeConfiguration typeConfiguration, IType databaseAttribute) {
+        public DatabaseTypePolicy(DatabaseTypeConfiguration typeConfiguration, IType databaseAttribute, IType transientAttribute) {
             config = typeConfiguration;
             databaseAttributeType = databaseAttribute;
+            transientAttributeType = transientAttribute;
         }
 
         public bool IsDatabaseType(TypeDefDeclaration typeDef) {
-            if (config.IsConfiguredDatabaseType(typeDef.Name)) {
-                if (typeDef.IsPublic()) {
+            // Explicit transient attribute overrides everything else
+            var transient = IsTaggedWithTransientAttribute(typeDef);
+            if (transient) return false;
+
+            // For public types, we allow them to be database classes by
+            // means of configuration / assembly level constructs. Check
+            // that first.
+            if (typeDef.IsPublic()) {
+                if (IsInDatabaseAttributeAssembly(typeDef)) {
+                    return true;
+                }
+
+                if (config.IsConfiguredDatabaseType(typeDef.Name)) {
                     return true;
                 }
             }
-
+            
+            // Finally the standard path
             return IsTaggedWithDatabaseAttribute(typeDef);
         }
 
@@ -56,6 +70,10 @@ namespace Starcounter.Internal.Weaver {
             });
         }
 
+        bool IsInDatabaseAttributeAssembly(TypeDefDeclaration typeDef) {
+            return typeDef.Module.AssemblyManifest.CustomAttributes.Contains(databaseAttributeType);
+        }
+
         bool IsTaggedWithDatabaseAttribute(TypeDefDeclaration typeDef) {
             var cursor = typeDef;
             while (!cursor.CustomAttributes.Contains(databaseAttributeType)) {
@@ -66,6 +84,32 @@ namespace Starcounter.Internal.Weaver {
                 }
             }
             return true;
+        }
+
+        bool IsTaggedWithTransientAttribute(TypeDefDeclaration typeDef) {
+            var cursor = typeDef;
+            while (!TypeOrInterfacesTransient(typeDef)) {
+                if (cursor.BaseType != null) {
+                    cursor = cursor.BaseType.GetTypeDefinition();
+                } else {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool TypeOrInterfacesTransient(TypeDefDeclaration typeDef) {
+            var transient = typeDef.CustomAttributes.Contains(transientAttributeType);
+            if (!transient) {
+                var interfaces = typeDef.InterfaceImplementations;
+                if (interfaces != null) {
+                    transient = interfaces.Any((i) => {
+                        var interfaceType = i.ImplementedInterface.GetTypeDefinition(BindingOptions.Default | BindingOptions.DontThrowException);
+                        return interfaceType != null && interfaceType.CustomAttributes.Contains(transientAttributeType);
+                    });
+                }
+            }
+            return transient;
         }
     }
 }
