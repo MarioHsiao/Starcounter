@@ -60,7 +60,7 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
         $scope.database.RefreshAppStoreStores$++;
     }
 	
-	$scope.defaultVisibleStores = ["Developer Samples", "Essentials"];
+	$scope.defaultVisibleStores = ["Developer Samples", "Essentials", "polyjuice", "smörgåsbord", "starcounter"];
 	
 	window.addVisibleStore = function() {
 		$scope.defaultVisibleStores.push.apply($scope.defaultVisibleStores, arguments);
