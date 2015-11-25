@@ -81,7 +81,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                                     if (appInfo.Arguments != null) {
                                         foreach (string arg in appInfo.Arguments) {
                                             var item = executable.Arguments.Add();
-                                            item.dummy = arg;
+                                            item.StringValue = arg;
                                         }
                                     }
                                     result.Items.Add(executable);

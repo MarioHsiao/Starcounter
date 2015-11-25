@@ -38,8 +38,8 @@ namespace Starcounter.Bootstrap.Management {
 
 			int i = 0;
             string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
-			foreach (Executable.ArgumentsElementJson arg in exe.Arguments) { 
-                userArgs[i++] = arg.dummy;
+			foreach (var arg in exe.Arguments) {
+                userArgs[i++] = arg.StringValue;
             }
             
             var app = new ApplicationBase(

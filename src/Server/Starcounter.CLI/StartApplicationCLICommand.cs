@@ -245,7 +245,7 @@ namespace Starcounter.CLI {
             exe.TransactEntrypoint = args.ContainsFlag(Option.TransactMain);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
-                    exe.Arguments.Add().dummy = arg;
+                    exe.Arguments.Add().StringValue = arg;
                 }
             }
 

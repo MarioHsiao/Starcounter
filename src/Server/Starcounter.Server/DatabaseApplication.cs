@@ -84,7 +84,8 @@ namespace Starcounter.Server {
             exe.WorkingDirectory = this.Info.WorkingDirectory;
             if (this.Info.Arguments != null) {
                 foreach (var argument in this.Info.Arguments) {
-                    exe.Arguments.Add().dummy = argument;
+                    var arg = exe.Arguments.Add();
+                    arg.StringValue = argument;
                 }
             }
             exe.RunEntrypointAsynchronous = this.IsStartedWithAsyncEntrypoint;

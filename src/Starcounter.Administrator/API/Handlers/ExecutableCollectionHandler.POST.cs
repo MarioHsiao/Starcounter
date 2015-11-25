@@ -106,7 +106,7 @@ namespace Starcounter.Administrator.API.Handlers {
 //            exeCreated.Arguments = exe.Arguments;
             foreach (var arg in exe.Arguments) {
                 var newArg = exeCreated.Arguments.Add();
-                newArg.dummy = arg.dummy;
+                newArg.StringValue = arg.StringValue;
             }
 
             exeCreated.AsyncEntrypoint = exe.AsyncEntrypoint;
@@ -119,8 +119,8 @@ namespace Starcounter.Administrator.API.Handlers {
         static AppInfo ToApplicationInfo(this Executable exe) {
             int i = 0;
             string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
-            foreach (Executable.ArgumentsElementJson arg in exe.Arguments) {
-                userArgs[i++] = arg.dummy;
+            foreach (var arg in exe.Arguments) {
+                userArgs[i++] = arg.StringValue;
             }
             
             var app = new AppInfo(
