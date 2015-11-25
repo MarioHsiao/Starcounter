@@ -76,11 +76,15 @@ namespace Starcounter.CLI {
             string appName;
             string workingDirectory;
             string databaseName;
-            ResolveWorkingDirectory(args, out workingDirectory);
-            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
-            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
+            string[] resourceDirectories;
 
             SharedCLI.ResolveDatabase(args, out databaseName);
+            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
+            SharedCLI.ResolveResourceDirectories(args, applicationFilePath, out resourceDirectories);
+            ResolveWorkingDirectory(args, out workingDirectory);
+
+            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
+            app.ResourceDirectories.AddRange(resourceDirectories);
 
             var command = new StartApplicationCLICommand(app) {
                 DatabaseName = databaseName,
@@ -242,6 +246,9 @@ namespace Starcounter.CLI {
                 foreach (var arg in userArgs) {
                     exe.Arguments.Add().StringValue = arg;
                 }
+            }
+            foreach (var resDir in app.ResourceDirectories) {
+                exe.ResourceDirectories.Add().StringValue = resDir;
             }
 
             var responded = new ManualResetEvent(false);
