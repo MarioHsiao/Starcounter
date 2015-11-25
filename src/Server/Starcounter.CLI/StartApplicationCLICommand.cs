@@ -96,12 +96,7 @@ namespace Starcounter.CLI {
         }
 
         static void ResolveWorkingDirectory(ApplicationArguments args, out string workingDirectory) {
-            string dir;
-            if (!args.TryGetProperty(Option.ResourceDirectory, out dir)) {
-                dir = Environment.CurrentDirectory;
-            }
-            workingDirectory = dir;
-            workingDirectory = Path.GetFullPath(workingDirectory);
+            workingDirectory = Path.GetFullPath(Environment.CurrentDirectory);
         }
 
         void Initialize() {
