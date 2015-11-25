@@ -57,5 +57,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Management" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="loadandlatency_test.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

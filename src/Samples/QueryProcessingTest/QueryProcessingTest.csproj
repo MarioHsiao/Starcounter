@@ -77,7 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="run_queryprocessingtest.bat">
+    <None Include="queryprocessing_test.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="secondrun.bat">

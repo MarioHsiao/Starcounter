@@ -31,8 +31,6 @@
     
     <PrologSQLParserBinary Include="..\Starcounter\Query\PrologBinary\scsqlparser.exe" />
     <ClangGatewayUriMatcherBinary Include="..\scllvm\scllvm.dll" />
-    
-    <TestRunScripts Include="..\Samples\LoadAndLatency\run_loadandlatency_test.bat;..\Samples\SqlCacheTrasher\run_sqlcachetrasher_test.bat;..\Samples\PolePosition\run_poleposition_test.bat" />
 
     <LocalServiceConfig Include="..\scservicelib\config\$(ServiceConfigFile)" />
     
@@ -65,7 +63,6 @@
   <Target Name="CopyLocalFiles" DependsOnTargets="BuildLevel0" >
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(KillAllScript)" DestinationFolder="$(OutputPath)" />
 	<Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ChangeLog)" DestinationFolder="$(OutputPath)" />
-    <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(TestRunScripts)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(GatewayXMLs)" DestinationFolder="$(OutputPath)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(PrologSQLParserBinary)" DestinationFolder="$(OutputPath32)" />
     <Copy SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(ClangGatewayUriMatcherBinary)" DestinationFolder="$(OutputPath)" />

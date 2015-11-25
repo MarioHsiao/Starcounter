@@ -5,7 +5,7 @@ IF "%SC_RUN_UDP_TEST%"=="False" GOTO :EOF
 staradmin kill all
 
 :: Starting NetworkIoTest in background.
-star.exe s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
+star.exe "%StarcounterBin%\s\NetworkIoTest\NetworkIoTest.exe" DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
 
 :: Doing the client part of the test.
 UdpTest.exe --DatagramSize=10

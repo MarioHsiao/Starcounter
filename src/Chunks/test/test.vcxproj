@@ -99,7 +99,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="run_ipc_test.bat">
+    <None Include="ipc_test.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

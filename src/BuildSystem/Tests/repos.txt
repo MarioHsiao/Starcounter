@@ -1,0 +1,2 @@
+https://github.com/Starcounter/PokerDemo.git %GIT_POKERDEMO_BRANCH%
+git@github.com:Starcounter/RetailDemo.git %GIT_RETAILDEMO_BRANCH%

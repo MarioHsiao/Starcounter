@@ -1,0 +1,34 @@
+# Solutions to skip building
+Level1.sln
+Level0.sln
+Blue.sln
+SqlProcessor.sln
+BuildSystemCode.sln
+PostSharp-2.1.sln
+PokerDemo.sln
+Starcounter.ErrorCodes.sln
+Simplified.sln
+SocietyObjects.sln
+Starcounter.InstallerNativeWrapper.sln
+App1.sln
+scllvm.sln
+Starcounter.ErrorCodes.sln
+Starcounter.InstallerWPF.sln
+AggrHttpClient.sln
+GoodTimes.sln
+Starcounter.TrayIcon.sln
+
+
+# Tests to skip running.
+Level1\src\Samples\LoadAndLatency\loadandlatency_test.bat
+Level1\src\Samples\IndexQueryTest\indexquery_test.bat
+Level1\src\Samples\QueryProcessingTest\queryprocessing_test.bat
+Level1\src\Samples\SQLTest\sqlregression_test.bat
+Level1\src\Samples\TPCC\tpcc_long_test.bat
+poleposition_test.bat
+node_proxy_test.bat
+sqlcachetrasher_test.bat
+ipc_test.bat
+node_test.bat
+node_test_loop.bat
+node_looped_proxy_test.bat
