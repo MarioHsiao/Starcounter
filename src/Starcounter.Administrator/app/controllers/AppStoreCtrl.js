@@ -59,6 +59,13 @@ var appCtrl = adminModule.controller('AppStoreCtrl', ['$scope', '$routeParams', 
 
         $scope.database.RefreshAppStoreStores$++;
     }
+	
+	$scope.defaultVisibleStores = ["Developer Samples", "Essentials"];
+	
+	window.addVisibleStore = function() {
+		$scope.defaultVisibleStores.push.apply($scope.defaultVisibleStores, arguments);
+		$scope.$apply();
+	};
 
     // Set Data
     $scope.database = HostModelService.getDatabase($routeParams.name);
