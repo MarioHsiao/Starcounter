@@ -1,6 +1,6 @@
 /*!
  * https://github.com/Starcounter-Jack/JSON-Patch
- * json-patch-duplex.js version: 0.5.5
+ * json-patch-duplex.js version: 0.5.6
  * (c) 2013 Joachim Wester
  * MIT license
  */
@@ -27,7 +27,13 @@ module jsonpatch {
 
   var _objectKeys = function (obj) {
     if (_isArray(obj)) {
-      return Array.apply(null, { length: obj.length }).map(function (e, i, a) { return i.toString(); });
+      var keys = new Array(obj.length);
+
+      for (var i = 0; i < keys.length; i++) {
+        keys[i] = i.toString();
+      }
+
+      return keys;
     }
 
     if (Object.keys) {

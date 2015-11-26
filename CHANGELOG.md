@@ -1,5 +1,5 @@
 ## [Unreleased][unreleased]
-### Changed
+### Added
 - New staradmin command `staradmin start server`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
 - New staradmin command `staradmin start database`, as requested in [#2950](https://github.com/Starcounter/Starcounter/issues/2950) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/). By default, this command also automatically create the specified database if it does not exist.
 - Support for new command `staradmin new db` allowing simple creation of databases from the command-line, as requested in [#2973](https://github.com/Starcounter/Starcounter/issues/2973) and documented at [staradmin CLI](http://starcounter.io/guides/tools/staradmin/).
@@ -8,10 +8,10 @@
 - New feature: assembly level [Database] declaration, [#3005](https://github.com/Starcounter/Starcounter/issues/3005).
 - Simplifications when passing source code to `star.exe`, [#3004](https://github.com/Starcounter/Starcounter/issues/3004) and [#3011](https://github.com/Starcounter/Starcounter/issues/3011).
 - Introduced support for transacted entrypoints with `star --transact`, [#3008](https://github.com/Starcounter/Starcounter/issues/3008).
-- Native code binaries are switched to use Visual Studio 2015 CRT. Installer now contains CRT setups that are installed in the system, if not present. The installer size increased because of that.
 - Introduced simple built-in dependency injection into Starcounter and in the code host in particular, enabled by IServices and IServiceContainer, outlined by [#3017](https://github.com/Starcounter/Starcounter/issues/3017)
 - Added support for first *extension point* in Starcounter, based on new `IQueryRowsResponse` interface as issued in [#3016](https://github.com/Starcounter/Starcounter/issues/3016)
 - Introduced a small suite of classes allowing simple **iteration of property values** using class `ViewReader`, described in [#3033](https://github.com/Starcounter/Starcounter/issues/3033).
+- Upgraded client side libraries (list of current versions available in src/BuildSystem/ClientFiles/bower-list.txt)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
@@ -24,7 +24,7 @@
 - Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
 - Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
 
-## [2.1.163] - 2015-10-14
+## [2.1.177] - 2015-10-14
 ### Changed
 - Removal of notion of Polyjuice and major refactoring around this. Full list of changes is here:
 [Starcounter.io blog](http://starcounter.io/nightly-changes/list-breaking-changes-starting-build-2-0-3500-3/)

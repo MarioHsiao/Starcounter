@@ -53,26 +53,13 @@ static bool IsNet45Installed()
 /// <returns>True if yes.</returns>
 static bool IsCRTInstalled(const wchar_t* key_path)
 {
-	HKEY key = nullptr;
+	DWORD value = 0;
+	DWORD value_len = 4;
 
-	// Trying to open needed registry path.
-	if (!RegOpenKeyEx(HKEY_LOCAL_MACHINE, key_path, 0, KEY_READ, &key)) {
-
-		DWORD type;
-		DWORD data_len;
-		DWORD data;
-
-		// Checking if Installed property exists.
-		if (!RegQueryValueEx(key, L"Installed", NULL, &type, (BYTE*)&data, &data_len) != ERROR_SUCCESS) {
-
-			// Checking correct type of data field.
-			if (REG_DWORD == type) {
-
-				// Checking that Installed propert is 1.
-				if (1 == data) {
-					return true;
-				}
-			}
+	LONG result = RegGetValue(HKEY_LOCAL_MACHINE, key_path, L"Installed", RRF_RT_DWORD, NULL, &value, &value_len);
+	if (ERROR_SUCCESS == result) {
+		if (1 == value) {
+			return true;
 		}
 	}
 
@@ -358,8 +345,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			goto SETUP_FAILED;
 
 		// Checking if VS CRT is installed.
-		if (!IsCRTInstalled(L"SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x86") ||
-			!IsCRTInstalled(L"SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64"))
+		if (!IsCRTInstalled(L"SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x86") ||
+			!IsCRTInstalled(L"SOFTWARE\\Microsoft\\VisualStudio\\14.0\\VC\\Runtimes\\x64"))
 		{
 			MessageBox(
 				NULL,

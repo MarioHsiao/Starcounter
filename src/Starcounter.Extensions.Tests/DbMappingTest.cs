@@ -76,55 +76,72 @@ namespace DbMappingTest {
         public string Name;
     }
 
+    [Database]
+    public class Class1 {
+        public string Name;
+    }
+
+    [Database]
+    public class Class2 {
+        public string Name;
+    }
+
+    public class TestTemplatedMapping {
+
+        public static void Map() {
+            DbMapping.MapDefault<Class1, Class2>();
+        }
+    }
+
     public class TestCrossDeletion {
 
         public static void Map() {
 
-            DbMapping.MapCreation("/DbMappingTest.PrivateClassA/{?}", "/DbMappingTest.OtherClassA/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.PrivateClassA", "DbMappingTest.OtherClassA", (UInt64 fromOid) => {
                 OtherClassA dst = new OtherClassA();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapCreation("/DbMappingTest.OtherClassA/{?}", "/DbMappingTest.PrivateClassA/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.OtherClassA", "DbMappingTest.PrivateClassA", (UInt64 fromOid) => {
                 PrivateClassA dst = new PrivateClassA();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapCreation("/DbMappingTest.PrivateClassB/{?}", "/DbMappingTest.OtherClassB/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.PrivateClassB", "DbMappingTest.OtherClassB", (UInt64 fromOid) => {
                 OtherClassB dst = new OtherClassB();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapCreation("/DbMappingTest.OtherClassB/{?}", "/DbMappingTest.PrivateClassB/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.OtherClassB", "DbMappingTest.PrivateClassB", (UInt64 fromOid) => {
                 PrivateClassB dst = new PrivateClassB();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.PrivateClassA/{?}", "/DbMappingTest.OtherClassA/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.PrivateClassA", "DbMappingTest.OtherClassA", (UInt64 fromOid, UInt64 toOid) => {
                 OtherClassA dst = (OtherClassA)DbHelper.FromID(toOid);
                 if (dst != null)
                     dst.Delete();
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.OtherClassA/{?}", "/DbMappingTest.PrivateClassA/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.OtherClassA", "DbMappingTest.PrivateClassA", (UInt64 fromOid, UInt64 toOid) => {
                 PrivateClassA dst = (PrivateClassA)DbHelper.FromID(toOid);
                 if (dst != null)
                     dst.Delete();
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.PrivateClassB/{?}", "/DbMappingTest.OtherClassB/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.PrivateClassB", "DbMappingTest.OtherClassB", (UInt64 fromOid, UInt64 toOid) => {
                 OtherClassB dst = (OtherClassB)DbHelper.FromID(toOid);
                 if (dst != null)
                     dst.Delete();
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.OtherClassB/{?}", "/DbMappingTest.PrivateClassB/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.OtherClassB", "DbMappingTest.PrivateClassB", (UInt64 fromOid, UInt64 toOid) => {
                 PrivateClassB dst = (PrivateClassB)DbHelper.FromID(toOid);
                 if (dst != null)
                     dst.Delete();
             });
 
-            DbMapping.MapModification("/DbMappingTest.PrivateClassA/{?}", "/DbMappingTest.OtherClassA/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("DbMappingTest.PrivateClassA", "DbMappingTest.OtherClassA", (UInt64 fromOid, UInt64 toOid) => {
                 PrivateClassA src = (PrivateClassA)DbHelper.FromID(fromOid);
                 OtherClassA dst = (OtherClassA)DbHelper.FromID(toOid);
                 dst.Name = src.Name;
@@ -136,14 +153,14 @@ namespace DbMappingTest {
                 }
             });
 
-            DbMapping.MapModification("/DbMappingTest.PrivateClassB/{?}", "/DbMappingTest.OtherClassB/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("DbMappingTest.PrivateClassB", "DbMappingTest.OtherClassB", (UInt64 fromOid, UInt64 toOid) => {
                 PrivateClassB src = (PrivateClassB)DbHelper.FromID(fromOid);
                 OtherClassB dst = (OtherClassB)DbHelper.FromID(toOid);
                 dst.Name = src.Name;
             });
 
 
-            DbMapping.MapModification("/DbMappingTest.OtherClassB/{?}", "/DbMappingTest.PrivateClassB/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("DbMappingTest.OtherClassB", "DbMappingTest.PrivateClassB", (UInt64 fromOid, UInt64 toOid) => {
                 OtherClassB src = (OtherClassB)DbHelper.FromID(fromOid);
                 PrivateClassB dst = (PrivateClassB)DbHelper.FromID(toOid);
                 dst.Name = src.Name;
@@ -216,56 +233,56 @@ namespace DbMappingTest {
 
         public static void Map() {
 
-            DbMapping.MapCreation("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.NameClass1", "DbMappingTest.NameClass2", (UInt64 fromOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass2 dst = new NameClass2();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapCreation("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.NameClass1", "DbMappingTest.NameClass3", (UInt64 fromOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass3 dst = new NameClass3();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapCreation("/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid) => {
+            DbMapping.MapCreation("DbMappingTest.NameClass3", "DbMappingTest.NameClass4", (UInt64 fromOid) => {
                 NameClass3 src = (NameClass3)DbHelper.FromID(fromOid);
                 NameClass4 dst = new NameClass4();
                 return dst.GetObjectNo(); // Newly created object ID.
             });
 
-            DbMapping.MapModification("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("DbMappingTest.NameClass1", "DbMappingTest.NameClass2", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass2 dst = (NameClass2)DbHelper.FromID(toOid);
                 dst.FullName = src.FirstName + " " + src.LastName;
                 dst.YoungerAge = src.Age - 5;
             });
 
-            DbMapping.MapModification("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("DbMappingTest.NameClass1", "DbMappingTest.NameClass3", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass1 src = (NameClass1)DbHelper.FromID(fromOid);
                 NameClass3 dst = (NameClass3)DbHelper.FromID(toOid);
                 dst.FirstName = src.FirstName;
                 dst.OlderAge = src.Age + 5;
             });
 
-            DbMapping.MapModification("/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapModification("DbMappingTest.NameClass3", "DbMappingTest.NameClass4", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass3 src = (NameClass3)DbHelper.FromID(fromOid);
                 NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
                 dst.FirstName = "Haha" + src.FirstName;
                 dst.Age = src.OlderAge - 5;
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass2/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.NameClass1", "DbMappingTest.NameClass2", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass2 dst = (NameClass2)DbHelper.FromID(toOid);
                 dst.Delete();
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.NameClass1/{?}", "/DbMappingTest.NameClass3/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.NameClass1", "DbMappingTest.NameClass3", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass3 dst = (NameClass3)DbHelper.FromID(toOid);
                 dst.Delete();
             });
 
-            DbMapping.MapDeletion("/DbMappingTest.NameClass3/{?}", "/DbMappingTest.NameClass4/{?}", (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion("DbMappingTest.NameClass3", "DbMappingTest.NameClass4", (UInt64 fromOid, UInt64 toOid) => {
                 NameClass4 dst = (NameClass4)DbHelper.FromID(toOid);
                 dst.Delete();
             });
@@ -633,6 +650,8 @@ namespace DbMappingTest {
             TestMapExisting.RunTest();
 
             ABCTestClass.RunTest();
+
+            TestTemplatedMapping.Map();
         }
     }
 }

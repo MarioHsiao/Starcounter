@@ -13,8 +13,8 @@ namespace Starcounter.Extensions {
 
     [Database]
     public class DbMapInfo {
-        public String ToClassFullName;
         public String FromClassFullName;
+        public String ToClassFullName;
     }
 
     [Database]
@@ -26,11 +26,6 @@ namespace Starcounter.Extensions {
     }
 
     public class DbMapping {
-        /// <summary>
-        /// Tempate for default mapping uri.
-        /// </summary>
-        private const String defaultMapUri_ = "/{0}/{{?}}";
-
         /// <summary>
         /// Used for registration exclusive access.
         /// </summary>
@@ -162,15 +157,18 @@ namespace Starcounter.Extensions {
             });
         }
 
-        private static String CreateUri<T>() {
-            return string.Format(defaultMapUri_, typeof(T).FullName);
+        /// <summary>
+        /// Gets the full name of the given template class.
+        /// </summary>
+        private static String GetClassFullName<T>() {
+            return typeof(T).FullName;
         }
 
         /// <summary>
         /// Maps creation of a new object.
         /// </summary>
-        public static void MapCreation(String fromUri, String toUri, Func<UInt64, UInt64> converter) {
-            Map("POST", fromUri, toUri, (UInt64 createdOid, UInt64 unusedOid) => { 
+        public static void MapCreation(String fromClassFullName, String toClassFullName, Func<UInt64, UInt64> converter) {
+            Map("POST", fromClassFullName, toClassFullName, (UInt64 createdOid, UInt64 unusedOid) => { 
                 return converter(createdOid); 
             });
         }
@@ -181,10 +179,10 @@ namespace Starcounter.Extensions {
         /// <typeparam name="TFrom"></typeparam>
         /// <typeparam name="TTo"></typeparam>
         public static void MapCreation<TFrom, TTo>(Func<UInt64, UInt64> converter) {
-            var fromUri = CreateUri<TFrom>();
-            var toUri = CreateUri<TTo>();
+            var fromClassFullName = GetClassFullName<TFrom>();
+            var toClassFullName = GetClassFullName<TTo>();
 
-            DbMapping.MapCreation(fromUri, toUri, converter);
+            DbMapping.MapCreation(fromClassFullName, toClassFullName, converter);
         }
 
         /// <summary>
@@ -195,10 +193,10 @@ namespace Starcounter.Extensions {
         /// <typeparam name="TFrom"></typeparam>
         /// <typeparam name="TTo"></typeparam>
         public static void MapCreation<TFrom, TTo>() where TTo : new() {
-            var fromUri = CreateUri<TFrom>();
-            var toUri = CreateUri<TTo>();
+            var fromClassFullName = GetClassFullName<TFrom>();
+            var toClassFullName = GetClassFullName<TTo>();
 
-            DbMapping.MapCreation(fromUri, toUri, (UInt64 fromOid) => {
+            DbMapping.MapCreation(fromClassFullName, toClassFullName, (UInt64 fromOid) => {
                 TTo newObj = new TTo();
                 return newObj.GetObjectNo();
             });
@@ -207,8 +205,8 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Maps deletion of an object.
         /// </summary>
-        public static void MapDeletion(String fromUri, String toUri, Action<UInt64, UInt64> converter) {
-            Map("DELETE", fromUri, toUri, (UInt64 fromOid, UInt64 toOid) => {
+        public static void MapDeletion(String fromClassFullName, String toClassFullName, Action<UInt64, UInt64> converter) {
+            Map("DELETE", fromClassFullName, toClassFullName, (UInt64 fromOid, UInt64 toOid) => {
                 converter(fromOid, toOid);
                 return 0;            
             });
@@ -220,10 +218,10 @@ namespace Starcounter.Extensions {
         /// <typeparam name="TFrom"></typeparam>
         /// <typeparam name="TTo"></typeparam>
         public static void MapDeletion<TFrom, TTo>(Action<UInt64, UInt64> converter) {
-            var fromUri = CreateUri<TFrom>();
-            var toUri = CreateUri<TTo>();
+            var fromClassFullName = GetClassFullName<TFrom>();
+            var toClassFullName = GetClassFullName<TTo>();
 
-            DbMapping.MapDeletion(fromUri, toUri, converter);
+            DbMapping.MapDeletion(fromClassFullName, toClassFullName, converter);
         }
 
         /// <summary>
@@ -233,10 +231,10 @@ namespace Starcounter.Extensions {
         /// <typeparam name="TFrom"></typeparam>
         /// <typeparam name="TTo"></typeparam>
         public static void MapDeletion<TFrom, TTo>() {
-            var fromUri = CreateUri<TFrom>();
-            var toUri = CreateUri<TTo>();
+            var fromClassFullName = GetClassFullName<TFrom>();
+            var toClassFullName = GetClassFullName<TTo>();
 
-            DbMapping.MapDeletion(fromUri, toUri, (UInt64 fromOid, UInt64 toOid) => {
+            DbMapping.MapDeletion(fromClassFullName, toClassFullName, (UInt64 fromOid, UInt64 toOid) => {
                 TTo obj = (TTo)DbHelper.FromID(toOid);
                 if (obj != null)
                     obj.Delete();
@@ -246,8 +244,8 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Maps modification of an object.
         /// </summary>
-        public static void MapModification(String fromUri, String toUri, Action<UInt64, UInt64> converter) {
-            Map("PUT", fromUri, toUri, (UInt64 fromOid, UInt64 toOid) => {
+        public static void MapModification(String fromClassFullName, String toClassFullName, Action<UInt64, UInt64> converter) {
+            Map("PUT", fromClassFullName, toClassFullName, (UInt64 fromOid, UInt64 toOid) => {
                 converter(fromOid, toOid);
                 return 0;
             });
@@ -260,10 +258,10 @@ namespace Starcounter.Extensions {
         /// <typeparam name="TTo"></typeparam>
         /// <param name="converter"></param>
         public static void MapModification<TFrom, TTo>(Action<UInt64, UInt64> converter) {
-            var fromUri = CreateUri<TFrom>();
-            var toUri = CreateUri<TTo>();
+            var fromClassFullName = GetClassFullName<TFrom>();
+            var toClassFullName = GetClassFullName<TTo>();
 
-            DbMapping.MapModification(fromUri, toUri, converter);
+            DbMapping.MapModification(fromClassFullName, toClassFullName, converter);
         }
 
         /// <summary>
@@ -460,25 +458,11 @@ namespace Starcounter.Extensions {
         /// <summary>
         /// Map database classes for replication.
         /// </summary>
-        internal static void Map(String httpMethod, String fromUri, String toUri, Func<UInt64, UInt64, UInt64> converter) {
+        internal static void Map(String httpMethod, String fromClassFullName, String toClassFullName, Func<UInt64, UInt64, UInt64> converter) {
 
             lock (registrationLock_) {
 
                 StarcounterEnvironment.RunWithinApplication(null, () => {
-
-                    if (!fromUri.EndsWith("/{?}")) {
-                        throw new ArgumentOutOfRangeException("Handler from URI should end with parameter, e.g. /MyClassName/{?}");
-                    }
-
-                    if (!toUri.EndsWith("/{?}")) {
-                        throw new ArgumentOutOfRangeException("Handler to URI should end with parameter, e.g. /MyClassName/{?}");
-                    }
-
-                    String processedFromUri = fromUri.Replace(Handle.UriParameterIndicator, "@l"),
-                        processedToUri = toUri.Replace(Handle.UriParameterIndicator, "@l");
-
-                    String toClassFullName = toUri.Substring(1).Substring(0, toUri.Length - 5),
-                        fromClassFullName = fromUri.Substring(1).Substring(0, fromUri.Length - 5);
 
                     if (null == Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", fromClassFullName).First) {
                         throw new ArgumentOutOfRangeException("From class name with given full name does not exist: " + fromClassFullName);
@@ -487,6 +471,12 @@ namespace Starcounter.Extensions {
                     if (null == Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", toClassFullName).First) {
                         throw new ArgumentOutOfRangeException("To class name with given full name does not exist: " + toClassFullName);
                     }
+
+                    String processedFromUri = "/" + fromClassFullName + "/@l", 
+                        processedToUri = "/" + toClassFullName + "/@l";
+
+                    String fromUri = "/" + fromClassFullName + "/{?}",
+                        toUri = "/" + toClassFullName + "/{?}";
 
                     HandlerOptions ho = new HandlerOptions() { HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel };
 
