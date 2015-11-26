@@ -1,1 +1,4 @@
+# Here you can specify your external repositories that will be pulled by
+# test framework, all solutions will be built there and all tests runned.
+
 https://github.com/Starcounter/PokerDemo.git %GIT_POKERDEMO_BRANCH%

@@ -5,7 +5,7 @@ IF "%SC_RUN_STAR_LOOP_TEST%"=="False" GOTO :EOF
 
 :: Checking if number of cycles parameter is supplied.
 set LOOP_TIMES=%1
-IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=10
+IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=5
 ECHO Test is going to loop %LOOP_TIMES% times:
 
 staradmin kill all
