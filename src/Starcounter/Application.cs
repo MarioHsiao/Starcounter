@@ -94,6 +94,22 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Gets the set of resource directories for the current application.
+        /// </summary>
+        /// <remarks>
+        /// This set contains resource directories specified when the application
+        /// started, and are all resolved to their fully qualified paths by our
+        /// standard algorithm to do so. This list does not contain all resource
+        /// directories; its is possible Starcounter add convention-based directories
+        /// to the full set, and these are not part of this list.
+        /// </remarks>
+        public string[] ResourceDirectories {
+            get {
+                return state.ResourceDirectories.ToArray();
+            }
+        }
+
+        /// <summary>
         /// Gets the arguments that was used to start the
         /// current application.
         /// </summary>

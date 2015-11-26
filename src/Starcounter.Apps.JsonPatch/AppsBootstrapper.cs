@@ -388,11 +388,13 @@ namespace Starcounter.Internal {
         /// <summary>
         /// Function that registers a default handler in the gateway and handles incoming requests
         /// and dispatch them to Apps. Also registers internal handlers for jsonpatch.
+        /// <para>
+        /// The <paramref name="appRootDirectory"/> should be a fully qualified, rooted directory path
+        /// pointing to the logical application root. The implementation of this method has no advice
+        /// on how that path is resolved in the first place; its up to the caller.
+        /// </para>
         /// </summary>
-        internal static void Bootstrap(
-            UInt16 port,
-            String webResourcesDir,
-            String appName) {
+        internal static void Bootstrap(UInt16 port, String appRootDirectory, String appName) {
 
             // Checking if there is no network gateway, then just returning.
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
@@ -407,31 +409,39 @@ namespace Starcounter.Internal {
                 AddStaticFileDirectory(specialStaticFiles);
             }
 
-            // Checking if there is a given web resource path.
-            if (webResourcesDir != null) {
-
-                // Obtaining full path to directory.
-                String fullPathToResourcesDir = Path.GetFullPath(webResourcesDir);
-
-                // Path to wwwroot folder, if any exists.
-                String extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, StarcounterConstants.WebRootFolderName);
-
-                if (Directory.Exists(extendedResourceDirPath)) {
-
-                    fullPathToResourcesDir = extendedResourceDirPath;
-
+            if (appRootDirectory != null) {
+                
+                if (!Path.IsPathRooted(appRootDirectory)) {
+                    // Refuse booting any application that can't provide a fully qualified
+                    // application directory
+                    var detail = string.Format("AppsBootstrapper.Bootstrap() should be invoked with resolved application directory; {0} is not.", appRootDirectory);
+                    throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, detail);
                 }
-                else {
 
-                    extendedResourceDirPath = Path.Combine(fullPathToResourcesDir, "src", appName, StarcounterConstants.WebRootFolderName);
+                // Adding either \[wwwroot] or \src\[appname]\[wwwroot] as a resource
+                // directory if one exist. The first takes precendance.
 
-                    if (Directory.Exists(extendedResourceDirPath)) {
-                        fullPathToResourcesDir = extendedResourceDirPath;
+                var standardRootExist = false;
+                var candidate = Path.Combine(appRootDirectory, StarcounterConstants.WebRootFolderName);
+                if (Directory.Exists(candidate)) {
+                    InternalAddStaticFileDirectory(port, candidate, appName);
+                    standardRootExist = true;
+                }
+
+                candidate = Path.Combine(appRootDirectory, "src", appName, StarcounterConstants.WebRootFolderName);
+                if (Directory.Exists(candidate)) {
+                    if (standardRootExist) {
+                        // We added the first, we are not adding this second one.
+                        // Emit a notice about it.
+                        LogSources.Hosting.LogNotice(
+                            @"Application {0} contains both \{1} and \src\{0}\{1}. Ignoring the later.",
+                            appName,
+                            StarcounterConstants.WebRootFolderName);
+                    }
+                    else {
+                        InternalAddStaticFileDirectory(port, candidate, appName);
                     }
                 }
-
-                // Adding found directory to static file server.
-                InternalAddStaticFileDirectory(port, fullPathToResourcesDir, appName);
             }
         }
 

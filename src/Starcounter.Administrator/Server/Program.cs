@@ -99,10 +99,11 @@ namespace Starcounter.Administrator.Server {
             RegisterHandlers();
 
             // Bootstrapping the application.
-            AppsBootstrapper.Bootstrap(
-                StarcounterEnvironment.Default.SystemHttpPort,
-                Program.ResourceFolder,
-                StarcounterEnvironment.AppName);
+            var port = StarcounterEnvironment.Default.SystemHttpPort;
+            var appDir = Path.GetFullPath(Path.Combine(StarcounterEnvironment.InstallationDirectory, Program.ResourceFolder));
+
+            AppsBootstrapper.Bootstrap(port, appDir, StarcounterEnvironment.AppName);
+            AppsBootstrapper.AddStaticFileDirectory(appDir, port);
 
             // Bootstrap Admin API handlers
             StarcounterAdminAPI.Bootstrap(adminPort, Program.ServerEngine, Program.ServerInterface, Program.ResourceFolder);

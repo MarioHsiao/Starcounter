@@ -292,8 +292,15 @@ namespace Starcounter.VisualStudio.Projects {
             exe.WorkingDirectory = debugConfig.WorkingDirectory;
             exe.StartedBy = ClientContext.GetCurrentContextInfo();
             exe.TransactEntrypoint = args.ContainsFlag(Option.TransactMain);
-            foreach (var arg in args.CommandParameters.ToArray()) {
-                exe.Arguments.Add().dummy = arg;
+            foreach (var parameter in args.CommandParameters.ToArray()) {
+                var arg = exe.Arguments.Add();
+                arg.StringValue = parameter;
+            }
+
+            string[] resDirs;
+            SharedCLI.ResolveResourceDirectories(args, exe.WorkingDirectory, out resDirs);
+            foreach (var resDir in resDirs) {
+                exe.ResourceDirectories.Add().StringValue = resDir;
             }
 
             // If the debugger is not attached, we run the executable
