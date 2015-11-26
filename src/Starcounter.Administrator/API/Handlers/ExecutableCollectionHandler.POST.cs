@@ -108,6 +108,9 @@ namespace Starcounter.Administrator.API.Handlers {
                 var newArg = exeCreated.Arguments.Add();
                 newArg.StringValue = arg.StringValue;
             }
+            foreach (var resDir in exe.ResourceDirectories) {
+                exeCreated.ResourceDirectories.Add().StringValue = resDir.StringValue;
+            }
 
             exeCreated.AsyncEntrypoint = exe.AsyncEntrypoint;
             exeCreated.TransactEntrypoint = exe.TransactEntrypoint;
@@ -126,6 +129,9 @@ namespace Starcounter.Administrator.API.Handlers {
             var app = new AppInfo(
                 exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs, exe.StartedBy);
             app.TransactEntrypoint = exe.TransactEntrypoint;
+            foreach (var resDir in exe.ResourceDirectories) {
+                app.ResourceDirectories.Add(resDir.StringValue);
+            }
 
             return app;
         }

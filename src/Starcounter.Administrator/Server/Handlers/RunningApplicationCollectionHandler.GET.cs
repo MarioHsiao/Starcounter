@@ -84,6 +84,9 @@ namespace Starcounter.Administrator.Server.Handlers {
                                             item.StringValue = arg;
                                         }
                                     }
+                                    foreach (var resDir in appInfo.ResourceDirectories) {
+                                        executable.ResourceDirectories.Add().StringValue = resDir;
+                                    }
                                     result.Items.Add(executable);
                                 }
                             }

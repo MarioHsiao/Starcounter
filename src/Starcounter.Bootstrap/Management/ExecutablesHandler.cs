@@ -48,6 +48,9 @@ namespace Starcounter.Bootstrap.Management {
             );
             app.HostedFilePath = exe.Path;
             app.TransactEntrypoint = exe.TransactEntrypoint;
+            foreach (var resdir in exe.ResourceDirectories) {
+                app.ResourceDirectories.Add(resdir.StringValue);
+            }
 
             try {
                 Loader.ExecuteApplication(schedulerHandle, app, !exe.RunEntrypointAsynchronous);
