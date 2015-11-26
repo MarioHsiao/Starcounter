@@ -2,3 +2,5 @@
 # Duration is specified in seconds, 60 means one minute.
 
 loadandlatency 10800
+apps 180
+tpcc_long 200
