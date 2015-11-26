@@ -80,7 +80,7 @@ namespace Starcounter.CLI {
 
             SharedCLI.ResolveDatabase(args, out databaseName);
             SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
-            SharedCLI.ResolveResourceDirectories(args, applicationFilePath, out resourceDirectories);
+            SharedCLI.ResolveResourceDirectories(args, Path.GetDirectoryName(applicationFilePath), out resourceDirectories);
             ResolveWorkingDirectory(args, out workingDirectory);
 
             var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);

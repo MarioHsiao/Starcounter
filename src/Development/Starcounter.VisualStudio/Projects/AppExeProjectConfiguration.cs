@@ -298,7 +298,7 @@ namespace Starcounter.VisualStudio.Projects {
             }
 
             string[] resDirs;
-            SharedCLI.ResolveResourceDirectories(args, exe.ApplicationFilePath, out resDirs);
+            SharedCLI.ResolveResourceDirectories(args, Path.GetDirectoryName(exe.ApplicationFilePath), out resDirs);
             foreach (var resDir in resDirs) {
                 exe.ResourceDirectories.Add().StringValue = resDir;
             }
