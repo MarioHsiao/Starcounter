@@ -1,6 +1,6 @@
 <!--
 Element: dom-bind-notifier
-version: 1.2.3
+version: 1.2.4
 Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-bind)
 -->
 
@@ -8,6 +8,14 @@ Description: Adds good old Object.observe to Polymer 1.0 template binding (dom-b
 <link href="../polymer/polymer.html" rel="import">
 
 <dom-module id="dom-bind-notifier">
+
+<template strip-whitespace>
+	<style>
+		:host {
+			display: none;
+		}
+	</style>
+</template>
 
 <script type="text/javascript">(function() {
   Polymer({
