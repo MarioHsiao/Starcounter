@@ -5,7 +5,6 @@ Blue.sln
 SqlProcessor.sln
 BuildSystemCode.sln
 PostSharp-2.1.sln
-PokerDemo.sln
 Starcounter.ErrorCodes.sln
 Simplified.sln
 SocietyObjects.sln
