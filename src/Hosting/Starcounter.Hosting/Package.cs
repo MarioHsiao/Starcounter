@@ -214,7 +214,7 @@ namespace Starcounter.Hosting {
                 if ((application != null) && (!StarcounterEnvironment.IsAdministratorApp)) {
 
                     var port = StarcounterEnvironment.Default.UserHttpPort;
-                    var appDir = Path.GetDirectoryName(application.FilePath);
+                    var appDir = application.WorkingDirectory;
 
                     AppsBootstrapper.Bootstrap(port, appDir, application.Name);
 

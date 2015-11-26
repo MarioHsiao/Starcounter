@@ -389,11 +389,12 @@ namespace Starcounter.Internal {
         /// Function that registers a default handler in the gateway and handles incoming requests
         /// and dispatch them to Apps. Also registers internal handlers for jsonpatch.
         /// <para>
-        /// The application directory should be a fully qualified rooted path pointing to the
-        /// folder the application exe|cs file was launched from.
+        /// The <paramref name="appRootDirectory"/> should be a fully qualified, rooted directory path
+        /// pointing to the logical application root. The implementation of this method has no advice
+        /// on how that path is resolved in the first place; its up to the caller.
         /// </para>
         /// </summary>
-        internal static void Bootstrap(UInt16 port, String applicationDirectory, String appName) {
+        internal static void Bootstrap(UInt16 port, String appRootDirectory, String appName) {
 
             // Checking if there is no network gateway, then just returning.
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
@@ -408,12 +409,12 @@ namespace Starcounter.Internal {
                 AddStaticFileDirectory(specialStaticFiles);
             }
 
-            if (applicationDirectory != null) {
+            if (appRootDirectory != null) {
                 
-                if (!Path.IsPathRooted(applicationDirectory)) {
+                if (!Path.IsPathRooted(appRootDirectory)) {
                     // Refuse booting any application that can't provide a fully qualified
                     // application directory
-                    var detail = string.Format("AppsBootstrapper.Bootstrap() should be invoked with resolved application directory; {0} is not.", applicationDirectory);
+                    var detail = string.Format("AppsBootstrapper.Bootstrap() should be invoked with resolved application directory; {0} is not.", appRootDirectory);
                     throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, detail);
                 }
 
@@ -421,13 +422,13 @@ namespace Starcounter.Internal {
                 // directory if one exist. The first takes precendance.
 
                 var standardRootExist = false;
-                var candidate = Path.Combine(applicationDirectory, StarcounterConstants.WebRootFolderName);
+                var candidate = Path.Combine(appRootDirectory, StarcounterConstants.WebRootFolderName);
                 if (Directory.Exists(candidate)) {
                     InternalAddStaticFileDirectory(port, candidate, appName);
                     standardRootExist = true;
                 }
 
-                candidate = Path.Combine(applicationDirectory, "src", appName, StarcounterConstants.WebRootFolderName);
+                candidate = Path.Combine(appRootDirectory, "src", appName, StarcounterConstants.WebRootFolderName);
                 if (Directory.Exists(candidate)) {
                     if (standardRootExist) {
                         // We added the first, we are not adding this second one.
