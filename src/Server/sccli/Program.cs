@@ -237,6 +237,8 @@ namespace star {
                     cli = StartApplicationCLICommand.FromFile(applicationFilePath, filePath, appArgs, userArgs);
                 }
                 cli.Execute();
+            } catch (Exception e) {
+                SharedCLI.ShowErrorAndSetExitCode(e, false, false);
             } finally {
                 // Delete the temporary executable if we have executed
                 // from a script being given.

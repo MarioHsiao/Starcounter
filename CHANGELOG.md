@@ -12,6 +12,7 @@
 - Added support for first *extension point* in Starcounter, based on new `IQueryRowsResponse` interface as issued in [#3016](https://github.com/Starcounter/Starcounter/issues/3016)
 - Introduced a small suite of classes allowing simple **iteration of property values** using class `ViewReader`, described in [#3033](https://github.com/Starcounter/Starcounter/issues/3033).
 - Upgraded client side libraries (list of current versions available in src/BuildSystem/ClientFiles/bower-list.txt)
+- Ability to specify multiple resource directories on the command-line, fixes [#2898](https://github.com/Starcounter/Starcounter/issues/2898). For reference, see [#3099](https://github.com/Starcounter/Starcounter/issues/3099).
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
@@ -23,6 +24,11 @@
 - Fixed incorrect invalidation of databinding for bound properties in TypedJSON: [#2998](https://github.com/Starcounter/Starcounter/issues/2998)
 - Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
 - Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
+- Fixed [#2976](https://github.com/Starcounter/Starcounter/issues/2976), resource directories and the working directory are no longer mixed.
+
+### Changed
+- Changed so that working directory is no longer a resource directory by default.
+- Changed so that implicit resource directories are discovered based on the working directory.
 
 ## [2.1.177] - 2015-10-14
 ### Changed

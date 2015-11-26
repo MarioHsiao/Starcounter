@@ -74,19 +74,24 @@ namespace Starcounter.Server {
         /// <returns>An <see cref="Executable"/> representing the same
         /// application as the current instance.</returns>
         internal Executable ToExecutable() {
-            var info = Info;
+            var state = Info;
             var exe = new Executable();
             exe.Path = this.Info.HostedFilePath;
 
-            exe.PrimaryFile = this.Info.BinaryFilePath;
-            exe.ApplicationFilePath = this.Info.FilePath;
-            exe.Name = this.Info.Name;
-            exe.WorkingDirectory = this.Info.WorkingDirectory;
-            if (this.Info.Arguments != null) {
-                foreach (var argument in this.Info.Arguments) {
-                    exe.Arguments.Add().dummy = argument;
+            exe.PrimaryFile = state.BinaryFilePath;
+            exe.ApplicationFilePath = state.FilePath;
+            exe.Name = state.Name;
+            exe.WorkingDirectory = state.WorkingDirectory;
+            if (state.Arguments != null) {
+                foreach (var argument in state.Arguments) {
+                    var arg = exe.Arguments.Add();
+                    arg.StringValue = argument;
                 }
             }
+            foreach (var resdir in state.ResourceDirectories) {
+                exe.ResourceDirectories.Add().StringValue = resdir;
+            }
+
             exe.RunEntrypointAsynchronous = this.IsStartedWithAsyncEntrypoint;
             exe.TransactEntrypoint = this.IsStartedWithTransactEntrypoint;
             return exe;

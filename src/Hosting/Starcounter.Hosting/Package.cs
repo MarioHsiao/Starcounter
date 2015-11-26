@@ -213,10 +213,14 @@ namespace Starcounter.Hosting {
 
                 if ((application != null) && (!StarcounterEnvironment.IsAdministratorApp)) {
 
-                    AppsBootstrapper.Bootstrap(
-                        StarcounterEnvironment.Default.UserHttpPort,
-                        application.WorkingDirectory,
-                        application.Name);
+                    var port = StarcounterEnvironment.Default.UserHttpPort;
+                    var appDir = application.WorkingDirectory;
+
+                    AppsBootstrapper.Bootstrap(port, appDir, application.Name);
+
+                    foreach (var resourceDir in application.ResourceDirectories) {
+                        AppsBootstrapper.AddStaticFileDirectory(resourceDir, port);
+                    }
                 }
 
                 // Initializing package for all executables.
