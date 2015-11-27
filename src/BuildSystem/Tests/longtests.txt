@@ -1,7 +1,7 @@
 # Here we specify durations for long tests that run longer that 1 minute.
 # Duration is specified in seconds, 60 means one minute.
 
-loadandlatency 10000
+loadandlatency 15000
 store_apps 200
 tpcc_long 200
 queryprocessing 7000
