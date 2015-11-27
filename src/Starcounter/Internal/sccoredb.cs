@@ -254,11 +254,6 @@ namespace Starcounter.Internal
         public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = SC_UNIQUE_CONSTRAINT;
 
         /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint stari_context_drop_index(ulong handle, ulong token);
-
-        /// <summary>
         /// Gets the context current transaction.
         /// </summary>
         /// <returns>
