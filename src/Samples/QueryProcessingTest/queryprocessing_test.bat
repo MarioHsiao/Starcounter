@@ -51,6 +51,11 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 :: Re-signing the assembly.
 "c:\Program Files (x86)\Microsoft SDKs\Windows\v8.1A\bin\NETFX 4.5.1 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
 IF ERRORLEVEL 1 (
+
+	:: Renaming back temporary directories.
+	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
+
     ECHO Error: Re-signing the assembly failed!
     EXIT /b 1
 )
