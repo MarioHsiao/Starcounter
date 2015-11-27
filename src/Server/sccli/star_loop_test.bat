@@ -5,7 +5,7 @@ IF "%SC_RUN_STAR_LOOP_TEST%"=="False" GOTO :EOF
 
 :: Checking if number of cycles parameter is supplied.
 set LOOP_TIMES=%1
-IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=100
+IF "%LOOP_TIMES%"=="" SET LOOP_TIMES=5
 ECHO Test is going to loop %LOOP_TIMES% times:
 
 staradmin kill all
@@ -16,7 +16,7 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    echo %%x
    
    :: Starting NetworkIOTest
-   star.exe s\NetworkIoTest\NetworkIoTest.exe DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
+   star.exe "%StarcounterBin%\s\NetworkIoTest\NetworkIoTest.exe" DbNumber=1 PortNumber=8080 TestType=MODE_NODE_TESTS
    
    :: Checking exit code.
    IF ERRORLEVEL 1 GOTO TESTFAILED

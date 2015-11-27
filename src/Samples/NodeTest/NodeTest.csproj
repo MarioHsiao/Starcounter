@@ -53,15 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="run_node_looped_proxy_test.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="run_node_proxy_test.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="run_node_test.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="node_looped_proxy_test.bat" />
+    <None Include="node_proxy_test.bat" />
+    <None Include="node_test.bat" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Apps.JsonPatch\Starcounter.App.Server.csproj">

@@ -9,8 +9,8 @@ namespace tpcc
   {
     public static void CreateIndex()
     {
-      DbWrap.CreateIndex("Customer_primary_key", "CREATE UNIQUE INDEX Customer_primary_key ON Customer (C_W_ID, C_D_ID, C_ID)");
-      DbWrap.CreateIndex("Customer_index_for_payment_transaction", "CREATE INDEX Customer_index_for_payment_transaction ON Customer (C_W_ID, C_D_ID, C_LAST)");
+      DbWrap.CreateIndex("Customer_primary_key", "CREATE UNIQUE INDEX Customer_primary_key ON tpcc.Customer (C_W_ID, C_D_ID, C_ID)");
+      DbWrap.CreateIndex("Customer_index_for_payment_transaction", "CREATE INDEX Customer_index_for_payment_transaction ON tpcc.Customer (C_W_ID, C_D_ID, C_LAST)");
     }
 
     public long C_ID;

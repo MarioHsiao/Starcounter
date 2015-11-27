@@ -106,10 +106,15 @@ namespace Starcounter.VisualStudio.Projects {
             }
             this.AssemblyPath = targetAssembly;
 
+            var targetDirectory = Path.GetDirectoryName(targetAssembly);
             var workingDirectory = cfg.GetPropertyValue(ConfigurationProperty.WorkingDirectory);
             if (string.IsNullOrEmpty(workingDirectory)) {
-                workingDirectory = Path.GetDirectoryName(targetAssembly);
+                workingDirectory = targetDirectory;
             }
+            else {
+                workingDirectory = Path.Combine(targetDirectory, workingDirectory);
+            }
+
             this.WorkingDirectory = workingDirectory;
 
             this.startArgumentsString = cfg.GetPropertyValue(ConfigurationProperty.StartArguments);

@@ -46,6 +46,7 @@ Or [download as ZIP](https://github.com/Juicy/dom-bind-notifier/archive/gh-pages
     <template is="dom-bind">
       <!-- your magic goes here -->
       <h1>{{path.to.my.magic}}</h1>
+      <!-- If you want to avoid imperatively `ref`ering to dom-bind element, place it as last child of it -->
       <dom-bind-notifier observed-object="{{path.to}}" path="path.to" deep></dom-bind-notifier>
     </template>
     ```

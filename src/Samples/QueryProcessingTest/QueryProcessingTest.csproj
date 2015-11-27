@@ -82,9 +82,7 @@
     <None Include="prepare_queryprocessingtext.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="run_queryprocessingtest.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <None Include="queryprocessing_test.bat" />
     <None Include="secondrun.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -107,6 +105,11 @@
     <Content Include="README.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    copy /Y "$(MSBuildProjectDirectory)\queryprocessing_test.bat" "$(MSBuildProjectDirectory)\$(OutputPath)..\..\queryprocessing_test.bat"
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

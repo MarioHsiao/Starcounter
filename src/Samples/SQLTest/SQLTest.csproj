@@ -58,9 +58,6 @@
     <None Include="prepare_sqlregression_test.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="run_sqlregression_test.bat">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
@@ -92,6 +89,11 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    copy /Y "$(MSBuildProjectDirectory)\sqlregression_test.bat" "$(MSBuildProjectDirectory)\$(OutputPath)..\..\sqlregression_test.bat"
+    </PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

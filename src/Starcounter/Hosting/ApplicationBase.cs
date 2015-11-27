@@ -1,5 +1,6 @@
 ﻿using Starcounter.Internal;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
@@ -59,6 +60,10 @@ namespace Starcounter.Hosting {
         public readonly string WorkingDirectory;
 
         /// <summary>
+        /// Gets the list of application resource directories.
+        /// </summary>
+        public readonly List<string> ResourceDirectories;
+        /// <summary>
         /// Gets the arguments that are to be sent to a possible
         /// application entrypoint method.
         /// </summary>
@@ -94,6 +99,8 @@ namespace Starcounter.Hosting {
             this.WorkingDirectory = workingDirectory ?? Path.GetDirectoryName(BinaryFilePath);
             this.Arguments = arguments;
             this.TransactEntrypoint = false;
+
+            this.ResourceDirectories = new List<string>();
         }
 
         /// <summary>
