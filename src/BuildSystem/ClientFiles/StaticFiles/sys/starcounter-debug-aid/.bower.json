@@ -1,7 +1,7 @@
 {
   "name": "starcounter-debug-aid",
-  "version": "2.0.2",
-  "description": "Friendly messages that help to debug Polyjuice apps",
+  "version": "2.0.3",
+  "description": "Polymer Elements for debugging Starcounter Puppet web apps",
   "license": "MIT",
   "main": "src/starcounter-debug-aid.html",
   "keywords": [
@@ -17,11 +17,11 @@
     "polymer": "~1.1.4"
   },
   "homepage": "https://github.com/StarcounterSamples/starcounter-debug-aid",
-  "_release": "2.0.2",
+  "_release": "2.0.3",
   "_resolution": {
     "type": "version",
-    "tag": "2.0.2",
-    "commit": "3ec93f569d9bf9a7b437c6bc86d134017881dbbc"
+    "tag": "2.0.3",
+    "commit": "2969c3d56db56146acc5fb47504002e4ec22a61d"
   },
   "_source": "git://github.com/StarcounterSamples/starcounter-debug-aid.git",
   "_target": "~2.0.2",

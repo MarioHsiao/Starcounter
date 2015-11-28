@@ -1,12 +1,13 @@
 <!--
-`starcounter-debug-aid element` - Polymer debug element for Polyjuice applications.
+`starcounter-debug-aid element` - Polymer Elements for debugging Starcounter Puppet web apps
 
 @element starcounter-debug-aid
-version: 2.0.2
+version: 2.0.3
 -->
 <!--<link rel="import" href="juicy-error-stacktrace-reporter.html">-->
 <!--<link rel="import" href="fast-json-patch-error-reporter.html">-->
 <!--<link rel="import" href="juicy-error-dialog.html">-->
+<link rel="import" href="../../polymer/polymer.html" />
 <link rel="import" href="puppet-js-view-model-tree.html" />
 <link rel="import" href="html-imports-list.html" />
 <link rel="import" href="puppet-js-settings.html" />
@@ -74,7 +75,7 @@ version: 2.0.2
             }
         </style>
 
-        <template is="dom-if" if="{{visible}}">
+        <template is="dom-if" if="{{visible}}" restamp>
             <div id="overlay" on-click="onClickOverlay">
                 <div id="dialog">
 
@@ -111,7 +112,7 @@ version: 2.0.2
                             <h1>Starcounter Debug Aid</h1>
 
                             <p>
-                                Suggestions and bug reports welcome at <a href="https://github.com/Polyjuice/starcounter-debug-aid">
+                                Suggestions and bug reports welcome at <a href="https://github.com/StarcounterSamples/starcounter-debug-aid">
                                     GitHub
                                     Issues
                                 </a>.
@@ -165,10 +166,6 @@ version: 2.0.2
             },
             openDialog: function () {
                 this.set("visible", true);
-
-                setTimeout(function () {
-                    Polymer.dom(this.root).querySelector("puppet-js-patches").refreshRows();
-                }.bind(this));
             }
         });
     </script>
