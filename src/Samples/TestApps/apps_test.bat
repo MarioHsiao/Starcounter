@@ -2,6 +2,11 @@
 REM Checking if test should be run.
 IF "%SC_RUN_TESTAPPS%"=="False" GOTO :EOF
 
+:: For this test no extra database classes should be present, so 
+:: renaming temporary LibrariesWithDatabaseClasses and EditionLibraries directory.
+IF EXIST "%StarcounterBin%\LibrariesWithDatabaseClasses" ( RENAME "%StarcounterBin%\LibrariesWithDatabaseClasses" "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" )
+IF EXIST "%StarcounterBin%\EditionLibraries" ( RENAME "%StarcounterBin%\EditionLibraries" "%StarcounterBin%\DontUseEditionLibraries" )
+
 PUSHD 3LevelSchemaChange
 CALL 3LevelSchemaChange.bat
 POPD
@@ -53,10 +58,19 @@ CALL OffsetkeyBug2915.bat
 POPD
 IF ERRORLEVEL 1 GOTO err
 
+:: Renaming back temporary directories.
+IF EXIST "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" ( RENAME "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" "%StarcounterBin%\LibrariesWithDatabaseClasses" )
+IF EXIST "%StarcounterBin%\DontUseEditionLibraries" ( RENAME "%StarcounterBin%\DontUseEditionLibraries" "%StarcounterBin%\EditionLibraries" )
+
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
 
 
 :err
 ECHO Error:  Regression test of simple apps failed!
+
+:: Renaming back temporary directories.
+IF EXIST "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" ( RENAME "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" "%StarcounterBin%\LibrariesWithDatabaseClasses" )
+IF EXIST "%StarcounterBin%\DontUseEditionLibraries" ( RENAME "%StarcounterBin%\DontUseEditionLibraries" "%StarcounterBin%\EditionLibraries" )
+
 EXIT /b 1
