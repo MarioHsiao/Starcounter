@@ -53,6 +53,7 @@ gtest.sln
 
 
 # Tests to skip running.
+
 Level1\src\Samples\LoadAndLatency\loadandlatency_test.bat
 Level1\src\Samples\IndexQueryTest\indexquery_test.bat
 Level1\src\Samples\QueryProcessingTest\queryprocessing_test.bat
@@ -66,6 +67,7 @@ node_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
 Level1\src\Samples\CycleTime\obj\Release\CycleTime_test.exe
+prepare_sqlregression_test.bat
 
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
