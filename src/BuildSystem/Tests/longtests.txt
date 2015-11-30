@@ -7,3 +7,4 @@ tpcc_long 200
 queryprocessing 7000
 retaildemo 900
 pokerdemo 900
+hostlooper 300
