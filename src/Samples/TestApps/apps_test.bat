@@ -4,8 +4,10 @@ IF "%SC_RUN_TESTAPPS%"=="False" GOTO :EOF
 
 :: For this test no extra database classes should be present, so 
 :: renaming temporary LibrariesWithDatabaseClasses and EditionLibraries directory.
-IF EXIST "%StarcounterBin%\LibrariesWithDatabaseClasses" ( RENAME "%StarcounterBin%\LibrariesWithDatabaseClasses" "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" )
-IF EXIST "%StarcounterBin%\EditionLibraries" ( RENAME "%StarcounterBin%\EditionLibraries" "%StarcounterBin%\DontUseEditionLibraries" )
+PUSHD "%StarcounterBin%"
+IF EXIST LibrariesWithDatabaseClasses ( RENAME LibrariesWithDatabaseClasses DontUseLibrariesWithDatabaseClasses )
+IF EXIST EditionLibraries ( RENAME EditionLibraries DontUseEditionLibraries )
+POPD
 
 PUSHD 3LevelSchemaChange
 CALL 3LevelSchemaChange.bat
@@ -59,8 +61,10 @@ POPD
 IF ERRORLEVEL 1 GOTO err
 
 :: Renaming back temporary directories.
-IF EXIST "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" ( RENAME "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" "%StarcounterBin%\LibrariesWithDatabaseClasses" )
-IF EXIST "%StarcounterBin%\DontUseEditionLibraries" ( RENAME "%StarcounterBin%\DontUseEditionLibraries" "%StarcounterBin%\EditionLibraries" )
+PUSHD "%StarcounterBin%"
+IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
+POPD
 
 ECHO Regression test of simple apps succeeded.
 EXIT /b 0
@@ -70,7 +74,9 @@ EXIT /b 0
 ECHO Error:  Regression test of simple apps failed!
 
 :: Renaming back temporary directories.
-IF EXIST "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" ( RENAME "%StarcounterBin%\DontUseLibrariesWithDatabaseClasses" "%StarcounterBin%\LibrariesWithDatabaseClasses" )
-IF EXIST "%StarcounterBin%\DontUseEditionLibraries" ( RENAME "%StarcounterBin%\DontUseEditionLibraries" "%StarcounterBin%\EditionLibraries" )
+PUSHD "%StarcounterBin%"
+IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
+IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
+POPD
 
 EXIT /b 1
