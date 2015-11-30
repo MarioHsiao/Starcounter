@@ -469,10 +469,7 @@
       <Visible>false</Visible>
     </MetaClasses>
   </ItemGroup>
-  <Target Name="BeforeBuild">
-    <CallTarget Targets="GenerateMetaClasses" />
-  </Target>
-  <Target Name="GenerateMetaClasses" Inputs="@(MetaSchema)" Outputs="@(MetaClasses)">
+  <Target Name="GenerateMetaClasses" AfterTargets="AfterResolveReferences" Inputs="@(MetaSchema)" Outputs="@(MetaClasses)">
     <Message Text="Generating meta classes" />
     <Exec Command="$(TargetDir)GenerateMetadataClasses.exe @(MetaSchema) $(ProjectDir)Metadata" ContinueOnError="false" />
     <Message Text="@(MetaSchema) -&gt; @(MetaClasses)" Importance="high" />
