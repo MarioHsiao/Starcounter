@@ -90,5 +90,5 @@ Level1\bin\Release\max_io_bandwidth_test.exe
 Level1\bin\Release\sccorelog_test.exe
 Level1\bin\Release\sc_ipc_test.exe
 Level1\bin\Release\stream_buffer_test.exe
-Level0\msbuild\x64\Release\tt_test.exe
+tt_test.exe
 
