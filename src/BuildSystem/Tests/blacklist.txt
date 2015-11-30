@@ -49,6 +49,7 @@ PostSharp.Hosting.Native.sln
 PostSharp.NAntTasks.sln
 Obfuscator.sln
 gtest-md.sln
+gtest.sln
 
 
 # Tests to skip running.
