@@ -32,7 +32,7 @@ START scdata.exe 1 SQLTEST .db.output SqlTest .db .db.output
 START 32bitComponents\scsqlparser.exe 8066
 
 :: Sleeping some time using ping.
-ping -n 3 127.0.0.1 > nu
+ping -n 5 127.0.0.1 > nul
 
 :: start the program
 CALL sccode.exe 1 SQLTEST --DatabaseDir=.db --OutputDir=.db.output --TempDir=.db.output --AutoStartExePath="s\SQLTest\.starcounter\SQLTest.exe" --FLAG:NoNetworkGateway
