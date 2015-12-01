@@ -57,7 +57,7 @@ namespace Starcounter
                         ThreadData.ContextHandle, token, &layoutInfoCount, &layoutInfo
                         );
                     if (r == 0) {
-                        Debug.Assert(layoutInfoCount < 1);
+                        Debug.Assert(layoutInfoCount < 2);
                         if (layoutInfoCount != 0)
                             return TableDef.ConstructTableDef(layoutInfo);
                         return null;
