@@ -25,6 +25,7 @@
 - Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
 - Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
 - Fixed [#2976](https://github.com/Starcounter/Starcounter/issues/2976), resource directories and the working directory are no longer mixed.
+- Fixed issue with patches for items in arrays for TypedJson sometimes having incorrect index.
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
