@@ -5,7 +5,6 @@ IF "%SC_RUN_TESTAPPS%"=="False" GOTO :EOF
 :: For this test no extra database classes should be present, so 
 :: renaming temporary LibrariesWithDatabaseClasses and EditionLibraries directory.
 PUSHD "%StarcounterBin%"
-IF EXIST LibrariesWithDatabaseClasses ( RENAME LibrariesWithDatabaseClasses DontUseLibrariesWithDatabaseClasses )
 IF EXIST EditionLibraries ( RENAME EditionLibraries DontUseEditionLibraries )
 POPD
 
@@ -62,7 +61,6 @@ IF ERRORLEVEL 1 GOTO err
 
 :: Renaming back temporary directories.
 PUSHD "%StarcounterBin%"
-IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
 IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 POPD
 
@@ -75,7 +73,6 @@ ECHO Error:  Regression test of simple apps failed!
 
 :: Renaming back temporary directories.
 PUSHD "%StarcounterBin%"
-IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
 IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 POPD
 
