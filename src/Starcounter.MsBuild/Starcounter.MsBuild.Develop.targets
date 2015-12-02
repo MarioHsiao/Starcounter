@@ -6,6 +6,13 @@
     <AvailableItemName Include="TypedJSON"/>
   </ItemGroup>
   
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)\Starcounter.MsBuild\Starcounter.MsBuild.csproj">
+      <Project>{B1EC8976-B515-4308-89C3-319543A0C7A9}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+  </ItemGroup>
+  
   <UsingTask TaskName="Starcounter.Internal.MsBuild.JsonToTypedJsonCsMsBuildTaskNoLocking" AssemblyFile="..\..\bin\$(Configuration)\Starcounter.MsBuild.dll" />
   
   <Target Name="GenerateTypedJsonCode" Inputs="@(TypedJSON)" Outputs="@(TypedJSON->'$(IntermediateOutputPath)%(RelativeDir)%(FileName)%(Extension).g.cs')">

@@ -222,6 +222,7 @@ namespace Administrator.Server.Managers {
             public string ID;
             public DateTime Created;
             public string ResourceUri;
+            public string ResourceID;
             public string TaskUri;
             public int Status;  // 0 = Success, 1 = Busy, <0 Error
             public String Message;
@@ -307,6 +308,7 @@ namespace Administrator.Server.Managers {
                                     installedApplication.StartApplication((startedApplication) => {
                                         // TODO: Handle success
                                         taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                        taskItem.ResourceID = databaseApplication.ID;
                                         taskItem.Status = 0; // Done;
                                     }, (startedApplication, wasCancelled, title, message, helpLink) => {
                                         // TODO: Handle error
@@ -317,6 +319,7 @@ namespace Administrator.Server.Managers {
                                 else {
 
                                     taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                                    taskItem.ResourceID = databaseApplication.ID;
                                     taskItem.Status = 0; // Done;
                                 }
 
@@ -371,6 +374,7 @@ namespace Administrator.Server.Managers {
             databaseApplication.StartApplication((startedApplication) => {
 
                 taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                taskItem.ResourceID = databaseApplication.ID;
                 taskItem.Status = 0; // Done;
             }, (startedApplication, wasCancelled, title, message, helpLink) => {
 
@@ -399,6 +403,7 @@ namespace Administrator.Server.Managers {
             database.StartDatabase((aDatabase) => {
 
                 taskItem.ResourceUri = aDatabase.Url;
+                taskItem.ResourceID = database.ID;
                 taskItem.Status = 0; // Done;
 
             }, (aDatabase, wasCancelled, title, message, helpLink) => {
@@ -428,6 +433,7 @@ namespace Administrator.Server.Managers {
             database.StopDatabase((aDatabase) => {
 
                 taskItem.ResourceUri = aDatabase.Url;
+                taskItem.ResourceID = aDatabase.ID;
                 taskItem.Status = 0; // Done;
 
             }, (aDatabase, wasCancelled, title, message, helpLink) => {
@@ -458,6 +464,7 @@ namespace Administrator.Server.Managers {
             ServerManager.ServerInstance.CreateDatabase(settings, (database) => {
 
                 taskItem.ResourceUri = database.Url;
+                taskItem.ResourceID = database.ID;
                 taskItem.Status = 0; // Done;
             }, (wasCancelled, title, message, helpLink) => {
 

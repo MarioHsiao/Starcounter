@@ -124,8 +124,8 @@ namespace Starcounter.Internal
             );
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint stari_context_get_layout_info_by_token(
-            ulong handle, ulong token, out STARI_LAYOUT_INFO layout_info
+        internal static extern unsafe uint stari_context_get_layout_infos_by_token(
+            ulong handle, ulong token, uint *pcount, STARI_LAYOUT_INFO *playout_infos
             );
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
@@ -167,21 +167,6 @@ namespace Starcounter.Internal
             /// </summary>
             public ulong token;
         };
-
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint stari_context_create_layout(
-            ulong handle, ulong token, ushort base_layout_handle,
-            sccoredb.STARI_COLUMN_DEFINITION *column_definitions, uint attribute_flags                                  // IN
-            );
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern unsafe uint stari_context_create_index(
-          ulong handle, ulong token, string setspec,
-          ushort layout_handle, short* column_indexes, ushort sort_mask,
-          uint attribute_flags
-          );
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
         internal struct STARI_INDEX_INFO
@@ -255,11 +240,6 @@ namespace Starcounter.Internal
           public ushort flags;
         };
 
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern unsafe uint stari_context_get_index_info_by_token(
-            ulong handle, ulong token, STARI_INDEX_INFO *pii
-            );
-
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern unsafe uint stari_context_get_index_infos_by_setspec(
             ulong handle, string setspec, uint *pic, STARI_INDEX_INFO *piis
@@ -272,11 +252,6 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         public const UInt32 SC_INDEXCREATE_UNIQUE_CONSTRAINT = SC_UNIQUE_CONSTRAINT;
-
-        /// <summary>
-        /// </summary>
-        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
-        internal static extern uint stari_context_drop_index(ulong handle, ulong token);
 
         /// <summary>
         /// Gets the context current transaction.

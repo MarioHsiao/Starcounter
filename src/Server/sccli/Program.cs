@@ -237,6 +237,8 @@ namespace star {
                     cli = StartApplicationCLICommand.FromFile(applicationFilePath, filePath, appArgs, userArgs);
                 }
                 cli.Execute();
+            } catch (Exception e) {
+                SharedCLI.ShowErrorAndSetExitCode(e, false, false);
             } finally {
                 // Delete the temporary executable if we have executed
                 // from a script being given.
@@ -276,6 +278,7 @@ namespace star {
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.Stop), "Stops the given application.");
             Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoRestart), "Prevent the application from being restarted if running.");
             Console.WriteLine(formatting, string.Format("--{0}=name", StarOption.AppName), "Gives the application the specified name.");
+            Console.WriteLine(formatting, string.Format("-t, --{0}", StarOption.TransactMain), "Runs the entrypoint in the scope of a write transaction");
             if (extended) {
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.LogSteps), "Enables diagnostic logging.");
                 Console.WriteLine(formatting, string.Format("--{0}", StarOption.NoDb), "Tells the host to load and run the executable");
@@ -356,6 +359,12 @@ namespace star {
                 "Prints information about Starcounter and star.exe",
                 OptionAttributes.Default,
                 new string[] { "i" }
+                );
+            appSyntax.DefineFlag(
+                StarOption.TransactMain,
+                "Runs the application entrypoint in the scope of a write transaction",
+                OptionAttributes.Default,
+                new string[] { "t" }
                 );
 
             // Extended, advanced functionality

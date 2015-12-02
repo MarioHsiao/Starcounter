@@ -44,16 +44,24 @@ namespace Starcounter
         /// <returns>TableDef.</returns>
         public static TableDef LookupTable(string name)
         {
+            // TODO:
+            // Function assumes that there can only be one layout per table.
+
             unsafe
             {
                 ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
                 if (token != 0) {
-                    sccoredb.STARI_LAYOUT_INFO tableInfo;
-                    var r = sccoredb.stari_context_get_layout_info_by_token(ThreadData.ContextHandle, token, out tableInfo);
+                    uint layoutInfoCount = 1;
+                    sccoredb.STARI_LAYOUT_INFO layoutInfo;
+                    var r = sccoredb.stari_context_get_layout_infos_by_token(
+                        ThreadData.ContextHandle, token, &layoutInfoCount, &layoutInfo
+                        );
                     if (r == 0) {
-                        return TableDef.ConstructTableDef(tableInfo);
+                        Debug.Assert(layoutInfoCount < 2);
+                        if (layoutInfoCount != 0)
+                            return TableDef.ConstructTableDef(layoutInfo);
+                        return null;
                     }
-                    if (r == Error.SCERRTABLENOTFOUND) return null;
                     throw ErrorCode.ToException(r);
                 }
                 return null;

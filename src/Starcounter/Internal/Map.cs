@@ -9,9 +9,15 @@ namespace Starcounter.Internal {
     public static class MapConfig {
 
         /// <summary>
+        /// Global mapping flag.
+        /// </summary>
+        public static Boolean IsGlobalMappingEnabled;
+
+        /// <summary>
         /// Variable that stores decision if database mapping is enabled.
         /// </summary>
-        static Boolean isMappingEnabled_ = ("True" == Environment.GetEnvironmentVariable("SC_ENABLE_MAPPING"));
+        [ThreadStatic]
+        static Nullable<Boolean> isMappingEnabled_;
 
         /// <summary>
         /// Indicates if mapping of applications should be enabled
@@ -20,7 +26,11 @@ namespace Starcounter.Internal {
         /// </summary>
         public static bool Enabled {
             get {
-                return isMappingEnabled_;
+                if (null == isMappingEnabled_) {
+                    return IsGlobalMappingEnabled;
+                }
+
+                return isMappingEnabled_.Value;
             }
             set {
                 isMappingEnabled_ = value;
@@ -42,12 +52,13 @@ namespace Starcounter.Internal {
 
             if (MapConfig.Enabled) {
 
-                Self.POST(uri, null, null, null, 0, new HandlerOptions() {
-                    ProxyDelegateTrigger = true,
-                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-                });
+                StarcounterEnvironment.RunWithinApplication(null, () => {
 
-                //Console.WriteLine("MAP POST on {0}", uri);
+                    Self.POST(uri, null, null, null, 0, new HandlerOptions() {
+                        HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                    });
+
+                });
             }
 
         }
@@ -62,12 +73,12 @@ namespace Starcounter.Internal {
 
             if (MapConfig.Enabled) {
 
-                Self.PUT(uri, null, null, null, 0, new HandlerOptions() {
-                    ProxyDelegateTrigger = true,
-                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-                });
+                StarcounterEnvironment.RunWithinApplication(null, () => {
 
-                //Console.WriteLine("MAP PUT on {0}", uri);
+                    Self.PUT(uri, null, null, null, 0, new HandlerOptions() {
+                        HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                    });
+                });
             }
         }
 
@@ -81,12 +92,12 @@ namespace Starcounter.Internal {
 
             if (MapConfig.Enabled) {
 
-                Self.DELETE(uri, null, null, null, 0, new HandlerOptions() {
-                    ProxyDelegateTrigger = true,
-                    HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
-                });
+                StarcounterEnvironment.RunWithinApplication(null, () => {
 
-                //Console.WriteLine("MAP DELETE on {0}", uri);
+                    Self.DELETE(uri, null, null, null, 0, new HandlerOptions() {
+                        HandlerLevel = HandlerOptions.HandlerLevels.ApplicationExtraLevel
+                    });
+                });
             }
         }
     }

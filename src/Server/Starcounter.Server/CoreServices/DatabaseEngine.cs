@@ -451,6 +451,7 @@ namespace Starcounter.Server {
 
                     var restartedApp = new DatabaseApplication(app);
                     restartedApp.IsStartedWithAsyncEntrypoint = true;
+                    restartedApp.IsStartedWithTransactEntrypoint = app.TransactEntrypoint;
                     var exe = restartedApp.ToExecutable();
 
                     if (exe.RunEntrypointAsynchronous) {

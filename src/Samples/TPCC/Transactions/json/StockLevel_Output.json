@@ -1,0 +1,5 @@
+{
+  $: { DataType: "tpcc.Transactions.StockLevelTransaction.OutputData" },
+
+  "low_stock": 0
+}

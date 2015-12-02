@@ -165,7 +165,34 @@ namespace Starcounter
             return (IEnumerator<T>)GetEnumerator();
         }
 
+        /// <summary>
+        /// Allows query results to be implicitly converted to <see cref="Response"/>
+        /// instances, and hence support the extension mechanism that allows services
+        /// to respond to such conversion.
+        /// </summary>
+        /// <param name="rows">The instance being casted.</param>
+        public static implicit operator Response(QueryResultRows<T> rows) {
+            var services = Hosting.DefaultHost.Current.ServiceContainer;
+            var s = services.Get<Query.IQueryRowsResponse>();
+            if (s != null) {
+                return s.Respond(rows);
+            }
 
+            // Give back default response.
+            // Work to get this right.
+            // TODO:
+
+            var err = string.Format(
+                "Unable to create response for {0}. No service installed that support the conversion.",
+                rows.GetType());
+            err += Environment.NewLine;
+            err += "See documentation of Starcounter Extension points / IQueryRowsResponse : [TODO]";
+
+            return new Response() {
+                Body = err,
+                StatusCode = 510
+            };
+        }
 
     }
 }

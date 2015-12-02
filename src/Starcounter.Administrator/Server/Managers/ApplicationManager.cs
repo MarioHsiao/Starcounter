@@ -47,7 +47,8 @@ namespace Administrator.Server.Managers {
             executable.ApplicationFilePath = path;
             executable.Name = string.IsNullOrEmpty(name) ? Path.GetFileNameWithoutExtension(path) : name;
             executable.WorkingDirectory = resourceFolder; // TODO: Path can not end with "/"
-            executable.IsTool = true; // ?
+            executable.AsyncEntrypoint = false;
+            executable.TransactEntrypoint = false;
 
             // TODO: Arguments
             //Executable.ArgumentsElementJson arg = new Executable.ArgumentsElementJson();
@@ -291,7 +292,7 @@ namespace Administrator.Server.Managers {
                         ) {
 
                         // Find deployed item
-                        string deployedId = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + deployedItem.GetExecutableFullPath(DeployManager.GetDeployFolder(databaseName)));
+                        string deployedId = Starcounter.Administrator.Server.Utilities.RestUtils.GetHashString(databaseName + deployedItem.GetExecutableFullPath(DeployManager.GetRawDeployFolder(databaseName)));
 
                         freshApplication = GetApplication(deployedId, freshApplications);
                         if (freshApplication == null) {

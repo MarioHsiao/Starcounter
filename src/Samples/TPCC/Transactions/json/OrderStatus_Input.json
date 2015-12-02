@@ -1,0 +1,8 @@
+{
+  $: { DataType: "tpcc.Transactions.OrderStatusTransaction.InputData" },
+
+  "W_ID": 0,
+  "D_ID": 0,
+  "C_LAST": "",
+  "C_ID": 0
+}

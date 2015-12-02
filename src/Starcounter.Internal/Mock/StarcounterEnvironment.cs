@@ -504,6 +504,13 @@ namespace Starcounter.Internal
             public const string VersionInfoFileName = "VersionInfo.xml";
 
             /// <summary>
+            /// Configuration file (optional),
+            /// Content will override the default appstore host (see InternetAddresses.DefaultAppStoreHost)
+            /// File format: single line containing "host[:port]"
+            /// </summary>
+            public const string OverrideAppStoreHost = "appstorehost.config";
+            
+            /// <summary>
             /// Default collation Filename prefix
             /// Filename example: TurboText_en-GB_2.dll
             ///     Prefix: TurboText
@@ -607,6 +614,9 @@ namespace Starcounter.Internal
             /// The administrator start page
             /// </summary>
             public const string AdministratorStartPage = "http://www.starcounter.com/admin/index.php";
+
+            public const string DefaultAppStoreHost = "appstore.polyjuice.com:8787";
+
         }
     }
 }

@@ -76,11 +76,15 @@ namespace Starcounter.CLI {
             string appName;
             string workingDirectory;
             string databaseName;
-            ResolveWorkingDirectory(args, out workingDirectory);
-            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
-            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
+            string[] resourceDirectories;
 
+            ResolveWorkingDirectory(args, out workingDirectory);
             SharedCLI.ResolveDatabase(args, out databaseName);
+            SharedCLI.ResolveApplication(args, applicationFilePath, out appName);
+            SharedCLI.ResolveResourceDirectories(args, workingDirectory, out resourceDirectories);
+
+            var app = new ApplicationBase(appName, applicationFilePath, exePath, workingDirectory, entrypointArgs);
+            app.ResourceDirectories.AddRange(resourceDirectories);
 
             var command = new StartApplicationCLICommand(app) {
                 DatabaseName = databaseName,
@@ -96,12 +100,7 @@ namespace Starcounter.CLI {
         }
 
         static void ResolveWorkingDirectory(ApplicationArguments args, out string workingDirectory) {
-            string dir;
-            if (!args.TryGetProperty(Option.ResourceDirectory, out dir)) {
-                dir = Environment.CurrentDirectory;
-            }
-            workingDirectory = dir;
-            workingDirectory = Path.GetFullPath(workingDirectory);
+            workingDirectory = Path.GetFullPath(Environment.CurrentDirectory);
         }
 
         void Initialize() {
@@ -241,11 +240,15 @@ namespace Starcounter.CLI {
             exe.Name = app.Name;
             exe.WorkingDirectory = app.WorkingDirectory;
             exe.StartedBy = ClientContext.GetCurrentContextInfo();
-            exe.IsTool = !args.ContainsFlag(Option.Async);
+            exe.AsyncEntrypoint = args.ContainsFlag(Option.Async);
+            exe.TransactEntrypoint = args.ContainsFlag(Option.TransactMain);
             if (userArgs != null) {
                 foreach (var arg in userArgs) {
-                    exe.Arguments.Add().dummy = arg;
+                    exe.Arguments.Add().StringValue = arg;
                 }
+            }
+            foreach (var resDir in app.ResourceDirectories) {
+                exe.ResourceDirectories.Add().StringValue = resDir;
             }
 
             var responded = new ManualResetEvent(false);

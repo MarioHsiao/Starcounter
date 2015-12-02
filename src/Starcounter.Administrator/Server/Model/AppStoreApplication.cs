@@ -242,7 +242,8 @@ namespace Administrator.Server.Model {
                 }
                 if (oldCanBeUninstalled != this.CanBeUninstalled) {
                     this.OnPropertyChanged("CanBeUninstalled");
-                } if (oldIsDeployed != this.IsDeployed) {
+                }
+                if (oldIsDeployed != this.IsDeployed) {
                     this.OnPropertyChanged("IsDeployed");
                 }
             }
@@ -493,7 +494,7 @@ namespace Administrator.Server.Model {
             if (currentDatabaseApplication == null) {
                 this.UpgradeError = true;
                 this.OnCommandError("Upgrade Application", "Failed to find the application", null);
-                this.UpgradeApplicationErrorCallbacks.Clear();
+                this.UpgradeApplicationCallbacks.Clear();
                 this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, "Upgrade Application", "Failed to find the application", null);
                 return;
             }
@@ -503,110 +504,149 @@ namespace Administrator.Server.Model {
                 // Can not upgrade applications from different sources
                 this.UpgradeError = true;
                 this.OnCommandError("Upgrade Application", "Can not upgrade applications from different stores", null);
-                this.UpgradeApplicationErrorCallbacks.Clear();
+                this.UpgradeApplicationCallbacks.Clear();
                 this.InvokeActionErrorListeners(this.UpgradeApplicationErrorCallbacks, false, "Upgrade Application", "Can not upgrade applications from different stores", null);
+                return;
             }
 
             this.UpgradeError = false;
             this.Status |= ApplicationStatus.Upgrading;
 
+            bool wasRunning = currentDatabaseApplication.IsRunning;
+
             this.DeployApplication((deployedDatabaseApplication) => {
 
-                this._Upgraded_Step_1_Stopping(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                this._Upgraded_Step_1_Stopping(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, (databaseApplication) => {
+
+                    // Successfully upgrade application
+                    this.OnUpgradeSuccess();
+
+                }, (depoyedApplication, wasCanceled, title, message, helpLink) => {
+                    // Error
+                    this._Upgrade_Revert(currentDatabaseApplication, depoyedApplication, wasRunning, wasCanceled, title, message, helpLink);
+                });
 
             }, (depoyedApplication, wasCanceled, title, message, helpLink) => {
-
                 // Error
-                this.OnUpgradeError(title, message, helpLink);
+
+                // Failed to upgrade
+                this._Upgrade_Revert(currentDatabaseApplication, depoyedApplication, wasRunning, wasCanceled, title, message, helpLink);
             });
         }
 
-        private void _Upgraded_Step_1_Stopping(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+        private void _Upgraded_Step_1_Stopping(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
             if (currentDatabaseApplication.IsRunning) {
 
                 currentDatabaseApplication.StopApplication((stoppedCurrentApplication) => {
 
-                    this._Upgraded_Step_2_Installed(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                    this._Upgraded_Step_2_Install(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
 
-                }, (application, wasCanceled, title, message, helpLink) => {
-
-                    // Could not stop old application
-                    this.OnUpgradeError(title, message, helpLink);
-                });
+                }, errorCallback);
             }
             else {
-                this._Upgraded_Step_2_Installed(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                this._Upgraded_Step_2_Install(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
             }
         }
 
-        /// <summary>
-        /// Helper:
-        /// </summary>
-        /// <param name="databaseApplication"></param>
-        /// <param name="currentDatabaseApplication"></param>
-        /// <param name="completionCallback"></param>
-        /// <param name="errorCallback"></param>
-        private void _Upgraded_Step_2_Installed(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+        private void _Upgraded_Step_2_Install(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
             if (currentDatabaseApplication.IsInstalled) {
 
-                // TODO: Should we Uninstall current database application?
-
                 deployedDatabaseApplication.InstallApplication((installedApplication) => {
 
-                    this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
-                }, (installedApplication, wasCanceled, title, message, helpLink) => {
-                    // Error
-
-                    this.OnUpgradeError(title, message, helpLink);
-                });
+                    this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
+                }, errorCallback);
             }
             else {
-                this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+
+                this._Upgraded_Step_3_LockFlag(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
             }
         }
 
-        private void _Upgraded_Step_3_LockFlag(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+        private void _Upgraded_Step_3_LockFlag(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
             if (currentDatabaseApplication.CanBeUninstalled != deployedDatabaseApplication.CanBeUninstalled) {
 
                 deployedDatabaseApplication.SetCanBeUninstalledFlag(currentDatabaseApplication.CanBeUninstalled, (application) => {
 
-                    this._Upgraded_Step_4_Cleanup(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                    this._Upgraded_Step_4_Restart(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
 
-                }, (application, wasCancelled, title, message, helpLink) => {
-                    // Failed to lock 
-                    this._Upgraded_Step_4_Cleanup(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
-                });
-
+                }, errorCallback);
             }
             else {
-                this._Upgraded_Step_4_Cleanup(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+                this._Upgraded_Step_4_Restart(currentDatabaseApplication, deployedDatabaseApplication, wasRunning, completionCallback, errorCallback);
             }
         }
 
-        private void _Upgraded_Step_4_Cleanup(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+        private void _Upgraded_Step_4_Restart(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
-            currentDatabaseApplication.DeleteApplication(true, (deletedApplication) => {
+            if (wasRunning) {
+                deployedDatabaseApplication.StartApplication((depoyedApplication) => {
 
-                // Upgrade OK
-                this.OnUpgradeSuccess();
-            }, (deletedApplication, wasCanceled, title, message, helpLink) => {
+                    this._Upgraded_Step_5_Finalize(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
 
-                deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
-                    // Error
-                    this.OnUpgradeError(title, message, helpLink);
+                }, errorCallback);
+            }
+            else {
 
-                }, (depoyedApplication2, wasCanceled2, title2, message2, helpLink2) => {
-
-                    // Error
-                    this.OnUpgradeError(title, message, helpLink);
-                });
-
-            });
+                this._Upgraded_Step_5_Finalize(currentDatabaseApplication, deployedDatabaseApplication, completionCallback, errorCallback);
+            }
         }
 
+        private void _Upgraded_Step_5_Finalize(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+
+            // Delete previous version
+            currentDatabaseApplication.DeleteApplication(true, completionCallback, errorCallback);
+        }
+
+        private void _Upgrade_Revert(DatabaseApplication currentDatabaseApplication, DatabaseApplication deployedDatabaseApplication, bool wasRunning, bool wasCanceled, string title, string message, string helpLink) {
+
+            if (wasRunning) {
+                // Restart the previous app again
+                currentDatabaseApplication.StartApplication((databaseApplication) => {
+
+                    // Delete downloaded app
+                    deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
+                        // Successfully reverted to previous application
+
+                        this.OnUpgradeError(title, message, helpLink);
+                    }, (depoyedApplication, wasCanceled2, title2, message2, helpLink2) => {
+
+                        // Error, Failed to revert to previous state, Failed to remove downloaded application.
+                        this.OnUpgradeError(title + ":" + title2, message + " " + message2, helpLink);
+                    });
+
+                }, (databaseApplication, wasCanceled2, title2, message2, helpLink2) => {
+
+                    // Error, Failed to revert to previous state
+
+                    // Delete downloaded app
+                    deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
+
+                        // Error, Failed to revert to previous state, Failed to restart previous application.
+                        this.OnUpgradeError(title + ":" + title2, message + " " + message2, helpLink);
+                    }, (depoyedApplication, wasCanceled3, title3, message3, helpLink3) => {
+
+                        // Error, Failed to revert to previous state, Failed to remove downloaded application and to restart previous application.
+                        this.OnUpgradeError(title + ":" + title3, message + " " + message3, helpLink);
+                    });
+                });
+            }
+            else {
+
+                // Delete downloaded app
+                deployedDatabaseApplication.DeleteApplication(true, (depoyedApplication2) => {
+
+                    // Successfully reverted to previous application
+                    this.OnUpgradeError(title, message, helpLink);
+                }, (depoyedApplication, wasCanceled2, title2, message2, helpLink2) => {
+
+                    // Error, Failed to revert to previous state, Failed to remove downloaded application
+                    this.OnUpgradeError(title + ":" + title2, message + " " + message2, helpLink);
+                });
+            }
+        }
         #endregion
 
         /// <summary>

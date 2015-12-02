@@ -108,6 +108,20 @@ adminModule.filter('semver', function () {
     };
 });
 
+adminModule.filter('visibleStores', function () {
+    return function (items, visibleStores) {
+        var filtered = [];
+		
+		angular.forEach(items, function (item) {
+            if (visibleStores.indexOf(item.DisplayName) > -1) {
+                filtered.push(item);
+            };
+        });
+		
+		return filtered;
+    };
+});
+
 String.prototype.replaceAt = function (index, character) {
     return this.substr(0, index) + character + this.substr(index + character.length);
 }

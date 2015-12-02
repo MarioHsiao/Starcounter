@@ -50,7 +50,7 @@ namespace Starcounter.CLI {
         /// Provides the name of the folder storing CLI utility applications.
         /// </summary>
         public const string CLIAppFolderName = "cli-apps";
-
+        
         /// <summary>
         /// Assures a given CLI context is properly initialized when it
         /// has been established it is to be used (i.e. when the calling
@@ -144,6 +144,14 @@ namespace Starcounter.CLI {
             /// executable to return.
             /// </summary>
             public const string Async = "async";
+
+            /// <summary>
+            /// Gets the option name of the parameter that specifies the
+            /// starting applications entrypoint should run in a write
+            /// transactions, as opposed to a readonly transaction, which
+            /// is the default.
+            /// </summary>
+            public const string TransactMain = "transact";
         }
 
         /// <summary>
@@ -473,6 +481,40 @@ namespace Starcounter.CLI {
                 application = Path.GetFileName(applicationFilePath);
             }
             name = application;
+        }
+
+        /// <summary>
+        /// Resolves any specified resource directories for a given application.
+        /// </summary>
+        /// <param name="args">CLI arguments</param>
+        /// <param name="relativeBasePath">The directory path to qualify relative
+        /// resource directories from.</param>
+        /// <param name="dirs">Resource directories</param>
+        public static void ResolveResourceDirectories(ApplicationArguments args, string relativeBasePath, out string[] dirs) {
+            var paths = new List<string>();
+            
+            string spec;
+            if (args.TryGetProperty(SharedCLI.Option.ResourceDirectory, out spec)) {
+
+                var tokens = spec.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (var token in tokens) {
+                    try {
+                        var candidate = Path.Combine(relativeBasePath, token);
+                        paths.Add(Path.GetFullPath(candidate));
+                    }
+                    catch (ArgumentException e) {
+                        var detail = string.Format(
+                            "Parameter --{0} contains an illegal element: '{1}', error: {2}", 
+                            SharedCLI.Option.ResourceDirectory, 
+                            token, 
+                            e.Message
+                        );
+                        throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, e, detail);
+                    }
+                }
+            }
+
+            dirs = paths.ToArray();
         }
 
         /// <summary>

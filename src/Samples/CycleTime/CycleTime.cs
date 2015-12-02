@@ -7,10 +7,14 @@ using System.Threading.Tasks;
 
 namespace CycleTime {
     class CycleTime {
+
+        static String StarcounterBin = Environment.GetEnvironmentVariable("StarcounterBin");
+
         static void Main(string[] args) {
             ProcessStartInfo processInfo = new ProcessStartInfo();
             processInfo.FileName = "star";
             processInfo.Arguments = @"s\NetworkIoTest\NetworkIoTest.exe";
+            processInfo.WorkingDirectory = StarcounterBin;
             processInfo.UseShellExecute = false;
             processInfo.RedirectStandardOutput = true;
             processInfo.RedirectStandardError = true;
@@ -52,6 +56,7 @@ namespace CycleTime {
                 processInfo = new ProcessStartInfo();
                 processInfo.FileName = "star";
                 processInfo.Arguments = @"s\NetworkIoTest\NetworkIoTest.exe";
+                processInfo.WorkingDirectory = StarcounterBin;
                 processInfo.UseShellExecute = false;
                 processInfo.RedirectStandardOutput = true;
                 processInfo.RedirectStandardError = true;

@@ -61,6 +61,16 @@ namespace Starcounter.Server.PublicModel.Commands {
         }
 
         /// <summary>
+        /// Instructs the processor of this command to run the
+        /// entrypoint of the executable within the scope of a
+        /// write transaction.
+        /// </summary>
+        public bool TransactEntrypoint {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Initializes an instance of <see cref="StartExecutableCommand"/>.
         /// </summary>
         /// <param name="engine">The <see cref="ServerEngine"/> where this command

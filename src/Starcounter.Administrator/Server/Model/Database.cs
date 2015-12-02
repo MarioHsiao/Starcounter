@@ -302,10 +302,16 @@ namespace Administrator.Server.Model {
                         item.Changed -= Application_Changed;
 
                         // Disconnect
-                        AppStoreApplication appStoreApplication = this.GetAppStoreApplication(item.SourceUrl);
-                        if (appStoreApplication != null) {
-                            appStoreApplication.DatabaseApplication = null;
-                            appStoreApplication.UpdateUpgradeFlag();
+                        foreach (AppStoreStore store in this.AppStoreStores) {
+                            foreach (AppStoreApplication app in store.Applications) {
+                                if (app.HasDatabaseAppliction && app.DatabaseApplication == item) {
+                                    app.DatabaseApplication = null;
+                                    app.UpdateUpgradeFlag();
+                                }
+                                else if (app.Namespace == item.Namespace && app.Channel == item.Channel) {
+                                    app.UpdateUpgradeFlag();
+                                }
+                            }
                         }
                     }
                     break;

@@ -136,6 +136,7 @@
     <Compile Include="Server\Model\AppStoreApplicationJson.json.cs">
       <DependentUpon>AppStoreApplicationJson.json</DependentUpon>
     </Compile>
+    <Compile Include="Server\Utilities\Subst.cs" />
     <Compile Include="Server\Utilities\Utils.cs" />
   </ItemGroup>
   <ItemGroup>

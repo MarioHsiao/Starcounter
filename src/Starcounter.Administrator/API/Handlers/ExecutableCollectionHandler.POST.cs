@@ -34,7 +34,8 @@ namespace Starcounter.Administrator.API.Handlers {
 
             var cmd = new StartExecutableCommand(engine, name, exe.ToApplicationInfo()) {
                 EnableWaiting = !async,
-                RunEntrypointAsynchronous = !exe.IsTool
+                RunEntrypointAsynchronous = exe.AsyncEntrypoint,
+                TransactEntrypoint = exe.TransactEntrypoint
             };
 
             var commandInfo = runtime.Execute(cmd);
@@ -105,10 +106,14 @@ namespace Starcounter.Administrator.API.Handlers {
 //            exeCreated.Arguments = exe.Arguments;
             foreach (var arg in exe.Arguments) {
                 var newArg = exeCreated.Arguments.Add();
-                newArg.dummy = arg.dummy;
+                newArg.StringValue = arg.StringValue;
+            }
+            foreach (var resDir in exe.ResourceDirectories) {
+                exeCreated.ResourceDirectories.Add().StringValue = resDir.StringValue;
             }
 
-            exeCreated.IsTool = exe.IsTool;
+            exeCreated.AsyncEntrypoint = exe.AsyncEntrypoint;
+            exeCreated.TransactEntrypoint = exe.TransactEntrypoint;
             headers.Add("Location", exeCreated.Uri);
 
             return RESTUtility.JSON.CreateResponse(exeCreated.ToJson(), 201, headers);
@@ -117,11 +122,18 @@ namespace Starcounter.Administrator.API.Handlers {
         static AppInfo ToApplicationInfo(this Executable exe) {
             int i = 0;
             string[] userArgs = exe.Arguments.Count == 0 ? null : new string[exe.Arguments.Count];
-            foreach (Executable.ArgumentsElementJson arg in exe.Arguments) {
-                userArgs[i++] = arg.dummy;
+            foreach (var arg in exe.Arguments) {
+                userArgs[i++] = arg.StringValue;
+            }
+            
+            var app = new AppInfo(
+                exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs, exe.StartedBy);
+            app.TransactEntrypoint = exe.TransactEntrypoint;
+            foreach (var resDir in exe.ResourceDirectories) {
+                app.ResourceDirectories.Add(resDir.StringValue);
             }
 
-            return new AppInfo(exe.Name, exe.ApplicationFilePath, exe.Path, exe.WorkingDirectory, userArgs, exe.StartedBy);
+            return app;
         }
     }
 }

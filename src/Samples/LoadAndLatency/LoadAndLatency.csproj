@@ -57,5 +57,13 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Management" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="loadandlatency_test.bat" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    copy /Y "$(MSBuildProjectDirectory)\loadandlatency_test.bat" "$(MSBuildProjectDirectory)\$(OutputPath)..\..\loadandlatency_test.bat"
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>
