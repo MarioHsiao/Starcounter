@@ -498,15 +498,17 @@ namespace Starcounter.CLI {
 
                 var tokens = spec.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (var token in tokens) {
+                    var candidate = token.Trim('"');
+
                     try {
-                        var candidate = Path.Combine(relativeBasePath, token);
+                        candidate = Path.Combine(relativeBasePath, candidate);
                         paths.Add(Path.GetFullPath(candidate));
                     }
                     catch (ArgumentException e) {
                         var detail = string.Format(
                             "Parameter --{0} contains an illegal element: '{1}', error: {2}", 
                             SharedCLI.Option.ResourceDirectory, 
-                            token, 
+                            candidate, 
                             e.Message
                         );
                         throw ErrorCode.ToException(Error.SCERRBADARGUMENTS, e, detail);
