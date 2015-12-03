@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0. Starcounter.ErrorCodes", "0. Starcounter.ErrorCodes", "{FF0868CF-A78E-44A4-93E5-57182F039F31}"
 EndProject
@@ -434,6 +434,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenerateMetadataClasses", "
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPCC", "Samples\TPCC\TPCC.csproj", "{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.TransactionLog", "Server\Starcounter.TransactionLog\Starcounter.TransactionLog.csproj", "{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -1199,10 +1201,20 @@ Global
 		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Release|Any CPU.Build.0 = Release|Any CPU
 		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{841F8C90-1351-4E9D-96B5-9FA181E508ED}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
 		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1336,5 +1348,6 @@ Global
 		{08E41128-E0E2-4A2D-A101-62C6499627A0} = {008E66B7-6B07-4F1C-9937-B98D52AF5027}
 		{841F8C90-1351-4E9D-96B5-9FA181E508ED} = {E64C1F28-D2C1-47D2-A62B-151A6968D158}
 		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF} = {9BB3B16F-0FEB-4955-9836-96F42FC953CB}
+		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
 	EndGlobalSection
 EndGlobal
