@@ -1077,12 +1077,21 @@ uint32_t Gateway::LoadSettings()
             return SCERRBADGATEWAYCONFIG;
         }
 
-        setting_maximum_receive_content_length_ = atoi(node_elem->value());
-        if (setting_maximum_receive_content_length_ < 4096 || setting_maximum_receive_content_length_ > 67108864)
-        {
-            g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaximumReceiveContentLength value.");
-            return SCERRBADGATEWAYCONFIG;
-        }
+		setting_maximum_receive_content_length_ = atoi(node_elem->value());
+
+		if (setting_maximum_receive_content_length_ < 4096)
+		{
+			g_gateway.LogWriteCritical(L"Gateway XML: Unsupported MaximumReceiveContentLength value.");
+			return SCERRBADGATEWAYCONFIG;
+		}
+
+		if (setting_maximum_receive_content_length_ > static_cast<uint32_t>(MAX_SOCKET_DATA_SIZE)) {
+
+			std::wstringstream s;
+			s << L"Gateway XML: MaximumReceiveContentLength parameter exceeds maximum value of " << MAX_SOCKET_DATA_SIZE <<
+				". Value of " << MAX_SOCKET_DATA_SIZE << " will be used.";
+			g_gateway.LogWriteWarning(s.str().c_str());
+		}
 
         // Getting inactive socket timeout.
         node_elem = root_elem->first_node("InactiveConnectionTimeout");

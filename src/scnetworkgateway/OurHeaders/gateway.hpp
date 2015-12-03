@@ -281,7 +281,7 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     8 * 1024,
     32 * 1024,
     128 * 1024,
-    1024 * 1024
+    2 * 1024 * 1024
 };
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
