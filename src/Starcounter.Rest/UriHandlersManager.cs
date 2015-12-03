@@ -389,8 +389,7 @@ namespace Starcounter.Rest
 
                 } else {
 
-                    throw new ArgumentException("Trying to add a delegate to an already existing handler: " + 
-                        ProcessedUriInfo + " on port " + Port);
+                    throw ErrorCode.ToException(Error.SCERRHANDLERALREADYREGISTERED, ProcessedUriInfo + " on port " + Port);
                 }
             }
         }
@@ -625,7 +624,7 @@ namespace Starcounter.Rest
                 UInt64 handlerInfo = UInt64.MaxValue;
 
                 if (handlerId >= MaxUriHandlers) {
-                    throw new ArgumentOutOfRangeException("Too many user handlers registered!");
+                    throw ErrorCode.ToException(Error.SCERRMAXHANDLERSREACHED);
                 }
 
                 allUriHandlers_[handlerId].Init(
