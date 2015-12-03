@@ -18,11 +18,6 @@ IF EXIST .db (
 
 IF EXIST s\QueryProcessingTest\dumpQueryProcessingDB.sql DEL s\QueryProcessingTest\dumpQueryProcessingDB.sql
 
-:: For this test no extra database classes should be present, so 
-:: renaming temporary LibrariesWithDatabaseClasses and EditionLibraries directory.
-IF EXIST LibrariesWithDatabaseClasses ( RENAME LibrariesWithDatabaseClasses DontUseLibrariesWithDatabaseClasses )
-IF EXIST EditionLibraries ( RENAME EditionLibraries DontUseEditionLibraries )
-
 :: Checking if directories exist.
 IF NOT EXIST %DB_DIR% ( MKDIR %DB_DIR% )
 IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
@@ -31,12 +26,8 @@ IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
-CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
+CALL scweaver.exe --FLAG:disableeditionlibraries "s\%TEST_NAME%\%TEST_NAME%.exe"
 IF ERRORLEVEL 1 (
-
-	:: Renaming back temporary directories.
-	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
-	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO Error: The query processing regression test failed!
     EXIT /b 1
@@ -51,10 +42,6 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 :: Re-signing the assembly.
 "c:\Program Files (x86)\Microsoft SDKs\Windows\v8.1A\bin\NETFX 4.5.1 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
 IF ERRORLEVEL 1 (
-
-	:: Renaming back temporary directories.
-	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
-	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO Error: Re-signing the assembly failed!
     EXIT /b 1
@@ -77,10 +64,6 @@ sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%
 
 IF ERRORLEVEL 1 (
 
-	:: Renaming back temporary directories.
-	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
-	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
-
     ECHO Error: The query processing regression test failed!
     EXIT /b 1
 )
@@ -89,18 +72,10 @@ sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%
 
 IF ERRORLEVEL 1 (
 
-	:: Renaming back temporary directories.
-	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
-	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
-
     ECHO Error: The query processing regression test failed!
     EXIT /b 1
 	
 ) else (
-
-	:: Renaming back temporary directories.
-	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
-	IF EXIST DontUseEditionLibraries ( RENAME DontUseEditionLibraries EditionLibraries )
 
     ECHO The query processing regression test succeeded.
     EXIT /b 0
