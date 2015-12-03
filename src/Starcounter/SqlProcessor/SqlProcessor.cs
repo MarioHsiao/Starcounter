@@ -82,6 +82,11 @@ namespace Starcounter.SqlProcessor {
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_clrmetadata_clean(ulong context_handle);
 
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_alter_table_add_columns(ulong context_handle,
+            string full_table_name, STAR_COLUMN_DEFINITION_HIGH* added_columns,
+            out ulong new_layout_handle);
+
         public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
             uint err = scsql_process_query(ThreadData.ContextHandle, query, out queryType, out iterator);
             if (err == 0)
