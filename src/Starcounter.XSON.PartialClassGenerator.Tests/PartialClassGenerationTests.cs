@@ -176,5 +176,50 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             
             Helper.ConsoleWriteLine(root.ToJson());
         }
+
+        [Test]
+        public static void TestMetadataProperties() {
+            TObject tobj = null;
+            string json;
+
+            // Editable property with valid metadata
+            json = @"{""MyValue$"":1,""$MyValue"":{""Bind"":""A""}}";
+            Assert.DoesNotThrow(() => { tobj = Helper.Create(json, "Test1"); });
+            Assert.AreEqual(1, tobj.Properties.Count);
+            Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
+            Assert.AreEqual(true, ((TValue)tobj.Properties[0]).Editable);
+            
+            // Readonly property with valid metadata
+            json = @"{""MyValue"":1,""$MyValue"":{""Bind"":""A""}}";
+            Assert.DoesNotThrow(() => { tobj = Helper.Create(json, "Test2"); });
+            Assert.AreEqual(1, tobj.Properties.Count);
+            Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
+            Assert.AreEqual(false, ((TValue)tobj.Properties[0]).Editable);
+
+            // Editable property with invalid metadata.
+            json = @"{""MyValue$"":1,""$MyValue$"":{""Bind"":""A""}}";
+            try {
+                tobj = Helper.Create(json, "Test3");
+                Assert.Fail();
+            } catch (Exception ex) {
+                // The sequence to detect if exception is properly thrown is a bit strange implemented,
+                // but the exception that is thrown is not available here (comes from F# code) so we check 
+                // the typename to assert that the correct exception is thrown.
+                if (!ex.GetType().FullName.Equals("Starcounter.Internal.JsonTemplate.Error+CompileError")) throw ex;
+            }
+
+            // Readonly property with invalid metadata
+            json = @"{""MyValue$"":1,""$MyValue$"":{""Bind"":""A""}}";
+            try {
+                tobj = Helper.Create(json, "Test4");
+                Assert.Fail();
+            } catch (Exception ex) {
+                // The sequence to detect if exception is properly thrown is a bit strange implemented,
+                // but the exception that is thrown is not available here (comes from F# code) so we check 
+                // the typename to assert that the correct exception is thrown.
+                if (!ex.GetType().FullName.Equals("Starcounter.Internal.JsonTemplate.Error+CompileError"))
+                    throw ex;
+            }
+        }
     }
 }
