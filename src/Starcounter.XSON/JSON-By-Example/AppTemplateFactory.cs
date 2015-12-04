@@ -47,11 +47,11 @@ namespace Starcounter.Internal.JsonTemplate {
                 return newTemplate;
             }
 
-            name = newTemplate.TemplateName;
+            name = newTemplate.PropertyName;
 
             if (parent is TObject) {
                 objParent = (TObject)parent;
-                existing = objParent.Properties.GetTemplateByName(name);
+                existing = objParent.Properties.GetTemplateByPropertyName(name);
 
                 if (existing != null) {
                     rt = existing as ReplaceableTemplate;
@@ -148,7 +148,11 @@ namespace Starcounter.Internal.JsonTemplate {
                 return null;
 
             var appTemplate = parent as TObject;
-            var t = appTemplate.Properties.GetTemplateByName(name);
+
+            if (name.EndsWith("$"))
+                ErrorHelper.RaiseInvalidEditableFlagForMetadata(name, debugInfo);
+
+            var t = appTemplate.Properties.GetTemplateByPropertyName(name);
             if (t == null) {
                 // The template is not created yet. This can be because the metadata 
                 // is specified before the actual field in the json file.
@@ -636,6 +640,19 @@ namespace Starcounter.Internal.JsonTemplate {
         internal static void RaiseNotImplementedException(String name, DebugInfo debugInfo) {
             Error.CompileError.Raise<Object>(
                 "The property '" + name + "' is not implemented yet.",
+                new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
+                debugInfo.FileName
+            );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        internal static void RaiseInvalidEditableFlagForMetadata(String name, DebugInfo debugInfo) {
+            Error.CompileError.Raise<Object>(
+                "Cannot set metadata property " + name + " as editable. The ending '$' should be removed.",
                 new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
                 debugInfo.FileName
             );
