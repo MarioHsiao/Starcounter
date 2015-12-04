@@ -149,10 +149,13 @@ namespace Starcounter.Internal.JsonTemplate {
 
             var appTemplate = parent as TObject;
 
-            if (name.EndsWith("$"))
-                ErrorHelper.RaiseInvalidEditableFlagForMetadata(name.Substring(0, name.Length - 1), debugInfo);
+            var propertyName = name;
+            if (name.EndsWith("$")) {
+                propertyName = name.Substring(0, name.Length - 1);
+//                ErrorHelper.RaiseInvalidEditableFlagForMetadata(name.Substring(0, name.Length - 1), debugInfo);
+            }
 
-            var t = appTemplate.Properties.GetTemplateByPropertyName(name);
+            var t = appTemplate.Properties.GetTemplateByPropertyName(propertyName);
             if (t == null) {
                 // The template is not created yet. This can be because the metadata 
                 // is specified before the actual field in the json file.
