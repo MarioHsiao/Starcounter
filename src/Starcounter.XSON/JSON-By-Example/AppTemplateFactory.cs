@@ -150,7 +150,7 @@ namespace Starcounter.Internal.JsonTemplate {
             var appTemplate = parent as TObject;
 
             if (name.EndsWith("$"))
-                ErrorHelper.RaiseInvalidEditableFlagForMetadata(name, debugInfo);
+                ErrorHelper.RaiseInvalidEditableFlagForMetadata(name.Substring(0, name.Length - 1), debugInfo);
 
             var t = appTemplate.Properties.GetTemplateByPropertyName(name);
             if (t == null) {
