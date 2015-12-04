@@ -176,5 +176,39 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             
             Helper.ConsoleWriteLine(root.ToJson());
         }
+
+        [Test]
+        public static void TestMetadataProperties() {
+            TObject tobj = null;
+            string json;
+
+            // Editable property with valid metadata
+            json = @"{""MyValue$"":1,""$MyValue"":{""Bind"":""A""}}";
+            Assert.DoesNotThrow(() => { tobj = Helper.Create(json, "Test1"); });
+            Assert.AreEqual(1, tobj.Properties.Count);
+            Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
+            Assert.AreEqual(true, ((TValue)tobj.Properties[0]).Editable);
+            
+            // Readonly property with valid metadata
+            json = @"{""MyValue"":1,""$MyValue"":{""Bind"":""A""}}";
+            Assert.DoesNotThrow(() => { tobj = Helper.Create(json, "Test2"); });
+            Assert.AreEqual(1, tobj.Properties.Count);
+            Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
+            Assert.AreEqual(false, ((TValue)tobj.Properties[0]).Editable);
+
+            // Editable property with invalid metadata (but still allowed, editable just ignored).
+            json = @"{""MyValue$"":1,""$MyValue$"":{""Bind"":""A""}}";
+            Assert.DoesNotThrow(() => { tobj = Helper.Create(json, "Test3"); });
+            Assert.AreEqual(1, tobj.Properties.Count);
+            Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
+            Assert.AreEqual(true, ((TValue)tobj.Properties[0]).Editable);
+            
+            // Readonly property with invalid metadata (but still allowed, editable just ignored).
+            json = @"{""MyValue"":1,""$MyValue$"":{""Bind"":""A""}}";
+            Assert.DoesNotThrow(() => { tobj = Helper.Create(json, "Test4"); });
+            Assert.AreEqual(1, tobj.Properties.Count);
+            Assert.AreEqual("A", ((TValue)tobj.Properties[0]).Bind);
+            Assert.AreEqual(false, ((TValue)tobj.Properties[0]).Editable);
+        }
     }
 }
