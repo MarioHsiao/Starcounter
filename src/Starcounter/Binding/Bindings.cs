@@ -80,7 +80,11 @@ namespace Starcounter.Binding {
                             if (typeDef.ShortName != alreadyTypeDef.LowerName) // If case-insensitive equal then stored short name is real name
                                 typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
                     } else {
-                        typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
+
+                        // Checking if only fully namespaced name should be used.
+                        if (!typeDef.UseOnlyFullNamespaceSqlName) {
+                            typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
+                        }
                     }
                 }
             }
@@ -186,7 +190,13 @@ namespace Starcounter.Binding {
                         if (alreadyTypeDef != null) // Already ambiguous short names
                             if (typeDef.ShortName != alreadyTypeDef.LowerName) // If case-insensitive equal then stored short name is real name
                                 typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
-                    } else typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
+                    } else {
+
+                        // Checking if only fully namespaced name should be used.
+                        if (!typeDef.UseOnlyFullNamespaceSqlName) {
+                            typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
+                        }
+                    }
                 }
             }
 
