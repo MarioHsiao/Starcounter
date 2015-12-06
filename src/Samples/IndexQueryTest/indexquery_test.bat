@@ -24,7 +24,7 @@ IF NOT EXIST %DB_OUT_DIR% ( MKDIR %DB_OUT_DIR% )
 sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
-scweaver.exe --FLAG:disableeditionlibraries "s\%TEST_NAME%\%TEST_NAME%.exe"
+scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
 IF ERRORLEVEL 1 (
 
     ECHO Error: The index query regression test failed!

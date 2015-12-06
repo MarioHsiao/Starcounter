@@ -73,18 +73,21 @@ namespace Starcounter.Binding {
                 // Add short name, i.e., without namespaces, if the original name is not the short name.
                 // Short name don't need to be unique, since the same class name can be given in different namespaces.
                 // It is important to check if the existing short name is actual name of a class with no namespaces.
-                if (typeDef.LowerName != typeDef.ShortName) {
+                if ((typeDef.LowerName != typeDef.ShortName) &&
+                    (!typeDef.UseOnlyFullNamespaceSqlName)) { // Checking if only fully namespaced name is used.
+
                     TypeDef alreadyTypeDef;
                     if (typeDefsByName.TryGetValue(typeDef.ShortName, out alreadyTypeDef)) {
-                        if (alreadyTypeDef != null) // Already ambiguous short names
-                            if (typeDef.ShortName != alreadyTypeDef.LowerName) // If case-insensitive equal then stored short name is real name
+
+                        if (alreadyTypeDef != null) { // Already ambiguous short names
+
+                            if (typeDef.ShortName != alreadyTypeDef.LowerName) { // If case-insensitive equal then stored short name is real name
                                 typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
+                            }
+                        }
                     } else {
 
-                        // Checking if only fully namespaced name should be used.
-                        if (!typeDef.UseOnlyFullNamespaceSqlName) {
-                            typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
-                        }
+                        typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
                     }
                 }
             }
@@ -184,18 +187,23 @@ namespace Starcounter.Binding {
                 // Add short name, i.e., without namespaces, if the original name is not the short name.
                 // Short name don't need to be unique, since the same class name can be given in different namespaces.
                 // It is important to check if the existing short name is actual name of a class with no namespaces.
-                if (typeDef.LowerName != typeDef.ShortName) {
+                if ((typeDef.LowerName != typeDef.ShortName) &&
+                    (!typeDef.UseOnlyFullNamespaceSqlName)) { // Checking if only fully namespaced name is used.
+
                     TypeDef alreadyTypeDef;
+
                     if (typeDefsByName.TryGetValue(typeDef.ShortName, out alreadyTypeDef)) {
-                        if (alreadyTypeDef != null) // Already ambiguous short names
-                            if (typeDef.ShortName != alreadyTypeDef.LowerName) // If case-insensitive equal then stored short name is real name
+
+                        if (alreadyTypeDef != null) { // Already ambiguous short names
+
+                            if (typeDef.ShortName != alreadyTypeDef.LowerName) { // If case-insensitive equal then stored short name is real name
                                 typeDefsByName[typeDef.ShortName] = null; // Ambiguous short name
+                            }
+                        }
+
                     } else {
 
-                        // Checking if only fully namespaced name should be used.
-                        if (!typeDef.UseOnlyFullNamespaceSqlName) {
-                            typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
-                        }
+                        typeDefsByName.Add(typeDef.ShortName, typeDef); // New short name
                     }
                 }
             }
