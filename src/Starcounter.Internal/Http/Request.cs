@@ -696,6 +696,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Arbitrary object used to pass for Self calls.
+        /// </summary>
+        public Object BodyObject {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Body bytes.
         /// </summary>
         public Byte[] BodyBytes
