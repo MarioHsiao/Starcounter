@@ -8,6 +8,6 @@ namespace Starcounter.TransactionLog
 {
     interface ILogApplicator
     {
-        void Apply(byte[] payload_buffer, int offset, int count);
+        void Apply(TransactionData transaction_data);
     }
 }

@@ -7,14 +7,14 @@ using System.Threading;
 
 namespace Starcounter.TransactionLog
 {
-    public class ReadResult
+    public struct ReadResult
     {
-        public LogPosition position;
-        public int bytes_read; //more than count if buffer is insufficient
+        public LogPosition continuation_position;
+        public TransactionData transaction_data;
     }
 
     public interface ILogReader
     {
-        Task<ReadResult> ReadAsync(byte[] buffer, int offset, int count, CancellationToken ct);
+        Task<ReadResult> ReadAsync(CancellationToken ct);
     }
 }
