@@ -64,6 +64,9 @@ node_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
 Level1\src\Samples\CycleTime\obj\Release\CycleTime_test.exe
+Level1\src\Samples\CycleTime\obj\Debug\CycleTime_test.exe
+SimpleIndependentTests\obj\x64\Release\SimpleIndependentTests_test.exe
+SimpleIndependentTests\obj\x64\Debug\SimpleIndependentTests_test.exe
 
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
