@@ -10,3 +10,4 @@ pokerdemo 900
 hostlooper 300
 apps 300
 urls 300
+websockets 300
