@@ -65,6 +65,30 @@ namespace Starcounter.Internal.Test
     [TestFixture]
     public class CustomResponseTests
     {
+        public class SomeClass {
+            public String SomeString;
+        }
+
+        [Test]
+        public void TestBodyObject() {
+
+            Handle.POST("/myhandler", (Request request) => {
+                Assert.AreEqual("xaxa", ((SomeClass)request.BodyObject).SomeString);
+                return 200;
+            });
+
+            Request req = new Request() {
+                Method = "POST",
+                Uri = "/myhandler",
+                BodyObject = new SomeClass() {
+                    SomeString = "xaxa"
+                }
+            };
+
+            Response r = Self.CustomRESTRequest(req);
+            Assert.AreEqual(r.StatusCode, 200);
+        }
+
         /// <summary>
         /// Tests some helper functions.
         /// </summary>
