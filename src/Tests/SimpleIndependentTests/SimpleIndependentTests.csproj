@@ -10,7 +10,7 @@
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SimpleIndependentTests</RootNamespace>
-    <AssemblyName>SimpleIndependentTests_test</AssemblyName>
+    <AssemblyName>SimpleIndependentTests_hosted_test</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <UseVSHostingProcess>false</UseVSHostingProcess>
