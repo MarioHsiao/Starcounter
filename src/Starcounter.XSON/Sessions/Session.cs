@@ -506,7 +506,7 @@ namespace Starcounter {
             // Checking if there is an active WebSocket.
             if (ActiveWebSocket != null) {
 
-                ActiveWebSocket.Disconnect("Session is expired.");
+                ActiveWebSocket.Disconnect("Session is expired.", WebSocket.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN);
                 ActiveWebSocket.Session = null;
                 ActiveWebSocket = null;
             }
