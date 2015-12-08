@@ -741,7 +741,7 @@ namespace Starcounter.Internal
                     if (s != null) {
 
                         // Checking if session is outdated.
-                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) {
+                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes) {
                             // Destroying old session.
                             DestroySession(s.session_struct_);
                         }
