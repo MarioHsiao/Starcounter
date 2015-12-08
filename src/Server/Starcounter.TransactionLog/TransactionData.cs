@@ -21,14 +21,14 @@ namespace Starcounter.TransactionLog
     {
         public string table;
         public reference key;
-        public List<column_update> columns;
+        public column_update[] columns;
     };
 
     public struct update_record_entry
     {
         public string table;
         public reference key;
-        public List<column_update> columns;
+        public column_update[] columns;
     };
 
     public struct delete_record_entry
