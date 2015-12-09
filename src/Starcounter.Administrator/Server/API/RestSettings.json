@@ -1,0 +1,7 @@
+﻿{
+  "$": { "Namespace": "Server.API" },
+  "Enabled": false,
+  "Username": "",
+  "Password": "",
+  "Port": 80
+}

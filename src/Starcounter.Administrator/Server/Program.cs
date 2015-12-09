@@ -15,6 +15,7 @@ using System.Threading;
 using System.Diagnostics;
 using Starcounter.Hosting;
 using Administrator.Server.Managers;
+using Server.API;
 
 namespace Starcounter.Administrator.Server {
 
@@ -54,8 +55,7 @@ namespace Starcounter.Administrator.Server {
 
             // Create a Server Engine
             StarcounterEnvironment.Server.ServerDir = Path.GetDirectoryName(args[0]);
-            StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(
-                StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+            StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
 
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Program.ServerEngine.Setup();
@@ -92,6 +92,8 @@ namespace Starcounter.Administrator.Server {
             // Register and setup the API subsystem handlers
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
+
+            RestHandlers.Register();
 
             ServerManager.Init();
 

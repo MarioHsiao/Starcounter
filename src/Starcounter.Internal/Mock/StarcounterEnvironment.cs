@@ -509,7 +509,14 @@ namespace Starcounter.Internal
             /// File format: single line containing "host[:port]"
             /// </summary>
             public const string OverrideAppStoreHost = "appstorehost.config";
-            
+
+            /// <summary>
+            /// Rest API Configuration file (optional),
+            /// 
+            /// File format: RestSettings.json
+            /// </summary>
+            public const string RestSettingsFileName = "RestSettings.json";
+
             /// <summary>
             /// Default collation Filename prefix
             /// Filename example: TurboText_en-GB_2.dll
