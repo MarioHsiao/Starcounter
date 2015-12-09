@@ -465,7 +465,7 @@ namespace Administrator.Server.Model {
         /// Upgrade application
         /// 
         /// </summary>
-        public void UpgradeApplication(Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
+        public void UpgradeApplication(DatabaseApplication currentDatabaseApplication, Action<DatabaseApplication> completionCallback = null, Action<DatabaseApplication, bool, string, string, string> errorCallback = null) {
 
             this.ResetErrorMessage();
 
@@ -490,7 +490,7 @@ namespace Administrator.Server.Model {
             }
 
             // Get Right DatabaseApplication to upgrade
-            DatabaseApplication currentDatabaseApplication = this.Database.GetLatestApplication(this.Namespace, this.Channel);
+//            DatabaseApplication currentDatabaseApplication = this.Database.GetLatestApplication(this.Namespace, this.Channel);
             if (currentDatabaseApplication == null) {
                 this.UpgradeError = true;
                 this.OnCommandError("Upgrade Application", "Failed to find the application", null);

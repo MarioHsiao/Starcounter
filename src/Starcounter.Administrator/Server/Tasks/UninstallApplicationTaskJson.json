@@ -1,7 +1,6 @@
 ﻿{
 	"$": { Namespace: "Administrator.Server.Model" },
-  "DatabaseName": "",
-  "CanBeUninstalled" : true,
+	"DatabaseName" : "",
 	"ID" : ""
 }
 

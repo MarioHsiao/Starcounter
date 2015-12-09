@@ -460,18 +460,34 @@ namespace Administrator.Server.Model {
         /// <param name="nameSpace"></param>
         /// <param name="channel"></param>
         /// <returns></returns>
-        private IList<DatabaseApplication> GetApplications(string nameSpace, string channel) {
+        public IList<DatabaseApplication> GetApplications(string nameSpace, string channel) {
 
             List<DatabaseApplication> result = new List<DatabaseApplication>();
 
             foreach (DatabaseApplication app in this.Applications) {
 
-                if (app.Namespace == nameSpace && app.Channel == channel) {
+                if (string.Equals(app.Namespace, nameSpace, StringComparison.InvariantCultureIgnoreCase) &&
+                    string.Equals(app.Channel, channel, StringComparison.InvariantCultureIgnoreCase)) {
                     result.Add(app);
                 }
+                //if (app.Namespace == nameSpace && app.Channel == channel) {
+                //    result.Add(app);
+                //}
             }
 
             return result;
+        }
+
+        public DatabaseApplication GetApplication(string nameSpace, string channel, string version) {
+
+            IList<DatabaseApplication> apps = this.GetApplications(nameSpace, channel);
+            foreach (var app in apps) {
+
+                if (string.Equals(app.Version, version, StringComparison.InvariantCultureIgnoreCase)) {
+                    return app;
+                }
+            }
+            return null;
         }
 
         public DatabaseApplication GetLatestApplication(string nameSpace, string channel) {

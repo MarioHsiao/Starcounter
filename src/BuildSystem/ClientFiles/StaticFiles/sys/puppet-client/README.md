@@ -2,10 +2,10 @@
 
 > Custom Element to bind server-side view models with HTML nodes (HTML Templates/Web Components/AngularJs Apps) using [PuppetJS](https://github.com/PuppetJs/PuppetJs) [communication](https://github.com/PuppetJs/PuppetJs/wiki/Server-communication) ([JSON-Patch](http://tools.ietf.org/html/rfc6902))
 
-## Demo
+## Demos
 
-[Example with Polymer app](http://PuppetJs.github.io/puppet-client/examples/polymer/)
-[Example with two separate connection instances](http://PuppetJs.github.io/puppet-client/examples/two_instances/)
+- [Example with Polymer app](http://PuppetJs.github.io/puppet-client/examples/polymer/)
+- [Example with two separate connection instances](http://PuppetJs.github.io/puppet-client/examples/two_instances/)
 
 ## Install
 
