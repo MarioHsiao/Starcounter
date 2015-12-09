@@ -401,7 +401,7 @@ namespace Starcounter.Internal {
                 return;
 
             // By default middleware filters are enabled.
-            StarcounterEnvironment.MiddlewareFiltersEnabled = true;
+            StarcounterEnvironment.MiddlewareFiltersEnabled = StarcounterEnvironment.MiddlewareFiltersEnabledSetting;
 
             // Adding Starcounter specific static files directory.
             String specialStaticFiles = Path.Combine(StarcounterEnvironment.InstallationDirectory, "ClientFiles\\StaticFiles");
