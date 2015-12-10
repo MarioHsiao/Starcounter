@@ -1,6 +1,6 @@
 {
   "name": "puppet-client",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Custom Element to bind server-side view models with HTML nodes (HTML Templates/Web Components/AngularJs Apps) using PuppetJs communication (JSON-Patch)",
   "license": "MIT",
   "main": "src/puppet-client.html",
