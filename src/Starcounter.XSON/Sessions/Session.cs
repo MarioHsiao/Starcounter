@@ -58,7 +58,7 @@ namespace Starcounter {
         /// </summary>
         private List<TransactionRef> transactions;
 
-        public Session() : this(SessionOptions.PatchVersioning) {
+        public Session() : this(SessionOptions.Default) {
         }
 
         public Session(SessionOptions options, bool? includeNamespaces = null) {
