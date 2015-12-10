@@ -72,7 +72,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// Enables or disables the middle filters for external requests.
         /// </summary>
-        public static Boolean MiddlewareFiltersEnabled = false;
+        public static Boolean MiddlewareFiltersEnabled = true;
+        internal static Boolean MiddlewareFiltersEnabledSetting = true;
 
         /// <summary>
         /// Enables or disables the ordinary mapping.

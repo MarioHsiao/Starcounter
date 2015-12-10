@@ -1,4 +1,4 @@
-<!-- puppet-client version: 1.0.2 | MIT License -->
+<!-- puppet-client version: 1.0.4 | MIT License -->
 
 <!-- include PuppetJs with dependencies -->
 <script src="../fast-json-patch/src/json-patch-duplex.js"></script>
@@ -26,7 +26,7 @@
     PuppetClientPrototype.createdCallback = function() {
         var whereToBind = this.getAttribute("ref");
         var listenTo = this.getAttribute("listen-to");
-        var sessionTimeout = this.hasAttribute("session-timeout") ? this.getAttribute("session-timeout") : 20;
+        var pingInterval = this.hasAttribute("ping-interval") ? (this.getAttribute("ping-interval") / 1) : 60;
         var me = this;
 
         if( listenTo ){
@@ -35,7 +35,7 @@
         PuppetDOM.call( this, {
             // use server URL or window.location.href;
             remoteUrl:         this.getAttribute("remoteurl"),
-            sessionTimeout:    sessionTimeout,
+            pingInterval:      pingInterval,
             listenTo:          listenTo,
             // obj:            obj,
             useWebSocket:      parseBoolAttribute(this.getAttribute("usewebsocket"), this.useWebSocket),
@@ -142,8 +142,8 @@
                 newVal = typeof newVal == "string" ? document.getElementById( newVal ) : newVal;
                 this.listenTo(newVal);
                 break;
-            case "session-timeout":
-                this.sessionTimeout = newVal;
+            case "ping-interval":
+                this.pingInterval = newVal;
                 this.ping();
                 break;
         }

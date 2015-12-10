@@ -255,7 +255,7 @@ namespace StarcounterInternal.Bootstrap
 
             propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MiddlewareFiltersEnabled);
             if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.MiddlewareFiltersEnabled = Boolean.Parse(s);
+                StarcounterEnvironment.MiddlewareFiltersEnabledSetting = Boolean.Parse(s);
             }
 
             propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled);

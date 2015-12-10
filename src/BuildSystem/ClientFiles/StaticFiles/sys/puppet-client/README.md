@@ -54,6 +54,7 @@ Attribute          | Options       | Default                | Description
 `ot`               | *Boolean*     | `true`                 | `false` to disable OT
 `purity`           | *Boolean*     | `false`                | true to enable purist mode of OT
 `listen-to`		   | *String*      | `document.body`        | DOM node to listen to (see [PuppetDOM listenTo attribute](https://github.com/PuppetJs/PuppetJs#puppetdom))
+`ping-interval`    | *Number*      | `60`                   | Interval in seconds between ping patches, `0` - disable ping patches
 
 ## Events
 Name                 | Arguments                                                             | Descriptions
