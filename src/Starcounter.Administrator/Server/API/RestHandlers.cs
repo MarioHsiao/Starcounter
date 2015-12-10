@@ -28,7 +28,7 @@ namespace Server.API {
             if (settings == null || !settings.Enabled) return;
             ushort port = (ushort)settings.Port;
 
-            HandlerOptions opt = new HandlerOptions() { SkipHandlersPolicy = false, SkipMiddlewareFilters = true };
+            HandlerOptions opt = new HandlerOptions() { SkipHandlersPolicy = false, SkipRequestFilters = true };
             try {
 
                 #region Tasks

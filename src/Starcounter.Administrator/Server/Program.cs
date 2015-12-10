@@ -123,7 +123,7 @@ namespace Starcounter.Administrator.Server {
 
             }, new HandlerOptions() {
                 ProxyDelegateTrigger = true,
-                SkipMiddlewareFilters = true,
+                SkipRequestFilters = true,
                 ReplaceExistingHandler = true
             });
 

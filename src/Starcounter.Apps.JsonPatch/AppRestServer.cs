@@ -170,7 +170,7 @@ namespace Starcounter.Internal.Web {
 
                     }, new HandlerOptions() {
                         ProxyDelegateTrigger = true,
-                        SkipMiddlewareFilters = true
+                        SkipRequestFilters = true
                     });
 
                     // Json templates used to return static files statistics.
@@ -204,7 +204,7 @@ namespace Starcounter.Internal.Web {
 
                     }, new HandlerOptions() {
                         ProxyDelegateTrigger = true,
-                        SkipMiddlewareFilters = true
+                        SkipRequestFilters = true
                     });
 
                     StarcounterEnvironment.AppName = savedAppName;

@@ -134,7 +134,7 @@ namespace Starcounter.Internal {
                         RegisterRedirectHandler(defaultUserHttpPort, Handle.GET_METHOD, fromUri, toUri);
 
                         return 200;
-                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
+                    }, new HandlerOptions() { SkipRequestFilters = true });
 
                     // Registering URI aliasing port.
                     Handle.GET(defaultSystemHttpPort, "/sc/alias/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
@@ -142,7 +142,7 @@ namespace Starcounter.Internal {
                         RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
 
                         return 200;
-                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
+                    }, new HandlerOptions() { SkipRequestFilters = true });
                 }
                 else {
 
@@ -307,7 +307,7 @@ namespace Starcounter.Internal {
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
 
             Handle.PUT(port, "/sc/reverseproxies", (Request req) => {
                 try {
@@ -349,7 +349,7 @@ namespace Starcounter.Internal {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
 
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
 
 
             Handle.DELETE(port, "/sc/reverseproxies/{?}/{?}", (string matchingHost, string starcounterProxyPort, Request req) => {
@@ -382,7 +382,7 @@ namespace Starcounter.Internal {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
 
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
         }
 
         /// <summary>
@@ -470,7 +470,7 @@ namespace Starcounter.Internal {
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
                 if (!uhi.SkipMiddlewareFilters) {
                     // Checking if there is a filtering delegate.
-                    resp = Handle.RunMiddlewareFilters(req);
+                    resp = Handle.RunRequestFilters(req);
                 }
 
                 // Checking if filter level did allow this request.
