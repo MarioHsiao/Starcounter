@@ -1,5 +1,6 @@
 # Solutions to skip building automatically, because they are built outside the test framework.
 
+BlueCmake.sln
 Level1.sln
 Level0.sln
 Blue.sln
