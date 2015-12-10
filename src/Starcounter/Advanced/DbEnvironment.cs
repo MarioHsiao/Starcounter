@@ -61,5 +61,54 @@ namespace Starcounter.Advanced {
                 return schedulerCount_;
             }
         }
+
+        [DllImport("sccoredb.dll", CharSet = CharSet.Ansi)]
+        private extern static void sccoredb_get_db_info(byte[] uuid, out IntPtr db_name, out IntPtr log_path);
+
+        private class DbInfo
+        {
+            public Guid db_uuid;
+            public string db_name;
+            public string log_dir;
+        }
+
+        private Lazy<DbInfo> _db_info = new Lazy<DbInfo>(() =>
+        {
+            byte[] uuid = new byte[16];
+            IntPtr db_name;
+            IntPtr log_dir;
+
+            sccoredb_get_db_info(uuid, out db_name, out log_dir);
+
+            return new DbInfo {
+                    db_uuid = new Guid(uuid),
+                    db_name = Marshal.PtrToStringAnsi(db_name),
+                    log_dir = Marshal.PtrToStringAnsi(log_dir) };
+        });
+
+        public Guid DatabaseGuid
+        {
+            get
+            {
+                return _db_info.Value.db_uuid;
+            }
+        }
+
+        public string DatabaseName
+        {
+            get
+            {
+                return _db_info.Value.db_name;
+            }
+        }
+
+        public string DatabaseLogDir
+        {
+            get
+            {
+                return _db_info.Value.log_dir;
+            }
+        }
+
     }
 }
