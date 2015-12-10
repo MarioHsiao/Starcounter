@@ -437,6 +437,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TPCC", "Samples\TPCC\TPCC.c
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Starcounter.TransactionLog", "Server\Starcounter.TransactionLog\Starcounter.TransactionLog.csproj", "{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransactionLogTest", "samples\TransactionLogTest\TransactionLogTest.csproj", "{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1215,6 +1217,14 @@ Global
 		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1349,5 +1359,6 @@ Global
 		{841F8C90-1351-4E9D-96B5-9FA181E508ED} = {E64C1F28-D2C1-47D2-A62B-151A6968D158}
 		{F44E055A-BAB9-4E76-8BB6-237BD8BC1EEF} = {9BB3B16F-0FEB-4955-9836-96F42FC953CB}
 		{F5FD585A-DF81-41AF-89E0-4B27CA673FB8} = {4A6B2101-EC24-491E-A575-1044FDCDA105}
+		{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5} = {9BB3B16F-0FEB-4955-9836-96F42FC953CB}
 	EndGlobalSection
 EndGlobal

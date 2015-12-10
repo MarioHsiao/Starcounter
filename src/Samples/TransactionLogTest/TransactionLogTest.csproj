@@ -4,28 +4,30 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{F5FD585A-DF81-41AF-89E0-4B27CA673FB8}</ProjectGuid>
-    <OutputType>Library</OutputType>
+    <ProjectGuid>{697F98D0-1DFF-4E93-9556-EFCD4C5EA1D5}</ProjectGuid>
+    <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Starcounter.TransactionLog</RootNamespace>
-    <AssemblyName>Starcounter.TransactionLog</AssemblyName>
+    <RootNamespace>TransactionLogTest</RootNamespace>
+    <AssemblyName>TransactionLogTest</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\..\bin\Debug\s\TransactionLogTest\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\..\bin\Release\s\TransactionLogTest\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -41,15 +43,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ILogApplicator.cs" />
-    <Compile Include="ILogManager.cs" />
-    <Compile Include="ILogReader.cs" />
-    <Compile Include="LogManager.cs" />
-    <Compile Include="LogPosition.cs" />
-    <Compile Include="LogReader.cs" />
-    <Compile Include="LogReaderImports.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TransactionData.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="transactionlog_test.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Server\Starcounter.TransactionLog\Starcounter.TransactionLog.csproj">
+      <Project>{f5fd585a-df81-41af-89e0-4b27ca673fb8}</Project>
+      <Name>Starcounter.TransactionLog</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter.Internal\Starcounter.Internal.csproj">
+      <Project>{015a94bb-8483-4227-90d6-a08d092212bd}</Project>
+      <Name>Starcounter.Internal</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Starcounter\Starcounter.csproj">
+      <Project>{7bf06e68-1088-47ee-b06c-de546afabdb0}</Project>
+      <Name>Starcounter</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

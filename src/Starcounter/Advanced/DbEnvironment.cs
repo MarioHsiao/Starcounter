@@ -62,7 +62,7 @@ namespace Starcounter.Advanced {
             }
         }
 
-        [DllImport("sccoredb.dll", CharSet = CharSet.Ansi)]
+        [DllImport("sccoredb.dll")]
         private extern static void sccoredb_get_db_info(byte[] uuid, out IntPtr db_name, out IntPtr log_path);
 
         private class DbInfo
