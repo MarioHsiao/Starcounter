@@ -134,7 +134,7 @@ namespace Starcounter.Advanced.Configuration {
         public Boolean MergeJsonSiblings = StarcounterEnvironment.MergeJsonSiblings;
         public Boolean UriMappingEnabled = StarcounterEnvironment.UriMappingEnabled;
         public Boolean OntologyMappingEnabled = StarcounterEnvironment.OntologyMappingEnabled;
-        public Boolean MiddlewareFiltersEnabled = StarcounterEnvironment.MiddlewareFiltersEnabled;
+        public Boolean RequestFiltersEnabled = StarcounterEnvironment.RequestFiltersEnabled;
 
         /// <summary>
         /// Support of aggregations in SQL queries, for which current implementation is very slow.

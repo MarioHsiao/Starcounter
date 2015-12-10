@@ -149,9 +149,9 @@ namespace Starcounter.Rest
         HandlerOptions.TypesOfHandler typeOfHandler_;
 
         /// <summary>
-        /// Try if middleware filters should be skipped.
+        /// Try if request filters should be skipped.
         /// </summary>
-        internal Boolean SkipMiddlewareFilters {
+        internal Boolean SkipRequestFilters {
             get;
             set;
         }
@@ -421,7 +421,7 @@ namespace Starcounter.Rest
 
             Debug.Assert(userDelegate_ == null);
 
-            SkipMiddlewareFilters = ho.SkipRequestFilters || StarcounterEnvironment.SkipMiddlewareFiltersGlobal;
+            SkipRequestFilters = ho.SkipRequestFilters || StarcounterEnvironment.SkipRequestFiltersGlobal;
 
             if (ho.ProxyDelegateTrigger) {
 

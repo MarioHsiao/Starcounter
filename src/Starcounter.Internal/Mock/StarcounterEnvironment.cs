@@ -45,9 +45,9 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Skip middleware filters global flag.
+        /// Skip request filters global flag.
         /// </summary>
-        internal static Boolean SkipMiddlewareFiltersGlobal = true;
+        internal static Boolean SkipRequestFiltersGlobal = true;
 
         /// <summary>
         /// Wrap JSON in namespaces.
@@ -70,10 +70,10 @@ namespace Starcounter.Internal
         public static Boolean MergeJsonSiblings = true;
 
         /// <summary>
-        /// Enables or disables the middle filters for external requests.
+        /// Enables or disables the filters for external requests.
         /// </summary>
-        public static Boolean MiddlewareFiltersEnabled = true;
-        internal static Boolean MiddlewareFiltersEnabledSetting = true;
+        public static Boolean RequestFiltersEnabled = true;
+        internal static Boolean RequestFiltersEnabledSetting = true;
 
         /// <summary>
         /// Enables or disables the ordinary mapping.

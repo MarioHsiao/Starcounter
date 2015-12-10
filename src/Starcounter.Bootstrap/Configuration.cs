@@ -253,9 +253,9 @@ namespace StarcounterInternal.Bootstrap
                 StarcounterEnvironment.MergeJsonSiblings = Boolean.Parse(s);
             }
 
-            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MiddlewareFiltersEnabled);
+            propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled);
             if (ProgramArguments.TryGetProperty(propName, out s)) {
-                StarcounterEnvironment.MiddlewareFiltersEnabledSetting = Boolean.Parse(s);
+                StarcounterEnvironment.RequestFiltersEnabledSetting = Boolean.Parse(s);
             }
 
             propName = StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled);

@@ -400,8 +400,8 @@ namespace Starcounter.Internal {
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
                 return;
 
-            // By default middleware filters are enabled.
-            StarcounterEnvironment.MiddlewareFiltersEnabled = StarcounterEnvironment.MiddlewareFiltersEnabledSetting;
+            // By default request filters are enabled.
+            StarcounterEnvironment.RequestFiltersEnabled = StarcounterEnvironment.RequestFiltersEnabledSetting;
 
             // Adding Starcounter specific static files directory.
             String specialStaticFiles = Path.Combine(StarcounterEnvironment.InstallationDirectory, "ClientFiles\\StaticFiles");
@@ -468,7 +468,7 @@ namespace Starcounter.Internal {
                 // Getting handler information.
                 UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
-                if (!uhi.SkipMiddlewareFilters) {
+                if (!uhi.SkipRequestFilters) {
                     // Checking if there is a filtering delegate.
                     resp = Handle.RunRequestFilters(req);
                 }
