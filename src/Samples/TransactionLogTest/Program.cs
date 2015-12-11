@@ -12,7 +12,13 @@ using Starcounter.TransactionLog;
 namespace TransactionLogTest
 {
     [Database]
-    public class TestClass
+    public class TestClassBase
+    {
+        public string base_string;
+    }
+
+    [Database]
+    public class TestClass : TestClassBase
     {
         public string str_field;
         public Binary bin_field;
@@ -23,7 +29,6 @@ namespace TransactionLogTest
         public double double_field;
         public TestClass ref_field;
     };
-
 
     class Program
     {
@@ -128,10 +133,149 @@ namespace TransactionLogTest
             }
         }
 
+        static void check_apply_create()
+        {
+            //arrange
+
+            ulong last_key = 0;
+            Db.Transact(() =>
+            {
+                var t = new TestClass();
+                last_key = t.GetObjectNo();
+            });
+
+            ulong new_record_key = last_key + 1;
+
+            TransactionData td = new TransactionData {
+                                    updates = new List<update_record_entry>(),
+                                    deletes = new List<delete_record_entry>(),
+                                    creates = new List<create_record_entry> {
+                                        new create_record_entry {
+                                            table = typeof(TestClass).FullName,
+                                            key = new reference { object_id=new_record_key },
+                                            columns = new column_update[]{
+                                                new column_update { name="base_string", value="Str" },
+                                                new column_update { name="bin_field", value=new byte[1] { 42 } },
+                                                new column_update { name="dec_field", value=42.24m },
+                                                new column_update { name="double_field", value=-42.42 },
+                                                new column_update { name="float_field", value=42.42f },
+                                                new column_update { name="long_field", value=-42l },
+                                                new column_update { name="str_field", value=null },
+                                                new column_update { name="ulong_field", value=ulong.MaxValue },
+                                                new column_update { name="ref_field", value=new reference { object_id = last_key } }
+                                            } } } };
+
+            //act
+
+            Db.Transact(() =>
+            {
+                new LogApplicator().Apply(td);
+            });
+
+            //check
+            Db.Transact(() =>
+            {
+                var t = Db.SQL<TestClass>("select t from TestClass t").Where(x=>x.GetObjectNo()==new_record_key).Single();
+                Trace.Assert(t.base_string == "Str");
+                Trace.Assert(t.bin_field.ToArray().SequenceEqual(new byte[1] { 42 }));
+                Trace.Assert(t.dec_field == 42.24m);
+                Trace.Assert(t.double_field == -42.42);
+                Trace.Assert(t.float_field == 42.42f);
+                Trace.Assert(t.long_field == -42l);
+                Trace.Assert(t.str_field == null);
+                Trace.Assert(t.ulong_field == ulong.MaxValue);
+                Trace.Assert(t.ref_field.GetObjectNo() == last_key);
+            });
+        }
+
+        static void check_apply_update()
+        {
+            //arrange
+
+            ulong key = 0;
+            Db.Transact(() =>
+            {
+                var t = new TestClass();
+                key = t.GetObjectNo();
+            });
+
+            TransactionData td = new TransactionData
+            {
+                creates = new List<create_record_entry>(),
+                deletes = new List<delete_record_entry>(),
+                updates = new List<update_record_entry> {
+                                        new update_record_entry {
+                                            table = typeof(TestClass).FullName,
+                                            key = new reference { object_id=key },
+                                            columns = new column_update[]{
+                                                new column_update { name="base_string", value="Str" }
+                                            } } }
+            };
+
+            //act
+
+            Db.Transact(() =>
+            {
+                new LogApplicator().Apply(td);
+            });
+
+            //check
+            Db.Transact(() =>
+            {
+                var t = Db.SQL<TestClass>("select t from TestClass t").Where(x => x.GetObjectNo() == key).Single();
+                Trace.Assert(t.base_string == "Str");
+            });
+        }
+
+        static void check_apply_delete()
+        {
+            //arrange
+
+            ulong key = 0;
+            Db.Transact(() =>
+            {
+                var t = new TestClass();
+                key = t.GetObjectNo();
+                Trace.Assert(Db.SQL<TestClass>("select t from TestClass t").Where(x => x.GetObjectNo() == key).Any());
+            });
+
+            TransactionData td = new TransactionData
+            {
+                creates = new List<create_record_entry>(),
+                updates = new List<update_record_entry>(),
+                deletes = new List<delete_record_entry>(){
+                                    new delete_record_entry {
+                                              table = typeof(TestClass).FullName,
+                                              key = new reference { object_id=key }
+                                    } }
+            };
+
+            //act
+
+            Db.Transact(() =>
+            {
+                new LogApplicator().Apply(td);
+            });
+
+            //check
+            Db.Transact(() =>
+            {
+                Trace.Assert( !Db.SQL<TestClass>("select t from TestClass t").Where(x => x.GetObjectNo() == key).Any() );
+            });
+
+        }
+
+
         static void Main(string[] args)
         {
+            Debugger.Launch();
+            var t = Starcounter.Db.LookupTable(typeof(TestClass).FullName);
+
             check_create_entry();
             check_positioning();
+            check_apply_create();
+            check_apply_update();
+            check_apply_delete();
 
             Environment.Exit(0);
         }
