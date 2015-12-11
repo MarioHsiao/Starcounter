@@ -194,9 +194,13 @@ namespace Starcounter.Binding {
             for (int i = 0; i < typeDefs.Length; i++)
             {
                 typeDef = typeDefs[i];
-                var tableId = typeDef.TableDef.TableId;
-                while (typeDefsById.Count <= tableId) typeDefsById.Add(null);
-                typeDefsById[tableId] = typeDef;
+                var allLayoutIds = typeDef.TableDef.allLayoutIds;
+
+                for (int k = 0; k < allLayoutIds.Length; k++) {
+                    while (typeDefsById.Count <= allLayoutIds[k])
+                        typeDefsById.Add(null);
+                    typeDefsById[allLayoutIds[k]] = typeDef;
+                }
             }
 
             // No one will be requesting a type not previously registered so we
@@ -205,7 +209,7 @@ namespace Starcounter.Binding {
             typeDefsById_ = typeDefsById.ToArray();
             typeDefsByName_ = typeDefsByName;
         }
-
+        
         /// <summary>
         /// Gets the type def.
         /// </summary>
