@@ -44,10 +44,11 @@ namespace Starcounter {
 </html>";
 
         private byte[] ImplicitStandalonePageBytes;
+        private Encoding defaultEncoding = Encoding.UTF8;
 
         private Boolean IsFullPageHtml(Byte[] html) {
             //TODO test for UTF-8 BOM
-            byte[] fullPageTest = Encoding.ASCII.GetBytes("<!"); //full page starts with <!doctype or <!DOCTYPE;
+            byte[] fullPageTest = defaultEncoding.GetBytes("<!"); //full page starts with <!doctype or <!DOCTYPE;
             var indicatorLength = fullPageTest.Length;
 
             if (html.Length < indicatorLength) {
@@ -82,7 +83,7 @@ namespace Starcounter {
                 else {
                     if (ImplicitStandalonePageBytes == null) {
                         string html = String.Format(ImplicitStandaloneTemplate, ImplicitStandaloneTitle);
-                        ImplicitStandalonePageBytes = Encoding.ASCII.GetBytes(html);
+                        ImplicitStandalonePageBytes = defaultEncoding.GetBytes(html);
                     }
                     return ImplicitStandalonePageBytes;
                 }
