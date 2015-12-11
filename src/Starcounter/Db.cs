@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Reflection;
+using Starcounter.Metadata;
 
 namespace Starcounter
 {
@@ -38,15 +39,12 @@ namespace Starcounter
         public static event EventHandler DatabaseStopping;
 
         /// <summary>
-        /// Lookups the table.
+        /// Gets the table definition based on the name.
         /// </summary>
-        /// <param name="name">The name.</param>
+        /// <param name="name">The fullname of the table.</param>
         /// <returns>TableDef.</returns>
         public static TableDef LookupTable(string name)
         {
-            // TODO:
-            // Function assumes that there can only be one layout per table.
-
             unsafe
             {
                 ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
@@ -57,12 +55,33 @@ namespace Starcounter
                         ThreadData.ContextHandle, token, &layoutInfoCount, &layoutInfo
                         );
                     if (r == 0) {
+                        if (layoutInfoCount > 1)
+                            return LookupTableFromRawView(name, layoutInfoCount);
+
                         Debug.Assert(layoutInfoCount < 2);
                         if (layoutInfoCount != 0)
-                            return TableDef.ConstructTableDef(layoutInfo);
+                            return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount);
                         return null;
                     }
                     throw ErrorCode.ToException(r);
+                }
+                return null;
+            }
+        }
+
+        private static TableDef LookupTableFromRawView(string name, uint layoutInfoCount) {
+            unsafe
+            {
+                var rawView = Db.SQL<RawView>("SELECT r FROM Starcounter.Metadata.RawView r WHERE r.FullName=?", name).First;
+                if (rawView != null) {
+                    sccoredb.STARI_LAYOUT_INFO layoutInfo;
+                    uint ec = sccoredb.stari_context_get_layout_info(
+                                  ThreadData.ContextHandle, rawView.LayoutHandle, out layoutInfo
+                              );
+                    if (ec == 0) {
+                        return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount);
+                    }
+                    throw ErrorCode.ToException(ec);
                 }
                 return null;
             }
