@@ -213,10 +213,15 @@ namespace Starcounter.Binding {
             for (int i = 0; i < typeDefs.Length; i++)
             {
                 typeDef = typeDefs[i];
-                var layoutHandle = typeDef.TableDef.TableId;
-                CodeGenFilterNativeInterface.star_register_expected_layout(
-                    layoutHandle, layoutHandle
-                    );
+                var expectedLayoutHandle = typeDef.TableDef.TableId;
+                var allLayoutHandles = typeDef.TableDef.allLayoutIds;
+
+                for (int k = 0; k < allLayoutHandles.Length; k++)
+                {
+                    CodeGenFilterNativeInterface.star_register_expected_layout(
+                        allLayoutHandles[k], expectedLayoutHandle
+                        );
+                }
             }
 #endif
         }
