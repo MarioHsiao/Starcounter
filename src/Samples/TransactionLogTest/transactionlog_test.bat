@@ -7,6 +7,9 @@ SET TEST_NAME=TransactionLogTest
 :: Killing all SC processes.
 staradmin kill all
 
+mkdir %DB_DIR%
+mkdir %DB_OUT_DIR%
+
 :: Creating image files.
 sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 

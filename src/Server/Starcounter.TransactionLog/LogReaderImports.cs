@@ -6,33 +6,176 @@ namespace Starcounter.TransactionLog
     static class LogReaderImports
     {
         [DllImport("logreader.dll", CharSet = CharSet.Ansi)]
-        public extern static int TransactionLogOpen(string db_name, string log_dir, out IntPtr log_handle);
+        private extern static int TransactionLogOpen(string db_name, string log_dir, out IntPtr log_handle);
+
+        public static IntPtr TransactionLogOpen(string db_name, string log_dir)
+        {
+            IntPtr log_handle;
+            TransactionLogException.Test(TransactionLogOpen(db_name, log_dir, out log_handle));
+            return log_handle;
+        }
 
         [DllImport("logreader.dll", CharSet = CharSet.Ansi)]
-        public extern static int TransactionLogOpenAndSeek(string db_name, string log_dir, [In,Out] LogPosition pos, out IntPtr log_handle);
+        private extern static int TransactionLogOpenAndSeek(string db_name, string log_dir, [In, Out] LogPosition pos, out IntPtr log_handle);
+
+        public static IntPtr TransactionLogOpenAndSeek(string db_name, string log_dir, LogPosition pos)
+        {
+            IntPtr log_handle;
+            TransactionLogException.Test(TransactionLogOpenAndSeek(db_name, log_dir, pos, out log_handle));
+            return log_handle;
+        }
 
         [DllImport("logreader.dll")]
         public extern static void TransactionLogClose(IntPtr log_handle);
 
-/*
-    //log traversion
-    LOGREADER_API int TransactionLogIsEOF(log_handle_t log, bool* eof);
-    LOGREADER_API int TransactionLogMoveNext(log_handle_t log);
-    LOGREADER_API star_log_reader::log_position TransactionLogGetPosition(log_handle_t log);
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogIsEOF(IntPtr log_handle, [MarshalAs(UnmanagedType.I1)] out bool eof);
 
-    //transaction entry content
-    LOGREADER_API int TransactionLogGetCurrentTransactionInfo(log_handle_t log, uint32_t* insertupdate_entry_count, uint32_t* delete_entry_count);
+        public static bool TransactionLogIsEOF(IntPtr log_handle)
+        {
+            bool eof;
+            TransactionLogException.Test(TransactionLogIsEOF(log_handle, out eof));
+            return eof;
+        }
 
-    //log entry content
-    LOGREADER_API int TransactionLogGetDeleteEntryInfo(log_handle_t log, uint32_t delete_entry_index, const ucs2_char** table, uint64_t* object_id);
-LOGREADER_API int TransactionLogGetInsertUpdateEntryInfo(log_handle_t log, uint32_t insertupdate_entry_index, bool* is_insert, const ucs2_char** table, uint64_t* object_id, uint32_t* columns_count);
-    LOGREADER_API int TransactionLogGetInsertUpdateEntryColumnInfo(log_handle_t log, uint32_t insertupdate_entry_index, uint32_t column_index, const ucs2_char** column_name, uint8_t* column_type);
-LOGREADER_API int TransactionLogGetColumnStringValue(log_handle_t log, uint32_t insertupdate_entry_index, uint32_t column_index, const ucs2_char** val);
-    LOGREADER_API int TransactionLogGetColumnBinaryValue(log_handle_t log, uint32_t insertupdate_entry_index, uint32_t column_index, const uint8_t** data, uint32_t* size);
-LOGREADER_API int TransactionLogGetColumnIntValue(log_handle_t log, uint32_t insertupdate_entry_index, uint32_t column_index, int64_t* val);
-    LOGREADER_API int TransactionLogGetColumnDoubleValue(log_handle_t log, uint32_t insertupdate_entry_index, uint32_t column_index, double* val);
-    LOGREADER_API int TransactionLogGetColumnFloatValue(log_handle_t log, uint32_t insertupdate_entry_index, uint32_t column_index, float* val);
-    */
+        [DllImport("logreader.dll", EntryPoint = "TransactionLogMoveNext")]
+        private extern static int TransactionLogMoveNext_imp(IntPtr log_handle);
+
+        public static void TransactionLogMoveNext(IntPtr log_handle)
+        {
+            TransactionLogException.Test(TransactionLogMoveNext_imp(log_handle));
+        }
+
+        [DllImport("logreader.dll")]
+        public extern static LogPosition TransactionLogGetPosition(IntPtr log_handle);
+
+        [DllImport("logreader.dll", EntryPoint = "TransactionLogGetCurrentTransactionInfo")]
+        private extern static int TransactionLogGetCurrentTransactionInfo_imp(IntPtr log_handle, out uint insertupdate_entry_count, out uint delete_entry_count);
+
+        public static void TransactionLogGetCurrentTransactionInfo(IntPtr log_handle, out uint insertupdate_entry_count, out uint delete_entry_count)
+        {
+            TransactionLogException.Test(
+                TransactionLogGetCurrentTransactionInfo_imp(log_handle, out insertupdate_entry_count, out delete_entry_count));
+        }
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetDeleteEntryInfo(IntPtr log_handle, uint delete_entry_index, out IntPtr table, out ulong object_id);
+
+        public static void TransactionLogGetDeleteEntryInfo(IntPtr log_handle, uint delete_entry_index, out string table, out ulong object_id)
+        {
+            IntPtr table_ptr;
+            TransactionLogException.Test(TransactionLogGetDeleteEntryInfo(log_handle, delete_entry_index, out table_ptr, out object_id));
+            table = Marshal.PtrToStringUni(table_ptr);
+        }
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetInsertUpdateEntryInfo(
+            IntPtr log_handle, uint insertupdate_entry_index, [MarshalAs(UnmanagedType.I1)] out bool is_insert,
+            out IntPtr table, out ulong object_id, out uint columns_count);
+
+        public static void TransactionLogGetInsertUpdateEntryInfo(
+            IntPtr log_handle, uint insertupdate_entry_index, out bool is_insert,
+            out string table, out ulong object_id, out uint columns_count)
+        {
+            IntPtr table_ptr;
+            TransactionLogException.Test(
+                TransactionLogGetInsertUpdateEntryInfo(
+                    log_handle, insertupdate_entry_index, out is_insert,
+                    out table_ptr, out object_id, out columns_count));
+
+            table = Marshal.PtrToStringUni(table_ptr);
+        }
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr column_name, out byte column_type);
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetColumnStringValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr val);
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetColumnBinaryValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr data, out uint size);
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetColumnIntValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out long val);
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetColumnDoubleValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out double val);
+
+        [DllImport("logreader.dll")]
+        private extern static int TransactionLogGetColumnFloatValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out float val);
+
+        public static void TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out string column_name, out object column_value)
+        {
+            IntPtr column_name_ptr;
+            byte column_type;
+            TransactionLogException.Test(TransactionLogGetInsertUpdateEntryColumnInfo(log_handle, insertupdate_entry_index, column_index, out column_name_ptr, out column_type));
+            column_name = Marshal.PtrToStringUni(column_name_ptr);
+            column_value = null;
+
+            switch (column_type)
+            {
+                case Starcounter.Internal.sccoredb.STAR_TYPE_STRING:
+                    {
+                        IntPtr val;
+                        TransactionLogException.Test(TransactionLogGetColumnStringValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = Marshal.PtrToStringUni(val);
+                        break;
+                    }
+                case Starcounter.Internal.sccoredb.STAR_TYPE_BINARY:
+                    {
+                        IntPtr data;
+                        uint size;
+                        TransactionLogException.Test(TransactionLogGetColumnBinaryValue(log_handle, insertupdate_entry_index, column_index, out data, out size));
+                        byte[] val = new byte[size];
+                        Marshal.Copy(data, val, 0, (int)size);
+                        column_value = val;
+                        break;
+                    }
+                case Starcounter.Internal.sccoredb.STAR_TYPE_LONG:
+                    {
+                        long val;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = val;
+                        break;
+                    }
+
+                case Starcounter.Internal.sccoredb.STAR_TYPE_ULONG:
+                    {
+                        long val;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = (ulong)val;
+                        break;
+                    }
+                case Starcounter.Internal.sccoredb.STAR_TYPE_DECIMAL:
+                    {
+                        long val;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = Starcounter.Internal.X6Decimal.FromRaw(val);
+                        break;
+                    }
+                case Starcounter.Internal.sccoredb.STAR_TYPE_FLOAT:
+                    {
+                        float val;
+                        TransactionLogException.Test(TransactionLogGetColumnFloatValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = val;
+                        break;
+                    }
+                case Starcounter.Internal.sccoredb.STAR_TYPE_DOUBLE:
+                    {
+                        double val;
+                        TransactionLogException.Test(TransactionLogGetColumnDoubleValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = val;
+                        break;
+                    }
+                case Starcounter.Internal.sccoredb.STAR_TYPE_REFERENCE:
+                    {
+                        long val;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
+                        column_value = new reference { object_id = (ulong)val };
+                        break;
+                    }
+            }
+        }
 
     }
 }
