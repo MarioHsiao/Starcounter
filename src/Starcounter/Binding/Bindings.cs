@@ -208,6 +208,17 @@ namespace Starcounter.Binding {
 
             typeDefsById_ = typeDefsById.ToArray();
             typeDefsByName_ = typeDefsByName;
+
+#if true
+            for (int i = 0; i < typeDefs.Length; i++)
+            {
+                typeDef = typeDefs[i];
+                var layoutHandle = typeDef.TableDef.TableId;
+                CodeGenFilterNativeInterface.star_register_expected_layout(
+                    layoutHandle, layoutHandle
+                    );
+            }
+#endif
         }
         
         /// <summary>
