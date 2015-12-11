@@ -174,7 +174,7 @@ namespace Starcounter.Administrator.Server {
 
                 Response resp = new Response();
                 resp.Body = "hello";
-                resp.ContentType = "text/plain";
+                resp.ContentType = "text/plain;charset=utf-8";
 
                 return resp;
             });

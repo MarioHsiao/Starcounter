@@ -506,7 +506,7 @@ namespace Starcounter.Internal {
                 LogSources.Hosting.LogException(exc);
                 resp = Response.FromStatusCode(500);
                 resp.Body = AppRestServer.GetExceptionString(exc);
-                resp.ContentType = "text/plain";
+                resp.ContentType = "text/plain;charset=utf-8";
             }
 
             // Checking if response was handled.
@@ -534,7 +534,7 @@ namespace Starcounter.Internal {
                             LogSources.Hosting.LogException(ex);
                             resp = Response.FromStatusCode(500);
                             resp.Body = AppRestServer.GetExceptionString(ex);
-                            resp.ContentType = "text/plain";
+                            resp.ContentType = "text/plain;charset=utf-8";
                             req.SendResponse(resp, responseSerializationBuffer_);
                         }
 

@@ -32,6 +32,7 @@
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
 - Changed so that implicit resource directories are discovered based on the working directory.
+- Renamed the MiddlewareFiltersEnabled database flag to RequestFiltersEnabled.
 
 ## [2.1.177] - 2015-10-14
 ### Changed

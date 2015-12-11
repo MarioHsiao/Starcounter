@@ -798,7 +798,17 @@ namespace Starcounter
                 try {
 
                     bytes = resource_.AsMimeType(mimetype, out mimetype);
-                    this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
+
+                    // Checking if Content-Type header is set already.
+                    if (null == ContentType) {
+                        String mt = MimeTypeHelper.MimeTypeAsString(mimetype);
+
+                        if (mt.StartsWith("text/")) {
+                            ContentType = mt + ";charset=utf-8";
+                        } else {
+                            ContentType = mt;
+                        }
+                    }
 
                 } catch (UnsupportedMimeTypeException) {
 
@@ -831,7 +841,17 @@ namespace Starcounter
                         statusCode_ = 406;
                         statusDescription_ = "Not acceptable";
                     } else {
-                        this[HttpHeadersUtf8.ContentTypeHeader] = MimeTypeHelper.MimeTypeAsString(mimetype);
+
+                        // Checking if Content-Type header is set already.
+                        if (null == ContentType) {
+                            String mt = MimeTypeHelper.MimeTypeAsString(mimetype);
+
+                            if (mt.StartsWith("text/")) {
+                                ContentType = mt + ";charset=utf-8";
+                            } else {
+                                ContentType = mt;
+                            }
+                        }
                     }
                 }
                 // We have our precious bytes. Let's wrap them up in a response.
