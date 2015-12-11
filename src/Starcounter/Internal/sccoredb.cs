@@ -764,6 +764,13 @@ namespace Starcounter.Internal
         /// <summary>
         /// </summary>
         [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern void star_register_expected_layout(
+            ushort layout_handle, ushort expected_layout_handle
+            );
+
+        /// <summary>
+        /// </summary>
+        [DllImport("filter.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe UInt32 star_context_create_filter(
             ulong handle,
             ushort tableId,
