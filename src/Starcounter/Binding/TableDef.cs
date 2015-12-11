@@ -10,31 +10,57 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-namespace Starcounter.Binding
-{
-
+namespace Starcounter.Binding {
     /// <summary>
     /// Definition of a database table.
     /// </summary>
-    public sealed class TableDef
-    {
-
+    public sealed class TableDef {
         /// <summary>
         /// </summary>
-        internal unsafe static TableDef ConstructTableDef(sccoredb.STARI_LAYOUT_INFO tableInfo) {
+        internal unsafe static TableDef ConstructTableDef(sccoredb.STARI_LAYOUT_INFO tableInfo, uint layoutInfoCount) {
             string name = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
             ushort tableId = tableInfo.layout_handle;
             uint columnCount = tableInfo.column_count;
             string baseName = null;
             uint inheritedColumnCount = 0;
+            uint ec;
+            sccoredb.STARI_LAYOUT_INFO[] layoutInfos = null;
+            ushort[] allLayoutIds = null;
+            
+            if (layoutInfoCount == 1) {
+                allLayoutIds = new ushort[1];
+                allLayoutIds[0] = tableInfo.layout_handle;
+            } else if (layoutInfoCount > 1) {
+                // TODO:
+                // Additional layouts exists, due to schema upgrades. 
+                // Not sure how to handle this. Is it enough to get and keep all layouts, or
+                // do we need to create additional TableDefs for each layout.
+                
+                ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
+                if (token != 0) {
+                    layoutInfos = new sccoredb.STARI_LAYOUT_INFO[layoutInfoCount];
+                    fixed (sccoredb.STARI_LAYOUT_INFO* pLayoutInfos = layoutInfos)
+                    {
+                        ec = sccoredb.stari_context_get_layout_infos_by_token(
+                                ThreadData.ContextHandle, token, &layoutInfoCount, pLayoutInfos
+                             );
+                    }
+                    if (ec != 0)
+                        throw ErrorCode.ToException(ec);
+
+                    allLayoutIds = new ushort[layoutInfoCount];
+                    for (int i = 0; i < layoutInfoCount; i++) {
+                        allLayoutIds[i] = layoutInfos[i].layout_handle;
+                    }
+                }
+            }
 
             if (tableInfo.inherited_layout_handle != 0) {
                 var r = sccoredb.stari_context_get_layout_info(ThreadData.ContextHandle, tableInfo.inherited_layout_handle, out tableInfo);
                 if (r == 0) {
                     baseName = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
                     inheritedColumnCount = tableInfo.column_count;
-                }
-                else {
+                } else {
                     throw ErrorCode.ToException(r);
                 }
             }
@@ -50,14 +76,17 @@ namespace Starcounter.Binding
                         columnInfo.nullable != 0,
                         i < inheritedColumnCount
                         );
-                }
-                else {
+                } else {
                     throw ErrorCode.ToException(r);
                 }
             }
-            return new TableDef(name, baseName, columns, tableId);
-        }
 
+            var tableDef = new TableDef(name, baseName, columns, tableId);
+            tableDef.allLayoutIds = allLayoutIds;
+
+            return tableDef;
+        }
+        
         /// <summary>
         /// The name
         /// </summary>
@@ -86,6 +115,11 @@ namespace Starcounter.Binding
         public ushort TableId;
 
         /// <summary>
+        /// Contains all different layout used for this table. 
+        /// </summary>
+        internal ushort[] allLayoutIds;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TableDef" /> class.
         /// </summary>
         /// <param name="name">The name.</param>
@@ -107,8 +141,7 @@ namespace Starcounter.Binding
         /// <param name="baseName">Name of the base.</param>
         /// <param name="columnsDefs">The columns defs.</param>
         /// <param name="tableId">The table id.</param>
-        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId)
-        {
+        public TableDef(string name, string baseName, ColumnDef[] columnsDefs, ushort tableId) {
             Name = name;
             BaseName = baseName;
             ColumnDefs = columnsDefs;
@@ -120,13 +153,10 @@ namespace Starcounter.Binding
         /// Gets the short name.
         /// </summary>
         /// <value>The short name.</value>
-        public string ShortName
-        {
-            get
-            {
+        public string ShortName {
+            get {
                 var i = Name.LastIndexOf('.');
-                if (i >= 0)
-                {
+                if (i >= 0) {
                     return Name.Substring(i + 1);
                 }
                 return Name;
@@ -137,11 +167,9 @@ namespace Starcounter.Binding
         /// Clones this instance.
         /// </summary>
         /// <returns>TableDef.</returns>
-        public TableDef Clone()
-        {
+        public TableDef Clone() {
             ColumnDef[] clonedColumnDefs = new ColumnDef[ColumnDefs.Length];
-            for (int i = 0; i < ColumnDefs.Length; i++)
-            {
+            for (int i = 0; i < ColumnDefs.Length; i++) {
                 clonedColumnDefs[i] = ColumnDefs[i].Clone();
             }
             return new TableDef(Name, BaseName, clonedColumnDefs, TableId);
@@ -152,20 +180,18 @@ namespace Starcounter.Binding
         /// </summary>
         /// <param name="tableDef">The table def.</param>
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
-        public bool Equals(TableDef tableDef)
-        {
+        public bool Equals(TableDef tableDef) {
             bool b =
                 Name == tableDef.Name &&
-                (BaseName == tableDef.BaseName || 
+                (BaseName == tableDef.BaseName ||
                 tableDef.BaseName.Equals("Starcounter.Metadata.MetadataEntity")) &&
                 ColumnDefs.Length == tableDef.ColumnDefs.Length
                 ;
-            if (b)
-            {
-                for (int i = 0; i < ColumnDefs.Length; i++)
-                {
+            if (b) {
+                for (int i = 0; i < ColumnDefs.Length; i++) {
                     b = ColumnDefs[i].Equals(tableDef.ColumnDefs[i]);
-                    if (!b) break;
+                    if (!b)
+                        break;
                 }
             }
             return b;
@@ -175,8 +201,7 @@ namespace Starcounter.Binding
         /// Gets all index infos.
         /// </summary>
         /// <returns>IndexInfo[][].</returns>
-        internal IndexInfo[] GetAllIndexInfos()
-        {
+        internal IndexInfo[] GetAllIndexInfos() {
             uint ec;
             uint ic;
             sccoredb.STARI_INDEX_INFO[] iis;
@@ -191,12 +216,10 @@ namespace Starcounter.Binding
                     &ic,
                     null
                     );
-                if (ec != 0)
-                {
+                if (ec != 0) {
                     throw ErrorCode.ToException(ec);
                 }
-                if (ic == 0)
-                {
+                if (ic == 0) {
                     return new IndexInfo[0];
                 }
 
@@ -209,18 +232,19 @@ namespace Starcounter.Binding
                         &ic,
                         pii
                         );
-                    if (ec != 0)
-                    {
+                    if (ec != 0) {
                         throw ErrorCode.ToException(ec);
                     }
 
-                    // Index infos array contains all indexes including inherited ones, which we do
-                    // not want here. So we filter them by filtering all indexes with a different
-                    // then expected layout (assuming them to be inherited).
+                    // Index infos array contains all indexes including inherited ones, which we do not 
+                    // want here, so we filter them out. We check all existing layouts for this definition
+                    // and make sure the indexes we add belongs to any of them.
                     iil = new List<IndexInfo>((int)ic);
                     for (int i = 0; i < ic; i++) {
-                        if ((pii + i)->layout_handle == TableId) {
-                            iil.Add(CreateIndexInfo(pii + i));
+                        foreach (ushort tableId in allLayoutIds) {
+                            if ((pii + i)->layout_handle == tableId) {
+                                iil.Add(CreateIndexInfo(pii + i));
+                            }
                         }
                     }
                     return iil.ToArray();
@@ -231,7 +255,8 @@ namespace Starcounter.Binding
         /// <summary>
         /// </summary>
         internal IndexInfo GetIndexInfo(string name) {
-            unsafe {
+            unsafe
+            {
                 ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
                 if (token != 0) {
                     var indexInfos = GetAllIndexInfos();
@@ -267,8 +292,7 @@ namespace Starcounter.Binding
             for (Int32 j = 0; j < attributeCount; j++) {
                 if ((tempSortMask & 1) == 1) {
                     sortOrderings[j] = SortOrder.Descending;
-                }
-                else {
+                } else {
                     sortOrderings[j] = SortOrder.Ascending;
                 }
                 tempSortMask = (UInt16)(tempSortMask >> 1);
