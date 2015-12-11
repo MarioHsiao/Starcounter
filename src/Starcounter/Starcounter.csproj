@@ -170,6 +170,7 @@
     <Compile Include="ObjectView\ValueFormatter.cs" />
     <Compile Include="ObjectView\ViewReader.cs" />
     <Compile Include="Page.cs" />
+    <Compile Include="Partial.cs" />
     <Compile Include="Query\IQueryRowsResponse.cs" />
     <Compile Include="SqlProcessor\MetadataPopulation.cs" />
     <Compile Include="SqlProcessor\SqlProcessor.cs" />
