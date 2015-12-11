@@ -13,6 +13,7 @@
 - Introduced a small suite of classes allowing simple **iteration of property values** using class `ViewReader`, described in [#3033](https://github.com/Starcounter/Starcounter/issues/3033).
 - Upgraded client side libraries (list of current versions available in src/BuildSystem/ClientFiles/bower-list.txt)
 - Ability to specify multiple resource directories on the command-line, fixes [#2898](https://github.com/Starcounter/Starcounter/issues/2898). For reference, see [#3099](https://github.com/Starcounter/Starcounter/issues/3099).
+- `Partial` class with the support for implicit standalone mode [#3176](https://github.com/Starcounter/Starcounter/issues/3176)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
