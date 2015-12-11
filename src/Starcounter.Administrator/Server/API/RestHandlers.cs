@@ -204,7 +204,8 @@ namespace Server.API {
 
                     Response response;
                     if (!Authentication.Authenticate(settings, request, out response)) { return response; }
-                    return Self.PUT("/sc/reverseproxies", null, request.BodyBytes, null);
+                    return Http.PUT("http://127.0.0.1:" + StarcounterEnvironment.Default.SystemHttpPort + "/sc/reverseproxies", request.BodyBytes, null);
+                    //                    return Self.PUT("/sc/reverseproxies", null, request.BodyBytes, null, StarcounterEnvironment.Default.SystemHttpPort);
                 }, opt);
 
                 // Remove reverse proxy item
@@ -212,7 +213,9 @@ namespace Server.API {
 
                     Response response;
                     if (!Authentication.Authenticate(settings, request, out response)) { return response; }
-                    return Self.DELETE(string.Format("/sc/reverseproxies/{0}/{1}", matchingHost, starcounterProxyPort), null, request.BodyBytes, null);
+                    string uri = string.Format("http://127.0.0.1:{0}/sc/reverseproxies/{1}/{2}", StarcounterEnvironment.Default.SystemHttpPort, matchingHost, starcounterProxyPort);
+                    return Http.DELETE(uri, request.BodyBytes, null);
+                    //return Self.DELETE(string.Format("/sc/reverseproxies/{0}/{1}", matchingHost, starcounterProxyPort), null, request.BodyBytes, null;
                 }, opt);
             }
             catch (Exception e) {
