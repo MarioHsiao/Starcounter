@@ -97,20 +97,20 @@ namespace Starcounter.Binding {
 
             if (doUpgrade) {
                 unsafe {
-                    var added_column_defs = new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[addedCols.Count];
+                    var added_column_defs = new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[addedCols.Count + 1];
 
-                    for (int i = 0; i < added_column_defs.Length; i++) {
+                    for (int i = 0; i < addedCols.Count; i++) {
                         added_column_defs[i].name = (char*)Marshal.StringToCoTaskMemUni(addedCols[i].Name);
                         added_column_defs[i].primitive_type = addedCols[i].Type;
                         added_column_defs[i].is_nullable = addedCols[i].IsNullable ? (byte)1 : (byte)0;
                     }
+                    added_column_defs[added_column_defs.Length - 1].primitive_type = 0; // terminate the list.
                  
                     fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = added_column_defs) {
                         ec = SqlProcessor.SqlProcessor.star_alter_table_add_columns(ThreadData.ContextHandle,
                                                                                          newTableDef_.Name,
                                                                                          fixed_column_defs,
                                                                                          out newLayout);
-                        
                         if (ec != 0)
                             throw ErrorCode.ToException(ec);
                     }
