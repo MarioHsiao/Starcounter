@@ -70,6 +70,7 @@ node_looped_proxy_test.bat
 Level1\src\Samples\CycleTime\obj\Release\CycleTime_test.exe
 prepare_sqlregression_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
+transactionlog_test.bat
 
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
