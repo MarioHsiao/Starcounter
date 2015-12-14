@@ -175,6 +175,8 @@ scerrres.pdb
 scerrres.rc
 scerrres.res
 scerrres.write.1.tlog
+sccoreerr.dll
+sccoreerr.pdb
 schttpparser.dll
 schttpparser.exp
 schttpparser.lib
