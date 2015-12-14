@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -159,7 +159,7 @@ namespace TransactionLogTest
                                                 new column_update { name="dec_field", value=42.24m },
                                                 new column_update { name="double_field", value=-42.42 },
                                                 new column_update { name="float_field", value=42.42f },
-                                                new column_update { name="long_field", value=-42l },
+                                                new column_update { name="long_field", value=-42L },
                                                 new column_update { name="str_field", value=null },
                                                 new column_update { name="ulong_field", value=ulong.MaxValue },
                                                 new column_update { name="ref_field", value=new reference { object_id = last_key } }
@@ -181,7 +181,7 @@ namespace TransactionLogTest
                 Trace.Assert(t.dec_field == 42.24m);
                 Trace.Assert(t.double_field == -42.42);
                 Trace.Assert(t.float_field == 42.42f);
-                Trace.Assert(t.long_field == -42l);
+                Trace.Assert(t.long_field == -42L);
                 Trace.Assert(t.str_field == null);
                 Trace.Assert(t.ulong_field == ulong.MaxValue);
                 Trace.Assert(t.ref_field.GetObjectNo() == last_key);
