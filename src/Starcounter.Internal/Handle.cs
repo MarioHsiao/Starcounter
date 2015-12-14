@@ -421,9 +421,9 @@ namespace Starcounter {
         /// <summary>
         /// Checks if given URI handler is registered.
         /// </summary>
-        public static Boolean IsHandlerRegistered(String methodSpaceProcessedUriSpace, HandlerOptions ho) {
+        public static Boolean IsHandlerRegistered(String methodSpaceUri, HandlerOptions ho) {
 
-            return isHandlerRegistered_(methodSpaceProcessedUriSpace, ho);
+            return isHandlerRegistered_(methodSpaceUri, ho);
         }
 
         /// <summary>
@@ -525,10 +525,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Runs all added outgoing filters until one that returns non-null response.
+        /// Runs all added response filters until one that returns non-null response.
         /// </summary>
         /// <returns>Filtered response or null.</returns>
-        internal static Response RunOutgoingFilters(Request req, Response resp) {
+        internal static Response RunResponseFilters(Request req, Response resp) {
 
             String curAppName = StarcounterEnvironment.AppName;
 

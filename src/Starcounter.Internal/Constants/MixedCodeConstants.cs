@@ -307,8 +307,7 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential)]
         public unsafe struct RegisteredUriManaged
         {
-            public unsafe IntPtr original_uri_info_string;
-            public unsafe IntPtr processed_uri_info_string;
+            public unsafe IntPtr method_space_uri;
             public Int32 handler_id;
             public fixed Byte param_types[MixedCodeConstants.MAX_URI_CALLBACK_PARAMS];
             public Byte num_params;
@@ -337,8 +336,7 @@ namespace Starcounter.Internal
 
     struct RegisteredUriManaged
     {
-        char* original_uri_info_string;
-        char* processed_uri_info_string;
+        char* method_space_uri;
         int32_t handler_id;
         uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
         uint8_t num_params;

@@ -483,22 +483,22 @@ namespace Starcounter.Rest
         /// <summary>
         /// Tries to find handler by processed URI string.
         /// </summary>
-        public static UserHandlerInfo FindHandlerByProcessedUri(String methodSpaceProcessedUriSpace, HandlerOptions ho = null) {
+        public static UserHandlerInfo FindHandler(String methodSpaceUri, HandlerOptions ho = null) {
 
             // Checking if handler options is defined.
             if (ho == null) {
                 ho = new HandlerOptions();
             }
 
-            return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByProcessedUri(methodSpaceProcessedUriSpace);
+            return UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).FindHandlerByUri(methodSpaceUri);
         }
 
         /// <summary>
         /// Checks if given URI handler is registered.
         /// </summary>
-        public static Boolean IsHandlerRegistered(String methodSpaceProcessedUriSpace, HandlerOptions ho) {
+        public static Boolean IsHandlerRegistered(String methodSpaceUri, HandlerOptions ho) {
 
-            return (null != FindHandlerByProcessedUri(methodSpaceProcessedUriSpace, ho));
+            return (null != FindHandler(methodSpaceUri, ho));
         }
 
         /// <summary>
@@ -524,7 +524,6 @@ namespace Starcounter.Rest
                 }
 
                 String[] s = methodSpaceUri.Split(null);
-                String originalUriInfo = null;
                 String uriPolicyViolatedMsg = "Applications can only register handlers starting with application name prefix, for example, \"GET /" + StarcounterEnvironment.AppName + "/foo\"";
 
                 // Checking if its a special mapping application.
@@ -564,7 +563,7 @@ namespace Starcounter.Rest
                     }
 
                     // Constructing original URI info.
-                    originalUriInfo = s[0] + " " + s[1];
+                    methodSpaceUri = s[0] + " " + s[1];
 
                 } else {
 
@@ -581,7 +580,7 @@ namespace Starcounter.Rest
                     s[0] = s[0].ToLowerInvariant();
 #endif
 
-                    originalUriInfo = s[0];
+                    methodSpaceUri = s[0];
                 }
 
                 // Checking if handler options is defined.
@@ -591,25 +590,22 @@ namespace Starcounter.Rest
 
                 // Mutually excluding handler registrations.
                 Byte[] nativeParamTypes;
-                String processedUriInfo;
                 Type argMessageType;
                 Type argSessionType;
 
                 // Generating callback.
                 Func<Request, IntPtr, IntPtr, Response> wrappedDelegate = GenerateParsingDelegateAndGetParameters(
-                    originalUriInfo,
+                    methodSpaceUri,
                     userDelegateInfo,
                     delegExpr,
                     out nativeParamTypes,
-                    out processedUriInfo,
                     out argMessageType,
                     out argSessionType);
 
                 // Registering handler with gateway and getting the id.
                 UriHandlersManager.GetUriHandlersManager(ho.HandlerLevel).RegisterUriHandler(
                     port,
-                    originalUriInfo,
-                    processedUriInfo,
+                    methodSpaceUri,
                     nativeParamTypes,
                     argMessageType,
                     wrappedDelegate,
@@ -624,17 +620,16 @@ namespace Starcounter.Rest
         /// Generates code using LINQ expressions for calling user delegate.
         /// </summary>
         Func<Request, IntPtr, IntPtr, Response> GenerateParsingDelegateAndGetParameters(
-            String originalUriInfo,
+            String methodSpaceUri,
             MethodInfo userDelegateInfo,
             Expression delegExpr,
             out Byte[] nativeParamTypes,
-            out String processedUriInfo,
             out Type argMessageType,
             out Type argSessionType)
         {
             // Checking that URI is correctly formed.
-            Int32 spaceAfterMethodIndex = originalUriInfo.IndexOf(' ');
-            String relativeUri = originalUriInfo.Substring(spaceAfterMethodIndex + 1);
+            Int32 spaceAfterMethodIndex = methodSpaceUri.IndexOf(' ');
+            String relativeUri = methodSpaceUri.Substring(spaceAfterMethodIndex + 1);
             if (!System.Uri.IsWellFormedUriString(relativeUri.Replace(Handle.UriParameterIndicator, "XXX"), UriKind.Relative))
                 throw new ArgumentException("Handler relative URI: \"" + relativeUri + "\" is ill formed. Please consult RFC 3986 for more information.");
 
@@ -651,7 +646,7 @@ namespace Starcounter.Rest
             argMessageType = null;
             argSessionType = null;
 
-            Int32 numPureNativeParams = originalUriInfo.Split(new String[] { Handle.UriParameterIndicator }, StringSplitOptions.None).Length - 1;
+            Int32 numPureNativeParams = methodSpaceUri.Split(new String[] { Handle.UriParameterIndicator }, StringSplitOptions.None).Length - 1;
             Int32 numPureManagedParams = 0;
             Boolean hasSessionParam = false;
             foreach (ParameterInfo p in allParams)
@@ -785,8 +780,6 @@ namespace Starcounter.Rest
             }
 
             nativeParamTypes = nativeParamsTypesList.ToArray();
-
-            processedUriInfo = UriTemplatePreprocessor.GetProcessedUriInfoFromOriginal(originalUriInfo, userParameterTypes);
 
             ParameterExpression httpRequest = Expression.Parameter(typeof(Request));
             ParameterExpression paramsDataPtr = Expression.Parameter(typeof(IntPtr));

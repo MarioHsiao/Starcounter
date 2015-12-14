@@ -28,8 +28,7 @@ void CodegenUriMatcher::Init()
     MixedCodeConstants::RegisteredUriManaged uri_info_test;
     uri_info_test.handler_id = 1;
     uri_info_test.num_params = 0;
-    uri_info_test.original_uri_info_string = "GET /";
-    uri_info_test.processed_uri_info_string = "GET / ";
+    uri_info_test.method_space_uri = "GET /";
     uint32_t test_num_codegen_bytes = MAX_URI_MATCHING_CODE_BYTES;
 
     uint32_t err_code = generate_uri_matcher_(

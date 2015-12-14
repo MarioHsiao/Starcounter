@@ -112,7 +112,7 @@ public:
     // Getting registered channel name.
     char* get_channel_name()
     {
-        return handler_list_->get_original_uri_info();
+        return handler_list_->get_method_space_uri();
     }
 
     uint16_t get_port()
@@ -326,7 +326,6 @@ public:
             app_name_string,
             channel_id,
             channel_name,
-            NULL,
             NULL,
             0,
             db_index,

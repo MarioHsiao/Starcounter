@@ -1195,7 +1195,7 @@ namespace Starcounter {
             try {
 
                 // Checking if there are any outgoing filters.
-                Response filteredResp = Handle.RunOutgoingFilters(this, resp);
+                Response filteredResp = Handle.RunResponseFilters(this, resp);
                 if (null != filteredResp) {
                     resp = filteredResp;
                 }

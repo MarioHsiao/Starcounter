@@ -138,14 +138,14 @@ void RegisteredUris::AddNewUri(RegisteredUri& new_entry)
 }
 
 // Find certain URI entry.
-uri_index_type RegisteredUris::FindRegisteredUri(const char* method_uri_space)
+uri_index_type RegisteredUris::FindRegisteredUri(const char* method_space_uri)
 {
     // Going through all entries.
     for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++) {
 
         // Doing exact comparison.
         GW_ASSERT(false == reg_uris_[i].IsEmpty());
-        if (0 == strcmp(method_uri_space, reg_uris_[i].get_processed_uri_info())) {
+        if (0 == strcmp(method_space_uri, reg_uris_[i].get_method_space_uri())) {
             return i;
         }
     }
@@ -612,11 +612,13 @@ uint32_t HttpProto::HttpUriDispatcher(
             if (server_port->get_port_number() == g_gateway.get_setting_internal_system_port()) {
 
                 // Checking if its a gateway handler.
-                matched_index = g_gateway.CheckIfGatewayHandler(method_space_uri_space, method_space_uri_space_len);
+                matched_index = g_gateway.CheckIfGatewayHandler(method_space_uri_space, method_space_uri_space_len - 1);
 
                 // Checking that its correct index for URI.
                 if (INVALID_URI_INDEX != matched_index) {
-                    GW_ASSERT(0 == strncmp(method_space_uri_space, port_uris->GetEntryByIndex(matched_index)->get_processed_uri_info(), method_space_uri_space_len));
+
+                    GW_ASSERT(0 == strncmp(method_space_uri_space,
+						port_uris->GetEntryByIndex(matched_index)->get_method_space_uri(), method_space_uri_space_len - 1));
                 }
             }
 
@@ -672,7 +674,8 @@ uint32_t HttpProto::HttpUriDispatcher(
         int32_t aliased_method_space_uri_space_len;
 
         // Getting URI alias information.
-        bool should_alias = g_gateway.GetUriAliasIfAny(port_num, 
+        bool should_alias = g_gateway.GetUriAliasIfAny(
+			port_num,
             lower_method_space_uri_space, 
             method_space_uri_space_len, 
             &aliased_method_space_uri_space,
@@ -694,7 +697,8 @@ uint32_t HttpProto::HttpUriDispatcher(
             }
 
             // Moving the accumulated data.
-            memmove(method_space_uri_space + aliased_method_space_uri_space_len, method_space_uri_space + method_space_uri_space_len, sd->get_accumulated_len_bytes() - method_space_uri_space_len);
+            memmove(method_space_uri_space + aliased_method_space_uri_space_len,
+				method_space_uri_space + method_space_uri_space_len, sd->get_accumulated_len_bytes() - method_space_uri_space_len);
 
             // Injecting the aliased URI information.
             memcpy(method_space_uri_space, aliased_method_space_uri_space, aliased_method_space_uri_space_len);
@@ -738,7 +742,9 @@ HANDLER_MATCHED:
         // Checking if we have a session parameter.
         if (matched_uri->get_session_param_index() != INVALID_PARAMETER_INDEX)
         {
-            MixedCodeConstants::UserDelegateParamInfo* p = ((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
+            MixedCodeConstants::UserDelegateParamInfo* p = 
+				((MixedCodeConstants::UserDelegateParamInfo*)sd->get_accept_or_params_data()) + matched_uri->get_session_param_index();
+
             err_code = ProcessSessionString(sd, method_space_uri_space + p->offset_);
             if (err_code)
                 return err_code;

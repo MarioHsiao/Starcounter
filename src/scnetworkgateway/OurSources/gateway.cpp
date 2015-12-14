@@ -819,10 +819,8 @@ uint32_t Gateway::LoadReverseProxies()
                 if (NULL != node_elem) {
 
                     proxies[num_proxies].matching_method_and_uri_ = node_elem->value();
-                    proxies[num_proxies].matching_method_and_uri_processed_ = proxies[num_proxies].matching_method_and_uri_ + " ";
 
                     proxies[num_proxies].matching_method_and_uri_len_ = static_cast<int32_t> (proxies[num_proxies].matching_method_and_uri_.length());
-                    proxies[num_proxies].matching_method_and_uri_processed_len_ = proxies[num_proxies].matching_method_and_uri_len_ + 1;
                 }
 
                 node_elem = proxy_node->first_node("MatchingHost");
@@ -1388,8 +1386,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     uint16_t port;
     std::string db_name;
     std::string app_name;
-    std::string original_uri_info;
-    std::string processed_uri_info;
+    std::string method_space_uri;
     int32_t num_params;
     uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
 
@@ -1398,12 +1395,10 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     ss >> handler_info;
     ss >> port;
     GW_ASSERT((port > 0) && (port < 65536));
-    ss >> original_uri_info;
-    ss >> processed_uri_info;
+    ss >> method_space_uri;
     ss >> num_params;
 
-    std::replace(original_uri_info.begin(), original_uri_info.end(), '\\', ' ');
-    std::replace(processed_uri_info.begin(), processed_uri_info.end(), '\\', ' ');
+    std::replace(method_space_uri.begin(), method_space_uri.end(), '\\', ' ');
 
     for (int32_t i = 0; i < num_params; i++) {
         int32_t p;
@@ -1416,7 +1411,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     if (INVALID_DB_INDEX == db_index)
         return 0;
 
-    GW_COUT << "Registering URI handler on " << db_name << " \"" << processed_uri_info << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+    GW_COUT << "Registering URI handler on " << db_name << " \"" << method_space_uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
     gw->EnterGlobalLock();
@@ -1426,8 +1421,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
         gw,
         port,
         app_name.c_str(),
-        original_uri_info.c_str(),
-        processed_uri_info.c_str(),
+        method_space_uri.c_str(),
         param_types,
         num_params,
         handler_info,
@@ -1440,14 +1434,14 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     // Reporting to server log if we are trying to register a handler duplicate.
     if (SCERRHANDLERALREADYREGISTERED == err_code) {
         wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, processed_uri_info);
+        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, method_space_uri);
         g_gateway.LogWriteError(temp);
     }
 
     if (err_code) {
 
         std::stringstream ss;
-        ss << "Can't register URI handler \"" << original_uri_info << "\" on port " << port << ".";
+        ss << "Can't register URI handler \"" << method_space_uri << "\" on port " << port << ".";
         
         if (SCERRNETWORKPORTISOCCUPIED == err_code) {
             ss << " Specified port is occupied.";
@@ -2147,7 +2141,6 @@ uint32_t Gateway::UpdateReverseProxies() {
                 reverse_proxies_[i].sc_proxy_port_,
                 "gateway",
                 reverse_proxies_[i].matching_method_and_uri_.c_str(),
-                reverse_proxies_[i].matching_method_and_uri_processed_.c_str(),
                 NULL,
                 0,
                 bmx::BMX_INVALID_HANDLER_INFO,
@@ -2170,7 +2163,6 @@ uint32_t Gateway::UpdateReverseProxies() {
                 reverse_proxies_[i].sc_proxy_port_,
                 "gateway",
                 "{?} {?}",
-                "@s @w ",
                 param_types,
                 2,
                 bmx::BMX_INVALID_HANDLER_INFO,
@@ -2197,7 +2189,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "POST /gw/handler/uri",
-        "POST /gw/handler/uri ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2214,7 +2205,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "POST /gw/handler/ws",
-        "POST /gw/handler/ws ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2231,7 +2221,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "POST /gw/handler/port",
-        "POST /gw/handler/port ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2248,7 +2237,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "GET /gw/stats",
-        "GET /gw/stats ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2265,7 +2253,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "GET /gw/test",
-        "GET /gw/test ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2282,7 +2269,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "GET /gw/updateconf",
-        "GET /gw/updateconf ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2299,7 +2285,6 @@ uint32_t Gateway::RegisterGatewayHandlers() {
         setting_internal_system_port_,
         "gateway",
         "GET /gw/profiler",
-        "GET /gw/profiler ",
         NULL,
         0,
         bmx::BMX_INVALID_HANDLER_INFO,
@@ -2359,9 +2344,9 @@ const int32_t NumGatewayUri = 3;
 
 // Gateway URIs that are used for handlers registration and tests.
 const char* GatewayHandlers[] = {
-    "POST /gw/handler/uri ",
-    "POST /gw/handler/ws ",
-    "POST /gw/handler/port "
+    "POST /gw/handler/uri",
+    "POST /gw/handler/ws",
+    "POST /gw/handler/port"
 };
 
 // Find certain URI entry.
@@ -3386,8 +3371,7 @@ uint32_t Gateway::AddUriHandler(
     GatewayWorker* gw,
     uint16_t port_num,
     const char* app_name_string,
-    const char* original_uri_info,
-    const char* processed_uri_info,
+    const char* method_space_uri,
     uint8_t* param_types,
     int32_t num_params,
     BMX_HANDLER_TYPE handler_info,
@@ -3400,12 +3384,11 @@ uint32_t Gateway::AddUriHandler(
 
     // Checking that URIs are lower case.
     int32_t uri_offset = 0;
-    int32_t original_uri_info_len = static_cast<int32_t>(strlen(original_uri_info));
-    int32_t processed_uri_info_len = static_cast<int32_t>(strlen(processed_uri_info));
+    int32_t method_space_uri_len = static_cast<int32_t>(strlen(method_space_uri));
 
     int32_t num_spaces = 0;
-    for (int32_t i = 0; i < original_uri_info_len; i++) {
-        if (isspace(original_uri_info[i])) {
+    for (int32_t i = 0; i < method_space_uri_len; i++) {
+        if (isspace(method_space_uri[i])) {
             num_spaces++;
         }
     }
@@ -3415,37 +3398,25 @@ uint32_t Gateway::AddUriHandler(
         return SCERRGWREGISTERERINGINCORRECTURI;
     }
 
-    num_spaces = 0;
-    for (int32_t i = 0; i < processed_uri_info_len; i++) {
-        if (isspace(processed_uri_info[i])) {
-            num_spaces++;
-        }
-    }
-
-    // Only one space is allowed in processed URI info.
-    if (num_spaces > 2) {
-        return SCERRGWREGISTERERINGINCORRECTURI;
-    }
-
     // Finding URI beginning.
-    for (int32_t i = 0; i < original_uri_info_len; i++) {
+    for (int32_t i = 0; i < method_space_uri_len; i++) {
 
-        if (' ' == original_uri_info[i]) {
+        if (' ' == method_space_uri[i]) {
             uri_offset = i + 1;
             break;
         }
 
         // Checking that HTTP method is upper case.
-        if (isalpha(original_uri_info[i])) {
-            if (!isupper(original_uri_info[i])) {
+        if (isalpha(method_space_uri[i])) {
+            if (!isupper(method_space_uri[i])) {
                 return SCERRGWREGISTERERINGINCORRECTURI;
             }
         }
     }
 
     // Checking that all URI characters are lower case.
-    for (int32_t i = uri_offset; i < original_uri_info_len; i++) {
-        if (isupper(original_uri_info[i])) {
+    for (int32_t i = uri_offset; i < method_space_uri_len; i++) {
+        if (isupper(method_space_uri[i])) {
             return SCERRGWREGISTERERINGINCORRECTURI;
         }
     }
@@ -3480,7 +3451,7 @@ uint32_t Gateway::AddUriHandler(
     GW_ASSERT(NULL != port_uris);
 
     // Searching for existing URI handler on this port.
-    uri_index_type uri_index = port_uris->FindRegisteredUri(processed_uri_info);
+    uri_index_type uri_index = port_uris->FindRegisteredUri(method_space_uri);
 
     // Checking if there is an entry.
     if (INVALID_URI_INDEX == uri_index)
@@ -3506,8 +3477,7 @@ uint32_t Gateway::AddUriHandler(
             port_num,
             app_name_string,
             0,
-            original_uri_info,
-            processed_uri_info,
+			method_space_uri,
             param_types,
             num_params,
             db_index,
@@ -3613,7 +3583,6 @@ uint32_t Gateway::AddPortHandler(
         port_num,
         app_name_string,
         0,
-        NULL,
         NULL,
         NULL,
         0,

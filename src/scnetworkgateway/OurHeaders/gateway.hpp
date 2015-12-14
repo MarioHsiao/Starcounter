@@ -1311,10 +1311,6 @@ struct ReverseProxyInfo
     std::string matching_method_and_uri_;
     int32_t matching_method_and_uri_len_;
 
-    // Uri that is being proxied.
-    std::string matching_method_and_uri_processed_;
-    int32_t matching_method_and_uri_processed_len_;
-
     // Host name.
     std::string matching_host_;
     int32_t matching_host_len_;
@@ -1336,9 +1332,6 @@ struct ReverseProxyInfo
 
         matching_method_and_uri_ = std::string();
         matching_method_and_uri_len_ = 0;
-
-        matching_method_and_uri_processed_ = std::string();
-        matching_method_and_uri_processed_len_ = 0;
 
         matching_host_ = std::string();
         matching_host_len_ = 0;
@@ -1831,8 +1824,7 @@ public:
         GatewayWorker *gw,
         uint16_t port,
         const char* app_name_string,
-        const char* original_uri_info,
-        const char* processed_uri_info,
+        const char* method_space_uri,
         uint8_t* param_types,
         int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,
