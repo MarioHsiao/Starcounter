@@ -268,7 +268,6 @@ namespace TransactionLogTest
 
         static void Main(string[] args)
         {
-            Debugger.Launch();
             var t = Starcounter.Db.LookupTable(typeof(TestClass).FullName);
 
             check_create_entry();
