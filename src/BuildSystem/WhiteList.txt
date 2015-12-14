@@ -337,4 +337,5 @@ TurboText_sv-SE_3.exp
 TurboText_sv-SE_3.lib
 TurboText_sv-SE_3.dll.manifest
 WebSocket4Net.dll
+writer.dll
 VersionInfo.xml
