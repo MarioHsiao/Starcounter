@@ -91,6 +91,7 @@ HtmlAgilityPack.pdb
 HtmlAgilityPack.xml
 kill_all.bat
 ld.exe
+logreader.dll
 log_writer_client.dll
 log_writer_client.exp
 log_writer_client.lib
@@ -287,6 +288,8 @@ Starcounter.SqlProcessor.Tests.XML
 Starcounter.Tests.XML
 Starcounter.Tracking.dll
 Starcounter.Tracking.pdb
+Starcounter.TransactionLog.dll
+Starcounter.TransactionLog.pdb
 Starcounter.UriMatcher.dll
 Starcounter.UriMatcher.pdb
 Starcounter.VisualStudio.dll
