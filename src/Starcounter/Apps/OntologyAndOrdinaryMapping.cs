@@ -86,7 +86,7 @@ namespace Starcounter {
             /// <summary>
             /// Application URI for handler.
             /// </summary>
-            public String AppMethodSpaceUri;
+            public String AppRelativeUri;
 
             /// <summary>
             /// Parameter information (offset in URI).
@@ -200,7 +200,7 @@ namespace Starcounter {
                 ho.HandlerId = x.HandlerId;
 
                 // Setting calling string.
-                String uri = x.AppMethodSpaceUri;
+                String uri = x.AppRelativeUri;
 
                 String stringParamCopy = stringParam;
 
@@ -226,7 +226,7 @@ namespace Starcounter {
                     ho.ParametersInfo = paramInfo;
 
                     // Setting calling string.
-                    uri = x.AppMethodSpaceUri.Replace("{?}", stringParamCopy);
+                    uri = x.AppRelativeUri.Replace("{?}", stringParamCopy);
                 }
 
                 // Calling handler.
@@ -339,6 +339,7 @@ namespace Starcounter {
                 HandlerInfoForUriMapping handler = AddHandlerToClass(
                     null,
                     handlerId,
+                    appUriToMap,
                     appMethodSpaceUri,
                     appHandlerInfo.AppName,
                     converterTo,
@@ -557,6 +558,7 @@ namespace Starcounter {
                 HandlerInfoForUriMapping handler = AddHandlerToClass(
                     classInfo,
                     handlerId,
+                    appUriToMap,
                     appMethodSpaceUri,
                     handlerInfo.AppName,
                     converterToClass,
@@ -732,6 +734,7 @@ namespace Starcounter {
         static HandlerInfoForUriMapping AddHandlerToClass(
             MappingClassInfo classInfo,
             UInt16 handlerId,
+            String appRelativeUri,
             String appMethodSpaceUri,
             String appName,
             Func<String, String> converterToClass,
@@ -741,7 +744,7 @@ namespace Starcounter {
 
             x.ClassInfo = classInfo;
             x.HandlerId = handlerId;
-            x.AppMethodSpaceUri = appMethodSpaceUri;
+            x.AppRelativeUri = appRelativeUri;
             x.ParamOffset = (UInt16)appMethodSpaceUri.IndexOf('{');
             x.AppName = appName;
             x.ConverterToClass = converterToClass;
@@ -806,7 +809,7 @@ namespace Starcounter {
                 ho.ParametersInfo = paramInfo;
 
                 // Setting calling string.
-                String uri = x.AppMethodSpaceUri.Replace(EndsWithStringParam, stringParamCopy);
+                String uri = x.AppRelativeUri.Replace(EndsWithStringParam, stringParamCopy);
 
                 // Calling handler.
                 Response resp = Self.GET(uri, null, ho);
