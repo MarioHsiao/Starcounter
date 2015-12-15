@@ -225,8 +225,11 @@ namespace Starcounter.Internal
         // Maximum URI string length.
         public const int MAX_URI_STRING_LEN = 1024;
 
-        // Session parameter type number in user delegate.
+        // Session native parameter type number in user delegate.
         public const int REST_ARG_SESSION = 12;
+
+        // String native parameter type number in user delegate.
+        public const int REST_ARG_STRING = 0;
 
         // Bad server log handler.
         public const int INVALID_SERVER_LOG_HANDLE = 0;

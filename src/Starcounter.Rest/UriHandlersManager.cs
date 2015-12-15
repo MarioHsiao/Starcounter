@@ -29,6 +29,14 @@ namespace Starcounter.Rest
         public UInt16 port_ = 0;
         public MixedCodeConstants.NetworkProtocolType proto_type_ = MixedCodeConstants.NetworkProtocolType.PROTOCOL_HTTP1;
         public MixedCodeConstants.HTTP_METHODS http_method_ = MixedCodeConstants.HTTP_METHODS.GET;
+        
+        /// <summary>
+        /// Checks if there is only one last parameter of type string.
+        /// </summary>
+        /// <returns></returns>
+        public Boolean HasOneLastParamOfTypeString() {
+            return (num_params_ == 1) && (MixedCodeConstants.REST_ARG_STRING == native_param_types_[0]);
+        }
 
         public void Destroy()
         {
