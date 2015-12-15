@@ -1418,7 +1418,7 @@ namespace Starcounter.Internal.Test
                 return null;
             });
 
-            Handle.GET("/{?}", (Int32 p1, PersonMessage j) =>
+            Handle.GET("/{?}/{?}/{?}", (Int32 p1, Int32 p2, Int32 p3, PersonMessage j) =>
             {
                 Assert.IsTrue(false);
 
