@@ -52,7 +52,7 @@ namespace SchemaUpgradeTest {
         }
 
         private static ushort GetExpectedLayoutHandle<T>() {
-            return Db.SQL<ushort>("SELECT r.LayoutHandle FROM Starcounter.Metadata.RawView r WHERE r.Name=?", typeof(T).FullName).First;
+            return Db.SQL<ushort>("SELECT r.LayoutHandle FROM Starcounter.Metadata.RawView r WHERE r.FullName=?", typeof(T).FullName).First;
         }
 
         private static ushort GetLayoutHandle(D d) {

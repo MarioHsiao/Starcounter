@@ -17,10 +17,10 @@ namespace SchemaUpgradeTest {
 
             var a2 = Db.SQL<A>("SELECT a FROM A a WHERE a.IntInA=?", 2).First;
             ScAssertion.Assert(GetLayoutHandle(a2) == expectedLayoutHandle);
-            ScAssertion.Assert(a1.BoolInD == true);
-            ScAssertion.Assert(a1.ByteInC == 128);
+            ScAssertion.Assert(a2.BoolInD == true);
+            ScAssertion.Assert(a2.ByteInC == 128);
             ScAssertion.Assert(a2.LongInA == 2222222);
-            ScAssertion.Assert(a1.LongInC == 10002); // Readded column
+            ScAssertion.Assert(a2.LongInC == 10002); // Readded column
 
             expectedLayoutHandle = GetExpectedLayoutHandle<B>();
             ScAssertion.Assert(Db.SQL<long>("SELECT Count(b) FROM B b").First == 1);
@@ -45,7 +45,7 @@ namespace SchemaUpgradeTest {
         }
 
         private static ushort GetExpectedLayoutHandle<T>() {
-            return Db.SQL<ushort>("SELECT r.LayoutHandle FROM Starcounter.Metadata.RawView r WHERE r.Name=?", typeof(T).FullName).First;
+            return Db.SQL<ushort>("SELECT r.LayoutHandle FROM Starcounter.Metadata.RawView r WHERE r.FullName=?", typeof(T).FullName).First;
         }
 
         private static ushort GetLayoutHandle(object obj) {

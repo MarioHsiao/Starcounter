@@ -14,47 +14,42 @@ staradmin --database=%DBNAME% delete --force db
 
 :: Run first "app" to create the initial state of the schema
 :: and add some default records, used later to check layouts used.
-
-set CURRENTTEST=Setup
+set CURRENTTEST=1-Setup
 echo Running test: %CURRENTTEST%
-star --database=%DBNAME% --name=%APPNAME% Setup.cs
-if ERRORLEVEL 1 GOTO FAILURE
+star --database=%DBNAME% --name=%APPNAME% 1-Setup.cs
+if %ERRORLEVEL% NEQ 0 GOTO FAILURE
 
-:: First test.
 :: Add a column to base, middle and leaf class.
 :: Remove column from middle class.
 :: Rename standalone class
-set CURRENTTEST=AddAndRemove
+set CURRENTTEST=2-AddAndRemove
 staradmin --database=%DBNAME% stop db
 echo Running test: %CURRENTTEST%
-star --database=%DBNAME% --name=%APPNAME% AddAndRemove.cs
-if ERRORLEVEL 1 GOTO FAILURE
+star --database=%DBNAME% --name=%APPNAME% 2-AddAndRemove.cs
+if %ERRORLEVEL% NEQ 0 GOTO FAILURE
 
-:: Second test. 
 :: Readd column from middle class.  
 :: Revert the namechange. 
 :: Make sure data is intact.
-set CURRENTTEST=RevertRemoveAndNameChange
+set CURRENTTEST=3-RevertRemoveAndNameChange
 staradmin --database=%DBNAME% stop db
 echo Running test: %CURRENTTEST%
-star --database=%DBNAME% --name=%APPNAME% RevertRemoveAndNameChange.cs
-if ERRORLEVEL 1 GOTO FAILURE
+star --database=%DBNAME% --name=%APPNAME% 3-RevertRemoveAndNameChange.cs
+if %ERRORLEVEL% NEQ 0 GOTO FAILURE
 
-:: Third test.
 :: Change type of existing column. SHOULD FAIL.
-set CURRENTTEST=IncorrectTypeColumn
+set CURRENTTEST=4-ChangeColumnType
 staradmin --database=%DBNAME% stop db
 echo Running test: %CURRENTTEST%
-star --database=%DBNAME% --name=%APPNAME% IncorrectType.cs
-if ERRORLEVEL 0 GOTO FAILURE
+star --database=%DBNAME% --name=%APPNAME% 4-ChangeColumnType.cs
+if %ERRORLEVEL% EQU 0 GOTO FAILURE
 
-:: Fourth test. 
 :: Change inheritance of a class. SHOULD FAIL.
-set CURRENTTEST=IncorrectInheritance
+set CURRENTTEST=5-ChangeInheritance
 staradmin --database=%DBNAME% stop db
 echo Running test: %CURRENTTEST%
-star --database=%DBNAME% --name=%APPNAME% IncorrectInheritance.cs
-if ERRORLEVEL 0 GOTO FAILURE
+star --database=%DBNAME% --name=%APPNAME% 5-ChangeInheritance.cs
+if %ERRORLEVEL% EQU 0 GOTO FAILURE
 
 set STATUS=All schema upgrade tests succeeded.
 GOTO CLEANUP
