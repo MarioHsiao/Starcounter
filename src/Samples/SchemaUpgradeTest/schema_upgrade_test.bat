@@ -32,7 +32,10 @@ if %ERRORLEVEL% NEQ 0 GOTO FAILURE
 :: Revert the namechange. 
 :: Make sure data is intact.
 set CURRENTTEST=3-RevertRemoveAndNameChange
-staradmin --database=%DBNAME% stop db
+
+:: Only stop app in this step until #3087 is solved.
+:: staradmin --database=%DBNAME% stop db
+staradmin --database=%DBNAME% stop app %APPNAME%
 echo Running test: %CURRENTTEST%
 star --database=%DBNAME% --name=%APPNAME% 3-RevertRemoveAndNameChange.cs
 if %ERRORLEVEL% NEQ 0 GOTO FAILURE

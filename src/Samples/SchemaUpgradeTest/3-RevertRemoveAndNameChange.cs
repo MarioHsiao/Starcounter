@@ -30,8 +30,6 @@ namespace SchemaUpgradeTest {
                 b = DbHelper.FromID(tmp.GetObjectNo()) as B;
             }
             ScAssertion.Assert(GetLayoutHandle(b) == expectedLayoutHandle);
-            ScAssertion.Assert(b.BoolInD == true);
-            ScAssertion.Assert(b.ByteInC == 196);
             ScAssertion.Assert(b.LongInC == 20001); // Readded column
 
             // One instance should still exist in StandAlone

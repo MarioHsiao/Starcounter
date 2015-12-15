@@ -43,9 +43,6 @@ namespace SchemaUpgradeTest {
                 a2.LongInA = 2222222;
                 a2.ByteInC = 128;
                 a2.BoolInD = true;
-
-                b.BoolInD = true;
-                b.ByteInC = 196;
             });
 
             return 0;
