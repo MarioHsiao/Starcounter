@@ -355,7 +355,7 @@ namespace Starcounter.Hosting {
                     var tableDef = typeDef.TableDef;
 
                     LoaderHelper.MapPropertyDefsToColumnDefs(
-                        tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
+                        tableDef, tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
                         );
                 }
                 OnTypesCheckedAndUpdated();
