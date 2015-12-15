@@ -71,6 +71,7 @@ namespace TransactionLogTest
                 {
                     var t = new TestClass
                     {
+                        base_string = "Str0",
                         bin_field = new Binary(new byte[1] { 42 }),
                         dec_field = 42.24m,
                         double_field = -42.42,
@@ -93,6 +94,7 @@ namespace TransactionLogTest
                 Trace.Assert(create_entry.table == typeof(TestClass).FullName);
                 Trace.Assert(create_entry.key.object_id == t_record_key);
 
+                Trace.Assert((string)(create_entry.columns.Where(c => c.name == "base_string").Single().value) == "Str0");
                 Trace.Assert((create_entry.columns.Where(c => c.name == "bin_field").Single().value as byte[]).SequenceEqual(new byte[1] { 42 }));
                 Trace.Assert((decimal)(create_entry.columns.Where(c => c.name == "dec_field").Single().value) == 42.24m);
                 Trace.Assert((double)(create_entry.columns.Where(c => c.name == "double_field").Single().value) == -42.42);
