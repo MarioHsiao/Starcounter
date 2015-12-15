@@ -182,11 +182,13 @@ namespace Starcounter.Binding {
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise</returns>
         public bool Equals(TableDef tableDef) {
             bool b =
-                Name == tableDef.Name &&
-                (BaseName == tableDef.BaseName ||
-                tableDef.BaseName.Equals("Starcounter.Metadata.MetadataEntity")) &&
-                ColumnDefs.Length == tableDef.ColumnDefs.Length
-                ;
+                Name == tableDef.Name 
+                  && (BaseName == tableDef.BaseName 
+                       || ((tableDef.BaseName != null) 
+                             && tableDef.BaseName.Equals("Starcounter.Metadata.MetadataEntity")
+                          )
+                     )
+                  && ColumnDefs.Length == tableDef.ColumnDefs.Length;
             if (b) {
                 for (int i = 0; i < ColumnDefs.Length; i++) {
                     b = ColumnDefs[i].Equals(tableDef.ColumnDefs[i]);
