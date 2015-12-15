@@ -465,6 +465,24 @@ namespace Starcounter {
         /// <summary>
         /// Maps an existing application URI to class URI.
         /// </summary>
+        public static void OntologyMap<T>(String appUriToMap) {
+
+            OntologyMap(appUriToMap, typeof(T).FullName, null, null);
+        }
+
+        /// <summary>
+        /// Maps an existing application URI to class URI.
+        /// </summary>
+        public static void OntologyMap(
+            String appUriToMap,
+            String mappedClassInfo) {
+
+            OntologyMap(appUriToMap, mappedClassInfo, null, null);
+        }
+
+        /// <summary>
+        /// Maps an existing application URI to class URI.
+        /// </summary>
         public static void OntologyMap(
             String appUriToMap,
             String mappedClassInfo,
