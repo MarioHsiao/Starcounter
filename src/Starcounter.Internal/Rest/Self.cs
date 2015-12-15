@@ -292,8 +292,8 @@ namespace Starcounter {
         /// Delegate to run URI matcher and call handler.
         /// </summary>
         internal delegate Boolean RunUriMatcherAndCallHandlerDelegate(
-            String methodAndUriPlusSpace,
-            String methodAndUriPlusSpaceLower,
+            String methodSpaceUriSpace,
+            String methodSpaceUriSpaceLower,
             Request req,
             UInt16 portNumber,
             out Response resp);
