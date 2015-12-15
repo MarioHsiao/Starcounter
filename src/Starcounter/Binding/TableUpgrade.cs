@@ -135,8 +135,8 @@ namespace Starcounter.Binding {
                 throw new Exception(string.Format(errorMsg,
                                                   newCol.Name,
                                                   newTableDef_.Name,
-                                                  ((DbTypeCode)oldCol.Type).ToString(),
-                                                  ((DbTypeCode)newCol.Type).ToString())
+                                                  BindingHelper.ConvertScTypeCodeToDbTypeCode(oldCol.Type),
+                                                  BindingHelper.ConvertScTypeCodeToDbTypeCode(newCol.Type))
                                    );
             }
         }
@@ -144,11 +144,15 @@ namespace Starcounter.Binding {
         private void VerifyTableInheritance(TableDef oldTableDef, TableDef newTableDef) {
             bool throwEx = false;
 
-            if ((newTableDef.BaseName != null) && (oldTableDef.BaseName == null) 
-                    || oldTableDef.BaseName != null)
+            if (newTableDef.BaseName != null) {
+                if (oldTableDef.BaseName == null) {
+                    throwEx = true;
+                } else if (!newTableDef.BaseName.Equals(oldTableDef.BaseName)) {
+                    throwEx = true;
+                }
+            } else if (oldTableDef.BaseName != null) {
                 throwEx = true;
-            else if (!newTableDef.BaseName.Equals(oldTableDef.BaseName))
-                throwEx = true;
+            }
             
             if (throwEx) { 
                 string errorMsg = "TODO: Errorcode. Changing inheritance on databaseclasses is not supported. Class '{0}' changed inheritance from '{1}' to '{2}'.";
