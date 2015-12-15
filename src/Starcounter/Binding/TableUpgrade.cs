@@ -18,7 +18,7 @@ namespace Starcounter.Binding {
         private readonly string tableName_;
         private readonly TableDef oldTableDef_;
         private TableDef newTableDef_;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="TableUpgrade" /> class.
         /// </summary>
@@ -36,66 +36,58 @@ namespace Starcounter.Binding {
         /// </summary>
         /// <returns>The new table definition.</returns>
         public TableDef Eval() {
-            // When we get here we know there is something different between the old and the new 
-            // definition, but we don't know exactly what. We need to find out what have changed:
-            // 1. One or more columns removed -> No upgrade, since we keep old columns in table
-            // 2. One or more columns have their type changed -> throw exception since we currently 
-            //    don't support changes of type.
-            // 3. One or more columns added -> call metadata layer to create new layout.
-
-            // TODOS:
-            // Verify that a baseclass have not been changed (or maybe that it has a compatible layout)
-
-
             bool exists;
-            ColumnDef oldCol;
             ColumnDef newCol;
-            ColumnDef[] oldCols = oldTableDef_.ColumnDefs;
-            ColumnDef[] newCols = newTableDef_.ColumnDefs;
-            List<ColumnDef> addedCols = new List<ColumnDef>();
-            ulong newLayout = 0;
-            sccoredb.STARI_LAYOUT_INFO layoutInfo;
+            ColumnDef oldCol;
+            ColumnDef[] newCols;
+            ColumnDef[] oldCols;
+            List<ColumnDef> addedCols = null;
             uint ec;
-            bool doUpgrade = false;
+            ulong newLayoutHandle = 0;
 
+//            System.Diagnostics.Debugger.Launch();
+
+            // The following things are checked when evaluating::
+            // 1. One or more columns removed -> No upgrade, since we keep old columns in table.
+            // 2. One or more columns have their type changed -> throw exception since we currently 
+            //    don't support type conversion.
+            // 3. One or more columns added -> call metadata layer to create new layout.
+            // 4. Inheritance have changed -> Not supported, throw exception.
+            
+            VerifyTableInheritance(oldTableDef_, newTableDef_);
+            
             // Since we don't care about columns that are removed, we can loop through
             // the columns in the new table and verify that existing have the same type
-            // as before and that new ones gets added.
+            // as before and that new ones gets added.            
+            newCols = newTableDef_.ColumnDefs;
+            oldCols = oldTableDef_.ColumnDefs;
 
             // The two first columns is alwyas __id and __setspec so those can be skipped.
             for (int i = 2; i < newCols.Length; i++) {
                 newCol = newCols[i];
+
+                if (newCol.IsInherited)
+                    continue;
 
                 exists = false;
                 for (int j = 2; j < oldCols.Length; j++) {
                     oldCol = oldCols[j];
 
                     if (newCol.Name.Equals(oldCol.Name)) {
-                        // Column already exists. Check that type is the same.
-                        if (newCol.Type != oldCol.Type || newCol.IsNullable != oldCol.IsNullable) {
-                            throw new Exception("TODO: Errorcode, column changed datatype. Column: "
-                                                + newCol.Name
-                                                + "(in type " + newTableDef_.Name + ")"
-                                                + ", from "
-                                                + ((DbTypeCode)oldCol.Type).ToString()
-                                                + " to "
-                                                + ((DbTypeCode)newCol.Type).ToString()
-                            );
-                        }
+                        VerifyColumnType(oldCol, newCol);
                         exists = true;
                         break;
                     }
                 }
 
                 if (!exists) {
-                    doUpgrade = true;
-                    if (!newCol.IsInherited) {
-                        addedCols.Add(newCol);
-                    }
+                    if (addedCols == null)
+                         addedCols = new List<ColumnDef>();
+                    addedCols.Add(newCol);
                 }
             }
 
-            if (doUpgrade) {
+            if (addedCols != null) {
                 unsafe {
                     var added_column_defs = new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[addedCols.Count + 1];
 
@@ -105,31 +97,63 @@ namespace Starcounter.Binding {
                         added_column_defs[i].is_nullable = addedCols[i].IsNullable ? (byte)1 : (byte)0;
                     }
                     added_column_defs[added_column_defs.Length - 1].primitive_type = 0; // terminate the list.
-                 
+
                     fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = added_column_defs) {
-                        ec = SqlProcessor.SqlProcessor.star_alter_table_add_columns(ThreadData.ContextHandle,
-                                                                                         newTableDef_.Name,
-                                                                                         fixed_column_defs,
-                                                                                         out newLayout);
-                        if (ec != 0)
+                        ec = SqlProcessor.SqlProcessor.star_alter_table_add_columns(
+                                                                ThreadData.ContextHandle,
+                                                                newTableDef_.Name,
+                                                                fixed_column_defs,
+                                                                out newLayoutHandle
+                                                        );
+                        if (ec != 0) 
                             throw ErrorCode.ToException(ec);
                     }
                 }
 
                 Db.Transact(() => {
-                    var metaTable = (Starcounter.Metadata.RawView)DbHelper.FromID(newLayout);
-                    
-                    ec = sccoredb.stari_context_get_layout_info(ThreadData.ContextHandle, metaTable.LayoutHandle, out layoutInfo);
+                    sccoredb.STARI_LAYOUT_INFO layoutInfo;
+                    ec = sccoredb.stari_context_get_layout_info(ThreadData.ContextHandle, (ushort)newLayoutHandle, out layoutInfo);
                     if (ec != 0)
                         throw ErrorCode.ToException(ec);
+
                     newTableDef_ = TableDef.ConstructTableDef(layoutInfo, (uint)(oldTableDef_.allLayoutIds.Length + 1));
                 });
             } else {
-                // Only change was removed columns. No upgrade needed.
-                newTableDef_ = oldTableDef_;
+                // Only change was removed columns or updates in a basetable. No upgrade needed.
+                Db.Transact(() => {
+                    newTableDef_ = Db.LookupTable(newTableDef_.Name);
+                });
             }
-            
+
             return newTableDef_;
+        }
+
+        private void VerifyColumnType(ColumnDef oldCol, ColumnDef newCol) {
+            if (newCol.Type != oldCol.Type || newCol.IsNullable != oldCol.IsNullable) {
+                string errorMsg = "TODO: Errorcode. Changing type on persistent properties/fields in databaseclasses is not supported."
+                                  + " Property/field '{0}' in class '{1}' changed type from '{2}' to '{3}'.";
+                throw new Exception(string.Format(errorMsg,
+                                                  newCol.Name,
+                                                  newTableDef_.Name,
+                                                  ((DbTypeCode)oldCol.Type).ToString(),
+                                                  ((DbTypeCode)newCol.Type).ToString())
+                                   );
+            }
+        }
+
+        private void VerifyTableInheritance(TableDef oldTableDef, TableDef newTableDef) {
+            bool throwEx = false;
+
+            if ((newTableDef.BaseName != null) && (oldTableDef.BaseName == null) 
+                    || oldTableDef.BaseName != null)
+                throwEx = true;
+            else if (!newTableDef.BaseName.Equals(oldTableDef.BaseName))
+                throwEx = true;
+            
+            if (throwEx) { 
+                string errorMsg = "TODO: Errorcode. Changing inheritance on databaseclasses is not supported. Class '{0}' changed inheritance from '{1}' to '{2}'.";
+                throw new Exception(string.Format(errorMsg, newTableDef.Name, oldTableDef.BaseName, newTableDef.BaseName));
+            }
         }
     }
 }
