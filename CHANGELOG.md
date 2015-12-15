@@ -14,6 +14,7 @@
 - Upgraded client side libraries (list of current versions available in src/BuildSystem/ClientFiles/bower-list.txt)
 - Ability to specify multiple resource directories on the command-line, fixes [#2898](https://github.com/Starcounter/Starcounter/issues/2898). For reference, see [#3099](https://github.com/Starcounter/Starcounter/issues/3099).
 - `Partial` class with the support for implicit standalone mode [#3176](https://github.com/Starcounter/Starcounter/issues/3176)
+- Added possibility to use straight handlers paramters notation "{?}" in URIs when doing mapping. Paramter type notation "@w" is still supported but is temporary and will be removed in future.
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
@@ -33,6 +34,7 @@
 - Changed so that working directory is no longer a resource directory by default.
 - Changed so that implicit resource directories are discovered based on the working directory.
 - Renamed the MiddlewareFiltersEnabled database flag to RequestFiltersEnabled.
+- Its no longer possible to register handlers with same signature. For example, one can't register handler "GET /{?}" with string parameter, and handler "GET /{?}" with integer parameter.
 
 ## [2.1.177] - 2015-10-14
 ### Changed
