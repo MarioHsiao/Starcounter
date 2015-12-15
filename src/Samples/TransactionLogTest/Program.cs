@@ -284,6 +284,45 @@ namespace TransactionLogTest
             });
         }
 
+        static void check_apply_update_to_nonexistent_record()
+        {
+            //arrange
+
+            ulong key = 0;
+            Db.Transact(() =>
+            {
+                var t = new TestClass();
+                key = t.GetObjectNo();
+            });
+
+            TransactionData td = new TransactionData
+            {
+                creates = new List<create_record_entry>(),
+                deletes = new List<delete_record_entry>(),
+                updates = new List<update_record_entry> {
+                                        new update_record_entry {
+                                            table = typeof(TestClass).FullName,
+                                            key = new reference { object_id=key+1 },
+                                            columns = new column_update[]{
+                                            } } }
+            };
+
+            //act
+
+            try
+            {
+                Db.Transact(() =>
+                {
+                    new LogApplicator().Apply(td);
+                    Trace.Assert(false, "Shouldn't be here");
+                });
+            }
+            catch( Starcounter.DbException e )
+            {
+                Trace.Assert(e.ErrorCode == Error.SCERRRECORDNOTFOUND);
+            }
+        }
+
         static void check_apply_delete()
         {
             //arrange
@@ -322,6 +361,43 @@ namespace TransactionLogTest
 
         }
 
+        static void check_apply_delete_of_nonexistent_record()
+        {
+            //arrange
+
+            ulong key = 0;
+            Db.Transact(() =>
+            {
+                var t = new TestClass();
+                key = t.GetObjectNo();
+            });
+
+            TransactionData td = new TransactionData
+            {
+                creates = new List<create_record_entry>(),
+                updates = new List<update_record_entry>(),
+                deletes = new List<delete_record_entry>(){
+                                    new delete_record_entry {
+                                              table = typeof(TestClass).FullName,
+                                              key = new reference { object_id=key+1 }
+                                    } }
+            };
+
+            //act
+
+            try
+            {
+                Db.Transact(() =>
+                {
+                    new LogApplicator().Apply(td);
+                    Trace.Assert(false, "Shouldn't be here");
+                });
+            }
+            catch (Starcounter.DbException e)
+            {
+                Trace.Assert(e.ErrorCode == Error.SCERRRECORDNOTFOUND);
+            }
+        }
 
         static void Main(string[] args)
         {
@@ -330,7 +406,9 @@ namespace TransactionLogTest
             check_positioning();
             check_apply_create();
             check_apply_update();
+            check_apply_update_to_nonexistent_record();
             check_apply_delete();
+            check_apply_delete_of_nonexistent_record();
 
             Environment.Exit(0);
         }
