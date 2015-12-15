@@ -50,7 +50,14 @@ namespace Starcounter {
                 r = sccoredb.star_context_lookup(ThreadData.ContextHandle, oid, &record_ref);
                 if (r == 0) {
                     ushort tableId = (ushort)(record_ref & 0xFFFF);
-                    return Bindings.GetTypeBinding(tableId).NewInstance(record_ref, oid);
+                    var typeBinding = Bindings.GetTypeBinding(tableId);
+                    if (typeBinding.TableId != tableId) {
+                        // We have more then one layout for this type, because of
+                        // schema upgrades. We update the ref to point to the expected
+                        // layout so the record will be upgraded when written.
+                        record_ref = EncodeObjectRefWithLayoutHandle(record_ref, typeBinding.TableId);
+                    }
+                    return typeBinding.NewInstance(record_ref, oid);
                 }
                 else if (r == Error.SCERRRECORDNOTFOUND) {
                     return null;
@@ -195,6 +202,14 @@ namespace Starcounter {
                 UInt64 objNo = Base64Int.Read(objectID.Length, (byte*)ptr);
                 return objNo;
             }
+        }
+
+        internal static ulong EncodeObjectRefWithLayoutHandle(ulong recordRef, ushort layoutHandle) {
+            ulong changedRef = recordRef;
+            changedRef = changedRef >> 16;
+            changedRef = changedRef << 16;
+            changedRef |= layoutHandle;
+            return changedRef;
         }
 
         #region Extending FasterThanJson with writing and reading methods on Binary
