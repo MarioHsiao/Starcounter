@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,6 +29,22 @@ namespace TransactionLogTest
         public double double_field;
         public TestClass ref_field;
     };
+
+    [Database]
+    public class TestClassBase2 : TestClassBase
+    {
+    }
+
+    [Database]
+    public class TestClassBase3 : TestClassBase2
+    {
+    }
+
+    [Database]
+    public class TestClassBase4 : TestClassBase
+    {
+    }
+
 
     class Program
     {
@@ -87,6 +103,45 @@ namespace TransactionLogTest
                 Trace.Assert(((reference)(create_entry.columns.Where(c => c.name == "ref_field").Single().value)).object_id == t_record_key);
             }
 
+        }
+
+        static void check_create_entry_for_inherited_table<T> () where T : new()
+        {
+            // ARRANGE
+            ILogManager log_manager = new LogManager();
+
+            using (ILogReader log_reader = log_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir))
+            {
+                var cts = new CancellationTokenSource();
+
+                //rewind to the end of log
+                LogReadResult lr;
+                do
+                {
+                    lr = log_reader.ReadAsync(cts.Token, false).Result;
+                }
+                while (lr != null);
+
+                Db.Transact(() =>
+                {
+                    new T();
+                });
+
+                // ACT
+                lr = log_reader.ReadAsync(cts.Token).Result;
+
+                //CHECK
+                Trace.Assert(lr.transaction_data.creates.Count() == 1);
+                Trace.Assert(lr.transaction_data.creates.First().table == typeof(T).FullName);
+            }
+        }
+
+        static void check_create_entry_for_inherited_tables()
+        {
+            check_create_entry_for_inherited_table<TestClassBase>();
+            check_create_entry_for_inherited_table<TestClassBase2>();
+            check_create_entry_for_inherited_table<TestClassBase3>();
+            check_create_entry_for_inherited_table<TestClassBase4>();
         }
 
         static void check_positioning()
@@ -269,6 +324,7 @@ namespace TransactionLogTest
         static void Main(string[] args)
         {
             check_create_entry();
+            check_create_entry_for_inherited_tables();
             check_positioning();
             check_apply_create();
             check_apply_update();
@@ -278,3 +334,4 @@ namespace TransactionLogTest
         }
     }
 }
+
