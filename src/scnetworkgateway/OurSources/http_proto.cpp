@@ -716,7 +716,7 @@ uint32_t HttpProto::HttpUriDispatcher(
         matched_index = port_uris->RunCodegenUriMatcher(lower_method_space_uri_space, method_space_uri_space_len, sd->get_accept_or_params_data());
 
         // Checking if we failed to find again.
-        if (matched_index < 0)
+        if (MixedCodeConstants::InvalidUriMatcherHandlerId == matched_index)
         {
             // Handled successfully.
             *is_handled = true;

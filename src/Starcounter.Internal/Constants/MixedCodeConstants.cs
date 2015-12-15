@@ -46,6 +46,11 @@ namespace Starcounter.Internal
         public const int BMX_HANDLER_SIZE = 2;
 
         /// <summary>
+        /// Invalid URI matcher handler index.
+        /// </summary>
+        public const int InvalidUriMatcherHandlerId = -1;
+
+        /// <summary>
         /// Session string length in characters.
         /// </summary>
         public const int SESSION_STRING_LEN_CHARS = 24;

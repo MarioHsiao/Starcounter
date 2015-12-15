@@ -1092,12 +1092,11 @@ namespace Starcounter.Rest
                         methodSpaceUriSpaceLowerOnStack[i] = (Byte)methodSpaceUriSpaceLower[i];
                     }
 
-                    // TODO: Resolve this hack with only positive handler ids in generated code.
-                    handlerId = portUris.matchUriAndGetHandlerIdFunc_(methodSpaceUriSpaceLowerOnStack, (UInt32)len, handlerNativeParamsAddr) - 1;
+                    handlerId = portUris.matchUriAndGetHandlerIdFunc_(methodSpaceUriSpaceLowerOnStack, (UInt32)len, handlerNativeParamsAddr);
                 }
 
                 // Checking if we have found the handler.
-                if (handlerId >= 0) {
+                if (MixedCodeConstants.InvalidUriMatcherHandlerId != handlerId) {
 
                     req.ManagedHandlerId = (UInt16) handlerId;
                     req.MethodEnum = uhm.AllUserHandlerInfos[handlerId].UriInfo.http_method_;

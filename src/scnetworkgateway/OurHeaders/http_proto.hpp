@@ -211,8 +211,7 @@ public:
 
                 reg_uris_[i].WriteUserParameters(reg_uri.param_types, &reg_uri.num_params);
 
-                // TODO: Resolve this hack with only positive handler ids in generated code.
-                reg_uri.handler_id = i + 1;
+                reg_uri.handler_id = i;
 
                 uris_vec.push_back(reg_uri);
             }
@@ -243,8 +242,7 @@ public:
         // Pointing to parameters storage.
         MixedCodeConstants::UserDelegateParamInfo** out_params = (MixedCodeConstants::UserDelegateParamInfo**)&params_storage;
 
-        // TODO: Resolve this hack with only positive handler ids in generated code.
-        return uri_matcher_entry_->get_uri_matcher_func()(method_space_uri_space, method_space_uri_space_len, out_params) - 1;
+        return uri_matcher_entry_->get_uri_matcher_func()(method_space_uri_space, method_space_uri_space_len, out_params);
     }
 
     // Printing the registered URIs.

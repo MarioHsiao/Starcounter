@@ -56,7 +56,7 @@ typedef uint8_t scheduler_id_type;
 typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
-typedef int16_t uri_index_type;
+typedef int32_t uri_index_type;
 typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;

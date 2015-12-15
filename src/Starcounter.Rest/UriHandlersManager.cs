@@ -10,6 +10,7 @@ using System.Text;
 using System.Linq.Expressions;
 using System.Web.UI.WebControls;
 using Starcounter.Advanced.XSON;
+using System.Runtime.InteropServices;
 
 namespace Starcounter.Rest
 {
@@ -19,7 +20,6 @@ namespace Starcounter.Rest
     internal class RegisteredUriInfo
     {
         public String method_space_uri_ = null;
-        public IntPtr method_space_uri_ascii_bytes_;
         public Type param_message_type_ = null;
         public Func<object> param_message_create_ = null;
         public Byte[] native_param_types_ = null;
@@ -34,32 +34,6 @@ namespace Starcounter.Rest
         {
             method_space_uri_ = null;
             handler_id_ = HandlerOptions.InvalidUriHandlerId;
-
-            if (method_space_uri_ascii_bytes_ != IntPtr.Zero)
-            {
-                // Releasing internal resources here.
-                BitsAndBytes.Free(method_space_uri_ascii_bytes_);
-                method_space_uri_ascii_bytes_ = IntPtr.Zero;
-            }
-        }
-
-        /// <summary>
-        /// Initializes URI pointers.
-        /// </summary>
-        public void InitUriPointers()
-        {
-            unsafe
-            {
-                method_space_uri_ascii_bytes_ = BitsAndBytes.Alloc(method_space_uri_.Length + 1);
-                Byte[] temp = Encoding.ASCII.GetBytes(method_space_uri_);
-                Byte* p = (Byte*) method_space_uri_ascii_bytes_.ToPointer();
-
-                fixed (Byte* t = temp) {
-                    BitsAndBytes.MemCpy(p, t, (uint)method_space_uri_.Length);
-                }
-
-                p[method_space_uri_.Length] = 0;
-            }
         }
 
         /// <summary>
@@ -70,12 +44,10 @@ namespace Starcounter.Rest
         {
             MixedCodeConstants.RegisteredUriManaged r = new MixedCodeConstants.RegisteredUriManaged();
 
-            r.method_space_uri = method_space_uri_ascii_bytes_;
-
+            r.method_space_uri = Marshal.StringToHGlobalAnsi(method_space_uri_);
             r.num_params = num_params_;
 
-            // TODO: Resolve this hack with only positive handler ids in generated code.
-            r.handler_id = handler_id_ + 1;
+            r.handler_id = handler_id_;
 
             for (Int32 i = 0; i < native_param_types_.Length; i++) {
                 r.param_types[i] = native_param_types_[i];
@@ -390,8 +362,9 @@ namespace Starcounter.Rest
             uri_info_.num_params_ = (Byte)native_param_types.Length;
             uri_info_.http_method_ = UriHelper.GetMethodFromString(method_space_uri);
 
-            if (param_message_type != null)
+            if (param_message_type != null) {
                 uri_info_.param_message_create_ = Expression.Lambda<Func<object>>(Expression.New(param_message_type)).Compile();
+            }
 
             Debug.Assert(userDelegate_ == null);
 
@@ -409,8 +382,6 @@ namespace Starcounter.Rest
             typeOfHandler_ = ho.TypeOfHandler;
             
             appName_ = StarcounterEnvironment.AppName;
-
-            uri_info_.InitUriPointers();
         }
     }
 
