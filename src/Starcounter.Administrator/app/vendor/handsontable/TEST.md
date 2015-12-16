@@ -1,5 +1,12 @@
 Updating Handsontable? Make sure the following checklist passes in Chrome, Firefox and Edge:
 
+## Handsontable build
+
+1. Handsontable used in this project is customized. Check if your build has included this modules: 
+ - AutoColumnSize
+ - CopyPaste
+ - ManualColumnResize
+
 ## Executing SQL query
 
 1. Clicking CTRL+ENTER in SQL textarea refreshes Handsontable (also after a cell was selected).

@@ -1,10 +1,3 @@
-//
-WalkontableTable.prototype.alignOverlaysWithTrimmingContainer = function() {
-  if (!this.isWorkingOnClone()) {
-    this.holder.parentNode.style.position = 'relative';
-  }
-};
-
 (function() {
   var scrollViewport = Walkontable.prototype.scrollViewport;
   var keyDown = false;

@@ -46,7 +46,7 @@
 
             <tabset>
                 <tab heading="Result" select="onResultTabSelect()">
-                    <div id="handsontableContainer" style="overflow: hidden;">
+                    <div id="handsontableContainer">
                         <hot-table
                                 hot-id="sql-result"
                                 id="handsontable"
@@ -61,6 +61,7 @@
                                 manual-column-resize
                                 read-only
                                 col-headers
+                                prevent-overflow="'horizontal'"
                                 fragment-selection="'cell'">
                         </hot-table>
                     </div>
