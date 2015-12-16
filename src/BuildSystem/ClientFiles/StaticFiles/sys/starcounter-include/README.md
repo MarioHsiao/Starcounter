@@ -33,14 +33,14 @@ To produce
 
 ### [`<imported-template>` Demo/Example](https://github.com/Juicy/imported-template#demoexamples)
 
-### [Test/Use cases](http://polyjuice.github.io/starcounter-include/tests)
+### [Test/Use cases](http://starcounter.github.io/starcounter-include/tests)
 
 ## Features
 
  - Applies two-way databinding, even for nested asynchronously loaded `<polymer-element>`s,
- - Multiple (concatenated) templates per partial, 
+ - Multiple (concatenated) templates per partial,
  - Polymer's `<template>` features (binding, repeat, if, etc.),
- - HTML Imports features: 
+ - HTML Imports features:
   - Sends request for template only once (HTML Import's caching),
   - Supports `<script>, <link>, <style>` tags to be executed once,
   - Supports `<script>, <style>` tags per template instance.
@@ -61,10 +61,10 @@ Starcounter has it already pre-installed, under `/sys/starcounter-include/starco
 Install the component using [Bower](http://bower.io/):
 
 ```sh
-$ bower install Polyjuice/starcounter-include --save
+$ bower install Starcounter/starcounter-include --save
 ```
 
-Or [download as ZIP](https://github.com/Polyjuice/starcounter-include/archive/master.zip).
+Or [download as ZIP](https://github.com/Starcounter/starcounter-include/archive/master.zip).
 
 ## Usage
 
@@ -97,7 +97,7 @@ Or [download as ZIP](https://github.com/Polyjuice/starcounter-include/archive/ma
 ## Test suite
 
  - local browser `./tests/index.html`
- - [online](http://polyjuice.github.io/starcounter-include/tests)
+ - [online](http://starcounter.github.io/starcounter-include/tests)
 
 ## Contributing
 
@@ -109,4 +109,4 @@ Or [download as ZIP](https://github.com/Polyjuice/starcounter-include/archive/ma
 
 ## History
 
-For detailed changelog, check [Releases](https://github.com/Polyjuice/starcounter-include/releases).
+For detailed changelog, check [Releases](https://github.com/Starcounter/starcounter-include/releases).

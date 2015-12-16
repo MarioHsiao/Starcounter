@@ -3,7 +3,7 @@
   "authors": [
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
-  "homepage": "https://github.com/Polyjuice/starcounter-include",
+  "homepage": "https://github.com/Starcounter/starcounter-include",
   "description": "Custom Element to include HTML partials/templates from Starcounter",
   "main": "starcounter-include.html",
   "keywords": [
