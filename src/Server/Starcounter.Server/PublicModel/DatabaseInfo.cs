@@ -50,6 +50,16 @@ namespace Starcounter.Server.PublicModel {
         public readonly string CollationFile;
 
         /// <summary>
+        /// Gets or sets the first object ID used by the database.
+        /// </summary>
+        public readonly ulong FirstObjectID;
+
+        /// <summary>
+        /// Gets or sets the last object ID used by the database.
+        /// </summary>
+        public readonly ulong LastObjectID;
+
+        /// <summary>
         /// Gets or sets a value indicating if the database referenced
         /// by the current instance supports replication.
         /// </summary>

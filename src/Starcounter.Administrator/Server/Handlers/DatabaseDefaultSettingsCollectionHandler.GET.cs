@@ -46,6 +46,8 @@ namespace Starcounter.Administrator.Server.Handlers {
                     databaseSettings.ImageDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.ImageDirectory;
                     databaseSettings.TransactionLogDirectory = serverInfo.Configuration.DefaultDatabaseConfiguration.Runtime.TransactionLogDirectory;
                     databaseSettings.CollationFile = serverInfo.Configuration.DefaultDatabaseStorageConfiguration.CollationFile;
+                    databaseSettings.FirstObjectID = (long) serverInfo.Configuration.DefaultDatabaseStorageConfiguration.FirstObjectID;
+                    databaseSettings.LastObjectID = (long) serverInfo.Configuration.DefaultDatabaseStorageConfiguration.LastObjectID;
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = databaseSettings.ToJsonUtf8() };
                 }

@@ -60,6 +60,8 @@ namespace Starcounter.Server {
             this.StorageConfiguration.TransactionLogSize = engine.DatabaseDefaultValues.TransactionLogSize;
             this.StorageConfiguration.SupportReplication = false;
             this.StorageConfiguration.CollationFile = engine.DatabaseDefaultValues.CollationFile;
+            this.StorageConfiguration.FirstObjectID = 1;
+            this.StorageConfiguration.LastObjectID = 4611686018427387903L;
         }
 
         /// <summary>

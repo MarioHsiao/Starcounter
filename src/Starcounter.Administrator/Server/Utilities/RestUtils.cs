@@ -58,6 +58,8 @@ namespace Starcounter.Administrator.Server.Utilities {
             settings.ImageDirectory = database.Configuration.Runtime.ImageDirectory;
             settings.TransactionLogDirectory = database.Configuration.Runtime.TransactionLogDirectory;
             settings.CollationFile = database.CollationFile;
+            settings.FirstObjectID = (long) database.FirstObjectID;
+            settings.LastObjectID = (long) database.LastObjectID;
             return settings;
         }
 
@@ -167,6 +169,22 @@ namespace Starcounter.Administrator.Server.Utilities {
             //    validationError.PropertyName = "CollationFile";
             //    validationError.Text = "invalid collation file";
             //}
+
+            // First Object ID
+            if (settings.FirstObjectID < 1)
+            {
+                var validationError = validationErrors.Items.Add();
+                validationError.PropertyName = "FirstObjectID";
+                validationError.Text = "invalid first object ID";
+            }
+
+            // Last Object ID
+            if (settings.LastObjectID < settings.FirstObjectID)
+            {
+                var validationError = validationErrors.Items.Add();
+                validationError.PropertyName = "LastObjectID";
+                validationError.Text = "invalid last object ID";
+            }
 
             return validationErrors;
         }
