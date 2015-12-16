@@ -17,7 +17,7 @@
 - Added possibility to use straight handlers paramters notation "{?}" in URIs when doing mapping. Paramter type notation "@w" is still supported but is temporary and will be removed in future.
 
 ### Fixed
-- Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955) 
+- Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
 - Fixed issue with setting outgoing fields and using outgoing filters in relation to static file resources responses: [#2961](https://github.com/Starcounter/Starcounter/issues/2961).
 - Fixed issue with missing AppName and PartialId in serialized json when running Launcher: [#2902](https://github.com/Starcounter/Starcounter/issues/2902)
 - Fixed an issue when Administrator was starting faster than gateway process in scservice: [#2962](https://github.com/Starcounter/Starcounter/issues/2962)
@@ -29,12 +29,14 @@
 - Fixed [#2976](https://github.com/Starcounter/Starcounter/issues/2976), resource directories and the working directory are no longer mixed.
 - Fixed issue with patches for items in arrays for TypedJson sometimes having incorrect index.
 - Fixed matching metadata-properties with regular properties in JSON-by-example [#3136](https://github.com/Starcounter/Starcounter/issues/3136).  
+- Fixed reseting URL to `""` in view-model after `<juicy-redirect>`/`<puppet-redirect>` redirect [PuppetJs/puppet-redirect#1](https://github.com/PuppetJs/puppet-redirect/issues/1), [PuppetJs/puppet-redirect#2](https://github.com/PuppetJs/puppet-redirect/issues/2)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
 - Changed so that implicit resource directories are discovered based on the working directory.
 - Renamed the MiddlewareFiltersEnabled database flag to RequestFiltersEnabled.
 - Its no longer possible to register handlers with same signature. For example, one can't register handler "GET /{?}" with string parameter, and handler "GET /{?}" with integer parameter.
+- Due to [`<juicy-redirect>`](https://github.com/Juicy/juicy-redirect) and [`<puppet-redirect>`](https://github.com/PuppetJs/puppet-redirect) update, Custom Element should now be imported from `/sys/juicy-redirect/juicy-redirect.html` or `/sys/puppet-redirect/puppet-redirect.html`. When used with Polymer's template binding, `url` value can be bound two-way via property: `<juicy-redirect url="{{model.path.to.RedirectURL$}}">`
 
 ## [2.1.177] - 2015-10-14
 ### Changed
@@ -44,7 +46,7 @@
 [SQL isolation](http://starcounter.io/guides/sql/sql-isolation/)
 - Static files from /sys/ folder migrated to Polymer 1.1: [Roadmap to Polymer 1.1](https://github.com/Starcounter/Starcounter/issues/2854)
 - UriMapping.OntologyMap now allows only use of fully namespaced class names. Recommended string prefix has changed from "/db/" and "/so/" to UriMapping.OntologyMappingUriPrefix (which is "/sc/db"), for example: UriMapping.OntologyMappingUriPrefix + "/simplified.ring6.chatattachment/@w". As a second parameter you can now simply supply just a fully namespaced class name, like this: "simplified.ring6.chatattachment".
-- REST Call ```GET /api/admin/database/[Name]/applications``` Changed to ```GET /api/admin/databases/[Name]/applications``` and 
+- REST Call ```GET /api/admin/database/[Name]/applications``` Changed to ```GET /api/admin/databases/[Name]/applications``` and
  ```GET /api/admin/database/[Name]/appstore/stores``` Changed to ```GET /api/admin/databases/[Name]/appstore/stores```. Notice the plural in ```databases```
 - Renamed the scnetworkgateway.xml in StarcounterBin to scnetworkgateway.sample.xml
 - Moved requirement to have at least 2 CPU cores to recommendations, as 4Gb RAM now.
@@ -58,8 +60,8 @@
 https://github.com/Starcounter/Starcounter/issues/2886
 - Setting AppName in DbSession.* calls, as well as processing unhandled exceptions there.
 - Code rewritten for detecting changes on bound arrays in TypedJSON to avoid producing unnecessary changes: [#2920](https://github.com/Starcounter/Starcounter/issues/2920).
-- Bug fixed concerning indexes on database objects. Combined indexes might need to be recreated to work properly: [#2933](https://github.com/Starcounter/Starcounter/issues/2933). 
+- Bug fixed concerning indexes on database objects. Combined indexes might need to be recreated to work properly: [#2933](https://github.com/Starcounter/Starcounter/issues/2933).
 - Bug fixed regarding headers dictionary creation (CreateHeadersDictionaryFromHeadersString):
 [#2939](https://github.com/Starcounter/Starcounter/issues/2939).
 - Fixed extraction of CRT libraries in installer GUI that caused the issue [#2759](https://github.com/Starcounter/Starcounter/issues/2759)
-- Bug fixed when handling error from indexcreation, that caused an assertion failure instead of returning the error to usercode: [#2951](https://github.com/Starcounter/Starcounter/issues/2951) 
+- Bug fixed when handling error from indexcreation, that caused an assertion failure instead of returning the error to usercode: [#2951](https://github.com/Starcounter/Starcounter/issues/2951)
