@@ -27,12 +27,20 @@ namespace Starcounter.TransactionLog
             {
                 var table_def = Db.LookupTable(u.table);
 
-                fill_record(u.key.object_id, DbState.Lookup(u.key.object_id).Value.ETI, table_def, u.columns);
+                ObjectRef? o = DbState.Lookup(u.key.object_id);
+                if (!o.HasValue)
+                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND);
+
+                fill_record(u.key.object_id, o.Value.ETI, table_def, u.columns);
             }
 
             foreach( var d in transaction_data.deletes)
             {
-                DbHelper.FromID(d.key.object_id).Delete();
+                IObjectView o = DbHelper.FromID(d.key.object_id);
+                if (o==null)
+                    throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND);
+
+                o.Delete();
             }
 
         }
