@@ -628,7 +628,7 @@ namespace Starcounter {
 
                 StatusCode = 503,
                 StatusDescription = "Service Unavailable",
-                ContentType = "text/plain",
+                ContentType = "text/plain;charset=utf-8",
                 Body = exc.ToString()
             };
 

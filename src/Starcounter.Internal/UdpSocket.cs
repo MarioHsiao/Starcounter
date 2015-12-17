@@ -130,8 +130,13 @@ namespace Starcounter {
             UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
 
             if (0 != errCode) {
-                // NOTE: If we can not obtain a chunk just returning because we can't do much.
-                return;
+
+                if (Error.SCERRACQUIRELINKEDCHUNKS == errCode) {
+                    // NOTE: If we can not obtain a chunk just returning because we can't do much.
+                    return;
+                } else {
+                    throw ErrorCode.ToException(errCode);
+                }
             }
 
             Byte* socketDataBegin = chunkMem + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA;

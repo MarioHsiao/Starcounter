@@ -1,5 +1,5 @@
 ﻿{
-   $userid$: {Bind:"uid"},
+   $userid: {Bind:"uid"},
    
    $doubleToInt: {Type:"int", Editable:false},
    $doubleToString: {Editable:false, Type:"string"},

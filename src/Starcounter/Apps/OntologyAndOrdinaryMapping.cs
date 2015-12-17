@@ -84,9 +84,9 @@ namespace Starcounter {
             public Func<String, String> ConverterFromClass;
 
             /// <summary>
-            /// Processed URI for handler.
+            /// Application URI for handler.
             /// </summary>
-            public String HandlerProcessedUri;
+            public String AppRelativeUri;
 
             /// <summary>
             /// Parameter information (offset in URI).
@@ -200,7 +200,7 @@ namespace Starcounter {
                 ho.HandlerId = x.HandlerId;
 
                 // Setting calling string.
-                String uri = x.HandlerProcessedUri;
+                String uri = x.AppRelativeUri;
 
                 String stringParamCopy = stringParam;
 
@@ -226,7 +226,7 @@ namespace Starcounter {
                     ho.ParametersInfo = paramInfo;
 
                     // Setting calling string.
-                    uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, stringParamCopy);
+                    uri = x.AppRelativeUri.Replace(Handle.UriParameterIndicator, stringParamCopy);
                 }
 
                 // Calling handler.
@@ -252,22 +252,22 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Maps an existing application processed URI to another URI.
+        /// Maps an existing application URI to another URI.
         /// </summary>
         public static void Map(
-            String appProcessedUri,
-            String mapProcessedUri,
+            String appUriToMap,
+            String mapUri,
             String method = Handle.GET_METHOD) {
 
-            Map(appProcessedUri, mapProcessedUri, null, null, method);
+            Map(appUriToMap, mapUri, null, null, method);
         }
 
         /// <summary>
-        /// Maps an existing application processed URI to another URI.
+        /// Maps an existing application URI to another URI.
         /// </summary>
         public static void Map(
-            String appProcessedUri,
-            String mapProcessedUri,
+            String appUriToMap,
+            String mapUri,
             Func<String, String> converterTo,
             Func<String, String> converterFrom,
             String method) {
@@ -283,17 +283,20 @@ namespace Starcounter {
             }
 
             // Checking that map URI starts with mapping prefix.
-            if (!mapProcessedUri.StartsWith(MappingUriPrefix + "/", StringComparison.InvariantCultureIgnoreCase) ||
-                (mapProcessedUri.Length <= MappingUriPrefix.Length + 1)) {
+            if (!mapUri.StartsWith(MappingUriPrefix + "/", StringComparison.InvariantCultureIgnoreCase) ||
+                (mapUri.Length <= MappingUriPrefix.Length + 1)) {
 
                 throw new ArgumentException("Application can only map to handlers starting with: " + MappingUriPrefix + "/ prefix followed by some string.");
             }
 
             lock (customMaps_) {
 
+                appUriToMap = appUriToMap.Replace(Handle.UriParameterIndicator, EndsWithStringParam);
+                mapUri = mapUri.Replace(Handle.UriParameterIndicator, EndsWithStringParam);
+
                 // Checking that we have only long parameter.
-                Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
-                    numParams2 = mapProcessedUri.Split('@').Length - 1;
+                Int32 numParams1 = appUriToMap.Split('@').Length - 1,
+                    numParams2 = mapUri.Split('@').Length - 1;
 
                 if (numParams1 != numParams2) {
                     throw new ArgumentException("Application and mapping URIs have different number of parameters.");
@@ -301,8 +304,8 @@ namespace Starcounter {
 
                 if (numParams1 > 0) {
 
-                    numParams1 = appProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
-                    numParams2 = mapProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
+                    numParams1 = appUriToMap.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
+                    numParams2 = mapUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
 
                     if ((numParams1 != 1) || (numParams2 != 1)) {
                         throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
@@ -313,54 +316,61 @@ namespace Starcounter {
                     throw new ArgumentException("Right now mapping is only allowed for URIs with, at most, one parameter of type string.");
                 }
 
-                // There is always a space at the end of processed URI.
-                String appProcessedMethodUriSpace = method + " " + appProcessedUri.ToLowerInvariant() + " ";
+                appUriToMap = appUriToMap.Replace(EndsWithStringParam, Handle.UriParameterIndicator);
+                mapUri = mapUri.Replace(EndsWithStringParam, Handle.UriParameterIndicator);
 
-                // Searching the handler by processed URI.
-                UserHandlerInfo appHandlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
-                    new HandlerOptions());
+                // There is always a space at the end of URI.
+                String appMethodSpaceUri = method + " " + appUriToMap.ToLowerInvariant();
+
+                // Searching the handler by URI.
+                UserHandlerInfo appHandlerInfo = UriManagedHandlersCodegen.FindHandler(appMethodSpaceUri, new HandlerOptions());
 
                 if (appHandlerInfo == null) {
-                    throw new ArgumentException("Application handler is not registered: " + appProcessedUri);
+                    throw new ArgumentException("Application handler is not registered: " + appUriToMap);
+                }
+
+                if (1 == numParams1) {
+                    if (!appHandlerInfo.UriInfo.HasOneLastParamOfTypeString()) {
+                        throw new ArgumentException("Right now mapping is only allowed for URIs with, at most, one parameter of type string.");
+                    }
                 }
 
                 UInt16 handlerId = appHandlerInfo.HandlerId;
 
                 if (handlerId == HandlerOptions.InvalidUriHandlerId) {
-                    throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
+                    throw new ArgumentException("Can not find existing handler: " + appMethodSpaceUri);
                 }
 
                 // Basically creating and attaching handler to class type.
                 HandlerInfoForUriMapping handler = AddHandlerToClass(
                     null,
                     handlerId,
-                    appProcessedUri,
-                    appProcessedMethodUriSpace,
+                    appUriToMap,
+                    appMethodSpaceUri,
                     appHandlerInfo.AppName,
                     converterTo,
                     converterFrom);
 
                 // Searching for the mapped handler.
-                String mapProcessedMethodUriSpace = method + " " + mapProcessedUri.ToLowerInvariant() + " ";
-                UserHandlerInfo mapHandlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(mapProcessedMethodUriSpace,
-                    new HandlerOptions());
+                String mapMethodSpaceUri = method + " " + mapUri.ToLowerInvariant();
+                UserHandlerInfo mapHandlerInfo = UriManagedHandlersCodegen.FindHandler(mapMethodSpaceUri, new HandlerOptions());
 
                 // Registering the map handler if needed.
                 if (null == mapHandlerInfo) {
 
-                    Debug.Assert(false == customMaps_.ContainsKey(mapProcessedMethodUriSpace));
+                    Debug.Assert(false == customMaps_.ContainsKey(mapMethodSpaceUri));
 
                     // Creating a new mapping list and adding URI to it.
                     List<HandlerInfoForUriMapping> mappedHandlersList = new List<HandlerInfoForUriMapping>();
                     mappedHandlersList.Add(handler);
-                    customMaps_.Add(mapProcessedMethodUriSpace, mappedHandlersList);
+                    customMaps_.Add(mapMethodSpaceUri, mappedHandlersList);
 
                     String savedAppName = StarcounterEnvironment.AppName;
                     StarcounterEnvironment.AppName = null;
 
                     if (numParams1 > 0) {
 
-                        String hs = mapProcessedUri.Replace(EndsWithStringParam, "{?}");
+                        String hs = mapUri.Replace(Handle.UriParameterIndicator, Handle.UriParameterIndicator);
 
                         // Registering mapped URI with parameter.
                         Handle.CUSTOM(method + " " + hs, (Request req, String p) => {
@@ -374,7 +384,7 @@ namespace Starcounter {
                     } else {
 
                         // Registering mapped URI.
-                        Handle.CUSTOM(method + " " + mapProcessedUri, (Request req) => {
+                        Handle.CUSTOM(method + " " + mapUri, (Request req) => {
                             return MappingHandler(req, mappedHandlersList, null);
                         }, new HandlerOptions() {
                             SkipHandlersPolicy = true,
@@ -390,7 +400,7 @@ namespace Starcounter {
                     // Just adding this mapped handler to the existing list.
 
                     List<HandlerInfoForUriMapping> mappedList;
-                    Boolean found = customMaps_.TryGetValue(mapProcessedMethodUriSpace, out mappedList);
+                    Boolean found = customMaps_.TryGetValue(mapMethodSpaceUri, out mappedList);
                     Debug.Assert(true == found);
 
                     mappedList.Add(handler);
@@ -400,9 +410,7 @@ namespace Starcounter {
                 if (numParams1 > 0) {
 
                     // Registering the class type handler as a map to corresponding application URI.
-                    String hs = appProcessedUri.Replace(EndsWithStringParam, "{?}");
-
-                    Handle.CUSTOM(method + " " + hs, (Request req, String stringParam) => {
+                    Handle.CUSTOM(method + " " + appUriToMap, (Request req, String stringParam) => {
 
                         Response resp;
 
@@ -416,15 +424,13 @@ namespace Starcounter {
                                 return null;
 
                             // Calling the mapped handler.
-                            hs = mapProcessedUri.Replace(EndsWithStringParam, convertedParam);
-                            req.Uri = hs;
+                            req.Uri = mapUri.Replace(Handle.UriParameterIndicator, convertedParam);
                             resp = Self.CustomRESTRequest(req, req.HandlerOpts);
 
                         } else {
 
                             // Calling the mapped handler.
-                            hs = mapProcessedUri.Replace(EndsWithStringParam, stringParam);
-                            req.Uri = hs;
+                            req.Uri = mapUri.Replace(Handle.UriParameterIndicator, stringParam);
                             resp = Self.CustomRESTRequest(req, req.HandlerOpts);
                         }
 
@@ -438,12 +444,12 @@ namespace Starcounter {
                 } else {
 
                     // Registering the proxy handler as a map to corresponding application URI.
-                    Handle.CUSTOM(method + " " + appProcessedUri, (Request req) => {
+                    Handle.CUSTOM(method + " " + appUriToMap, (Request req) => {
 
                         Response resp;
 
                         // Calling the mapped handler.
-                        req.Uri = mapProcessedUri;
+                        req.Uri = mapUri;
                         resp = Self.CustomRESTRequest(req, req.HandlerOpts);
 
                         return resp;
@@ -457,10 +463,28 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Maps an existing application processed URI to class URI.
+        /// Maps an existing application URI to class URI.
+        /// </summary>
+        public static void OntologyMap<T>(String appUriToMap) {
+
+            OntologyMap(appUriToMap, typeof(T).FullName, null, null);
+        }
+
+        /// <summary>
+        /// Maps an existing application URI to class URI.
         /// </summary>
         public static void OntologyMap(
-            String appProcessedUri,
+            String appUriToMap,
+            String mappedClassInfo) {
+
+            OntologyMap(appUriToMap, mappedClassInfo, null, null);
+        }
+
+        /// <summary>
+        /// Maps an existing application URI to class URI.
+        /// </summary>
+        public static void OntologyMap(
+            String appUriToMap,
             String mappedClassInfo,
             Func<String, String> converterToClass,
             Func<String, String> converterFromClass) {
@@ -473,6 +497,9 @@ namespace Starcounter {
 
                 Starcounter.Metadata.Table classMetadataTable;
 
+                mappedClassInfo = mappedClassInfo.Replace(Handle.UriParameterIndicator, EndsWithStringParam);
+                appUriToMap = appUriToMap.Replace(Handle.UriParameterIndicator, EndsWithStringParam);
+
                 // Checking if we have just a fully namespaced database class name.
                 if (!mappedClassInfo.StartsWith("/")) {
 
@@ -481,38 +508,44 @@ namespace Starcounter {
                         Db.SQL<Starcounter.Metadata.Table>("select t from starcounter.metadata.table t where fullname = ?", mappedClassInfo).First;
 
                     if (null == classMetadataTable) {
-                        throw new ArgumentException("Class not found: " + mappedClassInfo + ". The second parameter of OntologyMap should be either a fully namespaced existing class name or /sc/db/[FullClassName]/@w.");
+                        throw new ArgumentException("Class not found: " + mappedClassInfo + ". The second parameter of OntologyMap should be either a fully namespaced existing class name or /sc/db/[FullClassName]/{?}.");
                     }
 
-                    mappedClassInfo = OntologyMappingUriPrefix + "/" + mappedClassInfo + "/@w";
+                    mappedClassInfo = OntologyMappingUriPrefix + "/" + mappedClassInfo + "/" + EndsWithStringParam;
                 }
 
                 // Checking that we have only long parameter.
-                Int32 numParams1 = appProcessedUri.Split('@').Length - 1,
+                Int32 numParams1 = appUriToMap.Split('@').Length - 1,
                     numParams2 = mappedClassInfo.Split('@').Length - 1;
 
                 if ((numParams1 != 1) || (numParams2 != 1)) {
                     throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
                 }
 
-                numParams1 = appProcessedUri.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
+                numParams1 = appUriToMap.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
                 numParams2 = mappedClassInfo.Split(new String[] { EndsWithStringParam }, StringSplitOptions.None).Length - 1;
 
                 if ((numParams1 != 1) || (numParams2 != 1)) {
-                    throw new ArgumentException("Right now mapping is only allowed for URIs with one parameter of type string.");
+                    throw new ArgumentException("Right now ontology mapping is only allowed for URIs with one parameter of type string.");
                 }
 
-                // There is always a space at the end of processed URI.
-                String appProcessedMethodUriSpace = "GET " + appProcessedUri.ToLowerInvariant() + " ";
+                appUriToMap = appUriToMap.Replace(EndsWithStringParam, Handle.UriParameterIndicator);
+                mappedClassInfo = mappedClassInfo.Replace(EndsWithStringParam, Handle.UriParameterIndicator);
 
-                // Searching the handler by processed URI.
-                UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandlerByProcessedUri(appProcessedMethodUriSpace,
-                    new HandlerOptions());
+                // There is always a space at the end of URI.
+                String appMethodSpaceUri = "GET " + appUriToMap.ToLowerInvariant();
+
+                // Searching the handler by URI.
+                UserHandlerInfo handlerInfo = UriManagedHandlersCodegen.FindHandler(appMethodSpaceUri, new HandlerOptions());
+
+                if (!handlerInfo.UriInfo.HasOneLastParamOfTypeString()) {
+                    throw new ArgumentException("Right now ontology mapping is only allowed for URIs with one parameter of type string.");
+                }
 
                 UInt16 handlerId = handlerInfo.HandlerId;
 
                 if (handlerId == HandlerOptions.InvalidUriHandlerId) {
-                    throw new ArgumentException("Can not find existing handler: " + appProcessedMethodUriSpace);
+                    throw new ArgumentException("Can not find existing handler: " + appMethodSpaceUri);
                 }
 
                 // NOTE: +1 is for remaining end slash.
@@ -551,15 +584,14 @@ namespace Starcounter {
                 HandlerInfoForUriMapping handler = AddHandlerToClass(
                     classInfo,
                     handlerId,
-                    appProcessedUri,
-                    appProcessedMethodUriSpace,
+                    appUriToMap,
+                    appMethodSpaceUri,
                     handlerInfo.AppName,
                     converterToClass,
                     converterFromClass);
 
                 // Registering the handler as a map to corresponding application URI.
-                String hs = appProcessedUri.Replace(EndsWithStringParam, "{?}");
-                Handle.GET(hs, (Request req, String appObjectId) => {
+                Handle.GET(appUriToMap, (Request req, String appObjectId) => {
 
                     String mappedClassObjectId = appObjectId;
 
@@ -727,8 +759,8 @@ namespace Starcounter {
         static HandlerInfoForUriMapping AddHandlerToClass(
             MappingClassInfo classInfo,
             UInt16 handlerId,
-            String handlerProcessedUri,
-            String appProcessedMethodUriSpace,
+            String appRelativeUri,
+            String appMethodSpaceUri,
             String appName,
             Func<String, String> converterToClass,
             Func<String, String> converterFromClass) {
@@ -737,8 +769,8 @@ namespace Starcounter {
 
             x.ClassInfo = classInfo;
             x.HandlerId = handlerId;
-            x.HandlerProcessedUri = handlerProcessedUri;
-            x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
+            x.AppRelativeUri = appRelativeUri;
+            x.ParamOffset = (UInt16)appMethodSpaceUri.IndexOf('{');
             x.AppName = appName;
             x.ConverterToClass = converterToClass;
             x.ConverterFromClass = converterFromClass;
@@ -752,8 +784,8 @@ namespace Starcounter {
             Db.Transact(() => {
                 x.TheType = classInfo;
                 x.HandlerId = handlerId;
-                x.HandlerProcessedUri = handlerProcessedUri;
-                x.ParamOffset = (UInt16)appProcessedMethodUriSpace.IndexOf('@');
+                x.AppMethodSpaceUri = appMethodSpaceUri;
+                x.ParamOffset = (UInt16)appMethodSpaceUri.IndexOf('@');
                 x.AppName = appName;
                 x.ConverterToClass = converterToClass;
                 x.ConverterFromClass = converterFromClass;
@@ -802,7 +834,7 @@ namespace Starcounter {
                 ho.ParametersInfo = paramInfo;
 
                 // Setting calling string.
-                String uri = x.HandlerProcessedUri.Replace(EndsWithStringParam, stringParamCopy);
+                String uri = x.AppRelativeUri.Replace(Handle.UriParameterIndicator, stringParamCopy);
 
                 // Calling handler.
                 Response resp = Self.GET(uri, null, ho);

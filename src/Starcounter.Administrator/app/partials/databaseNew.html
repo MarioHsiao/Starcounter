@@ -202,8 +202,8 @@
                     <button ng-disabled="myForm.$pristine  == true || Status != 0" class="btn btn-default" ng-click="btnResetSettings()">Reset</button>
 
                     <span ng-show="Status != 0">
-                        <span title="Creating new database..." class="spinner tiny"></span>
-                        Creating new database...
+                        <span title="{{StatusText}}" class="spinner tiny"></span>
+                        {{StatusText}}
                     </span>
                     <div style="margin-top: 20px" ng-show="HasErrorMessage">
                         <span style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{ErrorMessage.Message}}"></span>

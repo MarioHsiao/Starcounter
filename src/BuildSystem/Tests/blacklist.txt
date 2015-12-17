@@ -67,7 +67,6 @@ ipc_test.bat
 node_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
-Level1\src\Samples\CycleTime\obj\Release\CycleTime_test.exe
 prepare_sqlregression_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 

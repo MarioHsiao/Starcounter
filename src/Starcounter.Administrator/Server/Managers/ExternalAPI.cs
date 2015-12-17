@@ -115,6 +115,85 @@ namespace Administrator.Server.Managers {
             });
 
 
+            // Install application task
+            Handle.POST("/api/tasks/upgradeapplication", (Request request) => {
+
+                lock (lockObject_) {
+
+                    try {
+
+                        UpgradeApplicationTaskJson task = new UpgradeApplicationTaskJson();
+                        task.PopulateFromJson(request.Body);
+
+                        Database database = ServerManager.ServerInstance.GetDatabase(task.DatabaseName);
+                        if (database == null) {
+
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Database not found";
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = string.Empty;
+
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
+                        DatabaseApplication databaseApplication = database.GetApplication(task.ID);
+                        if (databaseApplication == null) {
+
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Application not found";
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = string.Empty;
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
+                        return UpgradeApplication_Task(database, databaseApplication, task.SourceUrl);
+                    }
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
+                }
+            });
+
+
+            // Install application task
+            Handle.POST("/api/tasks/uninstallapplication", (Request request) => {
+
+                lock (lockObject_) {
+
+                    try {
+
+                        UninstallApplicationTaskJson task = new UninstallApplicationTaskJson();
+                        task.PopulateFromJson(request.Body);
+
+                        Database database = ServerManager.ServerInstance.GetDatabase(task.DatabaseName);
+                        if (database == null) {
+
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Database not found";
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = string.Empty;
+
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
+                        DatabaseApplication databaseApplication = database.GetApplication(task.ID);
+                        if (databaseApplication == null) {
+
+                            Starcounter.Administrator.Server.ErrorResponse errorResponse = new Starcounter.Administrator.Server.ErrorResponse();
+                            errorResponse.Text = "Application not found";
+                            errorResponse.StackTrace = string.Empty;
+                            errorResponse.Helplink = string.Empty;
+                            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.NotFound, BodyBytes = errorResponse.ToJsonUtf8() };
+                        }
+
+                        return UninstallApplication_Task(database, databaseApplication);
+                    }
+                    catch (Exception e) {
+                        return RestUtils.CreateErrorResponse(e);
+                    }
+                }
+            });
+
             // Start application task
             Handle.POST("/api/tasks/startapplication", (Request request) => {
 
@@ -298,7 +377,7 @@ namespace Administrator.Server.Managers {
                         // Success
                         deployedApplication.InstallApplication((installedApplication) => {
 
-                            installedApplication.SetCanBeUninstalledFlag(false, (databaseApplication) => {
+                            installedApplication.SetCanBeUninstalledFlag(task.CanBeUninstalled, (databaseApplication) => {
 
                                 // Success
                                 // If database is started start application
@@ -349,6 +428,100 @@ namespace Administrator.Server.Managers {
 
             }, (title, message, helpLink) => {
                 // Error
+                taskItem.Status = -1; // Error;
+                taskItem.Message = message;
+            });
+
+            TaskJson taskItemJson = new TaskJson();
+            taskItemJson.Data = taskItem;
+            ExternalAPI.Tasks.Add(taskItem);
+
+            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+        }
+
+        /// <summary>
+        /// Upgrade Application
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="databaseApplication"></param>
+        /// <returns></returns>
+        static Response UpgradeApplication_Task(Database database, DatabaseApplication currentDatabaseApplication, string sourceUrl) {
+
+            // Create TaskItem
+            Task taskItem = new Task();
+
+            database.InvalidateAppStoreStores(() => {
+                // Success
+                AppStoreApplication appStoreApplication = null;
+
+                // Get the application
+                foreach (AppStoreStore store in database.AppStoreStores) {
+
+                    foreach (AppStoreApplication item in store.Applications) {
+
+                        if (item.SourceUrl == sourceUrl) {
+                            appStoreApplication = item;
+                            break;
+                        }
+                    }
+
+                    if (appStoreApplication != null) {
+                        break;
+                    }
+                }
+
+                if (appStoreApplication == null) {
+                    taskItem.Status = -2; // Error;
+                    taskItem.Message = "AppStore Application not found";
+                }
+                else {
+
+                    appStoreApplication.UpgradeApplication(currentDatabaseApplication, (databaseApplication) => {
+
+                        taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                        taskItem.ResourceID = databaseApplication.ID;
+                        taskItem.Status = 0; // Done;
+                    }, (startedApplication, wasCancelled, title, message, helpLink) => {
+
+                        taskItem.Status = -1; // Error;
+                        taskItem.Message = message;
+                    });
+                }
+
+            }, (title, message, helpLink) => {
+                // Error
+                taskItem.Status = -1; // Error;
+                taskItem.Message = message;
+            });
+
+
+            TaskJson taskItemJson = new TaskJson();
+            taskItemJson.Data = taskItem;
+            ExternalAPI.Tasks.Add(taskItem);
+
+            return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.Created, Body = taskItemJson.ToJson() };
+        }
+
+
+        /// <summary>
+        /// Uninstall Application
+        /// </summary>
+        /// <param name="database"></param>
+        /// <param name="databaseApplication"></param>
+        /// <returns></returns>
+        static Response UninstallApplication_Task(Database database, DatabaseApplication databaseApplication) {
+
+            // Create TaskItem
+            Task taskItem = new Task();
+
+            // TODO: Force delete
+            databaseApplication.DeleteApplication(true, (startedApplication) => {
+
+                //                taskItem.ResourceUri = string.Format("/api/admin/databases/{0}/applications/{1}", databaseApplication.DatabaseName, databaseApplication.ID); // TODO: Fix hardcodes IP and Port
+                //                taskItem.ResourceID = databaseApplication.ID;
+                taskItem.Status = 0; // Done;
+            }, (startedApplication, wasCancelled, title, message, helpLink) => {
+
                 taskItem.Status = -1; // Error;
                 taskItem.Message = message;
             });
@@ -498,7 +671,7 @@ namespace Administrator.Server.Managers {
                 taskItem.Status = -1; // Error;
                 taskItem.Message = message;
             });
-          
+
 
             TaskJson taskItemJson = new TaskJson();
             taskItemJson.Data = taskItem;

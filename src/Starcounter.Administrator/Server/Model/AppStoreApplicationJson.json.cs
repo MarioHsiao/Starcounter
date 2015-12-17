@@ -101,7 +101,12 @@ namespace Administrator.Server.Model {
         /// <param name="action"></param>
         void Handle(Input.Upgrade action) {
 
-            this.Data.UpgradeApplication((application) => {
+
+
+            // Get Right DatabaseApplication to upgrade
+            DatabaseApplication currentDatabaseApplication = this.Data.Database.GetLatestApplication(this.Data.Namespace, this.Data.Channel);
+
+            this.Data.UpgradeApplication(currentDatabaseApplication, (application) => {
 
                 // Success
             }, (application, wasCanceled, title, message, helpLink) => {

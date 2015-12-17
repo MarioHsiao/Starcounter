@@ -576,7 +576,10 @@ namespace Administrator.Server.Model {
 
             string[] arguments = new string[0];
             // TODO: Use arguments from application (String need to be split to array
-            AppInfo appinfo = new AppInfo(app.AppName, app.Executable, app.Executable, app.ResourceFolder, arguments, "");
+            AppInfo appinfo = new AppInfo(app.AppName, app.Executable, app.Executable, Path.GetDirectoryName(app.Executable), arguments, "");
+            if (!string.IsNullOrEmpty(app.ResourceFolder)) {
+                appinfo.ResourceDirectories.Add(app.ResourceFolder);
+            }
 
             // Create Command
             StartExecutableCommand command;

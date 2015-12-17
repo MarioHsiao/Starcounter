@@ -51,7 +51,7 @@ uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
         {
             // Unregister globally.
             RegisteredUris* port_uris = g_gateway.FindServerPort(port_)->get_registered_uris();
-            port_uris->RemoveEntry(db_index, processed_uri_info_);
+            port_uris->RemoveEntry(db_index, method_space_uri_);
 
             // Collecting empty ports.
             g_gateway.CleanUpEmptyPorts();
