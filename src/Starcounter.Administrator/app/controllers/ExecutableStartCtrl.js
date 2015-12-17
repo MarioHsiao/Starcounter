@@ -92,9 +92,7 @@ adminModule.controller('ExecutableStartCtrl', ['$scope', '$log', '$location', '$
             "ApplicationFilePath": "",
             "Name": "",
             "Description": "",
-            "Arguments": [{
-                "dummy": ""
-            }],
+            "Arguments": [],
             "DefaultUserPort": 0,
             "ResourceDirectories": [],
             "WorkingDirectory": null,

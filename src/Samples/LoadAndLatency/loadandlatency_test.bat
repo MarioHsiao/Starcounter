@@ -6,7 +6,7 @@ SET DB_DIR=.db
 SET DB_OUT_DIR=.db.output
 SET DB_NAME=LOADANDLATENCY
 SET TEST_NAME=LoadAndLatency
-SET TEST_ARGS=--UserArguments="SpecificTestType=0 %*"
+SET TEST_ARGS=--UserArguments="SpecificTestType=0 MinNightlyWorkers=9 %*"
 
 :: Killing all SC processes.
 staradmin kill all

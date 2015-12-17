@@ -98,8 +98,7 @@ namespace Starcounter.Internal
         public unsafe extern static UInt32 sc_bmx_register_uri_handler(
             UInt16 port,
             String app_name,
-            String originalUriInfo,
-            String processedUriInfo,
+            String methodSpaceUri,
             Byte* param_types,
             Byte num_params,
             IntPtr managed_callback,
@@ -131,7 +130,7 @@ namespace Starcounter.Internal
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static UInt32 sc_bmx_unregister_uri(
             UInt16 port,
-            String originalUriInfo
+            String methodSpaceUri
         );
 
         /// <summary>

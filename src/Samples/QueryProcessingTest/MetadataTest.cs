@@ -100,7 +100,7 @@ namespace QueryProcessingTest {
                 //Trace.Assert(v.MaterializedTable.Name == v.FullName);
                 count++;
             }
-            Trace.Assert(count == 46);
+            Trace.Assert(count == 49);
             count = 0;
             foreach (RawView v in Db.SQL<RawView>("select rv from rawView rv where updatable = ?", 
                 false)) {
@@ -256,7 +256,7 @@ namespace QueryProcessingTest {
                 Trace.Assert(rw.UniqueIdentifierReversed.ReverseOrderDotWords() == rw.UniqueIdentifier);
                 nrColumns++;
             }
-            Trace.Assert(nrColumns == 201);
+            Trace.Assert(nrColumns == 212);
             Starcounter.Internal.Metadata.MaterializedIndex i = 
                 Db.SQL<Starcounter.Internal.Metadata.MaterializedIndex>("select i from materializedindex i where name = ?",
                 "MemberPrimaryKey").First;
@@ -464,8 +464,8 @@ namespace QueryProcessingTest {
                         nrIndColumns += numColIndx;
                     }
             }
-            Trace.Assert(nrIndexes == 36);
-            Trace.Assert(nrIndColumns == 39);
+            Trace.Assert(nrIndexes == 39);
+            Trace.Assert(nrIndColumns == 42);
 #endif
         }
 
@@ -476,8 +476,8 @@ namespace QueryProcessingTest {
                 nrIndexes++;
                 nrIndColumns += Db.SQL<Int64>("select count(c) from indexedcolumn c where \"index\" = ?", i).First;
             }
-            Trace.Assert(nrIndexes == 36);
-            Trace.Assert(nrIndColumns == 39);
+            Trace.Assert(nrIndexes == 39);
+            Trace.Assert(nrIndColumns == 42);
             Trace.Assert(nrIndColumns == Db.SlowSQL<Int64>(
                 "select count(*) from indexedcolumn").First);
         }

@@ -230,4 +230,103 @@ adminModule.service('DatabaseService', ['$http', '$log', 'UtilsFactory', 'JobFac
             }
         });
     }
+
+    /**
+     * Start engine/database
+     * @param {string} name Database name
+     * @param {function} successCallback Success Callback function
+     * @param {function} errorCallback Error Callback function
+     * @return {object} promise
+     */
+    this.startEngine = function (name, successCallback, errorCallback) {
+
+        var errorHeader = "Failed to start database";
+
+        //        var job = { message: "Starting database " + name };
+        //        JobFactory.AddJob(job);
+
+        var engineData = { Name: name, NoDb: false, LogSteps: false };    // TODO: get NoDb and LogSteps from arguments
+        var uri = "/api/engines";
+
+        // Example JSON response (200 Ok)
+        //-----------------------
+        // {
+        //     "CodeHostCommandLineAdditions" : "",
+        //     "LogSteps" : false,
+        //     "Name" : "default",
+        //     "NoDb" : false,
+        //     "Uri" : "http://headsutv19:8181/api/engines/tracker"
+        // }
+        //
+        // Example JSON response (201 Created)
+        //-----------------------
+        // {
+        // "Uri":"http://headsutv19:8181/api/engines/tracker",
+        // "NoDb":false,
+        // "LogSteps":false,
+        // "Database":{
+        //      "Name":"tracker",
+        //      "Uri":"http://headsutv19:8181/api/databases/tracker"
+        // },
+        // "DatabaseProcess":{
+        //      "Uri":"http://headsutv19:8181/api/engines/tracker/db",
+        //      "Running":true
+        // },
+        // "CodeHostProcess":{
+        //      "Uri":"http://headsutv19:8181/api/engines/tracker/host",
+        //      "PID":11136
+        // },
+        // "Executables":{
+        //      "Uri":"http://headsutv19:8181/api/engines/tracker/executables",
+        //      "Executing":[]
+        // }
+        $http.post(uri, engineData).then(function (response) {
+            // Success
+            // 200 OK
+            // 201 Created
+
+            //            JobFactory.RemoveJob(job);
+
+            $log.info("Engine " + name + " started successfully");
+
+            if (typeof (successCallback) == "function") {
+                successCallback();
+            }
+
+
+        }, function (response) {
+            // Error
+            //            JobFactory.RemoveJob(job);
+
+            var errorHeader = "Failed to start application";
+            $log.error(errorHeader, response);
+
+            if (typeof (errorCallback) == "function") {
+
+                var messageObject;
+                if (response instanceof SyntaxError) {
+                    messageObject = UtilsFactory.createErrorMessage(errorHeader, response.message, null, response.stack);
+                }
+                else if (response.status == 404) {
+                    // 404 A database with the specified name was not found.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 422) {
+                    // 422 The application can not be found or The weaver failed to load a binary user code file.
+                    messageObject = UtilsFactory.createMessage(errorHeader, response.data.Text, response.data.Helplink);
+                }
+                else if (response.status == 500) {
+                    // 500 Server Error
+                    errorHeader = "Internal Server Error";
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                else {
+                    // Unhandle Error
+                    messageObject = UtilsFactory.createServerErrorMessage(errorHeader, response.data);
+                }
+                errorCallback(messageObject);
+            }
+        });
+    }
+
 }]);

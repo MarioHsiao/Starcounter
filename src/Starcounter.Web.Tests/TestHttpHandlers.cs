@@ -97,10 +97,10 @@ namespace Starcounter.Internal.Test {
                 return "Handle.GET /uri-with-req/@i";
             });
 
-            Handle.GET("/uri-with-req/{?}", (string s, Request r) => {
+            Handle.GET("/uri-with-req2/{?}", (string s, Request r) => {
                 Assert.AreEqual("KalleKula", s);
                 Assert.IsNotNull(r);
-                return "Handle.GET /uri-with-req/@s";
+                return "Handle.GET /uri-with-req2/@w";
             });
 
             Handle.GET("/admin/apapapa/{?}", (int i, Request r) => {

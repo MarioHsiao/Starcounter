@@ -245,8 +245,8 @@ namespace Starcounter.Templates {
                 throw new Exception("This template is already used by an App. Cannot add more properties.");
             if (newTemplate.Parent != null)
                 throw new Exception("Item already has a parent");
-
-            existing = nameLookup[newTemplate.TemplateName];
+            
+            existing = propertyNameLookup[newTemplate.PropertyName];
             if (existing == null)
                 throw new Exception("No item to replace found.");
 

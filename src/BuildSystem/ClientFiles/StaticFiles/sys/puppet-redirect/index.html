@@ -6,10 +6,10 @@
     <link rel="stylesheet" href="http://juicy.github.io/github-markdown-css/github-markdown.css">
 
     <!-- Importing Web Component's Polyfill (optional, allows to run it in old browsers) -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/polymer/0.3.1/platform.js"></script>
+    <script src="https://cdn.jsdelivr.net/webcomponentsjs/0.7.19/webcomponents.min.js"></script>
 
     <!-- Importing Custom Elements -->
-    <link rel="import" href="src/puppet-redirect.html">
+    <link rel="import" href="puppet-redirect.html">
 
     <style>
         html {
@@ -43,6 +43,17 @@
 <script>
     document.getElementById("example1").addEventListener("click", function () {
         document.getElementById("redirect1").setAttribute("url", "/");
+    });
+</script>
+
+<h3>Open new tab</h3>
+<button id="example1_blank">&lt;link is="juicy-redirect" url="/" target="_blank"&gt;</button>
+
+<link is="juicy-redirect" id="redirect1_blank" target="_blank">
+
+<script>
+    document.getElementById("example1_blank").addEventListener("click", function () {
+        document.getElementById("redirect1_blank").setAttribute("url", "/");
     });
 </script>
 

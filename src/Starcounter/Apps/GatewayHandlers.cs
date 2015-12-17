@@ -444,8 +444,7 @@ namespace Starcounter
         internal  static void RegisterUriHandlerNative(
             UInt16 port,
             String appName,
-            String originalUriInfo,
-            String processedUriInfo,
+            String methodSpaceUri,
             Byte[] nativeParamTypes,
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo) {
@@ -464,8 +463,7 @@ namespace Starcounter
                     UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
                         port,
                         appName,
-                        originalUriInfo,
-                        processedUriInfo,
+                        methodSpaceUri,
                         pp,
                         numParams,
                         pinned_delegate,
@@ -473,7 +471,7 @@ namespace Starcounter
                         out handlerInfo);
 
                     if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                        throw ErrorCode.ToException(errorCode, "URI string: " + methodSpaceUri);
                 }
             }
 
@@ -484,8 +482,7 @@ namespace Starcounter
                 appName + " " +
                 handlerInfo + " " +
                 port + " " +
-                originalUriInfo.Replace(' ', '\\') + " " +
-                processedUriInfo.Replace(' ', '\\') + " " +
+                methodSpaceUri.Replace(' ', '\\') + " " +
                 nativeParamTypes.Length;
 
             String t = "";
@@ -515,13 +512,13 @@ namespace Starcounter
             }
         }
 
-        void UnregisterUriHandler(UInt16 port, String originalUriInfo) {
+        void UnregisterUriHandler(UInt16 port, String methodSpaceUri) {
 
             // Ensuring correct multi-threading handlers creation.
-            UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+            UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, methodSpaceUri);
 
             if (errorCode != 0)
-                throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                throw ErrorCode.ToException(errorCode, "URI string: " + methodSpaceUri);
         }
 
         /// <summary>

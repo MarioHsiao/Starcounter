@@ -1,12 +1,12 @@
 ﻿{
     "Value$": "",
-	"$Value$": { "Bind": "SomeName" },
+	"$Value": { "Bind": "SomeName" },
 	"Items$": [
 		{ 
 			"ItemValue$": "",
-			"$ItemValue$": { "Bind": "SomeOtherName" }
+			"$ItemValue": { "Bind": "SomeOtherName" }
 		}
 	],
-	"$Items$": { "Bind": "AllItems" }
+	"$Items": { "Bind": "AllItems" }
 
 }

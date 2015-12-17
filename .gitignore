@@ -17,13 +17,14 @@ Release
 *.ipch
 *.aps
 *.csproj.user
+*.opendb
 src/Starcounter/Metadata/GeneratedMetadataClasses.cs
 src/Starcounter/Error.cs
 src/Starcounter.Internal/Error.cs
 src/_NCrunch_Level1
 src/packages
 .nuget
-
+.vs
 # Generated error code files
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/scerrcc.exe
 src/Starcounter.ErrorCodes/ErrorCodeCompiler/scerrcc.pdb

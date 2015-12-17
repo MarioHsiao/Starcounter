@@ -9,7 +9,7 @@
   <MaxConnectionsPerWorker>10000</MaxConnectionsPerWorker>
   
   <!-- Maximum receive content length size in bytes -->
-  <MaximumReceiveContentLength>4194304</MaximumReceiveContentLength>
+  <MaximumReceiveContentLength>1048576</MaximumReceiveContentLength>
 
   <!-- Inactive connections life time in seconds -->
   <InactiveConnectionTimeout>1200</InactiveConnectionTimeout>

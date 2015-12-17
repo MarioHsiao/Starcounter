@@ -65,6 +65,30 @@ namespace Starcounter.Internal.Test
     [TestFixture]
     public class CustomResponseTests
     {
+        public class SomeClass {
+            public String SomeString;
+        }
+
+        [Test]
+        public void TestBodyObject() {
+
+            Handle.POST("/myhandler", (Request request) => {
+                Assert.AreEqual("xaxa", ((SomeClass)request.BodyObject).SomeString);
+                return 200;
+            });
+
+            Request req = new Request() {
+                Method = "POST",
+                Uri = "/myhandler",
+                BodyObject = new SomeClass() {
+                    SomeString = "xaxa"
+                }
+            };
+
+            Response r = Self.CustomRESTRequest(req);
+            Assert.AreEqual(r.StatusCode, 200);
+        }
+
         /// <summary>
         /// Tests some helper functions.
         /// </summary>
@@ -592,7 +616,7 @@ namespace Starcounter.Internal.Test
             TestInfo testInfos3  = new TestInfo("GET /uri-with-req/@i", "/uri-with-req/123", "/uri-with-req/{?}");
             TestInfo testInfos4  = new TestInfo("GET /test", "/test", "/test");
             TestInfo testInfos5  = new TestInfo("GET /uri-with-req", "/uri-with-req", "/uri-with-req");
-            TestInfo testInfos6  = new TestInfo("GET /uri-with-req/@w", "/uri-with-req/KalleKula", "/uri-with-req/{?}");
+            TestInfo testInfos6  = new TestInfo("GET /uri-with-req2/@w", "/uri-with-req2/KalleKula", "/uri-with-req2/{?}");
             TestInfo testInfos7  = new TestInfo("GET /admin/apapapa/@i", "/admin/apapapa/19", "/admin/apapapa/{?}");
             TestInfo testInfos8  = new TestInfo("GET /admin/@w", "/admin/KalleKula", "/admin/{?}");
             TestInfo testInfos9  = new TestInfo("GET /admin/@s/@i", "/admin/KalleKula/123", "/admin/{?}/{?}");
@@ -621,17 +645,7 @@ namespace Starcounter.Internal.Test
             TestInfo testInfos32 = new TestInfo("GET /static/@s/static", "/static/KvaKva/static", "/static/{?}/static");
             TestInfo testInfos33 = new TestInfo("GET /@i/@b", "/657567/true", "/{?}/{?}");
             TestInfo testInfos34 = new TestInfo("GET /@i/@b/@d", "/1657567/false/-1.3457", "/{?}/{?}/{?}");
-            TestInfo testInfos35 = new TestInfo("GET /@i", "/-678678", "/{?}");
-            TestInfo testInfos36 = new TestInfo("GET /@i/@d", "/-75845/-1.3457", "/{?}/{?}");
-            TestInfo testInfos37 = new TestInfo("GET /@i/@s/@w", "/-725845/Hello!/hello!!", "/{?}/{?}/{?}");
-            TestInfo testInfos38 = new TestInfo("GET /@s/@s/@w", "/a-725845/Hello!/hello%20there!", "/{?}/{?}/{?}");
-            TestInfo testInfos39 = new TestInfo("GET /@s/@i/@w", "/a-1725845/-5634673/hello%20there!", "/{?}/{?}/{?}");
-            TestInfo testInfos40 = new TestInfo("GET /@i/@w", "/-4234673/somestring", "/{?}/{?}");
-            TestInfo testInfos41 = new TestInfo("GET /@s/@w", "/a-45554673/somestring!", "/{?}/{?}");
-            TestInfo testInfos42 = new TestInfo("GET /@i/@s/@i", "/-455673/somestring!/-1234567", "/{?}/{?}/{?}");
             TestInfo testInfos43 = new TestInfo("GET /ab", "/ab", "/ab");
-            TestInfo testInfos44 = new TestInfo("GET /@s/@s/@i", "/Hej!/Hop!/-7654321", "/{?}/{?}/{?}");
-            TestInfo testInfos45 = new TestInfo("GET /@s/@i", "/Hej!/-7654321", "/{?}/{?}");
             TestInfo testInfos46 = new TestInfo("GET /s@w", "/sHej!", "/s{?}");
             TestInfo testInfos47 = new TestInfo("GET /@s/static/@w", "/Hej!/static/Hop!", "/{?}/static/{?}");
 
@@ -1045,120 +1059,6 @@ namespace Starcounter.Internal.Test
 
             ///////////////////////////////////////////
 
-            Handle.GET(testInfos35.TemplateUri, (Int32 p1) =>
-            {
-                Assert.AreEqual(-678678, p1);
-                return testInfos35.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos35.TestUri, null);
-            Assert.IsTrue(testInfos35.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos36.TemplateUri, (Int32 p1, Decimal p2) =>
-            {
-                Assert.AreEqual(-75845, p1);
-                Assert.AreEqual(-1.3457m, p2);
-
-                return testInfos36.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos36.TestUri, null);
-            Assert.IsTrue(testInfos36.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos37.TemplateUri, (Int32 p1, string p2, string p3) =>
-            {
-                Assert.AreEqual(-725845, p1);
-                Assert.AreEqual("Hello!", p2);
-                Assert.AreEqual("hello!!", p3);
-
-                return testInfos37.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos37.TestUri, null);
-            Assert.IsTrue(testInfos37.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
-            // TODO Jocke: Uncomment for calling the wrong above handler.
-
-            /*
-            Handle.GET(testInfos38.TemplateUri, (string p1, string p2, string p3) =>
-            {
-                Assert.AreEqual("a-725845", p1);
-                Assert.AreEqual("Hello!", p2);
-                Assert.AreEqual("hello%20there!", p3);
-
-                return testInfos38.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos38.TestUri, null);
-            Assert.IsTrue(testInfos38.ReturnStr == resp.Body);
-           
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos39.TemplateUri, (string p1, Int32 p2, string p3) =>
-            {
-                Assert.AreEqual("a-1725845", p1);
-                Assert.AreEqual(-5634673, p2);
-                Assert.AreEqual("hello%20there!", p3);
-
-                return testInfos39.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos39.TestUri, null);
-            Assert.IsTrue(testInfos39.ReturnStr == resp.Body);
-            */
-
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos40.TemplateUri, (Int64 p1, string p2) =>
-            {
-                Assert.AreEqual(-4234673, p1);
-                Assert.AreEqual("somestring", p2);
-
-                return testInfos40.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos40.TestUri, null);
-            Assert.IsTrue(testInfos40.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
-            // TODO Jocke: Uncomment for test failure.
-
-            /*
-            Handle.GET(testInfos41.TemplateUri, (string p1, string p2) =>
-            {
-                Assert.AreEqual("a-45554673", p1);
-                Assert.AreEqual("somestring!", p2);
-
-                return testInfos41.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos41.TestUri, null);
-            Assert.IsTrue(testInfos41.ReturnStr == resp.Body);
-            */
-
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos42.TemplateUri, (Int32 p1, string p2, Int32 p3) =>
-            {
-                Assert.AreEqual(-455673, p1);
-                Assert.AreEqual("somestring!", p2);
-                Assert.AreEqual(-1234567, p3);
-
-                return testInfos42.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos42.TestUri, null);
-            Assert.IsTrue(testInfos42.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
             Handle.GET(testInfos43.TemplateUri, () =>
             {
                 return testInfos43.ReturnStr;
@@ -1166,33 +1066,6 @@ namespace Starcounter.Internal.Test
 
             resp = Self.GET(testInfos43.TestUri, null);
             Assert.IsTrue(testInfos43.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos44.TemplateUri, (string p1, string p2, Int32 p3) =>
-            {
-                Assert.AreEqual("Hej!", p1);
-                Assert.AreEqual("Hop!", p2);
-                Assert.AreEqual(-7654321, p3);
-
-                return testInfos44.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos44.TestUri, null);
-            Assert.IsTrue(testInfos44.ReturnStr == resp.Body);
-
-            ///////////////////////////////////////////
-
-            Handle.GET(testInfos45.TemplateUri, (String p1, Int32 p2) =>
-            {
-                Assert.AreEqual("Hej!", p1);
-                Assert.AreEqual(-7654321, p2);
-
-                return testInfos45.ReturnStr;
-            });
-
-            resp = Self.GET(testInfos45.TestUri, null);
-            Assert.IsTrue(testInfos45.ReturnStr == resp.Body);
 
             ///////////////////////////////////////////
 
@@ -1307,11 +1180,6 @@ namespace Starcounter.Internal.Test
                 return "CUSTOM method " + method + " with " + p1;
             });
 
-            Handle.CUSTOM("{?} /{?}", (String method, Int32 p1) =>
-            {
-                return "CUSTOM method " + method + " with " + p1;
-            });
-
             Handle.CUSTOM("{?} /{?}/{?}", (String method, String p1, String p2) =>
             {
                 return "CUSTOM method " + method + " with " + p1 + " and " + p2;
@@ -1394,7 +1262,7 @@ namespace Starcounter.Internal.Test
                 return null;
             });
 
-            Handle.GET("/{?}", (Int32 p1, PersonMessage j) =>
+            Handle.GET("/{?}/{?}/{?}", (Int32 p1, Int32 p2, Int32 p3, PersonMessage j) =>
             {
                 Assert.IsTrue(false);
 

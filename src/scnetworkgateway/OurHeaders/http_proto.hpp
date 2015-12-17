@@ -47,19 +47,11 @@ public:
     }
 
     // Getting registered URI.
-    char* get_original_uri_info()
+    char* get_method_space_uri()
     {
         GW_ASSERT(NULL != handler_);
 
-        return handler_->get_original_uri_info();
-    }
-
-    // Getting registered URI.
-    char* get_processed_uri_info()
-    {
-        GW_ASSERT(NULL != handler_);
-
-        return handler_->get_processed_uri_info();
+        return handler_->get_method_space_uri();
     }
 
     // Getting application name.
@@ -175,7 +167,7 @@ public:
         for (int32_t i = 0; i < reg_uris_.get_num_entries(); i++) {
 
             if (!reg_uris_[i].IsEmpty()) {
-                s.append(reg_uris_[i].get_processed_uri_info());
+                s.append(reg_uris_[i].get_method_space_uri());
             }
 
             s += "\n";
@@ -215,13 +207,11 @@ public:
             {
                 MixedCodeConstants::RegisteredUriManaged reg_uri;
 
-                reg_uri.original_uri_info_string = reg_uris_[i].get_original_uri_info();
-                reg_uri.processed_uri_info_string = reg_uris_[i].get_processed_uri_info();
+                reg_uri.method_space_uri = reg_uris_[i].get_method_space_uri();
 
                 reg_uris_[i].WriteUserParameters(reg_uri.param_types, &reg_uri.num_params);
 
-                // TODO: Resolve this hack with only positive handler ids in generated code.
-                reg_uri.handler_id = i + 1;
+                reg_uri.handler_id = i;
 
                 uris_vec.push_back(reg_uri);
             }
@@ -247,13 +237,12 @@ public:
     }
 
     // Runs the generated URI matcher and gets handler information as a result.
-    uri_index_type RunCodegenUriMatcher(char* uri_info, uint32_t uri_info_len, uint8_t* params_storage)
+    uri_index_type RunCodegenUriMatcher(char* method_space_uri_space, uint32_t method_space_uri_space_len, uint8_t* params_storage)
     {
         // Pointing to parameters storage.
         MixedCodeConstants::UserDelegateParamInfo** out_params = (MixedCodeConstants::UserDelegateParamInfo**)&params_storage;
 
-        // TODO: Resolve this hack with only positive handler ids in generated code.
-        return uri_matcher_entry_->get_uri_matcher_func()(uri_info, uri_info_len, out_params) - 1;
+        return uri_matcher_entry_->get_uri_matcher_func()(method_space_uri_space, method_space_uri_space_len, out_params);
     }
 
     // Printing the registered URIs.
@@ -270,9 +259,9 @@ public:
 
             stats_stream << "{";
 
-            std::string method_and_uri = std::string(reg_uris_[i].get_processed_uri_info());
-            std::string method = method_and_uri.substr(0, method_and_uri.find(' '));
-            std::string uri = method_and_uri.substr(method_and_uri.find(' ') + 1);
+            std::string method_space_uri = std::string(reg_uris_[i].get_method_space_uri());
+            std::string method = method_space_uri.substr(0, method_space_uri.find(' '));
+            std::string uri = method_space_uri.substr(method_space_uri.find(' ') + 1);
 
             stats_stream << "\"method\":\"" << method << "\",";
             stats_stream << "\"uri\":\"" << uri << "\",";
@@ -379,9 +368,9 @@ public:
     }
 
     // Removing certain entry.
-    bool RemoveEntry(char* processed_uri_info)
+    bool RemoveEntry(char* method_space_uri)
     {
-        int32_t index = FindRegisteredUri(processed_uri_info);
+        int32_t index = FindRegisteredUri(method_space_uri);
 
         // Checking if entry found.
         if (index >= 0)
@@ -394,20 +383,21 @@ public:
     }
 
     // Removing certain entry.
-    bool RemoveEntry(db_index_type db_index, char* processed_uri_info)
+    bool RemoveEntry(db_index_type db_index, char* method_space_uri)
     {
         bool removed = false;
 
         // Trying to find entry first.
-        int32_t index = FindRegisteredUri(processed_uri_info);
+        int32_t index = FindRegisteredUri(method_space_uri);
 
         // If entry was found.
         if (index >= 0)
         {
             if (reg_uris_[index].RemoveEntry(db_index))
             {
-                if (reg_uris_[index].IsEmpty())
-                    RemoveUriByIndex(index);
+				if (reg_uris_[index].IsEmpty()) {
+					RemoveUriByIndex(index);
+				}
                 
                 removed = true;
 
@@ -419,16 +409,16 @@ public:
     }
 
     // Find certain URI entry.
-    uri_index_type FindRegisteredUri(const char* method_uri_space);
+    uri_index_type FindRegisteredUri(const char* method_space_uri);
 
     // Find certain URI entry.
-    uri_index_type FindRegisteredUri(const char* method_uri_space, const int32_t method_uri_space_len)
+    uri_index_type FindRegisteredUri(const char* method_space_uri, const int32_t method_space_uri_len)
     {
         // Going through all entries.
         for (uri_index_type i = 0; i < reg_uris_.get_num_entries(); i++) {
 
             // Doing exact comparison.
-            if (0 == strncmp(method_uri_space, reg_uris_[i].get_processed_uri_info(), method_uri_space_len)) {
+            if (0 == strncmp(method_space_uri, reg_uris_[i].get_method_space_uri(), method_space_uri_len)) {
                 return i;
             }
         }
