@@ -2,10 +2,10 @@
 
 > Custom Element to bind server-side view models with HTML nodes (HTML Templates/Web Components/AngularJs Apps) using [PuppetJS](https://github.com/PuppetJs/PuppetJs) [communication](https://github.com/PuppetJs/PuppetJs/wiki/Server-communication) ([JSON-Patch](http://tools.ietf.org/html/rfc6902))
 
-## Demo
+## Demos
 
-[Example with Polymer app](http://PuppetJs.github.io/puppet-client/examples/polymer/)
-[Example with two separate connection instances](http://PuppetJs.github.io/puppet-client/examples/two_instances/)
+- [Example with Polymer app](http://PuppetJs.github.io/puppet-client/examples/polymer/)
+- [Example with two separate connection instances](http://PuppetJs.github.io/puppet-client/examples/two_instances/)
 
 ## Install
 
@@ -54,6 +54,7 @@ Attribute          | Options       | Default                | Description
 `ot`               | *Boolean*     | `true`                 | `false` to disable OT
 `purity`           | *Boolean*     | `false`                | true to enable purist mode of OT
 `listen-to`		   | *String*      | `document.body`        | DOM node to listen to (see [PuppetDOM listenTo attribute](https://github.com/PuppetJs/PuppetJs#puppetdom))
+`ping-interval`    | *Number*      | `60`                   | Interval in seconds between ping patches, `0` - disable ping patches
 
 ## Events
 Name                 | Arguments                                                             | Descriptions

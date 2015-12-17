@@ -503,6 +503,14 @@ namespace Starcounter {
             _indexPerApplication.Clear();
             DisposeAllTransactions();
 
+            // Checking if there is an active WebSocket.
+            if (ActiveWebSocket != null) {
+
+                ActiveWebSocket.Disconnect("Session is expired.", WebSocket.WebSocketCloseCodes.WS_CLOSE_GOING_DOWN);
+                ActiveWebSocket.Session = null;
+                ActiveWebSocket = null;
+            }
+
             if (InternalSession != null) {
                 // NOTE: Preventing recursive destroy call.
                 InternalSession.apps_session_int_ = null;
@@ -514,13 +522,6 @@ namespace Starcounter {
             if (null != Destroyed) {
                 Destroyed(this, null);
                 Destroyed = null;
-            }
-
-            // Checking if there is an active WebSocket.
-            if (ActiveWebSocket != null) {
-
-                ActiveWebSocket.Session = null;
-                ActiveWebSocket = null;
             }
 
             Session._current = null;

@@ -14,11 +14,13 @@ namespace Starcounter.Internal.XSON.PartialClassGeneration.Tests {
             var tobj = TObject.CreateFromMarkup<Json, TObject>("json", json, "NodeJson");
 
             // This is needed since we don't have any generated code to add this.
-            ((TObjArr)tobj.Properties[3]).SetCustomGetElementType((arr) => { 
-                //return Helper.Create(json, "NodeJson"); 
-                return (TObject)arr.Parent;
-            });
-
+            TObjArr toa = (tobj.Properties.Count > 3) ? tobj.Properties[3] as TObjArr : null;
+            if (toa != null) {
+                toa.SetCustomGetElementType((arr) => {
+                    //return Helper.Create(json, "NodeJson"); 
+                    return (TObject)arr.Parent;
+                });
+            }
             tobj.ClassName = "NodeJson";
             return tobj;
         }

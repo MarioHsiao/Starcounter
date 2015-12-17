@@ -153,6 +153,66 @@ namespace Starcounter.Internal
             throw ErrorCode.ToException(dr);
         }
 
+        public static ObjectRef? Lookup(ulong oid)
+        {
+            ulong ref_local;
+            uint r;
+
+            unsafe
+            {
+                r = sccoredb.star_context_lookup(ThreadData.ContextHandle, oid, &ref_local);
+            }
+
+            if (r == 0)
+                return new ObjectRef { ObjectID = oid, ETI = ref_local };
+            else if (r == Error.SCERRRECORDNOTFOUND)
+                return null;
+            else
+                throw ErrorCode.ToException(r);
+        }
+
+        public static void InsertWithId(ushort tableId, ulong oid, out ulong address)
+        {
+            ulong contextHandle;
+            uint r;
+            ulong ref_local;
+
+            unsafe
+            {
+                contextHandle = ThreadData.ContextHandle;
+
+                //look for existing object
+                if (Lookup(oid) != null)
+                    throw ErrorCode.ToException(Error.SCERRCONSTRAINTVIOLATIONABORT);
+
+                string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
+                ulong transaction_handle;
+                sccoredb.star_context_get_current_transaction(contextHandle, out transaction_handle);
+                r = sccoredb.stari_transaction_insert_with_id(transaction_handle, tableId, oid, &ref_local);
+                if (r == 0)
+                {
+                    fixed (char* p = setpec)
+                    {
+                        r = sccoredb.star_context_put_setspec(
+                            contextHandle, oid, ref_local, p
+                            );
+                    }
+                    if (r == 0)
+                    {
+                        address = ref_local;
+                        return;
+                    }
+
+                    // If insert succeeds then setting set specifier is very unlikely to fail. But
+                    // in case it does the transaction will always be aborted. So there is no risk
+                    // that there will be records with no set specifier because of this.
+                }
+                throw ErrorCode.ToException(r);
+            }
+
+        }
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -1056,7 +1116,6 @@ namespace Starcounter.Internal
         /// <param name="value"></param>
         public static void WriteObject(ulong oid, ulong address, Int32 index, IObjectProxy value) {
             ObjectRef valueRef;
-            uint r;
             
             if (value != null) {
                 valueRef.ObjectID = value.Identity;
@@ -1065,7 +1124,14 @@ namespace Starcounter.Internal
                 valueRef.ObjectID = sccoredb.MDBIT_OBJECTID;
                 valueRef.ETI = sccoredb.INVALID_RECORD_REF;
             }
-            
+
+            WriteObjectRaw(oid, address, index, valueRef);
+        }
+
+        public static void WriteObjectRaw(ulong oid, ulong address, Int32 index, ObjectRef valueRef)
+        {
+            uint r;
+
             r = sccoredb.star_context_put_reference(
                      ThreadData.ContextHandle,
                      oid,
@@ -1074,12 +1140,12 @@ namespace Starcounter.Internal
                      valueRef.ObjectID,
                      valueRef.ETI
                  );
-            if (r == 0) {
-                return;
+            if (r != 0)
+            {
+                throw ErrorCode.ToException(r);
             }
-
-            throw ErrorCode.ToException(r);
         }
+
 
         /// <summary>
         /// 
@@ -1359,7 +1425,7 @@ namespace Starcounter.Internal
         /// <param name="oid"></param>
         /// <param name="address"></param>
         /// <param name="index"></param>
-        internal static void WriteNull(ulong oid, ulong address, Int32 index) {
+        public static void WriteNull(ulong oid, ulong address, Int32 index) {
             var r = sccoredb.star_context_put_default(ThreadData.ContextHandle, oid, address, index);
             if (r == 0) return;
 

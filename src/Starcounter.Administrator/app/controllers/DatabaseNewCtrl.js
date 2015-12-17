@@ -38,6 +38,7 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
     $scope.btnCreateDatabase = function (settings) {
 
         $scope.Status = 1;
+        $scope.StatusText = "Creating new database...";
         $scope.HasErrorMessage = false;
         $scope.SuccessMessage = null;
 
@@ -48,19 +49,40 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
         DatabaseService.createDatabase(settings, function (databaseName) {
 
             // NOTE: The incoming database does only contain one propety 'name'
+            $scope.StatusText = "Starting database..."
+            // Start database engine
+            DatabaseService.startEngine(databaseName, function(){
+                // Success
 
-            $scope.SuccessMessage = "Created.";
-            // Success
-            //NoticeFactory.ShowNotice({ type: 'success', msg: "The Database was successfully created" });
-            // Navigate to database list if user has not navigated to another page
-            if ($location.path() == "/databaseNew") {
-                $location.path("/databases/" + databaseName);
-            }
-            $scope.Status = 0;
+                $scope.SuccessMessage = "Created and started.";
+                // Success
+                // Navigate to database list if user has not navigated to another page
+                if ($location.path() == "/databaseNew") {
+                    $location.path("/databases/" + databaseName);
+                }
+                $scope.Status = 0;
+                $scope.StatusText = "";
+            }, function (messageObject) {
+
+                // Error
+                $scope.Status = 0;
+                $scope.StatusText = "";
+                $scope.SuccessMessage = "Created but failed to start.";
+
+                $scope.HasErrorMessage = true;
+                $scope.ErrorMessage.Message = messageObject.message;
+                $scope.ErrorMessage.HelpLink = messageObject.helpLink;
+
+                if (messageObject.isError) {
+                    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
+                }
+  
+            });
 
         }, function (messageObject, validationErrors) {
 
             $scope.Status = 0;
+            $scope.StatusText = "";
 
             // Error
 
@@ -111,17 +133,6 @@ adminModule.controller('DatabaseNewCtrl', ['$scope', '$log', '$location', 'HostM
                 if (messageObject.isError) {
                     UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
                 }
-
-                //$scope.HasErrorMessage = true;
-                //$scope.ErrorMessage.Message = messageObject.message;
-                //$scope.ErrorMessage.HelpLink = messageObject.helpLink;
-
-                //if (messageObject.isError) {
-                //    UserMessageFactory.showErrorMessage(messageObject.header, messageObject.message, messageObject.helpLink, messageObject.stackTrace);
-                //}
-                //else {
-                //    NoticeFactory.ShowNotice({ type: 'danger', msg: messageObject.message, helpLink: messageObject.helpLink });
-                //}
             }
 
             if (typeof (errorCallback) == "function") {

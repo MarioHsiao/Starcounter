@@ -18,7 +18,7 @@ Or [download as ZIP](https://github.com/PuppetJs/puppet-redirect/archive/gh-page
 
 ## Usage
 
-1. Import Web Components' polyfill:
+1. Import Web Components' polyfill, if needed:
 
     ```html
     <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
@@ -27,7 +27,7 @@ Or [download as ZIP](https://github.com/PuppetJs/puppet-redirect/archive/gh-page
 2. Import Custom Element:
 
     ```html
-    <link rel="import" href="bower_components/puppet-redirect/src/puppet-redirect.html">
+    <link rel="import" href="bower_components/puppet-redirect/puppet-redirect.html">
     ```
 
 3. Start using it!
@@ -43,6 +43,7 @@ Attribute      | Options            | Default  | Description
 `url`          | *String*           |          | Destination URL
 `url`          | `current`          |          | If a string `"current"` is provided as the URL, the component reloads the page
 `history`      |                    |          | If attribute `history` is present, the History API `pushState` is used instead of `window.location`
+`target`       | *String*           | `_self`  | Target where to open the link. Use `"_blank"` to open in new tab
 
 ## Events
 

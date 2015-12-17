@@ -30,10 +30,7 @@ class HandlersList
     bmx::BMX_SUBPORT_TYPE subport_;
 
     // URI string.
-    char* original_uri_info_;
-    char* processed_uri_info_;
-
-    int32_t processed_uri_info_len_;
+    char* method_space_uri_;
 
     char* app_name_;
 
@@ -55,16 +52,10 @@ public:
     void Erase() {
 
         // Deleting previous allocations if any.
-        if (original_uri_info_)
+        if (method_space_uri_)
         {
-            GwDeleteArray(original_uri_info_);
-            original_uri_info_ = NULL;
-        }
-
-        if (processed_uri_info_)
-        {
-            GwDeleteArray(processed_uri_info_);
-            processed_uri_info_ = NULL;
+            GwDeleteArray(method_space_uri_);
+            method_space_uri_ = NULL;
         }
 
         if (app_name_)
@@ -101,9 +92,8 @@ public:
     {
         Unregister();
 
-        original_uri_info_ = NULL;
-        processed_uri_info_ = NULL;
-        processed_uri_info_len_ = 0;
+        method_space_uri_ = NULL;
+
         app_name_ = NULL;
     }
 
@@ -154,20 +144,9 @@ public:
     }
 
     // Gets URI.
-    char* get_original_uri_info()
+    char* get_method_space_uri()
     {
-        return original_uri_info_;
-    }
-
-    // Gets URI.
-    char* get_processed_uri_info()
-    {
-        return processed_uri_info_;
-    }
-
-    int32_t get_processed_uri_info_len()
-    {
-        return processed_uri_info_len_;
+        return method_space_uri_;
     }
 
     // Gets handler type.
@@ -213,8 +192,7 @@ public:
         const uint16_t port,
         const char* app_name,
         const bmx::BMX_SUBPORT_TYPE subport,
-        const char* original_uri_info,
-        const char* processed_uri_info,
+        const char* method_space_uri,
         const uint8_t* param_types,
         const int32_t num_params,
         const db_index_type db_index,
@@ -260,31 +238,23 @@ public:
             case bmx::HANDLER_TYPE::URI_HANDLER:
             {
                 // Copying the URI string.
-                GW_ASSERT(original_uri_info != NULL);
+                GW_ASSERT(method_space_uri != NULL);
 
-                len = (uint32_t) strlen(original_uri_info);
-                original_uri_info_ = GwNewArray(char, len + 1);
-                strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
+                len = (uint32_t) strlen(method_space_uri);
+                method_space_uri_ = GwNewArray(char, len + 1);
+                strncpy_s(method_space_uri_, len + 1, method_space_uri, len);
                 
-                GW_ASSERT(processed_uri_info != NULL);
-
-                len = (uint32_t) strlen(processed_uri_info);
-                processed_uri_info_ = GwNewArray(char, len + 1);
-                strncpy_s(processed_uri_info_, len + 1, processed_uri_info, len);
-
-                processed_uri_info_len_ = len;
-
                 break;
             }
 
             case bmx::HANDLER_TYPE::WS_HANDLER:
             {
                 // Copying the WS channel string.
-                GW_ASSERT(original_uri_info != NULL);
+                GW_ASSERT(method_space_uri != NULL);
 
-                len = (uint32_t) strlen(original_uri_info);
-                original_uri_info_ = GwNewArray(char, len + 1);
-                strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
+                len = (uint32_t) strlen(method_space_uri);
+                method_space_uri_ = GwNewArray(char, len + 1);
+                strncpy_s(method_space_uri_, len + 1, method_space_uri, len);
 
                 break;
             }

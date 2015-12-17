@@ -180,11 +180,16 @@ namespace Starcounter {
             // Checking if we still have the data stream with original chunk available.
             if (dataStream_ == null || dataStream_.IsDestroyed()) {
 
-                UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
+                UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
 
-                if (0 != err_code) {
-                    // NOTE: If we can not obtain a chunk just returning because we can't do much.
-                    return;
+                if (0 != errCode) {
+
+                    if (Error.SCERRACQUIRELINKEDCHUNKS == errCode) {
+                        // NOTE: If we can not obtain a chunk just returning because we can't do much.
+                        return;
+                    } else {
+                        throw ErrorCode.ToException(errCode);
+                    }
                 }
 
                 dataStream = new NetworkDataStream(chunkIndex, socketStruct_.GatewayWorkerId);

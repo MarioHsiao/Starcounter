@@ -127,6 +127,8 @@ namespace Starcounter.Server {
             args.AppendFormat(" -ip \"{0}\"", imagePath);
 //            args.AppendFormat(" -dbs {0}", configuration.MaxImageSize); // TODO: Obsolete!
             args.AppendFormat(" -coll {0}", configuration.CollationFile);
+            args.AppendFormat(" -oid {0}", configuration.FirstObjectID);
+            args.AppendFormat(" -lastoid {0}", configuration.LastObjectID);
             args.AppendFormat(" {0}", name);
             processStart = new ProcessStartInfo(this.creationToolPath, args.ToString().Trim());
 

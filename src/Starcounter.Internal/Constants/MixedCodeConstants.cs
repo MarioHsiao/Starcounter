@@ -46,6 +46,11 @@ namespace Starcounter.Internal
         public const int BMX_HANDLER_SIZE = 2;
 
         /// <summary>
+        /// Invalid URI matcher handler index.
+        /// </summary>
+        public const int InvalidUriMatcherHandlerId = -1;
+
+        /// <summary>
         /// Session string length in characters.
         /// </summary>
         public const int SESSION_STRING_LEN_CHARS = 24;
@@ -220,8 +225,11 @@ namespace Starcounter.Internal
         // Maximum URI string length.
         public const int MAX_URI_STRING_LEN = 1024;
 
-        // Session parameter type number in user delegate.
+        // Session native parameter type number in user delegate.
         public const int REST_ARG_SESSION = 12;
+
+        // String native parameter type number in user delegate.
+        public const int REST_ARG_STRING = 0;
 
         // Bad server log handler.
         public const int INVALID_SERVER_LOG_HANDLE = 0;
@@ -307,8 +315,7 @@ namespace Starcounter.Internal
         [StructLayout(LayoutKind.Sequential)]
         public unsafe struct RegisteredUriManaged
         {
-            public unsafe IntPtr original_uri_info_string;
-            public unsafe IntPtr processed_uri_info_string;
+            public unsafe IntPtr method_space_uri;
             public Int32 handler_id;
             public fixed Byte param_types[MixedCodeConstants.MAX_URI_CALLBACK_PARAMS];
             public Byte num_params;
@@ -337,8 +344,7 @@ namespace Starcounter.Internal
 
     struct RegisteredUriManaged
     {
-        char* original_uri_info_string;
-        char* processed_uri_info_string;
+        char* method_space_uri;
         int32_t handler_id;
         uint8_t param_types[MixedCodeConstants::MAX_URI_CALLBACK_PARAMS];
         uint8_t num_params;

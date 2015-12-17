@@ -41,6 +41,8 @@ namespace Starcounter.Administrator.Server.Handlers {
                     command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
                     command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
                     command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
+                    command.SetupProperties.StorageConfiguration.FirstObjectID = settings.FirstObjectID;
+                    command.SetupProperties.StorageConfiguration.LastObjectID = settings.LastObjectID;
 
                     command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;
                     command.SetupProperties.Configuration.Runtime.TempDirectory = settings.TempDirectory;

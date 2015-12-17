@@ -61,5 +61,77 @@ namespace Starcounter.Advanced {
                 return schedulerCount_;
             }
         }
+
+        [DllImport("sccoredb.dll")]
+        private extern static void sccoredb_get_db_info(byte[] uuid, out IntPtr db_name, out IntPtr log_path, out ulong first_user_oid, out ulong last_user_oid);
+
+        private class DbInfo
+        {
+            public Guid db_uuid;
+            public string db_name;
+            public string log_dir;
+            public ulong first_user_oid;
+            public ulong last_user_oid;
+        }
+
+        private Lazy<DbInfo> _db_info = new Lazy<DbInfo>(() =>
+        {
+            byte[] uuid = new byte[16];
+            IntPtr db_name;
+            IntPtr log_dir;
+            ulong first_user_oid;
+            ulong last_user_oid;
+
+            sccoredb_get_db_info(uuid, out db_name, out log_dir, out first_user_oid, out last_user_oid);
+
+            return new DbInfo {
+                db_uuid = new Guid(uuid),
+                db_name = Marshal.PtrToStringAnsi(db_name),
+                log_dir = Marshal.PtrToStringAnsi(log_dir),
+                first_user_oid = first_user_oid,
+                last_user_oid = last_user_oid
+            };
+        });
+
+        public Guid DatabaseGuid
+        {
+            get
+            {
+                return _db_info.Value.db_uuid;
+            }
+        }
+
+        public string DatabaseName
+        {
+            get
+            {
+                return _db_info.Value.db_name;
+            }
+        }
+
+        public string DatabaseLogDir
+        {
+            get
+            {
+                return _db_info.Value.log_dir;
+            }
+        }
+
+        public ulong FirstUserOid
+        {
+            get
+            {
+                return _db_info.Value.first_user_oid;
+            }
+        }
+
+        public ulong LastUserOid
+        {
+            get
+            {
+                return _db_info.Value.last_user_oid;
+            }
+        }
+
     }
 }

@@ -376,6 +376,13 @@ namespace Starcounter.Internal
             );
 
         /// <summary>
+        /// </summary>
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe uint stari_transaction_insert_with_id(
+          ulong handle, ushort layout_handle, ulong new_record_id, ulong* pnew_record_ref
+          );
+
+        /// <summary>
         /// Checks if there are any pending changes on given transaction.
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
