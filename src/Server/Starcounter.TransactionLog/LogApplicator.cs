@@ -16,6 +16,8 @@ namespace Starcounter.TransactionLog
             foreach (var c in transaction_data.creates)
             {
                 var table_def = Db.LookupTable(c.table);
+                if (table_def==null)
+                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND);
 
                 ulong object_ref;
                 DbState.InsertWithId(table_def.TableId, c.key.object_id, out object_ref);
