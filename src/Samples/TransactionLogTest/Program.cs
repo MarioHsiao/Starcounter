@@ -28,6 +28,8 @@ namespace TransactionLogTest
         public float float_field;
         public double double_field;
         public TestClass ref_field;
+        public string null_str_field;
+        public long? null_long_field;
     };
 
     [Database]
@@ -78,7 +80,8 @@ namespace TransactionLogTest
                         float_field = 42.42f,
                         long_field = -42,
                         str_field = "Str",
-                        ulong_field = ulong.MaxValue
+                        ulong_field = ulong.MaxValue,
+                        null_str_field = null
                     };
                     t.ref_field = t;
                     t_record_key = t.GetObjectNo();
@@ -145,6 +148,55 @@ namespace TransactionLogTest
             check_create_entry_for_inherited_table<TestClassBase3>();
             check_create_entry_for_inherited_table<TestClassBase4>();
         }
+
+        static void check_update_entry()
+        {
+            // ARRANGE
+            TestClass t = null;
+            Db.Transact(() =>
+            {
+                t = new TestClass
+                {
+                    null_str_field = "str",
+                    null_long_field = 42
+                };
+            });
+
+            ILogManager log_manager = new LogManager();
+
+            using (ILogReader log_reader = log_manager.OpenLog(Starcounter.Db.Environment.DatabaseName, Starcounter.Db.Environment.DatabaseLogDir))
+            {
+                var cts = new CancellationTokenSource();
+
+                //rewind to the end of log
+                LogReadResult lr;
+                do
+                {
+                    lr = log_reader.ReadAsync(cts.Token, false).Result;
+                }
+                while (lr != null);
+
+                Db.Transact(() =>
+                {
+                    t.null_str_field = null;
+                    t.null_long_field = null;
+                });
+
+                // ACT
+                lr = log_reader.ReadAsync(cts.Token).Result;
+
+                //CHECK
+                var update_entry = lr.transaction_data.updates.Single();
+                Trace.Assert(update_entry.table == typeof(TestClass).FullName);
+                Trace.Assert(update_entry.key.object_id == t.GetObjectNo());
+
+                Trace.Assert(update_entry.columns.Where(c => c.name == "null_str_field").Single().value == null);
+                Trace.Assert(update_entry.columns.Where(c => c.name == "null_long_field").Single().value == null);
+
+            }
+
+        }
+
 
         static void check_positioning()
         {
@@ -436,6 +488,7 @@ namespace TransactionLogTest
         {
             check_create_entry();
             check_create_entry_for_inherited_tables();
+            check_update_entry();
             check_positioning();
             check_apply_create();
             check_apply_create_in_nonexistent_table();
