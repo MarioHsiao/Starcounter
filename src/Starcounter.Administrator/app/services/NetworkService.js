@@ -3,7 +3,7 @@
  * Network Service
  * ----------------------------------------------------------------------------
  */
-adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', function ($http, $sce, $log, UtilsFactory) {
+adminModule.service('NetworkService', ['$http', '$sce', '$log', '$location', 'UtilsFactory', 'HostModelService', function ($http, $sce, $log, $location, UtilsFactory, HostModelService) {
 
     // Network model
     // {
@@ -68,20 +68,22 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
      * @param {function} successCallback Success Callback function
      * @param {function} errorCallback Error Callback function
      */
-    this.getNetworkWorkingFolders = function (successCallback, errorCallback) {
+    this.getNetworkWorkingFolders = function (port, successCallback, errorCallback) {
 
-        var errorHeader = "Failed to retrieve the Network working folders";
-        var uri = "/staticcontentdir";
+        var errorHeader = "Failed to retrieve the Network working folders on port " + port;
+
+        var uri = $location.protocol() + "://" + $location.host() + ":" + port + "/staticcontentdir";
 
         $http.get(uri).then(function (response) {
             // Success
-            $log.info("Network working folders successfully retrived");
+            $log.info("Network web folders (" + response.data.Items.length + ") successfully retrived");
             if (typeof (successCallback) == "function") {
                 successCallback(response.data.Items);
             }
 
 
         }, function (response) {
+
             // Error
             $log.error(errorHeader, response);
 
@@ -104,11 +106,7 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
 
                 errorCallback(messageObject);
             }
-
-
         });
-
-
     }
 
 
@@ -123,24 +121,22 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
             // Success
             self.model.statistics = statistics;
 
-            self.getNetworkWorkingFolders(function (workingFolders) {
+            // Get Static folders per database
+            var databasesToProcess = [];
+            self.model.workingfolders = [];
+            var databases = HostModelService.data.model.Databases
+            for (var i = 0 ; i < databases.length ; i++) {
+                var database = databases[i];
 
-                // Success
-                self.model.workingfolders = workingFolders;
-
-                if (typeof (successCallback) == "function") {
-                    successCallback();
+                for (var n = 0 ; n < database.Applications.length ; n++) {
+                    if (database.Applications[n].IsRunning) {
+                        databasesToProcess.push(databases[i]);
+                        break;
+                    }
                 }
-
-            }, function (messageObject) {
-                // Error
-
-                if (typeof (errorCallback) == "function") {
-                    errorCallback(messageObject);
-                }
-
-            });
-
+            
+            }
+            self.getNetworkStaticFolders(databasesToProcess, successCallback, errorCallback);
 
         }, function (messageObject) {
             // Error
@@ -149,6 +145,35 @@ adminModule.service('NetworkService', ['$http', '$sce', '$log', 'UtilsFactory', 
                 errorCallback(messageObject);
             }
 
+        });
+    }
+
+
+    this.getNetworkStaticFolders = function (databasesToProcess, successCallback, errorCallback) {
+
+        if (databasesToProcess.length == 0) {
+            if (typeof (successCallback) == "function") {
+                successCallback();
+            }
+            return;
+        }
+
+        var database = databasesToProcess.pop();
+        self.getNetworkWorkingFolders(database.UserHttpPort, function (workingFolders) {
+
+            // Success
+            for (var i = 0 ; i < workingFolders.length; i++) {
+                self.model.workingfolders.push(workingFolders[i]);
+            }
+
+            self.getNetworkStaticFolders(databasesToProcess, successCallback, errorCallback);
+
+        }, function (messageObject) {
+            // Error
+
+            if (typeof (errorCallback) == "function") {
+                errorCallback(messageObject);
+            }
         });
     }
 }]);
