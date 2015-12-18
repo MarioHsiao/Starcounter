@@ -325,24 +325,8 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Updates the database schema and register types.
         /// </summary>
-        private void UpdateDatabaseSchemaAndRegisterTypes(String fullAppId, TypeDef[] unregisteredTypeDefs, TypeDef[] allTypeDefs) {
+        protected virtual void UpdateDatabaseSchemaAndRegisterTypes(String fullAppId, TypeDef[] unregisteredTypeDefs, TypeDef[] allTypeDefs) {
             if (unregisteredTypeDefs.Length != 0) {
-                if (this is StarcounterPackage) {
-                    Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle);
-
-                    OnRuntimeMetadataPopulated();
-                    // Call CLR class clean up
-                    Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(ThreadData.ContextHandle);
-                    OnCleanClrMetadata();
-
-                    // Populate properties and columns .NET metadata
-                    Db.Scope(() => {
-                        for (int i = 0; i < unregisteredTypeDefs.Length; i++)
-                            unregisteredTypeDefs[i].PopulatePropertyDef(unregisteredTypeDefs);
-                    }, true);
-                    OnPopulateMetadataDefs();
-                }
-
                 List<TypeDef> updateColumns = new List<TypeDef>();
                 for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
                     var typeDef = unregisteredTypeDefs[i];
@@ -427,7 +411,7 @@ namespace Starcounter.Hosting {
             bool updated = false;
             
             Db.Transact(() => {
-                storedTableDef = Db.LookupTable(tableName);
+                storedTableDef = LookupTable(tableName);
             });
             
             if (storedTableDef == null) {
@@ -444,6 +428,10 @@ namespace Starcounter.Hosting {
             return updated;
         }
 
+        protected virtual TableDef LookupTable(string name) {
+            return Db.LookupTable(name);
+        }
+        
         void ExecuteHost(Application application) {
             Debug.Assert(application != null);
             var entrypoint = assembly_.EntryPoint;
@@ -533,13 +521,10 @@ namespace Starcounter.Hosting {
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
-        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
-        private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
-        private void OnPopulateMetadataDefs() { Trace("Properties and columns were populated for the given meta-types."); }
 
         [Conditional("TRACE")]
-        private void Trace(string message)
+        protected void Trace(string message)
         {
             Diagnostics.WriteTrace(Loader.Log.Source, stopwatch_.ElapsedTicks, message);
             Diagnostics.WriteTimeStamp(Loader.Log.Source, message);

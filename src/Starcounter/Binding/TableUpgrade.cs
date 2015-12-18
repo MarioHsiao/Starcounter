@@ -116,7 +116,7 @@ namespace Starcounter.Binding {
                     if (ec != 0)
                         throw ErrorCode.ToException(ec);
 
-                    newTableDef_ = TableDef.ConstructTableDef(layoutInfo, (uint)(oldTableDef_.allLayoutIds.Length + 1));
+                    newTableDef_ = TableDef.ConstructTableDef(layoutInfo, (uint)(oldTableDef_.allLayoutIds.Length + 1), true);
                 });
             } else {
                 // Only change was removed columns or updates in a basetable. No upgrade needed.

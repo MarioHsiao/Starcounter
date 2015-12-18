@@ -15,9 +15,11 @@ namespace Starcounter.Binding {
     /// Definition of a database table.
     /// </summary>
     public sealed class TableDef {
+        private const string COLUMN_NAME_QUERY = @"SELECT c.Name FROM Starcounter.Metadata.Column c WHERE c.""Table"".FullName=? AND c.Name=?";
+
         /// <summary>
         /// </summary>
-        internal unsafe static TableDef ConstructTableDef(sccoredb.STARI_LAYOUT_INFO tableInfo, uint layoutInfoCount) {
+        internal unsafe static TableDef ConstructTableDef(sccoredb.STARI_LAYOUT_INFO tableInfo, uint layoutInfoCount, bool resolveColumnNames) {
             string name = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
             ushort tableId = tableInfo.layout_handle;
             uint columnCount = tableInfo.column_count;
@@ -70,8 +72,14 @@ namespace Starcounter.Binding {
                 sccoredb.STARI_COLUMN_INFO columnInfo;
                 var r = sccoredb.stari_context_get_column_info(ThreadData.ContextHandle, tableId, i, out columnInfo);
                 if (r == 0) {
+                    // The string retrieved from token does not case about case, so we need to 
+                    // retrieve the correct name from Column metadata.
+                    string colName = SqlProcessor.SqlProcessor.GetNameFromToken(columnInfo.token);
+                    if (resolveColumnNames)
+                        colName = Db.SQL<string>(COLUMN_NAME_QUERY, name, colName).First;
+                    
                     columns[i] = new ColumnDef(
-                        SqlProcessor.SqlProcessor.GetNameFromToken(columnInfo.token),
+                        colName,
                         columnInfo.type,
                         columnInfo.nullable != 0,
                         i < inheritedColumnCount

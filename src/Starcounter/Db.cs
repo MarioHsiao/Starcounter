@@ -37,30 +37,32 @@ namespace Starcounter
         /// Occurs when the database is being stopped.
         /// </summary>
         public static event EventHandler DatabaseStopping;
-
+        
         /// <summary>
         /// Gets the table definition based on the name.
         /// </summary>
         /// <param name="name">The fullname of the table.</param>
         /// <returns>TableDef.</returns>
-        public static TableDef LookupTable(string name)
+        public static TableDef LookupTable(string name) 
         {
             unsafe
             {
                 ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(name);
-                if (token != 0) {
+                if (token != 0) 
+                {
                     uint layoutInfoCount = 1;
                     sccoredb.STARI_LAYOUT_INFO layoutInfo;
                     var r = sccoredb.stari_context_get_layout_infos_by_token(
                         ThreadData.ContextHandle, token, &layoutInfoCount, &layoutInfo
                         );
-                    if (r == 0) {
+                    if (r == 0) 
+                    {
                         if (layoutInfoCount > 1)
                             return LookupTableFromRawView(name, layoutInfoCount);
 
                         Debug.Assert(layoutInfoCount < 2);
                         if (layoutInfoCount != 0)
-                            return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount);
+                            return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount, true);
                         return null;
                     }
                     throw ErrorCode.ToException(r);
@@ -68,8 +70,9 @@ namespace Starcounter
                 return null;
             }
         }
-
-        private static TableDef LookupTableFromRawView(string name, uint layoutInfoCount) {
+        
+        private static TableDef LookupTableFromRawView(string name, uint layoutInfoCount) 
+        {
             unsafe
             {
                 var rawView = Db.SQL<RawView>("SELECT r FROM Starcounter.Metadata.RawView r WHERE r.FullName=?", name).First;
@@ -78,9 +81,9 @@ namespace Starcounter
                     uint ec = sccoredb.stari_context_get_layout_info(
                                   ThreadData.ContextHandle, rawView.LayoutHandle, out layoutInfo
                               );
-                    if (ec == 0) {
-                        return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount);
-                    }
+                    if (ec == 0) 
+                        return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount, true);
+
                     throw ErrorCode.ToException(ec);
                 }
                 return null;
