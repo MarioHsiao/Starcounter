@@ -46,12 +46,14 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
 DestroyAppsSessionCallback starcounter::bmx::g_destroy_apps_session_callback = NULL;
 CreateNewAppsSessionCallback starcounter::bmx::g_create_new_apps_session_callback = NULL;
 ErrorHandlingCallback starcounter::bmx::g_error_handling_callback = NULL;
+GENERIC_HANDLER_CALLBACK starcounter::bmx::g_generic_managed_handler = NULL;
 
 // Initializes BMX related data structures.
 EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     DestroyAppsSessionCallback destroy_apps_session_callback,
     CreateNewAppsSessionCallback create_new_apps_session_callback,
-    ErrorHandlingCallback error_handling_callback)
+    ErrorHandlingCallback error_handling_callback,
+	GENERIC_HANDLER_CALLBACK generic_managed_handler)
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -71,6 +73,7 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     g_destroy_apps_session_callback = destroy_apps_session_callback;
     g_create_new_apps_session_callback = create_new_apps_session_callback;
     g_error_handling_callback = error_handling_callback;
+	g_generic_managed_handler = generic_managed_handler;
 
     return 0;
 }
