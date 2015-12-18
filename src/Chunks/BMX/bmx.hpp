@@ -562,6 +562,8 @@ namespace bmx
 
     extern ErrorHandlingCallback g_error_handling_callback;
 
+	extern GENERIC_HANDLER_CALLBACK g_generic_managed_handler;
+
 }  // namespace bmx
 }; // namespace starcounter
 

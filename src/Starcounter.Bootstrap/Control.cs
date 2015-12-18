@@ -80,6 +80,26 @@ namespace StarcounterInternal.Bootstrap {
         /// </summary>
         private unsafe void* hsched_;
 
+        unsafe delegate UInt32 HandleManagedDelegate(
+            UInt16 managedHandlerId,
+            Byte* rawChunk,
+            bmx.BMX_TASK_INFO* taskInfo,
+            Boolean* isHandled);
+
+        delegate void DestroyAppsSessionCallback(
+            Byte scheduler_id,
+            UInt32 linear_index,
+            UInt64 random_salt
+            );
+
+        delegate void CreateNewAppsSessionCallback(ref ScSessionStruct ss);
+
+        unsafe delegate void ErrorHandlingCallback(
+            UInt32 err_code,
+            Char* err_string,
+            Int32 err_string_len
+            );
+
         /// <summary>
         /// Setups the specified args.
         /// </summary>
@@ -144,19 +164,23 @@ namespace StarcounterInternal.Bootstrap {
                 // Initializing the BMX manager if network gateway is used.
                 if (!configuration.NoNetworkGateway) {
 
-                    GlobalSessions.DestroyAppsSessionCallback fp1 = GlobalSessions.g_destroy_apps_session_callback;
+                    DestroyAppsSessionCallback fp1 = GlobalSessions.DestroySessionCallback;
                     GCHandle gch1 = GCHandle.Alloc(fp1);
                     IntPtr pinned_delegate1 = Marshal.GetFunctionPointerForDelegate(fp1);
 
-                    GlobalSessions.CreateNewAppsSessionCallback fp2 = GlobalSessions.g_create_new_apps_session_callback;
+                    CreateNewAppsSessionCallback fp2 = GlobalSessions.CreateNewSessionCallback;
                     GCHandle gch2 = GCHandle.Alloc(fp2);
                     IntPtr pinned_delegate2 = Marshal.GetFunctionPointerForDelegate(fp2);
 
-                    bmx.ErrorHandlingCallback fp3 = Starcounter.Internal.ExceptionManager.ErrorHandlingCallbackFunc;
+                    ErrorHandlingCallback fp3 = Starcounter.Internal.ExceptionManager.ErrorHandlingCallbackFunc;
                     GCHandle gch3 = GCHandle.Alloc(fp3);
                     IntPtr pinned_delegate3 = Marshal.GetFunctionPointerForDelegate(fp3);
 
-                    bmx.sc_init_bmx_manager(pinned_delegate1, pinned_delegate2, pinned_delegate3);
+                    HandleManagedDelegate fp4 = GatewayHandlers.HandleManaged;
+                    GCHandle gch4 = GCHandle.Alloc(fp4);
+                    IntPtr pinned_delegate4 = Marshal.GetFunctionPointerForDelegate(fp4);
+
+                    bmx.sc_init_bmx_manager(pinned_delegate1, pinned_delegate2, pinned_delegate3, pinned_delegate4);
 
                     OnBmxManagerInitialized();
 
