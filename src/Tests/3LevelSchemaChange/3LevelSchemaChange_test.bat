@@ -5,40 +5,34 @@ IF "%SC_RUN_3LEVELSCHEMACHANGE%"=="False" GOTO :EOF
 ECHO Running 3LevelSchemaChange regression test.
 
 REM Some predefined constants.
-SET DB_NAME=3LevelSchemaChangeDb
-REM SET DB_NAME=TestAppsDb
+SET DBNAME=3LevelSchemaChangeDb
+SET APPNAME=3LevelSchemaChange
 
-if "%SC_RUNNING_ON_BUILD_SERVER%"=="True" GOTO skipdbdrop
-ECHO Delete database after server is started
 staradmin start server
-staradmin --database=%DB_NAME% delete --force db
-
-:skipdbdrop
+staradmin --database=%DBNAME% delete --force db
 
 ECHO Run Step 1 to create initial schema
-COPY /y 3LevelSchemaChange.Step1.cs 3LevelSchemaChange.cs
-star --database=%DB_NAME% 3LevelSchemaChange.cs
-IF ERRORLEVEL 1 GOTO err
+star --database=%DBNAME% --name=%APPNAME% 3LevelSchemaChange.Step1.cs
+IF ERRORLEVEL 1 GOTO failure
 
+staradmin --database=%DBNAME% stop db
 ECHO Run Step 2 to update the initial schema with more columns
-COPY /y 3LevelSchemaChange.Step2.cs 3LevelSchemaChange.cs
-star --database=%DB_NAME% 3LevelSchemaChange.cs
-IF ERRORLEVEL 1 GOTO err
+star --database=%DBNAME% --name=%APPNAME% 3LevelSchemaChange.Step2.cs
+IF ERRORLEVEL 1 GOTO failure
 
+staradmin --database=%DBNAME% stop db
 ECHO Run Step 1 again to update the schema with less columns
-COPY /y 3LevelSchemaChange.Step1.cs 3LevelSchemaChange.cs
-star --database=%DB_NAME% 3LevelSchemaChange.cs
-IF ERRORLEVEL 1 GOTO err
+star --database=%DBNAME% --name=%APPNAME% 3LevelSchemaChange.Step1.cs
+IF ERRORLEVEL 1 GOTO failure
 
-REM Clean update
-DEL 3LevelSchemaChange.cs
-staradmin --database=%DB_NAME% stop db
+set STATUS=3LevelSchemaChange regression test succeeded.
+GOTO cleanup
 
-ECHO 3LevelSchemaChange regression test succeeded.
-EXIT /b 0
+:failure
+SET STATUS=Error: 3LevelSchemaChange failed!
 
+:cleanup
+staradmin --database=%DBNAME% stop db
+staradmin --database=%DBNAME% delete --force db
 
-:err
-DEL 3LevelSchemaChange.cs
-ECHO Error: 3LevelSchemaChange failed!
-EXIT /b 1
+ECHO %STATUS%
