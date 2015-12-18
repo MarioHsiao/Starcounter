@@ -81,7 +81,7 @@ namespace Starcounter.Hosting {
                             return TableDef.ConstructTableDef(layoutInfo, layoutInfoCount, false);
 
                         if (layoutInfoCount > 1)
-                            throw new System.Exception("TODO: Errorcode, more than one layout exists for metadatatype '" + name + "'.");
+                            throw ErrorCode.ToException(Error.SCERRUNEXPMETADATA, "More than one database-layout exists for metadata type " + name);
 
                         return null;
                     }

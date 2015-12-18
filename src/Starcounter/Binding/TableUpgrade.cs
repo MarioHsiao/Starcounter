@@ -130,14 +130,13 @@ namespace Starcounter.Binding {
 
         private void VerifyColumnType(ColumnDef oldCol, ColumnDef newCol) {
             if (newCol.Type != oldCol.Type || newCol.IsNullable != oldCol.IsNullable) {
-                string errorMsg = "TODO: Errorcode. Changing type on persistent properties/fields in databaseclasses is not supported."
-                                  + " Property/field '{0}' in class '{1}' changed type from '{2}' to '{3}'.";
-                throw new Exception(string.Format(errorMsg,
-                                                  newCol.Name,
-                                                  newTableDef_.Name,
-                                                  BindingHelper.ConvertScTypeCodeToDbTypeCode(oldCol.Type),
-                                                  BindingHelper.ConvertScTypeCodeToDbTypeCode(newCol.Type))
-                                   );
+                throw ErrorCode.ToException(Error.SCERRFIELDSIGNATUREDEVIATION,
+                                            string.Format("Property/field '{0}' in class '{1}' changed type from '{2}' to '{3}'.",
+                                                newCol.Name, 
+                                                newTableDef_.Name,
+                                                BindingHelper.ConvertScTypeCodeToDbTypeCode(oldCol.Type),
+                                                BindingHelper.ConvertScTypeCodeToDbTypeCode(newCol.Type)
+                                            ));
             }
         }
 
@@ -154,9 +153,11 @@ namespace Starcounter.Binding {
                 throwEx = true;
             }
             
-            if (throwEx) { 
-                string errorMsg = "TODO: Errorcode. Changing inheritance on databaseclasses is not supported. Class '{0}' changed inheritance from '{1}' to '{2}'.";
-                throw new Exception(string.Format(errorMsg, newTableDef.Name, oldTableDef.BaseName, newTableDef.BaseName));
+            if (throwEx) {
+                throw ErrorCode.ToException(Error.SCERRTYPEBASEDEVIATION,
+                                            string.Format("Class '{0}' changed inheritance from '{1}' to '{2}'.",
+                                                newTableDef.Name, oldTableDef.BaseName, newTableDef.BaseName
+                                            ));
             }
         }
     }
