@@ -11,4 +11,4 @@ hostlooper_test.bat 300
 apps_test.bat 300
 urls_test.bat 300
 websockets_test.bat 300
-schema_upgrade 180
+schema_upgrade_test.bat 180
