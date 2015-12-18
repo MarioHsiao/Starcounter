@@ -131,7 +131,7 @@ namespace Starcounter.Binding {
         private void VerifyColumnType(ColumnDef oldCol, ColumnDef newCol) {
             if (newCol.Type != oldCol.Type || newCol.IsNullable != oldCol.IsNullable) {
                 throw ErrorCode.ToException(Error.SCERRFIELDSIGNATUREDEVIATION,
-                                            string.Format("Property/field '{0}' in class '{1}' changed type from '{2}' to '{3}'.",
+                                            string.Format("The type for property/field '{0}' in class '{1}' has been changed from '{2}' to '{3}'.",
                                                 newCol.Name, 
                                                 newTableDef_.Name,
                                                 BindingHelper.ConvertScTypeCodeToDbTypeCode(oldCol.Type),
@@ -155,7 +155,7 @@ namespace Starcounter.Binding {
             
             if (throwEx) {
                 throw ErrorCode.ToException(Error.SCERRTYPEBASEDEVIATION,
-                                            string.Format("Class '{0}' changed inheritance from '{1}' to '{2}'.",
+                                            string.Format("The inheritance for class '{0}' has been changed from '{1}' to '{2}'.",
                                                 newTableDef.Name, oldTableDef.BaseName, newTableDef.BaseName
                                             ));
             }
