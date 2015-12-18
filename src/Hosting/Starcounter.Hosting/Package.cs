@@ -163,6 +163,8 @@ namespace Starcounter.Hosting {
         }
 
         void ProcessWithinCurrentApplication(Application application) {
+            //Debugger.Launch();
+
             var unregisteredTypeDefinitions = GetUnregistered(typeDefinitions);
 
             if (application != null) {
@@ -323,95 +325,70 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Updates the database schema and register types.
         /// </summary>
-        private void UpdateDatabaseSchemaAndRegisterTypes(String fullAppId, TypeDef[] unregisteredTypeDefs, TypeDef[] allTypeDefs) {
-
+        protected virtual void UpdateDatabaseSchemaAndRegisterTypes(String fullAppId, TypeDef[] unregisteredTypeDefs, TypeDef[] allTypeDefs) {
             if (unregisteredTypeDefs.Length != 0) {
+                List<TypeDef> updateColumns = new List<TypeDef>();
+                for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
+                    var typeDef = unregisteredTypeDefs[i];
 
-                // Using transaction directly here instead of Db.Scope and scope it several times because of 
-                // unmanaged functions that creates its own kernel-transaction (and hence resets the current one set).
-                using (var transaction = new Transaction(true)) {
-                    if (this is StarcounterPackage) {
-                            Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle);
+                    if (CreateOrUpdateDatabaseTable(typeDef))
+                        updateColumns.Add(typeDef);
 
-                            OnRuntimeMetadataPopulated();
-                        transaction.Scope(() => {
-                            // Call CLR class clean up
-                            Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(ThreadData.ContextHandle);
-                            OnCleanClrMetadata();
-                        });
-                        transaction.Scope(() => {
-                            // Populate properties and columns .NET metadata
-                            for (int i = 0; i < unregisteredTypeDefs.Length; i++)
-                                unregisteredTypeDefs[i].PopulatePropertyDef(unregisteredTypeDefs);
-                            OnPopulateMetadataDefs();
-                        });
-                    }
+                    // Remap properties representing columns in case the column
+                    // order has changed.
+                    var tableDef = typeDef.TableDef;
 
-                    List<TypeDef> updateColumns = new List<TypeDef>();
-
-                    transaction.Scope(() => {
-                        for (int i = 0; i < unregisteredTypeDefs.Length; i++) {
-                            var typeDef = unregisteredTypeDefs[i];
-                            var tableDef = typeDef.TableDef;
-
-                            if (CreateOrUpdateDatabaseTable(typeDef))
-                                updateColumns.Add(typeDef);
-
-                            // Remap properties representing columns in case the column
-                            // order has changed.
-
-                            LoaderHelper.MapPropertyDefsToColumnDefs(
-                                tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
-                                );
-                        }
-                    });
-                    OnTypesCheckedAndUpdated();
-
-                    Bindings.RegisterTypeDefs(unregisteredTypeDefs);
-
-                    OnTypeDefsRegistered();
-
-#if DEBUG   // Assure that parents were set.
-                    transaction.Scope(() => {
-                        foreach (TypeDef typeDef in updateColumns) {
-                            RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
-                        typeDef.TableDef.Name).First;
-                            Debug.Assert(thisView != null);
-                            RawView parentTab = Db.SQL<RawView>(
-                                "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
-                            Debug.Assert(String.IsNullOrEmpty(typeDef.TableDef.BaseName) && parentTab == null ||
-                                parentTab != null && thisView.Inherits.Equals(parentTab));
-                        }
-                    });
-#endif
-                    OnColumnsCheckedAndUpdated();
-
-                    // Checking if we already have exported schemas for this app.
-                    if (!exportedSchemas_.ContainsKey(fullAppId)) {
-
-                        // Adding user type definitions (+EditionLibraries) to this database.
-                        QueryModule.UpdateSchemaInfo(fullAppId, allTypeDefs, false);
-
-                        // Adding this app as processed.
-                        exportedSchemas_.Add(fullAppId, true);
-                    } 
-                    
-                    // Checking if we are in app not in plain database.
-                    if (fullAppId != QueryModule.DatabaseId) {
-
-                        // Adding new type definitions to database scope with full name generation.
-                        QueryModule.UpdateSchemaInfo(QueryModule.DatabaseId, unregisteredTypeDefs, true);
-                    }
-
-                    OnQueryModuleSchemaInfoUpdated();
-
-                    InitTypeSpecifications();
-                    OnTypeSpecificationsInitialized();
-
-                    MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
-
-                    OnPopulateClrMetadata();
+                    LoaderHelper.MapPropertyDefsToColumnDefs(
+                        tableDef, tableDef.ColumnDefs, typeDef.PropertyDefs, out typeDef.ColumnRuntimeTypes
+                        );
                 }
+                OnTypesCheckedAndUpdated();
+
+                Db.Scope(() => {
+                    Bindings.RegisterTypeDefs(unregisteredTypeDefs);
+                });
+                OnTypeDefsRegistered();
+
+#if DEBUG       // Assure that parents were set.
+                Db.Scope(() => {
+                    foreach (TypeDef typeDef in updateColumns) {
+                        RawView thisView = Db.SQL<RawView>("select v from rawview v where fullname =?",
+                    typeDef.TableDef.Name).First;
+                        Debug.Assert(thisView != null);
+                        RawView parentTab = Db.SQL<RawView>(
+                            "select v from rawview v where fullname = ?", typeDef.TableDef.BaseName).First;
+                        Debug.Assert(String.IsNullOrEmpty(typeDef.TableDef.BaseName) && parentTab == null ||
+                            parentTab != null && thisView.Inherits.Equals(parentTab));
+                    }
+                }, true);
+#endif
+                OnColumnsCheckedAndUpdated();
+
+                // Checking if we already have exported schemas for this app.
+                if (!exportedSchemas_.ContainsKey(fullAppId)) {
+
+                    // Adding user type definitions (+EditionLibraries) to this database.
+                    QueryModule.UpdateSchemaInfo(fullAppId, allTypeDefs, false);
+
+                    // Adding this app as processed.
+                    exportedSchemas_.Add(fullAppId, true);
+                }
+
+                // Checking if we are in app not in plain database.
+                if (fullAppId != QueryModule.DatabaseId) {
+
+                    // Adding new type definitions to database scope with full name generation.
+                    QueryModule.UpdateSchemaInfo(QueryModule.DatabaseId, unregisteredTypeDefs, true);
+                }
+
+                OnQueryModuleSchemaInfoUpdated();
+
+                InitTypeSpecifications();
+                OnTypeSpecificationsInitialized();
+
+                MetadataPopulation.PopulateClrMetadata(unregisteredTypeDefs);
+
+                OnPopulateClrMetadata();
             }
         }
 
@@ -425,48 +402,36 @@ namespace Starcounter.Hosting {
         /// <summary>
         /// Creates the or update database table.
         /// </summary>
-        /// <param name="tableDef">The table def.</param>
-        /// <returns>TableDef.</returns>
+        /// <param name="typeDef">The type definition for the table to update or create.</param>
+        /// <returns>f.</returns>
         private bool CreateOrUpdateDatabaseTable(TypeDef typeDef) {
             TableDef tableDef = typeDef.TableDef;
             string tableName = tableDef.Name;
             TableDef storedTableDef = null;
-            TableDef pendingUpgradeTableDef = null;
             bool updated = false;
-
+            
             Db.Transact(() => {
-                storedTableDef = Db.LookupTable(tableName);
-                pendingUpgradeTableDef = Db.LookupTable(TableUpgrade.CreatePendingUpdateTableName(tableName));
+                storedTableDef = LookupTable(tableName);
             });
-
-            if (pendingUpgradeTableDef != null) {
-                var continueTableUpgrade = new TableUpgrade(tableName, storedTableDef, pendingUpgradeTableDef);
-                storedTableDef = continueTableUpgrade.ContinueEval();
-#if false // TODO RUS: remove since it should be done in metalayer
-                Db.SystemTransact(delegate {
-                    MetadataPopulation.UpgradeRawTableInstance(typeDef);
-                    updated = true;
-                });
-#endif
-            }
+            
             if (storedTableDef == null) {
                 var tableCreate = new TableCreate(tableDef);
                 storedTableDef = tableCreate.Eval();
+                updated = true;
             } else if (!storedTableDef.Equals(tableDef)) {
                 var tableUpgrade = new TableUpgrade(tableName, storedTableDef, tableDef);
                 storedTableDef = tableUpgrade.Eval();
-#if false // TODO RUS: already populated in meta-layer
-                Db.SystemTransact(delegate {
-                    MetadataPopulation.UpgradeRawTableInstance(typeDef);
-                    updated = true;
-                });
-#endif
+                updated = true;
             }
             typeDef.TableDef = storedTableDef;
 
             return updated;
         }
 
+        protected virtual TableDef LookupTable(string name) {
+            return Db.LookupTable(name);
+        }
+        
         void ExecuteHost(Application application) {
             Debug.Assert(application != null);
             var entrypoint = assembly_.EntryPoint;
@@ -556,13 +521,10 @@ namespace Starcounter.Hosting {
         private void OnEntryPointExecuted() { Trace("Entry point executed."); }
         private void OnProcessingCompleted() { Trace("Processing completed."); }
         private void OnTypeSpecificationsInitialized() { Trace("System type specifications initialized."); }
-        private void OnRuntimeMetadataPopulated() { Trace("Runtime meta-data tables were created and populated with initial data."); }
-        private void OnCleanClrMetadata() { Trace("CLR view meta-data were deleted on host start."); }
         private void OnPopulateClrMetadata() { Trace("CLR view meta-data were populated for the given types."); }
-        private void OnPopulateMetadataDefs() { Trace("Properties and columns were populated for the given meta-types."); }
 
         [Conditional("TRACE")]
-        private void Trace(string message)
+        protected void Trace(string message)
         {
             Diagnostics.WriteTrace(Loader.Log.Source, stopwatch_.ElapsedTicks, message);
             Diagnostics.WriteTimeStamp(Loader.Log.Source, message);

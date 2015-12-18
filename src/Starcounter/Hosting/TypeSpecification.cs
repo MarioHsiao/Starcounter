@@ -130,10 +130,18 @@ namespace Starcounter.Hosting {
             var handleName = TypeSpecification.FieldNameToColumnHandleName(columnName);
             var field = typeSpecificationType.GetField(handleName, BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
             if (field == null) {
-                var msg = string.Format("Missing column handle: {0}/{1}", columnName, handleName);
-                throw ErrorCode.ToException(Error.SCERRTYPESPECILLEGALCONSTRUCT, msg);
+                // Do an extra check to see if the property is still in the class, since when properties
+                // are removed from a database class they are still kept in metadata and kernel layout 
+                // to support readding them and recover the data.
+                var property = typeSpecificationType.GetProperty(columnName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                if (property != null) {
+                    var msg = string.Format("Missing column handle: {0}/{1}", columnName, handleName);
+                    throw ErrorCode.ToException(Error.SCERRTYPESPECILLEGALCONSTRUCT, msg);
+                }
             }
-            field.SetValue(null, index);
+
+            if (field != null)
+                field.SetValue(null, index);
         }
 
         void Validate(bool omitVerifyType) {

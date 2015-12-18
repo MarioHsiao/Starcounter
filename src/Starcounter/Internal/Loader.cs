@@ -32,7 +32,7 @@ namespace Starcounter.Internal
         /// Array parallel to columnDefs with type codes of columns as mapped by properties.
         /// </param>
         /// <exception cref="System.Exception"></exception>
-        public static void MapPropertyDefsToColumnDefs(ColumnDef[] columnDefs, PropertyDef[] propertyDefs, out DbTypeCode[] columnRuntimeTypes)
+        public static void MapPropertyDefsToColumnDefs(TableDef tableDef, ColumnDef[] columnDefs, PropertyDef[] propertyDefs, out DbTypeCode[] columnRuntimeTypes)
         {
             DbTypeCode?[] columnRuntimeTypesTemp;
             columnRuntimeTypesTemp = new DbTypeCode?[columnDefs.Length];
@@ -60,7 +60,7 @@ namespace Starcounter.Internal
                         }
                     }
                     catch (IndexOutOfRangeException) {
-                        throw ErrorCode.ToException(Error.SCERRUNEXPDBMETADATAMAPPING, "Column "+columnName+" cannot be found in ColumnDefs.");
+                        throw ErrorCode.ToException(Error.SCERRUNEXPDBMETADATAMAPPING, "Column '" + columnName + "' in table '" + tableDef.Name + "' cannot be found in ColumnDefs.");
                     }
                 }
             }
@@ -173,13 +173,13 @@ namespace Starcounter.Internal
 
             var columnDefArray = columnDefs.ToArray();
             var propertyDefArray = propertyDefs.ToArray();
+            var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
 
             DbTypeCode[] columnRuntimeTypes;
             LoaderHelper.MapPropertyDefsToColumnDefs(
-                columnDefArray, propertyDefArray, out columnRuntimeTypes
+                tableDef, columnDefArray, propertyDefArray, out columnRuntimeTypes
                 );
             
-            var tableDef = new TableDef(databaseClass.Name, baseName, columnDefArray);
             var typeDef = new TypeDef(
                 databaseClass.Name, baseName, propertyDefArray, typeLoader, tableDef,
                 columnRuntimeTypes
