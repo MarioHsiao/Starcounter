@@ -38,11 +38,11 @@ namespace Starcounter.TransactionLog
 
             foreach( var d in transaction_data.deletes)
             {
-                IObjectView o = DbHelper.FromID(d.key.object_id);
-                if (o==null)
+                ObjectRef? o = DbState.Lookup(d.key.object_id);
+                if (!o.HasValue)
                     throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND);
 
-                o.Delete();
+                Db.Delete(o.Value);
             }
 
         }
