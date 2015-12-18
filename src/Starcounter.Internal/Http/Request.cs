@@ -696,6 +696,14 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Arbitrary object used to pass for Self calls.
+        /// </summary>
+        public Object BodyObject {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Body bytes.
         /// </summary>
         public Byte[] BodyBytes
@@ -1187,7 +1195,7 @@ namespace Starcounter {
             try {
 
                 // Checking if there are any outgoing filters.
-                Response filteredResp = Handle.RunOutgoingFilters(this, resp);
+                Response filteredResp = Handle.RunResponseFilters(this, resp);
                 if (null != filteredResp) {
                     resp = filteredResp;
                 }

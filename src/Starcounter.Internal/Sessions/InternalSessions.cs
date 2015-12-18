@@ -741,7 +741,7 @@ namespace Starcounter.Internal
                     if (s != null) {
 
                         // Checking if session is outdated.
-                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes + 1) {
+                        if ((CurrentTimeTick - s.LastActiveTimeTick) > s.TimeoutMinutes) {
                             // Destroying old session.
                             DestroySession(s.session_struct_);
                         }
@@ -881,31 +881,6 @@ namespace Starcounter.Internal
         {
             AllGlobalSessions = new GlobalSessions(num_schedulers);
         }
-
-        /// <summary>
-        /// Callback to destroy Apps session.
-        /// </summary>
-        /// <param name="scheduler_id"></param>
-        /// <param name="linear_index"></param>
-        /// <param name="random_salt"></param>
-        public delegate void DestroyAppsSessionCallback(
-            Byte scheduler_id,
-            UInt32 linear_index,
-            UInt64 random_salt
-            );
-
-        public static DestroyAppsSessionCallback g_destroy_apps_session_callback = DestroySessionCallback;
-
-        /// <summary>
-        /// Callback to create new Apps session.
-        /// </summary>
-        /// <param name="scheduler_id"></param>
-        /// <param name="linear_index"></param>
-        /// <param name="random_salt"></param>
-        /// <param name="reserved"></param>
-        public delegate void CreateNewAppsSessionCallback(ref ScSessionStruct ss);
-        
-        public static CreateNewAppsSessionCallback g_create_new_apps_session_callback = CreateNewSessionCallback;
 
         /// <summary>
         /// Managed callback to destroy Apps session.

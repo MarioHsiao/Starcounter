@@ -133,8 +133,7 @@ namespace bmx
         BMX_SUBPORT_TYPE subport_;
 
         // URI string.
-        char* original_uri_info_;
-        char* processed_uri_info_;
+        char* method_space_uri_;
         char* app_name_;
 
         uint8_t num_params_;
@@ -150,8 +149,7 @@ namespace bmx
         // Constructor.
         HandlersList()
         {
-            original_uri_info_ = NULL;
-            processed_uri_info_ = NULL;
+            method_space_uri_ = NULL;
             app_name_ = NULL;
 
             Unregister();
@@ -194,20 +192,14 @@ namespace bmx
         }
 
         // Gets URI.
-        char* get_original_uri_info()
+        char* get_method_space_uri()
         {
-            return original_uri_info_;
+            return method_space_uri_;
         }
 
         char* get_app_name()
         {
             return app_name_;
-        }
-
-        // Gets URI.
-        char* get_processed_uri_info()
-        {
-            return processed_uri_info_;
         }
 
         // Get number of URI callback parameters.
@@ -261,8 +253,7 @@ namespace bmx
             const uint16_t port,
             const char* app_name,
             const BMX_SUBPORT_TYPE subport,
-            const char* original_uri_info,
-            const char* processed_uri_info,
+            const char* method_space_uri,
             const uint8_t* param_types,
             const int32_t num_params,
             const starcounter::MixedCodeConstants::NetworkProtocolType proto_type)
@@ -276,16 +267,10 @@ namespace bmx
             managed_handler_index_ = managed_handler_index;
 
             // Deleting previous allocations if any.
-            if (original_uri_info_)
+            if (method_space_uri_)
             {
-                delete original_uri_info_;
-                original_uri_info_ = NULL;
-            }
-
-            if (processed_uri_info_)
-            {
-                delete processed_uri_info_;
-                processed_uri_info_ = NULL;
+                delete method_space_uri_;
+                method_space_uri_ = NULL;
             }
 
             if (app_name_)
@@ -321,15 +306,10 @@ namespace bmx
                 case bmx::HANDLER_TYPE::URI_HANDLER:
                 {
                     // Copying the URI string.
-                    _SC_ASSERT (original_uri_info != NULL);
-                    len = (uint32_t) strlen(original_uri_info);
-                    original_uri_info_ = new char[len + 1];
-                    strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
-
-                    _SC_ASSERT (processed_uri_info != NULL);
-                    len = (uint32_t) strlen(processed_uri_info);
-                    processed_uri_info_ = new char[len + 1];
-                    strncpy_s(processed_uri_info_, len + 1, processed_uri_info, len);
+                    _SC_ASSERT (method_space_uri != NULL);
+                    len = (uint32_t) strlen(method_space_uri);
+                    method_space_uri_ = new char[len + 1];
+                    strncpy_s(method_space_uri_, len + 1, method_space_uri, len);
 
                     break;
                 }
@@ -337,11 +317,11 @@ namespace bmx
                 case bmx::HANDLER_TYPE::WS_HANDLER:
                 {
                     // Copying the WS channel string.
-                    _SC_ASSERT(original_uri_info != NULL);
+                    _SC_ASSERT(method_space_uri != NULL);
 
-                    len = (uint32_t) strlen(original_uri_info);
-                    original_uri_info_ = new char[len + 1];
-                    strncpy_s(original_uri_info_, len + 1, original_uri_info, len);
+                    len = (uint32_t) strlen(method_space_uri);
+                    method_space_uri_ = new char[len + 1];
+                    strncpy_s(method_space_uri_, len + 1, method_space_uri, len);
 
                     break;
                 }
@@ -480,7 +460,7 @@ namespace bmx
 
         uint32_t FindUriHandler(
             uint16_t port_num,
-            const char* processed_uri_info,
+            const char* method_space_uri,
             BMX_HANDLER_INDEX_TYPE* handler_index);
 
         uint32_t FindWsHandler(
@@ -504,8 +484,7 @@ namespace bmx
         uint32_t RegisterUriHandler(
             const uint16_t port,
             const char* app_name,
-            const char* original_uri_info,
-            const char* processed_uri_info,
+            const char* method_space_uri,
             const uint8_t* param_types,
             const int32_t num_params,
             const GENERIC_HANDLER_CALLBACK uri_handler, 
@@ -582,6 +561,8 @@ namespace bmx
         int32_t err_string_len);
 
     extern ErrorHandlingCallback g_error_handling_callback;
+
+	extern GENERIC_HANDLER_CALLBACK g_generic_managed_handler;
 
 }  // namespace bmx
 }; // namespace starcounter

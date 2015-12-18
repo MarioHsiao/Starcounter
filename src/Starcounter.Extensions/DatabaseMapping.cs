@@ -46,15 +46,15 @@ namespace Starcounter.Extensions {
             MapConfig.IsGlobalMappingEnabled = true;
             MapConfig.Enabled = true;
 
-            if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
+            if (Db.SQL(@"SELECT i FROM Starcounter.Metadata.""Index"" i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC)");
             }
 
-            if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidAndNameIndex").First == null) {
+            if (Db.SQL(@"SELECT i FROM Starcounter.Metadata.""Index"" i WHERE Name = ?", "DbMappingRelationFromOidAndNameIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidAndNameIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC, ToClassFullName ASC)");
             }
 
-            if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMapInfoFromClassFullNameIndex").First == null) {
+            if (Db.SQL(@"SELECT i FROM Starcounter.Metadata.""Index"" i WHERE Name = ?", "DbMapInfoFromClassFullNameIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMapInfoFromClassFullNameIndex ON Starcounter.Extensions.DbMapInfo (FromClassFullName ASC)");
             }
 

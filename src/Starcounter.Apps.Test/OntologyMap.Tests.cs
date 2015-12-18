@@ -21,6 +21,44 @@ namespace Starcounter.Internal.Tests
         /// Testing ontology maps.
         /// </summary>
         //[Test]
+        public static void MappingSeveralHandlersFromSameAppTest() {
+
+            var googleMapsTemplate = new TObject();
+            googleMapsTemplate.Add<TString>("Longitude", "34");
+            googleMapsTemplate.Add<TString>("Latitude", "67");
+            googleMapsTemplate.Add<TString>("Html", "Map.html");
+
+            dynamic o1 = new Json();
+            o1.Template = googleMapsTemplate;
+
+            dynamic o2 = new Json();
+            o2.Template = googleMapsTemplate;
+
+            Handle.GET("/GoogleMapsApp/object1/{?}", (String id) => {
+                return o1;
+            });
+
+            Handle.GET("/GoogleMapsApp/object2/{?}", (String id) => {
+                return o2;
+            });
+
+            UriMapping.Map("/GoogleMapsApp/object1/{?}", "/sc/mapping/gmap/{?}");
+            Response resp = Self.GET("/sc/mapping/gmap/1");
+            Assert.IsTrue(o1 == resp.Resource);
+
+            UriMapping.Map("/GoogleMapsApp/object2/{?}", "/sc/mapping/gmap/{?}");
+
+            resp = Self.GET("/sc/mapping/gmap/1");
+            Assert.IsTrue(o1 == resp.Resource);
+
+            resp = Self.GET("/GoogleMapsApp/object2/1");
+            Assert.IsTrue(o2 == resp.Resource);
+        }
+
+        /// <summary>
+        /// Testing ontology maps.
+        /// </summary>
+            //[Test]
         public static void SimpleMappingTests() {
 
             const String FacebookAppName = "FacebookApp";

@@ -4,47 +4,35 @@
 // </copyright>
 // ***********************************************************************
 
-namespace Starcounter.Binding
-{
-
+namespace Starcounter.Binding {
     /// <summary>
-    /// Class TableCreate
+    /// 
     /// </summary>
-    public class TableCreate
-    {
-
-        /// <summary>
-        /// The table def_
-        /// </summary>
+    public class TableCreate {
         private readonly TableDef tableDef_;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TableCreate" /> class.
         /// </summary>
-        /// <param name="tableDef">The table def.</param>
-        public TableCreate(TableDef tableDef)
-        {
+        /// <param name="tableDef">The definition for the table to create</param>
+        public TableCreate(TableDef tableDef) {
             tableDef_ = tableDef;
         }
 
         /// <summary>
-        /// Evals this instance.
+        /// Evaluates and creates the table.
         /// </summary>
-        /// <returns>TableDef.</returns>
-        public TableDef Eval()
-        {
+        /// <returns>The created table</returns>
+        public TableDef Eval() {
             TableDef tableDef = tableDef_;
             TableDef inheritedTableDef = null;
 
-            if (tableDef.BaseName != null)
-            {
-                Db.Transact(() =>
-                {
+            if (tableDef.BaseName != null) {
+                Db.Transact(() => {
                     inheritedTableDef = Db.LookupTable(tableDef.BaseName);
                 });
 
-                if (inheritedTableDef == null)
-                {
+                if (inheritedTableDef == null) {
                     // TODO: Base table does not exist. Should not happen.
                     throw ErrorCode.ToException(Error.SCERRUNSPECIFIED);
                 }
@@ -58,8 +46,7 @@ namespace Starcounter.Binding
 
             TableDef newTableDef = null;
 
-            Db.Transact(() =>
-            {
+            Db.Transact(() => {
                 newTableDef = Db.LookupTable(tableDef.Name);
             });
 

@@ -170,7 +170,7 @@ namespace Starcounter.Internal.Web {
 
                     }, new HandlerOptions() {
                         ProxyDelegateTrigger = true,
-                        SkipMiddlewareFilters = true
+                        SkipRequestFilters = true
                     });
 
                     // Json templates used to return static files statistics.
@@ -200,11 +200,17 @@ namespace Starcounter.Internal.Web {
                             }
                         }
 
-                        return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };
+                        Response response = new Response();
+                        response.StatusCode = (ushort)System.Net.HttpStatusCode.OK;
+                        response.BodyBytes = workingFolders.ToJsonUtf8();
+                        response["Access-Control-Allow-Origin"] = "*"; 
+                        return response;
+
+                        //return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = workingFolders.ToJsonUtf8() };
 
                     }, new HandlerOptions() {
                         ProxyDelegateTrigger = true,
-                        SkipMiddlewareFilters = true
+                        SkipRequestFilters = true
                     });
 
                     StarcounterEnvironment.AppName = savedAppName;

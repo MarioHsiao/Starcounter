@@ -134,7 +134,7 @@ namespace Starcounter.Internal {
                         RegisterRedirectHandler(defaultUserHttpPort, Handle.GET_METHOD, fromUri, toUri);
 
                         return 200;
-                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
+                    }, new HandlerOptions() { SkipRequestFilters = true });
 
                     // Registering URI aliasing port.
                     Handle.GET(defaultSystemHttpPort, "/sc/alias/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
@@ -142,7 +142,7 @@ namespace Starcounter.Internal {
                         RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
 
                         return 200;
-                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
+                    }, new HandlerOptions() { SkipRequestFilters = true });
                 }
                 else {
 
@@ -307,7 +307,7 @@ namespace Starcounter.Internal {
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
 
             Handle.PUT(port, "/sc/reverseproxies", (Request req) => {
                 try {
@@ -349,7 +349,7 @@ namespace Starcounter.Internal {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
 
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
 
 
             Handle.DELETE(port, "/sc/reverseproxies/{?}/{?}", (string matchingHost, string starcounterProxyPort, Request req) => {
@@ -382,7 +382,7 @@ namespace Starcounter.Internal {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
 
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
         }
 
         /// <summary>
@@ -400,8 +400,8 @@ namespace Starcounter.Internal {
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
                 return;
 
-            // By default middleware filters are enabled.
-            StarcounterEnvironment.MiddlewareFiltersEnabled = true;
+            // By default request filters are enabled.
+            StarcounterEnvironment.RequestFiltersEnabled = StarcounterEnvironment.RequestFiltersEnabledSetting;
 
             // Adding Starcounter specific static files directory.
             String specialStaticFiles = Path.Combine(StarcounterEnvironment.InstallationDirectory, "ClientFiles\\StaticFiles");
@@ -468,9 +468,9 @@ namespace Starcounter.Internal {
                 // Getting handler information.
                 UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
-                if (!uhi.SkipMiddlewareFilters) {
+                if (!uhi.SkipRequestFilters) {
                     // Checking if there is a filtering delegate.
-                    resp = Handle.RunMiddlewareFilters(req);
+                    resp = Handle.RunRequestFilters(req);
                 }
 
                 // Checking if filter level did allow this request.
@@ -506,7 +506,7 @@ namespace Starcounter.Internal {
                 LogSources.Hosting.LogException(exc);
                 resp = Response.FromStatusCode(500);
                 resp.Body = AppRestServer.GetExceptionString(exc);
-                resp.ContentType = "text/plain";
+                resp.ContentType = "text/plain;charset=utf-8";
             }
 
             // Checking if response was handled.
@@ -534,7 +534,7 @@ namespace Starcounter.Internal {
                             LogSources.Hosting.LogException(ex);
                             resp = Response.FromStatusCode(500);
                             resp.Body = AppRestServer.GetExceptionString(ex);
-                            resp.ContentType = "text/plain";
+                            resp.ContentType = "text/plain;charset=utf-8";
                             req.SendResponse(resp, responseSerializationBuffer_);
                         }
 

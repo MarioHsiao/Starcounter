@@ -119,6 +119,7 @@ namespace Starcounter.Internal {
                 if (request.WebSocketUpgrade) {
                     // Sending an upgrade (note that we attach the existing session).
                     request.SendUpgrade(JsonPatchWebSocketGroupName, null, null, session);
+                    session.CalculatePatchAndPushOnWebSocket();
                     return HandlerStatus.Handled;
                 } else if (request.PreferredMimeType == MimeType.Application_Json) {
                     Json root = session.PublicViewModel;

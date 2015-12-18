@@ -46,12 +46,14 @@ void LeaveSafeBmxManagement(BmxData* new_bmx_data)
 DestroyAppsSessionCallback starcounter::bmx::g_destroy_apps_session_callback = NULL;
 CreateNewAppsSessionCallback starcounter::bmx::g_create_new_apps_session_callback = NULL;
 ErrorHandlingCallback starcounter::bmx::g_error_handling_callback = NULL;
+GENERIC_HANDLER_CALLBACK starcounter::bmx::g_generic_managed_handler = NULL;
 
 // Initializes BMX related data structures.
 EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     DestroyAppsSessionCallback destroy_apps_session_callback,
     CreateNewAppsSessionCallback create_new_apps_session_callback,
-    ErrorHandlingCallback error_handling_callback)
+    ErrorHandlingCallback error_handling_callback,
+	GENERIC_HANDLER_CALLBACK generic_managed_handler)
 {
     // Initializing BMX critical section.
     InitializeCriticalSection(&g_bmx_cs_);
@@ -71,6 +73,7 @@ EXTERN_C uint32_t __stdcall sc_init_bmx_manager(
     g_destroy_apps_session_callback = destroy_apps_session_callback;
     g_create_new_apps_session_callback = create_new_apps_session_callback;
     g_error_handling_callback = error_handling_callback;
+	g_generic_managed_handler = generic_managed_handler;
 
     return 0;
 }
@@ -167,8 +170,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_ws_handler(
 EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     const uint16_t port_num,
     const char* app_name,
-    const char* original_uri_info,
-    const char* processed_uri_info,
+    const char* method_space_uri,
     const uint8_t* param_types,
     const uint8_t num_params,
     const GENERIC_HANDLER_CALLBACK callback, 
@@ -179,7 +181,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     _SC_ASSERT(NULL != g_bmx_data);
 
     BMX_HANDLER_INDEX_TYPE handler_index;
-    uint32_t err_code = g_bmx_data->FindUriHandler(port_num, processed_uri_info, &handler_index);
+    uint32_t err_code = g_bmx_data->FindUriHandler(port_num, method_space_uri, &handler_index);
     if (0 == err_code)
         return SCERRHANDLERALREADYREGISTERED;
 
@@ -188,8 +190,7 @@ EXTERN_C uint32_t __stdcall sc_bmx_register_uri_handler(
     err_code = g_bmx_data_copy->RegisterUriHandler(
         port_num,
         app_name,
-        original_uri_info,
-        processed_uri_info,
+		method_space_uri,
         param_types,
         num_params,
         callback,
@@ -218,12 +219,12 @@ uint32_t sc_bmx_unregister_handler(BMX_HANDLER_INDEX_TYPE handler_index)
     return err_code;
 }
 
-uint32_t sc_bmx_unregister_uri(uint16_t port_num, char* processed_uri_info)
+uint32_t sc_bmx_unregister_uri(uint16_t port_num, char* method_space_uri)
 {
     BMX_HANDLER_INDEX_TYPE handler_index;
     uint32_t err_code;
 
-    err_code = g_bmx_data->FindUriHandler(port_num, processed_uri_info, &handler_index);
+    err_code = g_bmx_data->FindUriHandler(port_num, method_space_uri, &handler_index);
     if (err_code)
         return err_code;
 

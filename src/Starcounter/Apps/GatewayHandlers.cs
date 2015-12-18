@@ -16,11 +16,97 @@ using Starcounter.Logging;
 
 namespace Starcounter
 {
+    public enum HandlerTypes {
+        NotRegistered,
+        TcpHandler,
+        UdpHandler,
+        WebSocketHandler,
+        HttpHandler
+    };
+
+    public struct ManagedHandlerInfo {
+        public HandlerTypes type_;
+        public UInt64 uinque_id_;
+    }
+
     /// <summary>
     /// Class GatewayHandlers
     /// </summary>
 	public unsafe class GatewayHandlers
 	{
+        /// <summary>
+        /// All handler types.
+        /// </summary>
+        static ManagedHandlerInfo[] allHandlers_ = new ManagedHandlerInfo[UInt16.MaxValue];
+
+        /// <summary>
+        /// Handles generic managed handler.
+        /// </summary>
+        public unsafe static UInt32 HandleManaged(
+            UInt16 managedHandlerId,
+            Byte* rawChunk,
+            bmx.BMX_TASK_INFO* taskInfo,
+            Boolean* isHandled) {
+
+            HandlerTypes a = allHandlers_[managedHandlerId].type_;
+            switch (a) {
+
+                case HandlerTypes.NotRegistered: {
+                    *isHandled = false;
+                    return 0;
+                }
+
+                case HandlerTypes.TcpHandler: {
+                    return HandleTcpSocket(managedHandlerId, rawChunk, taskInfo, isHandled);
+                }
+
+                case HandlerTypes.UdpHandler: {
+                    return HandleUdpSocket(managedHandlerId, rawChunk, taskInfo, isHandled);
+                }
+
+                case HandlerTypes.WebSocketHandler: {
+                    return HandleWebSocket(managedHandlerId, rawChunk, taskInfo, isHandled);
+                }
+
+                case HandlerTypes.HttpHandler: {
+                    return HandleHttpRequest(managedHandlerId, rawChunk, taskInfo, isHandled);
+                }
+            }
+
+            *isHandled = false;
+            return 0;
+        }
+
+        /// <summary>
+        /// Registers generic managed handler.
+        /// </summary>
+        static void RegisterManagedHandler(HandlerTypes handlerType, out UInt16 handlerId) {
+
+            handlerId = UInt16.MaxValue;
+
+            lock (allHandlers_) {
+
+                for (UInt16 i = 0; i < allHandlers_.Length; i++) {
+
+                    if (HandlerTypes.NotRegistered == allHandlers_[i].type_) {
+
+                        handlerId = i;
+                        return;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Unregisters managed handler.
+        /// </summary>
+        static void UnregisterManagedHandler(UInt16 handlerId) {
+
+            lock (allHandlers_) {
+                allHandlers_[handlerId].type_ = HandlerTypes.NotRegistered;
+            }
+        }
+
         /// <summary>
         /// Maximum number of user handlers to register.
         /// </summary>
@@ -444,8 +530,7 @@ namespace Starcounter
         internal  static void RegisterUriHandlerNative(
             UInt16 port,
             String appName,
-            String originalUriInfo,
-            String processedUriInfo,
+            String methodSpaceUri,
             Byte[] nativeParamTypes,
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo) {
@@ -464,8 +549,7 @@ namespace Starcounter
                     UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
                         port,
                         appName,
-                        originalUriInfo,
-                        processedUriInfo,
+                        methodSpaceUri,
                         pp,
                         numParams,
                         pinned_delegate,
@@ -473,7 +557,7 @@ namespace Starcounter
                         out handlerInfo);
 
                     if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                        throw ErrorCode.ToException(errorCode, "URI string: " + methodSpaceUri);
                 }
             }
 
@@ -484,8 +568,7 @@ namespace Starcounter
                 appName + " " +
                 handlerInfo + " " +
                 port + " " +
-                originalUriInfo.Replace(' ', '\\') + " " +
-                processedUriInfo.Replace(' ', '\\') + " " +
+                methodSpaceUri.Replace(' ', '\\') + " " +
                 nativeParamTypes.Length;
 
             String t = "";
@@ -515,13 +598,13 @@ namespace Starcounter
             }
         }
 
-        void UnregisterUriHandler(UInt16 port, String originalUriInfo) {
+        void UnregisterUriHandler(UInt16 port, String methodSpaceUri) {
 
             // Ensuring correct multi-threading handlers creation.
-            UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, originalUriInfo);
+            UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, methodSpaceUri);
 
             if (errorCode != 0)
-                throw ErrorCode.ToException(errorCode, "URI string: " + originalUriInfo);
+                throw ErrorCode.ToException(errorCode, "URI string: " + methodSpaceUri);
         }
 
         /// <summary>

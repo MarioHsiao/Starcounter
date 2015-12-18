@@ -18,7 +18,7 @@ Or [download as ZIP](https://github.com/juicy/juicy-redirect/archive/gh-pages.zi
 
 ## Usage
 
-1. Import Web Components' polyfill:
+1. Import Web Components' polyfill, if needed:
 
     ```html
     <script src="bower_components/webcomponentsjs/webcomponents.js"></script>
@@ -27,7 +27,7 @@ Or [download as ZIP](https://github.com/juicy/juicy-redirect/archive/gh-pages.zi
 2. Import Custom Element:
 
     ```html
-    <link rel="import" href="bower_components/juicy-redirect/src/juicy-redirect.html">
+    <link rel="import" href="bower_components/juicy-redirect/juicy-redirect.html">
     ```
 
 3. Start using it!
@@ -43,6 +43,7 @@ Attribute      | Options            | Default  | Description
 `url`          | *String*           |          | Destination URL
 `url`          | `current`          |          | If a string `"current"` is provided as the URL, the component reloads the page
 `history`      |                    |          | If attribute `history` is present, the History API `pushState` is used instead of `window.location`
+`target`       | *String*           | `_self`  | Target where to open the link. Use `"_blank"` to open in new tab
 
 ## Events
 

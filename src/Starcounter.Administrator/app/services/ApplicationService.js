@@ -81,13 +81,11 @@ adminModule.service('ApplicationService', ['$http', '$log', '$sce', 'UtilsFactor
 
             var bodyData = {
                 "Uri": "",
-                "Path": application.Path,
+                "Path": application.ApplicationFilePath,
                 "ApplicationFilePath": application.ApplicationFilePath,
                 "Name": application.Path.replace(/^.*[\\\/]/, ''),
                 "Description": "",
-                "Arguments": [{
-                    "dummy": application.Path
-                }],
+                "Arguments": [],
                 "DefaultUserPort": 0,
                 "ResourceDirectories": [],
                 "WorkingDirectory": application.WorkingDirectory,

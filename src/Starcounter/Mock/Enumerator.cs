@@ -239,6 +239,13 @@ namespace Starcounter
                 goto attach;
 
             typeBinding = Bindings.GetTypeBinding(currentCCI);
+
+            // Check and update expected layouthandle
+            if (currentCCI != typeBinding.TableId) {
+                currentRef.ETI = DbHelper.EncodeObjectRefWithLayoutHandle(currentRef.ETI, typeBinding.TableId);
+                currentCCI = typeBinding.TableId;
+            }
+
             current = typeBinding.NewInstanceUninit();
             if (current == null)
             {
@@ -248,7 +255,7 @@ namespace Starcounter
             }
             previousCCI = currentCCI;
 
-        attach:
+        attach:        
             current.Bind(currentRef.ETI, currentRef.ObjectID, typeBinding);
             if (_filterCallback != null)
             {
@@ -508,6 +515,13 @@ namespace Starcounter
                 goto attach;
 
             typeBinding = Bindings.GetTypeBinding(currentCCI);
+
+            // Check and update expected layouthandle
+            if (currentCCI != typeBinding.TableId) {
+                currentRef.ETI = DbHelper.EncodeObjectRefWithLayoutHandle(currentRef.ETI, typeBinding.TableId);
+                currentCCI = typeBinding.TableId;
+            }
+
             current = typeBinding.NewInstanceUninit();
             if (current == null) {
                 // A proxy couldn't be created or casted to the correct type so

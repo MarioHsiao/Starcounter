@@ -15,6 +15,7 @@ using System.Threading;
 using System.Diagnostics;
 using Starcounter.Hosting;
 using Administrator.Server.Managers;
+using Server.API;
 
 namespace Starcounter.Administrator.Server {
 
@@ -54,8 +55,7 @@ namespace Starcounter.Administrator.Server {
 
             // Create a Server Engine
             StarcounterEnvironment.Server.ServerDir = Path.GetDirectoryName(args[0]);
-            StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(
-                StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
+            StarcounterEnvironment.Gateway.PathToGatewayConfig = Path.Combine(StarcounterEnvironment.Server.ServerDir, StarcounterEnvironment.FileNames.GatewayConfigFileName);
 
             Program.ServerEngine = new ServerEngine(args[0]);      // .srv\Personal\Personal.server.config
             Program.ServerEngine.Setup();
@@ -93,6 +93,8 @@ namespace Starcounter.Administrator.Server {
             var admin = new AdminAPI();
             RestAPI.Bootstrap(admin, Dns.GetHostEntry(String.Empty).HostName, adminPort, Program.ServerEngine, Program.ServerInterface);
 
+            RestHandlers.Register();
+
             ServerManager.Init();
 
             // Registering Default handlers.
@@ -121,7 +123,7 @@ namespace Starcounter.Administrator.Server {
 
             }, new HandlerOptions() {
                 ProxyDelegateTrigger = true,
-                SkipMiddlewareFilters = true,
+                SkipRequestFilters = true,
                 ReplaceExistingHandler = true
             });
 
@@ -172,7 +174,7 @@ namespace Starcounter.Administrator.Server {
 
                 Response resp = new Response();
                 resp.Body = "hello";
-                resp.ContentType = "text/plain";
+                resp.ContentType = "text/plain;charset=utf-8";
 
                 return resp;
             });

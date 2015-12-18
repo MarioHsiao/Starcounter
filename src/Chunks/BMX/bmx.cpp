@@ -55,7 +55,6 @@ uint32_t BmxData::RegisterPortHandler(
         0,
         NULL,
         NULL,
-        NULL,
         0,
         MixedCodeConstants::PROTOCOL_TCP);
 
@@ -78,8 +77,7 @@ uint32_t BmxData::RegisterPortHandler(
 uint32_t BmxData::RegisterUriHandler(
     const uint16_t port,
     const char* app_name,
-    const char* original_uri_info,
-    const char* processed_uri_info,
+    const char* method_space_uri,
     const uint8_t* param_types,
     const int32_t num_params,
     const GENERIC_HANDLER_CALLBACK uri_handler, 
@@ -95,10 +93,9 @@ uint32_t BmxData::RegisterUriHandler(
     uint32_t err_code = 0;
 
     // Getting the URI string length.
-    uint32_t original_uri_len_chars = (uint32_t)strlen(original_uri_info);
-    uint32_t processed_uri_len_chars = (uint32_t)strlen(processed_uri_info);
-    if ((original_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN) ||
-        (processed_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN))
+    uint32_t method_space_uri_len_chars = (uint32_t)strlen(method_space_uri);
+
+    if (method_space_uri_len_chars >= MixedCodeConstants::MAX_URI_STRING_LEN)
         return SCERRHANDLERINFOEXCEEDSLIMITS;
 
     BMX_HANDLER_INDEX_TYPE i, empty_slot = max_num_entries_;
@@ -118,7 +115,7 @@ uint32_t BmxData::RegisterUriHandler(
             if (port == registered_handlers_[i].get_port())
             {
                 // Checking if URI string is the same.
-                if (!strcmp(processed_uri_info, registered_handlers_[i].get_processed_uri_info()))
+                if (!strcmp(method_space_uri, registered_handlers_[i].get_method_space_uri()))
                 {
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
@@ -138,8 +135,7 @@ uint32_t BmxData::RegisterUriHandler(
         port,
         app_name,
         0,
-        original_uri_info,
-        processed_uri_info,
+		method_space_uri,
         param_types,
         num_params,
         starcounter::MixedCodeConstants::NetworkProtocolType::PROTOCOL_HTTP1);
@@ -199,7 +195,7 @@ uint32_t BmxData::RegisterWsHandler(
             if (port == registered_handlers_[i].get_port())
             {
                 // Checking if URI string is the same.
-                if (!strcmp(channel_name, registered_handlers_[i].get_original_uri_info()))
+                if (!strcmp(channel_name, registered_handlers_[i].get_method_space_uri()))
                 {
                     // Disallowing handler duplicates.
                     return SCERRHANDLERALREADYREGISTERED;
@@ -220,7 +216,6 @@ uint32_t BmxData::RegisterWsHandler(
         app_name,
         channel_id,
         channel_name,
-        NULL,
         0,
         0,
         MixedCodeConstants::NetworkProtocolType::PROTOCOL_WEBSOCKETS);
@@ -302,7 +297,7 @@ bool BmxData::IsHandlerExist(
 // Finds certain handler.
 uint32_t BmxData::FindUriHandler(
     const uint16_t port_num,
-    const char* processed_uri_info,
+    const char* method_space_uri,
     BMX_HANDLER_INDEX_TYPE* handler_index)
 {
     // Checking all registered handlers.
@@ -314,7 +309,7 @@ uint32_t BmxData::FindUriHandler(
             {
                 if (port_num == registered_handlers_[i].get_port())
                 {
-                    if (!strcmp(processed_uri_info, registered_handlers_[i].get_processed_uri_info()))
+                    if (!strcmp(method_space_uri, registered_handlers_[i].get_method_space_uri()))
                     {
                         *handler_index = i;
                         return 0;
@@ -341,7 +336,7 @@ uint32_t BmxData::FindWsHandler(
             {
                 if (port_num == registered_handlers_[i].get_port())
                 {
-                    if (!strcmp(channel_name, registered_handlers_[i].get_original_uri_info()))
+                    if (!strcmp(channel_name, registered_handlers_[i].get_method_space_uri()))
                     {
                         *handler_index = i;
                         return 0;

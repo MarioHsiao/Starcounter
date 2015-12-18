@@ -1,0 +1,11 @@
+﻿{
+  "$": { "Namespace": "Server.API" },
+  "StarcounterVersion": "",
+  "StarcounterVersionChannel": "",
+  "StarcounterVersionDate": "",
+  "TotalRam": 0.0,
+  "FreeRam": 0.0,
+  "TotalDisk": 0.0,
+  "FreeDisk": 0.0,
+  "CPULoad": 0.0
+}
