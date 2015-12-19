@@ -7,12 +7,6 @@ EXPORTS
     sc_profiler_get_results_in_json
     sc_profiler_reset
 	sc_handle_incoming_chunks
-	sc_bmx_register_port_handler
-    sc_bmx_unregister_port
-	sc_bmx_register_uri_handler
-    sc_bmx_register_ws_handler
-    sc_bmx_unregister_uri
-	sc_bmx_unregister_handler
     sc_bmx_obtain_new_chunk
     sc_bmx_plain_copy_and_release_chunks
     sc_bmx_copy_from_chunks_and_release_trailing

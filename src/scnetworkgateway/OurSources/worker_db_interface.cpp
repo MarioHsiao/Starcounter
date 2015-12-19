@@ -583,7 +583,7 @@ uint32_t WorkerDbInterface::HandleManagementChunks(
                 // Jumping over 8 bytes because we reseted the offset.
                 resp_chunk->skip(8);
 
-                err_code = sc_bmx_parse_pong(ipc_smc, &ping_data);
+                err_code = starcounter::bmx::sc_bmx_parse_pong(ipc_smc, &ping_data);
                 if (err_code)
                     return err_code;
 

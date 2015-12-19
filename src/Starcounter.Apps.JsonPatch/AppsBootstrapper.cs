@@ -74,14 +74,14 @@ namespace Starcounter.Internal {
             // Giving REST needed delegates.
             unsafe {
                 UriManagedHandlersCodegen.Setup(
-                    GatewayHandlers.RegisterUriHandlerNative,
-                    GatewayHandlers.RegisterTcpSocketHandler,
-                    GatewayHandlers.RegisterUdpSocketHandler,
+                    GatewayHandlers.RegisterHttpHandlerInGateway,
+                    GatewayHandlers.RegisterTcpSocketHandlerInGateway,
+                    GatewayHandlers.RegisterUdpSocketHandlerInGateway,
                     ProcessExternalRequest,
                     AppServer_.RunDelegateAndProcessResponse,
                     UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
-                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
+                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerInGateway);
             }
 
             // Injecting required hosted Node functionality.

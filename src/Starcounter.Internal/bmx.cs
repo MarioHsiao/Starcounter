@@ -74,65 +74,7 @@ namespace Starcounter.Internal
 
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         public unsafe extern static void sc_bmx_release_linked_chunks(UInt32* the_chunk_index);
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_register_port_handler(
-            UInt16 port,
-            String app_name,
-            IntPtr managed_callback,
-            UInt16 managed_handler_id,
-            out UInt64 handlerInfo
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_register_subport_handler(
-            UInt16 port,
-            String app_name,
-            UInt32 subport,
-            IntPtr managed_callback,
-            UInt16 managed_handler_id,
-            out UInt64 handlerInfo
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_register_uri_handler(
-            UInt16 port,
-            String app_name,
-            String methodSpaceUri,
-            Byte* param_types,
-            Byte num_params,
-            IntPtr managed_callback,
-            UInt16 managed_handler_id,
-            out UInt64 handlerInfo);
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_register_ws_handler(
-            UInt16 port,
-            String app_name,
-            String channel_name,
-            UInt32 channel_id,
-            IntPtr managed_callback,
-            UInt16 managed_handler_id,
-            out UInt64 handlerInfo
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_unregister_port(
-            UInt16 port
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_unregister_subport(
-            UInt16 port,
-            UInt32 subport
-        );
-
-        [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
-        public unsafe extern static UInt32 sc_bmx_unregister_uri(
-            UInt16 port,
-            String methodSpaceUri
-        );
-
+        
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         internal extern static UInt32 sc_init_bmx_manager(
             IntPtr destroy_apps_session_callback,
