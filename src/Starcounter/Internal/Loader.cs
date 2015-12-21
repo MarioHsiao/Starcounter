@@ -44,7 +44,7 @@ namespace Starcounter.Internal
                     try {
                         int ci = 0;
                         for (; ; ) {
-                            if (columnDefs[ci].Name == columnName) {
+                            if (columnName.Equals(columnDefs[ci].Name, StringComparison.InvariantCultureIgnoreCase)) { 
                                 propertyDef.ColumnIndex = ci;
 
                                 // We set the type from the first property we find that maps the

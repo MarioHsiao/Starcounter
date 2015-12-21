@@ -73,7 +73,7 @@ namespace Starcounter.Binding {
                 for (int j = 2; j < oldCols.Length; j++) {
                     oldCol = oldCols[j];
 
-                    if (newCol.Name.Equals(oldCol.Name)) {
+                    if (newCol.Name.Equals(oldCol.Name, StringComparison.InvariantCultureIgnoreCase)) {
                         VerifyColumnType(oldCol, newCol);
                         exists = true;
                         break;
@@ -146,7 +146,7 @@ namespace Starcounter.Binding {
             if (newTableDef.BaseName != null) {
                 if (oldTableDef.BaseName == null) {
                     throwEx = true;
-                } else if (!newTableDef.BaseName.Equals(oldTableDef.BaseName)) {
+                } else if (!newTableDef.BaseName.Equals(oldTableDef.BaseName, StringComparison.InvariantCultureIgnoreCase)) {
                     throwEx = true;
                 }
             } else if (oldTableDef.BaseName != null) {

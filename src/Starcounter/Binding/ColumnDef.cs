@@ -4,6 +4,8 @@
 // </copyright>
 // ***********************************************************************
 
+using System;
+
 namespace Starcounter.Binding
 {
 
@@ -62,7 +64,7 @@ namespace Starcounter.Binding
         public bool Equals(ColumnDef columnDef)
         {
             return
-                Name.Equals(columnDef.Name) &&
+                Name.Equals(columnDef.Name, StringComparison.InvariantCultureIgnoreCase) &&
                 Type == columnDef.Type &&
                 IsNullable == columnDef.IsNullable &&
                 IsInherited == columnDef.IsInherited
