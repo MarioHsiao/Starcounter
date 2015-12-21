@@ -370,10 +370,8 @@ namespace Starcounter {
 
                     if (numParams1 > 0) {
 
-                        String hs = mapUri.Replace(Handle.UriParameterIndicator, Handle.UriParameterIndicator);
-
                         // Registering mapped URI with parameter.
-                        Handle.CUSTOM(method + " " + hs, (Request req, String p) => {
+                        Handle.CUSTOM(method + " " + mapUri, (Request req, String p) => {
                             return MappingHandler(req, mappedHandlersList, p);
                         }, new HandlerOptions() {
                             SkipHandlersPolicy = true,

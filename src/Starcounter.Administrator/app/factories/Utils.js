@@ -54,7 +54,10 @@ adminModule.factory('UtilsFactory', ['$log', function ($log) {
         }
         else {
             // it's something else
-            return { isError: true, header: header, message: data.Text, helpLink: (data.Helplink) ? data.Helplink : null, stackTrace: (data.StackTrace) ? data.StackTrace : null };
+            if (data == null) {
+                return { isError: true, header: (header) ? header : "", message: "", helpLink: null, stackTrace: null };
+            }
+            return { isError: true, header: header, message: (data.Text) ? data.Text : "", helpLink: (data.Helplink) ? data.Helplink : null, stackTrace: (data.StackTrace) ? data.StackTrace : null };
         }
 
     }

@@ -1,14 +1,14 @@
 # Here we specify durations for long tests that run longer that 1 minute.
 # Duration is specified in seconds, 60 means one minute.
 
-loadandlatency 15000
-store_apps 200
-tpcc_long 200
-queryprocessing 7000
-retaildemo 900
-pokerdemo 900
-hostlooper 300
-apps 300
-urls 300
-websockets 300
-schema_upgrade 180
+loadandlatency_test.bat 15000
+store_apps_test.bat 200
+tpcc_long_test.bat 200
+queryprocessing_test.bat 7000
+retaildemo_test.bat 900
+pokerdemo_test.bat 900
+hostlooper_test.bat 300
+apps_test.bat 300
+urls_test.bat 300
+websockets_test.bat 300
+schema_upgrade_test.bat 180
