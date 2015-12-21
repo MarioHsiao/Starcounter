@@ -59,7 +59,7 @@ Level1\src\Samples\LoadAndLatency\loadandlatency_test.bat
 Level1\src\Samples\IndexQueryTest\indexquery_test.bat
 Level1\src\Samples\QueryProcessingTest\queryprocessing_test.bat
 Level1\src\Samples\SQLTest\sqlregression_test.bat
-Level1\src\Samples\TPCC\tpcc_long_test.bat
+tpcc_long_test.bat
 poleposition_test.bat
 node_proxy_test.bat
 sqlcachetrasher_test.bat
