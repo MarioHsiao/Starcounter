@@ -368,7 +368,7 @@ public:
     }
 
     // Removing certain entry.
-    bool RemoveEntry(char* method_space_uri)
+    bool RemoveEntry(const char* method_space_uri)
     {
         int32_t index = FindRegisteredUri(method_space_uri);
 

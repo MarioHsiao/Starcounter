@@ -279,13 +279,13 @@ namespace Starcounter.Internal
             }
         }
 
-        public Boolean RunHandler(UInt16 handlerid, UInt32 groupId, WebSocket ws)
+        public Boolean RunHandler(UInt16 managedHandlerId, UInt32 groupId, WebSocket ws)
         {
-            if ((allWsGroups_[handlerid] != null) && 
-                (allWsGroups_[handlerid].Alive) &&
-                (allWsGroups_[handlerid].GroupId == groupId)) {
+            if ((allWsGroups_[managedHandlerId] != null) && 
+                (allWsGroups_[managedHandlerId].Alive) &&
+                (allWsGroups_[managedHandlerId].GroupId == groupId)) {
 
-                allWsGroups_[handlerid].DetermineAndRunHandler(ws);
+                allWsGroups_[managedHandlerId].DetermineAndRunHandler(ws);
                 return true;
 
             } else {

@@ -75,6 +75,7 @@ namespace Starcounter.Internal {
             unsafe {
                 UriManagedHandlersCodegen.Setup(
                     GatewayHandlers.RegisterHttpHandlerInGateway,
+                    GatewayHandlers.UnregisterHttpHandlerInGateway,
                     GatewayHandlers.RegisterTcpSocketHandlerInGateway,
                     GatewayHandlers.RegisterUdpSocketHandlerInGateway,
                     ProcessExternalRequest,
@@ -468,6 +469,7 @@ namespace Starcounter.Internal {
                 // Getting handler information.
                 UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
+
                 if (!uhi.SkipRequestFilters) {
                     // Checking if there is a filtering delegate.
                     resp = Handle.RunRequestFilters(req);

@@ -566,7 +566,7 @@ public:
         if (INVALID_PORT_INDEX == port_index)
             return SCERRGWWRONGPORTINDEX;
 
-        PortHandlers* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
+        HandlersList* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
 
         GW_ASSERT(NULL != ph);
 

@@ -1119,7 +1119,6 @@ struct UriAliasInfo
 // Represents an active server port.
 class HandlersList;
 class SocketDataChunk;
-class PortHandlers;
 class RegisteredUris;
 class PortWsGroups;
 class RegisteredSubports;
@@ -1134,8 +1133,8 @@ class ServerPort
     // Statistics.
     volatile int64_t num_accepting_sockets_unsafe_;
 
-    // Ports handler lists.
-    PortHandlers* port_handlers_;
+    // Port handler.
+	HandlersList* port_handler_;
 
     // All registered URIs belonging to this port.
     RegisteredUris* registered_uris_;
@@ -1245,10 +1244,15 @@ public:
     }
 
     // Getting registered port handlers.
-    PortHandlers* get_port_handlers()
+    HandlersList* get_port_handlers()
     {
-        return port_handlers_;
+        return port_handler_;
     }
+
+	void set_port_handlers(HandlersList* port_handler)
+	{
+		port_handler_ = port_handler;
+	}
 
     // Removes this port.
     void EraseDb(db_index_type db_index);

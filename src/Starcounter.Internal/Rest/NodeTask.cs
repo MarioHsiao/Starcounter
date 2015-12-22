@@ -493,6 +493,12 @@ namespace Starcounter {
                 try
                 {
 #endif
+
+                    if (socketWrapper_ != null && !socketWrapper_.SocketObj.Connected) {
+                        socketWrapper_.Destroy();
+                        socketWrapper_ = null;
+                    }
+
                     // Checking if we are connected.
                     if (null == socketWrapper_)
                     {

@@ -918,7 +918,7 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
         
         bool is_handled = false;
 
-        PortHandlers* ph = sp->get_port_handlers();
+        HandlersList* ph = sp->get_port_handlers();
 
         if ((ph != NULL) && (!ph->IsEmpty())) {
             ph->RunHandlers(this, sd_push_to_db, &is_handled);

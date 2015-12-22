@@ -115,6 +115,7 @@ namespace Starcounter
 
                 for (UInt16 i = 0; i < allHandlers_.Length; i++) {
 
+                    // Searching for the first unoccupied handler.
                     if (HandlerTypes.NotRegistered == allHandlers_[i].HandlerType) {
 
                         uniqueHandlersId_++;
@@ -564,7 +565,7 @@ namespace Starcounter
         /// <summary>
         /// Registers handler with gateway.
         /// </summary>
-        internal  static void RegisterHttpHandlerInGateway(
+        internal static void RegisterHttpHandlerInGateway(
             UInt16 port,
             String appName,
             String methodSpaceUri,
@@ -615,8 +616,31 @@ namespace Starcounter
             }
         }
 
-        void UnregisterUriHandler(UInt16 port, String methodSpaceUri) {
+        /// <summary>
+        /// Unregister existing URI handler.
+        /// </summary>
+        internal static void UnregisterHttpHandlerInGateway(UInt16 port, String methodSpaceUri) {
 
+            String uriHandlerInfo =
+                port + " " +
+                methodSpaceUri.Replace(' ', '\\');
+
+            uriHandlerInfo += "\r\n\r\n\r\n\r\n";
+
+            Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
+
+            Response r = Http.DELETE("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/handler/uri",
+                uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
+
+            if (!r.IsSuccessStatusCode) {
+
+                String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                if (null != errCodeStr)
+                    throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                else
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
+            }
         }
 
         /// <summary>

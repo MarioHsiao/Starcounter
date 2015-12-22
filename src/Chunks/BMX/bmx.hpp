@@ -79,9 +79,6 @@ namespace bmx
 	// Maximum total number of registered handlers.
 	const uint32_t MAX_TOTAL_NUMBER_OF_HANDLERS = 2048;
 
-	// Maximum number of the same handlers in a list.
-	const uint32_t MAX_NUMBER_OF_HANDLERS_IN_LIST = 8;
-
     typedef uint32_t BMX_SUBPORT_TYPE;
 
     // Invalid BMX handler info.
