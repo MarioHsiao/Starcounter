@@ -58,6 +58,13 @@ namespace Starcounter {
         /// </summary>
         private List<TransactionRef> transactions;
 
+        /// <summary>
+        /// Namespaces should only be added when the public viewmodel is serialized
+        /// and when patches are sent AND if the option is set. Otherwise no namespaces
+        /// and no siblings should be serialized.
+        /// </summary>
+        internal bool enableNamespaces = false;
+
         public Session() : this(SessionOptions.Default) {
         }
 
