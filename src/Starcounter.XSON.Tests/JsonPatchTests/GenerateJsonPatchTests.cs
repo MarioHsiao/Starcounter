@@ -33,7 +33,8 @@ namespace Starcounter.Internal.XSON.Tests {
 		[TearDown]
 		public static void AfterEachTest() {
             StarcounterEnvironment.AppName = oldAppName;
-		}
+            Session.Current = null;
+        }
 
         [Test]
         public static void TestPatchSizes() {
