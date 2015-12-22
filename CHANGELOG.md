@@ -37,7 +37,7 @@
 - Renamed the MiddlewareFiltersEnabled database flag to RequestFiltersEnabled.
 - Its no longer possible to register handlers with same signature. For example, one can't register handler "GET /{?}" with string parameter, and handler "GET /{?}" with integer parameter.
 - Due to [`<juicy-redirect>`](https://github.com/Juicy/juicy-redirect) and [`<puppet-redirect>`](https://github.com/PuppetJs/puppet-redirect) update, Custom Element should now be imported from `/sys/juicy-redirect/juicy-redirect.html` or `/sys/puppet-redirect/puppet-redirect.html`. When used with Polymer's template binding, `url` value can be bound two-way via property: `<juicy-redirect url="{{model.path.to.RedirectURL$}}">`
-
+- Added method(s) on Session taking a delegate to be run instead of using `session.StartUsing()` and `session.StopUsing()`,  these two methods are no longer public. [#3117](https://github.com/Starcounter/Starcounter/issues/3117)
 ## [2.1.177] - 2015-10-14
 ### Changed
 - Removal of notion of Polyjuice and major refactoring around this. Full list of changes is here:
