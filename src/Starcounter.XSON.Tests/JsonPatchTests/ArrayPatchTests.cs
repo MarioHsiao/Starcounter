@@ -469,17 +469,16 @@ namespace Starcounter.Internal.XSON.Tests {
             dynamic json = new Json() { Template = tSchema };
 
             var session = new Session();
-            
-            session.StartUsing();
-            try {
+
+            session.Use(() => {
                 session.Data = json;
 
-                var newArr = new long[] { 1, 2, 3};
+                var newArr = new long[] { 1, 2, 3 };
                 json.Items.Data = newArr;
                 AssertArray(json.Items, newArr);
 
                 var patch = jsonPatch.Generate(json, true, false);
-                
+
                 newArr = new long[] { 1, 4, 2, 3 };
                 json.Items.CheckBoundArray(newArr);
                 AssertArray(json.Items, newArr);
@@ -487,7 +486,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 patch = jsonPatch.Generate(json, true, false);
                 var expectedPatch = @"[{""op"":""add"",""path"":""/Items/1"",""value"":4}]";
                 Assert.AreEqual(expectedPatch, patch);
-                
+
                 json.Items.RemoveAt(1); // Reset to inital state, [1, 2, 3]
                 patch = jsonPatch.Generate(json, true, false);
 
@@ -498,13 +497,13 @@ namespace Starcounter.Internal.XSON.Tests {
                 patch = jsonPatch.Generate(json, true, false);
                 expectedPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
                 Assert.AreEqual(expectedPatch, patch);
-                
-                newArr = new long[] { 1, 2, 3, 4, 5};
+
+                newArr = new long[] { 1, 2, 3, 4, 5 };
                 json.Items.CheckBoundArray(newArr); // Reset to inital state, [1, 2, 3, 4, 5]
                 AssertArray(json.Items, newArr);
 
                 patch = jsonPatch.Generate(json, true, false);
-                
+
                 newArr = new long[] { 1, 3, 4, 5 };
                 json.Items.CheckBoundArray(newArr);
                 AssertArray(json.Items, newArr);
@@ -512,7 +511,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 patch = jsonPatch.Generate(json, true, false);
                 expectedPatch = @"[{""op"":""remove"",""path"":""/Items/1""}]";
                 Assert.AreEqual(expectedPatch, patch);
-                
+
                 newArr = new long[] { 1, 2, 3, 4, 5 };
                 json.Items.CheckBoundArray(newArr); // Reset to inital state, [1, 2, 3, 4, 5]
                 AssertArray(json.Items, newArr);
@@ -536,10 +535,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 expectedPatch = @"[{""op"":""remove"",""path"":""/Items/3""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""add"",""path"":""/Items/0"",""value"":2}]";
                 Assert.AreEqual(expectedPatch, patch);
-
-            } finally {
-                session.StopUsing();
-            }
+            });
         }
 
         private static void AssertArray(IList actual, long[] expected) {
@@ -560,8 +556,7 @@ namespace Starcounter.Internal.XSON.Tests {
             dynamic json = new Json() { Template = tSchema };
 
             var session = new Session();
-            session.StartUsing();
-            try {
+            session.Use(() => {
                 session.Data = json;
 
                 int testCount;
@@ -671,9 +666,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 Helper.ConsoleWriteLine("OLD: " + oldTime + " ms (" + oldChangeCount + " changes in " + oldTimePatches + " ms).");
                 Helper.ConsoleWriteLine("NEW: " + newTime + " ms (" + newChangeCount + " changes in " + newTimePatches + " ms).");
                 Helper.ConsoleWriteLine("");
-            } finally {
-                session.StopUsing();
-            }
+            });
         }
 
         private static void ResetJsonArray(Json json, Json items, int nrOfItems) {
