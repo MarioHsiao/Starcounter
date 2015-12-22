@@ -347,22 +347,21 @@ namespace Starcounter
         /// Start the session that came with request.
         /// </summary>
         static Session StartSessionThatCameWithRequest(Request req) {
-            Session s = null;
+            IAppsSession s = null;
 
             // Checking if we are in session already.
             if (req.CameWithCorrectSession) {
 
                 // Obtaining session.
-                s = (Session) req.GetAppsSessionInterface();
+                s = req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
                 if (null != s) {
-
                     // Starting session.
                     s.StartUsing();
                 }
             }
-            return s;
+            return (Session)s;
         }
 
         /// <summary>
@@ -737,7 +736,7 @@ namespace Starcounter
                 {
                     session = (Session)appsSession;
                     session.ActiveWebSocket = ws;
-                    session.StartUsing();
+                    appsSession.StartUsing();
                 }
 
                 // Setting statically available current WebSocket.
