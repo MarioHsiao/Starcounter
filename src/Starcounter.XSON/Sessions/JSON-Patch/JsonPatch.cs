@@ -77,12 +77,21 @@ namespace Starcounter.XSON {
         public int Generate(Json json, bool flushLog, bool includeNamespace, out byte[] patches) {
             int patchSize;
             ChangeLog changeLog = json.ChangeLog;
-
+            
             if (changeLog == null) {
                 throw new Exception("Cannot generate patches on json that has no changelog attached.");
             }
 
-            patchSize = Generate(changeLog, includeNamespace, flushLog, out patches);
+            var session = json.Session;
+            if (session != null)
+                session.enableNamespaces = true;
+
+            try {
+                patchSize = Generate(changeLog, includeNamespace, flushLog, out patches);
+            } finally {
+                if (session != null)
+                    session.enableNamespaces = false;
+            }
             
             return patchSize;
         }
@@ -99,7 +108,7 @@ namespace Starcounter.XSON {
             Utf8Writer writer;
             Change[] changes;
             bool versioning = (changeLog.Version != null);
-
+            
             changes = changeLog.Generate(flushLog);
             
             size = 2; // [ ]

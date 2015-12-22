@@ -30,8 +30,18 @@ namespace Starcounter.Internal {
                     while (r.Parent != null)
                         r = r.Parent;
                     var root = (Json)r;
-                    ret = root.ToJsonUtf8();
 
+                    s = root.Session;
+                    if (s != null && s.PublicViewModel == root)
+                        s.enableNamespaces = true;
+
+                    try {
+                        ret = root.ToJsonUtf8();
+                    } finally {
+                        if (s != null)
+                            s.enableNamespaces = false;
+                    }
+                    
                     if (root.ChangeLog != null) {
                         // Make sure that we regard all changes as being sent to the client.
                         // Calculate patches from here on.
