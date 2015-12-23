@@ -18,7 +18,7 @@ namespace Starcounter {
 
         public bool IsConnected() {
             try {
-                return !(socket_.Poll(1, SelectMode.SelectRead) && socket_.Available == 0);
+                return !(socket_.Poll(0, SelectMode.SelectRead) && socket_.Available == 0);
             } catch (SocketException) { return false; }
         }
 
