@@ -139,6 +139,12 @@ namespace Starcounter.SqlProcessor {
         }
 
 #if true
+        private static ulong globalSetspecIndexHandle_ = 0;
+
+        internal static ulong GetGlobalSetspecIndexHandle(ulong contextHandle) {
+            return globalSetspecIndexHandle_;
+        }
+
         private const string GlobalSetspecLayoutToken = "setspec";
 
         [DllImport("sccoredb.dll")]
@@ -161,7 +167,7 @@ namespace Starcounter.SqlProcessor {
             ushort sort_mask, uint attribute_flags, ulong *pindex_handle
             );
 
-        internal static void AssureGlobalSetspecIndexExists(ulong contextHandle) { // TODO:
+        internal static void AssureGlobalSetspecIndexExists(ulong contextHandle) {
             ulong transactionHandle;
 
             transactionHandle = 0;
@@ -247,6 +253,8 @@ namespace Starcounter.SqlProcessor {
                         );
                     if (r != 0) goto err;
 
+                    ulong indexHandle;
+
                     if (indexInfoCount == 1) {
                         // Already exists.
 
@@ -256,6 +264,8 @@ namespace Starcounter.SqlProcessor {
                             indexInfo.sortMask == 0
                             ) {
                             // Verified.
+
+                            indexHandle = indexInfo.handle;
                         }
                         else {
                             r = Error.SCERRUNEXPMETADATA;
@@ -266,7 +276,6 @@ namespace Starcounter.SqlProcessor {
                         short* columnIndexes = stackalloc short[2];
                         columnIndexes[0] = 1; // Setspec column.
                         columnIndexes[1] = -1;
-                        ulong indexHandle;
                         r = stari_context_create_index(
                             contextHandle, indexToken, "", layoutHandle, columnIndexes, 0, 0,
                             &indexHandle
@@ -281,6 +290,8 @@ namespace Starcounter.SqlProcessor {
                     r = sccoredb.star_context_commit(contextHandle, 1);
                     if (r != 0) goto err;
                     transactionHandle = 0;
+
+                    globalSetspecIndexHandle_ = indexHandle;
 
                     return;
 

@@ -25,14 +25,13 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Int32 extentNumber = -1; // To which table this enumerator belongs to.
     UInt64 indexHandle = 0; // Handle to the related index.
     IteratorHelper iterHelper; // Stores cached iterator helper.
-    IndexInfo2 indexInfo = null; // Information about index.
 
     ILogicalExpression condition = null; // Condition tree for the query.
     Boolean descending = false, // Sorting: Ascending or Descending.
-       enumeratorCreated = false; // True after execution enumerator is created.
-       //dataStreamChanged = false; // True if data stream has changed.
+    enumeratorCreated = false; // True after execution enumerator is created.
+    //dataStreamChanged = false; // True if data stream has changed.
 
-    FilterEnumerator enumerator = null; // Handle to execution enumerator.
+    IEnumerator<IObjectView> enumerator = null; // Handle to execution enumerator.
     Row contextObject = null; // This object comes from the outer loop in joins.
 
     CodeGenFilterPrivate privateFilter = null; // Filter code generator instance.
@@ -57,9 +56,11 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     Boolean isAtRecreatedKey = false;
     public Boolean IsAtRecreatedKey { get { return isAtRecreatedKey; } }
 
+    FilterCallback callbackManagedFilterCached = null;
+
     internal FullTableScan(byte nodeId, 
         RowTypeBinding rowTypeBind,
-        Int32 extentNum, IndexInfo2 indexInfo,
+        Int32 extentNum,
         ILogicalExpression queryCond,
         SortOrder sortingType,
         INumericalExpression fetchNumberExpr,
@@ -67,6 +68,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         IBinaryExpression fetchOffsetKeyExpr,
         Boolean innermostExtent, 
         CodeGenFilterPrivate privFilter,
+        bool enableNativeFilter,
         VariableArray varArr, String query, Boolean topNode)
         : base(nodeId, EnumeratorNodeType.FullTableScan, rowTypeBind, varArr, topNode, 3)
     {
@@ -78,8 +80,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect queryCond.");
         Debug.Assert(OffsetTuppleLength == 3);
         extentNumber = extentNum;
-        indexHandle = indexInfo.Handle;
-        this.indexInfo = indexInfo;
+        indexHandle =
+            SqlProcessor.SqlProcessor.GetGlobalSetspecIndexHandle(ThreadData.ContextHandle);
         condition = queryCond;
 
         descending = (sortingType == SortOrder.Descending);
@@ -94,185 +96,50 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 
         iterHelper = IteratorHelper.GetIndex(indexHandle); // Caching index handle.
 
-        // Creating empty enumerator at caching time (without any managed post privateFilter).
-        enumerator = new FilterEnumerator();
-
         // Checking if private filter has already been created for us.
-        if (privateFilter == null)
+        if (privFilter == null && enableNativeFilter)
         {
-            // Query has not been cached before, so we need
-            // to create a private filter and shared filter cache.
-            privateFilter = new CodeGenFilterPrivate(condition,
-                rowTypeBinding,
-                extentNumber,
-                null, // Current numerical variable types should be determined at execution time.
-                new CodeGenFilterCacheShared(4), // Maximum 4 filters can be cached per query.
-                0);
-        }
-        else
-        {
-            privateFilter = privFilter;
+            try {
+                // Query has not been cached before, so we need
+                // to create a private filter and shared filter cache.
+                privFilter = new CodeGenFilterPrivate(condition,
+                    rowTypeBinding,
+                    extentNumber,
+                    null, // Current numerical variable types should be determined at execution time.
+                    new CodeGenFilterCacheShared(4), // Maximum 4 filters can be cached per query.
+                    0);
+            } catch {
+                //Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
+            }
         }
 
-        // Creating full range intervals.
-        CreateFullRangeKeys();
+        privateFilter = privFilter;
+
+        if (privFilter != null) {
+            // Creating empty enumerator at caching time (without any managed post privateFilter).
+            enumerator = new FilterEnumerator();
+        }
+        else {
+            enumerator = new Enumerator();
+            callbackManagedFilterCached = condition.Instantiate(null).Filtrate;        }
+
+        CreateRangeKeys();
     }
 
     /// <summary>
     /// Creates keys for full range scan.
     /// </summary>
-    void CreateFullRangeKeys()
+    void CreateRangeKeys()
     {
+        // TODO: Performance: TypeBinding should cache set specifier.
+        var typeBinding = (TypeBinding)rowTypeBinding.GetTypeBinding(extentNumber);
+        string setspec = SqlProcessor.SqlProcessor.GetSetSpecifier(typeBinding.TableId);
+
         firstKeyBuilder = new ByteArrayBuilder();
         secondKeyBuilder = new ByteArrayBuilder();
 
-        // Going through all indexes in the combined index.
-        for (Int32 i = 0; i < indexInfo.AttributeCount; i++)
-        {
-            switch (indexInfo.GetTypeCode(i))
-            {
-                case DbTypeCode.Binary:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(BinaryRangeValue.INFINITE);
-                        secondKeyBuilder.Append(BinaryRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(BinaryRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(BinaryRangeValue.INFINITE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.Boolean:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(BooleanRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(BooleanRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(BooleanRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(BooleanRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.DateTime:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(DateTimeRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(DateTimeRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(DateTimeRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(DateTimeRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.Decimal:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(DecimalRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(DecimalRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(DecimalRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(DecimalRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.Int64:
-                case DbTypeCode.Int32:
-                case DbTypeCode.Int16:
-                case DbTypeCode.SByte:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(IntegerRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(IntegerRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(IntegerRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(IntegerRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.UInt64:
-                case DbTypeCode.UInt32:
-                case DbTypeCode.UInt16:
-                case DbTypeCode.Byte:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.Object:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(ObjectRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(ObjectRangeValue.MIN_VALUE);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(ObjectRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(ObjectRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.String:
-                {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending)
-                    {
-                        firstKeyBuilder.Append(StringRangeValue.MAX_VALUE, true);
-                        secondKeyBuilder.Append(StringRangeValue.MIN_VALUE, false);
-                    }
-                    else
-                    {
-                        firstKeyBuilder.Append(StringRangeValue.MIN_VALUE, false);
-                        secondKeyBuilder.Append(StringRangeValue.MAX_VALUE, true);
-                    }
-                    break;
-                }
-
-                case DbTypeCode.Key: {
-                    if (indexInfo.GetSortOrdering(i) == SortOrder.Descending) {
-                        firstKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
-                        secondKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
-                    }
-                    else {
-                        firstKeyBuilder.Append(UIntegerRangeValue.MIN_VALUE);
-                        secondKeyBuilder.Append(UIntegerRangeValue.MAX_VALUE);
-                    }
-                    break;
-                }
-
-                default:
-                    throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect typeCode.");
-            }
-        }
+        firstKeyBuilder.Append_Setspec(setspec, false);
+        secondKeyBuilder.Append_Setspec(setspec, true);
 
         // Fetching the created buffers.
         firstKeyBuffer = firstKeyBuilder.GetBufferCached();
@@ -361,7 +228,22 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 lastKey = secondKeyBuffer;
 
             // Trying to recreate the enumerator from key.
-            if (iterHelper.RecreateEnumerator_CodeGenFilter(recreationKey, enumerator, filterHandle, _flags, filterDataStream, lastKey)) {
+            bool recreated;
+            
+            if (privateFilter != null) {
+                FilterEnumerator filterEnumerator = (FilterEnumerator)enumerator;
+                recreated = iterHelper.RecreateEnumerator_CodeGenFilter(
+                    recreationKey, filterEnumerator, filterHandle, _flags, filterDataStream, lastKey
+                    );
+            }
+            else {
+                Enumerator inner = (Enumerator)enumerator;
+                recreated = iterHelper.RecreateEnumerator_NoCodeGenFilter(
+                    recreationKey, inner, _flags, lastKey
+                    );
+            }
+
+            if (recreated) {
                 // Indicating that enumerator has been created.
                 enumeratorCreated = true;
 
@@ -388,7 +270,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     /// Filter should be already available.
     /// Value stream is supplied.
     /// </summary>
-    private Boolean CreateEnumerator()
+    private Boolean CreateEnumeratorWithNativeFilter()
     {
 #if false // TODO EOH2: Transaction id
         // Check that the current transaction has not been changed.
@@ -403,6 +285,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 throw ErrorCode.ToException(Error.SCERRITERATORNOTOWNED);
         }
 #endif
+
+        FilterEnumerator filterEnumerator = (FilterEnumerator)enumerator;
 
         // Trying to get existing/create new privateFilter.
         filterHandle = privateFilter.GetFilterHandle();
@@ -441,7 +325,6 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
 #endif
         }
 
-
         // Creating native iterator.
         if (descending)
         {
@@ -449,7 +332,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY | sccoredb.SC_ITERATOR_SORTED_DESCENDING,
                 secondKeyBuffer,
                 firstKeyBuffer,
-                enumerator);
+                filterEnumerator);
         }
         else
         {
@@ -457,7 +340,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
                 sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY | sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY,
                 firstKeyBuffer,
                 secondKeyBuffer,
-                enumerator);
+                filterEnumerator);
         }
 
         // Indicating that enumerator has been created.
@@ -467,6 +350,53 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         //dataStreamChanged = true;
 
         return true;
+    }
+    private bool CreateEnumeratorWithoutNativeFilter() {
+        Enumerator e = (Enumerator)enumerator;
+
+        FilterCallback filterCallback;
+        if (contextObject == null) {
+            filterCallback = callbackManagedFilterCached;
+        }
+        else {
+            filterCallback = condition.Instantiate(contextObject).Filtrate;
+        }
+        e.UpdateFilter(filterCallback);
+
+        // Using offset key only if enumerator is not already in recreation mode.
+        if ((useOffsetkey) && (fetchOffsetKeyExpr != null)) {            unsafe {
+                fixed (Byte* recrKey = (fetchOffsetKeyExpr as BinaryVariable).Value.Value.GetInternalBuffer()) {
+                    // Checking if recreation key is valid.
+                    if ((*(Int32*)recrKey) > IteratorHelper.RK_EMPTY_LEN)
+                        return TryRecreateEnumerator(recrKey + 4 + 1);
+                }            }        }
+
+        // Creating native iterator.
+        if (descending) {
+            iterHelper.GetEnumeratorCached_NoCodeGenFilter(
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY |
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY |
+                sccoredb.SC_ITERATOR_SORTED_DESCENDING,
+                secondKeyBuffer, firstKeyBuffer, e
+                );
+        }
+        else {
+            iterHelper.GetEnumeratorCached_NoCodeGenFilter(
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_FIRST_KEY |
+                sccoredb.SC_ITERATOR_RANGE_INCLUDE_LAST_KEY,
+                firstKeyBuffer, secondKeyBuffer, e
+                );
+        }
+
+        // Indicating that enumerator has been created.
+        enumeratorCreated = true;
+
+        return true;
+    }
+
+    private Boolean CreateEnumerator() {
+        return (privateFilter != null) ?
+            CreateEnumeratorWithNativeFilter() : CreateEnumeratorWithoutNativeFilter();
     }
 
     public Boolean MoveNext() {
@@ -562,13 +492,19 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         UInt32 err = 0;
 
         // TODO/Entity:
-        IObjectProxy dbObject = enumerator.CurrentRaw as IObjectProxy;
+        IObjectProxy dbObject;
+        if (privateFilter != null) {
+            dbObject = ((FilterEnumerator)enumerator).CurrentRaw as IObjectProxy;
+        }
+        else {
+            dbObject = ((Enumerator)enumerator).CurrentRaw as IObjectProxy;
+        }
         if (dbObject != null)
-        // Getting current position of the object in iterator.
-        err = sccoredb.star_context_get_index_position_key(
-            ThreadData.ContextHandle, indexInfo.Handle, dbObject.Identity, dbObject.ThisHandle,
-            &createdKey
-            );
+            // Getting current position of the object in iterator.
+            err = sccoredb.star_context_get_index_position_key(
+                ThreadData.ContextHandle, indexHandle, dbObject.Identity, dbObject.ThisHandle,
+                &createdKey
+                );
 
         // Disposing iterator.
         enumerator.Dispose();
@@ -653,7 +589,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
             if (dbObject != null) {
                 // Getting current position of the object in iterator.
                 err = sccoredb.sc_get_index_position_key(
-                    indexInfo.Handle,
+                    indexHandle,
                     dbObject.Identity,
                     dbObject.ThisHandle,
                     &createdKey
@@ -738,7 +674,7 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         contextObject = obj;
 
         counter = 0;
-        privateFilter.ResetCached(); // Reseting private filters.
+        if (privateFilter != null) privateFilter.ResetCached(); // Reseting private filters.
 
         if (obj == null) {
             isAtRecreatedKey = false;
@@ -765,16 +701,19 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
         if (fetchOffsetKeyExpr != null)
             fetchOffsetKeyExprClone = fetchOffsetKeyExpr.CloneToBinary(varArrClone);
 
+        CodeGenFilterPrivate privateFilterClone = (privateFilter != null) ?
+            privateFilter.Clone(conditionClone, typeBindingClone) : null;
+
         return new FullTableScan(nodeId, typeBindingClone,
             extentNumber,
-            indexInfo,
             conditionClone,
             sortOrder,
             fetchNumberExprClone,
             fetchOffsetExprClone,
             fetchOffsetKeyExprClone,
-            innermostExtent, 
-            privateFilter.Clone(conditionClone, typeBindingClone),
+            innermostExtent,
+            privateFilterClone,
+            privateFilterClone != null,
             varArrClone, query, TopNode);
     }
 
@@ -782,7 +721,8 @@ internal class FullTableScan : ExecutionEnumerator, IExecutionEnumerator
     {
         stringBuilder.AppendLine(tabs, "FullTableScan(");
         //stringBuilder.AppendLine(tabs + 1, indexHandle.ToString());
-        stringBuilder.AppendLine(tabs + 1, indexInfo.Name + " ON " + indexInfo.TableName);
+        //stringBuilder.AppendLine(tabs + 1, indexInfo.Name + " ON " + indexInfo.TableName);
+        stringBuilder.AppendLine(tabs + 1, rowTypeBinding.GetTypeBinding(extentNumber).Name);
         stringBuilder.AppendLine(tabs + 1, extentNumber.ToString());
         condition.BuildString(stringBuilder, tabs + 1);
         if (descending) stringBuilder.AppendLine(tabs + 1, "Descending");
