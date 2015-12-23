@@ -138,6 +138,167 @@ namespace Starcounter.SqlProcessor {
                 throw ErrorCode.ToException(err);
         }
 
+#if true
+        private const string GlobalSetspecLayoutToken = "setspec";
+
+        [DllImport("sccoredb.dll")]
+        private static extern unsafe uint stari_context_create_layout(
+            ulong handle, ulong token, ushort base_layout_handle,
+            sccoredb.STARI_COLUMN_DEFINITION *column_definitions, uint attribute_flags,
+            ushort *playout_handle
+            );
+
+        private const string GlobalSetspecIndexToken = "setspec";
+
+        [DllImport("sccoredb.dll")]
+        private static extern unsafe uint stari_context_get_index_infos_by_token(
+            ulong handle, ulong token, uint* pic, sccoredb.STARI_INDEX_INFO *piis
+            );
+
+        [DllImport("sccoredb.dll", CharSet = CharSet.Unicode)]
+        private static extern unsafe uint stari_context_create_index(
+            ulong handle, ulong token, string setspec, ushort layout_handle, short* column_indexes,
+            ushort sort_mask, uint attribute_flags, ulong *pindex_handle
+            );
+
+        internal static void AssureGlobalSetspecIndexExists(ulong contextHandle) { // TODO:
+            ulong transactionHandle;
+
+            transactionHandle = 0;
+
+            try {
+                unsafe {
+                    uint r;
+
+                    // Assure that base layout exists.
+
+                    r = sccoredb.star_context_create_transaction(
+                        contextHandle, 0, out transactionHandle
+                        );
+                    if (r != 0) {
+                        transactionHandle = 0;
+                        goto err;
+                    }
+                    r = sccoredb.star_context_set_current_transaction(
+                        contextHandle, transactionHandle
+                        );
+                    if (r != 0) goto err;
+
+                    ulong layoutToken = AssureToken(GlobalSetspecLayoutToken);
+
+                    ushort layoutHandle;
+
+                    uint layoutInfoCount = 1;
+                    sccoredb.STARI_LAYOUT_INFO layoutInfo;
+                    r = sccoredb.stari_context_get_layout_infos_by_token(
+                        contextHandle, layoutToken, &layoutInfoCount, &layoutInfo
+                        );
+                    if (r != 0) goto err;
+                    if (layoutInfoCount == 1) {
+                        if (
+                            layoutInfo.column_count == 2 && layoutInfo.inherited_layout_handle == 0
+                            ) {
+                            layoutHandle = layoutInfo.layout_handle;
+                        }
+                        else {
+                            r = Error.SCERRUNEXPMETADATA;
+                            goto err;
+                        }
+                    }
+                    else if (layoutInfoCount == 0) {
+                        sccoredb.STARI_COLUMN_DEFINITION columnDef;
+                        columnDef.type = 0;
+                        r = stari_context_create_layout(
+                            contextHandle, layoutToken, 0, &columnDef, 0, &layoutHandle
+                            );
+                        if (r != 0) goto err;
+                    }
+                    else {
+                        r = Error.SCERRUNEXPMETADATA;
+                        goto err;
+                    }
+
+#if true
+                    r = sccoredb.star_context_commit(contextHandle, 1);
+                    if (r != 0) goto err;
+                    transactionHandle = 0;
+                    
+                    r = sccoredb.star_context_create_transaction(
+                        contextHandle, 0, out transactionHandle
+                        );
+                    if (r != 0) {
+                        transactionHandle = 0;
+                        goto err;
+                    }
+                    r = sccoredb.star_context_set_current_transaction(
+                        contextHandle, transactionHandle
+                        );
+                    if (r != 0) goto err;
+#endif
+
+                    // Assure that global index on set specifier exists.
+
+                    ulong indexToken = AssureToken(GlobalSetspecIndexToken);
+
+                    uint indexInfoCount = 1;
+                    sccoredb.STARI_INDEX_INFO indexInfo;
+                    r = stari_context_get_index_infos_by_token(
+                        contextHandle, indexToken, &indexInfoCount, &indexInfo
+                        );
+                    if (r != 0) goto err;
+
+                    if (indexInfoCount == 1) {
+                        // Already exists.
+
+                        if (
+                            indexInfo.attributeCount == 1 && indexInfo.attrIndexArr_0 == 1 &&
+                            indexInfo.flags == 0 && indexInfo.layout_handle == layoutHandle &&
+                            indexInfo.sortMask == 0
+                            ) {
+                            // Verified.
+                        }
+                        else {
+                            r = Error.SCERRUNEXPMETADATA;
+                            goto err;
+                        }
+                    }
+                    else if (indexInfoCount == 0) {
+                        short* columnIndexes = stackalloc short[2];
+                        columnIndexes[0] = 1; // Setspec column.
+                        columnIndexes[1] = -1;
+                        ulong indexHandle;
+                        r = stari_context_create_index(
+                            contextHandle, indexToken, "", layoutHandle, columnIndexes, 0, 0,
+                            &indexHandle
+                            );
+                        if (r != 0) goto err;
+                    }
+                    else {
+                        r = Error.SCERRUNEXPMETADATA;
+                        goto err;
+                    }
+
+                    r = sccoredb.star_context_commit(contextHandle, 1);
+                    if (r != 0) goto err;
+                    transactionHandle = 0;
+
+                    return;
+
+                err:
+                    throw ErrorCode.ToException(r);
+                }
+            }
+            finally {
+                if (transactionHandle != 0) {
+                    uint r = sccoredb.star_transaction_free(
+                        transactionHandle, ThreadData.ObjectVerify
+                        );
+                    if (r != 0) ErrorCode.ToException(r); // Fatal.
+                }
+            }
+        }
+#endif
+
         public static void CleanClrMetadata(ulong context) {
             uint err = star_clrmetadata_clean(context);
             if (err != 0)
