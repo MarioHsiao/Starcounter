@@ -20,7 +20,7 @@ namespace QueryProcessingTest {
             OffsetWithCondition(100, 20);
             // Offset with path expression
             Db.Transact(delegate {
-                foreach (User u in Db.SQL<User>("select client from account offset ?", 10)) {
+                foreach (User u in Db.SQL<User>("select client from account order by accountid offset ?", 10)) {
                     Trace.Assert(u.UserId == DataPopulation.FakeUserId(10/3));
                     break;
                 }
@@ -43,9 +43,29 @@ namespace QueryProcessingTest {
         }
 
         internal static void FetchAccounts(int fetchnr) {
+            int count = 0;
+            Db.Transact(delegate {
+                //HelpMethods.PrintQueryPlan("select a from account a fetch ?");
+                foreach (Account a in Db.SQL<Account>("select a from account a fetch ?", fetchnr)) {
+                    count++;
+                }
+            });
+            Trace.Assert(count == fetchnr);
+
             int id = 0;
             Db.Transact(delegate {
-                foreach (Account a in Db.SQL<Account>("select a from account a fetch ?", fetchnr)) {
+                //HelpMethods.PrintQueryPlan("select a from account a order by a.accountid fetch ?");
+                foreach (Account a in Db.SQL<Account>("select a from account a order by a.accountid fetch ?", fetchnr)) {
+                    Trace.Assert(a.AccountId == id);
+                    id++;
+                }
+            });
+            Trace.Assert(id == fetchnr);
+
+            id = 0;
+            Db.Transact(delegate {
+                //HelpMethods.PrintQueryPlan("select a from account a where a.accountid >= ? fetch ?");
+                foreach (Account a in Db.SQL<Account>("select a from account a where a.accountid >= ? fetch ?", 0, fetchnr)) {
                     Trace.Assert(a.AccountId == id);
                     id++;
                 }
@@ -54,9 +74,26 @@ namespace QueryProcessingTest {
         }
 
         internal static void FetchAccounts(int fetchnr, int fetchoff) {
-            int id = fetchoff;
+            int count = 0;
             Db.Transact(delegate {
                 foreach (Account a in Db.SQL<Account>("select a from account a fetch ? offset ?", fetchnr, fetchoff)) {
+                    count++;
+                }
+            });
+            Trace.Assert(count == fetchnr);
+
+            int id = fetchoff;
+            Db.Transact(delegate {
+                foreach (Account a in Db.SQL<Account>("select a from account a order by a.accountid fetch ? offset ?", fetchnr, fetchoff)) {
+                    Trace.Assert(a.AccountId == id);
+                    id++;
+                }
+            });
+            Trace.Assert(id == fetchoff + fetchnr);
+
+            id = fetchoff;
+            Db.Transact(delegate {
+                foreach (Account a in Db.SQL<Account>("select a from account a where a.accountid >= ? fetch ? offset ?", 0, fetchnr, fetchoff)) {
                     Trace.Assert(a.AccountId == id);
                     id++;
                 }
@@ -75,10 +112,11 @@ namespace QueryProcessingTest {
 
         internal static void FetchJoinedAccounts(int fetchnr, int fetchoff) {
             int rows = fetchoff;
-            //PrintQueryPlan("select a1 from account a1, account a2 where a1.accountid >= a2.accountid and a1.amount >= a2.amount and a1.client = a2.client fetch ? offset ?");
+            //HelpMethods.PrintQueryPlan("select a1 from account a1, account a2 where a1.accountid >= a2.accountid and a1.amount >= a2.amount and a1.client = a2.client fetch ? offset ?");
+            //HelpMethods.PrintQueryPlan("select a1 from account a1, account a2 where a1.accountid >= ? AND a1.accountid >= a2.accountid and a1.amount >= a2.amount and a1.client = a2.client fetch ? offset ?");
             Db.Transact(delegate {
-                foreach (Account a in Db.SQL<Account>("select a1 from account a1, account a2 where a1.accountid >= a2.accountid and a1.amount >= a2.amount and a1.client = a2.client fetch ? offset ?", 
-                    fetchnr, fetchoff)) {
+                foreach (Account a in Db.SQL<Account>("select a1 from account a1, account a2 where a1.accountid >= ? AND a1.accountid >= a2.accountid and a1.amount >= a2.amount and a1.client = a2.client fetch ? offset ?", 
+                    0, fetchnr, fetchoff)) {
                     Trace.Assert(a.Client.UserId == DataPopulation.FakeUserId(rows / 6));
                     rows++;
                 }
@@ -86,6 +124,7 @@ namespace QueryProcessingTest {
             Trace.Assert(rows == fetchoff + fetchnr);
         }
 
+#if false
         internal static void FetchJoinedUsers(int fetchnr, int fetchoff) {
             int rows = fetchoff;
             HelpMethods.PrintQueryPlan("select a1.client from account a1, account a2 where a1.client = a2.client and a1.amount > ? and a1.amount >= a2.amount + ? order by a1.client fetch ? offset ?");
@@ -98,6 +137,7 @@ namespace QueryProcessingTest {
             });
             Trace.Assert(rows == fetchoff + fetchnr);
         }
+#endif
 
         internal static void FetchSortedAccounts(int maxaccounts, decimal expamount, int fetchnr, int fetchoff) {
             //HelpMethods.PrintQueryPlan("select a from account a where accountid < ? order by amount asc fetch ? offset ?");
