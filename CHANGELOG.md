@@ -30,6 +30,7 @@
 - Fixed issue with patches for items in arrays for TypedJson sometimes having incorrect index.
 - Fixed matching metadata-properties with regular properties in JSON-by-example [#3136](https://github.com/Starcounter/Starcounter/issues/3136).  
 - Fixed reseting URL to `""` in view-model after `<juicy-redirect>`/`<puppet-redirect>` redirect [PuppetJs/puppet-redirect#1](https://github.com/PuppetJs/puppet-redirect/issues/1), [PuppetJs/puppet-redirect#2](https://github.com/PuppetJs/puppet-redirect/issues/2)
+- Serializing TypedJson from usercode no longer generates json with namespaces. Namespaces are only added when serializing the public viewmodel when the option is set in the session, and also when patches are generated with the same option set. [#3148](https://github.com/Starcounter/Starcounter/issues/3148)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
@@ -37,7 +38,7 @@
 - Renamed the MiddlewareFiltersEnabled database flag to RequestFiltersEnabled.
 - Its no longer possible to register handlers with same signature. For example, one can't register handler "GET /{?}" with string parameter, and handler "GET /{?}" with integer parameter.
 - Due to [`<juicy-redirect>`](https://github.com/Juicy/juicy-redirect) and [`<puppet-redirect>`](https://github.com/PuppetJs/puppet-redirect) update, Custom Element should now be imported from `/sys/juicy-redirect/juicy-redirect.html` or `/sys/puppet-redirect/puppet-redirect.html`. When used with Polymer's template binding, `url` value can be bound two-way via property: `<juicy-redirect url="{{model.path.to.RedirectURL$}}">`
-
+- Added method(s) on Session taking a delegate to be run instead of using `session.StartUsing()` and `session.StopUsing()`,  these two methods are no longer public. [#3117](https://github.com/Starcounter/Starcounter/issues/3117)
 ## [2.1.177] - 2015-10-14
 ### Changed
 - Removal of notion of Polyjuice and major refactoring around this. Full list of changes is here:

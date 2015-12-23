@@ -32,11 +32,9 @@ namespace Starcounter.Internal.XSON.Tests {
 
 		[TearDown]
 		public static void AfterEachTest() {
-			// Making sure that we are ending the session even if the test failed.
-            if (Session.Current != null)
-                Session.Current.StopUsing();
             StarcounterEnvironment.AppName = oldAppName;
-		}
+            Session.Current = null;
+        }
 
         [Test]
         public static void TestPatchSizes() {
@@ -50,8 +48,7 @@ namespace Starcounter.Internal.XSON.Tests {
             string patch;
             string path;
             Session session = new Session();
-            session.StartUsing();
-            try {
+            session.Use(() => {
                 // ["op":"replace","path":"","value":"ApaPapa"]
                 path = "";
                 patch = string.Format(Helper.PATCH_REPLACE, path, @"{""FirstName"":""ApaPapa""}");
@@ -68,7 +65,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 patchSize = jsonPatch.Generate(json, true, false, out patchArr);
                 expectedSize = patch.Length + 2;
                 Assert.AreEqual(expectedSize, patchSize);
-                
+
                 // ["op":"replace","path":"/FirstName","value":"ApaPapa"]
                 path = "/FirstName";
                 patch = string.Format(Helper.PATCH_REPLACE, path, Helper.Jsonify("ApaPapa"));
@@ -194,10 +191,7 @@ namespace Starcounter.Internal.XSON.Tests {
                 patchSize = jsonPatch.Generate(json, true, true, out patchArr);
                 expectedSize = patch.Length + 2;
                 Assert.AreEqual(expectedSize, patchSize);
-            } finally {
-                session.StopUsing();
-            }
-
+            });
         }
 
         [Test]
@@ -213,28 +207,31 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Age = 43;
             j.Length = 184.7;
 
-            (new Session() { Data = j }).StartUsing();
+            var session = new Session();
+            j.Session = session;
 
-            j.FirstName = "Douglas";
+            session.Use(() => {
+                j.FirstName = "Douglas";
 
-            var before = ((Json)j).DebugString;
-//            Session.Current.CheckpointChangeLog();
-            string str = jsonPatch.Generate(j, true, false);
+                var before = ((Json)j).DebugString;
+                //            Session.Current.CheckpointChangeLog();
+                string str = jsonPatch.Generate(j, true, false);
 
-            j.Daughter = daughter;
-            j.FirstName = "Timothy";
-            j.LastName = "Wester";
-            j.FirstName = "Charlie";
+                j.Daughter = daughter;
+                j.FirstName = "Timothy";
+                j.LastName = "Wester";
+                j.FirstName = "Charlie";
 
-            var after = ((Json)j).DebugString;
-            var result = jsonPatch.Generate(j, true, false);
+                var after = ((Json)j).DebugString;
+                var result = jsonPatch.Generate(j, true, false);
 
-            Write("Before",before);
-            Write("After",after);
-            Write("Changes",result);
+                Write("Before", before);
+                Write("After", after);
+                Write("Changes", result);
 
-            string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
-            Assert.AreEqual(facit, result);
+                string facit = "[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Charlie\"},{\"op\":\"replace\",\"path\":\"/Daughter\",\"value\":{\"FirstName\":\"Kate\"}},{\"op\":\"replace\",\"path\":\"/LastName\",\"value\":\"Wester\"}]";
+                Assert.AreEqual(facit, result);
+            });
         }
 
         protected static void Write(string title, string value) {
@@ -259,38 +256,41 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Length = 184.7;
             j.Friends = new List<Json>() { nicke };
 
-            (new Session() { Data = j }).StartUsing();
+            var session = new Session();
+            j.Session = session;
 
-            j.Friends.Add(henrik);
+            session.Use(() => {
+                j.Friends.Add(henrik);
 
-            Write("New stuff",((Json)j).DebugString);
+                Write("New stuff", ((Json)j).DebugString);
 
-            jsonPatch.Generate(j, true, false);
+                jsonPatch.Generate(j, true, false);
 
-            Helper.ConsoleWriteLine("Flushed");
-            Helper.ConsoleWriteLine("=========");
-            Helper.ConsoleWriteLine(((Json)j).DebugString);
+                Helper.ConsoleWriteLine("Flushed");
+                Helper.ConsoleWriteLine("=========");
+                Helper.ConsoleWriteLine(((Json)j).DebugString);
 
-            string str = jsonPatch.Generate(j, true, false);
-            Assert.AreEqual("[]", str);
+                string str = jsonPatch.Generate(j, true, false);
+                Assert.AreEqual("[]", str);
 
-            j.Friends[1].FirstName = "Henke";
-            j.Age = 43;
-            dynamic kalle = new Json();
-            kalle.FirstName = "Kalle";
-            j.Friends.Add(kalle);
+                j.Friends[1].FirstName = "Henke";
+                j.Age = 43;
+                dynamic kalle = new Json();
+                kalle.FirstName = "Kalle";
+                j.Friends.Add(kalle);
 
-            Helper.ConsoleWriteLine("Changed");
-            Helper.ConsoleWriteLine("=========");
-            Helper.ConsoleWriteLine(((Json)j).DebugString);
+                Helper.ConsoleWriteLine("Changed");
+                Helper.ConsoleWriteLine("=========");
+                Helper.ConsoleWriteLine(((Json)j).DebugString);
 
-            str = jsonPatch.Generate(j, true, false);
+                str = jsonPatch.Generate(j, true, false);
 
-            Helper.ConsoleWriteLine("JSON-Patch");
-            Helper.ConsoleWriteLine("==========");
-            Helper.ConsoleWriteLine(str);
+                Helper.ConsoleWriteLine("JSON-Patch");
+                Helper.ConsoleWriteLine("==========");
+                Helper.ConsoleWriteLine(str);
 
-            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},{\"op\":\"add\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]",str);
+                Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},{\"op\":\"add\",\"path\":\"/Friends/2\",\"value\":{\"FirstName\":\"Kalle\"}},{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
+            });
         }
 
       //  [Test]
@@ -317,40 +317,43 @@ namespace Starcounter.Internal.XSON.Tests {
             jockeJson.Length = 184.7;
             jockeJson.Friends = new List<Json>() { nickeJson };
 
-            (new Session() { Data = jockeJson }).StartUsing();
+            var session = new Session();
+            jockeJson.Session = session;
 
-            jockeJson.Friends.Add(henrikJson);
+            session.Use(() => {
+                jockeJson.Friends.Add(henrikJson);
 
-            Helper.ConsoleWriteLine("New stuff");
-            Helper.ConsoleWriteLine("=========");
-            Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
+                Helper.ConsoleWriteLine("New stuff");
+                Helper.ConsoleWriteLine("=========");
+                Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
 
-            jsonPatch.Generate(jockeJson, true, false);
+                jsonPatch.Generate(jockeJson, true, false);
 
-            Helper.ConsoleWriteLine("Flushed");
-            Helper.ConsoleWriteLine("=========");
-            Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
+                Helper.ConsoleWriteLine("Flushed");
+                Helper.ConsoleWriteLine("=========");
+                Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
 
-            string str = jsonPatch.Generate(jockeJson, true, false);
-            Assert.AreEqual("[]", str);
+                string str = jsonPatch.Generate(jockeJson, true, false);
+                Assert.AreEqual("[]", str);
 
-            jockeJson.Friends[1].FirstName = "Henke";
-            jockeJson.Age = 43;
-            dynamic kalle = new Json();
-            kalle.FirstName = "Kalle";
-            jockeJson.Friends.Add(kalle);
+                jockeJson.Friends[1].FirstName = "Henke";
+                jockeJson.Age = 43;
+                dynamic kalle = new Json();
+                kalle.FirstName = "Kalle";
+                jockeJson.Friends.Add(kalle);
 
-            Helper.ConsoleWriteLine("Changed");
-            Helper.ConsoleWriteLine("=========");
-            Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
+                Helper.ConsoleWriteLine("Changed");
+                Helper.ConsoleWriteLine("=========");
+                Helper.ConsoleWriteLine(((Json)jockeJson).DebugString);
 
-            str = jsonPatch.Generate(jockeJson, true, false);
+                str = jsonPatch.Generate(jockeJson, true, false);
 
-            Helper.ConsoleWriteLine("JSON-Patch");
-            Helper.ConsoleWriteLine("==========");
-            Helper.ConsoleWriteLine(str);
+                Helper.ConsoleWriteLine("JSON-Patch");
+                Helper.ConsoleWriteLine("==========");
+                Helper.ConsoleWriteLine(str);
 
-            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
+                Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/Age\",\"value\":43},\n{\"op\":\"add\",\"path\":\"/Friends\",\"value\":{\"FirstName\":\"Kalle\"}},\n{\"op\":\"replace\",\"path\":\"/Friends/1/FirstName\",\"value\":\"Henke\"}]", str);
+            });
         }
 
      //   [Test]
@@ -367,43 +370,46 @@ namespace Starcounter.Internal.XSON.Tests {
             j.Length = 184.7;
             j.Friends = new List<Json>() { nicke };
 
-            (new Session() { Data = j }).StartUsing();
+            var session = new Session();
+            j.Session = session;
 
-            var before = ((Json)j).DebugString;
+            session.Use(() => {
+                var before = ((Json)j).DebugString;
 
-            jsonPatch.Generate(j, true, false);
+                jsonPatch.Generate(j, true, false);
 
-            j.FirstName = "Timothy";
-            j.LastName = "Wester";
-            nicke.FirstName = "Nicklas";
-            nicke.LastName = "Hammarström";
-            j.FirstName = "Charlie";
-            j.Friends.Add().FirstName = "Henrik";
+                j.FirstName = "Timothy";
+                j.LastName = "Wester";
+                nicke.FirstName = "Nicklas";
+                nicke.LastName = "Hammarström";
+                j.FirstName = "Charlie";
+                j.Friends.Add().FirstName = "Henrik";
 
-            var after = ((Json)j).DebugString;
-            string result = jsonPatch.Generate(j, true, false);
+                var after = ((Json)j).DebugString;
+                string result = jsonPatch.Generate(j, true, false);
 
-            Helper.ConsoleWriteLine("Before");
-            Helper.ConsoleWriteLine("=====");
-            Helper.ConsoleWriteLine(before);
-            Helper.ConsoleWriteLine("");
-            Helper.ConsoleWriteLine("After");
-            Helper.ConsoleWriteLine("=====");
-            Helper.ConsoleWriteLine(after);
-            Helper.ConsoleWriteLine("");
-            Helper.ConsoleWriteLine("Changes");
-            Helper.ConsoleWriteLine("=====");
-            Helper.ConsoleWriteLine(result);
-            Helper.ConsoleWriteLine("");
+                Helper.ConsoleWriteLine("Before");
+                Helper.ConsoleWriteLine("=====");
+                Helper.ConsoleWriteLine(before);
+                Helper.ConsoleWriteLine("");
+                Helper.ConsoleWriteLine("After");
+                Helper.ConsoleWriteLine("=====");
+                Helper.ConsoleWriteLine(after);
+                Helper.ConsoleWriteLine("");
+                Helper.ConsoleWriteLine("Changes");
+                Helper.ConsoleWriteLine("=====");
+                Helper.ConsoleWriteLine(result);
+                Helper.ConsoleWriteLine("");
 
-            string facit = 
-@"[{""op"":""replace"",""path"":""/FirstName"",""value"":""Charlie""},
-{""op"":""add"",""path"":""/Friends"",""value"":{""FirstName"":""Henrik""}},
-{""op"":""replace"",""path"":""/FirstName"",""value"":""Timothy""},
-{""op"":""replace"",""path"":""/LastName"",""value"":""Wester""},
-{""op"":""replace"",""path"":""/Friends/0/LastName"",""value"":""Hammarström""}}],
-";
-Assert.AreEqual(facit, result );
+                string facit =
+                    @"[{""op"":""replace"",""path"":""/FirstName"",""value"":""Charlie""},
+                     {""op"":""add"",""path"":""/Friends"",""value"":{""FirstName"":""Henrik""}},
+                     {""op"":""replace"",""path"":""/FirstName"",""value"":""Timothy""},
+                     {""op"":""replace"",""path"":""/LastName"",""value"":""Wester""},
+                     {""op"":""replace"",""path"":""/Friends/0/LastName"",""value"":""Hammarström""}}],
+                    ";
+                Assert.AreEqual(facit, result);
+            });
         }
 
         /// <summary>
@@ -420,49 +426,52 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
             var json = (Json)j;
 
-            (new Session() { Data = j }).StartUsing();
-            
-            var start = json.DebugString;
+            var session = new Session();
+            j.Session = session;
 
-            Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
+            session.Use(() => {
+                var start = json.DebugString;
 
-            var t = new TObject();
-            var fname = t.Add<TString>("FirstName"); 
-            var lname = t.Add<TString>("LastName");
-            j.Template = t;
-            j.Data = p;
+                Assert.AreEqual("{}", json.ToJson()); // The data is not bound so the JSON should still be an empty object
 
-            Assert.IsTrue(!json.HasBeenSent);
-            Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
+                var t = new TObject();
+                var fname = t.Add<TString>("FirstName");
+                var lname = t.Add<TString>("LastName");
+                j.Template = t;
+                j.Data = p;
 
-            jsonPatch.Generate(j, true, false); // Flush
-            var before = ((Json)j).DebugString;
+                Assert.IsTrue(!json.HasBeenSent);
+                Assert.AreEqual("{\"FirstName\":\"Joachim\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
 
-            p.FirstName = "Douglas";
+                jsonPatch.Generate(j, true, false); // Flush
+                var before = ((Json)j).DebugString;
 
-            var after = ((Json)j).DebugString;
+                p.FirstName = "Douglas";
 
-            string patch = jsonPatch.Generate(j, true, false);
+                var after = ((Json)j).DebugString;
 
-            Helper.ConsoleWriteLine("Start");
-            Helper.ConsoleWriteLine("=====");
-            Helper.ConsoleWriteLine(start);
-            Helper.ConsoleWriteLine("");
-            Helper.ConsoleWriteLine("Before Change");
-            Helper.ConsoleWriteLine("=============");
-            Helper.ConsoleWriteLine(before);
-            Helper.ConsoleWriteLine("");
-            Helper.ConsoleWriteLine("After Change");
-            Helper.ConsoleWriteLine("============");
-            Helper.ConsoleWriteLine(after);
-            Helper.ConsoleWriteLine("");
-            Helper.ConsoleWriteLine("JSON-Patch");
-            Helper.ConsoleWriteLine("==========");
-            Helper.ConsoleWriteLine(patch);
-            Helper.ConsoleWriteLine("");
+                string patch = jsonPatch.Generate(j, true, false);
 
-            Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
-            Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Douglas\"}]",patch);
+                Helper.ConsoleWriteLine("Start");
+                Helper.ConsoleWriteLine("=====");
+                Helper.ConsoleWriteLine(start);
+                Helper.ConsoleWriteLine("");
+                Helper.ConsoleWriteLine("Before Change");
+                Helper.ConsoleWriteLine("=============");
+                Helper.ConsoleWriteLine(before);
+                Helper.ConsoleWriteLine("");
+                Helper.ConsoleWriteLine("After Change");
+                Helper.ConsoleWriteLine("============");
+                Helper.ConsoleWriteLine(after);
+                Helper.ConsoleWriteLine("");
+                Helper.ConsoleWriteLine("JSON-Patch");
+                Helper.ConsoleWriteLine("==========");
+                Helper.ConsoleWriteLine(patch);
+                Helper.ConsoleWriteLine("");
+
+                Assert.AreEqual("{\"FirstName\":\"Douglas\",\"LastName\":\"Wester\"}", ((Json)j).ToJson());
+                Assert.AreEqual("[{\"op\":\"replace\",\"path\":\"/FirstName\",\"value\":\"Douglas\"}]", patch);
+            });
         }
 
 
@@ -472,26 +481,30 @@ Assert.AreEqual(facit, result );
             dynamic j = new Json();
             dynamic nicke = new Json();
 
-            (new Session() { Data = j }).StartUsing();
-            Assert.NotNull(Session.Current);
+            var session = new Session();
+            j.Session = session;
 
-            j.FirstName = "Jack";
-            nicke.FirstName = "Nicke";
-            j.Friends = new List<Json>() { nicke };
+            session.Use(() => {
+                Assert.NotNull(Session.Current);
 
-            Helper.ConsoleWriteLine("Dirty status");
-            Helper.ConsoleWriteLine("============");
-            debugString = j.DebugString;
-            Helper.ConsoleWriteLine(debugString);
+                j.FirstName = "Jack";
+                nicke.FirstName = "Nicke";
+                j.Friends = new List<Json>() { nicke };
 
-            string patch = jsonPatch.Generate(j, true, false);
+                Helper.ConsoleWriteLine("Dirty status");
+                Helper.ConsoleWriteLine("============");
+                debugString = j.DebugString;
+                Helper.ConsoleWriteLine(debugString);
 
-            Helper.ConsoleWriteLine("Changes:");
-            Helper.ConsoleWriteLine("========");
-            Helper.ConsoleWriteLine(patch);
+                string patch = jsonPatch.Generate(j, true, false);
 
-            Assert.AreEqual(
-                "[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
+                Helper.ConsoleWriteLine("Changes:");
+                Helper.ConsoleWriteLine("========");
+                Helper.ConsoleWriteLine(patch);
+
+                Assert.AreEqual(
+                    "[{\"op\":\"replace\",\"path\":\"\",\"value\":{\"FirstName\":\"Jack\",\"Friends\":[{\"FirstName\":\"Nicke\"}]}}]", patch);
+            });
         }
 
         [Test]
@@ -502,14 +515,16 @@ Assert.AreEqual(facit, result );
             var json = new Json() { Template = schema };
             json.Session = new Session();
 
-            var patch = jsonPatch.Generate(json, true, false);
-            json.MarkAsReplaced(save);
-            patch = jsonPatch.Generate(json, true, false);
+            json.Session.Use(() => {
+                var patch = jsonPatch.Generate(json, true, false);
+                json.MarkAsReplaced(save);
+                patch = jsonPatch.Generate(json, true, false);
 
-            Helper.ConsoleWriteLine(patch);
+                Helper.ConsoleWriteLine(patch);
 
-            var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Save$", "null") + ']';
-            Assert.AreEqual(expected, patch);
+                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Save$", "null") + ']';
+                Assert.AreEqual(expected, patch);
+            });
         }
 
         [Test]
@@ -520,78 +535,88 @@ Assert.AreEqual(facit, result );
             dynamic subItem2 = new Json();
             dynamic root = new Json();
 
-            root.Session = new Session();
-            root.Header = "Root";
-            item1.Text = "1";
-            item2.Text = "2";
-            root.Items = new List<Json>();
-            root.Items.Add(item1);
+            var session = new Session();
+            root.Session = session;
 
-            subItem1.Text = "S1";
-            subItem2.Text = "S2";
-            item2.SubItems = new List<Json>();
+            session.Use(() => {
+                root.Header = "Root";
+                item1.Text = "1";
+                item2.Text = "2";
+                root.Items = new List<Json>();
+                root.Items.Add(item1);
 
-            string patch = jsonPatch.Generate(root, true, false);
-            Helper.ConsoleWriteLine(patch);
+                subItem1.Text = "S1";
+                subItem2.Text = "S2";
+                item2.SubItems = new List<Json>();
 
-            root.Items[0] = item2;
-            Assert.IsNotNull(item2.Parent);
+                string patch = jsonPatch.Generate(root, true, false);
+                Helper.ConsoleWriteLine(patch);
 
-            item2.SubItems.Add(subItem1);
-            item2.SubItems.Add(subItem2);
+                root.Items[0] = item2;
+                Assert.IsNotNull(item2.Parent);
 
-            patch = jsonPatch.Generate(root, true, false);
-            Helper.ConsoleWriteLine(patch);
-            Helper.ConsoleWriteLine("");
+                item2.SubItems.Add(subItem1);
+                item2.SubItems.Add(subItem2);
 
-            var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Items/0",  @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
-            Assert.AreEqual(expected, patch);
+                patch = jsonPatch.Generate(root, true, false);
+                Helper.ConsoleWriteLine(patch);
+                Helper.ConsoleWriteLine("");
+
+                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Items/0", @"{""Text"":""2"",""SubItems"":[{""Text"":""S1""},{""Text"":""S2""}]}") + ']';
+                Assert.AreEqual(expected, patch);
+            });
         }
 
         [Test]
         public static void TestPatchWithDecimal() {
             dynamic root = new Json();
-            root.Session = new Session();
+            var session = new Session();
+            root.Session = session;
             root.Number = 65.0m;
 
-            var oldCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+            session.Use(() => {
+                var oldCulture = Thread.CurrentThread.CurrentCulture;
+                Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
 
-            try {
-                var patch = jsonPatch.Generate(root, true, false);
-                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
-                Assert.AreEqual(expected, patch);
+                try {
+                    var patch = jsonPatch.Generate(root, true, false);
+                    var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
+                    Assert.AreEqual(expected, patch);
 
-                root.Number = 99.5545m;
-                patch = jsonPatch.Generate(root, true, false);
-                expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
-                Assert.AreEqual(expected, patch);
-            } finally {
-                Thread.CurrentThread.CurrentCulture = oldCulture;
-            }
+                    root.Number = 99.5545m;
+                    patch = jsonPatch.Generate(root, true, false);
+                    expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
+                    Assert.AreEqual(expected, patch);
+                } finally {
+                    Thread.CurrentThread.CurrentCulture = oldCulture;
+                }
+            });
         }
 
         [Test]
         public static void TestPatchWithDouble() {
             dynamic root = new Json();
-            root.Session = new Session();
+            var session = new Session();
+            root.Session = session;
             root.Number = 65.0d;
 
-             var oldCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
+            session.Use(() => {
+                var oldCulture = Thread.CurrentThread.CurrentCulture;
+                Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("sv-SE");
 
-            try {
-                var patch = jsonPatch.Generate(root, true, false);
-                var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
-                Assert.AreEqual(expected, patch);
+                try {
+                    var patch = jsonPatch.Generate(root, true, false);
+                    var expected = '[' + string.Format(Helper.PATCH_REPLACE, "", @"{""Number"":65.0}") + ']';
+                    Assert.AreEqual(expected, patch);
 
-                root.Number = 99.5545d;
-                patch = jsonPatch.Generate(root, true, false);
-                expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
-                Assert.AreEqual(expected, patch);
-            } finally {
-                Thread.CurrentThread.CurrentCulture = oldCulture;
-            }
+                    root.Number = 99.5545d;
+                    patch = jsonPatch.Generate(root, true, false);
+                    expected = '[' + string.Format(Helper.PATCH_REPLACE, "/Number", "99.5545") + ']';
+                    Assert.AreEqual(expected, patch);
+                } finally {
+                    Thread.CurrentThread.CurrentCulture = oldCulture;
+                }
+            });
         }
 
         [Test]
@@ -603,12 +628,14 @@ Assert.AreEqual(facit, result );
             var json = new Json() { Template = schema };
             var session = new Session() { Data = json };
 
-            json.Set(tEmpty, "Empty");
-            json.Set(tSpace, "Space");
+            session.Use(() => {
+                json.Set(tEmpty, "Empty");
+                json.Set(tSpace, "Space");
 
-            var patch = jsonPatch.Generate(json, true, false);
-            var expected = string.Format(Helper.ONE_PATCH_ARR, "", @"{"""":""Empty"","" "":""Space""}");
-            Assert.AreEqual(expected, patch);
+                var patch = jsonPatch.Generate(json, true, false);
+                var expected = string.Format(Helper.ONE_PATCH_ARR, "", @"{"""":""Empty"","" "":""Space""}");
+                Assert.AreEqual(expected, patch);
+            });
         }
     }
 }
