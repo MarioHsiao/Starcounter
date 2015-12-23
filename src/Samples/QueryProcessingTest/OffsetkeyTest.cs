@@ -271,6 +271,26 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(isException);
 #endif
+#if false // Doesn't fail. Offset key does not include extent.
+            // Test offsetkey on the query with the offset key from query on different table.
+            e = Db.SQL("select a from account a").GetEnumerator();
+            Trace.Assert(e.MoveNext());
+            k = e.GetOffsetKey();
+            e.Dispose();
+            Trace.Assert(k != null);
+            e = Db.SQL("select u from user u offsetkey ?", k).GetEnumerator();
+            isException = false;
+            try {
+                e.MoveNext();
+            }
+            catch (Exception ex) {
+                uint error = (uint)ex.Data[ErrorCode.EC_TRANSPORT_KEY];
+                Trace.Assert(error == Error.SCERRINVALIDOFFSETKEY);
+                isException = true;
+            }
+            e.Dispose();
+            Trace.Assert(isException);
+#endif
 #if false // Tests do not fail any more, since static data are not read from the recreation key.
 #endif
         }
