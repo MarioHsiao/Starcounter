@@ -7,6 +7,8 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Net;
 using Starcounter.Advanced;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Starcounter
 {
@@ -208,6 +210,11 @@ namespace Starcounter
         String bodyString_;
 
         /// <summary>
+        /// Body stream.
+        /// </summary>
+        Stream bodyStream_;
+
+        /// <summary>
         /// Body bytes.
         /// </summary>
         Byte[] bodyBytes_;
@@ -275,7 +282,6 @@ namespace Starcounter
         /// <summary>
         /// Clones existing static resource response object.
         /// </summary>
-        /// <returns></returns>
         internal Response CloneStaticResourceResponse() {
 
             Response resp = new Response() {
@@ -506,6 +512,22 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Streamed body.
+        /// </summary>
+        public Stream StreamedBody {
+
+            get
+            {
+                return bodyStream_;
+            }
+            set
+            {
+                customFields_ = true;
+                bodyStream_ = value;
+            }
+        }
+
+        /// <summary>
         /// Body string.
         /// </summary>
         public String Body
@@ -693,6 +715,7 @@ namespace Starcounter
         {
             customFields_ = false;
 
+            bodyStream_ = null;
             customHeaderFields_ = null;
             bodyString_ = null;
             statusDescription_ = null;
@@ -817,6 +840,7 @@ namespace Starcounter
                 }
 
                 if (bytes == null) {
+
                     // The preferred requested mime type was not supported, try to see if there are
                     // other options.
                     IEnumerator<MimeType> secondaryChoices = null;
@@ -963,19 +987,37 @@ namespace Starcounter
                     }
 
                     if (null != bodyString_) {
-                        if (null != bytes)
-                            throw new ArgumentException("Either body string, body bytes or resource can be set for Response.");
+
+                        if (null != bytes || null != bodyStream_) {
+                            throw new ArgumentException("Either body string, body bytes, body stream or resource can be set for Response.");
+                        }
 
                         writer.Write(HttpHeadersUtf8.ContentLengthStart);
                         writer.Write(writer.GetByteCount(bodyString_));
                         writer.Write(HttpHeadersUtf8.CRLFCRLF);
 
                         writer.Write(bodyString_);
+
                     } else if (null != bytes) {
+
+                        if (null != bodyStream_) {
+                            throw new ArgumentException("Either body string, body bytes, body stream or resource can be set for Response.");
+                        }
+
                         writer.Write(HttpHeadersUtf8.ContentLengthStart);
                         writer.Write(bytes.Length);
                         writer.Write(HttpHeadersUtf8.CRLFCRLF);
                         writer.Write(bytes);
+
+                    } else if (null != bodyStream_) {
+
+                        // NOTE: We are assuming that stream size can be fully determined.
+                        // However we don't send the body immediately in this response.
+                        // Body is streamed separately.
+                        writer.Write(HttpHeadersUtf8.ContentLengthStart);
+                        writer.Write(bodyStream_.Length);
+                        writer.Write(HttpHeadersUtf8.CRLFCRLF);
+
                     } else {
 
                         // NOTE: When we do WebSocket upgrade by some reason we can't send "Content-Length: 0" header.

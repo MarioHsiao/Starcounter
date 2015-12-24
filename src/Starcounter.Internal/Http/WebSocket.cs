@@ -4,9 +4,11 @@ using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Starcounter
 {
@@ -168,6 +170,39 @@ namespace Starcounter
             PushServerMessage(buf, bytesWritten, true, Response.ConnectionFlags.GracefullyCloseConnection);
 
             socketStruct_.Kill();
+        }
+
+        /// <summary>
+        /// Streaming over TCP socket.
+        /// NOTE: Function closes the stream once the end of stream is reached.
+        /// </summary>
+        internal async Task SendStreamOverSocket(Stream whatToStream, Byte[] fetchBuffer, bool isText = false) {
+
+            try {
+
+                Int32 numBytesRead = await whatToStream.ReadAsync(fetchBuffer, 0, fetchBuffer.Length);
+
+                // Checking if its the end of the stream.
+                if (0 == numBytesRead) {
+                    whatToStream.Close();
+                    return;
+                }
+
+                // We need to be on scheduler to send on socket.
+                StarcounterBase._DB.RunAsync(() => {
+
+                    // Sending on socket.
+                    Send(fetchBuffer, numBytesRead, isText);
+
+                    // Scheduling a new task to read from the stream.
+                    Task.Run(() => SendStreamOverSocket(whatToStream, fetchBuffer));
+                });
+
+            } catch (Exception exc) {
+
+                // Just logging the exception.
+                Diagnostics.LogHostException(exc);
+            }
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Starcounter {
 
@@ -1227,8 +1228,19 @@ namespace Starcounter {
                 // Constructing response bytes.
                 resp.ConstructFromFields(this, serializationBuf);
 
+                // If we have a streamed response body - getting corresponding TCP socket to stream on.
+                TcpSocket tcpSocket = null;
+                if (resp.StreamedBody != null) {
+                    tcpSocket = new TcpSocket(dataStream_);
+                }
+
                 // Sending the response.
                 SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
+
+                // Starting asynchronous body stream send.
+                if (tcpSocket != null) {
+                    Task.Run(() => tcpSocket.SendStreamOverSocket(resp.StreamedBody, new Byte[4096]));
+                }
 
             } finally {
 

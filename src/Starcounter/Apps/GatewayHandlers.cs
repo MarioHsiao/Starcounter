@@ -307,14 +307,7 @@ namespace Starcounter
                 if (userCallback == null)
                     throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
-                SocketStruct socketStruct = new SocketStruct();
-                socketStruct.Init(
-                    *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream.GatewayWorkerId
-                    );
-
-                tcpSocket = new TcpSocket(dataStream, socketStruct);
+                tcpSocket = new TcpSocket(dataStream);
                 Debug.Assert(null != tcpSocket);
 
                 Byte[] dataBytes = null;

@@ -15,6 +15,8 @@
 - Ability to specify multiple resource directories on the command-line, fixes [#2898](https://github.com/Starcounter/Starcounter/issues/2898). For reference, see [#3099](https://github.com/Starcounter/Starcounter/issues/3099).
 - `Partial` class with the support for implicit standalone mode [#3176](https://github.com/Starcounter/Starcounter/issues/3176)
 - Added possibility to use straight handlers paramters notation "{?}" in URIs when doing mapping. Paramter type notation "@w" is still supported but is temporary and will be removed in future.
+- Added functionality to unregister existing HTTP handlers. Documentation information added to http://starcounter.io/guides/network/handling-requests/#unregistering-existing-http-handlers
+- Added a possibility to stream data over TCP, WebSockets and HTTP responses: [#9](https://github.com/Starcounter/Starcounter/issues/9)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
