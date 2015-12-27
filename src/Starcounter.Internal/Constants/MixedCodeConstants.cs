@@ -69,6 +69,7 @@ namespace Starcounter.Internal
             SOCKET_DATA_FLAGS_SOCKET_REPRESENTER = 2,
             SOCKET_DATA_FLAGS_ACCUMULATING_STATE = 2 << 1,
             SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND = 2 << 2,
+            SOCKET_DATA_INTERNAL_REQUEST = 2 << 3,
             SOCKET_DATA_FLAGS_JUST_SEND = 2 << 4,
             SOCKET_DATA_FLAGS_JUST_DISCONNECT = 2 << 5,
             SOCKET_DATA_FLAGS_TRIGGER_DISCONNECT = 2 << 6,
@@ -84,7 +85,8 @@ namespace Starcounter.Internal
             SOCKET_DATA_GATEWAY_NO_IPC_TEST = 2 << 17,
             SOCKET_DATA_GATEWAY_AND_IPC_TEST = 2 << 18,
             SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST = 2 << 19,
-            SOCKET_DATA_HOST_LOOPING_CHUNKS = 2 << 20
+            SOCKET_DATA_HOST_LOOPING_CHUNKS = 2 << 20,
+            SOCKET_DATA_STREAMING_RESPONSE_BODY = 2 << 21
         };
 
         /// <summary>

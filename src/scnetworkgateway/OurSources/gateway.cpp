@@ -438,7 +438,9 @@ void ServerPort::EraseDb(db_index_type db_index)
 {
     // Deleting port handlers if any.
 	if (NULL != port_handler_) {
+
 		if (db_index == port_handler_->get_db_index()) {
+
 			GwDeleteSingle(port_handler_);
 			port_handler_ = NULL;
 		}
@@ -1693,6 +1695,7 @@ uint32_t RegisterWsHandler(
     // Checking if port exist or if its empty.
     if ((NULL == server_port) ||
         (server_port->IsEmpty()) ||
+		(NULL == server_port->get_port_handlers()) ||
         (server_port->get_port_handlers()->IsEmpty()))
     {
         // Registering handler on active database.
@@ -3530,6 +3533,7 @@ uint32_t Gateway::AddUriHandler(
     // Checking if port exists.
     if ((NULL == server_port) ||
         (server_port->IsEmpty()) ||
+		(NULL == server_port->get_port_handlers()) ||
         (server_port->get_port_handlers()->IsEmpty()))
     {
         // Registering handler on active database.
@@ -3633,7 +3637,9 @@ uint32_t Gateway::AddPortHandler(
     // Checking if there are no handlers.
     if ((NULL != server_port) && (!server_port->IsEmpty())) {
 
-        if (!server_port->get_port_handlers()->IsEmpty()) {
+        if ((NULL != server_port->get_port_handlers()) &&
+			(!server_port->get_port_handlers()->IsEmpty())) {
+
             return SCERRHANDLERALREADYREGISTERED;
         }
 

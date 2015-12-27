@@ -338,6 +338,16 @@ const char* const kHttpOKResponse =
 
 const int32_t kHttpOKResponseLength = static_cast<int32_t> (strlen(kHttpOKResponse));
 
+const char* const kHttpGetFinishSend =
+	"GET /sc/finishsend/* HTTP/1.1\r\n\r\n";
+
+const int32_t kHttpGetFinishSendPortOffset = static_cast<int32_t> (strstr(kHttpGetFinishSend, "*") - kHttpGetFinishSend);
+
+const char* const kHttpDeleteStream =
+	"DELETE /sc/stream/* HTTP/1.1\r\n\r\n";
+
+const int32_t kHttpDeleteStreamPortOffset = static_cast<int32_t> (strstr(kHttpDeleteStream, "*") - kHttpDeleteStream);
+
 struct AggregationStruct
 {
     random_salt_type unique_socket_id_;
@@ -753,7 +763,8 @@ enum SOCKET_FLAGS
     SOCKET_FLAGS_AGGREGATED = 1,
     SOCKET_FLAGS_PROXY_CONNECT = 2,
     SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1,
-    SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2
+    SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2,
+	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3
 };
 
 // Structure that facilitates the socket.
@@ -840,6 +851,16 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED;
     }
+
+	bool get_streaming_response_body_flag()
+	{
+		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY) != 0;
+	}
+
+	void set_streaming_response_body_flag()
+	{
+		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY;
+	}
 
     bool get_socket_proxy_connect_flag()
     {

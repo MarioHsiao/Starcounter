@@ -680,11 +680,7 @@ namespace Starcounter
                 UInt32 groupId = (*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID));
 
                 SocketStruct socketStruct = new SocketStruct();
-                socketStruct.Init(
-                    *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream.GatewayWorkerId
-                    );
+                socketStruct.Init(dataStream);
 
                 Int32 numDataBytes = *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
                 Int32 chunkDataOffset = MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);

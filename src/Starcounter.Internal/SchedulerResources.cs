@@ -144,7 +144,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Initializes socket struct.
         /// </summary>
-        public void Init(
+        internal void Init(
             UInt32 socketIndexNum,
             UInt64 socketUniqueId,
             Byte gatewayWorkerId) {
@@ -152,6 +152,21 @@ namespace Starcounter.Internal
             socketUniqueId_ = socketUniqueId;
             socketIndexNum_ = socketIndexNum;
             gatewayWorkerId_ = gatewayWorkerId;
+        }
+
+        /// <summary>
+        /// Creating socket structure from data stream.
+        /// </summary>
+        public void Init(NetworkDataStream dataStream) {
+
+            unsafe
+            {
+                Init(
+                    *(UInt32*)(dataStream.GetChunkMemory() + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
+                    *(UInt64*)(dataStream.GetChunkMemory() + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
+                    dataStream.GatewayWorkerId
+                    );
+            }
         }
 
         /// <summary>

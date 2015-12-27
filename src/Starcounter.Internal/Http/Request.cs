@@ -1,8 +1,10 @@
 ﻿
 using Starcounter.Internal;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -68,6 +70,17 @@ namespace Starcounter {
         /// Internal network data stream.
         /// </summary>
         NetworkDataStream dataStream_;
+
+        /// <summary>
+        /// Gets network data stream.
+        /// </summary>
+        internal NetworkDataStream DataStream
+        {
+            get
+            {
+                return dataStream_;
+            }
+        }
 
         /// <summary>
         /// Network port number.
@@ -344,15 +357,19 @@ namespace Starcounter {
         /// </summary>
         /// <returns>UInt64 representing WebSocket id.</returns>
         public UInt64 GetWebSocketId() {
+            return GetSocketId();
+        }
 
-            unsafe {
-                WebSocket ws = new WebSocket(
-                    *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream_.GatewayWorkerId);
+        /// <summary>
+        /// Getting socket UInt64 id from request information.
+        /// </summary>
+        /// <returns>UInt64 representing socket id.</returns>
+        public UInt64 GetSocketId() {
 
-                return ws.ToUInt64();
-            }
+            SocketStruct socketStruct = new SocketStruct();
+            socketStruct.Init(dataStream_);
+
+            return socketStruct.ToUInt64();
         }
 
         /// <summary>
@@ -394,10 +411,7 @@ namespace Starcounter {
                     groupId = wsGroupInfo.GroupId;
                 }
 
-                WebSocket ws = new WebSocket(
-                    *(UInt32*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(http_request_struct_->socket_data_ + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream_.GatewayWorkerId);
+                WebSocket ws = new WebSocket(dataStream_);
 
                 Response resp = new Response();
                 resp.Cookies = cookies;
@@ -1231,16 +1245,18 @@ namespace Starcounter {
                 // If we have a streamed response body - getting corresponding TCP socket to stream on.
                 TcpSocket tcpSocket = null;
                 if (resp.StreamedBody != null) {
+
                     tcpSocket = new TcpSocket(dataStream_);
+
+                    // Setting the flag that this response body should be streamed.
+                    resp.ConnFlags |= Response.ConnectionFlags.StreamingResponseBody;
+
+                    // Adding to response streams dictionary.
+                    Response.ResponseStreams_[tcpSocket.ToUInt64()] = resp.StreamedBody;
                 }
 
                 // Sending the response.
                 SendResponse(resp.ResponseBytes, 0, resp.ResponseSizeBytes, resp.ConnFlags);
-
-                // Starting asynchronous body stream send.
-                if (tcpSocket != null) {
-                    Task.Run(() => tcpSocket.SendStreamOverSocket(resp.StreamedBody, new Byte[4096]));
-                }
 
             } finally {
 

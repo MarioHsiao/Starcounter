@@ -2,6 +2,7 @@
 using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -50,20 +51,19 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Converts socket struct to lower and upper parts.
+        /// </summary>
+        public UInt64 ToUInt64() {
+            return socketStruct_.ToUInt64();
+        }
+
+        /// <summary>
         /// Creates a new TcpSocket.
         /// </summary>
         internal TcpSocket(NetworkDataStream dataStream)
         {
             SocketStruct socketStruct = new SocketStruct();
-
-            unsafe
-            {
-                socketStruct.Init(
-                    *(UInt32*)(dataStream.GetChunkMemory() + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(dataStream.GetChunkMemory() + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream.GatewayWorkerId
-                    );
-            }
+            socketStruct.Init(dataStream);
 
             dataStream_ = dataStream;
             socketStruct_ = socketStruct;
@@ -177,14 +177,21 @@ namespace Starcounter {
         /// Streaming over TCP socket.
         /// NOTE: Function closes the stream once the end of stream is reached.
         /// </summary>
-        internal async Task SendStreamOverSocket(Stream whatToStream, Byte[] fetchBuffer) {
+        internal async Task SendStreamOverSocket(
+            ConcurrentDictionary<UInt64, Stream> dict,
+            Stream whatToStream,
+            Byte[] fetchBuffer) {
 
             try {
                 Int32 numBytesRead = await whatToStream.ReadAsync(fetchBuffer, 0, fetchBuffer.Length);
 
                 // Checking if its the end of the stream.
                 if (0 == numBytesRead) {
+
                     whatToStream.Close();
+                    Stream s;
+                    dict.TryRemove(ToUInt64(), out s);
+
                     return;
                 }
 
@@ -193,9 +200,6 @@ namespace Starcounter {
 
                     // Sending on socket.
                     Send(fetchBuffer, 0, numBytesRead);
-
-                    // Scheduling a new task to read from the stream.
-                    Task.Run(() => SendStreamOverSocket(whatToStream, fetchBuffer));
                 });
 
             } catch (Exception exc) {

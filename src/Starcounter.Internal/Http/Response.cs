@@ -9,6 +9,7 @@ using System.Net;
 using Starcounter.Advanced;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
 
 namespace Starcounter
 {
@@ -280,6 +281,11 @@ namespace Starcounter
         String headersString_;
 
         /// <summary>
+        /// Dictionary with response streams.
+        /// </summary>
+        internal static ConcurrentDictionary<UInt64, Stream> ResponseStreams_ = new ConcurrentDictionary<UInt64, Stream>();
+
+        /// <summary>
         /// Clones existing static resource response object.
         /// </summary>
         internal Response CloneStaticResourceResponse() {
@@ -388,7 +394,8 @@ namespace Starcounter
             NoSpecialFlags = 0,
             DisconnectAfterSend = MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_DISCONNECT_AFTER_SEND,
             DisconnectImmediately = MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_FLAGS_JUST_DISCONNECT,
-            GracefullyCloseConnection = MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_GRACEFULLY_CLOSE
+            GracefullyCloseConnection = MixedCodeConstants.SOCKET_DATA_FLAGS.HTTP_WS_FLAGS_GRACEFULLY_CLOSE,
+            StreamingResponseBody = MixedCodeConstants.SOCKET_DATA_FLAGS.SOCKET_DATA_STREAMING_RESPONSE_BODY
         }
 
         /// <summary>

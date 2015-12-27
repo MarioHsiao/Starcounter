@@ -284,11 +284,9 @@ namespace Starcounter
         /// <summary>
         /// Converts lower and upper part of WebSocket into an object.
         /// </summary>
-        /// <param name="lowerPart">Lower part of the socket info.</param>
-        /// <param name="upperPart">Upper part of the socket info.</param>
-        internal WebSocket(UInt32 socketIndexNum, UInt64 socketUniqueId, Byte gatewayWorkerId) {
+        internal WebSocket(NetworkDataStream dataStream) {
 
-            socketStruct_.Init(socketIndexNum, socketUniqueId, gatewayWorkerId);
+            socketStruct_.Init(dataStream);
         }
 
         /// <summary>
