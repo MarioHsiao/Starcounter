@@ -56,5 +56,10 @@ namespace Starcounter.Advanced {
         /// Registers a handler with five parameters
         /// </summary>
         void RegisterHandler<T1, T2, T3, T4, T5>(ushort port, String methodAndUriInfo, Func<T1, T2, T3, T4, T5, Response> handler, HandlerOptions ho = null);
+
+        /// <summary>
+        /// Unregisters a HTTP handler.
+        /// </summary>
+        void UnregisterHttpHandler(ushort port, string method, String uri);
     }
 }

@@ -25,8 +25,16 @@ namespace Starcounter
     };
 
     public struct ManagedHandlerInfo {
-        public HandlerTypes type_;
-        public UInt64 uinque_id_;
+        public HandlerTypes HandlerType;
+        public UInt64 HandlerInfo;
+        public UInt16 ManagedHandlerId;
+
+        public void Reset() {
+
+            HandlerInfo = 0;
+            ManagedHandlerId = UInt16.MaxValue;
+            HandlerType = HandlerTypes.NotRegistered;
+        }
     }
 
     /// <summary>
@@ -40,36 +48,55 @@ namespace Starcounter
         static ManagedHandlerInfo[] allHandlers_ = new ManagedHandlerInfo[UInt16.MaxValue];
 
         /// <summary>
+        /// Global unique handlers id.
+        /// </summary>
+        static UInt64 uniqueHandlersId_ = 1;
+
+        /// <summary>
         /// Handles generic managed handler.
         /// </summary>
         public unsafe static UInt32 HandleManaged(
-            UInt16 managedHandlerId,
+            UInt64 handlerInfo,
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled) {
 
-            HandlerTypes a = allHandlers_[managedHandlerId].type_;
-            switch (a) {
+            UInt16 handlerIndex = (UInt16) handlerInfo;
+
+            ManagedHandlerInfo m = allHandlers_[handlerIndex];
+
+            // Checking if we are addressing the correct handler.
+            if (handlerInfo != m.HandlerInfo) {
+
+                bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
+                *isHandled = false;
+
+                return 0;
+            }
+
+            switch (m.HandlerType) {
 
                 case HandlerTypes.NotRegistered: {
+                    bmx.sc_bmx_release_linked_chunks(&taskInfo->chunk_index);
                     *isHandled = false;
+
                     return 0;
                 }
 
                 case HandlerTypes.TcpHandler: {
-                    return HandleTcpSocket(managedHandlerId, rawChunk, taskInfo, isHandled);
+                    return HandleTcpSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
                 }
 
                 case HandlerTypes.UdpHandler: {
-                    return HandleUdpSocket(managedHandlerId, rawChunk, taskInfo, isHandled);
+                    return HandleUdpSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
                 }
 
                 case HandlerTypes.WebSocketHandler: {
-                    return HandleWebSocket(managedHandlerId, rawChunk, taskInfo, isHandled);
+                    return HandleWebSocket(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
                 }
 
                 case HandlerTypes.HttpHandler: {
-                    return HandleHttpRequest(managedHandlerId, rawChunk, taskInfo, isHandled);
+                    return HandleHttpRequest(m.ManagedHandlerId, rawChunk, taskInfo, isHandled);
                 }
             }
 
@@ -80,17 +107,25 @@ namespace Starcounter
         /// <summary>
         /// Registers generic managed handler.
         /// </summary>
-        static void RegisterManagedHandler(HandlerTypes handlerType, out UInt16 handlerId) {
+        static void RegisterManagedHandler(HandlerTypes handlerType, UInt16 managedHandlerId, out UInt64 handlerInfo) {
 
-            handlerId = UInt16.MaxValue;
+            handlerInfo = 0;
 
             lock (allHandlers_) {
 
                 for (UInt16 i = 0; i < allHandlers_.Length; i++) {
 
-                    if (HandlerTypes.NotRegistered == allHandlers_[i].type_) {
+                    // Searching for the first unoccupied handler.
+                    if (HandlerTypes.NotRegistered == allHandlers_[i].HandlerType) {
 
-                        handlerId = i;
+                        uniqueHandlersId_++;
+
+                        handlerInfo = (((UInt64)uniqueHandlersId_) << 16) | i;
+
+                        allHandlers_[i].HandlerInfo = handlerInfo;
+                        allHandlers_[i].ManagedHandlerId = managedHandlerId;
+                        allHandlers_[i].HandlerType = handlerType;
+
                         return;
                     }
                 }
@@ -103,7 +138,7 @@ namespace Starcounter
         static void UnregisterManagedHandler(UInt16 handlerId) {
 
             lock (allHandlers_) {
-                allHandlers_[handlerId].type_ = HandlerTypes.NotRegistered;
+                allHandlers_[handlerId].Reset();
             }
         }
 
@@ -113,14 +148,14 @@ namespace Starcounter
         const Int32 MAX_HANDLERS = 1024;
 
         /// <summary>
-        /// Raw socket handlers.
+        /// TCP socket handlers.
         /// </summary>
-        private static Action<TcpSocket, Byte[]>[] rawSocketHandlers_;
+        private static Action<TcpSocket, Byte[]>[] tcpSocketHandlers_;
 
         /// <summary>
-        /// Number of registered raw port handlers.
+        /// Number of registered TCP port handlers.
         /// </summary>
-        static UInt16 numRawPortHandlers_ = 0;
+        static UInt16 numTcpPortHandlers_ = 0;
 
         /// <summary>
         /// UDP socket handlers.
@@ -137,7 +172,7 @@ namespace Starcounter
         /// </summary>
         static GatewayHandlers()
 		{
-            rawSocketHandlers_ = new Action<TcpSocket, Byte[]>[MAX_HANDLERS];
+            tcpSocketHandlers_ = new Action<TcpSocket, Byte[]>[MAX_HANDLERS];
             udpSocketHandlers_ = new Action<IPAddress, UInt16, Byte[]>[MAX_HANDLERS];
 		}
 
@@ -268,18 +303,11 @@ namespace Starcounter
                 TransactionManager.Init(shortListPtr);
 
                 // Fetching the callback.
-                Action<TcpSocket, Byte[]> userCallback = rawSocketHandlers_[managedHandlerId];
+                Action<TcpSocket, Byte[]> userCallback = tcpSocketHandlers_[managedHandlerId];
                 if (userCallback == null)
                     throw ErrorCode.ToException(Error.SCERRHANDLERNOTFOUND);
 
-                SocketStruct socketStruct = new SocketStruct();
-                socketStruct.Init(
-                    *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream.GatewayWorkerId
-                    );
-
-                tcpSocket = new TcpSocket(dataStream, socketStruct);
+                tcpSocket = new TcpSocket(dataStream);
                 Debug.Assert(null != tcpSocket);
 
                 Byte[] dataBytes = null;
@@ -347,22 +375,21 @@ namespace Starcounter
         /// Start the session that came with request.
         /// </summary>
         static Session StartSessionThatCameWithRequest(Request req) {
-            Session s = null;
+            IAppsSession s = null;
 
             // Checking if we are in session already.
             if (req.CameWithCorrectSession) {
 
                 // Obtaining session.
-                s = (Session) req.GetAppsSessionInterface();
+                s = req.GetAppsSessionInterface();
 
                 // Checking if correct session was obtained.
                 if (null != s) {
-
                     // Starting session.
                     s.StartUsing();
                 }
             }
-            return s;
+            return (Session)s;
         }
 
         /// <summary>
@@ -527,7 +554,10 @@ namespace Starcounter
             return 0;
         }
 
-        internal  static void RegisterUriHandlerNative(
+        /// <summary>
+        /// Registers handler with gateway.
+        /// </summary>
+        internal static void RegisterHttpHandlerInGateway(
             UInt16 port,
             String appName,
             String methodSpaceUri,
@@ -539,27 +569,7 @@ namespace Starcounter
             if (null != nativeParamTypes)
                 numParams = (Byte)nativeParamTypes.Length;
 
-            unsafe {
-                fixed (Byte* pp = nativeParamTypes) {
-
-                    bmx.BMX_HANDLER_CALLBACK fp = HandleHttpRequest;
-                    GCHandle gch = GCHandle.Alloc(fp);
-                    IntPtr pinned_delegate = Marshal.GetFunctionPointerForDelegate(fp);
-
-                    UInt32 errorCode = bmx.sc_bmx_register_uri_handler(
-                        port,
-                        appName,
-                        methodSpaceUri,
-                        pp,
-                        numParams,
-                        pinned_delegate,
-                        managedHandlerIndex,
-                        out handlerInfo);
-
-                    if (errorCode != 0)
-                        throw ErrorCode.ToException(errorCode, "URI string: " + methodSpaceUri);
-                }
-            }
+            RegisterManagedHandler(HandlerTypes.HttpHandler, managedHandlerIndex, out handlerInfo);
 
             String dbName = StarcounterEnvironment.DatabaseNameLower;
 
@@ -598,13 +608,31 @@ namespace Starcounter
             }
         }
 
-        void UnregisterUriHandler(UInt16 port, String methodSpaceUri) {
+        /// <summary>
+        /// Unregister existing URI handler.
+        /// </summary>
+        internal static void UnregisterHttpHandlerInGateway(UInt16 port, String methodSpaceUri) {
 
-            // Ensuring correct multi-threading handlers creation.
-            UInt32 errorCode = bmx.sc_bmx_unregister_uri(port, methodSpaceUri);
+            String uriHandlerInfo =
+                port + " " +
+                methodSpaceUri.Replace(' ', '\\');
 
-            if (errorCode != 0)
-                throw ErrorCode.ToException(errorCode, "URI string: " + methodSpaceUri);
+            uriHandlerInfo += "\r\n\r\n\r\n\r\n";
+
+            Byte[] uriHandlerInfoBytes = ASCIIEncoding.ASCII.GetBytes(uriHandlerInfo);
+
+            Response r = Http.DELETE("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/gw/handler/uri",
+                uriHandlerInfoBytes, null, 0, new HandlerOptions() { CallExternalOnly = true });
+
+            if (!r.IsSuccessStatusCode) {
+
+                String errCodeStr = r[MixedCodeConstants.ScErrorCodeHttpHeader];
+
+                if (null != errCodeStr)
+                    throw ErrorCode.ToException(UInt32.Parse(errCodeStr), r.Body);
+                else
+                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, r.Body);
+            }
         }
 
         /// <summary>
@@ -652,11 +680,7 @@ namespace Starcounter
                 UInt32 groupId = (*(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_WS_CHANNEL_ID));
 
                 SocketStruct socketStruct = new SocketStruct();
-                socketStruct.Init(
-                    *(UInt32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_INDEX_NUMBER),
-                    *(UInt64*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + MixedCodeConstants.SOCKET_DATA_OFFSET_SOCKET_UNIQUE_ID),
-                    dataStream.GatewayWorkerId
-                    );
+                socketStruct.Init(dataStream);
 
                 Int32 numDataBytes = *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_NUM_BYTES);
                 Int32 chunkDataOffset = MixedCodeConstants.CHUNK_OFFSET_SOCKET_DATA + *(Int32*)(rawChunk + MixedCodeConstants.CHUNK_OFFSET_USER_DATA_OFFSET_IN_SOCKET_DATA);
@@ -737,7 +761,7 @@ namespace Starcounter
                 {
                     session = (Session)appsSession;
                     session.ActiveWebSocket = ws;
-                    session.StartUsing();
+                    appsSession.StartUsing();
                 }
 
                 // Setting statically available current WebSocket.
@@ -795,7 +819,7 @@ namespace Starcounter
         /// <summary>
         /// Registers the WebSocket handler.
         /// </summary>
-        internal static void RegisterWsChannelHandlerNative(
+        internal static void RegisterWsChannelHandlerInGateway(
             UInt16 port,
             String appName,
             String groupName,
@@ -806,21 +830,7 @@ namespace Starcounter
             // Ensuring correct multi-threading handlers creation.
             unsafe
             {
-                bmx.BMX_HANDLER_CALLBACK fp = HandleWebSocket;
-                GCHandle gch = GCHandle.Alloc(fp);
-                IntPtr pinnedDelegate = Marshal.GetFunctionPointerForDelegate(fp);
-
-                UInt32 errorCode = bmx.sc_bmx_register_ws_handler(
-                    port,
-                    appName,
-                    groupName,
-                    groupId,
-                    pinnedDelegate,
-                    managedHandlerIndex,
-                    out handlerInfo);
-
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Channel string: " + groupName);
+                RegisterManagedHandler(HandlerTypes.WebSocketHandler, managedHandlerIndex, out handlerInfo);
 
                 String dbName = StarcounterEnvironment.DatabaseNameLower;
 
@@ -855,7 +865,7 @@ namespace Starcounter
         /// <summary>
         /// Registers UDP port handler.
         /// </summary>
-        internal static void RegisterUdpSocketHandler(
+        internal static void RegisterUdpSocketHandlerInGateway(
 			UInt16 port,
             String appName,
 			Action<IPAddress, UInt16, Byte[]> udpCallback,
@@ -867,7 +877,7 @@ namespace Starcounter
         /// <summary>
         /// Registers TCP port handler.
         /// </summary>
-        internal static void RegisterTcpSocketHandler(
+        internal static void RegisterTcpSocketHandlerInGateway(
 			UInt16 port,
             String appName,
 			Action<TcpSocket, Byte[]> rawCallback,
@@ -879,11 +889,6 @@ namespace Starcounter
         /// <summary>
         /// Registering port handler.
         /// </summary>
-        /// <param name="port"></param>
-        /// <param name="appName"></param>
-        /// <param name="rawCallback"></param>
-        /// <param name="udpCallback"></param>
-        /// <param name="handlerInfo"></param>
         static void RegisterPortHandler(
 			UInt16 port,
             String appName,
@@ -896,7 +901,7 @@ namespace Starcounter
                 isUdp = true;
 
             // Ensuring correct multi-threading handlers creation.
-            lock (rawSocketHandlers_) {
+            lock (tcpSocketHandlers_) {
 
                 bmx.BMX_HANDLER_CALLBACK fp = null;
 
@@ -907,18 +912,20 @@ namespace Starcounter
 
                 GCHandle gch = GCHandle.Alloc(fp);
                 IntPtr pinnedDelegate = Marshal.GetFunctionPointerForDelegate(fp);
-
-                UInt16 numHandlers = numRawPortHandlers_;
+                
+                UInt16 numHandlers = numTcpPortHandlers_;
                 if (udpCallback != null)
                     numHandlers = numUdpPortHandlers_;
 
-                UInt32 errorCode = bmx.sc_bmx_register_port_handler(port, appName, pinnedDelegate, numHandlers, out handlerInfo);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Port number: " + port);
+                if (udpCallback != null) {
+                    RegisterManagedHandler(HandlerTypes.UdpHandler, numHandlers, out handlerInfo);
+                } else {
+                    RegisterManagedHandler(HandlerTypes.TcpHandler, numHandlers, out handlerInfo);
+                }
 
                 if (udpCallback == null) {
-                    rawSocketHandlers_[numRawPortHandlers_] = rawCallback;
-                    numRawPortHandlers_++;
+                    tcpSocketHandlers_[numTcpPortHandlers_] = rawCallback;
+                    numTcpPortHandlers_++;
                 } else {
                     udpSocketHandlers_[numUdpPortHandlers_] = udpCallback;
                     numUdpPortHandlers_++;
@@ -952,15 +959,14 @@ namespace Starcounter
             }
         }
 
+        /// <summary>
+        /// Unregister port handler.
+        /// </summary>
         static void UnregisterPort(UInt16 port, UInt64 handlerInfo)
 		{
             // Ensuring correct multi-threading handlers creation.
-            lock (rawSocketHandlers_)
+            lock (tcpSocketHandlers_)
             {
-                UInt32 errorCode = bmx.sc_bmx_unregister_port(port);
-                if (errorCode != 0)
-                    throw ErrorCode.ToException(errorCode, "Port number: " + port);
-
                 String dbName = StarcounterEnvironment.DatabaseNameLower;
 
                 String portInfo =

@@ -101,6 +101,13 @@ namespace Starcounter.Rest
         {
             UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(port, methodSpaceUri, handler, ho);
         }
+
+        /// <summary>
+        /// Unregisters a HTTP handler.
+        /// </summary>
+        public void UnregisterHttpHandler(ushort port, string method, String uri) {
+            UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel).UnregisterHttpHandler(port, method + " " + uri);
+        }
     }
 
     /// <summary>

@@ -1,5 +1,10 @@
 #include "bmx.hpp"
 
+namespace starcounter
+{
+namespace bmx
+{
+
 // Obtains new shared memory chunk.
 EXTERN_C uint32_t __stdcall sc_bmx_obtain_new_chunk(
     starcounter::core::chunk_index* new_chunk_index,
@@ -519,3 +524,5 @@ EXTERN_C void __stdcall sc_bmx_release_linked_chunks(starcounter::core::chunk_in
     *the_chunk_index = shared_memory_chunk::link_terminator;
 }
 
+}  // namespace bmx
+}; // namespace starcounter

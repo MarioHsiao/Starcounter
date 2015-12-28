@@ -110,6 +110,7 @@ namespace Starcounter.Advanced.XSON {
         private static bool WrapInAppName(Session session, Json obj) {
             if (obj._wrapInAppName
                 && session != null
+                && session.enableNamespaces
                 && session.CheckOption(SessionOptions.IncludeNamespaces)
                 && (session.PublicViewModel != obj)
                 && !obj.calledFromStepSibling)

@@ -36,6 +36,7 @@ namespace Starcounter.Internal.Tests {
 
             UriManagedHandlersCodegen.Setup(
                 null, 
+                null,
                 null, 
                 null, 
                 null, 

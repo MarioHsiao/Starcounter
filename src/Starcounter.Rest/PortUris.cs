@@ -178,6 +178,7 @@ namespace Starcounter.Rest {
                     // Creating list of registered uri infos.
                     for (Int32 i = 0; i < numRegisteredHandlers; i++) {
 
+                        // Checking if handler is not empty.
                         if (!allUserHandlers[i].IsEmpty()) {
 
                             // Grabbing URIs for this port only.

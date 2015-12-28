@@ -990,7 +990,8 @@ namespace Starcounter.Rest
         }
 
         public static void Setup(
-            UriInjectMethods.RegisterUriHandlerNativeDelegate registerUriHandlerNative,
+            UriInjectMethods.RegisterHttpHandlerInGatewayDelegate registerHttpHandlerInGateway,
+            UriInjectMethods.UnregisterHttpHandlerInGatewayDelegate unregisterHttpHandlerInGateway,
             TcpSocket.RegisterTcpSocketHandlerDelegate tcpSocketHandler,
             UdpSocket.RegisterUdpSocketHandlerDelegate udpSocketHandler,
             Func<Request, Boolean> processExternalRequest,
@@ -1001,7 +1002,8 @@ namespace Starcounter.Rest
             UdpSocket.InitUdpSockets(udpSocketHandler);
 
             UriInjectMethods.SetDelegates(
-                registerUriHandlerNative,
+                registerHttpHandlerInGateway,
+                unregisterHttpHandlerInGateway,
                 processExternalRequest,
                 runDelegateAndProcessResponse);
 
@@ -1051,8 +1053,9 @@ namespace Starcounter.Rest
 
             // Checking if port is initialized.
             PortUris portUris = uhm.SearchPort(portNumber);
-            if (portUris == null)
+            if (portUris == null) {
                 portUris = uhm.AddPort(portNumber);
+            }
 
             // Calling the code generation for URIs if needed.
             if (null == portUris.matchUriAndGetHandlerIdFunc_) {

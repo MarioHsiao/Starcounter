@@ -492,6 +492,9 @@ public:
     uint32_t FinishConnect(SocketDataChunkRef sd);
     uint32_t FinishAccept(SocketDataChunkRef sd);
 
+	// Do internal HTTP request.
+	uint32_t DoInternalHttpRequest(SocketDataChunkRef sd, const char* http_request_data, const int32_t request_data_size);
+
     // Running connect on socket data.
     uint32_t Connect(SocketDataChunkRef sd, sockaddr_in *serverAddr);
 
@@ -566,7 +569,7 @@ public:
         if (INVALID_PORT_INDEX == port_index)
             return SCERRGWWRONGPORTINDEX;
 
-        PortHandlers* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
+        HandlersList* ph = g_gateway.get_server_port(port_index)->get_port_handlers();
 
         GW_ASSERT(NULL != ph);
 

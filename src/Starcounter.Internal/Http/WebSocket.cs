@@ -4,9 +4,11 @@ using Starcounter.Internal;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Starcounter
 {
@@ -171,6 +173,39 @@ namespace Starcounter
         }
 
         /// <summary>
+        /// Streaming over TCP socket.
+        /// NOTE: Function closes the stream once the end of stream is reached.
+        /// </summary>
+        internal async Task SendStreamOverSocket(Stream whatToStream, Byte[] fetchBuffer, bool isText = false) {
+
+            try {
+
+                Int32 numBytesRead = await whatToStream.ReadAsync(fetchBuffer, 0, fetchBuffer.Length);
+
+                // Checking if its the end of the stream.
+                if (0 == numBytesRead) {
+                    whatToStream.Close();
+                    return;
+                }
+
+                // We need to be on scheduler to send on socket.
+                StarcounterBase._DB.RunAsync(() => {
+
+                    // Sending on socket.
+                    Send(fetchBuffer, numBytesRead, isText);
+
+                    // Scheduling a new task to read from the stream.
+                    Task.Run(() => SendStreamOverSocket(whatToStream, fetchBuffer));
+                });
+
+            } catch (Exception exc) {
+
+                // Just logging the exception.
+                Diagnostics.LogHostException(exc);
+            }
+        }
+
+        /// <summary>
         /// Server push on WebSocket.
         /// </summary>
         /// <param name="data">Data to push.</param>
@@ -249,11 +284,9 @@ namespace Starcounter
         /// <summary>
         /// Converts lower and upper part of WebSocket into an object.
         /// </summary>
-        /// <param name="lowerPart">Lower part of the socket info.</param>
-        /// <param name="upperPart">Upper part of the socket info.</param>
-        internal WebSocket(UInt32 socketIndexNum, UInt64 socketUniqueId, Byte gatewayWorkerId) {
+        internal WebSocket(NetworkDataStream dataStream) {
 
-            socketStruct_.Init(socketIndexNum, socketUniqueId, gatewayWorkerId);
+            socketStruct_.Init(dataStream);
         }
 
         /// <summary>
