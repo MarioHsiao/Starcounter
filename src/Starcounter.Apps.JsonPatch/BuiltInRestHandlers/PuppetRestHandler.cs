@@ -126,7 +126,13 @@ namespace Starcounter.Internal {
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
-                    byte[] body = root.ToJsonUtf8();
+                    byte[] body = null;
+                    session.enableNamespaces = true;
+                    try {
+                        body = root.ToJsonUtf8();
+                    } finally {
+                        session.enableNamespaces = false;
+                    }
 
                     if (root.ChangeLog != null)
                         root.ChangeLog.Checkpoint();

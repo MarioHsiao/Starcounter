@@ -218,6 +218,11 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
     {
         SetWebSocketGroupId(*(ws_group_id_type*)accept_or_params_or_temp_data_);
     }
+
+	// Checking if we have a streaming response.
+	if (get_streaming_response_body_flag()) {
+		set_streaming_response_body_flag();
+	}
 }
 
 // Pre-init UDP socket.

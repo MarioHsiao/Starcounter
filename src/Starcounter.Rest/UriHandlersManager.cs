@@ -397,7 +397,7 @@ namespace Starcounter.Rest
 
         internal static Func<IntPtr, IntPtr, Request, Response> runDelegateAndProcessResponse_;
         public static Func<Request, Boolean> processExternalRequest_;
-        public delegate void RegisterUriHandlerNativeDelegate(
+        public delegate void RegisterHttpHandlerInGatewayDelegate(
             UInt16 port,
             String appName,
             String methodSpaceUri,
@@ -405,7 +405,13 @@ namespace Starcounter.Rest
             UInt16 managedHandlerIndex,
             out UInt64 handlerInfo);
 
-        internal static RegisterUriHandlerNativeDelegate registerUriHandlerNative_;
+        public delegate void UnregisterHttpHandlerInGatewayDelegate(
+            UInt16 port,
+            String methodSpaceUri);
+
+        internal static RegisterHttpHandlerInGatewayDelegate registerHttpHandlerInGateway_;
+
+        internal static UnregisterHttpHandlerInGatewayDelegate unregisterHttpHandlerInGateway_;
 
         // Checking if this Node supports local resting.
         internal static Boolean IsSupportingLocalNodeResting() {
@@ -413,11 +419,13 @@ namespace Starcounter.Rest
         }
 
         public static void SetDelegates(
-            RegisterUriHandlerNativeDelegate registerUriHandlerNative,
+            RegisterHttpHandlerInGatewayDelegate registerHttpHandlerInGateway,
+            UnregisterHttpHandlerInGatewayDelegate unregisterHttpHandlerInGateway,
             Func<Request, Boolean> processExternalRequest,
             Func<IntPtr, IntPtr, Request, Response> runDelegateAndProcessResponse) {
 
-            registerUriHandlerNative_ = registerUriHandlerNative;
+            registerHttpHandlerInGateway_ = registerHttpHandlerInGateway;
+            unregisterHttpHandlerInGateway_ = unregisterHttpHandlerInGateway;
             processExternalRequest_ = processExternalRequest;
             runDelegateAndProcessResponse_ = runDelegateAndProcessResponse;
         }
@@ -509,16 +517,14 @@ namespace Starcounter.Rest
             get { return maxNumHandlersEntries_; }
         }
 
-        public const Int32 MaxUriHandlers = 1024;
-
         internal void Reset()
         {
             maxNumHandlersEntries_ = 0;
 
             portUris_ = new List<PortUris>();
 
-            allUriHandlers_ = new UserHandlerInfo[MaxUriHandlers];
-            for (UInt16 i = 0; i < MaxUriHandlers; i++) {
+            allUriHandlers_ = new UserHandlerInfo[4096];
+            for (UInt16 i = 0; i < allUriHandlers_.Length; i++) {
                 allUriHandlers_[i] = new UserHandlerInfo(i);
             }
         }
@@ -528,10 +534,7 @@ namespace Starcounter.Rest
             // Initializing port uris.
             PortUris.GlobalInit();
 
-            allUriHandlers_ = new UserHandlerInfo[MaxUriHandlers];
-            for (UInt16 i = 0; i < MaxUriHandlers; i++) {
-                allUriHandlers_[i] = new UserHandlerInfo(i);
-            }
+            Reset();
         }
 
         public static UInt16 GetPortNumber(Request req, HandlerOptions handlerOptions) {
@@ -574,7 +577,7 @@ namespace Starcounter.Rest
 
                 UInt64 handlerInfo = UInt64.MaxValue;
 
-                if (handlerId >= MaxUriHandlers) {
+                if (handlerId >= allUriHandlers_.Length) {
                     throw ErrorCode.ToException(Error.SCERRMAXHANDLERSREACHED);
                 }
 
@@ -590,7 +593,7 @@ namespace Starcounter.Rest
                     ho);
 
                 // Registering the outer native handler (if any).
-                if (UriInjectMethods.registerUriHandlerNative_ != null) {
+                if (UriInjectMethods.registerHttpHandlerInGateway_ != null) {
 
                     // Checking if we are on default handler level so we register with gateway.
                     if (ho.HandlerLevel == HandlerOptions.HandlerLevels.DefaultLevel) {
@@ -600,7 +603,7 @@ namespace Starcounter.Rest
                             appName = MixedCodeConstants.EmptyAppName;
                         }
 
-                        UriInjectMethods.registerUriHandlerNative_(
+                        UriInjectMethods.registerHttpHandlerInGateway_(
                             port,
                             appName,
                             methodSpaceUri,
@@ -615,8 +618,9 @@ namespace Starcounter.Rest
 
                 // Resetting port URIs matcher.
                 PortUris portUris = SearchPort(port);
-                if (portUris != null)
+                if (portUris != null) {
                     portUris.matchUriAndGetHandlerIdFunc_ = null;
+                }
             }
         }
 
@@ -654,23 +658,38 @@ namespace Starcounter.Rest
         }
 
         /// <summary>
-        /// Unregisters existing URI handler.
+        /// Unregisters existing HTTP handler.
         /// </summary>
-        /// <param name="methodAndUri"></param>
-        public void UnregisterUriHandler(String methodAndUri)
+        public void UnregisterHttpHandler(UInt16 port, String methodSpaceUri)
         {
+            // Checking if port is not specified.
+            if (StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort == port) {
+                if (StarcounterEnvironment.IsAdministratorApp) {
+                    port = StarcounterEnvironment.Default.SystemHttpPort;
+                } else {
+                    port = StarcounterEnvironment.Default.UserHttpPort;
+                }
+            }
+
             lock (allUriHandlers_)
             {
-                for (Int32 i = 0; i < MaxUriHandlers; i++)
+                for (Int32 i = 0; i < allUriHandlers_.Length; i++)
                 {
-                    if (allUriHandlers_[i].MethodSpaceUri == methodAndUri)
+                    if (allUriHandlers_[i].MethodSpaceUri == methodSpaceUri)
                     {
-                        // TODO: Call underlying BMX handler destructor.
-
+                        // Destroying handler.
                         allUriHandlers_[i].Destroy();
-                        maxNumHandlersEntries_--;
 
-                        throw new NotImplementedException();
+                        // Unregistering handler in gateway.
+                        UriInjectMethods.unregisterHttpHandlerInGateway_(
+                            port,
+                            methodSpaceUri);
+
+                        // Resetting port HTTP matcher.
+                        PortUris portUris = SearchPort(port);
+                        if (portUris != null) {
+                            portUris.matchUriAndGetHandlerIdFunc_ = null;
+                        }
                     }
                 }
             }

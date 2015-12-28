@@ -81,7 +81,7 @@ namespace StarcounterInternal.Bootstrap {
         private unsafe void* hsched_;
 
         unsafe delegate UInt32 HandleManagedDelegate(
-            UInt16 managedHandlerId,
+            UInt64 handlerInfo,
             Byte* rawChunk,
             bmx.BMX_TASK_INFO* taskInfo,
             Boolean* isHandled);
