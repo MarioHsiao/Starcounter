@@ -576,8 +576,9 @@ namespace Starcounter.Internal {
             }
 
             // Checking if response was handled.
-            if (resp == null)
+            if (resp == null) {
                 return false;
+            }
 
             // Determining what we should do with response.
             switch (resp.HandlingStatus) {

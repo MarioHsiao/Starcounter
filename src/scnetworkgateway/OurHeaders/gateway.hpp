@@ -301,6 +301,7 @@ const int32_t MAX_WORKER_CHUNKS =
     200000 + // Default chunk size.
     50000 +
     30000 +
+	20000 +
     10000 +
     100;
 
@@ -310,7 +311,8 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
+    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB,
+	GatewayChunkSizes[6] - SOCKET_DATA_OFFSET_BLOB
 };
 
 // Maximum size of socket data.
