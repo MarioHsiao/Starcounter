@@ -149,10 +149,24 @@ namespace Starcounter.Internal {
                     Handle.GET(defaultSystemHttpPort, "/sc/finishsend/" + defaultUserHttpPort, (Request req) => {
 
                         TcpSocket tcpSocket = new TcpSocket(req.DataStream);
-                        Stream s = Response.ResponseStreams_[tcpSocket.ToUInt64()];
+
+                        // Destroying native buffers.
+                        req.Destroy(true);
+
+                        UInt64 socketId = tcpSocket.ToUInt64();
+
+                        // Checking if stream exists.
+                        if (!Response.ResponseStreams_.ContainsKey(socketId)) {
+                            return HandlerStatus.Handled;
+                        }
+
+                        Stream s = Response.ResponseStreams_[socketId];
 
                         if (s != null) {
-                            System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket(Response.ResponseStreams_, s, new Byte[4096 * 8]));
+                            System.Threading.Tasks.Task task = 
+                                System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket(Response.ResponseStreams_, s, new Byte[4096 * 14]));
+
+                            Response.ResponseStreamsTasks_[socketId] = task;
                         }
 
                         return HandlerStatus.Handled;
@@ -163,6 +177,9 @@ namespace Starcounter.Internal {
                     Handle.DELETE(defaultSystemHttpPort, "/sc/stream/" + defaultUserHttpPort, (Request req) => {
 
                         TcpSocket tcpSocket = new TcpSocket(req.DataStream);
+                        // Destroying native buffers.
+                        req.Destroy(true);
+
                         UInt64 socketId = tcpSocket.ToUInt64();
 
                         // Checking if stream exists.
@@ -170,7 +187,16 @@ namespace Starcounter.Internal {
                             return HandlerStatus.Handled;
                         }
 
-                        Stream s = Response.ResponseStreams_[socketId];
+                        Stream s;
+
+                        // Checking that task is running, then waiting for the task.
+                        if (Response.ResponseStreamsTasks_.ContainsKey(socketId)) {
+
+                            System.Threading.Tasks.Task task = Response.ResponseStreamsTasks_[socketId];
+                            task.Wait();
+                        }
+
+                        s = Response.ResponseStreams_[socketId];
 
                         // Checking if stream still exists.
                         if (s != null) {

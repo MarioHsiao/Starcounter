@@ -211,7 +211,7 @@ READY_SOCKET_DATA:
             }
 
             // Initializing socket data that arrived from database.
-            sd->PreInitSocketDataFromDb(gw);
+            sd->PreInitSocketDataFromDb(gw, sched_id);
 
             // Checking for socket data correctness.
             GW_ASSERT(sd->get_type_of_network_protocol() < MixedCodeConstants::NetworkProtocolType::PROTOCOL_COUNT);

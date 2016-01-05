@@ -272,7 +272,7 @@ enum GatewayTestingMode
     MODE_GATEWAY_UNKNOWN = 6
 };
 
-const int32_t NumGatewayChunkSizes = 6;
+const int32_t NumGatewayChunkSizes = 7;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
@@ -280,6 +280,7 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     2 * 1024, // Default chunk size.
     8 * 1024,
     32 * 1024,
+	64 * 1024,
     128 * 1024,
     2 * 1024 * 1024
 };
@@ -289,6 +290,7 @@ const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     200000, // Default chunk size.
     50000,
     30000,
+	20000,
     10000,
     100
 };
