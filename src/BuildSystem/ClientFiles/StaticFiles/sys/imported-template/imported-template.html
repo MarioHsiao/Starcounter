@@ -1,5 +1,5 @@
 <!--
-imported-template.html version: 1.0.4
+imported-template.html version: 1.0.5
 (c) 2013 Joachim Wester
 MIT license
 https://github.com/Juicy/imported-template
@@ -21,29 +21,6 @@ https://github.com/Juicy/imported-template
             } else {
                 //val is HTML code, insert the partial from the string
                 this.reattachTemplate_(val);
-            }
-        };
-
-        /**
-         * Clone all <script> tags to force script execution in IE and Firefox.
-         */
-        ImportedTemplatePrototype._cloneScriptNodes = function (node) {
-            var scripts = node.querySelectorAll("script");
-
-            for (var i = 0; i < scripts.length; i++) {
-                var oldScript = scripts[i];
-                var newScript = document.createElement("script");
-
-                newScript.text = oldScript.text;
-
-                for (var j = 0; j < oldScript.attributes.length; j++) {
-                    var attr = oldScript.attributes[j];
-
-                    newScript.setAttribute(attr.name, oldScript.getAttribute(attr.name));
-                }
-
-                node.insertBefore(newScript, oldScript);
-                node.removeChild(oldScript);
             }
         };
 
@@ -107,8 +84,21 @@ https://github.com/Juicy/imported-template
                 xhtml.stampedNodes = Array.prototype.slice.call(fragment.childNodes);
                 // attach models
                 xhtml.attributeChangedCallback("model", undefined, xhtml.model || xhtml.getAttribute("model"));
-                ImportedTemplatePrototype._cloneScriptNodes(fragment);
+                // Apply workaround for HTML Imports shim
+                // Workaround https://github.com/webcomponents/webcomponentsjs/issues/470
+                // fix for https://github.com/Juicy/imported-template/issues/17
+                if(HTMLImports && !HTMLImports.useNative && HTMLImports.parser){
+                    var nodes = fragment.querySelectorAll(HTMLImports.parser.importsSelectors);
+                    for (var nodeNo=0, l=nodes.length, node; (nodeNo<l) && (node=nodes[nodeNo]); nodeNo++) {
+                        HTMLImports.parser.parseDynamic(node, true);
+                    }
+                }
+                // Stamp tempalte into document
                 xhtml.parentNode.insertBefore(fragment, xhtml.nextSibling);
+                // Last bit of workaround
+                if(HTMLImports && !HTMLImports.useNative && HTMLImports.parser){
+                    HTMLImports.parser.parseNext();
+                }
 
             };
             // guessed workaround for StarcounterSamples/Launcher#82, Polymer/polymer#554, http://crbug.com/389566
