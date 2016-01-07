@@ -185,15 +185,23 @@ namespace Starcounter {
             try {
                 Int32 numBytesRead = await whatToStream.ReadAsync(fetchBuffer, 0, fetchBuffer.Length);
 
+                UInt64 socketId = ToUInt64();
+                Task t;
+
                 // Checking if its the end of the stream.
                 if (0 == numBytesRead) {
 
                     whatToStream.Close();
+
                     Stream s;
-                    dict.TryRemove(ToUInt64(), out s);
+                    dict.TryRemove(socketId, out s);
+                    
+                    Response.ResponseStreamsTasks_.TryRemove(socketId, out t);
 
                     return;
                 }
+
+                Response.ResponseStreamsTasks_.TryRemove(socketId, out t);
 
                 // We need to be on scheduler to send on socket.
                 StarcounterBase._DB.RunAsync(() => {

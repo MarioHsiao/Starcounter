@@ -959,7 +959,7 @@ public:
     void ExchangeToProxySocket(GatewayWorker* gw);
 
     // Initializes socket data that comes from database.
-    void PreInitSocketDataFromDb(GatewayWorker* gw);
+    void PreInitSocketDataFromDb(GatewayWorker* gw, const scheduler_id_type sched_id);
 
     // Initializes socket data that comes from database.
     uint32_t PreInitUdpSocket(GatewayWorker* gw);
