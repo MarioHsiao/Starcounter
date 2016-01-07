@@ -90,6 +90,8 @@ HtmlAgilityPack.dll
 HtmlAgilityPack.pdb
 HtmlAgilityPack.xml
 kill_all.bat
+loader.dll
+loader.pbd
 ld.exe
 logreader.dll
 log_writer_client.dll
@@ -127,6 +129,8 @@ scadminserver.pdb
 scadminserver.exe.config
 ScAnalyze.psplugin
 ScAnalyzeOnly.psproj
+scdbmetalayer.dll
+scdbmetalayer.pdb
 sccode.exe
 sccode.pdb
 sccode.exe.config
@@ -336,6 +340,9 @@ TurboText_sv-SE_3.dll
 TurboText_sv-SE_3.exp
 TurboText_sv-SE_3.lib
 TurboText_sv-SE_3.dll.manifest
+TurboText_x-tid_3.dll
+TurboText_x-tid_3.exp
+TurboText_x-tid_3.lib
 WebSocket4Net.dll
 writer.dll
 VersionInfo.xml
