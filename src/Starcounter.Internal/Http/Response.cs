@@ -286,6 +286,11 @@ namespace Starcounter
         internal static ConcurrentDictionary<UInt64, Stream> ResponseStreams_ = new ConcurrentDictionary<UInt64, Stream>();
 
         /// <summary>
+        /// Dictionary with response streams tasks.
+        /// </summary>
+        internal static ConcurrentDictionary<UInt64, Task> ResponseStreamsTasks_ = new ConcurrentDictionary<UInt64, Task>();
+
+        /// <summary>
         /// Clones existing static resource response object.
         /// </summary>
         internal Response CloneStaticResourceResponse() {

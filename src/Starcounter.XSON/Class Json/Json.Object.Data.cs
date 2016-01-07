@@ -123,7 +123,9 @@ namespace Starcounter {
                 return;
 
             if (child.BindingStrategy != BindingStrategy.Unbound && !child.isVerifiedUnbound) {
-                child.InvalidateBoundGetterAndSetter();
+                if (!child.isBoundToParent) { // no need to invalidate bindings to codebehind
+                    child.InvalidateBoundGetterAndSetter();
+                }
                 child.SetDefaultValue(this);
                 if (this.HasBeenSent)
                     MarkAsReplaced(child);
