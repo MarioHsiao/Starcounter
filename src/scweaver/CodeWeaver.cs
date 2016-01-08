@@ -26,6 +26,8 @@ namespace Starcounter.Weaver {
     internal class CodeWeaver : MarshalByRefObject, IPostSharpHost {
         const string AnalyzerProjectFileName = "ScAnalyzeOnly.psproj";
         const string WeaverProjectFileName = "ScTransform.psproj";
+        
+        ProjectInvocationParameters lastProject = null;
 
         /// <summary>
         /// Gets a reference to the currently executing code weaver.
@@ -294,6 +296,8 @@ namespace Starcounter.Weaver {
                         return false;
 
                     } catch (AssemblyLoadException assemblyLoadEx) {
+
+
                         Program.WriteError(ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, assemblyLoadEx.ToString()));
 
                         Program.ReportProgramError(
@@ -563,6 +567,8 @@ namespace Starcounter.Weaver {
             parameters.Properties["ResolvedReferences"] = "";
             parameters.Properties["DontCopyToOutput"] = this.WeaveToCacheOnly ? bool.TrueString : bool.FalseString;
 
+            lastProject = parameters;
+
             return parameters;
         }
 
@@ -571,6 +577,19 @@ namespace Starcounter.Weaver {
                 return string.Equals(candidate.Name, module.Assembly.Name, StringComparison.InvariantCultureIgnoreCase);
             });
             return reference != null;
+        }
+
+        // Safe implementation. This is for diagnostic, we allow it to return not knowns
+        // when things cant be resolved. No exceptions should slip.
+        void GetLastProjectInfo(out string assembly, out string directory) {
+            var proj = lastProject;
+            assembly = directory = "n/a";
+            if (proj != null) {
+                try {
+                    assembly = proj.Properties["AssemblyName"] + "." + proj.Properties["AssemblyExtension"];
+                    directory = proj.Properties["ScInputDirectory"];
+                } catch {}
+            }
         }
 
         #region IPostSharpHost Members (methods called back by PostSharp)
