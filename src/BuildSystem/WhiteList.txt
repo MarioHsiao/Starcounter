@@ -90,9 +90,11 @@ HtmlAgilityPack.dll
 HtmlAgilityPack.pdb
 HtmlAgilityPack.xml
 kill_all.bat
+ld.exe
 loader.dll
 loader.pbd
-ld.exe
+logopt.exe
+logopt.pdb
 logreader.dll
 log_writer_client.dll
 log_writer_client.exp
