@@ -296,14 +296,21 @@ namespace Starcounter.Weaver {
                         return false;
 
                     } catch (AssemblyLoadException assemblyLoadEx) {
+                        string lastAssembly, lastDir;
+                        GetLastProjectInfo(out lastAssembly, out lastDir);
 
+                        var hint = string.Format(
+                            "Referenced assembly: {0}. Probable referrer: {1} (in {2}).",
+                            assemblyLoadEx.Assembly.GetFullName(),
+                            lastAssembly,
+                            lastDir);
 
-                        Program.WriteError(ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, assemblyLoadEx.ToString()));
+                        Program.WriteError(
+                            ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, hint + " " +assemblyLoadEx.ToString()));
 
                         Program.ReportProgramError(
                             Error.SCERRWEAVERFAILEDRESOLVEREFERENCE,
-                            ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, 
-                            string.Format("Referenced assembly: {0}", assemblyLoadEx.Assembly.GetFullName()))
+                            ErrorCode.ToMessage(Error.SCERRWEAVERFAILEDRESOLVEREFERENCE, hint)
                             );
                         return false;
                     } catch (Exception e) {
@@ -586,7 +593,7 @@ namespace Starcounter.Weaver {
             assembly = directory = "n/a";
             if (proj != null) {
                 try {
-                    assembly = proj.Properties["AssemblyName"] + "." + proj.Properties["AssemblyExtension"];
+                    assembly = proj.Properties["AssemblyName"] + proj.Properties["AssemblyExtension"];
                     directory = proj.Properties["ScInputDirectory"];
                 } catch {}
             }
