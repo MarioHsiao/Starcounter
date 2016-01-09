@@ -11,3 +11,4 @@ hostlooper_test.bat 300
 apps_test.bat 300
 urls_test.bat 300
 websockets_test.bat 300
+udp_test.bat 100
