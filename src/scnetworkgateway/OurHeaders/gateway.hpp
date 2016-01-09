@@ -861,6 +861,11 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
 		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY) != 0;
 	}
 
+	void reset_streaming_response_body_flag()
+	{
+		flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY;
+	}
+
 	void set_streaming_response_body_flag()
 	{
 		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY;
