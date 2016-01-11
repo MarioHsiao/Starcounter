@@ -98,6 +98,16 @@ namespace Starcounter {
     public class DbSession : IDbSession {
 
         /// <summary>
+        /// Round robin scheduler ID for RunAsync calls.
+        /// </summary>
+        static Byte roundRobinSchedId_ = 0;
+
+        /// <summary>
+        /// Lock for incrementing scheduler id.
+        /// </summary>
+        static String roundRobinLock_ = "some value";
+
+        /// <summary>
         /// Runs the task represented by the action delegate asynchronously.
         /// </summary>
         /// <remarks>
@@ -110,6 +120,17 @@ namespace Starcounter {
         public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
             unsafe {
                 String curAppName = StarcounterEnvironment.AppName;
+
+                // Checking if we need to use round robin for getting scheduler id.
+                if (Byte.MaxValue == schedId) {
+                    lock (roundRobinLock_) {
+                        roundRobinSchedId_++;
+                        if (roundRobinSchedId_ >= StarcounterEnvironment.SchedulerCount) {
+                            roundRobinSchedId_ = 0;
+                        }
+                        schedId = roundRobinSchedId_;
+                    }
+                }
 
                 TaskScheduler.Run(new Task(
                 () => {

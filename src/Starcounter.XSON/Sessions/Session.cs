@@ -58,6 +58,13 @@ namespace Starcounter {
         /// </summary>
         private List<TransactionRef> transactions;
 
+        /// <summary>
+        /// Namespaces should only be added when the public viewmodel is serialized
+        /// and when patches are sent AND if the option is set. Otherwise no namespaces
+        /// and no siblings should be serialized.
+        /// </summary>
+        internal bool enableNamespaces = false;
+
         public Session() : this(SessionOptions.Default) {
         }
 
@@ -157,16 +164,7 @@ namespace Starcounter {
                         if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
 
                             Session session = (Session)s.apps_session_int_;
-
-                            try {
-                                // Setting new current session.
-                                session.StartUsing();
-                                
-                                // Running user delegate with session as parameter.
-                                action(session);
-                            } finally {
-                                session.StopUsing();
-                            }
+                            session.Use<Session>(action, session);
                         }
                     }
 
@@ -357,12 +355,24 @@ namespace Starcounter {
             return _isInUse;
         }
 
+        void IAppsSession.StartUsing() {
+            this.StartUsing();
+        }
+
+        void IAppsSession.StopUsing() {
+            this.StopUsing();
+        }
+
         /// <summary>
         /// Start using specific session.
         /// </summary>
-        public void StartUsing() {
-            if (_current == this)
-                return;
+        /// <returns>
+        /// true if switched over to this session, false if the session 
+        /// already was current.
+        /// </returns>
+        private bool StartUsing() {
+            if (_current == this) 
+                return false;
 
             if (_current != null) {
                 throw ErrorCode.ToException(Error.SCERRANOTHERSESSIONACTIVE);
@@ -374,12 +384,13 @@ namespace Starcounter {
 
             _isInUse = true;
             Session._current = this;
+            return true;
         }
 
         /// <summary>
         /// Stop using specific session.
         /// </summary>
-        public void StopUsing() {
+        private void StopUsing() {
             try {
                 Debug.Assert(_current == this);
 
@@ -390,7 +401,7 @@ namespace Starcounter {
                 waitObj.Set();
             }
         }
-
+        
         /// <summary>
         /// Checks if session is active.
         /// </summary>
@@ -529,6 +540,111 @@ namespace Starcounter {
 
         void IDisposable.Dispose() {
             Destroy();
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call       
+        /// </summary>
+        /// <param name="action"></param>
+        public void Use(Action action) {
+            bool started = this.StartUsing();
+            try {
+                action();
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call
+        /// </summary>
+        /// <param name="action"></param>
+        public void Use<T>(Action<T> action, T arg) {
+            bool started = this.StartUsing();
+            try {
+                action(arg);
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call
+        /// </summary>
+        /// <param name="action"></param>
+        public void Use<T1, T2>(Action<T1, T2> action, T1 arg1, T2 arg2) {
+            bool started = this.StartUsing();
+            try {
+                action(arg1, arg2);
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call
+        /// </summary>
+        /// <param name="action"></param>
+        public void Use<T1, T2, T3>(Action<T1, T2, T3> action, T1 arg1, T2 arg2, T3 arg3) {
+            bool started = this.StartUsing();
+            try {
+                action(arg1, arg2, arg3);
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call
+        /// </summary>
+        /// <param name="func"></param>
+        public T Use<T>(Func<T> func) {
+            bool started = this.StartUsing();
+            try {
+                return func();
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call
+        /// </summary>
+        /// <param name="func"></param>
+        public TRet Use<T, TRet>(Func<T, TRet> func, T arg) {
+            bool started = this.StartUsing();
+            try {
+                return func(arg);
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call
+        /// </summary>
+        /// <param name="func"></param>
+        public TRet Use<T1, T2, TRet>(Func<T1, T2, TRet> func, T1 arg1, T2 arg2) {
+            bool started = this.StartUsing();
+            try {
+                return func(arg1, arg2);
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
         }
     }
 }

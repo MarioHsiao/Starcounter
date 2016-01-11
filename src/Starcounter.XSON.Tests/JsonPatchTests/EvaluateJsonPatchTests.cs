@@ -394,8 +394,7 @@ namespace Starcounter.Internal.XSON.Tests {
         public static void TestEvaluateJsonPointer() {
             Session session = new Session();
 
-            session.StartUsing();
-            try {
+            session.Use(() => {
                 JsonProperty aat = Helper.CreateSampleApp();
                 dynamic app = aat.Json;
 
@@ -420,9 +419,7 @@ namespace Starcounter.Internal.XSON.Tests {
 
                 var jpex = Assert.Throws<JsonPatchException>(() => { JsonProperty.Evaluate("/Nonono", app); });
                 Assert.IsTrue(jpex.Message.Contains("Unknown property"));
-            } finally {
-                session.StopUsing();
-            }
+            });
         }
 
         private static void PrintPointer(JsonPointer ptr, String originalStr) {

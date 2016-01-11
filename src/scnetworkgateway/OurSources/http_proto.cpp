@@ -594,8 +594,21 @@ uint32_t HttpProto::HttpUriDispatcher(
         // Now we have method and URI and ready to search specific URI handler.
 
         // Getting the corresponding port number.
-        ServerPort* server_port = g_gateway.get_server_port(sd->GetPortIndex());
+
+		// Checking if its internal request.
+		port_index_type port_index = sd->GetPortIndex();
+		if (sd->get_internal_request_flag()) {
+			port_index = 0;
+		}
+
+        ServerPort* server_port = g_gateway.get_server_port(port_index);
         uint16_t port_num = server_port->get_port_number();
+
+		if (sd->get_internal_request_flag()) {
+			// All internal handlers are done on the system port.
+			GW_ASSERT(g_gateway.get_setting_internal_system_port() == port_num);
+		}
+
         RegisteredUris* port_uris = server_port->get_registered_uris();
 
         // Determining which matched handler to pick.
@@ -721,14 +734,22 @@ uint32_t HttpProto::HttpUriDispatcher(
             // Handled successfully.
             *is_handled = true;
 
-            // Sending resource not found and closing the connection.
-            sd->set_disconnect_after_send_flag();
+			// Checking if its a socket representative.
+			if (sd->get_socket_representer_flag()) {
 
-            // Creating 404 message.
-            char stack_temp_mem[512];
-            int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_space_uri_space, method_space_uri_space_len);
+				// Sending resource not found and closing the connection.
+				sd->set_disconnect_after_send_flag();
 
-            return gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
+				// Creating 404 message.
+				char stack_temp_mem[512];
+				int32_t resp_len_bytes = ConstructHttp404((uint8_t*)stack_temp_mem, 512, method_space_uri_space, method_space_uri_space_len);
+
+				return gw->SendPredefinedMessage(sd, stack_temp_mem, resp_len_bytes);
+
+			} else {
+
+				return SCERRGWPORTNOTHANDLED;
+			}
         }
 
 HANDLER_MATCHED:
@@ -925,11 +946,19 @@ uint32_t HttpProto::AppsHttpWsProcessData(
                         // Handled successfully.
                         *is_handled = true;
 
-                        // Setting disconnect after send flag.
-                        sd->set_disconnect_after_send_flag();
+						// Checking if its a socket representer.
+						if (sd->get_socket_representer_flag()) {
 
-                        // Sending corresponding HTTP response.
-                        return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
+							// Setting disconnect after send flag.
+							sd->set_disconnect_after_send_flag();
+
+							// Sending corresponding HTTP response.
+							return gw->SendPredefinedMessage(sd, kHttpTooBigUpload, kHttpTooBigUploadLength);
+
+						} else {
+
+							return SCERRGWMAXDATASIZEREACHED;
+						}
                     }
 
                     // Setting the desired number of bytes to accumulate.
@@ -1120,7 +1149,8 @@ uint32_t GatewayStatisticsInfo(HandlersList* hl, GatewayWorker *gw, SocketDataCh
     std::string stats_page_string = g_gateway.GetGatewayStatisticsString();
     *is_handled = true;
 
-    return gw->SendPredefinedMessage(sd,
+    return gw->SendPredefinedMessage(
+		sd,
         stats_page_string.c_str(),
         static_cast<int32_t>(stats_page_string.length()));
 }

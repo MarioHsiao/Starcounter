@@ -74,14 +74,15 @@ namespace Starcounter.Internal {
             // Giving REST needed delegates.
             unsafe {
                 UriManagedHandlersCodegen.Setup(
-                    GatewayHandlers.RegisterUriHandlerNative,
-                    GatewayHandlers.RegisterTcpSocketHandler,
-                    GatewayHandlers.RegisterUdpSocketHandler,
+                    GatewayHandlers.RegisterHttpHandlerInGateway,
+                    GatewayHandlers.UnregisterHttpHandlerInGateway,
+                    GatewayHandlers.RegisterTcpSocketHandlerInGateway,
+                    GatewayHandlers.RegisterUdpSocketHandlerInGateway,
                     ProcessExternalRequest,
                     AppServer_.RunDelegateAndProcessResponse,
                     UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
-                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
+                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerInGateway);
             }
 
             // Injecting required hosted Node functionality.
@@ -142,6 +143,70 @@ namespace Starcounter.Internal {
                         RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
 
                         return 200;
+                    }, new HandlerOptions() { SkipRequestFilters = true });
+
+                    // Handler that is used to send streams.
+                    Handle.GET(defaultSystemHttpPort, "/sc/finishsend/" + defaultUserHttpPort, (Request req) => {
+
+                        TcpSocket tcpSocket = new TcpSocket(req.DataStream);
+
+                        // Destroying native buffers.
+                        req.Destroy(true);
+
+                        UInt64 socketId = tcpSocket.ToUInt64();
+
+                        // Checking if stream exists.
+                        if (!Response.ResponseStreams_.ContainsKey(socketId)) {
+                            return HandlerStatus.Handled;
+                        }
+
+                        Stream s = Response.ResponseStreams_[socketId];
+
+                        if (s != null) {
+                            System.Threading.Tasks.Task task = 
+                                System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket(Response.ResponseStreams_, s, new Byte[4096 * 14]));
+
+                            Response.ResponseStreamsTasks_[socketId] = task;
+                        }
+
+                        return HandlerStatus.Handled;
+
+                    }, new HandlerOptions() { SkipRequestFilters = true });
+
+                    // Handler that is used to delete disconnected streams.
+                    Handle.DELETE(defaultSystemHttpPort, "/sc/stream/" + defaultUserHttpPort, (Request req) => {
+
+                        TcpSocket tcpSocket = new TcpSocket(req.DataStream);
+                        // Destroying native buffers.
+                        req.Destroy(true);
+
+                        UInt64 socketId = tcpSocket.ToUInt64();
+
+                        // Checking if stream exists.
+                        if (!Response.ResponseStreams_.ContainsKey(socketId)) {
+                            return HandlerStatus.Handled;
+                        }
+
+                        Stream s;
+
+                        // Checking that task is running, then waiting for the task.
+                        if (Response.ResponseStreamsTasks_.ContainsKey(socketId)) {
+
+                            System.Threading.Tasks.Task task = Response.ResponseStreamsTasks_[socketId];
+                            task.Wait();
+                        }
+
+                        s = Response.ResponseStreams_[socketId];
+
+                        // Checking if stream still exists.
+                        if (s != null) {
+                            s.Close();
+                            Stream ss;
+                            Response.ResponseStreams_.TryRemove(socketId, out ss);
+                        }
+
+                        return HandlerStatus.Handled;
+
                     }, new HandlerOptions() { SkipRequestFilters = true });
                 }
                 else {
@@ -468,6 +533,7 @@ namespace Starcounter.Internal {
                 // Getting handler information.
                 UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
+
                 if (!uhi.SkipRequestFilters) {
                     // Checking if there is a filtering delegate.
                     resp = Handle.RunRequestFilters(req);
@@ -510,8 +576,9 @@ namespace Starcounter.Internal {
             }
 
             // Checking if response was handled.
-            if (resp == null)
+            if (resp == null) {
                 return false;
+            }
 
             // Determining what we should do with response.
             switch (resp.HandlingStatus) {

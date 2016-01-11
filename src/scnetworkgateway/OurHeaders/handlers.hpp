@@ -20,8 +20,8 @@ class HandlersList
     // Unique handler number.
     uint64_t unique_number_;
 
-    // Handler callbacks.
-    LinearList<GENERIC_HANDLER_CALLBACK, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handlers_;
+    // Handler function pointer.
+    GENERIC_HANDLER_CALLBACK handler_;
 
     // Port number.
     uint16_t port_;
@@ -67,12 +67,17 @@ public:
 
     bool ContainsHandler(GENERIC_HANDLER_CALLBACK handler)
     {
-        return handlers_.Find(handler);
+        return handler == handler_;
     }
 
     bool RemoveHandler(GENERIC_HANDLER_CALLBACK handler)
     {
-        return handlers_.RemoveEntry(handler);
+		if (ContainsHandler(handler)) {
+			handler_ = NULL;
+			return true;
+		}
+        
+		return false;
     }
 
     // Getting handler index.
@@ -119,13 +124,7 @@ public:
     {
         return handler_info_;
     }
-
-    // Getting number of entries.
-    uint8_t get_num_entries()
-    {
-        return handlers_.get_num_entries();
-    }
-
+	
     // Gets sub-port number.
     bmx::BMX_SUBPORT_TYPE get_subport()
     {
@@ -155,32 +154,10 @@ public:
         return type_;
     }
 
-    // Find existing handler.
-    bool HandlerAlreadyExists(GENERIC_HANDLER_CALLBACK handler_callback)
-    {
-        // Going through all registered handlers.
-        for (uint8_t i = 0; i < handlers_.get_num_entries(); ++i)
-        {
-            if (handler_callback == handlers_[i])
-                return true;
-        }
-
-        return false;
-    }
-
     // Adds handler.
-    uint32_t AddHandler(GENERIC_HANDLER_CALLBACK handler_callback)
+    uint32_t AddHandler(GENERIC_HANDLER_CALLBACK handler)
     {
-        // Reached maximum amount of handlers.
-        if (handlers_.get_num_entries() >= bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST)
-            return SCERRMAXHANDLERSREACHED;
-
-        // Checking if handler already exists.
-        if (HandlerAlreadyExists(handler_callback))
-            return SCERRHANDLERALREADYREGISTERED;
-
-        // Adding handler to array.
-        handlers_.Add(handler_callback);
+		handler_ = handler;
 
         return 0;
     }
@@ -287,14 +264,11 @@ public:
     }
 
     // Unregistering specific handler.
-    uint32_t Unregister(GENERIC_HANDLER_CALLBACK handler_callback)
+    uint32_t Unregister(GENERIC_HANDLER_CALLBACK handler)
     {
         // Removing handler.
-        if (handlers_.RemoveEntry(handler_callback))
-        {
-            // Checking if it was the last handler.
-            if (handlers_.IsEmpty())
-                return Unregister();
+        if (RemoveHandler(handler)) {
+            return Unregister();
         }
 
         return SCERRHANDLERNOTFOUND;
@@ -303,152 +277,17 @@ public:
     // Runs port handlers.
     uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
     {
-        uint32_t err_code;
+        uint32_t err_code = handler_(this, gw, sd, handler_info_, is_handled);
 
-        // Going through all registered handlers.
-        for (int32_t i = 0; i < handlers_.get_num_entries(); i++)
-        {
-            // Running the handler.
-            err_code = handlers_[i](this, gw, sd, handler_info_, is_handled);
-
-            // Checking if information was handled and no errors occurred.
-            if (*is_handled || err_code)
-                return err_code;
-        }
+        // Checking if information was handled and no errors occurred.
+        if (*is_handled || err_code)
+            return err_code;
 
         return SCERRGWPORTNOTHANDLED;
     }
 
     // Should be called when whole handlers list should be unregistered.
     uint32_t UnregisterGlobally(db_index_type db_index);
-};
-
-class PortHandlers
-{
-    // Unique handler lists.
-    LinearList<HandlersList*, bmx::MAX_NUMBER_OF_HANDLERS_IN_LIST> handler_lists_;
-
-public:
-
-    // Initializing the entry.
-    void Add(db_index_type db_index, HandlersList* handlers_list)
-    {
-        // Adding only if it does not exist.
-        if (!handler_lists_.Find(handlers_list))
-            handler_lists_.Add(handlers_list);
-    }
-
-    // Printing the registered URIs.
-    void PrintRegisteredHandlers(std::stringstream& global_port_statistics_stream)
-    {
-        global_port_statistics_stream << "Port has following handlers registered: ";
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); i++)
-        {
-            global_port_statistics_stream << handler_lists_[i]->get_db_index() << ", ";
-        }
-        global_port_statistics_stream << "<br>";
-    }
-
-    // Constructor.
-    PortHandlers()
-    {
-        Reset();
-    }
-
-    // Checking if handlers list is empty.
-    bool IsEmpty()
-    {
-        return handler_lists_.IsEmpty();
-    }
-
-    // Has certain handler.
-    bool HasHandler(GENERIC_HANDLER_CALLBACK handler)
-    {
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i) {
-
-            if (!handler_lists_[i]->IsEmpty()) {
-
-                if (handler_lists_[i]->HandlerAlreadyExists(handler)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    // Removes certain entry.
-    bool RemoveEntry(GENERIC_HANDLER_CALLBACK handler)
-    {
-        bool removed = false;
-
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
-        {
-            if (handler_lists_[i]->RemoveHandler(handler))
-            {
-                if (handler_lists_[i]->IsEmpty())
-                {
-                    // Deleting the entry.
-                    GwDeleteSingle(handler_lists_[i]);
-                    handler_lists_[i] = NULL;
-
-                    handler_lists_.RemoveByIndex(i);
-                    i--;
-                }
-
-                removed = true;
-
-                // Not stopping, going through all entries.
-            }
-        }
-
-        return removed;
-    }
-
-    // Removes certain entry.
-    bool RemoveEntry(db_index_type db_index)
-    {
-        bool removed = false;
-
-        // Going through all handler lists.
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
-        {
-            if (db_index == handler_lists_[i]->get_db_index())
-            {
-                // Deleting the entry.
-                GwDeleteSingle(handler_lists_[i]);
-                handler_lists_[i] = NULL;
-
-                // Checking if there are no databases left.
-                handler_lists_.RemoveByIndex(i);
-                --i;
-
-                removed = true;
-
-                // Not stopping, going through all entries.
-            }
-        }
-
-        return removed;
-    }
-
-    // Resetting entry.
-    void Reset()
-    {
-        for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i) {
-            // Deleting the entry.
-            GwDeleteSingle(handler_lists_[i]);
-            handler_lists_[i] = NULL;
-        }
-
-        // Removing all handlers lists.
-        handler_lists_.Clear();
-    }
-
-    // Running all registered handlers.
-    uint32_t RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled);
 };
 
 } // namespace network

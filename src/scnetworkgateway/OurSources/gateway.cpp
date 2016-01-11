@@ -415,7 +415,7 @@ void ServerPort::Init(port_index_type port_index, uint16_t port_number, bool is_
     GW_ASSERT((port_index >= 0) && (port_index < MAX_PORTS_NUM));
 
     // Allocating needed tables.
-    port_handlers_ = GwNewConstructor(PortHandlers);
+	port_handler_ = GwNewConstructor(HandlersList);
     registered_uris_ = GwNewConstructor1(RegisteredUris, port_number);
     registered_ws_groups_ = GwNewConstructor1(PortWsGroups, port_number);
 
@@ -437,7 +437,14 @@ void ServerPort::Reset()
 void ServerPort::EraseDb(db_index_type db_index)
 {
     // Deleting port handlers if any.
-    port_handlers_->RemoveEntry(db_index);
+	if (NULL != port_handler_) {
+
+		if (db_index == port_handler_->get_db_index()) {
+
+			GwDeleteSingle(port_handler_);
+			port_handler_ = NULL;
+		}
+	}
 
     // Deleting URI handlers if any.
     registered_uris_->RemoveEntry(db_index);
@@ -458,7 +465,7 @@ bool ServerPort::IsEmpty()
         return true;
 
     // Checking port handlers.
-    if (port_handlers_ && (!port_handlers_->IsEmpty()))
+    if (port_handler_ && (!port_handler_->IsEmpty()))
         return false;
 
     // Checking URIs.
@@ -503,10 +510,10 @@ void ServerPort::Erase()
         listening_sock_ = INVALID_SOCKET;
     }
 
-    if (port_handlers_)
+    if (port_handler_)
     {
-        GwDeleteSingle(port_handlers_);
-        port_handlers_ = NULL;
+        GwDeleteSingle(port_handler_);
+		port_handler_ = NULL;
     }
 
     if (registered_uris_)
@@ -639,7 +646,7 @@ void ActiveDatabase::PrintInfo(std::stringstream& stats_stream)
 ServerPort::ServerPort()
 {
     listening_sock_ = INVALID_SOCKET;
-    port_handlers_ = NULL;
+    port_handler_ = NULL;
     registered_uris_ = NULL;
     registered_ws_groups_ = NULL;
 
@@ -1411,7 +1418,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     if (INVALID_DB_INDEX == db_index)
         return 0;
 
-    GW_COUT << "Registering URI handler on " << db_name << " \"" << method_space_uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
+    GW_COUT << "Registering HTTP handler on " << db_name << " \"" << method_space_uri << "\" on port " << port << " registration with handler id: " << handler_info << GW_ENDL;
 
     // Entering global lock.
     gw->EnterGlobalLock();
@@ -1460,6 +1467,87 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
 
         return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
     }
+}
+
+uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
+{
+	*is_handled = true;
+
+	char* request_begin = (char*)(sd->get_data_blob_start());
+
+	// Looking for the \r\n\r\n\r\n\r\n.
+	char* end_of_message = strstr(request_begin, "\r\n\r\n\r\n\r\n");
+	GW_ASSERT(NULL != end_of_message);
+
+	// Looking for the \r\n\r\n.
+	char* body_string = strstr(request_begin, "\r\n\r\n");
+	GW_ASSERT(NULL != body_string);
+	request_begin[sd->get_accumulated_len_bytes()] = '\0';
+
+	std::stringstream ss(body_string);
+	uint16_t port;
+	std::string method_space_uri;
+
+	ss >> port;
+	GW_ASSERT((port > 0) && (port < 65536));
+	ss >> method_space_uri;
+
+	std::replace(method_space_uri.begin(), method_space_uri.end(), '\\', ' ');
+
+	GW_COUT << "Removing HTTP handler on \"" << method_space_uri << "\" on port " << port << GW_ENDL;
+
+	// Entering global lock.
+	gw->EnterGlobalLock();
+
+	// Getting the port structure.
+	ServerPort* server_port = g_gateway.FindServerPort(port);
+
+	uint32_t err_code = 0;
+
+	// Checking if port exists.
+	if ((NULL == server_port) ||
+		(server_port->IsEmpty())) {
+
+		err_code = SCERRHANDLERNOTFOUND;
+
+	} else {
+
+		RegisteredUris* port_uris = server_port->get_registered_uris();
+
+		if (NULL == port_uris) {
+			err_code = SCERRHANDLERNOTFOUND;
+		} else {
+			// Removing entry from the list.
+			if (!port_uris->RemoveEntry(method_space_uri.c_str())) {
+				err_code = SCERRHANDLERNOTFOUND;
+			}
+		}
+	}
+
+	// Releasing global lock.
+	gw->LeaveGlobalLock();
+
+	if (err_code) {
+
+		// Reporting to server log if we are trying to register a handler duplicate.
+		wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
+		wsprintf(temp, L"HTTP handler \"%S\" is not found on port \"%d\".", port, method_space_uri);
+		g_gateway.LogWriteWarning(temp);
+
+		std::stringstream ss;
+		ss << "Can't unregister HTTP handler \"" << method_space_uri << "\" on port " << port << ".";
+		ss << " Error code: " << err_code << ".";
+
+		char temp_buf[TEMP_BIG_BUFFER_SIZE];
+		int32_t size_bytes = ConstructHttp400(temp_buf, TEMP_BIG_BUFFER_SIZE, ss.str(), err_code);
+
+		return gw->SendPredefinedMessage(sd, temp_buf, size_bytes);
+
+	}
+	else {
+
+		return gw->SendPredefinedMessage(sd, kHttpOKResponse, kHttpOKResponseLength);
+	}
 }
 
 uint32_t RegisterPortHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunkRef sd, BMX_HANDLER_TYPE handler_id, bool* is_handled)
@@ -1607,6 +1695,7 @@ uint32_t RegisterWsHandler(
     // Checking if port exist or if its empty.
     if ((NULL == server_port) ||
         (server_port->IsEmpty()) ||
+		(NULL == server_port->get_port_handlers()) ||
         (server_port->get_port_handlers()->IsEmpty()))
     {
         // Registering handler on active database.
@@ -2183,7 +2272,7 @@ uint32_t Gateway::RegisterGatewayHandlers() {
 
     uint32_t err_code = 0;
 
-    // Registering URI handler for gateway statistics.
+    // Registering HTTP handler for gateway.
     err_code = AddUriHandler(
         &gw_workers_[0],
         setting_internal_system_port_,
@@ -2198,6 +2287,22 @@ uint32_t Gateway::RegisterGatewayHandlers() {
 
     if (err_code)
         return err_code;
+
+	// Registering HTTP handler for gateway.
+	err_code = AddUriHandler(
+		&gw_workers_[0],
+		setting_internal_system_port_,
+		"gateway",
+		"DELETE /gw/handler/uri",
+		NULL,
+		0,
+		bmx::BMX_INVALID_HANDLER_INFO,
+		INVALID_DB_INDEX,
+		UnregisterUriHandler,
+		true);
+
+	if (err_code)
+		return err_code;
 
     // Registering URI handler for gateway statistics.
     err_code = AddUriHandler(
@@ -2340,20 +2445,21 @@ void Gateway::PrintWorkersStatistics(std::stringstream& stats_stream)
     stats_stream << "]";
 }
 
-const int32_t NumGatewayUri = 3;
-
 // Gateway URIs that are used for handlers registration and tests.
 const char* GatewayHandlers[] = {
     "POST /gw/handler/uri",
+	"DELETE /gw/handler/uri",
     "POST /gw/handler/ws",
     "POST /gw/handler/port"
 };
+
+const int32_t NumGatewayHandlers = sizeof(GatewayHandlers) / sizeof(const char*);
 
 // Find certain URI entry.
 uri_index_type Gateway::CheckIfGatewayHandler(const char* method_uri_space, const int32_t method_uri_space_len)
 {
     // Going through all entries.
-    for (uri_index_type i = 0; i < NumGatewayUri; i++) {
+    for (uri_index_type i = 0; i < NumGatewayHandlers; i++) {
 
         // Doing exact comparison.
         if (0 == strncmp(method_uri_space, GatewayHandlers[i], method_uri_space_len)) {
@@ -3427,6 +3533,7 @@ uint32_t Gateway::AddUriHandler(
     // Checking if port exists.
     if ((NULL == server_port) ||
         (server_port->IsEmpty()) ||
+		(NULL == server_port->get_port_handlers()) ||
         (server_port->get_port_handlers()->IsEmpty()))
     {
         // Registering handler on active database.
@@ -3530,7 +3637,9 @@ uint32_t Gateway::AddPortHandler(
     // Checking if there are no handlers.
     if ((NULL != server_port) && (!server_port->IsEmpty())) {
 
-        if (!server_port->get_port_handlers()->IsEmpty()) {
+        if ((NULL != server_port->get_port_handlers()) &&
+			(!server_port->get_port_handlers()->IsEmpty())) {
+
             return SCERRHANDLERALREADYREGISTERED;
         }
 
@@ -3597,7 +3706,7 @@ uint32_t Gateway::AddPortHandler(
     hl->AddHandler(handler_proc);
 
     // Adding port handler if does not exist.
-    server_port->get_port_handlers()->Add(db_index, hl);
+    server_port->set_port_handlers(hl);
 
     return 0;
 }

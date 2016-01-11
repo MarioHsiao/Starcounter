@@ -564,6 +564,20 @@ namespace Starcounter {
         /// </summary>
         public static volatile IREST _REST;
 
+        /// <summary>
+        /// Unregisters an existing HTTP handler.
+        /// </summary>
+        public static void UnregisterHttpHandler(ushort port, string method, String uri) {
+            _REST.UnregisterHttpHandler(port, method, uri);
+        }
+
+        /// <summary>
+        /// Unregisters an existing HTTP handler.
+        /// </summary>
+        public static void UnregisterHttpHandler(string method, String uri) {
+            _REST.UnregisterHttpHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method, uri);
+        }
+
         public static void CUSTOM(String methodSpaceUri, Func<Response> handler, HandlerOptions ho = null)
         {
             _REST.RegisterHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, methodSpaceUri, handler, ho);

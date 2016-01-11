@@ -491,7 +491,7 @@ public:
     // Getting to database direction flag.
     bool get_to_database_direction_flag()
     {
-        return flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
+		return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION) != 0;
     }
 
     // Setting to database direction flag.
@@ -505,6 +505,21 @@ public:
     {
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_FLAGS_TO_DATABASE_DIRECTION;
     }
+
+	bool get_internal_request_flag()
+	{
+		return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_INTERNAL_REQUEST) != 0;
+	}
+
+	void set_internal_request_flag()
+	{
+		flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_INTERNAL_REQUEST;
+	}
+
+	void reset_internal_request_flag()
+	{
+		flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_INTERNAL_REQUEST;
+	}
 
     // Getting socket just send flag.
     bool get_socket_just_send_flag()
@@ -580,7 +595,23 @@ public:
     {
         flags_ &= ~MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_NO_IPC_NO_CHUNKS_TEST;
     }
-    
+
+	bool get_streaming_response_body_flag()
+	{
+		return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_STREAMING_RESPONSE_BODY) != 0;
+	}
+
+	void set_streaming_response_body_flag()
+	{
+		flags_ |= MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_STREAMING_RESPONSE_BODY;
+		socket_info_->set_streaming_response_body_flag();
+	}
+
+	bool GetStreamingResponseBodyFlag()
+	{
+		return socket_info_->get_streaming_response_body_flag();
+	}
+
     bool get_gateway_and_ipc_test_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_AND_IPC_TEST) != 0;
@@ -928,7 +959,7 @@ public:
     void ExchangeToProxySocket(GatewayWorker* gw);
 
     // Initializes socket data that comes from database.
-    void PreInitSocketDataFromDb(GatewayWorker* gw);
+    void PreInitSocketDataFromDb(GatewayWorker* gw, const scheduler_id_type sched_id);
 
     // Initializes socket data that comes from database.
     uint32_t PreInitUdpSocket(GatewayWorker* gw);
@@ -1304,6 +1335,14 @@ public:
 
         return socket_info_->dest_db_index_;
     }
+
+	// Getting host streaming flag.
+	bool GetHostStreamingFlag()
+	{
+		GW_ASSERT_DEBUG(NULL != socket_info_);
+
+		return socket_info_->get_streaming_response_body_flag();
+	}
 
     // Get type of network protocol for this socket.
     MixedCodeConstants::NetworkProtocolType GetTypeOfNetworkProtocol()

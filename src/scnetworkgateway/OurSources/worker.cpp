@@ -788,6 +788,36 @@ uint32_t GatewayWorker::Send(SocketDataChunkRef sd)
     return 0;
 }
 
+// Do internal HTTP request.
+uint32_t GatewayWorker::DoInternalHttpRequest(SocketDataChunkRef sd, const char* http_request_data, const int32_t request_data_size) {
+
+	SocketDataChunk* sd_new = NULL;
+	uint32_t err_code = sd->CloneToPush(this, request_data_size, &sd_new);
+	if (err_code)
+		return err_code;
+
+	// Resetting all flags and setting internal request flag.
+	sd_new->ResetAllFlags();
+	sd_new->set_internal_request_flag();
+
+	// Resetting the buffer for new data.
+	sd_new->ResetAccumBuffer();
+	sd_new->AddAccumulatedBytes(request_data_size);
+
+	// Copying HTTP data.
+	memcpy(sd_new->get_data_blob_start(), http_request_data, request_data_size);
+
+	// Running the handler.
+	err_code = RunReceiveHandlers(sd_new);
+
+	if (err_code) {
+		// Returning chunks to pool.
+		ReturnSocketDataChunksToPool(sd_new);
+	}
+
+	return err_code;
+}
+
 // Socket send finished.
 __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t num_bytes_sent)
 {
@@ -832,6 +862,17 @@ __forceinline uint32_t GatewayWorker::FinishSend(SocketDataChunkRef sd, int32_t 
 
     // Increasing number of sends.
     worker_stats_sent_num_++;
+
+	// Checking if we have streaming response.
+	if (sd->GetStreamingResponseBodyFlag()) {
+
+		uint16_t port_num = sd->GetPortNumber();
+		std::string port_num_s = std::to_string(port_num);
+		std::string s = kHttpGetFinishSend;
+		s.replace(kHttpGetFinishSendPortOffset, 1, port_num_s);
+
+		DoInternalHttpRequest(sd, s.c_str(), (int32_t) s.length());
+	}
 
     // Checking if socket data is for receiving.
     if (sd->get_socket_representer_flag())
@@ -918,7 +959,7 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
         
         bool is_handled = false;
 
-        PortHandlers* ph = sp->get_port_handlers();
+        HandlersList* ph = sp->get_port_handlers();
 
         if ((ph != NULL) && (!ph->IsEmpty())) {
             ph->RunHandlers(this, sd_push_to_db, &is_handled);
@@ -937,6 +978,17 @@ uint32_t GatewayWorker::SendTcpSocketDisconnectToDb(SocketDataChunk* sd)
 
 // Pushes disconnect message to host if needed.
 void GatewayWorker::PushDisconnectIfNeeded(SocketDataChunkRef sd) {
+
+	// Checking if we have streaming response.
+	if (sd->GetStreamingResponseBodyFlag()) {
+
+		uint16_t port_num = sd->GetPortNumber();
+		std::string port_num_s = std::to_string(port_num);
+		std::string s = kHttpDeleteStream;
+		s.replace(kHttpDeleteStreamPortOffset, 1, port_num_s);
+
+		DoInternalHttpRequest(sd, s.c_str(), (int32_t) s.length());
+	}
 
     // Processing session according to protocol.
     switch (sd->get_type_of_network_protocol()) {
