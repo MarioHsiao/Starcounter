@@ -1251,8 +1251,10 @@ namespace Starcounter {
                     // Setting the flag that this response body should be streamed.
                     resp.ConnFlags |= Response.ConnectionFlags.StreamingResponseBody;
 
+                    StreamingInfo s = new StreamingInfo(resp.StreamedBody);
+
                     // Adding to response streams dictionary.
-                    Response.ResponseStreams_[tcpSocket.ToUInt64()] = resp.StreamedBody;
+                    Response.ResponseStreams_[tcpSocket.ToUInt64()] = s;
                 }
 
                 // Sending the response.

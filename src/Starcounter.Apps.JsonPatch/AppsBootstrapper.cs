@@ -155,18 +155,18 @@ namespace Starcounter.Internal {
 
                         UInt64 socketId = tcpSocket.ToUInt64();
 
+                        StreamingInfo s;
+
                         // Checking if stream exists.
-                        if (!Response.ResponseStreams_.ContainsKey(socketId)) {
+                        if (!Response.ResponseStreams_.TryGetValue(socketId, out s)) {
                             return HandlerStatus.Handled;
-                        }
 
-                        Stream s = Response.ResponseStreams_[socketId];
+                        } else {
 
-                        if (s != null) {
                             System.Threading.Tasks.Task task = 
-                                System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket(Response.ResponseStreams_, s, new Byte[4096 * 14]));
+                                System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket());
 
-                            Response.ResponseStreamsTasks_[socketId] = task;
+                            s.TaskObject = task;
                         }
 
                         return HandlerStatus.Handled;
@@ -182,30 +182,29 @@ namespace Starcounter.Internal {
 
                         UInt64 socketId = tcpSocket.ToUInt64();
 
+                        StreamingInfo s;
+
                         // Checking if stream exists.
-                        if (!Response.ResponseStreams_.ContainsKey(socketId)) {
+                        if (!Response.ResponseStreams_.TryGetValue(socketId, out s)) {
+                            return HandlerStatus.Handled;
+
+                        } else {
+
+                            // If there is a running task, waiting for task to finish.
+                            if (null != s.TaskObject) {
+                                s.TaskObject.Wait();
+                            }
+
+                            // Checking if there is still a streaming object.
+                            if (s.StreamObject != null) {
+                                s.StreamObject.Close();
+                                s.StreamObject = null;
+                            }
+
+                            Response.ResponseStreams_.TryRemove(socketId, out s);
+
                             return HandlerStatus.Handled;
                         }
-
-                        Stream s;
-
-                        // Checking that task is running, then waiting for the task.
-                        if (Response.ResponseStreamsTasks_.ContainsKey(socketId)) {
-
-                            System.Threading.Tasks.Task task = Response.ResponseStreamsTasks_[socketId];
-                            task.Wait();
-                        }
-
-                        s = Response.ResponseStreams_[socketId];
-
-                        // Checking if stream still exists.
-                        if (s != null) {
-                            s.Close();
-                            Stream ss;
-                            Response.ResponseStreams_.TryRemove(socketId, out ss);
-                        }
-
-                        return HandlerStatus.Handled;
 
                     }, new HandlerOptions() { SkipRequestFilters = true });
                 }

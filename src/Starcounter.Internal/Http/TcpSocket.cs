@@ -158,7 +158,6 @@ namespace Starcounter {
         /// <summary>
         /// Send data over Tcp socket.
         /// </summary>
-        /// <param name="data">Data to push.</param>
         public void Send(Byte[] data) {
             PushServerMessage(data, 0, data.Length);
         }
@@ -166,48 +165,55 @@ namespace Starcounter {
         /// <summary>
         /// Send data over Tcp socket.
         /// </summary>
-        /// <param name="data">Data to send.</param>
-        /// <param name="offset">Offset in data.</param>
-        /// <param name="dataLen">Data length in bytes.</param>
         public void Send(Byte[] data, Int32 offset, Int32 dataLen) {
             PushServerMessage(data, offset, dataLen);
+        }
+
+        /// <summary>
+        /// Send data over Tcp socket.
+        /// </summary>
+        public void Send(Byte[] data, Int32 offset, Int32 dataLen, Response.ConnectionFlags connFlags) {
+            PushServerMessage(data, offset, dataLen, connFlags);
         }
 
         /// <summary>
         /// Streaming over TCP socket.
         /// NOTE: Function closes the stream once the end of stream is reached.
         /// </summary>
-        internal async Task SendStreamOverSocket(
-            ConcurrentDictionary<UInt64, Stream> dict,
-            Stream whatToStream,
-            Byte[] fetchBuffer) {
+        internal async Task SendStreamOverSocket() {
 
             try {
-                Int32 numBytesRead = await whatToStream.ReadAsync(fetchBuffer, 0, fetchBuffer.Length);
-
                 UInt64 socketId = ToUInt64();
-                Task t;
+
+                StreamingInfo streamInfo = Response.ResponseStreams_[socketId];
+
+                Int32 numBytesRead = await streamInfo.StreamObject.ReadAsync(streamInfo.SendBuffer, 0, streamInfo.SendBuffer.Length);
 
                 // Checking if its the end of the stream.
-                if (0 == numBytesRead) {
+                Boolean hasReadEverything = streamInfo.HasReadEverything();
 
-                    whatToStream.Close();
+                if (hasReadEverything) {
 
-                    Stream s;
-                    dict.TryRemove(socketId, out s);
-                    
-                    Response.ResponseStreamsTasks_.TryRemove(socketId, out t);
+                    StreamingInfo s;
+                    Response.ResponseStreams_.TryRemove(socketId, out s);
 
-                    return;
+                    // Now we are done with streaming object and can close it.
+                    streamInfo.StreamObject.Close();
+                    streamInfo.StreamObject = null;
                 }
 
-                Response.ResponseStreamsTasks_.TryRemove(socketId, out t);
+                // Task has finished.
+                streamInfo.TaskObject = null;
 
                 // We need to be on scheduler to send on socket.
                 StarcounterBase._DB.RunAsync(() => {
 
                     // Sending on socket.
-                    Send(fetchBuffer, 0, numBytesRead);
+                    if (hasReadEverything) {
+                        Send(streamInfo.SendBuffer, 0, numBytesRead);
+                    } else {
+                        Send(streamInfo.SendBuffer, 0, numBytesRead, Response.ConnectionFlags.StreamingResponseBody);
+                    }
                 });
 
             } catch (Exception exc) {

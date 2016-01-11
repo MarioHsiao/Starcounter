@@ -1,6 +1,13 @@
 :: Checking if test should be run.
 IF "%SC_RUN_WEBSOCKETS_TEST%"=="False" GOTO :EOF
 
+setlocal
+for /f "tokens=4-5 delims=. " %%i in ('ver') do set WINVERSION=%%i.%%j
+if "%WINVERSION%" LSS "6.2" (
+	ECHO To run WebSockets test, the platform should be at least Windows 8.
+	EXIT /b 0
+)
+
 :: Killing all processes.
 staradmin kill all
 
