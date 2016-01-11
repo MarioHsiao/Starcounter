@@ -612,6 +612,11 @@ public:
 		return socket_info_->get_streaming_response_body_flag();
 	}
 
+	void ResetStreamingResponseBodyFlag()
+	{
+		socket_info_->reset_streaming_response_body_flag();
+	}
+
     bool get_gateway_and_ipc_test_flag()
     {
         return (flags_ & MixedCodeConstants::SOCKET_DATA_FLAGS::SOCKET_DATA_GATEWAY_AND_IPC_TEST) != 0;
