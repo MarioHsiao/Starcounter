@@ -43,7 +43,7 @@ namespace FileTestClient {
             Int32 exitCode = -1;
             try {
                 Console.WriteLine("Starting server side code...");
-                exitCode = StartProcessAndWaitForExit("star.exe", "..\\..\\..\\StreamBodyTestServer.cs", 20000);
+                exitCode = StartProcessAndWaitForExit("star.exe", "..\\..\\..\\StreamBodyTestServer.cs", 30000);
             } catch (Exception exc) {
                 Console.WriteLine(exc.ToString());
             }
