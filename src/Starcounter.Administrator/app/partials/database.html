@@ -19,7 +19,6 @@
 
                 <!-- Status -->
                 <td class="vert-align" style="width: 41px; padding-left: 15px">
-
                     <div style="margin-top: 5px;">
                         <span ng-show="!database.HasErrorMessage && database.IsRunning && database.Status==0 && (database.Applications|filter:appsFilter).length == 0" style="font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-ok-sign" aria-hidden="true" title="Running" tooltip="Running"></span>
                         <span ng-show="!database.HasErrorMessage && database.IsRunning && database.Status==0 && (database.Applications|filter:appsFilter).length > 0" style="font-size: 1.2em; color: #fb7e21" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Not all installed applications is running." tooltip="Not all installed applications is running."></span>
@@ -81,7 +80,7 @@
     </div>
 
     <div class="panel-body">
-        <p>Visit the <a href="#/databases/{{database.ID}}/appstore">App store</a> to install applications. Or start an executable by clicking the menu choice <a href="#/databases/tracker/executabeStart"><i>Start Executable</i></a></p>
+        <p>Visit the <a href="#/databases/{{database.ID}}/appstore">App Warehouse</a> to explore applications available from other vendors. Or start an executable by clicking the menu choice <a href="#/databases/tracker/executabeStart"><i>Start Executable</i></a></p>
     </div>
 </div>
 
@@ -95,6 +94,7 @@
         <tbody>
 
             <tr ng-repeat="application in database.Applications | orderBy:['DisplayName']">
+
 
                 <!-- Status -->
                 <td style="width: 41px; padding-top: 12px; padding-left: 15px">

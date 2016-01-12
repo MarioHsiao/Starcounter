@@ -47,7 +47,7 @@ namespace Administrator.Server.Managers {
 
                 try {
 
-                    Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+                    Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
                     Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
 
@@ -96,7 +96,7 @@ namespace Administrator.Server.Managers {
             // TODO:
             message = null;
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
             Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10000);
 
@@ -158,8 +158,7 @@ namespace Administrator.Server.Managers {
 
             lock (lockObject_) {
 
-                Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
-//                Dictionary<String, String> headers = new Dictionary<String, String> { { "Accept", "application/appstore.polyjuice.apps-v2+json,application/json" } };
+                Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
                 Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, null, (Response response, Object userObject) => {
 
@@ -194,7 +193,7 @@ namespace Administrator.Server.Managers {
             // TODO:
             message = null;
 
-            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v2+json" } };
+            Dictionary<String, String> headers = new Dictionary<String, String> { { "acceptversion", "application/appstore.polyjuice.apps-v4+json" } };
 
             Response response = Http.GET("http://" + AppStoreManager.AppStoreServerHost + "/appstore/apps", headers, 10000);
 
@@ -227,6 +226,7 @@ namespace Administrator.Server.Managers {
                 AppStoreStore store = new AppStoreStore();
                 store.ID = RestUtils.GetHashString("http://" + AppStoreManager.AppStoreServerHost + remoteStore.ID);
                 store.DisplayName = remoteStore.DisplayName;
+                store.Description = remoteStore.Description;
                 stores.Add(store);
             }
 

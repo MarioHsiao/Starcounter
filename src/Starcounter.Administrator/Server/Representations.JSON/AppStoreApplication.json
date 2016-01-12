@@ -18,10 +18,5 @@
 	"ResourceFolder" : "",
 	"Size" : 0,
 	"ImageUrl" : "",
-	"IsInstalled" : false,
-	"NewVersionAvailable" : false,
-	"LatestVersion": {
-		"ID" : "",		// NOTE: This is a remote appstore id
-		"Url" : ""
-	}
+	"IsInstalled" : false
 }

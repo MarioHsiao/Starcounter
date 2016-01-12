@@ -3,6 +3,7 @@
 	"Stores" : [{
 		"ID" : "",
 		"DisplayName" : "",
+    "Description":  "",
 		"Items": [{
 			"$" : { "Reuse" : "Representations.JSON.RemoteAppStoreItem" }
 		}]

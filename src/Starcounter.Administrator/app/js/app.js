@@ -262,7 +262,7 @@ adminModule.controller('NavbarController', ['$scope', '$rootScope', '$location',
         if (databaseName != null) {
             SubmenuService.model.isDatabase = true;
             SubmenuService.model.menues.push({ "Title": "SQL", "Link": "#/databases/" + databaseName + "/sql", "Tooltip": "Make SQL Queries" })
-            SubmenuService.model.menues.push({ "Title": "AppStore", "Link": "#/databases/" + databaseName + "/appstore", "Tooltip": "Download Applications from the AppStore" })
+            SubmenuService.model.menues.push({ "Title": "App Warehouse", "Link": "#/databases/" + databaseName + "/appstore", "Tooltip": "Download Applications from the App Warehouse" })
             SubmenuService.model.menues.push({ "Title": "Start Executable", "Link": "#/databases/" + databaseName + "/executabeStart", "Tooltip" : "Start executable" })
         }
 
