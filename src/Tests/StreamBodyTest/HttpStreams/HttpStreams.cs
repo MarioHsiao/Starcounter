@@ -77,7 +77,7 @@ namespace FileTestClient {
 
                     for (int j = 0; j < requestsEachWorker; j++) {
 
-                        Int32 streamId = random.Next(1, 1);
+                        Int32 streamId = random.Next(1, 5);
 
                         using (var response = await client.GetAsync("http://localhost:8080/streamtest/" + streamId)) {
 
