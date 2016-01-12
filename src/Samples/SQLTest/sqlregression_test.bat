@@ -19,7 +19,7 @@ MKDIR .db.output
 CMD /C sccreatedb.exe -ip .db SqlTest
 
 :: weave the application
-CMD /C scweaver.exe s\SQLTest\SQLTest.exe
+CMD /C scweaver.exe --FLAG:disableeditionlibraries s\SQLTest\SQLTest.exe
 
 IF ERRORLEVEL 1 (
     ECHO Error: SQL regression test is failed!
