@@ -13,13 +13,17 @@
 	"VersionDate" : "",
 	"Size" : 0,
 	"ImageUrl" : "",
-	"NewVersionAvailable" : false,
-	"LatestVersion": {
-		"ID" : "",
-		"Url" : ""
-	},
 	"Dependencies" : [ {
 		"Name" : "",
 		"Value" : ""
+	} ],
+	"Banners" : [ {
+		"Url" : ""
+	} ],
+	"Screenshots" : [ {
+		"Url" : ""
+	} ],
+	"Icons" : [ {
+		"Url" : ""
 	} ]
 }

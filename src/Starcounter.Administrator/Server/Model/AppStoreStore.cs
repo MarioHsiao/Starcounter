@@ -21,6 +21,7 @@ namespace Administrator.Server.Model {
         #region Properties
         public string ID;               // SourceUrl + SourceID
         public string DisplayName;
+        public string Description;
         public string SourceID;         // App Store store id
         public string SourceUrl;        // App Store store source
         public bool ShowCompatibleVersions; 

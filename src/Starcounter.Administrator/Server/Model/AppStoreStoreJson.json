@@ -1,7 +1,8 @@
 ﻿{
 	"$": { Namespace: "Administrator.Server.Model" },
 	"ID" : "",
-	"DisplayName": "",
+  "DisplayName": "",
+  "Description": "",
 	"ShowCompatibleVersions" : true,
 	"Applications" :[{
 		"$" : { "Reuse" : "Administrator.Server.Model.AppStoreApplicationJson" }
