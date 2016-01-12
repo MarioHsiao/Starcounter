@@ -59,7 +59,8 @@ Level1\src\Samples\LoadAndLatency\loadandlatency_test.bat
 Level1\src\Samples\IndexQueryTest\indexquery_test.bat
 Level1\src\Samples\QueryProcessingTest\queryprocessing_test.bat
 Level1\src\Samples\SQLTest\sqlregression_test.bat
-tpcc_long_test.bat
+Level1\src\Samples\TPCC\tpcc_long_test.bat
+
 poleposition_test.bat
 node_proxy_test.bat
 sqlcachetrasher_test.bat
@@ -67,6 +68,7 @@ ipc_test.bat
 node_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
+
 prepare_sqlregression_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 SimpleIndependentTests_hosted_test.exe
@@ -99,4 +101,3 @@ Level1\bin\Release\sccorelog_test.exe
 Level1\bin\Release\sc_ipc_test.exe
 Level1\bin\Release\stream_buffer_test.exe
 tt_test.exe
-
