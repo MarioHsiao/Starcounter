@@ -23,19 +23,20 @@
     "tests"
   ],
   "dependencies": {
-    "imported-template": "~1.0.1"
+    "imported-template": "~1.2.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#~3.1.3"
   },
-  "version": "0.0.8",
-  "_release": "0.0.8",
+  "version": "0.0.9",
+  "_release": "0.0.9",
   "_resolution": {
     "type": "version",
-    "tag": "0.0.8",
-    "commit": "df365c68f90b99d3b0e8104e76c91d05344be583"
+    "tag": "0.0.9",
+    "commit": "24023f6313adcdcc031fc380ed897074ca923ce8"
   },
-  "_source": "git://github.com/StarcounterSamples/starcounter-include.git",
-  "_target": "~0.0.7",
-  "_originalSource": "StarcounterSamples/starcounter-include"
+  "_source": "git://github.com/Starcounter/starcounter-include.git",
+  "_target": "~0.0.9",
+  "_originalSource": "Starcounter/starcounter-include",
+  "_direct": true
 }

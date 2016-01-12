@@ -1,17 +1,40 @@
 <!--
-imported-template.html version: 1.0.5
+imported-template.html version: 1.2.0
 (c) 2013 Joachim Wester
 MIT license
 https://github.com/Juicy/imported-template
 -->
 <link rel="import" href="../juicy-html/juicy-html.html">
 <script>
-    (function() {
+    (function () {
+        var polyfillNeedsWorkaround = (function () {
+            var isSafari = navigator.vendor && navigator.vendor.indexOf("Apple") > -1 && navigator.userAgent && !navigator.userAgent.match("CriOS");
+            var isSafariWithWc = isSafari && window.navigator.appVersion.match(/(version[/])([7-8][.])/gi);
+
+            return HTMLImports && !HTMLImports.useNative && HTMLImports.parser && !isSafariWithWc;
+        })();
+
+        // Prepare for monkeypatching addElementToDocument to make `document.currentScript.previousElementSibling` point to correct node
+        var originalAddElementToDocument, monkeyPatchedAddElementToDocument;
+        if (polyfillNeedsWorkaround) {
+            originalAddElementToDocument = HTMLImports.parser.addElementToDocument;
+            function monkeyPatchedAddElementToDocument(elt) {
+                if (unwrap(elt.ownerDocument) == document){
+                    document.head.appendChild(elt);
+                } else {
+                    originalAddElementToDocument.call(this, elt);
+                }
+            }
+
+            // Monkey patch it permanently to make (asynchronous) `dom-repeat` get correct `document.currentScript.previousElementSibling`
+            // https://github.com/Juicy/imported-template/issues/17#issuecomment-169654611
+            HTMLImports.parser.addElementToDocument = monkeyPatchedAddElementToDocument;
+        }
 
         var ImportedTemplatePrototype = Object.create(JuicyHTMLElement.prototype);
 
         ImportedTemplatePrototype.scopedNodes = null;
-        ImportedTemplatePrototype.loadTemplate_ = function() {
+        ImportedTemplatePrototype.loadTemplate_ = function () {
             var val = this.getAttribute('content');
             if (val === null) {
                 return val;
@@ -31,7 +54,7 @@ https://github.com/Juicy/imported-template
          * @param  {String} href partial URL
          * @return {imported-template}      self
          */
-        ImportedTemplatePrototype._importHTMLImport = function(href) {
+        ImportedTemplatePrototype._importHTMLImport = function (href) {
             //href is a URL, load the partial from the HTTP server/cache
             var link = document.createElement('link');
             link.rel = "import";
@@ -63,13 +86,11 @@ https://github.com/Juicy/imported-template
                         nodes = Array.prototype.slice.call(singleFragment.childNodes);
                         if (singleTemplate.parentElement.tagName === "IMPORTED-TEMPLATE-SCOPE") {
                             nodes.scope = singleTemplate.parentElement.getAttribute("scope");
-                            // workaround for migration from Polymer 0.5 to Polymer 1.1.0
-                              nodes.scope = nodes.scope.replace(/{{|}}/g,"");
                             xhtml.scopedNodes.push(nodes);
                         } else {
                             xhtml.scopelessNodes = xhtml.scopelessNodes.concat(nodes);
                         }
-                        fragment.appendChild( singleFragment );
+                        fragment.appendChild(singleFragment);
 
                     }
 
@@ -84,20 +105,29 @@ https://github.com/Juicy/imported-template
                 xhtml.stampedNodes = Array.prototype.slice.call(fragment.childNodes);
                 // attach models
                 xhtml.attributeChangedCallback("model", undefined, xhtml.model || xhtml.getAttribute("model"));
+
                 // Apply workaround for HTML Imports shim
                 // Workaround https://github.com/webcomponents/webcomponentsjs/issues/470
                 // fix for https://github.com/Juicy/imported-template/issues/17
-                if(HTMLImports && !HTMLImports.useNative && HTMLImports.parser){
+                if (polyfillNeedsWorkaround) {
                     var nodes = fragment.querySelectorAll(HTMLImports.parser.importsSelectors);
-                    for (var nodeNo=0, l=nodes.length, node; (nodeNo<l) && (node=nodes[nodeNo]); nodeNo++) {
+                    for (var nodeNo = 0, l = nodes.length, node; (nodeNo < l) && (node = nodes[nodeNo]) ; nodeNo++) {
                         HTMLImports.parser.parseDynamic(node, true);
                     }
                 }
                 // Stamp tempalte into document
                 xhtml.parentNode.insertBefore(fragment, xhtml.nextSibling);
+
                 // Last bit of workaround
-                if(HTMLImports && !HTMLImports.useNative && HTMLImports.parser){
+                if (polyfillNeedsWorkaround) {
+                    // Hack it permanently for `dom-repeat` #17
+                    // ~ monkey patch addElementToDocument to make `document.currentScript.previousElementSibling` point to correct node
+                    //   HTMLImports.parser.addElementToDocument = monkeyPatchedAddElementToDocument;
+                    // parse scripts/styles
                     HTMLImports.parser.parseNext();
+                    // Hack it permanently for `dom-repeat` #17
+                    // ~ reverse monkey patch
+                    //   HTMLImports.parser.addElementToDocument = originalAddElementToDocument;
                 }
 
             };
@@ -110,7 +140,7 @@ https://github.com/Juicy/imported-template
         };
 
         var attachModels = JuicyHTMLElement.prototype.attachModel;
-        ImportedTemplatePrototype.attachModel = function(model){
+        ImportedTemplatePrototype.attachModel = function (model) {
             var childNo,
                 scopedNodes = this.scopedNodes,
                 len = scopedNodes && scopedNodes.length || 0;
@@ -120,18 +150,14 @@ https://github.com/Juicy/imported-template
             }
             attachModels(model, this.scopelessNodes);
             // inline HTML
-            if(!this.scopedNodes && !this.scopelessNodes){
+            if (!this.scopedNodes && !this.scopelessNodes) {
                 attachModels(model, this.stampedNodes);
             }
         }
-
 
         document.registerElement('imported-template', {
             prototype: ImportedTemplatePrototype,
             extends: "template"
         });
-
-
-
     })();
 </script>

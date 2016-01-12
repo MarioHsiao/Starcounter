@@ -2,5 +2,6 @@
 	"$": { Namespace: "Representations.JSON" },
 	"ID" : "",
 	"DisplayName" : "",
+  "Description": "",
 	"Uri":""
 }
