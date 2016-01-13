@@ -34,6 +34,7 @@
 - Fixed reseting URL to `""` in view-model after `<juicy-redirect>`/`<puppet-redirect>` redirect [PuppetJs/puppet-redirect#1](https://github.com/PuppetJs/puppet-redirect/issues/1), [PuppetJs/puppet-redirect#2](https://github.com/PuppetJs/puppet-redirect/issues/2)
 - Serializing TypedJson from usercode no longer generates json with namespaces. Namespaces are only added when serializing the public viewmodel when the option is set in the session, and also when patches are generated with the same option set. [#3148](https://github.com/Starcounter/Starcounter/issues/3148)
 - Improved diagnostic content when weaver is unable to resolve an application dependency, as outlined in [#3227](https://github.com/Starcounter/Starcounter/issues/3227). Now include the probably referring assembly.
+- Fixed mouse and keyboard scrolling issues in Administrator error log and SQL browser [#2990](https://github.com/Starcounter/Starcounter/issues/2990), [#2987](https://github.com/Starcounter/Starcounter/issues/2987), [#2986](https://github.com/Starcounter/Starcounter/issues/2986), [#1635](https://github.com/Starcounter/Starcounter/issues/1635)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
