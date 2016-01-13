@@ -96,13 +96,13 @@ namespace Starcounter.TransactionLog
         private extern static int TransactionLogGetColumnBinaryValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out IntPtr data, out uint size);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnIntValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out long val);
+        private extern static int TransactionLogGetColumnIntValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out long val, [MarshalAs(UnmanagedType.I1)] out bool eof);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnDoubleValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out double val);
+        private extern static int TransactionLogGetColumnDoubleValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out double val, [MarshalAs(UnmanagedType.I1)] out bool eof);
 
         [DllImport("logreader.dll")]
-        private extern static int TransactionLogGetColumnFloatValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out float val);
+        private extern static int TransactionLogGetColumnFloatValue(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out float val, [MarshalAs(UnmanagedType.I1)] out bool eof);
 
         public static void TransactionLogGetInsertUpdateEntryColumnInfo(IntPtr log_handle, uint insertupdate_entry_index, uint column_index, out string column_name, out object column_value)
         {
@@ -118,7 +118,8 @@ namespace Starcounter.TransactionLog
                     {
                         IntPtr val;
                         TransactionLogException.Test(TransactionLogGetColumnStringValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = Marshal.PtrToStringUni(val);
+                        if (val != IntPtr.Zero)
+                            column_value = Marshal.PtrToStringUni(val);
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_BINARY:
@@ -126,52 +127,67 @@ namespace Starcounter.TransactionLog
                         IntPtr data;
                         uint size;
                         TransactionLogException.Test(TransactionLogGetColumnBinaryValue(log_handle, insertupdate_entry_index, column_index, out data, out size));
-                        byte[] val = new byte[size];
-                        Marshal.Copy(data, val, 0, (int)size);
-                        column_value = val;
+                        if (data != IntPtr.Zero)
+                        {
+                            byte[] val = new byte[size];
+                            Marshal.Copy(data, val, 0, (int)size);
+                            column_value = val;
+                        }
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_LONG:
                     {
                         long val;
-                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = val;
+                        bool is_initialized;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val, out is_initialized));
+                        if ( is_initialized )
+                            column_value = val;
                         break;
                     }
 
                 case Starcounter.Internal.sccoredb.STAR_TYPE_ULONG:
                     {
                         long val;
-                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = (ulong)val;
+                        bool is_initialized;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val, out is_initialized));
+                        if (is_initialized)
+                            column_value = (ulong)val;
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_DECIMAL:
                     {
                         long val;
-                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = Starcounter.Internal.X6Decimal.FromRaw(val);
+                        bool is_initialized;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val, out is_initialized));
+                        if (is_initialized)
+                            column_value = Starcounter.Internal.X6Decimal.FromRaw(val);
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_FLOAT:
                     {
                         float val;
-                        TransactionLogException.Test(TransactionLogGetColumnFloatValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = val;
+                        bool is_initialized;
+                        TransactionLogException.Test(TransactionLogGetColumnFloatValue(log_handle, insertupdate_entry_index, column_index, out val, out is_initialized));
+                        if (is_initialized)
+                            column_value = val;
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_DOUBLE:
                     {
                         double val;
-                        TransactionLogException.Test(TransactionLogGetColumnDoubleValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = val;
+                        bool is_initialized;
+                        TransactionLogException.Test(TransactionLogGetColumnDoubleValue(log_handle, insertupdate_entry_index, column_index, out val, out is_initialized));
+                        if (is_initialized)
+                            column_value = val;
                         break;
                     }
                 case Starcounter.Internal.sccoredb.STAR_TYPE_REFERENCE:
                     {
                         long val;
-                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val));
-                        column_value = new reference { object_id = (ulong)val };
+                        bool is_initialized;
+                        TransactionLogException.Test(TransactionLogGetColumnIntValue(log_handle, insertupdate_entry_index, column_index, out val, out is_initialized));
+                        if (is_initialized)
+                            column_value = new reference { object_id = (ulong)val };
                         break;
                     }
             }
