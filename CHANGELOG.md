@@ -23,8 +23,8 @@
 - Fixed issue with setting outgoing fields and using outgoing filters in relation to static file resources responses: [#2961](https://github.com/Starcounter/Starcounter/issues/2961).
 - Fixed issue with missing AppName and PartialId in serialized json when running Launcher: [#2902](https://github.com/Starcounter/Starcounter/issues/2902)
 - Fixed an issue when Administrator was starting faster than gateway process in scservice: [#2962](https://github.com/Starcounter/Starcounter/issues/2962)
-- Fixed text input and text selection issues in Administrator[#2942](https://github.com/Starcounter/Starcounter/issues/2942), [#2400](https://github.com/Starcounter/Starcounter/issues/2400), [#1993](https://github.com/Starcounter/Starcounter/issues/1993)
-- Fixed max column width issue in Administrator[#2828](https://github.com/Starcounter/Starcounter/issues/2828)
+- Fixed text input and text selection issues in Administrator [#2942](https://github.com/Starcounter/Starcounter/issues/2942), [#2400](https://github.com/Starcounter/Starcounter/issues/2400), [#1993](https://github.com/Starcounter/Starcounter/issues/1993)
+- Fixed max column width issue in Administrator [#2828](https://github.com/Starcounter/Starcounter/issues/2828)
 - Fixed incorrect invalidation of databinding for bound properties in TypedJSON: [#2998](https://github.com/Starcounter/Starcounter/issues/2998)
 - Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
 - Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
