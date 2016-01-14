@@ -451,7 +451,7 @@ namespace Starcounter {
             Change candidate;
             int lastIndex;
 
-            if (deleteCount < 1 || (arrayChanges.Count - offset) < 2)
+            if (deleteCount < 1 || arrayChanges == null || (arrayChanges.Count - offset) < 2)
                 return;
 
             for (int i = 0; i < deleteCount; i++) {
