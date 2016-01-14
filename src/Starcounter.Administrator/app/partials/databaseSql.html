@@ -39,7 +39,7 @@
 
     <div class="panel-body">
         <div style="margin-top: 15px; margin-bottom: 15px" title="SQL Query">
-            <textarea id="sqlinput" ui-codemirror="{theme:'monokai'}" ng-model="database._queryState.sqlQuery"></textarea>
+            <textarea id="sqlinput" ui-codemirror="{theme: 'monokai'}" ng-model="database._queryState.sqlQuery"></textarea>
         </div>
 
         <div style="margin-top: 15px; margin-bottom: -15px">
@@ -59,8 +59,9 @@
                                 datarows="database._queryState.rows"
                                 current-row-class-name="'currentRow'"
                                 manual-column-resize
-                                on-after-render="afterRender"
                                 read-only
+                                col-headers
+                                prevent-overflow="'horizontal'"
                                 fragment-selection="'cell'">
                         </hot-table>
                     </div>
