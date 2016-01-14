@@ -16,12 +16,12 @@ namespace Starcounter.TransactionLog
         }
 
         [DllImport("logreader.dll", CharSet = CharSet.Ansi)]
-        private extern static int TransactionLogOpenAndSeek(string db_name, string log_dir, [In, Out] LogPosition pos, out IntPtr log_handle);
+        private extern static int TransactionLogOpenAndSeek(string db_name, string log_dir, ref LogPosition pos, out IntPtr log_handle);
 
         public static IntPtr TransactionLogOpenAndSeek(string db_name, string log_dir, LogPosition pos)
         {
             IntPtr log_handle;
-            TransactionLogException.Test(TransactionLogOpenAndSeek(db_name, log_dir, pos, out log_handle));
+            TransactionLogException.Test(TransactionLogOpenAndSeek(db_name, log_dir, ref pos, out log_handle));
             return log_handle;
         }
 
