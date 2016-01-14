@@ -42,7 +42,7 @@ namespace Starcounter.Server {
         /// The static default collation file, used when either no configuration
         /// not a platform-dependent value can be retreived.
         /// </summary>
-        private const string StaticDefaultCollationFile = "TurboText_en-GB_3.dll";
+        private const string StaticDefaultCollationFile = "TurboText_en-GB_4.dll";
 
         private readonly long InitialDefaultTransactionLogSize;
         private readonly string InitialDefaultCollationFile;
