@@ -3,7 +3,7 @@
   "authors": [
     "Tomek Wytrebowicz <tomalecpub@gmail.com>"
   ],
-  "homepage": "https://github.com/Polyjuice/starcounter-include",
+  "homepage": "https://github.com/Starcounter/starcounter-include",
   "description": "Custom Element to include HTML partials/templates from Starcounter",
   "main": "starcounter-include.html",
   "keywords": [
@@ -23,7 +23,7 @@
     "tests"
   ],
   "dependencies": {
-    "imported-template": "~1.0.1"
+    "imported-template": "~1.2.0"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#~3.1.3"

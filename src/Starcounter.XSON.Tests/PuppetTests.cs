@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Starcounter.Templates;
+using Starcounter.Internal.XSON.Tests.CompiledJson;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -249,6 +250,13 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestDirtyCheckForBoundArrayWithoutTrackingChanges() {
+            var json = new simplewithcodebehind();
+            var items = json.Items;
+            items = json.Items;
+        }
+
+        [Test]
         public static void TestSuppressingInputChange() {
             TObject schema;
 
@@ -472,6 +480,83 @@ namespace Starcounter.Internal.XSON.Tests {
 
             json.Refresh(tarr);
             Assert.AreEqual(recursive.Recursives.Count, json.Recursives.Count);
+        }
+
+        [Test]
+        public static void TestSerializeWithNamespacesDisabled() {
+            person p = new person();
+            p._appName = "MainApp";
+            p._wrapInAppName = true;
+            p.ExtraInfo._appName = "MainApp";
+            p.ExtraInfo._wrapInAppName = true;
+
+            supersimple ss = new supersimple();
+            ss._appName = "PartialApp";
+            ss._wrapInAppName = true;
+            
+            List<Json> stepSiblings = new List<Json>();
+            stepSiblings.Add(p.ExtraInfo);
+            stepSiblings.Add(ss);
+
+            p.ExtraInfo.StepSiblings = stepSiblings;
+            ss.StepSiblings = stepSiblings;
+
+            var session = new Session(SessionOptions.IncludeNamespaces);
+            p.Session = session;
+
+            // No namespaces.
+            var jsonStr = ss.ToJson();
+            Assert.AreEqual(@"{""PlayerId"":123,""Name"":""Arne""}", jsonStr);
+
+            jsonStr = p.ExtraInfo.ToJson();
+            Assert.AreEqual(@"{""Text"":""1asf32""}", jsonStr);
+
+            jsonStr = p.ToJson();
+            Assert.AreEqual(
+                @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""Text"":""1asf32""}}",
+                jsonStr
+            );
+        }
+
+        [Test]
+        public static void TestSerializeWithNamespacesEnabled() {
+            person p = new person();
+            p._appName = "MainApp";
+            p._wrapInAppName = true;
+            p.ExtraInfo._appName = "MainApp";
+            p.ExtraInfo._wrapInAppName = true;
+
+            supersimple ss = new supersimple();
+            ss._appName = "PartialApp";
+            ss._wrapInAppName = true;
+
+            List<Json> stepSiblings = new List<Json>();
+            stepSiblings.Add(p.ExtraInfo);
+            stepSiblings.Add(ss);
+
+            p.ExtraInfo.StepSiblings = stepSiblings;
+            ss.StepSiblings = stepSiblings;
+
+            var session = new Session(SessionOptions.IncludeNamespaces);
+            session.enableNamespaces = true;
+            try {
+                p.Session = session;
+
+                // No namespaces.
+                var jsonStr = ss.ToJson();
+                Assert.AreEqual(@"{""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""MainApp"":{""Text"":""1asf32""},""Html"":""""}", jsonStr);
+
+                jsonStr = p.ExtraInfo.ToJson();
+                Assert.AreEqual(@"{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}", jsonStr);
+
+                jsonStr = p.ToJson();
+                Assert.AreEqual(
+                    @"{""FirstName$"":""Arne"",""LastName"":""Anka"",""Age"":19,""Stats"":23.987,""Fields"":[],""ExtraInfo"":{""MainApp"":{""Text"":""1asf32""},""PartialApp"":{""PlayerId"":123,""Name"":""Arne""},""Html"":""""}}",
+                    jsonStr
+                );
+            } finally {
+                session.enableNamespaces = false;
+            }
         }
     }
 }

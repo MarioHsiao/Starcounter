@@ -11,24 +11,6 @@
 namespace starcounter {
 namespace network {
 
-// Running all registered handlers.
-uint32_t PortHandlers::RunHandlers(GatewayWorker *gw, SocketDataChunkRef sd, bool* is_handled)
-{
-    uint32_t err_code;
-
-    // Going through all handler list.
-    for (int32_t i = 0; i < handler_lists_.get_num_entries(); ++i)
-    {
-        err_code = handler_lists_[i]->RunHandlers(gw, sd, is_handled);
-
-        // Checking if information was handled and no errors occurred.
-        if (*is_handled || err_code)
-            return err_code;
-    }
-
-    return SCERRGWPORTNOTHANDLED;
-}
-
 // Should be called when whole handlers list should be unregistered.
 uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
 {
@@ -51,7 +33,7 @@ uint32_t HandlersList::UnregisterGlobally(db_index_type db_index)
         {
             // Unregister globally.
             RegisteredUris* port_uris = g_gateway.FindServerPort(port_)->get_registered_uris();
-            port_uris->RemoveEntry(db_index, processed_uri_info_);
+            port_uris->RemoveEntry(db_index, method_space_uri_);
 
             // Collecting empty ports.
             g_gateway.CleanUpEmptyPorts();

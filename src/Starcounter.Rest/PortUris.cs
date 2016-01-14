@@ -171,68 +171,86 @@ namespace Starcounter.Rest {
                 if (matchUriAndGetHandlerIdFunc_ != null)
                     return true;
 
-                // Creating list of registered uri infos.
                 List<MixedCodeConstants.RegisteredUriManaged> registered_uri_infos = new List<MixedCodeConstants.RegisteredUriManaged>();
-                for (Int32 i = 0; i < numRegisteredHandlers; i++)
-                {
-                    if (!allUserHandlers[i].IsEmpty())
-                    {
-                        // Grabbing URIs for this port only.
-                        if (port == allUserHandlers[i].UriInfo.port_) {
-                            registered_uri_infos.Add(allUserHandlers[i].UriInfo.GetRegisteredUriManaged());
-                        }
-                    }
-                }
 
-                // Checking if there are any URIs.
-                if (registered_uri_infos.Count <= 0)
-                    return false;
+                try {
 
-                MixedCodeConstants.RegisteredUriManaged[] registered_uri_infos_array = registered_uri_infos.ToArray();
+                    // Creating list of registered uri infos.
+                    for (Int32 i = 0; i < numRegisteredHandlers; i++) {
 
-                // Name of the root function.
-                String root_function_name = "MatchUriForPort" + port;
+                        // Checking if handler is not empty.
+                        if (!allUserHandlers[i].IsEmpty()) {
 
-                fixed (Byte* gen_code_string_container_native = gen_code_string_container_)
-                {
-                    fixed (MixedCodeConstants.RegisteredUriManaged* reg_uri_infos_array = registered_uri_infos_array)
-                    {
-                        UInt32 num_code_bytes = GenCodeStringNumBytes - 1;
-
-                        UInt32 err_code = UriMatcherBuilder.GenerateNativeUriMatcherManaged(
-                            (UInt64)MixedCodeConstants.INVALID_SERVER_LOG_HANDLE,
-                            root_function_name,
-                            (IntPtr)reg_uri_infos_array,
-                            (UInt32)registered_uri_infos_array.Length,
-                            (IntPtr)gen_code_string_container_native,
-                            ref num_code_bytes);
-
-                        if (err_code != 0)
-                            throw ErrorCode.ToException(err_code, "Internal URI matcher code generation error!");
-                    }
-
-                    IntPtr[] out_functions = new IntPtr[1];
-
-                    fixed (void** clang_engine = &clang_engine_) {
-
-                        UInt32 errCode = ClangFunctions.GenerateClangFunctions(
-                            clang_engine,
-                            gen_code_string_container_native,
-                            new String[] { root_function_name },
-                            out_functions);
-
-                        if (0 != errCode) {
-                            throw new ArgumentException("GenerateClangFunctions returned error during URI matcher code generation: " + errCode);
+                            // Grabbing URIs for this port only.
+                            if (port == allUserHandlers[i].UriInfo.port_) {
+                                registered_uri_infos.Add(allUserHandlers[i].UriInfo.GetRegisteredUriManaged());
+                            }
                         }
                     }
 
-                    // Ensuring that generated function is not null.
-                    if (IntPtr.Zero == out_functions[0]) {
-                        throw new ArgumentException("GenerateClangFunctions returned a NULL generated function pointer.");
+                    // Checking if there are any URIs.
+                    if (registered_uri_infos.Count <= 0)
+                        return false;
+
+                    MixedCodeConstants.RegisteredUriManaged[] registered_uri_infos_array = registered_uri_infos.ToArray();
+
+                    // Name of the root function.
+                    String root_function_name = "MatchUriForPort" + port;
+
+                    fixed (Byte* gen_code_string_container_native = gen_code_string_container_)
+                    {
+                        fixed (MixedCodeConstants.RegisteredUriManaged* reg_uri_infos_array = registered_uri_infos_array)
+                        {
+                            UInt32 num_code_bytes = GenCodeStringNumBytes - 1;
+
+                            UInt32 err_code = UriMatcherBuilder.GenerateNativeUriMatcherManaged(
+                                (UInt64)MixedCodeConstants.INVALID_SERVER_LOG_HANDLE,
+                                root_function_name,
+                                (IntPtr)reg_uri_infos_array,
+                                (UInt32)registered_uri_infos_array.Length,
+                                (IntPtr)gen_code_string_container_native,
+                                ref num_code_bytes);
+
+                            if (err_code != 0)
+                                throw ErrorCode.ToException(err_code, "Internal URI matcher code generation error!");
+                        }
+
+                        IntPtr[] out_functions = new IntPtr[1];
+
+                        fixed (void** clang_engine = &clang_engine_)
+                        {
+
+                            UInt32 errCode = ClangFunctions.GenerateClangFunctions(
+                                clang_engine,
+                                gen_code_string_container_native,
+                                new String[] { root_function_name },
+                                out_functions);
+
+                            if (0 != errCode) {
+                                throw new ArgumentException("GenerateClangFunctions returned error during URI matcher code generation: " + errCode);
+                            }
+                        }
+
+                        // Ensuring that generated function is not null.
+                        if (IntPtr.Zero == out_functions[0]) {
+                            throw new ArgumentException("GenerateClangFunctions returned a NULL generated function pointer.");
+                        }
+
+                        // Getting the managed.
+                        matchUriAndGetHandlerIdFunc_ = (MatchUriDelegate)Marshal.GetDelegateForFunctionPointer(out_functions[0], typeof(MatchUriDelegate));
                     }
 
-                    // Getting the managed.
-                    matchUriAndGetHandlerIdFunc_ = (MatchUriDelegate) Marshal.GetDelegateForFunctionPointer(out_functions[0], typeof(MatchUriDelegate));
+                } finally {
+
+                    for (Int32 i = 0; i < registered_uri_infos.Count; i++) {
+
+                        MixedCodeConstants.RegisteredUriManaged r = registered_uri_infos[i];
+
+                        if (r.method_space_uri != IntPtr.Zero) {
+                            BitsAndBytes.Free(r.method_space_uri);
+                            r.method_space_uri = IntPtr.Zero;
+                        }
+                    }
                 }
             }
 

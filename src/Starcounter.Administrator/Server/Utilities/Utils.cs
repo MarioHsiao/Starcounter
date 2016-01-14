@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,6 +71,39 @@ namespace Administrator.Server.Utilities {
             File.WriteAllText(pathToXml, fileContents);
 
             return true;
+        }
+
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool GetDiskFreeSpaceEx(string lpDirectoryName, out ulong lpFreeBytesAvailable, out ulong lpTotalNumberOfBytes, out ulong lpTotalNumberOfFreeBytes);
+
+        //private long GetTotalFreeSpace(string driveName) {
+        //    foreach (DriveInfo drive in DriveInfo.GetDrives()) {
+        //        if (drive.IsReady && drive.Name == driveName) {
+        //            return drive.TotalFreeSpace;
+        //        }
+        //    }
+        //    return -1;
+        //}
+
+        public static bool GetCPUAndMemeoryUsage(out float cpu, out float ram) {
+
+            try {
+                PerformanceCounter theCPUCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                cpu = theCPUCounter.NextValue();
+                System.Threading.Thread.Sleep(500);
+                cpu = theCPUCounter.NextValue();
+
+                PerformanceCounter theMemCounter = new PerformanceCounter("Memory", "Available MBytes");
+                ram = theMemCounter.NextValue();
+                return true;
+            }
+            catch (Exception) {
+                cpu = -1;
+                ram = -1;
+                return false;
+            }
         }
 
     }

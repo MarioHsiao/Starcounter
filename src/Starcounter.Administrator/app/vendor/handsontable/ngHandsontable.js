@@ -1,22 +1,25 @@
 /**
- * ngHandsontable 0.7.0-beta2
- *
+ * ngHandsontable 0.7.0
+ * 
  * Copyright 2012-2015 Marcin Warpechowski
  * Copyright 2015 Handsoncode sp. z o.o. <hello@handsontable.com>
  * Licensed under the MIT license.
  * https://github.com/handsontable/ngHandsontable
- * Date: Fri Sep 11 2015 09:12:32 GMT+0200 (CEST)
- */
+ * Date: Thu Oct 15 2015 12:36:18 GMT+0200 (CEST)
+*/
 
 if (document.all && !document.addEventListener) { // IE 8 and lower
   document.createElement('hot-table');
   document.createElement('hot-column');
   document.createElement('hot-autocomplete');
 }
+
 angular.module('ngHandsontable.services', []);
 angular.module('ngHandsontable.directives', []);
-angular.module('ngHandsontable', ['ngHandsontable.services', 'ngHandsontable.directives']);
-
+angular.module('ngHandsontable', [
+    'ngHandsontable.services',
+    'ngHandsontable.directives'
+  ]);
 
 Handsontable.hooks.add('afterContextMenuShow', function() {
   Handsontable.eventManager.isHotTableEnv = false;
@@ -36,7 +39,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
           }
           var options = column.optionList;
 
-          if (!options.object) {
+          if (!options || !options.object) {
             return;
           }
           if (angular.isArray(options.object)) {
@@ -126,7 +129,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
        */
       initializeHandsontable: function(element, htSettings) {
         var container = document.createElement('div'),
-            hot;
+          hot;
 
         container.className = this.containerClassName;
         element[0].appendChild(container);
@@ -171,8 +174,8 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
        */
       mergeSettingsFromScope: function(settings, scope) {
         var
-            scopeOptions = angular.extend({}, scope),
-            htOptions, i, length;
+          scopeOptions = angular.extend({}, scope),
+          htOptions, i, length;
 
         settings = settings || {};
         angular.extend(scopeOptions, scope.settings || {});
@@ -196,8 +199,8 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
        */
       mergeHooksFromScope: function(settings, scope) {
         var
-            scopeOptions = angular.extend({}, scope),
-            htHooks, i, length, attribute;
+          scopeOptions = angular.extend({}, scope),
+          htHooks, i, length, attribute;
 
         settings = settings || {};
         angular.extend(scopeOptions, scope.settings || {});
@@ -223,7 +226,8 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
        */
       trimScopeDefinitionAccordingToAttrs: function(scopeDefinition, attrs) {
         for (var i in scopeDefinition) {
-          if (scopeDefinition.hasOwnProperty(i) && attrs[i] === void 0 && attrs[scopeDefinition[i].substr(1, scopeDefinition[i].length)] === void 0) {
+          if (scopeDefinition.hasOwnProperty(i) && attrs[i] === void 0 &&
+              attrs[scopeDefinition[i].substr(1, scopeDefinition[i].length)] === void 0) {
             delete scopeDefinition[i];
           }
         }
@@ -245,7 +249,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
         scopeDefinition.datarows = '=';
         scopeDefinition.dataschema = '=';
         scopeDefinition.observeDomVisibility = '=';
-        scopeDefinition.settings = '=';
+        //scopeDefinition.settings = '=';
 
         return scopeDefinition;
       },
@@ -311,6 +315,12 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
 
         if (settings.indexOf('contextMenuCopyPaste') === -1) {
           settings.push('contextMenuCopyPaste');
+        }
+        if (settings.indexOf('handsontable') === -1) {
+          settings.push('handsontable');
+        }
+        if (settings.indexOf('settings') >= 0) {
+          settings.splice(settings.indexOf('settings'), 1);
         }
         if (hyphenateStyle) {
           settings = settings.map(hyphenate);
@@ -387,7 +397,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
           } else {
             optionList.object = options.split(',');
           }
-          $scope.column['optionList'] = optionList;
+          $scope.column.optionList = optionList;
         };
       }],
       compile: function(tElement, tAttrs) {
@@ -438,7 +448,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
   /**
    * Main Angular Handsontable directive
    */
-  function hotTable(settingFactory, autoCompleteFactory, $rootScope) {
+  function hotTable(settingFactory, autoCompleteFactory, $rootScope, $parse) {
     return {
       restrict: 'EA',
       scope: {},
@@ -464,22 +474,25 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
       }],
       compile: function(tElement, tAttrs) {
         var _this = this,
-            bindingsKeys;
+          bindingsKeys;
 
         this.scope = settingFactory.trimScopeDefinitionAccordingToAttrs(settingFactory.getTableScopeDefinition(), tAttrs);
         bindingsKeys = Object.keys(this.scope);
 
         angular.forEach(bindingsKeys, function(key) {
           var mode = _this.scope[key].charAt(0);
+
           _this.$$isolateBindings[key] = {
             attrName: _this.scope[key].length > 1 ? _this.scope[key].substr(1, _this.scope[key].length) : key,
-            collection: false,
+            collection: key === 'datarows',
             mode: mode,
             optional: false
           };
         });
 
         return function(scope, element, attrs) {
+          scope.settings = $parse(attrs.settings)(scope.$parent);
+
           if (!scope.htSettings) {
             scope.htSettings = {};
           }
@@ -492,19 +505,27 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
 
           settingFactory.mergeSettingsFromScope(scope.htSettings, scope);
           settingFactory.mergeHooksFromScope(scope.htSettings, scope);
-          scope.htSettings.data = scope.datarows;
+
+          if (!scope.htSettings.data) {
+            scope.htSettings.data = scope.datarows;
+          }
           scope.htSettings.dataSchema = scope.dataschema;
           scope.htSettings.hotId = attrs.hotId;
           scope.htSettings.observeDOMVisibility = scope.observeDomVisibility;
 
           if (scope.htSettings.columns) {
             for (var i = 0, length = scope.htSettings.columns.length; i < length; i++) {
-              if (scope.htSettings.columns[i].type !== 'autocomplete') {
+              var column = scope.htSettings.columns[i];
+
+              if (column.type !== 'autocomplete') {
                 continue;
               }
-              if (typeof scope.htSettings.columns[i].optionList === 'string') {
+              if (!column.optionList) {
+                continue;
+              }
+              if (typeof column.optionList === 'string') {
                 var optionList = {};
-                var match = scope.htSettings.columns[i].optionList.match(/^\s*([\s\S]+?)\s+in\s+([\s\S]+?)\s*$/);
+                var match = column.optionList.match(/^\s*([\s\S]+?)\s+in\s+([\s\S]+?)\s*$/);
 
                 if (match) {
                   optionList.property = match[1];
@@ -512,9 +533,9 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
                 } else {
                   optionList.object = optionList;
                 }
-                scope.htSettings.columns[i].optionList = optionList;
+                column.optionList = optionList;
               }
-              autoCompleteFactory.parseAutoComplete(scope.htSettings.columns[i], scope.datarows, true);
+              autoCompleteFactory.parseAutoComplete(column, scope.datarows, true);
             }
           }
           var origAfterChange = scope.htSettings.afterChange;
@@ -532,7 +553,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
           // TODO: Add watch properties descriptor + needs perf test. Watch full equality vs toJson
           angular.forEach(bindingsKeys, function(key) {
             scope.$watch(key, function(newValue, oldValue) {
-              if (newValue === void 0 || newValue === oldValue) {
+              if (newValue === void 0) {
                 return;
               }
               if (key === 'datarows') {
@@ -542,7 +563,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
                 } else {
                   scope.hotInstance.loadData(newValue);
                 }
-              } else {
+              } else if (newValue !== oldValue) {
                 scope.htSettings[key] = newValue;
                 settingFactory.updateHandsontableSettings(scope.hotInstance, scope.htSettings);
               }
@@ -562,7 +583,7 @@ Handsontable.hooks.add('afterContextMenuShow', function() {
       }
     };
   }
-  hotTable.$inject = ['settingFactory', 'autoCompleteFactory', '$rootScope'];
+  hotTable.$inject = ['settingFactory', 'autoCompleteFactory', '$rootScope', '$parse'];
 
   angular.module('ngHandsontable.directives').directive('hotTable', hotTable);
 }());

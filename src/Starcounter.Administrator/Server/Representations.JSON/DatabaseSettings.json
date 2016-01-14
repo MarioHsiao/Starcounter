@@ -1,13 +1,15 @@
 ﻿{
-	"$": { Namespace: "Starcounter.Administrator.Server" },
-	"Name" : "", // "mydatabase",
-    "DefaultUserHttpPort": 0, // 8080,
-    "SchedulerCount": 0, // 8
-    "ChunksNumber": 0, // 8
-    "CollationFile": "", // "TurboText_en-GB_2",
-    "DumpDirectory": "", // "c:\database\dump",
-    "TempDirectory": "", // "c:\database\temp",
-    "ImageDirectory": "", // "c:\database\image",
-	"TransactionLogDirectory": "", // "c:\database\log"
-	"PolyjuiceDatabaseFlag" : false
+  "$": { Namespace: "Starcounter.Administrator.Server" },
+  "Name": "", // "mydatabase",
+  "DefaultUserHttpPort": 0, // 8080,
+  "SchedulerCount": 0, // 8
+  "ChunksNumber": 0, // 8
+  "CollationFile": "", // "TurboText_en-GB_2",
+  "FirstObjectID": 0, // 1
+  "LastObjectID": 0, // 4611686018427387903
+  "DumpDirectory": "", // "c:\database\dump",
+  "TempDirectory": "", // "c:\database\temp",
+  "ImageDirectory": "", // "c:\database\image",
+  "TransactionLogDirectory": "", // "c:\database\log"
+  "PolyjuiceDatabaseFlag": false
 }

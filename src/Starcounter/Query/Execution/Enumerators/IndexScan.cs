@@ -157,7 +157,7 @@ using System.Diagnostics;namespace Starcounter.Query.Execution{internal clas
                     // to indicate another record. To do this properly then the record id must
                     // always be available. Issue in tracker: #3066.
                     //ulong keyEti2 = dbObject.ThisHandle;
-                    ulong keyEti2 = (dbObject.ThisHandle >> 16) << 1;
+                    ulong keyEti2 = (dbObject.ThisHandle >> 16);
                     if ((keyOID != dbObject.Identity) && (keyETI != keyEti2)) {
                         isAtRecreatedKey = false;
                         variableArray.FailedToRecreateObject = true;

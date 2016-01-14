@@ -299,6 +299,8 @@ namespace Administrator.Server.Model {
 
             command.SetupProperties.Configuration.Runtime.DefaultUserHttpPort = (ushort)settings.DefaultUserHttpPort;
             command.SetupProperties.Configuration.Runtime.SchedulerCount = (int)settings.SchedulerCount;
+            command.SetupProperties.StorageConfiguration.FirstObjectID = settings.FirstObjectID;
+            command.SetupProperties.StorageConfiguration.LastObjectID = settings.LastObjectID;
             command.SetupProperties.Configuration.Runtime.ChunksNumber = (int)settings.ChunksNumber;
             command.SetupProperties.StorageConfiguration.CollationFile = settings.CollationFile;
             command.SetupProperties.Configuration.Runtime.DumpDirectory = settings.DumpDirectory;

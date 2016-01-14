@@ -635,96 +635,80 @@ namespace Starcounter.Internal {
         /// </summary>
         internal static void Commit(int free) {
             uint r;
+            ulong vi, hi;
+
+            // Lock transaction on thread while invoking hook callbacks.
+            ThreadData.inTransactionScope_++;
+            try {
+                vi = ThreadData.ObjectVerify;
+                unsafe {
+                    r = sccoredb.star_context_create_update_iterator(ThreadData.ContextHandle, &hi);
+                }
+                if (r != 0) throw ErrorCode.ToException(r);
+                try {
+                    TypeBinding binding = null;
+                    IObjectProxy proxy = null;
+                    HookKey key = null;
+
+                    for (;;) {
+                        ulong recordId, recordRef;
+                        unsafe {
+                            r = sccoredb.star_iterator_next(hi, &recordId, &recordRef, vi);
+                        }
+                        if (r != 0) throw ErrorCode.ToException(r);
+                        if (recordId == 0) break;
+
+                        int s = sccoredb.star_context_get_trans_state(
+                            ThreadData.ContextHandle, recordId, recordRef
+                            );
+                        if (s < 0) throw ErrorCode.ToException((uint)(-s));
+                        uint hookType = (uint)s;
+
+                        ushort layoutHandle = (ushort)(recordRef & 0xFFFF);
+
+                        if (HookType.IsCommitInsertOrUpdate(hookType)) {
+                            if (binding == null || binding.TableId != layoutHandle) {
+                                binding = TypeRepository.GetTypeBinding(layoutHandle);
+
+                                // Handle if actual layout is different from expected layout.
+                                if (binding.TableId != layoutHandle) {
+                                    layoutHandle = binding.TableId;
+                                    recordRef = DbHelper.EncodeObjectRefWithLayoutHandle(
+                                        recordRef, layoutHandle
+                                        );
+                                }
+
+                                proxy = binding.NewInstanceUninit();
+                            }
+
+                            proxy.Bind(recordRef, recordId, binding);
+                        }
+
+                        key = HookKey.FromTable(layoutHandle, hookType, key);
+                        switch (hookType) {
+                        case HookType.CommitInsert:
+                            InvokableHook.InvokeInsert(key, proxy);
+                            break;
+                        case HookType.CommitUpdate:
+                            InvokableHook.InvokeUpdate(key, proxy);
+                            break;
+                        case HookType.CommitDelete:
+                            InvokableHook.InvokeDelete(key, recordId);
+                            break;
+                        }
+                    }
+                }
+                finally {
+                    sccoredb.star_iterator_free(hi, vi);
+                }
+            }
+            finally {
+                Debug.Assert(ThreadData.inTransactionScope_ > 0);
+                ThreadData.inTransactionScope_--;
+            }
 
             r = sccoredb.star_context_commit(ThreadData.ContextHandle, free);
             if (r != 0) throw ErrorCode.ToException(r);
-
-#if false // TODO EOH:
-            uint r;
-            ulong hiter;
-            ulong viter;
-
-            for (; ; ) {
-                r = sccoredb.sccoredb_begin_commit(tran_locked_on_thread, out hiter, out viter);
-                if (r == 0) {
-                    // TODO: Handle triggers. Call abort commit on failure.
-                    // r = sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
-
-                    if (hiter != 0) {
-                        ulong oid;
-                        ulong address;
-                        ushort tableId;
-                        ulong hookType;
-                        TypeBinding binding;
-                        IObjectProxy proxy;
-                        HookKey key;
-
-                        try {
-
-                            binding = null;
-                            proxy = null;
-                            key = null;
-
-                            while (true) {
-                                unsafe {
-                                    r = sccoredb.SCIteratorNext(hiter, viter, &oid, &address, &tableId, &hookType);
-                                }
-                                if (r != 0) throw ErrorCode.ToException(r);
-                                if (oid == 0) break;
-
-                                if (HookType.IsCommitInsertOrUpdate((uint)hookType)) {
-                                    if (binding == null || binding.TableId != tableId) {
-                                        binding = TypeRepository.GetTypeBinding(tableId);
-                                        proxy = binding.NewInstanceUninit();
-                                    }
-
-                                    proxy.Bind(address, oid, binding);
-                                }
-
-                                key = HookKey.FromTable(tableId, (uint)hookType, key);
-                                try {
-                                    switch (hookType) {
-                                        case HookType.CommitInsert:
-                                            InvokableHook.InvokeInsert(key, proxy);
-                                            break;
-                                        case HookType.CommitUpdate:
-                                            InvokableHook.InvokeUpdate(key, proxy);
-                                            break;
-                                        case HookType.CommitDelete:
-                                            InvokableHook.InvokeDelete(key, oid);
-                                            break;
-                                    }
-
-                                } catch {
-                                    sccoredb.sccoredb_abort_commit(tran_locked_on_thread);
-                                    throw;
-                                }
-                            }
-
-                        } finally {
-                            sccoredb.SCIteratorFree(hiter, viter);
-                        }
-                    }
-
-                    if (r == 0) {
-                        r = sccoredb.sccoredb_complete_commit(
-                                tran_locked_on_thread, detach_and_free
-                                );
-                    }
-                    if (r == 0) break;
-                }
-
-                String additionalErrorInfo = null;
-                unsafe {
-                    char* unsafeAdditionalErrorInfo;
-                    r = sccoredb.star_get_last_error(&unsafeAdditionalErrorInfo);
-                    if (unsafeAdditionalErrorInfo != null) {
-                        additionalErrorInfo = string.Concat(new string(unsafeAdditionalErrorInfo), ".");
-                    }
-                }
-                throw ErrorCode.ToException(r, additionalErrorInfo);
-            }
-#endif
         }
 
         /// <summary>

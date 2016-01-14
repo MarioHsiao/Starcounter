@@ -1,10 +1,15 @@
 ﻿using Starcounter;
+using Starcounter.Advanced;
 using Starcounter.Internal;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Starcounter {
 
@@ -46,12 +51,20 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Converts socket struct to lower and upper parts.
+        /// </summary>
+        public UInt64 ToUInt64() {
+            return socketStruct_.ToUInt64();
+        }
+
+        /// <summary>
         /// Creates a new TcpSocket.
         /// </summary>
-        internal TcpSocket(
-            NetworkDataStream dataStream,
-            SocketStruct socketStruct)
+        internal TcpSocket(NetworkDataStream dataStream)
         {
+            SocketStruct socketStruct = new SocketStruct();
+            socketStruct.Init(dataStream);
+
             dataStream_ = dataStream;
             socketStruct_ = socketStruct;
         }
@@ -145,7 +158,6 @@ namespace Starcounter {
         /// <summary>
         /// Send data over Tcp socket.
         /// </summary>
-        /// <param name="data">Data to push.</param>
         public void Send(Byte[] data) {
             PushServerMessage(data, 0, data.Length);
         }
@@ -153,11 +165,62 @@ namespace Starcounter {
         /// <summary>
         /// Send data over Tcp socket.
         /// </summary>
-        /// <param name="data">Data to send.</param>
-        /// <param name="offset">Offset in data.</param>
-        /// <param name="dataLen">Data length in bytes.</param>
         public void Send(Byte[] data, Int32 offset, Int32 dataLen) {
             PushServerMessage(data, offset, dataLen);
+        }
+
+        /// <summary>
+        /// Send data over Tcp socket.
+        /// </summary>
+        public void Send(Byte[] data, Int32 offset, Int32 dataLen, Response.ConnectionFlags connFlags) {
+            PushServerMessage(data, offset, dataLen, connFlags);
+        }
+
+        /// <summary>
+        /// Streaming over TCP socket.
+        /// NOTE: Function closes the stream once the end of stream is reached.
+        /// </summary>
+        internal async Task SendStreamOverSocket() {
+
+            try {
+                UInt64 socketId = ToUInt64();
+
+                StreamingInfo streamInfo = Response.ResponseStreams_[socketId];
+
+                Int32 numBytesRead = await streamInfo.StreamObject.ReadAsync(streamInfo.SendBuffer, 0, streamInfo.SendBuffer.Length);
+
+                // Checking if its the end of the stream.
+                Boolean hasReadEverything = streamInfo.HasReadEverything();
+
+                if (hasReadEverything) {
+
+                    StreamingInfo s;
+                    Response.ResponseStreams_.TryRemove(socketId, out s);
+
+                    // Now we are done with streaming object and can close it.
+                    streamInfo.StreamObject.Close();
+                    streamInfo.StreamObject = null;
+                }
+
+                // Task has finished.
+                streamInfo.TaskObject = null;
+
+                // We need to be on scheduler to send on socket.
+                StarcounterBase._DB.RunAsync(() => {
+
+                    // Sending on socket.
+                    if (hasReadEverything) {
+                        Send(streamInfo.SendBuffer, 0, numBytesRead);
+                    } else {
+                        Send(streamInfo.SendBuffer, 0, numBytesRead, Response.ConnectionFlags.StreamingResponseBody);
+                    }
+                });
+
+            } catch (Exception exc) {
+
+                // Just logging the exception.
+                Diagnostics.LogHostException(exc);
+            }
         }
 
         /// <summary>
@@ -180,11 +243,16 @@ namespace Starcounter {
             // Checking if we still have the data stream with original chunk available.
             if (dataStream_ == null || dataStream_.IsDestroyed()) {
 
-                UInt32 err_code = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
+                UInt32 errCode = bmx.sc_bmx_obtain_new_chunk(&chunkIndex, &chunkMem);
 
-                if (0 != err_code) {
-                    // NOTE: If we can not obtain a chunk just returning because we can't do much.
-                    return;
+                if (0 != errCode) {
+
+                    if (Error.SCERRACQUIRELINKEDCHUNKS == errCode) {
+                        // NOTE: If we can not obtain a chunk just returning because we can't do much.
+                        return;
+                    } else {
+                        throw ErrorCode.ToException(errCode);
+                    }
                 }
 
                 dataStream = new NetworkDataStream(chunkIndex, socketStruct_.GatewayWorkerId);

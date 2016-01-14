@@ -6,10 +6,8 @@
 
 using System.Diagnostics;
 using System.Reflection;
-using System.Linq;
 
-namespace Starcounter.Binding
-{
+namespace Starcounter.Binding {
     /// <summary>
     /// Class TypeDef
     /// </summary>
@@ -150,15 +148,14 @@ namespace Starcounter.Binding
         /// Populates properties PropertyDefs, ColumnRuntimeTypes, and TableDef.ColumnDefs
         /// to describe meta-tables, since they cannot be created when TypeDef is created
         /// </summary>
-        internal void PopulatePropertyDef(TypeDef[] typeDefs) {
+        internal void PopulatePropertyDef(TableDef tblDef, TypeDef[] typeDefs) {
 #if DEBUG
             Debug.Assert(_PropertyDefs == null);
 #endif
             if (_PropertyDefs == null) {
-                TableDef tblDef = Db.LookupTable(Name);
                 PropertyInfo[] properties = TypeInfo.GetType(this.Name).GetProperties(BindingFlags.Instance | BindingFlags.Public);
 
-                Debug.Assert(Db.LookupTable(Name) != null);
+                Debug.Assert(tblDef != null);
                 Debug.Assert(TypeInfo.GetType(this.Name).FullName == this.Name);
                 Debug.Assert(tblDef.ColumnDefs.Length - 2 == properties.Length);
                 

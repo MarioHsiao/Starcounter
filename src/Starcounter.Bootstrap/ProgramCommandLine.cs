@@ -179,6 +179,7 @@ namespace StarcounterInternal.Bootstrap {
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.EnforceURINamespaces), "Enforces URI namespaces when registering handlers.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.MergeJsonSiblings), "Should mutliple JSON responses be merged.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.UriMappingEnabled), "Enables URI mapping.");
+            commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.RequestFiltersEnabled), "Enables request filters.");
             commandDefinition.DefineProperty(StarcounterEnvironment.GetFieldName(() => StarcounterEnvironment.OntologyMappingEnabled), "Enables ontology mapping.");
 
             commandDefinition.DefineProperty(StarcounterConstants.BootstrapOptionNames.GatewayWorkersNumber, "Specifies the number of gateway workers.");

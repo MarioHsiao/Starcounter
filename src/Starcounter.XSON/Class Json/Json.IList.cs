@@ -365,21 +365,19 @@ namespace Starcounter {
             Json item = (Json)list[fromIndex];
             list.RemoveAt(fromIndex);
             list.Insert(toIndex, item);
-
-            item._cacheIndexInArr = toIndex;
             
             int start;
             int stop;
 
             if (fromIndex < toIndex) {
-                start = fromIndex + 1;
+                start = fromIndex;
                 stop = toIndex;
             } else {
-                start = toIndex + 1;
+                start = toIndex;
                 stop = fromIndex;
             }
 
-            for (Int32 i = start; i < stop; i++) {
+            for (Int32 i = start; i <= stop; i++) {
                 ((Json)list[i])._cacheIndexInArr = i;
             }
             CallHasMovedElement(fromIndex, toIndex, item);

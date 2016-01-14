@@ -20,7 +20,7 @@ namespace Starcounter.SqlProcessor.Tests {
                 (decimal)1000 * timer.ElapsedMilliseconds / nrIterations + " mcs.");
         }
 
-        [Test]
+//        [Test]
         [Category("LongRunning")]
         public static void PerformanceTests() {
             MeasureQueryPerformance("SELECT a FROM account a");

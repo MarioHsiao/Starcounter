@@ -1,0 +1,71 @@
+<!-- juicy-redirect version:0.4.0 | MIT License -->
+<script>
+    (function (global) {
+        var PuppetRedirectElementPrototype = Object.create(HTMLLinkElement.prototype);
+
+        PuppetRedirectElementPrototype.createdCallback = function(){
+            var url = null;
+            Object.defineProperty(this, 'url',{
+                set: function(val){
+                    url = val;
+                    this.redirect(url);
+                },
+                get: function(){
+                    return url;
+                }
+            })
+        };
+
+        PuppetRedirectElementPrototype.attachedCallback = function(){
+            this.redirect( this.getAttribute("url") );
+        };
+        /**
+         * @event puppet-redirect-pushstate
+         * Called whenever `history.state` is changed.
+         * @property {String} url new URL
+         */
+        PuppetRedirectElementPrototype.attributeChangedCallback = function (attributeName, oldVal, newVal) {
+            switch(attributeName) {
+                case "url":
+                    if(document.contains(this)){
+                            this.url = newVal;
+                    }
+                    break;
+            }
+        };
+        PuppetRedirectElementPrototype.redirect = function(url){
+            if(!url){
+                return false;
+            }
+            if(url == "current") {
+                url = window.location.href;
+            }
+            var target = this.getAttribute("target");
+            if(target && target !== '_self'){
+                window.open(url, this.getAttribute("target"));
+            } else if(this.hasAttribute("history")) {
+                history.pushState(null, null, url);
+                this.dispatchEvent(
+                    new CustomEvent(
+                        "puppet-redirect-pushstate",
+                        {
+                            "detail":{"url":url},
+                            "bubbles": true
+                        }
+                    )
+                );
+            }
+            else {
+                window.location = url;
+            }
+            this.setAttribute("url", "");
+            this.dispatchEvent(new CustomEvent('url-changed',{detail: ""}));
+            return url;
+        };
+
+        global.PuppetRedirectElement = document.registerElement('puppet-redirect', {
+            prototype: PuppetRedirectElementPrototype,
+            extends: "link"
+        });
+    })(window);
+</script>

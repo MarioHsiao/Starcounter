@@ -193,12 +193,8 @@ namespace Starcounter.Internal.Tests
             }
 
             Func<Request, IntPtr, IntPtr, Response> genDel1 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}", new Func<Int32, Int64, Request, String, Response>(UserHttpDelegateTests.UserFunc1), null);
-            Func<Request, IntPtr, IntPtr, Response> genDel2 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int32, Int64, String, Decimal, Response>(UserHttpDelegateTests.UserFunc2), null);
             Func<Request, IntPtr, IntPtr, Response> genDel3 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}/{?}/{?}", new Func<Int32, Int64, String, Request, Decimal, Double, Boolean, Response>(UserHttpDelegateTests.UserFunc3), null);
             Func<Request, IntPtr, IntPtr, Response> genDel4 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}/{?}/{?}/{?}", new Func<Int32, Int64, String, Decimal, Double, Boolean, DateTime, Request, Response>(UserHttpDelegateTests.UserFunc4), null);
-            Func<Request, IntPtr, IntPtr, Response> genDel5 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int32, Decimal, Int32, Int32, Response>(UserHttpDelegateTests.UserFunc5), null);
-            Func<Request, IntPtr, IntPtr, Response> genDel6 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<Int64, Decimal, Int32, Int32, PersonMessage, Response>(UserHttpDelegateTests.UserFunc6), null);
-            Func<Request, IntPtr, IntPtr, Response> genDel7 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<PersonMessage, Int64, Decimal, Int64, Int32, Request, Response>(UserHttpDelegateTests.UserFunc7), null);
             Func<Request, IntPtr, IntPtr, Response> genDel8 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /{?}/{?}/{?}/{?}", new Func<PersonMessage, Object, Int64, Decimal, Int32, Int64, Request, Response>(UserHttpDelegateTests.UserFunc8), null);
 
             Func<Request, IntPtr, IntPtr, Response> genDel9 = UriManagedHandlersCodegen.UMHC.GenerateParsingDelegate(80, "GET /a", new Func<Object, Request, Response>(UserHttpDelegateTests.UserFunc9), null);
@@ -218,17 +214,13 @@ namespace Starcounter.Internal.Tests
                             + jsonContent);
 
                         Assert.IsTrue("UserFunc1!" == genDel1(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
-                        Assert.IsTrue("UserFunc2!" == (String)genDel2(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
                         Assert.IsTrue("UserFunc3!" == (String)genDel3(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
                         Assert.IsTrue("UserFunc4!" == (String)genDel4(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)p2).Body);
-                        Assert.IsTrue("UserFunc5!" == (String)genDel5(new Request(requestStrNoContent, requestStrNoContent.Length), (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
 
                         Request req = new Request(requestStrWithContent, requestStrWithContent.Length);
                         req.ArgMessageObjectType = typeof(PersonMessage);
                         req.ArgMessageObjectCreate = () => new PersonMessage();
 
-                        Assert.IsTrue("UserFunc6!" == (String)genDel6(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
-                        Assert.IsTrue("UserFunc7!" == (String)genDel7(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
                         Assert.IsTrue("UserFunc8!" == (String)genDel8(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);
 
                         Assert.IsTrue("UserFunc9!" == (String)genDel9(req, (IntPtr)p1, (IntPtr)(p2 + 7)).Body);

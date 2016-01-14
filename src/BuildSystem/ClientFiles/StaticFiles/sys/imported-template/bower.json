@@ -1,10 +1,11 @@
 {
   "name": "imported-template",
-  "version": "1.0.3",
+  "version": "1.2.0",
   "devDependencies": {
     "dom-bind-notifier": "~1.0.0",
     "iron-icon": "PolymerElements/iron-icon#~1.0.4",
-    "iron-iconset-svg": "PolymerElements/iron-iconset-svg#~1.0.4"
+    "iron-iconset-svg": "PolymerElements/iron-iconset-svg#~1.0.4",
+    "web-component-tester": "Polymer/web-component-tester#~4.0.3"
   },
   "keywords": [
     "html",
@@ -31,7 +32,8 @@
     "test",
     "tests",
     "examples",
-    "preview.png"
+    "preview.png",
+    "wct.conf.json"
   ],
   "dependencies": {
     "juicy-html": ">=1.0.0"

@@ -1,9 +1,9 @@
 {
   "name": "puppet-redirect",
-  "version": "0.1.3",
+  "version": "0.4.0",
   "description": "Custom Element that redirects to a new URL when an attribute is changed. It's also being listened by PuppetJS.",
   "license": "MIT",
-  "main": "src/puppet-redirect.html",
+  "main": "puppet-redirect.html",
   "keywords": [
     "web-components"
   ],

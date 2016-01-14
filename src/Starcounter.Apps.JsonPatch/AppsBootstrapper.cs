@@ -74,14 +74,15 @@ namespace Starcounter.Internal {
             // Giving REST needed delegates.
             unsafe {
                 UriManagedHandlersCodegen.Setup(
-                    GatewayHandlers.RegisterUriHandlerNative,
-                    GatewayHandlers.RegisterTcpSocketHandler,
-                    GatewayHandlers.RegisterUdpSocketHandler,
+                    GatewayHandlers.RegisterHttpHandlerInGateway,
+                    GatewayHandlers.UnregisterHttpHandlerInGateway,
+                    GatewayHandlers.RegisterTcpSocketHandlerInGateway,
+                    GatewayHandlers.RegisterUdpSocketHandlerInGateway,
                     ProcessExternalRequest,
                     AppServer_.RunDelegateAndProcessResponse,
                     UriManagedHandlersCodegen.RunUriMatcherAndCallHandler);
 
-                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerNative);
+                AllWsGroups.WsManager.InitWebSockets(GatewayHandlers.RegisterWsChannelHandlerInGateway);
             }
 
             // Injecting required hosted Node functionality.
@@ -134,7 +135,7 @@ namespace Starcounter.Internal {
                         RegisterRedirectHandler(defaultUserHttpPort, Handle.GET_METHOD, fromUri, toUri);
 
                         return 200;
-                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
+                    }, new HandlerOptions() { SkipRequestFilters = true });
 
                     // Registering URI aliasing port.
                     Handle.GET(defaultSystemHttpPort, "/sc/alias/" + defaultUserHttpPort + "{?};{?}", (String fromUri, String toUri) => {
@@ -142,7 +143,70 @@ namespace Starcounter.Internal {
                         RegisterUriAliasHandler(Handle.GET_METHOD, fromUri, toUri, defaultUserHttpPort);
 
                         return 200;
-                    }, new HandlerOptions() { SkipMiddlewareFilters = true });
+                    }, new HandlerOptions() { SkipRequestFilters = true });
+
+                    // Handler that is used to send streams.
+                    Handle.GET(defaultSystemHttpPort, "/sc/finishsend/" + defaultUserHttpPort, (Request req) => {
+
+                        TcpSocket tcpSocket = new TcpSocket(req.DataStream);
+
+                        // Destroying native buffers.
+                        req.Destroy(true);
+
+                        UInt64 socketId = tcpSocket.ToUInt64();
+
+                        StreamingInfo s;
+
+                        // Checking if stream exists.
+                        if (!Response.ResponseStreams_.TryGetValue(socketId, out s)) {
+                            return HandlerStatus.Handled;
+
+                        } else {
+
+                            System.Threading.Tasks.Task task = 
+                                System.Threading.Tasks.Task.Run(() => tcpSocket.SendStreamOverSocket());
+
+                            s.TaskObject = task;
+                        }
+
+                        return HandlerStatus.Handled;
+
+                    }, new HandlerOptions() { SkipRequestFilters = true });
+
+                    // Handler that is used to delete disconnected streams.
+                    Handle.DELETE(defaultSystemHttpPort, "/sc/stream/" + defaultUserHttpPort, (Request req) => {
+
+                        TcpSocket tcpSocket = new TcpSocket(req.DataStream);
+                        // Destroying native buffers.
+                        req.Destroy(true);
+
+                        UInt64 socketId = tcpSocket.ToUInt64();
+
+                        StreamingInfo s;
+
+                        // Checking if stream exists.
+                        if (!Response.ResponseStreams_.TryGetValue(socketId, out s)) {
+                            return HandlerStatus.Handled;
+
+                        } else {
+
+                            // If there is a running task, waiting for task to finish.
+                            if (null != s.TaskObject) {
+                                s.TaskObject.Wait();
+                            }
+
+                            // Checking if there is still a streaming object.
+                            if (s.StreamObject != null) {
+                                s.StreamObject.Close();
+                                s.StreamObject = null;
+                            }
+
+                            Response.ResponseStreams_.TryRemove(socketId, out s);
+
+                            return HandlerStatus.Handled;
+                        }
+
+                    }, new HandlerOptions() { SkipRequestFilters = true });
                 }
                 else {
 
@@ -307,7 +371,7 @@ namespace Starcounter.Internal {
 
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
 
             Handle.PUT(port, "/sc/reverseproxies", (Request req) => {
                 try {
@@ -349,7 +413,7 @@ namespace Starcounter.Internal {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
 
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
 
 
             Handle.DELETE(port, "/sc/reverseproxies/{?}/{?}", (string matchingHost, string starcounterProxyPort, Request req) => {
@@ -382,7 +446,7 @@ namespace Starcounter.Internal {
                     return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.InternalServerError, Body = errorResponse.ToJson() };
                 }
 
-            }, new HandlerOptions() { SkipMiddlewareFilters = true });
+            }, new HandlerOptions() { SkipRequestFilters = true });
         }
 
         /// <summary>
@@ -400,8 +464,8 @@ namespace Starcounter.Internal {
             if (StarcounterEnvironment.NoNetworkGatewayFlag)
                 return;
 
-            // By default middleware filters are enabled.
-            StarcounterEnvironment.MiddlewareFiltersEnabled = true;
+            // By default request filters are enabled.
+            StarcounterEnvironment.RequestFiltersEnabled = StarcounterEnvironment.RequestFiltersEnabledSetting;
 
             // Adding Starcounter specific static files directory.
             String specialStaticFiles = Path.Combine(StarcounterEnvironment.InstallationDirectory, "ClientFiles\\StaticFiles");
@@ -468,9 +532,10 @@ namespace Starcounter.Internal {
                 // Getting handler information.
                 UriHandlersManager uhm = UriHandlersManager.GetUriHandlersManager(HandlerOptions.HandlerLevels.DefaultLevel);
                 UserHandlerInfo uhi = uhm.AllUserHandlerInfos[req.ManagedHandlerId];
-                if (!uhi.SkipMiddlewareFilters) {
+
+                if (!uhi.SkipRequestFilters) {
                     // Checking if there is a filtering delegate.
-                    resp = Handle.RunMiddlewareFilters(req);
+                    resp = Handle.RunRequestFilters(req);
                 }
 
                 // Checking if filter level did allow this request.
@@ -506,12 +571,13 @@ namespace Starcounter.Internal {
                 LogSources.Hosting.LogException(exc);
                 resp = Response.FromStatusCode(500);
                 resp.Body = AppRestServer.GetExceptionString(exc);
-                resp.ContentType = "text/plain";
+                resp.ContentType = "text/plain;charset=utf-8";
             }
 
             // Checking if response was handled.
-            if (resp == null)
+            if (resp == null) {
                 return false;
+            }
 
             // Determining what we should do with response.
             switch (resp.HandlingStatus) {
@@ -534,7 +600,7 @@ namespace Starcounter.Internal {
                             LogSources.Hosting.LogException(ex);
                             resp = Response.FromStatusCode(500);
                             resp.Body = AppRestServer.GetExceptionString(ex);
-                            resp.ContentType = "text/plain";
+                            resp.ContentType = "text/plain;charset=utf-8";
                             req.SendResponse(resp, responseSerializationBuffer_);
                         }
 

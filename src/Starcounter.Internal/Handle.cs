@@ -26,9 +26,23 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Skip middleware filters flag.
+        /// Skip request filters flag.
         /// </summary>
+        [Obsolete("Please use SkipRequestFilters instead.")]
         public Boolean SkipMiddlewareFilters {
+            get {
+                return SkipRequestFilters;
+            }
+            set {
+                SkipRequestFilters = value;
+            }
+        }
+
+        /// <summary>
+        /// Skip request filters flag.
+        /// </summary>
+        public Boolean SkipRequestFilters
+        {
             get;
             set;
         }
@@ -153,10 +167,10 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// Represents a middleware filter that is called for external
+    /// Represents a request filter that is called for external
     /// requests before the actual user handler.
     /// </summary>
-    public class MiddlewareFilter {
+    internal class RequestFilter {
 
         /// <summary>
         /// Application name that registered this handler.
@@ -178,7 +192,7 @@ namespace Starcounter {
         /// Constructor.
         /// </summary>
         /// <param name="filterRequest">Filter request parameter.</param>
-        public MiddlewareFilter(Func<Request, Response> filter) {
+        public RequestFilter(Func<Request, Response> filter) {
             AppName = StarcounterEnvironment.AppName;
             Filter = filter;
         }
@@ -407,45 +421,30 @@ namespace Starcounter {
         /// <summary>
         /// Checks if given URI handler is registered.
         /// </summary>
-        public static Boolean IsHandlerRegistered(String methodSpaceProcessedUriSpace, HandlerOptions ho) {
+        public static Boolean IsHandlerRegistered(String methodSpaceUri, HandlerOptions ho) {
 
-            return isHandlerRegistered_(methodSpaceProcessedUriSpace, ho);
+            return isHandlerRegistered_(methodSpaceUri, ho);
         }
 
         /// <summary>
         /// Filtering request.
         /// </summary>
-        public static List<MiddlewareFilter> middlewareFilters_ = new List<MiddlewareFilter>();
+        internal static List<RequestFilter> requestFilters_ = new List<RequestFilter>();
 
         /// <summary>
-        /// Saved middleware filters list.
+        /// Saved request filters list.
         /// </summary>
-        public static List<MiddlewareFilter> savedMiddlewareFilters_ = new List<MiddlewareFilter>();
+        internal static List<RequestFilter> savedRequestFilters_ = new List<RequestFilter>();
 
         /// <summary>
-        /// Enable/Disable middleware filters.
+        /// Adding new filter to request filters.
         /// </summary>
-        public static void EnableDisableMiddleware(Boolean enable) {
-
-            if (enable) {
-
-                middlewareFilters_ = savedMiddlewareFilters_;
-
-            } else {
-
-                savedMiddlewareFilters_ = middlewareFilters_;
-                middlewareFilters_ = new List<MiddlewareFilter>();
-            }
-        }
-
-        /// <summary>
-        /// Adding new filter to middleware.
-        /// </summary>
+        [Obsolete("Please use AddRequestFilter instead.")]
         public static void AddFilterToMiddleware(Func<Request, Response> filter) {
 
-            MiddlewareFilter mf = new MiddlewareFilter(filter);
+            RequestFilter rf = new RequestFilter(filter);
 
-            middlewareFilters_.Add(mf);
+            requestFilters_.Add(rf);
         }
 
         /// <summary>
@@ -453,28 +452,28 @@ namespace Starcounter {
         /// </summary>
         public static void AddRequestFilter(Func<Request, Response> filter) {
 
-            MiddlewareFilter mf = new MiddlewareFilter(filter);
+            RequestFilter rf = new RequestFilter(filter);
 
-            middlewareFilters_.Add(mf);
+            requestFilters_.Add(rf);
         }
 
         /// <summary>
-        /// Runs all added middleware filters until one that returns non-null response.
+        /// Runs all request filters until one that returns non-null response.
         /// </summary>
         /// <returns>Filtered response or null.</returns>
-        internal static Response RunMiddlewareFilters(Request req) {
+        internal static Response RunRequestFilters(Request req) {
 
             String curAppName = StarcounterEnvironment.AppName;
 
             try {
 
-                for (Int32 i = (middlewareFilters_.Count - 1); i >= 0; i--) {
+                for (Int32 i = (requestFilters_.Count - 1); i >= 0; i--) {
 
-                    MiddlewareFilter mf = middlewareFilters_[i];
+                    RequestFilter rf = requestFilters_[i];
 
-                    StarcounterEnvironment.AppName = mf.AppName;
+                    StarcounterEnvironment.AppName = rf.AppName;
 
-                    Response resp = mf.Filter(req);
+                    Response resp = rf.Filter(req);
 
                     if (null != resp)
                         return resp;
@@ -526,10 +525,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Runs all added outgoing filters until one that returns non-null response.
+        /// Runs all added response filters until one that returns non-null response.
         /// </summary>
         /// <returns>Filtered response or null.</returns>
-        internal static Response RunOutgoingFilters(Request req, Response resp) {
+        internal static Response RunResponseFilters(Request req, Response resp) {
 
             String curAppName = StarcounterEnvironment.AppName;
 
@@ -564,6 +563,20 @@ namespace Starcounter {
         /// Inject REST handler function provider here
         /// </summary>
         public static volatile IREST _REST;
+
+        /// <summary>
+        /// Unregisters an existing HTTP handler.
+        /// </summary>
+        public static void UnregisterHttpHandler(ushort port, string method, String uri) {
+            _REST.UnregisterHttpHandler(port, method, uri);
+        }
+
+        /// <summary>
+        /// Unregisters an existing HTTP handler.
+        /// </summary>
+        public static void UnregisterHttpHandler(string method, String uri) {
+            _REST.UnregisterHttpHandler(StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort, method, uri);
+        }
 
         public static void CUSTOM(String methodSpaceUri, Func<Response> handler, HandlerOptions ho = null)
         {

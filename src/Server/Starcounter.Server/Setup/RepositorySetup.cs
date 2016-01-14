@@ -120,7 +120,9 @@ namespace Starcounter.Server.Setup {
             databaseStorageConfig = new DatabaseStorageConfiguration() {
                 TransactionLogSize = databaseDefaults.TransactionLogSize,
                 SupportReplication = false,
-                CollationFile = databaseDefaults.CollationFile
+                CollationFile = databaseDefaults.CollationFile,
+                FirstObjectID = 1,
+                LastObjectID = 4611686018427387903L
             };
 
             databaseRuntimeConfig = new DatabaseRuntimeConfiguration() {

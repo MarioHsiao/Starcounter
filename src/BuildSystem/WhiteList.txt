@@ -91,6 +91,11 @@ HtmlAgilityPack.pdb
 HtmlAgilityPack.xml
 kill_all.bat
 ld.exe
+loader.dll
+loader.pbd
+logopt.exe
+logopt.pdb
+logreader.dll
 log_writer_client.dll
 log_writer_client.exp
 log_writer_client.lib
@@ -126,6 +131,8 @@ scadminserver.pdb
 scadminserver.exe.config
 ScAnalyze.psplugin
 ScAnalyzeOnly.psproj
+scdbmetalayer.dll
+scdbmetalayer.pdb
 sccode.exe
 sccode.pdb
 sccode.exe.config
@@ -174,6 +181,8 @@ scerrres.pdb
 scerrres.rc
 scerrres.res
 scerrres.write.1.tlog
+sccoreerr.dll
+sccoreerr.pdb
 schttpparser.dll
 schttpparser.exp
 schttpparser.lib
@@ -287,6 +296,8 @@ Starcounter.SqlProcessor.Tests.XML
 Starcounter.Tests.XML
 Starcounter.Tracking.dll
 Starcounter.Tracking.pdb
+Starcounter.TransactionLog.dll
+Starcounter.TransactionLog.pdb
 Starcounter.UriMatcher.dll
 Starcounter.UriMatcher.pdb
 Starcounter.VisualStudio.dll
@@ -331,5 +342,9 @@ TurboText_sv-SE_3.dll
 TurboText_sv-SE_3.exp
 TurboText_sv-SE_3.lib
 TurboText_sv-SE_3.dll.manifest
+TurboText_x-tid_3.dll
+TurboText_x-tid_3.exp
+TurboText_x-tid_3.lib
 WebSocket4Net.dll
+writer.dll
 VersionInfo.xml

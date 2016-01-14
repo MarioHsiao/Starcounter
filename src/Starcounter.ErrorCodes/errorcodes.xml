@@ -3315,6 +3315,15 @@
         longer then expected.
       </remarks>
     </code>
+    <code hex="012B" severity="Error" name="ScErrRecordIDLimitReached">
+      <message>
+        Record ID limit is reached. No more records can be inserted in the database.
+      </message>
+      <remarks>
+        Database preconfigured maximum record ID has been reached. No more records can
+        be inserted in the database.
+      </remarks>
+    </code>
   </facility>
   
   <!-- Session error codes. -->

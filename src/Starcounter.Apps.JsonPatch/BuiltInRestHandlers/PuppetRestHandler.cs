@@ -119,13 +119,20 @@ namespace Starcounter.Internal {
                 if (request.WebSocketUpgrade) {
                     // Sending an upgrade (note that we attach the existing session).
                     request.SendUpgrade(JsonPatchWebSocketGroupName, null, null, session);
+                    session.CalculatePatchAndPushOnWebSocket();
                     return HandlerStatus.Handled;
                 } else if (request.PreferredMimeType == MimeType.Application_Json) {
                     Json root = session.PublicViewModel;
                     if (root == null)
                         return CreateErrorResponse(404, "Session does not contain any state (session.Data).");
 
-                    byte[] body = root.ToJsonUtf8();
+                    byte[] body = null;
+                    session.enableNamespaces = true;
+                    try {
+                        body = root.ToJsonUtf8();
+                    } finally {
+                        session.enableNamespaces = false;
+                    }
 
                     if (root.ChangeLog != null)
                         root.ChangeLog.Checkpoint();

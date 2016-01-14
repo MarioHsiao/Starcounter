@@ -46,20 +46,20 @@ namespace Starcounter.Extensions {
             MapConfig.IsGlobalMappingEnabled = true;
             MapConfig.Enabled = true;
 
-            if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
+            if (Db.SQL(@"SELECT i FROM Starcounter.Metadata.""Index"" i WHERE Name = ?", "DbMappingRelationFromOidIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC)");
             }
 
-            if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMappingRelationFromOidAndNameIndex").First == null) {
+            if (Db.SQL(@"SELECT i FROM Starcounter.Metadata.""Index"" i WHERE Name = ?", "DbMappingRelationFromOidAndNameIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMappingRelationFromOidAndNameIndex ON Starcounter.Extensions.DbMappingRelation (FromOid ASC, ToClassFullName ASC)");
             }
 
-            if (Db.SQL("SELECT i FROM Starcounter.Internal.Metadata.MaterializedIndex i WHERE Name = ?", "DbMapInfoFromClassFullNameIndex").First == null) {
+            if (Db.SQL(@"SELECT i FROM Starcounter.Metadata.""Index"" i WHERE Name = ?", "DbMapInfoFromClassFullNameIndex").First == null) {
                 Db.SQL("CREATE INDEX DbMapInfoFromClassFullNameIndex ON Starcounter.Extensions.DbMapInfo (FromClassFullName ASC)");
             }
 
             // Adding handler for mapping existing objects.
-            if (!Handle.IsHandlerRegistered("GET /sc/map ", null)) {
+            if (!Handle.IsHandlerRegistered("GET /sc/map", null)) {
                 Handle.GET("/sc/map", () => {
                     MapExistingObjects();
                     return 200;
@@ -472,9 +472,6 @@ namespace Starcounter.Extensions {
                         throw new ArgumentOutOfRangeException("To class name with given full name does not exist: " + toClassFullName);
                     }
 
-                    String processedFromUri = "/" + fromClassFullName + "/@l", 
-                        processedToUri = "/" + toClassFullName + "/@l";
-
                     String fromUri = "/" + fromClassFullName + "/{?}",
                         toUri = "/" + toClassFullName + "/{?}";
 
@@ -482,7 +479,7 @@ namespace Starcounter.Extensions {
 
                     String converterUri = fromUri + toUri;
 
-                    if (Handle.IsHandlerRegistered(httpMethod + " " + processedFromUri + processedToUri + " ", ho)) {
+                    if (Handle.IsHandlerRegistered(httpMethod + " " + converterUri, ho)) {
                         throw new ArgumentOutOfRangeException("Converter URI handler is already registered: " + httpMethod + " " + converterUri);
                     }
 
@@ -490,7 +487,7 @@ namespace Starcounter.Extensions {
 //                    UriMapping.MapClassesInDifferentHierarchies(fromClassFullName, toClassFullName);
 //                    UriMapping.MapClassesInDifferentHierarchies(toClassFullName, fromClassFullName);
 
-                    String methodSpaceProcessedFromUriSpace = httpMethod + " " + processedFromUri + " ";
+                    String methodSpaceFromUri = httpMethod + " " + fromUri;
 
                     switch (httpMethod) {
 
@@ -503,7 +500,7 @@ namespace Starcounter.Extensions {
                             }, ho);
 
                             // Checking if the processing handler is registered.
-                            if (Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
+                            if (Handle.IsHandlerRegistered(methodSpaceFromUri, ho)) {
                                 break;
                             }
 
@@ -642,7 +639,7 @@ namespace Starcounter.Extensions {
                             }, ho);
 
                             // Checking if the processing handler is registered.
-                            if (Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
+                            if (Handle.IsHandlerRegistered(methodSpaceFromUri, ho)) {
                                 break;
                             }
 
@@ -732,7 +729,7 @@ namespace Starcounter.Extensions {
                             }, ho);
 
                             // Checking if the processing handler is registered.
-                            if (Handle.IsHandlerRegistered(methodSpaceProcessedFromUriSpace, ho)) {
+                            if (Handle.IsHandlerRegistered(methodSpaceFromUri, ho)) {
                                 break;
                             }
 

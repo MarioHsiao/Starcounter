@@ -208,7 +208,7 @@ void SocketDataChunk::ExchangeToProxySocket(GatewayWorker* gw)
 }
 
 // Initializes socket data that comes from database.
-void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
+void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw, const scheduler_id_type sched_id)
 {
     type_of_network_protocol_ = GetTypeOfNetworkProtocol();
 
@@ -218,6 +218,27 @@ void SocketDataChunk::PreInitSocketDataFromDb(GatewayWorker* gw)
     {
         SetWebSocketGroupId(*(ws_group_id_type*)accept_or_params_or_temp_data_);
     }
+
+	// Getting socket streaming flag.
+	if (GetStreamingResponseBodyFlag()) {
+
+		// Checking if we resetted the streaming flag (end of stream reached).
+		if (!get_streaming_response_body_flag()) {
+
+			// Removing the streaming response body flag.
+			ResetStreamingResponseBodyFlag();
+		}
+
+	} else {
+
+		// Checking if we have a streaming response.
+		if (get_streaming_response_body_flag()) {
+
+			// NOTE: We preserve the scheduler id when streaming to avoid locking in codehost.
+			SetSchedulerId(sched_id);
+			set_streaming_response_body_flag();
+		}
+	}
 }
 
 // Pre-init UDP socket.

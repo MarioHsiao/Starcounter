@@ -60,6 +60,7 @@ Level1\src\Samples\IndexQueryTest\indexquery_test.bat
 Level1\src\Samples\QueryProcessingTest\queryprocessing_test.bat
 Level1\src\Samples\SQLTest\sqlregression_test.bat
 Level1\src\Samples\TPCC\tpcc_long_test.bat
+
 poleposition_test.bat
 node_proxy_test.bat
 sqlcachetrasher_test.bat
@@ -67,9 +68,13 @@ ipc_test.bat
 node_test.bat
 node_test_loop.bat
 node_looped_proxy_test.bat
-Level1\src\Samples\CycleTime\obj\Release\CycleTime_test.exe
 prepare_sqlregression_test.bat
-
+Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
+SimpleIndependentTests_hosted_test.exe
+CommitHooks_test.bat
+DropTable_test.bat
+IndexedColumnDrop_test.bat
+SelectOnNull2362_test.bat
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
 
@@ -94,4 +99,3 @@ Level1\bin\Release\sccorelog_test.exe
 Level1\bin\Release\sc_ipc_test.exe
 Level1\bin\Release\stream_buffer_test.exe
 tt_test.exe
-

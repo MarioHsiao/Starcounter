@@ -35,6 +35,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                         Representations.JSON.AppStoreStoreJson storeJson = new Representations.JSON.AppStoreStoreJson();
                         storeJson.ID = store.ID;
                         storeJson.DisplayName = store.DisplayName;
+                        storeJson.Description = store.Description;
                         storeJson.Uri = req.Uri + "/" + store.ID;
                         storesJson.Items.Add(storeJson);
                     }
@@ -74,6 +75,7 @@ namespace Starcounter.Administrator.Server.Handlers {
                         Representations.JSON.AppStoreStoreJson storeJson = new Representations.JSON.AppStoreStoreJson();
                         storeJson.ID = store.ID;
                         storeJson.DisplayName = store.DisplayName;
+                        storeJson.Description = store.Description;
                         storeJson.Uri = req.Uri;
                         return new Response() { StatusCode = (ushort)System.Net.HttpStatusCode.OK, BodyBytes = storeJson.ToJsonUtf8() };
                     }
@@ -145,10 +147,6 @@ namespace Starcounter.Administrator.Server.Handlers {
                             app.Executable = appStoreApplication.Executable;
                             app.ResourceFolder = appStoreApplication.ResourceFolder;
                             app.Size = 0;
-                            app.NewVersionAvailable = false;
-
-                            app.LatestVersion.ID = "0";
-                            app.LatestVersion.Url = "todo";
 
                             result.Items.Add(app);
                         }

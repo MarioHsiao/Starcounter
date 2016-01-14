@@ -1,6 +1,6 @@
 {
   "name": "starcounter-include",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "description": "Custom Element to include HTML partials/templates from Starcounter",
   "main": "starcounter-include.html",
   "directories": {
@@ -17,12 +17,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Polyjuice/starcounter-include.git"
+    "url": "git+https://github.com/Starcounter/starcounter-include.git"
   },
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Polyjuice/starcounter-include/issues"
+    "url": "https://github.com/Starcounter/starcounter-include/issues"
   },
-  "homepage": "https://github.com/Polyjuice/starcounter-include#readme"
+  "homepage": "https://github.com/Starcounter/starcounter-include#readme"
 }

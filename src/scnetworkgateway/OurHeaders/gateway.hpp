@@ -56,7 +56,7 @@ typedef uint8_t scheduler_id_type;
 typedef uint64_t socket_timestamp_type;
 typedef int64_t echo_id_type;
 typedef uint64_t ip_info_type;
-typedef int16_t uri_index_type;
+typedef int32_t uri_index_type;
 typedef int8_t port_index_type;
 typedef int8_t db_index_type;
 typedef int8_t worker_id_type;
@@ -272,7 +272,7 @@ enum GatewayTestingMode
     MODE_GATEWAY_UNKNOWN = 6
 };
 
-const int32_t NumGatewayChunkSizes = 6;
+const int32_t NumGatewayChunkSizes = 7;
 const int32_t DefaultGatewayChunkSizeType = 1;
 
 const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
@@ -280,8 +280,9 @@ const int32_t GatewayChunkSizes[NumGatewayChunkSizes] = {
     2 * 1024, // Default chunk size.
     8 * 1024,
     32 * 1024,
+	64 * 1024,
     128 * 1024,
-    1024 * 1024
+    2 * 1024 * 1024
 };
 
 const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
@@ -289,6 +290,7 @@ const int32_t GatewayChunkStoresSizes[NumGatewayChunkSizes] = {
     200000, // Default chunk size.
     50000,
     30000,
+	20000,
     10000,
     100
 };
@@ -299,6 +301,7 @@ const int32_t MAX_WORKER_CHUNKS =
     200000 + // Default chunk size.
     50000 +
     30000 +
+	20000 +
     10000 +
     100;
 
@@ -308,7 +311,8 @@ const int32_t GatewayChunkDataSizes[NumGatewayChunkSizes] = {
     GatewayChunkSizes[2] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[3] - SOCKET_DATA_OFFSET_BLOB,
     GatewayChunkSizes[4] - SOCKET_DATA_OFFSET_BLOB,
-    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB
+    GatewayChunkSizes[5] - SOCKET_DATA_OFFSET_BLOB,
+	GatewayChunkSizes[6] - SOCKET_DATA_OFFSET_BLOB
 };
 
 // Maximum size of socket data.
@@ -337,6 +341,16 @@ const char* const kHttpOKResponse =
     "\r\n";
 
 const int32_t kHttpOKResponseLength = static_cast<int32_t> (strlen(kHttpOKResponse));
+
+const char* const kHttpGetFinishSend =
+	"GET /sc/finishsend/* HTTP/1.1\r\n\r\n";
+
+const int32_t kHttpGetFinishSendPortOffset = static_cast<int32_t> (strstr(kHttpGetFinishSend, "*") - kHttpGetFinishSend);
+
+const char* const kHttpDeleteStream =
+	"DELETE /sc/stream/* HTTP/1.1\r\n\r\n";
+
+const int32_t kHttpDeleteStreamPortOffset = static_cast<int32_t> (strstr(kHttpDeleteStream, "*") - kHttpDeleteStream);
 
 struct AggregationStruct
 {
@@ -753,7 +767,8 @@ enum SOCKET_FLAGS
     SOCKET_FLAGS_AGGREGATED = 1,
     SOCKET_FLAGS_PROXY_CONNECT = 2,
     SOCKET_FLAGS_DISCONNECT_AFTER_SEND = 2 << 1,
-    SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2
+    SOCKET_FLAGS_WS_CLOSE_ALREADY_SENT = 2 << 2,
+	SOCKET_FLAGS_STREAMING_RESPONSE_BODY = 2 << 3
 };
 
 // Structure that facilitates the socket.
@@ -840,6 +855,21 @@ _declspec(align(MEMORY_ALLOCATION_ALIGNMENT)) struct ScSocketInfoStruct
     {
         flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_AGGREGATED;
     }
+
+	bool get_streaming_response_body_flag()
+	{
+		return (flags_ & SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY) != 0;
+	}
+
+	void reset_streaming_response_body_flag()
+	{
+		flags_ &= ~SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY;
+	}
+
+	void set_streaming_response_body_flag()
+	{
+		flags_ |= SOCKET_FLAGS::SOCKET_FLAGS_STREAMING_RESPONSE_BODY;
+	}
 
     bool get_socket_proxy_connect_flag()
     {
@@ -1119,7 +1149,6 @@ struct UriAliasInfo
 // Represents an active server port.
 class HandlersList;
 class SocketDataChunk;
-class PortHandlers;
 class RegisteredUris;
 class PortWsGroups;
 class RegisteredSubports;
@@ -1134,8 +1163,8 @@ class ServerPort
     // Statistics.
     volatile int64_t num_accepting_sockets_unsafe_;
 
-    // Ports handler lists.
-    PortHandlers* port_handlers_;
+    // Port handler.
+	HandlersList* port_handler_;
 
     // All registered URIs belonging to this port.
     RegisteredUris* registered_uris_;
@@ -1245,10 +1274,15 @@ public:
     }
 
     // Getting registered port handlers.
-    PortHandlers* get_port_handlers()
+    HandlersList* get_port_handlers()
     {
-        return port_handlers_;
+        return port_handler_;
     }
+
+	void set_port_handlers(HandlersList* port_handler)
+	{
+		port_handler_ = port_handler;
+	}
 
     // Removes this port.
     void EraseDb(db_index_type db_index);
@@ -1311,10 +1345,6 @@ struct ReverseProxyInfo
     std::string matching_method_and_uri_;
     int32_t matching_method_and_uri_len_;
 
-    // Uri that is being proxied.
-    std::string matching_method_and_uri_processed_;
-    int32_t matching_method_and_uri_processed_len_;
-
     // Host name.
     std::string matching_host_;
     int32_t matching_host_len_;
@@ -1336,9 +1366,6 @@ struct ReverseProxyInfo
 
         matching_method_and_uri_ = std::string();
         matching_method_and_uri_len_ = 0;
-
-        matching_method_and_uri_processed_ = std::string();
-        matching_method_and_uri_processed_len_ = 0;
 
         matching_host_ = std::string();
         matching_host_len_ = 0;
@@ -1831,8 +1858,7 @@ public:
         GatewayWorker *gw,
         uint16_t port,
         const char* app_name_string,
-        const char* original_uri_info,
-        const char* processed_uri_info,
+        const char* method_space_uri,
         uint8_t* param_types,
         int32_t num_params,
         BMX_HANDLER_TYPE user_handler_id,

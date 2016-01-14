@@ -46,13 +46,19 @@ namespace Starcounter.Server {
 
         private readonly long InitialDefaultTransactionLogSize;
         private readonly string InitialDefaultCollationFile;
+        private readonly ulong InitialDefaultFirstObjectID;
+        private readonly ulong InitialDefaultLastObjectID;
 
         internal long? ConfiguredTransactionLogSize { get; private set; }
         internal string ConfiguredCollationFile { get; private set; }
+        internal ulong ConfiguredFirstObjectID { get; private set; }
+        internal ulong ConfiguredLastObjectID { get; private set; }
 
         internal DatabaseDefaults() {
             InitialDefaultTransactionLogSize = MIN_DEFAULT_TRANSACTION_LOG_SIZE;
             InitialDefaultCollationFile = StaticDefaultCollationFile;
+            InitialDefaultFirstObjectID = 1;
+            InitialDefaultLastObjectID = 4611686018427387903L;
         }
 
 
@@ -76,6 +82,16 @@ namespace Starcounter.Server {
             }
         }
 
+        internal ulong FirstObjectID
+        {
+            get { return ConfiguredFirstObjectID < 1 ? InitialDefaultFirstObjectID : ConfiguredFirstObjectID; }
+        }
+
+        internal ulong LastObjectID
+        {
+            get { return ConfiguredLastObjectID < 1 ? InitialDefaultLastObjectID : ConfiguredLastObjectID; }
+        }
+
         /// <summary>
         /// Updates the defaults based on the given <see cref="ServerConfiguration"/>.
         /// </summary>
@@ -92,6 +108,8 @@ namespace Starcounter.Server {
                 // Check if the file is present in the installation directory and
                 // refuse it (with a log message) if not?
                 this.ConfiguredCollationFile = storageConfiguration.CollationFile;
+                this.ConfiguredFirstObjectID = (ulong) storageConfiguration.FirstObjectID;
+                this.ConfiguredLastObjectID = (ulong) storageConfiguration.LastObjectID;
             }
         }
 

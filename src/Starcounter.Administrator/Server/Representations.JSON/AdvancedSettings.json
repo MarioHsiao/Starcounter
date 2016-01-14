@@ -1,5 +1,0 @@
-﻿{
-	"$": { Namespace: "Representations.JSON" },
-	"RemoteAccess" : true,
-	"RemoteAccessPort" : 0
-}

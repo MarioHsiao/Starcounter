@@ -45,9 +45,9 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Skip middleware filters global flag.
+        /// Skip request filters global flag.
         /// </summary>
-        internal static Boolean SkipMiddlewareFiltersGlobal = true;
+        internal static Boolean SkipRequestFiltersGlobal = true;
 
         /// <summary>
         /// Wrap JSON in namespaces.
@@ -70,9 +70,10 @@ namespace Starcounter.Internal
         public static Boolean MergeJsonSiblings = true;
 
         /// <summary>
-        /// Enables or disables the middle filters for external requests.
+        /// Enables or disables the filters for external requests.
         /// </summary>
-        public static Boolean MiddlewareFiltersEnabled = false;
+        public static Boolean RequestFiltersEnabled = true;
+        internal static Boolean RequestFiltersEnabledSetting = true;
 
         /// <summary>
         /// Enables or disables the ordinary mapping.
@@ -509,7 +510,14 @@ namespace Starcounter.Internal
             /// File format: single line containing "host[:port]"
             /// </summary>
             public const string OverrideAppStoreHost = "appstorehost.config";
-            
+
+            /// <summary>
+            /// Rest API Configuration file (optional),
+            /// 
+            /// File format: RestSettings.json
+            /// </summary>
+            public const string RestSettingsFileName = "RestSettings.json";
+
             /// <summary>
             /// Default collation Filename prefix
             /// Filename example: TurboText_en-GB_2.dll

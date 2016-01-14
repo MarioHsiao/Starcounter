@@ -44,7 +44,7 @@ namespace Starcounter.SqlProcessor.Tests {
 
         internal static bool IsFromCMD = false;
 
-        [Test]
+//        [Test]
         public static void MultithreadedTest() {
             Thread[] threads = new Thread[Queries.Length];
             for (int i = 0; i < Queries.Length; i++) {
@@ -73,7 +73,7 @@ namespace Starcounter.SqlProcessor.Tests {
             Console.WriteLine(Queries.Length + " queries are executed in " + Queries.Length + " threads.");
         }
 
-        [Test]
+//        [Test]
         public static void SequentialTest() {
             byte queryType;
             ulong iterator;
