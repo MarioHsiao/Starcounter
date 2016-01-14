@@ -320,34 +320,6 @@ namespace Starcounter.Internal
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern uint star_context_commit(ulong handle, int free);
 
-#region Commit hook signatures and symbols
-
-        // Flags correlating to kernel configuration
-        // flags, using in hookMask in star_set_commit_hooks
-        //#define STAR_HOOKS_ON_COMMIT_DELETE 0x0100
-        //#define STAR_HOOKS_ON_COMMIT_INSERT 0x0200
-        //#define STAR_HOOKS_ON_COMMIT_UPDATE 0x0400
-
-        public const uint CommitHookConfigDelete = 0x0100;
-        public const uint CommitHookConfigInsert = 0x0200;
-        public const uint CommitHookConfigUpdate = 0x0400;
-
-        // Flags used by the kernel when a commit hook interator
-        // is consumed in SCIteratorNext.
-        //#define SC_HOOKTYPE_COMMIT_DELETE 0x00
-        //#define SC_HOOKTYPE_COMMIT_INSERT 0x01
-        //#define SC_HOOKTYPE_COMMIT_UPDATE 0x02
-        public const uint CommitHookTypeDelete = 0x00;
-        public const uint CommitHookTypeInsert = 0x01;
-        public const uint CommitHookTypeUpdate = 0x02;
-
-        public static uint star_set_commit_hooks(uint transactionFlags, ushort tableId, uint hookMask) {
-            // Commit hooks no longer supported by kernel. To be replaced by client solution.
-            throw new NotSupportedException(); // TODO EOH:
-        }
-
-#endregion
-
         /// <summary>
         /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
@@ -518,6 +490,19 @@ namespace Starcounter.Internal
             ulong handle, ulong record_id, ulong record_ref, int column_index, ulong value
             );
 
+        internal const int STAR_PENDING_INSERT = 1;
+
+        internal const int STAR_DELETED_INSERT = 2;
+
+        internal const int STAR_PENDING_UPDATE = 3;
+
+        internal const int STAR_PENDING_DELETE = 4;
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
+        internal static extern unsafe int star_context_get_trans_state(
+          ulong handle, ulong record_id, ulong record_ref
+          );
+
         internal const int DELETE_PENDING = 1;
 
         /// <summary>
@@ -667,6 +652,11 @@ namespace Starcounter.Internal
                 return star_filter_iterator_free(handle);
             return Error.SCERRITERATORNOTOWNED;
         }
+
+        [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static extern unsafe uint star_context_create_update_iterator(
+          ulong handle, ulong* piterator_handle
+          );
 
         /// <summary>
         /// </summary>

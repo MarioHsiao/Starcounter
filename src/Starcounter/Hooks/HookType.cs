@@ -10,19 +10,19 @@ namespace Starcounter {
         /// Integer returned on commit when an INSERT is detected
         /// on a kernel type that has the corresponding hook flag set.
         /// </summary>
-        internal const uint CommitInsert = sccoredb.CommitHookTypeInsert;
+        internal const uint CommitInsert = sccoredb.STAR_PENDING_INSERT;
 
         /// <summary>
         /// Integer returned on commit when an UPDATE is detected
         /// on a kernel type that has the corresponding hook flag set.
         /// </summary>
-        internal const uint CommitUpdate = sccoredb.CommitHookTypeUpdate;
+        internal const uint CommitUpdate = sccoredb.STAR_PENDING_UPDATE;
 
         /// <summary>
         /// Integer returned on commit when a DELETE is detected
         /// on a kernel type that has the corresponding hook flag set.
         /// </summary>
-        internal const uint CommitDelete = sccoredb.CommitHookTypeDelete;
+        internal const uint CommitDelete = sccoredb.STAR_PENDING_DELETE;
 
         /// <summary>
         /// Represents a hook that trigger just before a delete is carried

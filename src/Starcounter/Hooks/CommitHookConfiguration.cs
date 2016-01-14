@@ -9,18 +9,23 @@ namespace Starcounter {
     /// commit hooks in the kernel.
     /// </summary>
     internal static class CommitHookConfiguration {
+
+        private const uint CommitHookConfigDelete = 0x0100;
+        private const uint CommitHookConfigInsert = 0x0200;
+        private const uint CommitHookConfigUpdate = 0x0400;
+
         /// <summary>
         /// Internal token/flag representing inserts.
         /// </summary>
-        internal const uint Insert = sccoredb.CommitHookConfigInsert;
+        internal const uint Insert = CommitHookConfigInsert;
         /// <summary>
         /// Internal token/flag representing updates.
         /// </summary>
-        internal const uint Update = sccoredb.CommitHookConfigUpdate;
+        internal const uint Update = CommitHookConfigUpdate;
         /// <summary>
         /// Internal token/flag representing deletes.
         /// </summary>
-        internal const uint Delete = sccoredb.CommitHookConfigDelete;
+        internal const uint Delete = CommitHookConfigDelete;
 
 
         /// <summary>
