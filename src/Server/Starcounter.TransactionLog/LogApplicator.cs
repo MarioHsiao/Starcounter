@@ -16,6 +16,8 @@ namespace Starcounter.TransactionLog
             foreach (var c in transaction_data.creates)
             {
                 var table_def = Db.LookupTable(c.table);
+                if (table_def==null)
+                    throw ErrorCode.ToException(Error.SCERRTABLENOTFOUND);
 
                 ulong object_ref;
                 DbState.InsertWithId(table_def.TableId, c.key.object_id, out object_ref);
@@ -36,11 +38,11 @@ namespace Starcounter.TransactionLog
 
             foreach( var d in transaction_data.deletes)
             {
-                IObjectView o = DbHelper.FromID(d.key.object_id);
-                if (o==null)
+                ObjectRef? o = DbState.Lookup(d.key.object_id);
+                if (!o.HasValue)
                     throw ErrorCode.ToException(Error.SCERRRECORDNOTFOUND);
 
-                o.Delete();
+                Db.Delete(o.Value);
             }
 
         }
