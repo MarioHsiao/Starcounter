@@ -136,20 +136,32 @@ namespace Starcounter.Internal
         }
 
         internal static void SystemInsert(ushort tableId, ref ulong oid, ref ulong address) {
+            ulong contextHandle;
             uint dr;
             ulong oid_local;
             ulong addr_local;
 
             unsafe {
-                dr = sccoredb.star_context_insert_system(ThreadData.ContextHandle, 
+                contextHandle = ThreadData.ContextHandle;
+                string setpec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
+                dr = sccoredb.star_context_insert_system(contextHandle, 
                     tableId, &oid_local, &addr_local);
+                if (dr == 0)
+                {
+                    fixed (char* p = setpec)
+                    {
+                        dr = sccoredb.star_context_put_setspec(
+                            contextHandle, oid_local, addr_local, p
+                            );
+                    }
+                    if (dr == 0)
+                    {
+                        oid = oid_local;
+                        address = addr_local;
+                        return;
+                    }
+                }
             }
-            if (dr == 0) {
-                oid = oid_local;
-                address = addr_local;
-                return;
-            }
-
             throw ErrorCode.ToException(dr);
         }
 
