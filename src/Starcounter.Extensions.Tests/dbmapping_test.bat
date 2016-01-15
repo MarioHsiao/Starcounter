@@ -1,20 +1,15 @@
-:: Checking if test should be run.
-IF "%SC_RUN_DBMAPPING_TEST%"=="False" GOTO :EOF
-
-:: Killing existing processes.
-"%StarcounterBin%\staradmin.exe" kill all
-
-:: Enabling database mapping.
-SET SC_ENABLE_MAPPING=True
+set DBNAME=DbMappingTestsDb
 
 staradmin start server
-
-staradmin --database=default delete --force db
+staradmin --database=%DBNAME% delete --force db
 IF ERRORLEVEL 1 GOTO FAILED
 
 :: Starting server application.
-star.exe --database=default "%StarcounterBin%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
+star.exe --database=%DBNAME% "%StarcounterBin%\s\ExtensionsTests\StarcounterExtensionsTests.exe"
 IF ERRORLEVEL 1 GOTO FAILED
+
+staradmin --database=%DBNAME% stop db
+staradmin --database=%DBNAME% delete --force db
 
 ECHO Database mapping test finished successfully!
 
