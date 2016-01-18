@@ -543,7 +543,12 @@ namespace Starcounter
                 ThreadData.inTransactionScope_--;
             }
 
-            uint r = sccoredb.star_context_delete(ThreadData.ContextHandle, oid, address);
+            Delete(new ObjectRef { ObjectID = oid, ETI = address });
+        }
+
+        public static void Delete(ObjectRef o)
+        {
+            uint r = sccoredb.star_context_delete(ThreadData.ContextHandle, o.ObjectID, o.ETI);
             if (r == 0) return;
             throw ErrorCode.ToException(r);
         }

@@ -92,6 +92,24 @@ namespace Starcounter
     }
 
     /// <summary>
+    /// Streaming information.
+    /// </summary>
+    public class StreamingInfo {
+        public Stream StreamObject;
+        public Task TaskObject;
+        public Byte[] SendBuffer = new Byte[4096 * 14];
+
+        public Boolean HasReadEverything() {
+            return StreamObject.Length == StreamObject.Position;
+        }
+
+        public StreamingInfo(Stream stream) {
+
+            StreamObject = stream;
+        }
+    }
+
+    /// <summary>
     /// Represents an HTTP response.
     /// </summary>
     /// <remarks>
@@ -283,12 +301,7 @@ namespace Starcounter
         /// <summary>
         /// Dictionary with response streams.
         /// </summary>
-        internal static ConcurrentDictionary<UInt64, Stream> ResponseStreams_ = new ConcurrentDictionary<UInt64, Stream>();
-
-        /// <summary>
-        /// Dictionary with response streams tasks.
-        /// </summary>
-        internal static ConcurrentDictionary<UInt64, Task> ResponseStreamsTasks_ = new ConcurrentDictionary<UInt64, Task>();
+        internal static ConcurrentDictionary<UInt64, StreamingInfo> ResponseStreams_ = new ConcurrentDictionary<UInt64, StreamingInfo>();
 
         /// <summary>
         /// Clones existing static resource response object.

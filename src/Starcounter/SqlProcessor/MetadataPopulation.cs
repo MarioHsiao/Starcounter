@@ -53,7 +53,7 @@ namespace Starcounter.SqlProcessor {
                     Debug.Assert(theView.FullClassName == typeDef.Name);
                     for (int i = 0; i < typeDef.PropertyDefs.Length; i++) {
                         PropertyDef propDef = typeDef.PropertyDefs[i];
-                        Starcounter.Metadata.Type propType = null;
+                        Starcounter.Metadata.DataType propType = null;
                         if (propDef.Type == DbTypeCode.Object)
                             propType = Db.SQL<ClrClass>("select v from ClrClass v where fullclassname = ?", propDef.TargetTypeName).First;
                         else

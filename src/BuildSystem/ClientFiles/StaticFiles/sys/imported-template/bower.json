@@ -1,6 +1,6 @@
 {
   "name": "imported-template",
-  "version": "1.0.5",
+  "version": "1.2.0",
   "devDependencies": {
     "dom-bind-notifier": "~1.0.0",
     "iron-icon": "PolymerElements/iron-icon#~1.0.4",
@@ -32,7 +32,8 @@
     "test",
     "tests",
     "examples",
-    "preview.png"
+    "preview.png",
+    "wct.conf.json"
   ],
   "dependencies": {
     "juicy-html": ">=1.0.0"

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Starcounter.Templates;
+using Starcounter.Internal.XSON.Tests.CompiledJson;
 
 namespace Starcounter.Internal.XSON.Tests {
     [TestFixture]
@@ -246,6 +247,13 @@ namespace Starcounter.Internal.XSON.Tests {
 
             expected = string.Format(Helper.ONE_ADD_PATCH_ARR, "/Recursives/0/Recursives/1", @"{""Name"":""SubItem""}");
             Assert.AreEqual(expected, patch);
+        }
+
+        [Test]
+        public static void TestDirtyCheckForBoundArrayWithoutTrackingChanges() {
+            var json = new simplewithcodebehind();
+            var items = json.Items;
+            items = json.Items;
         }
 
         [Test]

@@ -23,8 +23,8 @@
 - Fixed issue with setting outgoing fields and using outgoing filters in relation to static file resources responses: [#2961](https://github.com/Starcounter/Starcounter/issues/2961).
 - Fixed issue with missing AppName and PartialId in serialized json when running Launcher: [#2902](https://github.com/Starcounter/Starcounter/issues/2902)
 - Fixed an issue when Administrator was starting faster than gateway process in scservice: [#2962](https://github.com/Starcounter/Starcounter/issues/2962)
-- Fixed text input and text selection issues in Administrator[#2942](https://github.com/Starcounter/Starcounter/issues/2942), [#2400](https://github.com/Starcounter/Starcounter/issues/2400), [#1993](https://github.com/Starcounter/Starcounter/issues/1993)
-- Fixed max column width issue in Administrator[#2828](https://github.com/Starcounter/Starcounter/issues/2828)
+- Fixed text input and text selection issues in Administrator [#2942](https://github.com/Starcounter/Starcounter/issues/2942), [#2400](https://github.com/Starcounter/Starcounter/issues/2400), [#1993](https://github.com/Starcounter/Starcounter/issues/1993)
+- Fixed max column width issue in Administrator [#2828](https://github.com/Starcounter/Starcounter/issues/2828)
 - Fixed incorrect invalidation of databinding for bound properties in TypedJSON: [#2998](https://github.com/Starcounter/Starcounter/issues/2998)
 - Fixed bug caused by using synonyms in new builds: [#2997](https://github.com/Starcounter/Starcounter/issues/2997)
 - Removed (not implemented) option `staradmin delete log` as decided in [#2974](https://github.com/Starcounter/Starcounter/issues/2974).
@@ -33,6 +33,9 @@
 - Fixed matching metadata-properties with regular properties in JSON-by-example [#3136](https://github.com/Starcounter/Starcounter/issues/3136).  
 - Fixed reseting URL to `""` in view-model after `<juicy-redirect>`/`<puppet-redirect>` redirect [PuppetJs/puppet-redirect#1](https://github.com/PuppetJs/puppet-redirect/issues/1), [PuppetJs/puppet-redirect#2](https://github.com/PuppetJs/puppet-redirect/issues/2)
 - Serializing TypedJson from usercode no longer generates json with namespaces. Namespaces are only added when serializing the public viewmodel when the option is set in the session, and also when patches are generated with the same option set. [#3148](https://github.com/Starcounter/Starcounter/issues/3148)
+- Improved diagnostic content when weaver is unable to resolve an application dependency, as outlined in [#3227](https://github.com/Starcounter/Starcounter/issues/3227). Now include the probably referring assembly.
+- Fixed mouse and keyboard scrolling issues in Administrator error log and SQL browser [#2990](https://github.com/Starcounter/Starcounter/issues/2990), [#2987](https://github.com/Starcounter/Starcounter/issues/2987), [#2986](https://github.com/Starcounter/Starcounter/issues/2986), [#1635](https://github.com/Starcounter/Starcounter/issues/1635)
+- Fixed nullreference exception in some cases when a bound array in TypedJSON was changed [#3245](https://github.com/Starcounter/Starcounter/issues/3245)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

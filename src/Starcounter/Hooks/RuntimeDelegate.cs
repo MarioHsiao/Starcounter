@@ -146,12 +146,6 @@ namespace Starcounter.Hooks {
             if (!InvokableHook.HooksPerTrigger.TryGetValue(key, out installed)) {
                 var hookConfigMask = CommitHookConfiguration.CalculateEffectiveConfiguration(key);
                 hookConfigMask |= hookConfiguration;
-
-                var result = sccoredb.star_set_commit_hooks(0, tableId, hookConfigMask);
-                if (result != 0) {
-                    throw ErrorCode.ToException(result);
-                }
-
                 installed = new List<InvokableHook>();
                 InvokableHook.HooksPerTrigger[key] = installed;
             }

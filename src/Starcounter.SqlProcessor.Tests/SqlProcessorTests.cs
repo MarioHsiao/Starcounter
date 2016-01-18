@@ -20,7 +20,7 @@ namespace Starcounter.SqlProcessor.Tests {
             Assert.AreEqual(expectedError, ex.Data[ErrorCode.EC_TRANSPORT_KEY], ex.Message);
         }
 
-        [Test]
+//        [Test]
         public static void HelloProcessor() {
             ProcessQuery(ParseOK, "select * from user where col = 1");
             ProcessQuery(Error.SCERRSQLINCORRECTSYNTAX, "");
@@ -28,7 +28,7 @@ namespace Starcounter.SqlProcessor.Tests {
             ProcessQuery(ParseOK, "select * from user");
         }
 
-        [Test]
+//        [Test]
         public static void SqlSyntax() {
             ProcessQuery(ParseOK, "SELECT 1");
             ProcessQuery(ParseOK, "SELECT Abc FROM tbL");
