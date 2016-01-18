@@ -40,8 +40,6 @@ namespace Starcounter.Hosting {
             if (unregisteredTypeDefs.Length != 0) {
                 Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle);
 
-                SqlProcessor.SqlProcessor.AssureGlobalSetspecIndexExists(ThreadData.ContextHandle);
-
                 OnRuntimeMetadataPopulated();
                 // Call CLR class clean up
                 Starcounter.SqlProcessor.SqlProcessor.CleanClrMetadata(ThreadData.ContextHandle);
