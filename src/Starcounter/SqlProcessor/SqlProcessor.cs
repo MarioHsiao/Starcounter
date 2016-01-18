@@ -5,6 +5,9 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public class SqlProcessor {
+
+        internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 10;
+
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall, 
             CharSet = CharSet.Unicode)]
         public static unsafe extern uint scsql_process_query(ulong context, 
