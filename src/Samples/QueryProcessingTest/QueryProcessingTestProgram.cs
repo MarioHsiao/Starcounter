@@ -36,7 +36,7 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
-#if false // TODO EOH: Meta-data.
+#if true // TODO EOH: Meta-data.
                 MetadataTest.TestPopulatedMetadata();
 #endif
                 TestKinds.RunKindsTest();
