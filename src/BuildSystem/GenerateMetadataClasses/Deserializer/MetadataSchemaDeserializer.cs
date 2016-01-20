@@ -1,6 +1,7 @@
 ﻿using GenerateMetadataClasses.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace GenerateMetadataClasses.Deserializer {
@@ -21,8 +22,15 @@ namespace GenerateMetadataClasses.Deserializer {
             
             var s = new Schema();
             foreach (var t in tables) {
-                t.Schema = s;
-                s.Tables.Add(t.TableName, t);
+                if (String.IsNullOrEmpty(t.BaseTableName)) {
+                    Debug.Assert(t.TableName.Equals("MotherOfAllLayouts"));
+                }
+                else {
+                    if (t.BaseTableName.Equals("MotherOfAllLayouts"))
+                        t.BaseTableName = null;
+                    t.Schema = s;
+                    s.Tables.Add(t.TableName, t);
+                }
             }
 
 
