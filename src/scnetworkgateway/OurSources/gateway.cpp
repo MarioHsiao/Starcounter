@@ -1441,7 +1441,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     // Reporting to server log if we are trying to register a handler duplicate.
     if (SCERRHANDLERALREADYREGISTERED == err_code) {
         wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, method_space_uri);
+        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, method_space_uri.c_str());
         g_gateway.LogWriteError(temp);
     }
 
@@ -1531,7 +1531,7 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 
 		// Reporting to server log if we are trying to register a handler duplicate.
 		wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-		wsprintf(temp, L"HTTP handler \"%S\" is not found on port \"%d\".", port, method_space_uri);
+		wsprintf(temp, L"HTTP handler \"%S\" is not found on port \"%d\".", method_space_uri.c_str(), port);
 		g_gateway.LogWriteWarning(temp);
 
 		std::stringstream ss;
