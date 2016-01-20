@@ -123,10 +123,7 @@ namespace LoadAndLatencyStartup
 
             // Starting the test.
             lal.EntryPoint();
-
-            // Exiting test successfully.
-            Environment.Exit(0);
-
+            
             return 0;
         }
     }

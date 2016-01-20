@@ -71,7 +71,6 @@ node_looped_proxy_test.bat
 prepare_sqlregression_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
 SimpleIndependentTests_hosted_test.exe
-CommitHooks_test.bat
 DropTable_test.bat
 IndexedColumnDrop_test.bat
 SelectOnNull2362_test.bat
