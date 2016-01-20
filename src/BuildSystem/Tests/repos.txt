@@ -2,4 +2,3 @@
 # test framework, all solutions will be built there and all tests runned.
 
 https://github.com/Starcounter/PokerDemo.git %GIT_POKERDEMO_BRANCH%
-https://git.starcounter.org/BlueStar/PostSharp.git %GIT_POSTSHARP_BRANCH%
