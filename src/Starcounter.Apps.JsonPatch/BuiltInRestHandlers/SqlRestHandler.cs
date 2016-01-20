@@ -43,16 +43,17 @@ namespace Starcounter.Internal {
                 Console.WriteLine("Database {0} is listening for SQL commands.", Db.Environment.DatabaseNameLower);
                 Handle.POST(defaultSystemHttpPort, ScSessionClass.DataLocationUriPrefix + "sql", (Request req) => {
                     SqlQueryResult result = null;
+                    int maxResult = 1000;  // TODO: Make this part of the url query(parameters)
                     try {
                         Db.Transact(() => {
-                            result = ExecuteQuery(req.Body);
+                            result = ExecuteQuery(req.Body, maxResult);
                         }, false, 0);
 
                     }
                     catch (Starcounter.DbException e) {
 
                         if (e.ErrorCode == Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED) {
-                            result = ExecuteQuery(req.Body);
+                            result = ExecuteQuery(req.Body, maxResult);
                         }
                         else {
                             throw e;
@@ -71,7 +72,7 @@ namespace Starcounter.Internal {
         /// </summary>
         /// <param name="query"></param>
         /// <returns>SqlQueryResult</returns>
-        private static SqlQueryResult ExecuteQuery(string query) {
+        private static SqlQueryResult ExecuteQuery(string query, int maxResult) {
 
             Starcounter.SqlEnumerator<object> sqle = null;
             ITypeBinding resultBinding;
@@ -281,7 +282,10 @@ namespace Starcounter.Internal {
                             }
                         }
 
-
+                        if (rowArr.Count >= maxResult) {
+                            results.limitedResult = true;
+                            break;
+                        }
                         index++;
 
                     }

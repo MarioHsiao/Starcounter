@@ -1,22 +1,29 @@
 ﻿{
-	columns:[{title:"", value:"", type:""}],
-	rows:{},
-	queryPlan:"",
-	sqlException:{
-		message:"",
-		helpLink:"",
-		query:"",
-		beginPosition:0,
-		endPosition:0,
-		scErrorCode:0,
-		token:"",
-		stackTrace:""
-	},
-	hasSqlException:false,
-	exception:{
-		message:"",
-		helpLink:"",
-		stackTrace:""
-	},
-	hasException:false,
+  "columns": [
+    {
+      "title": "",
+      "value": "",
+      "type": ""
+    }
+  ],
+  "rows": { },
+  "queryPlan": "",
+  "sqlException": {
+    "message": "",
+    "helpLink": "",
+    "query": "",
+    "beginPosition": 0,
+    "endPosition": 0,
+    "scErrorCode": 0,
+    "token": "",
+    "stackTrace": ""
+  },
+  "limitedResult": false,
+  "hasSqlException": false,
+  "exception": {
+    "message": "",
+    "helpLink": "",
+    "stackTrace": ""
+  },
+  "hasException": false,
 }
