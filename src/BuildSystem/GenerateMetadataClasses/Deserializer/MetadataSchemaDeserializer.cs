@@ -21,12 +21,17 @@ namespace GenerateMetadataClasses.Deserializer {
             var tables = JsonDeserializer.JsonDeserialize<List<Table>>(json);
             
             var s = new Schema();
+            string globalBaseTableName = null;
             foreach (var t in tables) {
                 if (String.IsNullOrEmpty(t.BaseTableName)) {
-                    Debug.Assert(t.TableName.Equals("MotherOfAllLayouts"));
+                    Debug.Assert(String.IsNullOrEmpty(globalBaseTableName), 
+                        "Metadata are expected to inherit from only one global base table.");
+                    globalBaseTableName = t.TableName;
                 }
                 else {
-                    if (t.BaseTableName.Equals("MotherOfAllLayouts"))
+                    Debug.Assert(!String.IsNullOrEmpty(globalBaseTableName),
+                        "It is expected that the global base table is defined the first, before other meta-tables are defined.");
+                    if (t.BaseTableName.Equals(globalBaseTableName))
                         t.BaseTableName = null;
                     t.Schema = s;
                     s.Tables.Add(t.TableName, t);
