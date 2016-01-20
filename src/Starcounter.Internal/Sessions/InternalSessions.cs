@@ -883,36 +883,6 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Managed callback to destroy Apps session.
-        /// </summary>
-        /// <param name="apps_session_index"></param>
-        /// <param name="apps_session_salt"></param>
-        /// <param name="scheduler_id"></param>
-        public static void DestroySessionCallback(
-            Byte scheduler_id,
-            UInt32 linear_index,
-            UInt64 random_salt
-            )
-        {
-            AllGlobalSessions.DestroySession(
-                scheduler_id,
-                linear_index,
-                random_salt
-                );
-        }
-
-        /// <summary>
-        /// Managed callback to create new Apps session.
-        /// </summary>
-        /// <param name="apps_session_index"></param>
-        /// <param name="apps_session_salt"></param>
-        /// <param name="scheduler_id"></param>
-        public static void CreateNewSessionCallback(ref ScSessionStruct ss)
-        {
-            AllGlobalSessions.CreateNewSession(ref ss, null);
-        }
-
-        /// <summary>
         /// Returns existing Apps session interface.
         /// </summary>
         /// <param name="scheduler_id"></param>

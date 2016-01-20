@@ -77,9 +77,6 @@ namespace Starcounter.Internal
         
         [DllImport("bmx.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Ansi)]
         internal extern static UInt32 sc_init_bmx_manager(
-            IntPtr destroy_apps_session_callback,
-            IntPtr create_new_apps_session_callback,
-            IntPtr error_handling_callback,
             IntPtr generic_managed_handler
             );
 
