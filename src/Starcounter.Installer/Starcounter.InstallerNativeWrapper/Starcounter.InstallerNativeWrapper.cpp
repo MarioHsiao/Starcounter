@@ -350,7 +350,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 		{
 			MessageBox(
 				NULL,
-				L"Microsoft Visual Studio C-runtime is not detected on your machine. It will be installed now. Thank you for your patience.",
+				L"Microsoft Visual Studio 2015 Redistributable is not detected on your machine. It will be installed now. Thank you for your patience.",
 				L"Starcounter setup...",
 				MB_OK | MB_ICONINFORMATION | MB_SYSTEMMODAL);
 
@@ -363,12 +363,24 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			{
 				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
 				{
-					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x64 failed.");
+					// Redistributable installation succeeded but restart is required.
+					if (3010 == err_code) {
+
+						MessageBox(
+							NULL,
+							L"Installation of Microsoft Visual Studio 2015 Redistributable (x64) succeeded but requires system restart. Please restart your computer now and start Starcounter installation again.",
+							L"Starcounter setup...",
+							MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+
+						return err_code;
+					}
+
+					swprintf_s(err_message, k_err_message_max_len, L"Installation of Microsoft Visual Studio 2015 Redistributable (x64) failed.");
 				}
 			}
 			else {
 
-				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x64 setup failed.");
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Microsoft Visual Studio 2015 Redistributable (x64) setup failed.");
 			}
 
 			// Checking if any errors occurred.
@@ -383,12 +395,24 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 			{
 				if (0 != (err_code = RunAndWaitForProgram(temp_vs2015_redist_exe_path, L"/install /passive /norestart", true, true, true)))
 				{
-					swprintf_s(err_message, k_err_message_max_len, L"Installation of Visual Studio 2015 Redistributable x86 failed.");
+					// Redistributable installation succeeded but restart is required.
+					if (3010 == err_code) {
+
+						MessageBox(
+							NULL,
+							L"Installation of Microsoft Visual Studio 2015 Redistributable (x86) succeeded but requires system restart. Please restart your computer now and start Starcounter installation again.",
+							L"Starcounter setup...",
+							MB_OK | MB_ICONERROR | MB_SYSTEMMODAL);
+
+						return err_code;
+					}
+
+					swprintf_s(err_message, k_err_message_max_len, L"Installation of Microsoft Visual Studio 2015 Redistributable (x86) failed.");
 				}
 			}
 			else {
 
-				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Visual Studio 2015 Redistributable x86 setup failed.");
+				swprintf_s(err_message, k_err_message_max_len, L"Extraction of Microsoft Visual Studio 2015 Redistributable (x86) setup failed.");
 			}
 
 			// Checking if any errors occurred.

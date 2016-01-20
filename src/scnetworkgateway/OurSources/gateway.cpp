@@ -3413,6 +3413,9 @@ int32_t Gateway::StartGateway()
     return 0;
 }
 
+// Global URI matcher generation id.
+int32_t g_uri_matcher_gen_id = 0;
+
 // Generate the code using managed generator.
 uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* port_uris)
 {
@@ -3443,7 +3446,8 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
 
     // Constructing dll name;
     std::wostringstream dll_name;
-    dll_name << L"codegen_uri_matcher_" << port_uris->get_port_number();
+    dll_name << L"codegen_uri_matcher_" << port_uris->get_port_number() << "_" << g_uri_matcher_gen_id;
+	g_uri_matcher_gen_id++;
 
     // Building URI matcher from generated code and loading the library.
     err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(

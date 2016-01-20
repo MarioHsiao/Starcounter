@@ -51,13 +51,14 @@
                 <hot-table
                     id="handsontable"
                     stretch-h="'last'"
+                    col-headers
+                    prevent-overflow="'horizontal'"
                     outside-click-deselects="true"
                     min-spare-rows="0"
                     start-rows="0"
                     fill-handle="false"
                     datarows="model.LogEntries"
                     current-row-class-name="'currentRow'"
-                    after-render="afterRender"
                     fragment-selection="'cell'">
                     <hot-column read-only data="DateTimeStr" title="'Date'"></hot-column>
                     <hot-column read-only data="TypeStr" title="'Type'"></hot-column>
