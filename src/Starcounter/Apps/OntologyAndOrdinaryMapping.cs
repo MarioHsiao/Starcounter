@@ -649,7 +649,7 @@ namespace Starcounter {
 
             return classInfo;
         }
-        
+
         /// <summary>
         /// Calling all handlers in class hierarchy.
         /// </summary>
@@ -692,11 +692,11 @@ namespace Starcounter {
             } else if (!String.IsNullOrEmpty(req.HandlerOpts.CallingAppName)) {
 
                 // NOTE: Since we are being called from an app, we need to check if
-                // there is at least one handler belonging to this app in the 
+                // there is at least one handler belonging to this app in the
                 // class hierarchy.
 
                 Boolean currentAppHasHandler = alreadyHasResponse;
-                
+
                 MappingClassInfo classInfoTemp = classInfo;
                 Starcounter.Metadata.Table tempClassInfo = classMetadataTable;
 
@@ -871,7 +871,7 @@ namespace Starcounter {
                 alreadyCalledHandlers.Add(x.HandlerId);
             }*/
         }
-        
+
         /// <summary>
         /// Default JSON merger function.
         /// </summary>
@@ -881,7 +881,7 @@ namespace Starcounter {
             List<Json> stepSiblings;
 
             // Checking if there is only one response, which becomes the main response.
-            
+
             if (resp != null) {
 
                 mainJson = resp.Resource as Json;
@@ -937,9 +937,9 @@ namespace Starcounter {
                         // Do we need to check the response in case of error and handle it or
                         // just ignore like we do now?
 
-                        // No json in partial response. Probably because a registered handler didn't want to 
+                        // No json in partial response. Probably because a registered handler didn't want to
                         // add anything for this uri and data.
-                        if (siblingJson == null) 
+                        if (siblingJson == null)
                             continue;
 
                         siblingJson._appName = responses[i].AppName;
@@ -1099,7 +1099,7 @@ namespace Starcounter {
                 (Request req, String className, String paramStr) => {
 
                     return ClassHierarchyCallProxy(req, className, paramStr);
-                },                
+                },
                 new HandlerOptions() {
                     ProxyDelegateTrigger = true,
                     TypeOfHandler = HandlerOptions.TypesOfHandler.OntologyMapping
@@ -1120,7 +1120,7 @@ namespace Starcounter {
                         continue;
 
                     Response resp = Self.GET(a[1]);
-                    sb.Append("<imported-template-scope scope=\"{{" + a[0] + "}}\">");
+                    sb.Append("<imported-template-scope scope=\"" + a[0] + "\">");
                     sb.Append(resp.Body);
                     sb.Append("</imported-template-scope>");
                 }
@@ -1139,7 +1139,7 @@ namespace Starcounter {
                             StatusCode = 404
                         };
                     }
-                    
+
                     return "{\"" + flagName + "\":\"" + flag.GetValue(null).ToString() + "\"}";
                 });
 
@@ -1156,7 +1156,7 @@ namespace Starcounter {
                     }
 
                     flag.SetValue(null, value);
-                    
+
                     return "{\"" + flagName + "\":\"" + flag.GetValue(null).ToString() + "\"}";
                 });
 
