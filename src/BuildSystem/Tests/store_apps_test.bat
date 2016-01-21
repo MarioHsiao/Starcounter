@@ -1,4 +1,4 @@
-PUSHD %SC_CHECKOUT_DIR%\PolyjuiceApps
+PUSHD %SC_CHECKOUT_DIR%
 
 cd SignIn
 ECHO Building SignIn

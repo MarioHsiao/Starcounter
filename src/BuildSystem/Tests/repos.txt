@@ -3,3 +3,11 @@
 
 https://github.com/Starcounter/PokerDemo.git %GIT_POKERDEMO_BRANCH%
 https://github.com/StarcounterSamples/Launcher.git %GIT_LAUNCHER_BRANCH%
+https://github.com/StarcounterSamples/Products.git master
+https://github.com/StarcounterSamples/Procurement.git master
+https://github.com/StarcounterSamples/Barcodes.git master
+https://github.com/StarcounterSamples/Simplified.git master
+https://github.com/StarcounterSamples/Skyper.git master
+https://github.com/StarcounterSamples/Cartographer.git master
+https://github.com/StarcounterSamples/Images.git master
+https://github.com/StarcounterSamples/SignIn.git master
