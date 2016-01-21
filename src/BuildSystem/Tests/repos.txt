@@ -2,3 +2,4 @@
 # test framework, all solutions will be built there and all tests runned.
 
 https://github.com/Starcounter/PokerDemo.git %GIT_POKERDEMO_BRANCH%
+https://github.com/StarcounterSamples/Launcher.git %GIT_LAUNCHER_BRANCH%
