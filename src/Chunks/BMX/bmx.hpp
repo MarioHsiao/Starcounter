@@ -90,70 +90,18 @@ namespace bmx
     // Invalid BMX handler index.
     const BMX_HANDLER_INDEX_TYPE BMX_INVALID_HANDLER_INDEX = ~((BMX_HANDLER_INDEX_TYPE) 0);
 
-    // Predefined BMX management handler.
-    const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INDEX = 0;
-
     inline BMX_HANDLER_TYPE MakeHandlerInfo(BMX_HANDLER_INDEX_TYPE handler_index,
 		BMX_HANDLER_UNIQUE_NUM_TYPE unique_num) {
 
         return (((uint64_t)unique_num) << 16) | handler_index;
     }
 
-	const BMX_HANDLER_TYPE BMX_MANAGEMENT_HANDLER_INFO = 0;
-
-    // BMX message types.
-    const uint8_t BMX_ERROR = 0;
-    const uint8_t BMX_SESSION_DESTROY = 1;
-    const uint8_t BMX_PING = 254;
-    const uint8_t BMX_PONG = 255;
-
 	extern uint32_t HandleBmxChunk(CM2_TASK_DATA* task_data);
 
-    // Entrance to process any BMX message.
-    extern uint32_t OnBmxMessage(
-        shared_memory_chunk* smc,
-        TASK_INFO_TYPE* task_info,
-        bool* is_handled
-        );
-
-    // Managed callback to destroy Apps session.
-    typedef void (*DestroyAppsSessionCallback)(
-        uint8_t scheduler_id,
-        uint32_t linear_index,
-        uint64_t random_salt);
-
-	// Managed callback to handle errors from gateway.
-	typedef void(*ErrorHandlingCallback)(
-		uint32_t err_code,
-		wchar_t* err_string,
-		int32_t err_string_len);
-
-    // Managed callback to create a new Apps session.
-    typedef void (*CreateNewAppsSessionCallback)(
-        uint8_t scheduler_id,
-        uint32_t* linear_index,
-        uint64_t* random_salt,
-        uint32_t* reserved);
-
-	extern DestroyAppsSessionCallback g_destroy_apps_session_callback;
-    extern CreateNewAppsSessionCallback g_create_new_apps_session_callback;
-    extern ErrorHandlingCallback g_error_handling_callback;
 	extern GenericManagedCallback g_generic_managed_handler;
 
 	// Handles all incoming chunks.
 	EXTERN_C uint32_t __stdcall sc_handle_incoming_chunks(CM2_TASK_DATA* task_data);
-
-	// Construct BMX Ping message.
-	EXTERN_C uint32_t __stdcall sc_bmx_construct_ping(
-		uint64_t ping_data, 
-		shared_memory_chunk* smc
-		);
-
-	// Parse BMX Pong message.
-	EXTERN_C uint32_t __stdcall sc_bmx_parse_pong(
-		shared_memory_chunk* smc,
-		uint64_t* pong_data
-		);
 
 	EXTERN_C uint32_t __stdcall sc_bmx_clone_chunk(
 		starcounter::core::chunk_index src_chunk_index,

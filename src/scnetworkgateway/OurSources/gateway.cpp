@@ -1441,7 +1441,7 @@ uint32_t RegisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChunk
     // Reporting to server log if we are trying to register a handler duplicate.
     if (SCERRHANDLERALREADYREGISTERED == err_code) {
         wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, method_space_uri);
+        wsprintf(temp, L"Attempt to register URI handler duplicate on port \"%d\" and URI \"%S\".", port, method_space_uri.c_str());
         g_gateway.LogWriteError(temp);
     }
 
@@ -1531,7 +1531,7 @@ uint32_t UnregisterUriHandler(HandlersList* hl, GatewayWorker *gw, SocketDataChu
 
 		// Reporting to server log if we are trying to register a handler duplicate.
 		wchar_t temp[MixedCodeConstants::MAX_URI_STRING_LEN];
-		wsprintf(temp, L"HTTP handler \"%S\" is not found on port \"%d\".", port, method_space_uri);
+		wsprintf(temp, L"HTTP handler \"%S\" is not found on port \"%d\".", method_space_uri.c_str(), port);
 		g_gateway.LogWriteWarning(temp);
 
 		std::stringstream ss;
@@ -3413,6 +3413,9 @@ int32_t Gateway::StartGateway()
     return 0;
 }
 
+// Global URI matcher generation id.
+int32_t g_uri_matcher_gen_id = 0;
+
 // Generate the code using managed generator.
 uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* port_uris)
 {
@@ -3443,7 +3446,8 @@ uint32_t Gateway::GenerateUriMatcher(ServerPort* server_port, RegisteredUris* po
 
     // Constructing dll name;
     std::wostringstream dll_name;
-    dll_name << L"codegen_uri_matcher_" << port_uris->get_port_number();
+    dll_name << L"codegen_uri_matcher_" << port_uris->get_port_number() << "_" << g_uri_matcher_gen_id;
+	g_uri_matcher_gen_id++;
 
     // Building URI matcher from generated code and loading the library.
     err_code = codegen_uri_matcher_->CompileIfNeededAndLoadDll(

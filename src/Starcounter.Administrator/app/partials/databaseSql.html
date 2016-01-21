@@ -34,6 +34,12 @@
                 </div>
 
             </span>
+
+            <span ng-show="database._queryState.limitedResult" class="btn-group btn-group-sm" style="vertical-align: middle; vertical-align: -webkit-baseline-middle; margin-left: 15px;margin-top:5px">
+                <span style="vertical-align: middle; margin-top: -1px; font-size: 1.2em; color: rgb(9, 81, 138);" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="Supported"></span>
+                <p style="display: inline;" class="text-warning_">The result exceeds the limit, displaying first {{database._queryState.rows.length}} records.</p>
+            </span>
+
         </div>
     </div>
 
@@ -47,36 +53,35 @@
             <tabset>
                 <tab heading="Result" select="onResultTabSelect()">
                     <div id="handsontableContainer">
-                        <hot-table
-                                hot-id="sql-result"
-                                id="handsontable"
-                                stretch-h="'last'"
-                                outside-click-deselects="true"
-                                columns="database._queryState.columns"
-                                min-spare-rows="0"
-                                start-rows="0"
-                                fill-handle="false"
-                                datarows="database._queryState.rows"
-                                current-row-class-name="'currentRow'"
-                                manual-column-resize
-                                read-only
-                                col-headers
-                                prevent-overflow="'horizontal'"
-                                fragment-selection="'cell'">
+                        <hot-table hot-id="sql-result"
+                                   id="handsontable"
+                                   stretch-h="'last'"
+                                   outside-click-deselects="true"
+                                   columns="database._queryState.columns"
+                                   min-spare-rows="0"
+                                   start-rows="0"
+                                   fill-handle="false"
+                                   datarows="database._queryState.rows"
+                                   current-row-class-name="'currentRow'"
+                                   manual-column-resize
+                                   read-only
+                                   col-headers
+                                   prevent-overflow="'horizontal'"
+                                   fragment-selection="'cell'">
                         </hot-table>
                     </div>
                 </tab>
 
                 <tab heading="Queryplan">
                     <div style="margin-left: 15px; margin-right: 15px" ng-bind-html="database._queryState.queryPlan"></div>
-               </tab>
+                </tab>
             </tabset>
         </div>
     </div>
 </div>
 
 <div ng-hide="database" class="panel panel-default">
-  <div class="panel-heading">
-      Database not found. <a href="/#/databases">Continue.</a>
+    <div class="panel-heading">
+        Database not found. <a href="/#/databases">Continue.</a>
     </div>
 </div>
