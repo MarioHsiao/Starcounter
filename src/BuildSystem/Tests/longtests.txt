@@ -3,7 +3,7 @@
 
 loadandlatency_test.bat 15000
 store_apps_test.bat 200
-tpcc_long_test.bat 200
+tpcc_long_test.bat 500
 queryprocessing_test.bat 7000
 retaildemo_test.bat 900
 pokerdemo_test.bat 900

@@ -117,29 +117,6 @@ uint32_t WorkerDbInterface::ScanChannels(GatewayWorker *gw, uint32_t* next_sleep
             // Get the chunk.
             shared_memory_chunk* ipc_smc = (shared_memory_chunk*) GetSharedMemoryChunkFromIndex(ipc_first_chunk_index);
 
-            // Check if its a BMX handlers management message.
-            if (bmx::BMX_MANAGEMENT_HANDLER_INFO == ipc_smc->get_bmx_handler_info())
-            {
-                GW_ASSERT(ipc_smc->is_terminated());
-
-                // Entering global lock.
-                gw->EnterGlobalLock();
-
-                // Handling management chunks.
-                err_code = HandleManagementChunks(sched_id, gw, ipc_smc);
-
-                // Releasing management chunks.
-                ReturnLinkedChunksToPool(ipc_first_chunk_index);
-
-                // Releasing global lock.
-                gw->LeaveGlobalLock();
-
-                if (err_code)
-                    return err_code;
-
-                continue;
-            }
-
             SocketDataChunk* ipc_sd = (SocketDataChunk*)((uint8_t *)ipc_smc + MixedCodeConstants::CHUNK_OFFSET_SOCKET_DATA);
 
             uint32_t user_data_len_bytes = ipc_sd->get_user_data_length_bytes_icp_chunk();
@@ -410,48 +387,6 @@ uint32_t WorkerDbInterface::PushSocketDataToDb(
    return 0;
 }
 
-// Sends error message.
-uint32_t WorkerDbInterface::PushErrorMessage(
-    scheduler_id_type sched_id,
-    uint32_t err_code_num,
-    const wchar_t* const err_msg)
-{
-    // Get a reference to the chunk.
-    shared_memory_chunk *ipc_smc = NULL;
-
-    // Getting a free chunk.
-    core::chunk_index ipc_first_chunk_index;
-    uint32_t err_code = GetOneChunkFromPrivatePool(&ipc_first_chunk_index, &ipc_smc);
-    if (err_code)
-        return err_code;
-
-    // Predefined BMX management handler.
-    ipc_smc->set_bmx_handler_info(bmx::BMX_MANAGEMENT_HANDLER_INFO);
-
-    request_chunk_part* request = ipc_smc->get_request_chunk();
-    request->reset_offset();
-
-    // Writing BMX message type.
-    request->write(bmx::BMX_ERROR);
-
-    // Writing error code number.
-    request->write(err_code_num);
-
-    // Writing error string.
-    request->write_wstring(err_msg, static_cast<uint32_t> (wcslen(err_msg)));
-
-    // Pushing the chunk.
-    if (!PushLinkedChunksToDb(ipc_first_chunk_index, sched_id, false)) {
-
-        // Releasing management chunks.
-        ReturnLinkedChunksToPool(ipc_first_chunk_index);
-
-        return SCERRCANTPUSHTOCHANNEL;
-    }
-
-    return 0;
-}
-
 // Allocates different channels and pools.
 WorkerDbInterface::WorkerDbInterface(
     const int32_t new_db_index,
@@ -552,66 +487,6 @@ void WorkerDbInterface::PrintInfo(std::stringstream& stats_stream)
     }
 
     stats_stream << "\"";
-}
-
-// Handles management chunks.
-uint32_t WorkerDbInterface::HandleManagementChunks(
-    scheduler_id_type sched_id,
-    GatewayWorker *gw,
-    shared_memory_chunk* ipc_smc)
-{
-    // Getting the response part of the chunk.
-    response_chunk_part* resp_chunk = ipc_smc->get_response_chunk();
-    uint32_t response_size = resp_chunk->get_offset();
-    GW_ASSERT (0 != response_size);
-
-    uint32_t err_code = 0;
-    uint32_t offset = 0;
-
-    resp_chunk->reset_offset();
-    while (offset < response_size)
-    {
-        // Reading BMX message type.
-        uint8_t bmx_type = resp_chunk->read_uint8();
-
-        switch (bmx_type)
-        {
-            case bmx::BMX_PONG:
-            {
-                uint64_t ping_data = -1;
-                
-                // Jumping over 8 bytes because we reseted the offset.
-                resp_chunk->skip(8);
-
-                err_code = starcounter::bmx::sc_bmx_parse_pong(ipc_smc, &ping_data);
-                if (err_code)
-                    return err_code;
-
-                GW_PRINT_WORKER << "Pong with data: " << ping_data << GW_ENDL;
-
-                return 0;
-            }
-
-            case bmx::BMX_SESSION_DESTROY:
-            {
-                GW_ASSERT(false);
-                break;
-            }
-
-            default:
-            {
-                GW_ASSERT(false);
-            }
-        }
-
-        // Checking for error code.
-        if (err_code)
-            return err_code;
-
-        offset = resp_chunk->get_offset();
-    }
-
-    return 0;
 }
 
 } // namespace network

@@ -126,12 +126,6 @@ public:
     }
 #endif // LEAST_USED_SCHEDULING
 
-    // Sends error message.
-    uint32_t PushErrorMessage(
-        scheduler_id_type sched_id,
-        uint32_t err_code_num,
-        const wchar_t* const err_msg);
-
     // Getting shared interface.
     core::shared_interface* get_shared_int()
     {
@@ -249,12 +243,6 @@ public:
 
     // Returns all chunks from private pool to shared.
     void ReturnAllPrivateChunksToSharedPool();
-
-    // Handles management chunks.
-    uint32_t HandleManagementChunks(
-        scheduler_id_type sched_id,
-        GatewayWorker *gw,
-        shared_memory_chunk* ipc_smc);
 };
 
 } // namespace network

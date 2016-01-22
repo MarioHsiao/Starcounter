@@ -151,6 +151,8 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
               $scope.database._queryState.rows.push(row);
             });
 
+            $scope.database._queryState.limitedResult = response.limitedResult;
+
             if (response.queryPlan) {
 
                 // Replace all occurrences of \r\n with the html tag <br>
@@ -187,7 +189,8 @@ adminModule.controller('SqlCtrl', ['$scope', '$log', '$sce', '$document', '$loca
         $scope.database._queryState = {
             sqlQuery: "",
             columns: [],
-            rows: []
+            rows: [],
+            limitedResult : false
         }
     }
 

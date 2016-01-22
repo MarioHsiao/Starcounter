@@ -1,4 +1,4 @@
-PUSHD %SC_CHECKOUT_DIR%\PolyjuiceApps
+PUSHD %SC_CHECKOUT_DIR%
 
 cd SignIn
 ECHO Building SignIn
@@ -21,12 +21,6 @@ IF ERRORLEVEL 1 GOTO FAILED
 call npm install > NUL
 call npm install mocha-teamcity-reporter > NUL
 node node_modules\mocha\bin\mocha --reporter mocha-teamcity-reporter
-cd ..
-
-cd Simplified
-ECHO Building Simplified
-"%MsbuildExe%" Simplified.sln /p:ReferencePath="%StarcounterBin%;%StarcounterBin%/EditionLibraries;%StarcounterBin%/LibrariesWithDatabaseClasses" /p:Configuration=%Configuration% %MsBuildCommonParams%
-IF ERRORLEVEL 1 GOTO FAILED
 cd ..
 
 cd Products

@@ -235,7 +235,7 @@ try {
 				shared_memory_chunk* smc = static_cast<shared_memory_chunk*>
 				(&worker->shared().chunk(request_message));
 				
-				starcounter::bmx::sc_bmx_construct_ping(0, smc);
+				//starcounter::bmx::sc_bmx_construct_ping(0, smc);
 				
 				if (the_channel.in_overflow().empty()) {
 					if (the_channel.in.try_push_front(request_message)) {
@@ -341,7 +341,7 @@ scan_channel_out_buffers:
 					&(worker->shared().chunk(response_message));
 					
 					uint64_t ping_data;
-					uint32_t error_code = starcounter::bmx::sc_bmx_parse_pong(smc, &ping_data);
+					uint32_t error_code = 0; // starcounter::bmx::sc_bmx_parse_pong(smc, &ping_data);
 					
 					if (error_code == 0) {
 						// Successfully processed the response.

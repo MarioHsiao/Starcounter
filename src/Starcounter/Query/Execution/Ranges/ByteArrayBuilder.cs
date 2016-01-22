@@ -687,10 +687,6 @@ public sealed class ByteArrayBuilder
 
         uint flags = appendInfiniteChar ? 1U : 0U;
 
-#if true // TODO: Workaround because (currently) no infinite character in encoding.
-        if (appendInfiniteChar) value += "_~";
-#endif
-        
         dataBuffer[position] = 1; // First byte is non-zero for defined values.
         position++;
 
