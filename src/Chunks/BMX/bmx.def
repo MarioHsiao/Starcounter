@@ -12,6 +12,3 @@ EXPORTS
     sc_bmx_copy_from_chunks_and_release_trailing
 	sc_bmx_send_buffer
     sc_bmx_release_linked_chunks
-	sc_bmx_construct_ping
-	sc_bmx_parse_pong
-

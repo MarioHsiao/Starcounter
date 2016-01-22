@@ -210,6 +210,15 @@ namespace Starcounter.Internal {
                 }
                 else {
 
+                    // Handler to log errors to server log.
+                    Handle.POST(defaultSystemHttpPort, "/sc/logerror/{?}", (Request req, UInt32 errCode) => {
+
+                        Exception exc = ErrorCode.ToException(errCode, req.Body);
+                        LogSources.Hosting.LogException(exc);
+
+                        return 200;
+                    });
+
                     // Registering Reverse proxy handlers
                     RegisterReverseProxyHandlers(defaultSystemHttpPort);
                 }

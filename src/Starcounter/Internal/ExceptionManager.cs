@@ -45,21 +45,5 @@ namespace Starcounter.Internal
                 Kernel32.ExitProcess(code);
             }
         }
-
-        /// <summary>
-        /// Managed callback to handle errors.
-        /// </summary>
-        /// <param name="err_code"></param>
-        /// <param name="err_string"></param>
-        internal static unsafe void ErrorHandlingCallbackFunc(
-            UInt32 err_code,
-            Char* err_string,
-            Int32 err_string_len
-            )
-        {
-            String managed_err_string = new String(err_string, 0, err_string_len);
-            Exception exc = ErrorCode.ToException(err_code, managed_err_string);
-            LogSources.Hosting.LogException(exc);
-        }
     }
 }
