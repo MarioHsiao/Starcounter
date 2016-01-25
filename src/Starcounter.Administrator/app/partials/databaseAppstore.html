@@ -14,13 +14,21 @@
 
     li > h1 {
         font-size: 18px;
-        color: #ffffff;
+        color: #000000;
         margin-top: 0px;
+        margin-bottom: 0px;
         padding-left: 15px;
         padding-right: 15px;
         padding-top: 10px;
         padding-bottom: 10px;
-        background: rgba(0, 0, 0, 0.42);
+    }
+
+    .storeItem {
+        box-shadow: 0 0 2px rgba(0,0,0,.12),0 2px 4px rgba(0,0,0,.24);
+        border-radius: 0px;
+        border: 0px solid transparent;
+        background-color: #fff;
+        margin-bottom: 20px;
     }
 </style>
 
@@ -51,7 +59,7 @@
 
                     <div class="checkbox" style="margin-top: 5px; margin-bottom:5px">
                         <label title="Show compatible versions with installed Starcounter version">
-                            <input type="checkbox" ng-model="showCompatibleVersions" >Show Compatible
+                            <input type="checkbox" ng-model="showCompatibleVersions">Show Compatible
                         </label>
                     </div>
                 </td>
@@ -61,22 +69,86 @@
 
 </div>
 
-<div ng-show="database" class="panel panel-default">
+<div ng-show="database" style="margin-bottom:20px">
 
 
+    <div class="panel panel-default" ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
 
-<!--    <div class="panel-body">
-    </div>-->
+        <div class="panel-heading">
+            <h4>  {{store.DisplayName}} store</h4>
+            <p ng-show="store.Description">{{store.Description}}</p>
+        </div>
 
-    <ul class="list-group">
-        <li  ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
-            <h1>{{store.DisplayName}} store</h1>
+        <table class="table">
 
-            <div class="panel-body" ng-show="store.Description">
+            <tbody>
+
+                <tr ng-repeat="item in store.Applications | semver:serverModel.settings.Version:showCompatibleVersions | orderBy:['DisplayName'] ">
+
+                    <td style="width: 41px; padding-top:12px; padding-left: 15px">
+                        <span ng-show="!item.HasErrorMessage && item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #5cb85c" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Installed" title="Downloaded"></span>
+                        <span ng-show="!item.HasErrorMessage && !item.IsDeployed && item.Status==0" style="top: 3px; font-size: 1.2em; color: #eeeeee" class="glyphicon glyphicon-hdd" aria-hidden="true" tooltip="Not installed" title="Not downloaded"></span>
+                        <span ng-show="item.HasErrorMessage" style="font-size: 1.2em; color: #d9534f" class="glyphicon glyphicon-exclamation-sign" aria-hidden="true" title="{{item.ErrorMessage.Message}}" tooltip="{{item.ErrorMessage.Message}}"></span>
+                        <span ng-show="item.Status!=0" title="{{item.StatusText}}" tooltip="{{item.StatusText}}" class="spinner tiny" style="margin: 0px; padding: 0px"></span>
+                    </td>
+
+                    <td style="width: 95px;">
+                        <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="item.IsDeployed" ng-click="btnDeleteApplication(item)" title="Delete">Delete</button>
+                        <button style="min-width: 80px" class="btn btn-default btn-sm btn-primary" ng-show="!item.IsDeployed && !item.CanUpgrade" ng-click="btnDownloadApplication(item)" title="Download">Download</button>
+                        <button style="min-width: 80px" class="btn btn-default btn-sm btn-success" ng-show="item.CanUpgrade" ng-click="btnUpgradeApplication(item)" title="Upgrade">Upgrade</button>
+                    </td>
+
+                    <!-- Icon + Name -->
+                    <td>
+                        <span style="display: inline">
+                            <img style="margin-right: 10px; vertical-align: baseline; height: 32px; width: 32px; max-width: 32px; max-height: 32px;" ng-src="{{item.ImageUri}}" />
+                            <span style="display: inline-block">
+                                <span ng-hide="item.Heading">{{item.DisplayName}}</span>{{item.Heading}}
+                                <div>{{item.Company}}</div>
+                            </span>
+                        </span>
+                    </td>
+
+                    <td>
+                        <div class="fixedwidth_">
+                            {{item.Description}}
+                        </div>
+                        <!-- Status Text -->
+                        {{item.StatusText}}
+
+                        <!-- Error message -->
+                        <span style="color: #d9534f" ng-show="item.HasErrorMessage">
+                            {{item.ErrorMessage.Message}}
+                            <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
+                            View the <a href="#/server/log">log</a> for more details.
+                        </span>
+                        <span title="Compatible with" style="margin-right:5px" class="label label-danger" ng-repeat="dep in item.Dependencies">{{dep.Key}} : {{dep.Value}}</span>
+                    </td>
+
+                    <td class="text-right">{{item.Version}} ({{item.VersionDate | fixdate:'medium'}})</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="panel-body" ng-show="((store.Applications | semver:serverModel.settings.Version:showCompatibleVersions).length==0)">
+            <p style="padding:0px" class="_bg-info">There is no available or compatible applications.</p>
+        </div>
+
+
+    </div>
+
+    <ul ng-show="false" class="list-group">
+        <li class="storeItem" ng-repeat="store in database.AppStoreStores | filter:database.AppStoreStores.Applications.length > 0 | orderBy:'DisplayName'">
+
+            <h1>
+                {{store.DisplayName}} store
+            </h1>
+
+            <div class="panel-body" style="background-color:#f5f5f5" ng-show="store.Description">
                 {{store.Description}}
-           </div>
+            </div>
 
-            <table class="table">
+            <table style="margin-top:0px;" class="table">
 
                 <tbody>
 
@@ -105,16 +177,17 @@
                                 </span>
                             </span>
                         </td>
-           
-                        <td >
+
+                        <td>
                             <div class="fixedwidth_">
                                 {{item.Description}}
                             </div>
                             <!-- Status Text -->
                             {{item.StatusText}}
 
-                        <!-- Error message -->
-                            <span style="color: #d9534f"  ng-show="item.HasErrorMessage">{{item.ErrorMessage.Message}}
+                            <!-- Error message -->
+                            <span style="color: #d9534f" ng-show="item.HasErrorMessage">
+                                {{item.ErrorMessage.Message}}
                                 <a ng-show="item.ErrorMessage.HelpLink" href="{{item.ErrorMessage.HelpLink}}" target="_blank">Help</a>.
                                 View the <a href="#/server/log">log</a> for more details.
                             </span>
@@ -125,11 +198,16 @@
                     </tr>
                 </tbody>
             </table>
+
+            <div class="panel-body" ng-show="((store.Applications | semver:serverModel.settings.Version:showCompatibleVersions).length==0)">
+                <p style="padding:0px" class="_bg-info">There is no available or compatible applications.</p>
+            </div>
         </li>
     </ul>
 
-    <div class="panel-footer">Visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications.
-    </div>
+    <!--<div class="panel-footer">
+        Visit <a target="_blank" href="http://www.polyjuice.com">www.polyjuice.com</a> for more information about applications.
+    </div>-->
 
 </div>
 
