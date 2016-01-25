@@ -54,15 +54,12 @@ echo Running test: %CURRENTTEST%
 star --database=%DBNAME% --name=%APPNAME% 5-ChangeInheritance.cs
 if %ERRORLEVEL% EQU 0 GOTO FAILURE
 
-set STATUS=All schema upgrade tests succeeded.
-GOTO CLEANUP
-
-:FAILURE
-set STATUS=Schema upgrade test '%CURRENTTEST%' failed.
-GOTO CLEANUP
-
-:CLEANUP
 staradmin --database=%DBNAME% stop db
 staradmin --database=%DBNAME% delete --force db
-echo %STATUS%
+echo All schema upgrade tests succeeded.
+EXIT /b 0
 
+:FAILURE
+staradmin --database=%DBNAME% stop db
+echo Schema upgrade test '%CURRENTTEST%' failed.
+EXIT /b 1
