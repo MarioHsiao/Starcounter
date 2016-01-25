@@ -12,12 +12,9 @@ staradmin --database=%DBNAME% stop db
 staradmin --database=%DBNAME% delete --force db
 
 ECHO Database mapping test finished successfully!
-GOTO :END
+EXIT /b 0
 
 :: If we are here than some test has failed.
 :FAILED
 ECHO Exiting test with error code %EXITCODE%!
-
-:END
-:: Ending sequence.
-"%StarcounterBin%/staradmin.exe" kill all
+EXIT /b 1
