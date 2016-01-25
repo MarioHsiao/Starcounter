@@ -124,12 +124,10 @@ namespace Starcounter.Rest {
             get { return port_; }
         }
 
-        const Int32 GenCodeStringNumBytes = 1024 * 1024;
-
         /// <summary>
         /// Json for the generated code.
         /// </summary>
-        Byte[] gen_code_string_container_ = new Byte[GenCodeStringNumBytes];
+        Byte[] gen_code_string_container_ = new Byte[MixedCodeConstants.MAX_URI_MATCHING_CODE_BYTES];
 
         /// <summary>
         /// Pointer to create Clang engine.
@@ -201,7 +199,7 @@ namespace Starcounter.Rest {
                     {
                         fixed (MixedCodeConstants.RegisteredUriManaged* reg_uri_infos_array = registered_uri_infos_array)
                         {
-                            UInt32 num_code_bytes = GenCodeStringNumBytes - 1;
+                            UInt32 num_code_bytes = MixedCodeConstants.MAX_URI_MATCHING_CODE_BYTES - 1;
 
                             UInt32 err_code = UriMatcherBuilder.GenerateNativeUriMatcherManaged(
                                 (UInt64)MixedCodeConstants.INVALID_SERVER_LOG_HANDLE,
@@ -211,8 +209,9 @@ namespace Starcounter.Rest {
                                 (IntPtr)gen_code_string_container_native,
                                 ref num_code_bytes);
 
-                            if (err_code != 0)
-                                throw ErrorCode.ToException(err_code, "Internal URI matcher code generation error!");
+                            if (err_code != 0) {
+                                throw ErrorCode.ToException(err_code, "Internal URI matcher code generation error: " + err_code);
+                            }
                         }
 
                         IntPtr[] out_functions = new IntPtr[1];

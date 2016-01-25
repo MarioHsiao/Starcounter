@@ -28,7 +28,7 @@ class TestSelfPerformance {
 
     public static Int32 Run() {
 
-        Int32 numToGenerate = 300;
+        Int32 numToGenerate = 1000;
         String[] uris = new String[numToGenerate];
         Random rand = new Random();
         for (Int32 i = 0; i < numToGenerate; i++) {

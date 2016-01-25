@@ -148,7 +148,7 @@ public:
 class RegisteredUris
 {
     // Array of all registered URIs.
-    LinearList<RegisteredUri, bmx::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
+    LinearList<RegisteredUri, MixedCodeConstants::MAX_TOTAL_NUMBER_OF_HANDLERS> reg_uris_;
 
     // URI matcher entry.
     UriMatcherCacheEntry* uri_matcher_entry_;
