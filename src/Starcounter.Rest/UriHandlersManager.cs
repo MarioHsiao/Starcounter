@@ -523,7 +523,7 @@ namespace Starcounter.Rest
 
             portUris_ = new List<PortUris>();
 
-            allUriHandlers_ = new UserHandlerInfo[4096];
+            allUriHandlers_ = new UserHandlerInfo[MixedCodeConstants.MAX_TOTAL_NUMBER_OF_HANDLERS];
             for (UInt16 i = 0; i < allUriHandlers_.Length; i++) {
                 allUriHandlers_[i] = new UserHandlerInfo(i);
             }

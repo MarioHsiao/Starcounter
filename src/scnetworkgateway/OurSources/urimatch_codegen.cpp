@@ -15,7 +15,7 @@ namespace network {
 // Initializes managed codegen loader.
 void CodegenUriMatcher::Init()
 {
-    uri_matching_code_ = GwNewArray(char, MAX_URI_MATCHING_CODE_BYTES);
+    uri_matching_code_ = GwNewArray(char, MixedCodeConstants::MAX_URI_MATCHING_CODE_BYTES);
 
     // Loading managed URI matching codegen DLL.
     HINSTANCE dll = LoadLibrary(L"GatewayToClrProxy.dll");
@@ -29,7 +29,7 @@ void CodegenUriMatcher::Init()
     uri_info_test.handler_id = 0;
     uri_info_test.num_params = 0;
     uri_info_test.method_space_uri = "GET /";
-    uint32_t test_num_codegen_bytes = MAX_URI_MATCHING_CODE_BYTES;
+    uint32_t test_num_codegen_bytes = MixedCodeConstants::MAX_URI_MATCHING_CODE_BYTES;
 
     uint32_t err_code = generate_uri_matcher_(
         g_gateway.get_sc_log_handle(),
