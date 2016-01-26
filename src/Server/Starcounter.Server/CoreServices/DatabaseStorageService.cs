@@ -114,7 +114,7 @@ namespace Starcounter.Server {
         internal static IEnumerable<string> GetOptimizedLogFiles(string directory, string databaseName)
         {
             var pattern = string.Format("{0}.????????????.optlog", databaseName);
-            var tmp_files_pattern = string.Format("{0}.????????????.optlog.tmp", databaseName);
+            var tmp_files_pattern = string.Format("{0}.????????????????????????????????????.optlog.tmp", databaseName);
 
             return Directory.EnumerateFiles(directory, pattern).Concat(Directory.EnumerateFiles(directory, tmp_files_pattern));
         }
