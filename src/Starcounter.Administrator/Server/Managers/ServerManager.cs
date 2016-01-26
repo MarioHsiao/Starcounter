@@ -73,10 +73,9 @@ namespace Administrator.Server.Managers {
                     // Check if the request was a WebSocket request.
                     if (request.WebSocketUpgrade) {
 
-                        if (!SessionList.Contains(session)) {
+                        if (session != null && !SessionList.Contains(session)) {
                             SessionList.Add(session);
                         }
-
 
                         WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
                         return HandlerStatus.Handled;
@@ -151,7 +150,7 @@ namespace Administrator.Server.Managers {
                     // Check if the request was a WebSocket request.
                     if (request.WebSocketUpgrade) {
 
-                        if (!SessionList.Contains(session)) {
+                        if (session != null && !SessionList.Contains(session)) {
                             SessionList.Add(session);
                         }
                         Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
