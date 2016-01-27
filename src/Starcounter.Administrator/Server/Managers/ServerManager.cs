@@ -8,6 +8,11 @@ using Starcounter.Administrator.Server.Utilities;
 using Starcounter.XSON;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.IO;
+using System.ComponentModel;
+using System.Reflection;
+using System.Diagnostics;
+using System.Collections.ObjectModel;
 
 namespace Administrator.Server.Managers {
     public class ServerManager {
@@ -15,6 +20,8 @@ namespace Administrator.Server.Managers {
         public static Model.Server ServerInstance;
         private static ConcurrentDictionary<ulong, Database> databaseModelSockets;
         static Object lockObject_ = new Object();
+
+        private static List<Session> SessionList = new List<Session>();
 
         /// <summary>
         /// Initilized and register handlers
@@ -30,6 +37,7 @@ namespace Administrator.Server.Managers {
             ServerManager.RegisterInternalModelApi();
             ServerManager.RegisterFullModelApi();
             ServerManager.RegisterDatabaseModelApi(8182);
+
 
             ExternalAPI.Register();
         }
@@ -58,55 +66,73 @@ namespace Administrator.Server.Managers {
 
             string socketChannelName = "servermodel";
 
-            // TODO: Anders check please if this was needed and why?
-            // I.e. why there are 3 parameters sometimes and 2???
-
             Handle.GET("/api/servermodel/{?}/{?}", (string key, Session session, Request request) => {
 
-                // Check if the request was a WebSocket request.
-                if (request.WebSocketUpgrade) {
+                lock (lockObject_) {
 
-                    WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
-                    return HandlerStatus.Handled;
+                    // Check if the request was a WebSocket request.
+                    if (request.WebSocketUpgrade) {
+
+                        if (session != null && !SessionList.Contains(session)) {
+                            SessionList.Add(session);
+                        }
+
+                        WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
+                        return HandlerStatus.Handled;
+                    }
+
+                    return 513; // 513 Message Too Large
                 }
 
-                return 513; // 513 Message Too Large
             });
 
             Handle.GET("/api/servermodel", (Request request) => {
 
-                // Create view-model
-                ServerJson serverModelJson = new ServerJson();
+                lock (lockObject_) {
 
-                // Set data object to view-model
-                serverModelJson.Data = ServerManager.ServerInstance;
+                    // Create view-model
+                    ServerJson serverModelJson = new ServerJson();
 
-                // Store the view-model 
-                string id = TemporaryStorage.Store(serverModelJson);
+                    // Set data object to view-model
+                    serverModelJson.Data = ServerManager.ServerInstance;
 
-                // Create response
-                Response response = GetAllowAccessControlResponse();
-                response.Resource = serverModelJson;
-                response["Set-Cookie"] = request.Uri + "/" + id;
-                response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+                    // Store the view-model 
+                    string id = TemporaryStorage.Store(serverModelJson);
 
-                return response;
+                    // Create response
+                    Response response = GetAllowAccessControlResponse();
+                    response.Resource = serverModelJson;
+                    response["Set-Cookie"] = request.Uri + "/" + id;
+                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+
+                    return response;
+                }
             });
 
             // Incoming patch on socket
             Handle.WebSocket(socketChannelName, (string data, WebSocket ws) => {
 
-                if (ws.Session == null) {
-                    ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
-                    return;
-                }
+                lock (lockObject_) {
 
-                Json viewModel = ((Starcounter.Session)ws.Session).Data;
-                ServerManager.ServerInstance.JsonPatchInstance.Apply(viewModel, data);
+                    if (ws.Session == null) {
+                        ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
+                        return;
+                    }
+
+                    Json viewModel = ((Starcounter.Session)ws.Session).Data;
+                    ServerManager.ServerInstance.JsonPatchInstance.Apply(viewModel, data);
+                }
             });
 
             Handle.WebSocketDisconnect(socketChannelName, (ws) => {
                 // Remove ws.
+                lock (lockObject_) {
+
+                    if (SessionList.Contains((Session)ws.Session)) {
+                        SessionList.Remove((Session)ws.Session);
+                    }
+                }
+
             });
         }
 
@@ -119,54 +145,65 @@ namespace Administrator.Server.Managers {
 
             Handle.GET(port, "/api/servermodel/{?}/{?}/{?}", (string databaseName, string key, Session session, Request request) => {
 
-                // Check if the request was a WebSocket request.
-                if (request.WebSocketUpgrade) {
-                    Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
-                    if (database != null) {
+                lock (lockObject_) {
 
-                        WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
-                        databaseModelSockets[ws.ToUInt64()] = database;
-                        return HandlerStatus.Handled;
+                    // Check if the request was a WebSocket request.
+                    if (request.WebSocketUpgrade) {
+
+                        if (session != null && !SessionList.Contains(session)) {
+                            SessionList.Add(session);
+                        }
+                        Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                        if (database != null) {
+
+                            WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
+                            databaseModelSockets[ws.ToUInt64()] = database;
+                            return HandlerStatus.Handled;
+                        }
+                        else {
+                            // TODO:
+                        }
                     }
-                    else {
-                        // TODO:
-                    }
+
+                    return 513; // 513 Message Too Large
                 }
-
-                return 513; // 513 Message Too Large
             });
 
             Handle.GET(port, "/api/servermodel/{?}", (string databaseName, Request request) => {
 
-                // Create view-model
-                DatabaseJson databaseJson = new DatabaseJson();
+                lock (lockObject_) {
 
-                // Set data object to view-model
-                databaseJson.Data = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    // Create view-model
+                    DatabaseJson databaseJson = new DatabaseJson();
 
-                // Store the view-model 
-                string id = TemporaryStorage.Store(databaseJson);
+                    // Set data object to view-model
+                    databaseJson.Data = ServerManager.ServerInstance.GetDatabase(databaseName);
 
-                // Create response
-                Response response = new Response();
-                response.Resource = databaseJson;
-                response["Set-Cookie"] = request.Uri + "/" + id;
-                response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+                    // Store the view-model 
+                    string id = TemporaryStorage.Store(databaseJson);
 
-                response["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
-                response["Access-Control-Expose-Headers"] = "Location, X-Location";
-                //response["Access-Control-Allow-Headers"] = "X-Referer";
-                return response;
+                    // Create response
+                    Response response = new Response();
+                    response.Resource = databaseJson;
+                    response["Set-Cookie"] = request.Uri + "/" + id;
+                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+
+                    response["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
+                    response["Access-Control-Expose-Headers"] = "Location, X-Location";
+                    //response["Access-Control-Allow-Headers"] = "X-Referer";
+                    return response;
+                }
             });
 
             // Incoming patch on http
             Handle.PATCH(port, "/api/servermodel/{?}/{?}/{?}", (string dbName, string id, Session session, Request request) => {
 
-                Json json = TemporaryStorage.Find(id);
+                lock (lockObject_) {
 
-                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
-
-                return GetAllowAccessControlResponse();
+                    Json json = TemporaryStorage.Find(id);
+                    ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
+                    return GetAllowAccessControlResponse();
+                }
             });
 
             // Options for server model request.
@@ -179,32 +216,33 @@ namespace Administrator.Server.Managers {
 
             // Incoming patch on socket
             Handle.WebSocket(port, socketChannelName, (string data, WebSocket ws) => {
+                lock (lockObject_) {
 
-                if (ws.Session == null) {
-                    ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
-                    return;
-                }
+                    if (ws.Session == null) {
+                        ws.Disconnect("Session is null", WebSocket.WebSocketCloseCodes.WS_CLOSE_UNEXPECTED_CONDITION);
+                        return;
+                    }
 
-                Database database;
-                if (databaseModelSockets.TryGetValue(ws.ToUInt64(), out database)) {
-                    Json viewModel = ((Starcounter.Session)ws.Session).Data;
-                    database.JsonPatchInstance.Apply(viewModel, data);
+                    Database database;
+                    if (databaseModelSockets.TryGetValue(ws.ToUInt64(), out database)) {
+                        Json viewModel = ((Starcounter.Session)ws.Session).Data;
+                        database.JsonPatchInstance.Apply(viewModel, data);
+                    }
                 }
             });
 
-            // TODO: Anders check please if this was needed and why?
-            // Incoming patch on http
-            /*Handle.PATCH("/api/servermodel/{?}/{?}/{?}", (string databaseName, string id, Session session, Request request) => {
 
-                //                Json json = TemporaryStorage.Find(id);
-                //                ServerManager.ServerInstance.JsonPatchInstance.Apply(json, request.Body);
-                return System.Net.HttpStatusCode.NotImplemented;
-            });*/
 
             Handle.WebSocketDisconnect(port, socketChannelName, (ws) => {
-                // Remove ws.
-                Database database;
-                databaseModelSockets.TryRemove(ws.ToUInt64(), out database);
+                lock (lockObject_) {
+
+                    if (SessionList.Contains((Session)ws.Session)) {
+                        SessionList.Remove((Session)ws.Session);
+                    }
+                    // Remove ws.
+                    Database database;
+                    databaseModelSockets.TryRemove(ws.ToUInt64(), out database);
+                }
             });
         }
 
@@ -248,9 +286,6 @@ namespace Administrator.Server.Managers {
 
         }
 
-
-
-
         /// <summary>
         /// Called when the server model has been changed
         /// The model includes the Server, Database and Application.
@@ -259,68 +294,48 @@ namespace Administrator.Server.Managers {
         /// <param name="e"></param>
         static void ServerModel_Changed(object sender, EventArgs e) {
 
-            ServerManager.PushchangesToListeners();
-        }
+            lock (lockObject_) {
 
-        /// <summary>
-        /// This will be called when the model has been changed
-        /// And we want to inform our listeners (connected clients)
-        /// </summary>
-        private static void PushchangesToListeners() {
+                foreach (Session session in ServerManager.SessionList) {
 
-            //// Database model listeners
-            //foreach (var item in databaseModelSockets) {
-
-            //    Database ws = item.Value;
-            //    Json viewModel = ((Starcounter.Session)ws.Session).Data;
-            //    Database db;
-            //    string changes = db.JsonPatchInstance.Generate(viewModel, true, false);
-            //    if (changes != "[]") {
-            //        ws.Send(changes);
-            //    }
-            //    //Console.WriteLine(display.Value);
-            //}
-
-
-            Session.ForAll((session) => {
-                lock (lockObject_) {
-
-                    try {
+                    session.RunSync(() => {
 
                         if (session.ActiveWebSocket != null) {
 
-                            string changes = string.Empty;
-
-                            if (session.PublicViewModel is DatabaseJson) {
-
-                                Database database;
-                                if (databaseModelSockets.TryGetValue(session.ActiveWebSocket.ToUInt64(), out database)) {
-                                    changes = database.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
-                                }
-                                else {
-                                    // Error, failed to get database
-                                    //TODO:
-                                }
-
-                            }
-                            else if (session.PublicViewModel is ServerJson) {
-                                changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
-                            }
-                            else {
-                                // TODO: Unknown?
-                            }
-
-                            //string changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(s.PublicViewModel, true, false);
-                            if (!string.IsNullOrEmpty(changes) && changes != "[]") {
+                            string changes = ServerManager.GetModelChanges(session);
+                            if (changes != null) {
                                 session.ActiveWebSocket.Send(changes);
                             }
                         }
-                    }
-                    catch (Exception) {
-                    }
+                    });
                 }
+            }
+        }
 
-            });
+        /// <summary>
+        /// Get Session model changes
+        /// </summary>
+        /// <param name="session"></param>
+        /// <returns></returns>
+        private static string GetModelChanges(Session session) {
+
+            string changes = null;
+            if (session.PublicViewModel is DatabaseJson) {
+
+                Database database;
+                if (databaseModelSockets.TryGetValue(session.ActiveWebSocket.ToUInt64(), out database)) {
+                    changes = database.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+                }
+            }
+            else if (session.PublicViewModel is ServerJson) {
+                changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
+            }
+
+            if (!string.IsNullOrEmpty(changes) && changes != "[]") {
+                return changes;
+            }
+
+            return null;
         }
     }
 

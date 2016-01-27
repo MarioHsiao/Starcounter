@@ -16,7 +16,7 @@ staradmin --database=%DB_NAME% delete --force db
 
 ECHO Run the test
 star --database=%DB_NAME% CodePropIndex2533.cs
-IF ERRORLEVEL 1 GOTO err
+IF %ERRORLEVEL% NEQ 0 GOTO err
 
 staradmin --database=%DB_NAME% stop db
 

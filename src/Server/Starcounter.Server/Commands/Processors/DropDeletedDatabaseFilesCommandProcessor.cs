@@ -112,7 +112,8 @@ namespace Starcounter.Server.Commands {
                 }
 
                 var dbFiles = DatabaseStorageService.GetDbFiles(config.Runtime.ImageDirectory, file.DatabaseName);
-                var logFiles = DatabaseStorageService.GetTransactionLogFiles(config.Runtime.ImageDirectory, file.DatabaseName);
+                var logFiles = DatabaseStorageService.GetTransactionLogFiles(config.Runtime.TransactionLogDirectory, file.DatabaseName)
+                               .Concat(DatabaseStorageService.GetOptimizedLogFiles(config.Runtime.TransactionLogDirectory, file.DatabaseName));
 
                 foreach (var dbFile in dbFiles) {
                     File.Delete(dbFile);

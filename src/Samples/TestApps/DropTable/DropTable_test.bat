@@ -17,12 +17,12 @@ staradmin --database=%DB_NAME% delete --force db
 ECHO Run Step 1 to create initial schema and index
 COPY /y DropTableV1.cs DropTable.cs
 star --database=%DB_NAME% DropTable.cs
-IF ERRORLEVEL 1 GOTO err
+IF %ERRORLEVEL% NEQ 0 GOTO err
 
 ECHO Run Step 2 to update initial schema without indexed column
 COPY /y DropTableV2.cs DropTable.cs
 star --database=%DB_NAME% DropTable.cs
-IF ERRORLEVEL 1 GOTO err
+IF %ERRORLEVEL% NEQ 0 GOTO err
 
 REM Clean update
 DEL DropTable.cs

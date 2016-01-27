@@ -667,6 +667,13 @@ namespace Starcounter.Internal
 
         /// <summary>
         /// </summary>
+        [DllImport("sccoredb.dll", CharSet = CharSet.Unicode)]
+        internal static extern unsafe uint star_convert_ucs2_to_setspectt(
+            string input, uint flags, byte* output, uint outlen
+            );
+
+        /// <summary>
+        /// </summary>
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern unsafe uint star_context_convert_ucs2_to_turbotext(
           ulong handle, string input, uint flags, byte** pout

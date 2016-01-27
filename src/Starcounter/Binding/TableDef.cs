@@ -57,11 +57,18 @@ namespace Starcounter.Binding {
                 }
             }
 
+            // All layouts is inherits from the base layout created by the metadata layer. This
+            // layout is however not represented by a class or a table so we treat this as no base
+            // class.
+
+            Debug.Assert(tableInfo.inherited_layout_handle != 0);
             if (tableInfo.inherited_layout_handle != 0) {
                 var r = sccoredb.stari_context_get_layout_info(ThreadData.ContextHandle, tableInfo.inherited_layout_handle, out tableInfo);
                 if (r == 0) {
-                    baseName = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
-                    inheritedColumnCount = tableInfo.column_count;
+                    if (tableInfo.token != SqlProcessor.SqlProcessor.STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN) {
+                        baseName = SqlProcessor.SqlProcessor.GetNameFromToken(tableInfo.token);
+                        inheritedColumnCount = tableInfo.column_count;
+                    }
                 } else {
                     throw ErrorCode.ToException(r);
                 }

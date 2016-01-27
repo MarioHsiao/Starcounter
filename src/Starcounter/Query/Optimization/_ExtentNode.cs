@@ -88,11 +88,6 @@ internal class ExtentNode : IOptimizationNode
     IndexUseInfo sortIndexInfo;
 
     /// <summary>
-    /// Index to be used for an extent scan (index scan over the whole extent).
-    /// </summary>
-    IndexInfo2 extentIndexInfo;
-
-    /// <summary>
     /// List of conditions, where scan can/should be done on type of IsTypePredicate.
     /// </summary>
     IsTypePredicate subtypeCondition;
@@ -130,7 +125,6 @@ internal class ExtentNode : IOptimizationNode
         bestIndexInfo = null;
         bestIndexInfoUsedArity = 0;
         sortIndexInfo = null;
-        extentIndexInfo = null;
 
         variableArr = varArr;
         this.query = query;
@@ -388,10 +382,6 @@ internal class ExtentNode : IOptimizationNode
                 bestValue = currentValue;
             }
         }
-        // Save an index to be used for an extent scan (index scan over the whole extent).
-        if (indexInfoArr.Length > 0) {
-            extentIndexInfo = new IndexInfo2(indexInfoArr[0], extentTypeBinding.TypeDef); // Currently, it is always auto-generated index
-        }
 
         // If the extent type is supertype to type in IS predicate, then try to find index on the type of IS predicate.
         if (subtypeCondition != null && noFalseConditions)
@@ -496,35 +486,18 @@ internal class ExtentNode : IOptimizationNode
                 fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
         }
 
-        if (extentIndexInfo != null) {
-            if (conditionList.Count > 0 && canCodeGen) {
-                // Trying to create a scan which uses native filter code generation.
-                try {
-                    IExecutionEnumerator exec_enum = new FullTableScan(nodeId, rowTypeBind,
-                        extentNumber,
-                        extentIndexInfo,
-                        GetCondition(),
-                        SortOrder.Ascending,
-                        fetchNumExpr,
-                        fetchOffsetExpr,
-                        fetchOffsetKeyExpr,
-                        InnermostExtent,
-                        null, variableArr, query, topNode);
-
-                    if (exec_enum != null) {
-                        nodeId++;
-                        return exec_enum;  // Returning result only on successful execution
-                    }
-                } catch {
-                    //Console.WriteLine("Filter code generation for the query \"" + query + "\" has failed. Launching managed-level full table scan...");
-                }
-            }
-
-            // Proceeding with the worst case: full table scan on managed code level.
-            return CreateIndexScan(nodeId++, extentIndexInfo, SortOrder.Ascending, fetchNumExpr, fetchOffsetExpr, fetchOffsetKeyExpr, topNode);
-        }
-        ITypeBinding typeBind = rowTypeBind.GetTypeBinding(extentNumber);
-        throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "There is no index for type: " + typeBind.Name);
+        bool enableNativeFilter = conditionList.Count > 0 && canCodeGen;
+        return new FullTableScan(nodeId++, rowTypeBind,
+            extentNumber,
+            GetCondition(),
+            SortOrder.Ascending,
+            fetchNumExpr,
+            fetchOffsetExpr,
+            fetchOffsetKeyExpr,
+            InnermostExtent,
+            null,
+            enableNativeFilter,
+            variableArr, query, topNode);
     }
 
     private IExecutionEnumerator CreateIndexScan(byte nodeId, IndexInfo2 indexInfo, SortOrder sortOrdering, 
@@ -696,12 +669,6 @@ internal class ExtentNode : IOptimizationNode
                 areEquals = other.sortIndexInfo == null;
             } else
                 areEquals = this.sortIndexInfo.AssertEquals(other.sortIndexInfo);
-        if (areEquals)
-            if (this.extentIndexInfo == null) {
-                Debug.Assert(other.extentIndexInfo == null);
-                areEquals = other.extentIndexInfo == null;
-            } else
-                areEquals = this.extentIndexInfo.AssertEquals(other.extentIndexInfo);
         if (areEquals)
             if (this.variableArr == null) {
                 Debug.Assert(other.variableArr == null);

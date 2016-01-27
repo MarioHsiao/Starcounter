@@ -32,7 +32,7 @@ sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
 CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
 
 	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
@@ -50,7 +50,7 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 
 :: Re-signing the assembly.
 "c:\Program Files (x86)\Microsoft SDKs\Windows\v8.1A\bin\NETFX 4.5.1 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
     ECHO Error: Re-signing the assembly failed!
     EXIT /b 1
 )

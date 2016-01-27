@@ -9,19 +9,19 @@ star.exe "%StarcounterBin%\s\NetworkIoTest\NetworkIoTest.exe" DbNumber=1 PortNum
 
 :: Doing the client part of the test.
 UdpTest.exe --DatagramSize=10
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 UdpTest.exe --DatagramSize=100
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 UdpTest.exe --DatagramSize=1000
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 UdpTest.exe --DatagramSize=10000
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 UdpTest.exe --DatagramSize=30000
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
 ECHO UDP test finished successfully!

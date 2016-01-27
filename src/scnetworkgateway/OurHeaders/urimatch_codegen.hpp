@@ -15,7 +15,6 @@ enum UriMatchCodegenCompilerType
 
 class CodegenUriMatcher
 {
-    static const uint32_t MAX_URI_MATCHING_CODE_BYTES = 1024 * 1024;
     uint32_t uri_code_size_bytes_;
     char* uri_matching_code_;
 
@@ -46,7 +45,7 @@ public:
         MixedCodeConstants::RegisteredUriManaged* uri_infos,
         uint32_t num_uris)
     {
-        uri_code_size_bytes_ = MAX_URI_MATCHING_CODE_BYTES;
+        uri_code_size_bytes_ = MixedCodeConstants::MAX_URI_MATCHING_CODE_BYTES;
 
         uint32_t err_code = generate_uri_matcher_(
             g_gateway.get_sc_log_handle(),

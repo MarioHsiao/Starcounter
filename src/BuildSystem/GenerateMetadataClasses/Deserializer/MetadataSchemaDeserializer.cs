@@ -1,6 +1,7 @@
 ﻿using GenerateMetadataClasses.Model;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 namespace GenerateMetadataClasses.Deserializer {
@@ -20,9 +21,21 @@ namespace GenerateMetadataClasses.Deserializer {
             var tables = JsonDeserializer.JsonDeserialize<List<Table>>(json);
             
             var s = new Schema();
+            string globalBaseTableName = null;
             foreach (var t in tables) {
-                t.Schema = s;
-                s.Tables.Add(t.TableName, t);
+                if (String.IsNullOrEmpty(t.BaseTableName)) {
+                    Debug.Assert(String.IsNullOrEmpty(globalBaseTableName), 
+                        "Metadata are expected to inherit from only one global base table.");
+                    globalBaseTableName = t.TableName;
+                }
+                else {
+                    Debug.Assert(!String.IsNullOrEmpty(globalBaseTableName),
+                        "It is expected that the global base table is defined the first, before other meta-tables are defined.");
+                    if (t.BaseTableName.Equals(globalBaseTableName))
+                        t.BaseTableName = null;
+                    t.Schema = s;
+                    s.Tables.Add(t.TableName, t);
+                }
             }
 
 

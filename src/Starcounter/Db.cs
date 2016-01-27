@@ -132,7 +132,6 @@ namespace Starcounter
                 ColumnDef[] columns = tableDef.ColumnDefs;
                 SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[] column_defs =
                     new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[columns.Length - implicitColumnCount + 1];
-                //sccoredb.STARI_COLUMN_DEFINITION[] column_definitions = new sccoredb.STARI_COLUMN_DEFINITION[columns.Length - implicitColumnCount + 1];
                 Debug.Assert(column_defs.Length > 0);
     
                 try
@@ -142,54 +141,14 @@ namespace Starcounter
                         column_defs[di].name = (char*)Marshal.StringToCoTaskMemUni(columns[ci].Name);
                         column_defs[di].primitive_type = columns[ci].Type;
                         column_defs[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
-                        //column_definitions[di].token = sccoredb.AssureTokenForString(columns[ci].Name);
-                        //column_definitions[di].type = columns[ci].Type;
-                        //column_definitions[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
-                    //ulong token = sccoredb.AssureTokenForString(tableDef.Name);
                     ushort layout_id;
                     fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
                     {
                         uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
                             tableDef.Name, tableDef.BaseName, fixed_column_defs, out layout_id);
-                        //uint e = sccoredb.stari_context_create_layout(ThreadData.ContextHandle, token, inheritedTableId, fixed_column_definitions, 0);
                         if (e != 0) throw ErrorCode.ToException(e);
                     }
-
-                    // TODO EOH: Same transaction. Handle errors (comes pretty automatically if same transaction).
-#if true // TODO RUS: create index with metadata
-                        short* columnIndexes = stackalloc short[2];
-                        columnIndexes[0] = 0;
-                        columnIndexes[1] = -1;
-                        uint err = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
-                            ThreadData.ContextHandle, layout_id,
-                            tableDef.Name + "_auto", 0, columnIndexes, 0);
-                        if (err != 0)
-                            throw ErrorCode.ToException(err);
-#else
-                    Db.Transact(() => {
-                        uint e;
-                        sccoredb.STARI_LAYOUT_INFO layoutInfo;
-                        ulong token = SqlProcessor.SqlProcessor.GetTokenFromName(tableDef.Name);
-                        e = sccoredb.stari_context_get_layout_info_by_token(ThreadData.ContextHandle, token, out layoutInfo);
-                        if (e != 0) throw ErrorCode.ToException(e);
-
-                        ushort tableId = layoutInfo.layout_handle;
-                        ulong indexToken = SqlProcessor.SqlProcessor.AssureToken(tableDef.Name + "_auto"); // TODO EOH: Default index name?
-
-                        short *columnIndexes = stackalloc short[2];
-                        columnIndexes[0] = 0;
-                        columnIndexes[1] = -1;
-                        string setspec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(tableId);
-                        e = sccoredb.stari_context_create_index(
-                            ThreadData.ContextHandle, indexToken, 
-                            setspec, 
-                            tableId, columnIndexes, 0, 0
-                            );
-
-                        if (e != 0) throw ErrorCode.ToException(e);
-                    });
-#endif
                 }
                 finally { }
             }

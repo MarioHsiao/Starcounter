@@ -165,6 +165,16 @@ namespace Starcounter.Internal
         public const int INVALID_WS_CHANNEL_ID = 0;
 
         /// <summary>
+        /// Maxiumum total number of handlers.
+        /// </summary>
+        public const int MAX_TOTAL_NUMBER_OF_HANDLERS = 2048;
+
+        /// <summary>
+        /// Maxiumum total number of bytes for URI codegen.
+        /// </summary>
+        public const int MAX_URI_MATCHING_CODE_BYTES = 1024 * 1024 * 4;
+
+        /// <summary>
         /// Maximum number of URI callback parameters.
         /// </summary>
         public const int MAX_URI_CALLBACK_PARAMS = 16;

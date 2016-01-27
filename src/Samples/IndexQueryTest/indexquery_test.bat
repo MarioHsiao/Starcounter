@@ -25,7 +25,7 @@ sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
 CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
 
     ECHO Error: The index query regression test failed!
     EXIT /b 1
@@ -39,7 +39,7 @@ SET TEST_WEAVED_ASSEMBLY=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe
 
 :: Re-signing the assembly.
 "c:\Program Files (x86)\Microsoft SDKs\Windows\v8.1A\bin\NETFX 4.5.1 Tools\sn.exe" -R "%TEST_WEAVED_ASSEMBLY%" "..\..\src\Starcounter.snk"
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
 
     ECHO Error: Re-signing the assembly failed!
     EXIT /b 1
@@ -57,7 +57,7 @@ ping -n 3 127.0.0.1 > nul
 :: Starting database with some delay.
 CALL sccode.exe 1 %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
 
     ECHO Error: The index query regression test failed!
     EXIT /b 1

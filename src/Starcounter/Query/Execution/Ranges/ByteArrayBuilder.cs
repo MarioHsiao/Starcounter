@@ -677,6 +677,37 @@ public sealed class ByteArrayBuilder
         position += (outputLen + 4);
     }
 
+    internal unsafe void Append_Setspec(string value, bool appendInfiniteChar) {
+        // Checking if value is undefined.
+        if (value == null) {
+            dataBuffer[position] = 0;
+            position++;
+            return;
+        }
+
+        uint flags = appendInfiniteChar ? 1U : 0U;
+
+        dataBuffer[position] = 1; // First byte is non-zero for defined values.
+        position++;
+
+        uint r;
+        int outputLen;
+        fixed (byte *buf = dataBuffer) {
+            r = sccoredb.star_convert_ucs2_to_setspectt(
+                value, flags, buf + position,
+                (uint)(SqlConnectivityInterface.RECREATION_KEY_MAX_BYTES - position)
+                );
+            outputLen = *(int *)(buf + position); // Calculating output string length.
+        }
+
+        if (r == 0) {
+            position += (outputLen + 4); // 4 bytes for string length.
+        }
+        else {
+            throw ErrorCode.ToException(r);
+        }
+    }
+
     /// <summary>
     /// Precomputes the buffer.
     /// </summary>

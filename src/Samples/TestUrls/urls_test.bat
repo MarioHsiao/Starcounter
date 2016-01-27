@@ -11,7 +11,7 @@ star "%StarcounterBin%\s\NetworkIoTest\NetworkIoTest.exe"
 TestUrls.exe
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
 ECHO URL test finished successfully!

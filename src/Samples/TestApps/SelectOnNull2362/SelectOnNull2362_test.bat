@@ -15,7 +15,7 @@ staradmin --database=%DB_NAME% delete --force db
 :skipdbdrop
 
 star --database=%DB_NAME% SelectOnNull2362.cs
-IF ERRORLEVEL 1 GOTO err
+IF %ERRORLEVEL% NEQ 0 GOTO err
 
 staradmin --database=%DB_NAME% stop db
 

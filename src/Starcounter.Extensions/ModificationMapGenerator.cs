@@ -12,12 +12,9 @@ using Starcounter.Metadata;
 
 namespace Starcounter.Extensions {
     internal static class ModificationMapGenerator {
-        // TODO:
-        // Currently only works for tables and properties that have a backing clrclass.
-
-        private const string sqlOneTableSelect = "SELECT t FROM Starcounter.Metadata.ClrClass t WHERE t.FullName=?";
-        private const string sqlAllColumnsForTableSelect = "SELECT c FROM Starcounter.Metadata.MappedProperty c WHERE c.Table=?";
-        private const string sqlOneColumnForTableSelect = "SELECT c FROM Starcounter.Metadata.MappedProperty c WHERE c.Table=? AND c.Name=?";
+        private const string sqlOneTableSelect = "SELECT t FROM Starcounter.Metadata.RawView t WHERE t.FullName=?";
+        private const string sqlAllColumnsForTableSelect = "SELECT c FROM Starcounter.Metadata.Column c WHERE c.Table=?";
+        private const string sqlOneColumnForTableSelect = "SELECT c FROM Starcounter.Metadata.Column c WHERE c.Table=? AND c.Name=?";
 
         private static MethodInfo fromIDMethod = typeof(DbHelper).GetMethod("FromID", BindingFlags.Static | BindingFlags.Public);
         private static MethodInfo getMappedObjBaseMethod = typeof(DbMapping).GetMethod("GetMappedObject", BindingFlags.Static | BindingFlags.Public);
@@ -42,7 +39,7 @@ namespace Starcounter.Extensions {
             Expression fromPropertyExpr;
             Expression toPropertyExpr;
             List<Expression> blockExpressions;
-            MappedProperty fromColumn;
+            Column fromColumn;
             PropertyInfo toProperty;
             PropertyInfo fromProperty;
             Table fromTable;
@@ -73,17 +70,17 @@ namespace Starcounter.Extensions {
             expr = Expression.Assign(toObjExpr, expr);
             blockExpressions.Add(expr);
 
-            foreach (var toColumn in Db.SQL<MappedProperty>(sqlAllColumnsForTableSelect, toTable)) {
-                if (toColumn.DataType.Name.Equals("key")) // __id field.
+            foreach (var toColumn in Db.SQL<Column>(sqlAllColumnsForTableSelect, toTable)) {
+                if (IsKeyColumn(toColumn))
                     continue;
 
                 // Checking if we have a corresponding property in source table.
-                fromColumn = Db.SQL<MappedProperty>(sqlOneColumnForTableSelect, fromTable, toColumn.Name).First;
+                fromColumn = Db.SQL<Column>(sqlOneColumnForTableSelect, fromTable, toColumn.Name).First;
                 if (fromColumn == null)
                     continue;
 
-                if (toColumn.DataType is ClrClass) {
-                    if (!(fromColumn.DataType is ClrClass))
+                if (IsReferenceType(toColumn.DataType)) {
+                    if (!IsReferenceType(fromColumn.DataType))
                         continue;
                 } else if (!fromColumn.DataType.Equals(toColumn.DataType)) // Same name but different types.
                     continue;
@@ -97,7 +94,7 @@ namespace Starcounter.Extensions {
                 fromPropertyExpr = Expression.Property(fromObjExpr, fromProperty);
                 toPropertyExpr = Expression.Property(toObjExpr, toProperty);
 
-                if (toColumn.DataType is ClrClass) {
+                if (IsReferenceType(toColumn.DataType)) {
                     // Resulting code should look like this (RefObj = name of property):
                     //
                     // if (fromObj.RefObj != null) {
@@ -136,6 +133,15 @@ namespace Starcounter.Extensions {
 //            LogMapModification(typeof(TFrom).FullName, typeof(TTo).FullName, convertLambda);
 
             return convertLambda.Compile();
+        }
+
+        private static bool IsReferenceType(DataType dataType) {
+            return dataType.Name.Equals("reference");
+        }
+
+        private static bool IsKeyColumn(Column column) {
+            return column.Name.Equals("__id")
+                    || column.Name.Equals("__setspecifier");
         }
 
         [Conditional("DEBUG")]

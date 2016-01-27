@@ -5,6 +5,10 @@ using System.Runtime.InteropServices;
 
 namespace Starcounter.SqlProcessor {
     public class SqlProcessor {
+
+        internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 10;
+        internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 11;
+
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall, 
             CharSet = CharSet.Unicode)]
         public static unsafe extern uint scsql_process_query(ulong context, 
@@ -136,7 +140,75 @@ namespace Starcounter.SqlProcessor {
             uint err = star_prepare_system_tables(context);
             if (err != 0)
                 throw ErrorCode.ToException(err);
+            LoadGlobalSetspecIndexHandle(context);
         }
+
+#if true
+        private static ulong globalSetspecIndexHandle_ = 0;
+
+        internal static ulong GetGlobalSetspecIndexHandle(ulong contextHandle) {
+            return globalSetspecIndexHandle_;
+        }
+
+        [DllImport("sccoredb.dll")]
+        private static extern unsafe uint stari_context_get_index_infos_by_token(
+            ulong handle, ulong token, uint* pic, sccoredb.STARI_INDEX_INFO *piis
+            );
+
+        private static void LoadGlobalSetspecIndexHandle(ulong contextHandle) {
+            ulong transactionHandle;
+
+            transactionHandle = 0;
+
+            try {
+                unsafe {
+                    uint r;
+
+                    r = sccoredb.star_context_create_transaction(
+                        contextHandle, 0, out transactionHandle
+                        );
+                    if (r != 0) {
+                        transactionHandle = 0;
+                        goto err;
+                    }
+                    r = sccoredb.star_context_set_current_transaction(
+                        contextHandle, transactionHandle
+                        );
+                    if (r != 0) goto err;
+
+                    ulong indexToken = STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN;
+                    uint indexInfoCount = 1;
+                    sccoredb.STARI_INDEX_INFO indexInfo;
+                    r = stari_context_get_index_infos_by_token(
+                        contextHandle, indexToken, &indexInfoCount, &indexInfo
+                        );
+                    if (r != 0) goto err;
+
+                    if (indexInfoCount == 1) {
+                        globalSetspecIndexHandle_ = indexInfo.handle;
+                    }
+                    else {
+                        r = Error.SCERRUNEXPMETADATA;
+                        goto err;
+                    }
+
+
+                    return;
+
+                err:
+                    throw ErrorCode.ToException(r);
+                }
+            }
+            finally {
+                if (transactionHandle != 0) {
+                    uint r = sccoredb.star_transaction_free(
+                        transactionHandle, ThreadData.ObjectVerify
+                        );
+                    if (r != 0) ErrorCode.ToException(r); // Fatal.
+                }
+            }
+        }
+#endif
 
         public static void CleanClrMetadata(ulong context) {
             uint err = star_clrmetadata_clean(context);
