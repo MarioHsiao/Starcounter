@@ -15,7 +15,7 @@ for /l %%x in (1, 1, %LOOP_TIMES%) do (
    run_node_proxy_test.bat
    
    :: Checking exit code.
-   IF ERRORLEVEL 1 GOTO TESTFAILED
+   IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 )
 
 :: Success message.

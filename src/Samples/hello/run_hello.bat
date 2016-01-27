@@ -28,7 +28,7 @@ sccreatedb.exe -ip %DB_DIR% %DB_NAME%
 
 :: Weaving the test.
 CALL scweaver.exe "s\%TEST_NAME%\%TEST_NAME%.exe"
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
 
 	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )
@@ -59,7 +59,7 @@ ping -n 3 127.0.0.1 > nul
 :: Starting database with some delay.
 sccode.exe 1 %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath="%TEST_WEAVED_ASSEMBLY%" --FLAG:NoNetworkGateway
 
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
 
 	:: Renaming back temporary directories.
 	IF EXIST DontUseLibrariesWithDatabaseClasses ( RENAME DontUseLibrariesWithDatabaseClasses LibrariesWithDatabaseClasses )

@@ -18,25 +18,25 @@ star "%StarcounterBin%\s\WebSocketsTestServer\WebSocketsTestServer.exe"
 "%StarcounterBin%\WebSocketsTestClient.exe"
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Starting the client part of the test.
 "%StarcounterBin%\WebSocketsTestClient.exe" --MessageSizeBytes=1000
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Starting the client part of the test.
 "%StarcounterBin%\WebSocketsTestClient.exe" --MessageSizeBytes=10000
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Starting the client part of the test.
 "%StarcounterBin%\WebSocketsTestClient.exe" --MessageSizeBytes=100000
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
 ECHO WebSockets test finished successfully!

@@ -10,7 +10,7 @@ staradmin --database=%DB_NAME% delete --force db
 :: sccode.exe %DB_NAME% --DatabaseDir=%DB_DIR% --OutputDir=%DB_OUT_DIR% --TempDir=%DB_OUT_DIR% --AutoStartExePath=s\%TEST_NAME%\.starcounter\%TEST_NAME%.exe --FLAG:NoNetworkGateway %TEST_ARGS%
 star --database=%DB_NAME% s\%TEST_NAME%\%TEST_NAME%.exe %TEST_ARGS%
 
-IF ERRORLEVEL 1 (
+IF %ERRORLEVEL% NEQ 0 (
     ECHO Error: LoadAndLatency test failed!
     EXIT /b 1
 ) else (

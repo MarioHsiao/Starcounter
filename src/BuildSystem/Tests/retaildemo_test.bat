@@ -28,99 +28,99 @@ IF EXIST "%SC_CHECKOUT_DIR%/RetailDemo" rd /q /s "%SC_CHECKOUT_DIR%/RetailDemo"
 ECHO Cloning RetailDemo repository.
 PUSHD "%SC_CHECKOUT_DIR%"
 git clone https://github.com/Starcounter/RetailDemo.git --branch master RetailDemo
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Building repository.
 
 ECHO Building RetailDemo solution.
 "%MsbuildExe%" "RetailDemo/RetailDemo.sln" /p:Configuration=%Configuration%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Starting the host to be able to delete database.
 
 ECHO Starting %RetailServerExe% on database %DB_NAME%
 star.exe -database=%DB_NAME% %RetailServerExe%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Stopping existing database %DB_NAME%
 staradmin --database=%DB_NAME% stop db
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Deleting existing database %DB_NAME%
 staradmin --database=%DB_NAME% delete --force db
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Starting server application.
 
 ECHO Starting %RetailServerExe% on database %DB_NAME%
 star.exe -database=%DB_NAME% %RetailServerExe%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Using aggregation.
 
 ECHO Inserting %NumberOfCustomers% objects using aggregation and %NumberOfWorkers% workers.
 %RetailClientExe% -Inserting=True -UseAggregation=True -NumCustomers=%NumberOfCustomers% -NumTransferMoneyBetweenTwoAccounts=0 -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0 -NumWorkersPerServerEndpoint=%NumberOfWorkers%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Getting customers by ID using aggregation.
 %RetailClientExe% -UseAggregation=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=0 -NumGetCustomerAndAccounts=0 -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=0
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Transfering money between accounts using aggregation.
 %RetailClientExe% -UseAggregation=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Mixed transactions using aggregation.
 %RetailClientExe% -UseAggregation=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=%NumberOfOperations% -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=%NumberOfOperations%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 
 :: Using asyncronous Node.
 
 ECHO Inserting %NumberOfCustomers% objects using asyncronous node and %NumberOfWorkers% workers.
 %RetailClientExe% -Inserting=True -DoAsyncNode=True -NumCustomers=%NumberOfCustomers% -NumTransferMoneyBetweenTwoAccounts=0 -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0  -NumWorkersPerServerEndpoint=%NumberOfWorkers%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Getting customers by ID using asyncronous Node.
 %RetailClientExe% -DoAsyncNode=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=0 -NumGetCustomerAndAccounts=0 -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=0
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Transfering money between accounts using asyncronous Node.
 %RetailClientExe% -DoAsyncNode=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Mixed transactions using asyncronous Node.
 %RetailClientExe% -DoAsyncNode=True -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=%NumberOfOperations% -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=%NumberOfOperations%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 
 :: Using syncronous Node.
 
 ECHO Inserting %NumberOfCustomers% objects using syncronous Node and %NumberOfWorkers% workers.
 %RetailClientExe% -Inserting=True -NumCustomers=%NumberOfCustomers% -NumTransferMoneyBetweenTwoAccounts=0 -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0  -NumWorkersPerServerEndpoint=%NumberOfWorkers%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Getting customers by ID using syncronous Node.
 %RetailClientExe% -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=0 -NumGetCustomerAndAccounts=0 -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=0
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Transfering money between accounts using syncronous Node.
 %RetailClientExe% -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=0 -NumGetCustomerById=0 -NumGetCustomerByFullName=0
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 ECHO Mixed transactions using syncronous Node.
 %RetailClientExe% -NumCustomers=%NumberOfCustomers% -NumWorkersPerServerEndpoint=%NumberOfWorkers% -NumTransferMoneyBetweenTwoAccounts=%NumberOfOperations% -NumGetCustomerAndAccounts=%NumberOfOperations% -NumGetCustomerById=%NumberOfOperations% -NumGetCustomerByFullName=%NumberOfOperations%
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 POPD
 
 ECHO Deleting database %DB_NAME%
 
 staradmin --database=%DB_NAME% stop db
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 staradmin --database=%DB_NAME% delete --force db
-IF ERRORLEVEL 1 GOTO FAILED
+IF %ERRORLEVEL% NEQ 0 GOTO FAILED
 
 :: Build finished successfully.
 ECHO RetailDemo test finished successfully!

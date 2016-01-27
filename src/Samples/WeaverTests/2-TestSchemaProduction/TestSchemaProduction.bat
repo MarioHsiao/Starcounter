@@ -10,11 +10,11 @@ SET EXE_FILE=%TEST_NAME%.exe
 ECHO Running %TEST_NAME% regression test.
 
 star --sc-compile %SRC_FILE%
-IF ERRORLEVEL 1 GOTO err_compile
+IF %ERRORLEVEL% NEQ 0 GOTO err_compile
 scweaver %EXE_FILE%
-IF ERRORLEVEL 1 GOTO err_weave
+IF %ERRORLEVEL% NEQ 0 GOTO err_weave
 scweaver Test %EXE_FILE%
-IF ERRORLEVEL 1 GOTO err_run
+IF %ERRORLEVEL% NEQ 0 GOTO err_run
 
 ECHO %TEST_NAME% regression test succeeded.
 EXIT /b 0

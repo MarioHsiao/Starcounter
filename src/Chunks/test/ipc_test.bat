@@ -16,7 +16,7 @@ IF "%TestParams%"=="" SET TestParams=PERSONAL 2 30000 2 administrator
 sc_ipc_test.exe %TestParams%
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
 ECHO IPC tests finished successfully!

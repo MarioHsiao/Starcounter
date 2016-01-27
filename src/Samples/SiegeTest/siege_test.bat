@@ -11,7 +11,7 @@ star.exe "%StarcounterBin%\s\NetworkIoTest\NetworkIoTest.exe" DbNumber=1 PortNum
 SiegeTest.exe
 
 :: Checking exit code.
-IF ERRORLEVEL 1 GOTO TESTFAILED
+IF %ERRORLEVEL% NEQ 0 GOTO TESTFAILED
 
 :: Success message.
 ECHO Siege test finished successfully!

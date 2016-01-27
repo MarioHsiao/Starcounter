@@ -17,12 +17,12 @@ staradmin --database=%DB_NAME% delete --force db
 ECHO Run Step 1 to create initial schema and index
 COPY /y IndexedColumnDropV1.cs IndexedColumnDrop.cs
 star --database=%DB_NAME% IndexedColumnDrop.cs
-IF ERRORLEVEL 1 GOTO err
+IF %ERRORLEVEL% NEQ 0 GOTO err
 
 ECHO Run Step 2 to update initial schema without indexed column
 COPY /y IndexedColumnDropV2.cs IndexedColumnDrop.cs
 star --database=%DB_NAME% IndexedColumnDrop.cs
-IF ERRORLEVEL 1 GOTO err
+IF %ERRORLEVEL% NEQ 0 GOTO err
 
 REM Clean update
 DEL IndexedColumnDrop.cs
