@@ -375,29 +375,31 @@ namespace Starcounter {
             IList jsonList = (IList)this;
             int offset = (this.ArrayAddsAndDeletes != null) ? this.ArrayAddsAndDeletes.Count : 0;
 
-            foreach (object value in boundValue) {
-                if (jsonList.Count <= index) {
-                    newJson = (Json)tArr.ElementType.CreateInstance();
-                    newJson._data = value;
-                    jsonList.Add(newJson);
-                    newJson.Data = value;
-                    hasChanged = true;
-                } else {
-                    oldJson = (Json)jsonList[index];
-                    if (!CompareDataObjects(oldJson.Data, value)) {
-                        itemIndex = IndexOf(jsonList, index + 1, value);
-                        if (itemIndex == -1) {
-                            newJson = (Json)tArr.ElementType.CreateInstance();
-                            newJson._data = value;
-                            jsonList.Insert(index, newJson);
-                            newJson.Data = value;
-                        } else {
-                            this.Move(itemIndex, index);
-                        }
+            if (boundValue != null) {
+                foreach (object value in boundValue) {
+                    if (jsonList.Count <= index) {
+                        newJson = (Json)tArr.ElementType.CreateInstance();
+                        newJson._data = value;
+                        jsonList.Add(newJson);
+                        newJson.Data = value;
                         hasChanged = true;
+                    } else {
+                        oldJson = (Json)jsonList[index];
+                        if (!CompareDataObjects(oldJson.Data, value)) {
+                            itemIndex = IndexOf(jsonList, index + 1, value);
+                            if (itemIndex == -1) {
+                                newJson = (Json)tArr.ElementType.CreateInstance();
+                                newJson._data = value;
+                                jsonList.Insert(index, newJson);
+                                newJson.Data = value;
+                            } else {
+                                this.Move(itemIndex, index);
+                            }
+                            hasChanged = true;
+                        }
                     }
+                    index++;
                 }
-                index++;
             }
 
             int deleteCount = 0;
