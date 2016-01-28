@@ -99,18 +99,18 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             ProcessAllNodes();
 
             bool writeRootNs = !string.IsNullOrEmpty(Root.AppClassClassNode.Namespace);
+
+            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
+
             if (writeRootNs)
                 Output.AppendLine("namespace " + Root.AppClassClassNode.Namespace + " {");
-
-            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);            
             foreach (var napp in Root.Children) {
                 WriteNode(napp);
             }
-            WriteFooter(Output);
-
             if (writeRootNs)
                 Output.AppendLine("}");
-            
+
+            WriteFooter(Output);
             return Output.ToString();
         }
 
@@ -775,11 +775,6 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 defaultUsings.Add("Starcounter");
                 defaultUsings.Add("Starcounter.Internal");
                 defaultUsings.Add("Starcounter.Templates");
-                defaultUsings.Add("st=Starcounter.Templates");
-                defaultUsings.Add("s=Starcounter");
-                defaultUsings.Add("_GEN1_=System.Diagnostics.DebuggerNonUserCodeAttribute");
-                defaultUsings.Add("_GEN2_=System.CodeDom.Compiler.GeneratedCodeAttribute");
-                defaultUsings.Add("_ScTemplate_=Starcounter.Templates.Template");
             }
 
             h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
