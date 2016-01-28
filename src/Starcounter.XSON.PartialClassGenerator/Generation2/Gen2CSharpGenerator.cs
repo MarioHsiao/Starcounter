@@ -98,12 +98,19 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         public string GenerateCode() {
             ProcessAllNodes();
 
-            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);
+            bool writeRootNs = !string.IsNullOrEmpty(Root.AppClassClassNode.Namespace);
+            if (writeRootNs)
+                Output.AppendLine("namespace " + Root.AppClassClassNode.Namespace + " {");
+
+            WriteHeader(Root, Root.AppClassClassNode.Template.CompilerOrigin.FileName, Output);            
             foreach (var napp in Root.Children) {
                 WriteNode(napp);
             }
             WriteFooter(Output);
 
+            if (writeRootNs)
+                Output.AppendLine("}");
+            
             return Output.ToString();
         }
 
@@ -112,12 +119,12 @@ namespace Starcounter.Internal.MsBuild.Codegen {
         /// </summary>
         private void ProcessAllNodes() {
             AstJsonClass napp;
-            AstBase previousKid;
+            AstBase previousKidWithNs;
             String previousNs;
             String currentNs = null;
 
-            previousKid = null;
-            previousNs = "";
+            previousKidWithNs = null;
+            previousNs = Root.AppClassClassNode.Namespace;
             for (Int32 i = 0; i < Root.Children.Count; i++) {
                 var kid = Root.Children[i];
 
@@ -126,13 +133,16 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
                     currentNs = napp.Namespace;
                     if (currentNs != previousNs) {
-                        if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
-                            previousKid.Suffix.Add("}");
+                        if (previousKidWithNs != null && !String.IsNullOrEmpty(previousNs)) {
+                            previousKidWithNs.Suffix.Add("}");
                         }
+                        previousKidWithNs = kid;
+                        previousNs = currentNs;
 
                         if (!String.IsNullOrEmpty(currentNs)) {
                             kid.Prefix.Add("");
                             kid.Prefix.Add("namespace " + currentNs + " {");
+                            
                         }
                     }
                 } else if (kid is AstClassAlias) {
@@ -141,13 +151,10 @@ namespace Starcounter.Internal.MsBuild.Codegen {
                 }
 
                 ProcessNode(kid);
-
-                previousNs = currentNs;
-                previousKid = kid;
             }
 
-            if (previousKid != null && !String.IsNullOrEmpty(previousNs)) {
-                previousKid.Suffix.Add("}");
+            if (previousKidWithNs != null && !String.IsNullOrEmpty(previousNs)) {
+                previousKidWithNs.Suffix.Add("}");
             }
         }
 
@@ -778,25 +785,25 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             h.Append("// This is a system generated file (G2). It reflects the Starcounter App Template defined in the file \"");
             h.Append(fileName);
             h.Append('"');
-            h.Append('\n');
-            h.Append("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN\n");
-            h.Append('\n');
+            h.AppendLine();
+            h.AppendLine("// DO NOT MODIFY DIRECTLY - CHANGES WILL BE OVERWRITTEN");
+            h.AppendLine();
 
             foreach (var usingDirective in defaultUsings) {
-                h.Append("using " + usingDirective + ";\n");
+                h.AppendLine("using " + usingDirective + ";");
             }
 
             if (root.Generator.CodeBehindMetadata != null) {
                 var usingList = root.Generator.CodeBehindMetadata.UsingDirectives;
                 foreach (var usingDirective in usingList) {
                     if (!defaultUsings.Contains(usingDirective))
-                        h.Append("using " + usingDirective + ";\n");
+                        h.AppendLine("using " + usingDirective + ";");
                 }
             }
 
-            h.Append("#pragma warning disable 0108\n");
-            h.Append("#pragma warning disable 1591\n");
-            h.Append('\n');
+            h.AppendLine("#pragma warning disable 0108");
+            h.AppendLine("#pragma warning disable 1591");
+            h.AppendLine();
         }
 
         static internal void WriteFooter(StringBuilder f) {
@@ -807,8 +814,8 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
 #endif
 
-            f.Append("#pragma warning restore 1591\n");
-            f.Append("#pragma warning restore 0108");
+            f.AppendLine("#pragma warning restore 1591");
+            f.AppendLine("#pragma warning restore 0108");
         }
 
         [Conditional("ADDLINEDIRECTIVES")]
