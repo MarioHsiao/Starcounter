@@ -16,6 +16,7 @@ namespace Starcounter.Internal.MsBuild.Codegen {
 
         internal void RunPhase6(AstJsonClass acn) {
             CreateClassAliases(acn);
+            AddPredefinedAliases();
             MoveAliasesToTop();
             generator.Root.AliasesActive = true;
         }
@@ -90,6 +91,38 @@ namespace Starcounter.Internal.MsBuild.Codegen {
             foreach (var kid in node.Children) {
                 CreateClassAliases(kid);
             }
+        }
+
+        private void AddPredefinedAliases() {
+            new AstClassAlias(generator) {
+                Alias = "s",
+                Specifier = "Starcounter",
+                Parent = generator.Root
+            };
+
+            new AstClassAlias(generator) {
+                Alias = "st",
+                Specifier = "Starcounter.Templates",
+                Parent = generator.Root
+            };
+
+            new AstClassAlias(generator) {
+                Alias = "_ScTemplate_",
+                Specifier = "Starcounter.Templates.Template",
+                Parent = generator.Root
+            };
+
+            new AstClassAlias(generator) {
+                Alias = "_GEN1_",
+                Specifier = "System.Diagnostics.DebuggerNonUserCodeAttribute",
+                Parent = generator.Root
+            };
+
+            new AstClassAlias(generator) {
+                Alias = "_GEN2_",
+                Specifier = "System.CodeDom.Compiler.GeneratedCodeAttribute",
+                Parent = generator.Root
+            };
         }
     }
 }
