@@ -298,6 +298,10 @@ namespace Administrator.Server.Managers {
 
                 foreach (Session session in ServerManager.SessionList) {
 
+                    if( !session.IsAlive() ) {
+                        continue;
+                    }
+
                     session.RunSync(() => {
 
                         if (session.ActiveWebSocket != null) {
