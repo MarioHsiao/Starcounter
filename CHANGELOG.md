@@ -36,6 +36,8 @@
 - Improved diagnostic content when weaver is unable to resolve an application dependency, as outlined in [#3227](https://github.com/Starcounter/Starcounter/issues/3227). Now include the probably referring assembly.
 - Fixed mouse and keyboard scrolling issues in Administrator error log and SQL browser [#2990](https://github.com/Starcounter/Starcounter/issues/2990), [#2987](https://github.com/Starcounter/Starcounter/issues/2987), [#2986](https://github.com/Starcounter/Starcounter/issues/2986), [#1635](https://github.com/Starcounter/Starcounter/issues/1635)
 - Fixed nullreference exception in some cases when a bound array in TypedJSON was changed [#3245](https://github.com/Starcounter/Starcounter/issues/3245)
+- Fixed correct handling of bound values for arrays in TypedJSON when bound value was null [#3304](https://github.com/Starcounter/Starcounter/issues/3304)
+- Wrapping all generated classes for TypedJSON inside namespace to avoid clashing of names [#3316](https://github.com/Starcounter/Starcounter/issues/3316)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
