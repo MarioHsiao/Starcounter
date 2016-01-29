@@ -204,19 +204,46 @@ namespace Starcounter
         /// to try until the transaction succeeds. Specify 0 to disable retrying.
         /// </param>
         public static void Transact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transact(action, 0, forceSnapshot, maxRetries);
+            Advanced.Transact(new Advanced.TransactOptions() { forceSnapshot = forceSnapshot, maxRetries = maxRetries }, action);
         }
 
-        internal static void Transact(Action action, uint flags, bool forceSnapshot = false, int maxRetries = 100) {
+        public static class Advanced
+        {
+            public class TransactOptions
+            {
+                public bool forceSnapshot
+                {
+                    get; set;
+                } = false;
+
+                public int maxRetries
+                {
+                    get; set;
+                } = 100;
+
+                public bool applyHooks
+                {
+                    get; set;
+                } = true;
+            }
+
+
+            public static void Transact(TransactOptions opts, Action action)
+            {
+                Db.Transact(action, 0, opts);
+            }
+        }
+
+        internal static void Transact(Action action, uint flags, Advanced.TransactOptions opts) {
             int retries;
             uint r;
             ulong handle;
 
-            if (maxRetries < 0) {
+            if (opts.maxRetries < 0) {
                 throw new ArgumentOutOfRangeException("maxRetries", string.Format("Valid range: 0-{0}", int.MaxValue));
             }
 
-            if (forceSnapshot) {
+            if (opts.forceSnapshot) {
                 throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED, "Forcing snapshot isolation is not yet implemented.");
             }
 
@@ -235,6 +262,7 @@ namespace Starcounter
 
                         try {
                             ThreadData.inTransactionScope_ = 1;
+                            ThreadData.applyHooks_ = opts.applyHooks;
 
                             sccoredb.star_context_set_current_transaction( // Can not fail.
                                 ThreadData.ContextHandle, handle
@@ -249,7 +277,7 @@ namespace Starcounter
                             uint cr = sccoredb.star_transaction_free(handle, verify);
                             if (cr == 0) {
                                 if (ex is ITransactionConflictException) {
-                                    if (++retries <= maxRetries) continue;
+                                    if (++retries <= opts.maxRetries) continue;
                                     throw ErrorCode.ToException(
                                         Error.SCERRUNHANDLEDTRANSACTCONFLICT, ex
                                         );
@@ -286,7 +314,7 @@ namespace Starcounter
         }
 
         internal static void SystemTransact(Action action, bool forceSnapshot = false, int maxRetries = 100) {
-            Transact(action, 0, forceSnapshot, maxRetries);
+            Transact(action, 0, new Advanced.TransactOptions { forceSnapshot = forceSnapshot, maxRetries = maxRetries });
         }
 
         public static void Scope(Action action, bool isReadOnly = false) {
@@ -446,10 +474,19 @@ namespace Starcounter
             oid = proxy.Identity;
             address = proxy.ThisHandle;
 
+            if (ThreadData.applyHooks_)
+                InvokeBeforeDeleteHooks(proxy, oid, address);
+
+            Delete(new ObjectRef { ObjectID = oid, ETI = address });
+        }
+
+        private static void InvokeBeforeDeleteHooks(IObjectProxy proxy, ulong oid, ulong address)
+        {
             int ir = sccoredb.star_context_set_trans_flags(
                 ThreadData.ContextHandle, oid, address, sccoredb.DELETE_PENDING
                 );
-            if (ir != 0) {
+            if (ir != 0)
+            {
                 // Positive value contains previously set flags, negative value indicates and error.
 
                 if (ir > 0)
@@ -474,14 +511,18 @@ namespace Starcounter
             //
             // When should this be called? Before or after OnDelete?
             // TODO:
-            if (MapConfig.Enabled) {
+            if (MapConfig.Enabled)
+            {
                 MapInvoke.DELETE(proxy.TypeBinding.Name, oid);
             }
 
             ThreadData.inTransactionScope_++;
-            try {
+            try
+            {
                 InvokeOnDelete(proxy);
-            } catch (Exception ex) {
+            }
+            catch (Exception ex)
+            {
                 // We can't generate an exception from an error in this
                 // function since this will hide the original error.
                 //
@@ -498,11 +539,11 @@ namespace Starcounter
                 if (ex is System.Threading.ThreadAbortException) throw;
                 throw ErrorCode.ToException(Error.SCERRERRORINHOOKCALLBACK, ex);
             }
-            finally {
+            finally
+            {
                 ThreadData.inTransactionScope_--;
             }
 
-            Delete(new ObjectRef { ObjectID = oid, ETI = address });
         }
 
         public static void Delete(ObjectRef o)
