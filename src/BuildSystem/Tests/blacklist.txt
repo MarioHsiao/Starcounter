@@ -70,7 +70,7 @@ node_test_loop.bat
 node_looped_proxy_test.bat
 prepare_sqlregression_test.bat
 Level1\src\Samples\TransactionLogTest\transactionlog_test.bat
-Level1\src\Samples\CommitHooksTest\commithooks_test.bat
+Level1\src\Samples\CommitHooksTest\commithooks2_test.bat
 SimpleIndependentTests_hosted_test.exe
 DropTable_test.bat
 IndexedColumnDrop_test.bat
