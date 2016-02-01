@@ -1,5 +1,654 @@
-/*! puppet.js version: 1.2.0
+/*! puppet.js version: 1.3.4
  * (c) 2013 Joachim Wester
  * MIT license
  */
-!function(a){function b(a,b){var c;return c=b?new URL(b,window.location):new URL(window.location.href),c.protocol="https:"===c.protocol?"wss:":"ws:",Object.defineProperty(a,"wsURL",{value:c})}function c(a,c,d,e,f,g,h){this.puppet=a,this.remoteUrl=c,d&&b(this,c),e&&(this.onReceive=e),f&&(this.onSend=f),g&&(this.onError=g),h&&(this.onStateChange=h);var i=this;Object.defineProperty(this,"useWebSocket",{get:function(){return d},set:function(a){return 0==a?i._ws&&(i._ws.onclose=function(){i._ws=null},i._ws.close()):i.wsURL||b(this,c),d=a}}),this.handleResponseCookie()}function d(a){this.apply=a}function e(a){a||(a={}),this.debug=void 0!=a.debug?a.debug:!0,this.obj=a.obj||{},this.observer=null,this.onRemoteChange=a.onRemoteChange,this.onPatchReceived=a.onPatchReceived||function(){},this.onPatchSent=a.onPatchSent||function(){},this.onSocketStateChanged=a.onSocketStateChanged||function(){},this.network=new c(this,a.remoteUrl,a.useWebSocket||!1,this.handleRemoteChange.bind(this),this.onPatchSent.bind(this),this.handleRemoteError.bind(this),this.onSocketStateChanged.bind(this)),Object.defineProperty(this,"useWebSocket",{get:function(){return this.network.useWebSocket},set:function(a){this.network.useWebSocket=a}}),this.queue=a.localVersionPath?a.remoteVersionPath?a.ot?new JSONPatchOTAgent(JSONPatchOT.transform,[a.localVersionPath,a.remoteVersionPath],this.validateAndApplySequence.bind(this),a.purity):new JSONPatchQueue([a.localVersionPath,a.remoteVersionPath],this.validateAndApplySequence.bind(this),a.purity):new JSONPatchQueueSynchronous(a.localVersionPath,this.validateAndApplySequence.bind(this),a.purity):new d(this.validateAndApplySequence.bind(this)),this.ignoreCache=[],this.ignoreAdd=a.ignoreAdd||null;var b=a.callback,e=this;this.network.establish(function(a){var c=JSON.parse(a);i(e.obj,c),e.debug&&(e.remoteObj=a),h(e,"obj"),e.observe(),b&&b.call(e,e.obj)})}function f(a,b){var c=b.split("/"),d=c.length;if(c.length>2)for(var e=1;d-1>e;e++)a=a[c[e]];h(a,c[d-1])}function g(a,b){var c=a[b];null===c||"object"!=typeof c||c.hasOwnProperty("$parent")||Object.defineProperty(c,"$parent",{enumerable:!1,get:function(){return a}})}function h(a,b){g(a,b),a=a[b];for(var c in a)a.hasOwnProperty(c)&&"object"==typeof a[c]&&h(a,c)}function i(a,b){for(var c in b)b.hasOwnProperty(c)&&("object"==typeof b[c]&&a.hasOwnProperty(c)?i(a[c],b[c]):a[c]=b[c])}function j(a,b,c,d){if("add"===d&&a.test(c))return b[c]=!0,!0;for(var e=c.split("/"),f="",g=1,h=e.length;h>g;g++)if(f+="/"+e[g],b[f])return!0;return!1}var k=function(){};k.prototype={constructor:k,apply:function(a){a.addEventListener=k.prototype.addEventListener,a.hasEventListener=k.prototype.hasEventListener,a.removeEventListener=k.prototype.removeEventListener,a.dispatchEvent=k.prototype.dispatchEvent},addEventListener:function(a,b){void 0===this._listeners&&(this._listeners={});var c=this._listeners;void 0===c[a]&&(c[a]=[]),-1===c[a].indexOf(b)&&c[a].push(b)},hasEventListener:function(a,b){if(void 0===this._listeners)return!1;var c=this._listeners;return void 0!==c[a]&&-1!==c[a].indexOf(b)?!0:!1},removeEventListener:function(a,b){if(void 0!==this._listeners){var c=this._listeners,d=c[a];if(void 0!==d){var e=d.indexOf(b);-1!==e&&d.splice(e,1)}}},dispatchEvent:function(a){if(void 0!==this._listeners){var b=this._listeners,c=b[a.type];if(void 0!==c){a.target=this;for(var d=[],e=c.length,f=0;e>f;f++)d[f]=c[f];for(var f=0;e>f;f++)d[f].call(this,a)}}}},c.prototype.establish=function(a){var b=this;return this.xhr(this.remoteUrl,"application/json",null,function(c){return a(c.responseText),b.useWebSocket&&b.webSocketUpgrade(),b})},c.prototype.send=function(a){var b=this;if(this.useWebSocket&&this._ws&&1===this._ws.readyState)this._ws.send(a),b.onSend(a,b._ws.url,"WS");else{var c=this.remoteUrl;this.xhr(c,"application/json-patch+json",a,function(a,d){b.onReceive(a.responseText,c,d)})}return this},c.prototype.onReceive=function(){},c.prototype.onSend=function(){},c.prototype.onStateChange=function(){},c.prototype.upgrade=function(){},c.prototype.webSocketUpgrade=function(a){var b=this,c=new URL(this.remoteUrl.replace(/(\/?)__([^\/]*)\//g,"/__$2/wsupgrade/"),this.wsURL).href;b._ws=new WebSocket(c),b._ws.onopen=function(d){b.onStateChange(b._ws.readyState,c),a&&a(d)},b._ws.onmessage=function(a){b.onReceive(a.data,b._ws.url,"WS")},b._ws.onerror=function(a){throw b.onStateChange(b._ws.readyState,c,a.data),new Error("WebSocket connection could not be made."+(a.data||"")+"\nCould not connect to: "+c)},b._ws.onclose=function(a){throw b.onStateChange(b._ws.readyState,c,null,a.code,a.reason),new Error("WebSocket connection closed"+a.code+" "+a.reason)}},c.prototype.changeState=function(a){var b=this;return this.xhr(a,"application/json-patch+json",null,function(c,d){b.onReceive(c.responseText,a,d)})},c.prototype.setRemoteUrl=function(a){if(this.remoteUrlSet&&this.remoteUrl&&this.remoteUrl!=a)throw new Error("Session lost. Server replied with a different session ID that was already set. \nPossibly a server restart happened while you were working. \nPlease reload the page.\n\nPrevious session ID: "+this.remoteUrl+"\nNew session ID: "+a);this.remoteUrlSet=!0,this.remoteUrl=a},c.prototype.handleResponseHeader=function(a){var b=a.getResponseHeader("X-Location")||a.getResponseHeader("Location");b&&this.setRemoteUrl(b)},c.prototype.handleResponseCookie=function(){var a=l.read("Location");a&&(this.setRemoteUrl(a),l.erase("Location"))},c.prototype.xhr=function(a,b,c,d){l.erase("Location");var e=this,f=new XMLHttpRequest,g="GET";return f.onload=function(){var b=this;if(e.handleResponseCookie(),e.handleResponseHeader(b),b.status>=400&&b.status<=599)throw e.onError(JSON.stringify({statusCode:b.status,statusText:b.statusText,text:b.responseText}),a,g),new Error("PuppetJs JSON response error. Server responded with error "+b.status+" "+b.statusText+"\n\n"+b.responseText);d&&d.call(e.puppet,b,g)},a=a||window.location.href,c?(g="PATCH",f.open(g,a,!0),f.setRequestHeader("Content-Type","application/json-patch+json")):f.open(g,a,!0),b&&f.setRequestHeader("Accept",b),e.remoteUrl&&f.setRequestHeader("X-Referer",e.remoteUrl),e.onSend(c,a,g),f.send(c),f},d.prototype.send=function(a){return a},d.prototype.receive=function(a,b){this.apply(a,b)},e.prototype=Object.create(k.prototype),e.prototype.observe=function(){this.observer=jsonpatch.observe(this.obj,this.filterChangedCallback.bind(this))},e.prototype.unobserve=function(){this.observer&&(jsonpatch.unobserve(this.obj,this.observer),this.observer=null)},e.prototype.filterChangedCallback=function(a){this.filterIgnoredPatches(a),a.length&&this.handleLocalChange(a)},e.prototype.filterIgnoredPatches=function(a){if(this.ignoreAdd)for(var b=0,c=a.length;c>b;b++)j(this.ignoreAdd,this.ignoreCache,a[b].path,a[b].op)&&(a.splice(b,1),c--,b--);return a},e.prototype.handleLocalChange=function(a){var b=this;this.debug&&this.validateSequence(this.remoteObj,a);var c=JSON.stringify(this.queue.send(a));if(c.indexOf("__Jasmine_been_here_before__")>-1)throw new Error("PuppetJs did not handle Jasmine test case correctly");this.network.send(c),this.unobserve(),a.forEach(function(a){f(b.obj,a.path)}),this.observe()},e.prototype.validateAndApplySequence=function(a,b){if(this.debug)try{jsonpatch.apply(a,b,!0)}catch(c){c.message="Incoming patch validation error: "+c.message;var d;if(ErrorEvent.prototype.initErrorEvent){var d=document.createEvent("ErrorEvent");d.initErrorEvent("error",!0,!0,c.message,"",""),Object.defineProperty(d,"error",{value:c})}else d=new ErrorEvent("error",{bubbles:!0,cancelable:!0,error:c});this.dispatchEvent(d)}else jsonpatch.apply(a,b)},e.prototype.validateSequence=function(a,b){var c=jsonpatch.validate(b,a);if(c){c.message="Outgoing patch validation error: "+c.message;var d;if(ErrorEvent.prototype.initErrorEvent){var d=document.createEvent("ErrorEvent");d.initErrorEvent("error",!0,!0,c.message,"",""),Object.defineProperty(d,"error",{value:c})}else d=new ErrorEvent("error",{bubbles:!0,cancelable:!0,error:c});this.dispatchEvent(d)}},e.prototype.handleRemoteError=function(a,b,c){this.onPatchReceived&&this.onPatchReceived(a,b,c)},e.prototype.showWarning=function(b,c){this.debug&&a.console&&console.warn&&(c&&(b+=" ("+c+")"),console.warn("PuppetJs warning: "+b))},e.prototype.handleRemoteChange=function(a,b,c){var d=JSON.parse(a||"[]"),e=this;this.onPatchReceived&&this.onPatchReceived(a,b,c),this.observer&&(this.unobserve(),this.queue.receive(this.obj,d),d.forEach(function(a){if(""===a.path){var b=JSON.stringify(d);b.length>103&&(b=b.substring(0,100)+"..."),e.showWarning("Server pushed patch that replaces the object root",b)}("add"===a.op||"replace"===a.op||"test"===a.op)&&f(e.obj,a.path)}),this.observe(),this.onRemoteChange&&this.onRemoteChange(d),this.debug&&(this.remoteObj=JSON.parse(JSON.stringify(this.obj))))};var l={create:function(a,b,c){var d="";if(c){var e=new Date;e.setTime(e.getTime()+24*c*60*60*1e3),d="; expires="+e.toGMTString()}document.cookie=a+"="+b+d+"; path=/"},readAll:function(){if(""===document.cookie)return{};for(var a=document.cookie.split("; "),b={},c=0,d=a.length;d>c;c++){var e=a[c].split("=");b[decodeURIComponent(e[0])]=decodeURIComponent(e[1])}return b},read:function(a){return l.readAll()[a]},erase:function(a){l.create(a,"",-1)}};a.Puppet=e}(window);
+
+(function (global) {
+  /**
+   * https://github.com/mrdoob/eventdispatcher.js
+   * MIT license
+   * @author mrdoob / http://mrdoob.com/
+   */
+
+  var EventDispatcher = function () {
+  };
+
+  EventDispatcher.prototype = {
+    constructor: EventDispatcher,
+    apply: function (object) {
+      object.addEventListener = EventDispatcher.prototype.addEventListener;
+      object.hasEventListener = EventDispatcher.prototype.hasEventListener;
+      object.removeEventListener = EventDispatcher.prototype.removeEventListener;
+      object.dispatchEvent = EventDispatcher.prototype.dispatchEvent;
+    },
+    addEventListener: function (type, listener) {
+      if (this._listeners === undefined) this._listeners = {};
+      var listeners = this._listeners;
+      if (listeners[type] === undefined) {
+        listeners[type] = [];
+      }
+      if (listeners[type].indexOf(listener) === -1) {
+        listeners[type].push(listener);
+      }
+    },
+    hasEventListener: function (type, listener) {
+      if (this._listeners === undefined) return false;
+      var listeners = this._listeners;
+      if (listeners[type] !== undefined && listeners[type].indexOf(listener) !== -1) {
+        return true;
+      }
+      return false;
+    },
+    removeEventListener: function (type, listener) {
+      if (this._listeners === undefined) return;
+      var listeners = this._listeners;
+      var listenerArray = listeners[type];
+      if (listenerArray !== undefined) {
+        var index = listenerArray.indexOf(listener);
+        if (index !== -1) {
+          listenerArray.splice(index, 1);
+        }
+      }
+    },
+    dispatchEvent: function (event) {
+      if (this._listeners === undefined) return;
+      var listeners = this._listeners;
+      var listenerArray = listeners[event.type];
+      if (listenerArray !== undefined) {
+        event.target = this;
+        var array = [];
+        var length = listenerArray.length;
+        for (var i = 0; i < length; i++) {
+          array[i] = listenerArray[i];
+        }
+        for (var i = 0; i < length; i++) {
+          array[i].call(this, event);
+        }
+      }
+    }
+  };
+
+  /**
+   * Defines at given object a WS URL out of given HTTP remoteURL location
+   * @param  {Object} obj       Where to define the wsURL property
+   * @param  {String} remoteUrl HTTP remote address
+   * @return {String}           WS address
+   */
+  function defineWebSocketURL(obj, remoteUrl){
+    var url;
+    if(remoteUrl){
+      url = new URL(remoteUrl, window.location);
+    } else {
+      url = new URL(window.location.href);
+    }
+    // use exactly same URL, switch only protocols
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+    return Object.defineProperty(obj, 'wsURL', {
+      value: url
+    });
+
+  }
+
+  function PuppetNetworkChannel(puppet, remoteUrl, useWebSocket, onReceive, onSend, onError, onStateChange) {
+    // TODO(tomalec): to be removed once we will achieve better separation of concerns
+    this.puppet = puppet;
+
+    if (remoteUrl instanceof URL) {
+    this.remoteUrl = remoteUrl;
+    } else if (remoteUrl) {
+        this.remoteUrl = new URL(remoteUrl, window.location.href);
+    } else {
+        this.remoteUrl = new URL(window.location.href);
+    }
+    
+    // define wsURL if needed
+    if(useWebSocket){
+      defineWebSocketURL(this, remoteUrl);
+    }
+
+    onReceive && (this.onReceive = onReceive);
+    onSend && (this.onSend = onSend);
+    onError && (this.onError = onError);
+    onStateChange && (this.onStateChange = onStateChange);
+
+    //useWebSocket = useWebSocket || false;
+    var that = this;
+    Object.defineProperty(this, "useWebSocket", {
+      get: function () {
+        return useWebSocket;
+      },
+      set: function (newValue) {
+        useWebSocket = newValue;
+
+        if(newValue == false) {
+          if(that._ws) {
+            that._ws.onclose = function() { //overwrites the previous onclose
+              that._ws = null;
+            };
+            that._ws.close();
+          }
+        // define wsURL if needed
+        } else if(!that.wsURL) {
+          defineWebSocketURL(this, remoteUrl);
+        }
+        return useWebSocket;
+      }
+    });
+  }
+  // TODO: auto-configure here #38 (tomalec)
+  PuppetNetworkChannel.prototype.establish = function(bootstrap /*, onConnectionReady*/){
+    var network = this;
+    return this.xhr(
+        this.remoteUrl.href,
+        'application/json', 
+        null,  
+        function (res) {
+          bootstrap( res.responseText );
+
+          if (network.useWebSocket){
+            network.webSocketUpgrade();
+          }
+          return network;
+        }
+      );
+
+  };
+  /**
+   * Send any text message by currently established channel
+   * @TODO: handle readyState 2-CLOSING & 3-CLOSED (tomalec)
+   * @param  {String} msg message to be sent
+   * @return {PuppetNetworkChannel}     self
+   */
+  PuppetNetworkChannel.prototype.send = function(msg){
+    var that = this;
+    // send message only if there is a working ws connection
+    if (this.useWebSocket && this._ws && this._ws.readyState === 1) {
+        this._ws.send(msg);
+        that.onSend(msg, that._ws.url, "WS");
+    } else {
+      var url = this.remoteUrl.href;
+      this.xhr(url, 'application/json-patch+json', msg, function (res, method) {
+          that.onReceive(res.responseText, url, method);
+        });
+    }
+    return this;
+  };
+  /**
+   * Callback function that will be called once message from remote comes.
+   * @param {String} [JSONPatch_sequences] message with Array of JSONPatches that were send by remote.
+   * @return {[type]} [description]
+   */
+  PuppetNetworkChannel.prototype.onReceive = function(/*String_with_JSONPatch_sequences*/){};
+  PuppetNetworkChannel.prototype.onSend = function () { };
+  PuppetNetworkChannel.prototype.onStateChange = function () { };
+  PuppetNetworkChannel.prototype.upgrade = function(msg){
+  };
+
+  /**
+   * Send a WebSocket upgrade request to the server.
+   * For testing purposes WS upgrade url is hardcoded now in PuppetJS (replace __default/ID with __default/ID)
+   * In future, server should suggest the WebSocket upgrade URL
+   * @TODO:(tomalec)[cleanup] hide from public API.
+   * @param {Function} [callback] Function to be called once connection gets opened.
+   * @returns {WebSocket} created WebSocket
+   */
+  PuppetNetworkChannel.prototype.webSocketUpgrade = function (callback) {
+    var that = this;
+    // resolve session path given in referrer in the context of remote WS URL
+    var upgradeURL = (
+      new URL(
+        this.remoteUrl.pathname,
+        this.wsURL
+        )
+      ).href;
+    // ws[s]://[user[:pass]@]remote.host[:port]/__[sessionid]/
+
+    that._ws = new WebSocket(upgradeURL);
+    that._ws.onopen = function (event) {
+      that.onStateChange(that._ws.readyState, upgradeURL);
+      callback && callback(event);
+      //TODO: trigger on-ready event (tomalec)
+    };
+    that._ws.onmessage = function (event) {
+      that.onReceive(event.data, that._ws.url, "WS");
+    };
+    that._ws.onerror = function (event) {
+      that.onStateChange(that._ws.readyState, upgradeURL, event.data);
+
+      if (!that.useWebSocket) {
+          return;
+      }
+
+      var m = {
+          statusText: "WebSocket connection could not be made.",
+          readyState: that._ws.readyState,
+          url: upgradeURL
+      };
+
+      that.onError(JSON.stringify(m), upgradeURL, "WS");
+    };
+    that._ws.onclose = function (event) {
+      that.onStateChange(that._ws.readyState, upgradeURL, null, event.code, event.reason);
+
+      var m = {
+          statusText: "WebSocket connection closed.",
+          readyState: that._ws.readyState,
+          url: upgradeURL,
+          statusCode: event.code,
+          reason: event.reason
+      };
+
+      that.onError(JSON.stringify(m), upgradeURL, "WS");
+    };
+  };
+  PuppetNetworkChannel.prototype.changeState = function (href) {
+    var that = this;
+    return this.xhr(href, 'application/json-patch+json', null, function (res, method) {
+      that.onReceive(res.responseText, href, method);
+    }, true);
+  };
+
+  // TODO:(tomalec)[cleanup] hide from public API.
+  PuppetNetworkChannel.prototype.setRemoteUrl = function (remoteUrl) {
+    if (this.remoteUrlSet && this.remoteUrl && this.remoteUrl.href != remoteUrl) {
+        throw new Error("Session lost. Server replied with a different session ID that was already set. \nPossibly a server restart happened while you were working. \nPlease reload the page.\n\nPrevious session ID: " + this.remoteUrl + "\nNew session ID: " + remoteUrl);
+    }
+    this.remoteUrlSet = true;
+    this.remoteUrl = new URL(remoteUrl, this.remoteUrl.href);
+  };
+
+  // TODO:(tomalec)[cleanup] hide from public API.
+  PuppetNetworkChannel.prototype.handleResponseHeader = function (xhr) {
+    var location = xhr.getResponseHeader('X-Location') || xhr.getResponseHeader('Location');
+    if (location) {
+      this.setRemoteUrl(location);
+    }
+  };
+
+  /**
+   * Internal method to perform XMLHttpRequest
+   * @param url (Optional) URL to send the request. If empty string, undefined or null given - the request will be sent to window location
+   * @param accept (Optional) HTTP accept header
+   * @param data (Optional) Data payload
+   * @param [callback(response)] callback to be called in context of puppet with response as argument
+   * @returns {XMLHttpRequest} performed XHR
+   */
+  PuppetNetworkChannel.prototype.xhr = function (url, accept, data, callback, setReferer) {
+    var that = this;
+    var req = new XMLHttpRequest();
+    var method = "GET";
+    req.onload = function () {
+      var res = this;
+      that.handleResponseHeader(res);
+      if (res.status >= 400 && res.status <= 599) {
+        that.onError(JSON.stringify({ statusCode: res.status, statusText: res.statusText, text: res.responseText }), url, method);
+        throw new Error('PuppetJs JSON response error. Server responded with error ' + res.status + ' ' + res.statusText + '\n\n' + res.responseText);
+      }
+      else {
+        callback && callback.call(that.puppet, res, method);
+      }
+    };
+    url = url || window.location.href;
+    if (data) {
+      method = "PATCH";
+      req.open(method, url, true);
+      req.setRequestHeader('Content-Type', 'application/json-patch+json');
+    }
+    else {
+      req.open(method, url, true);
+    }
+    if (accept) {
+      req.setRequestHeader('Accept', accept);
+    }
+    if (that.remoteUrl && setReferer) {
+      req.setRequestHeader('X-Referer', that.remoteUrl.pathname);
+    }
+    that.onSend(data, url, method);
+    req.send(data);
+
+    return req;
+  };
+
+  /**
+   * Non-queuing object that conforms JSON-Patch-Queue API
+   * @param {Function} apply function to apply received patch
+   */
+  function NoQueue(apply){
+    this.apply = apply;
+  }
+  /** just forward message */
+  NoQueue.prototype.send = function(msg){
+    return msg;
+  };
+  /** Apply given JSON Patch sequence immediately */
+  NoQueue.prototype.receive = function(obj, sequence){
+      this.apply(obj, sequence);    
+  };
+
+  /**
+   * Defines a connection to a remote PATCH server, serves an object that is persistent between browser and server.
+   * @param {Object}             [options]                    map of arguments
+   * @param {String}             [options.remoteUrl]          PATCH server URL
+   * @param {Function}           [options.callback]        Called after initial state object is received from the remote (NOT necessarily after WS connection was established)
+   * @param {Object}             [options.obj]                object where the parsed JSON data will be inserted
+   * @param {Boolean}            [options.useWebSocket=false] Set to true to enable WebSocket support
+   * @param {RegExp}             [options.ignoreAdd=null]     Regular Expression for `add` operations to be ignored (tested against JSON Pointer in JSON Patch)
+   * @param {Boolean}            [options.debug=false]        Set to true to enable debugging mode
+   * @param {Function}           [options.onRemoteChange]     Helper callback triggered each time a patch is obtained from remote
+   * @param {JSONPointer}        [options.localVersionPath]   local version path, set it to enable Versioned JSON Patch communication
+   * @param {JSONPointer}        [options.remoteVersionPath]  remote version path, set it (and `localVersionPath`) to enable Versioned JSON Patch communication
+   * @param {Boolean}            [options.ot=false]           true to enable OT
+   * @param {Boolean}            [options.purity=false]       true to enable purist mode of OT
+   * @param {Function}           [options.onPatchReceived]
+   * @param {Function}           [options.onPatchSent]
+   * @param {HTMLElement | window} [options.listenTo]         HTMLElement or window to listen to clicks
+   */
+  function Puppet(options) {
+    options || (options={});
+    this.debug = options.debug != undefined ? options.debug : true;
+    this.obj = options.obj || {};
+    this.observer = null;
+    this.onRemoteChange = options.onRemoteChange;
+    this.onPatchReceived = options.onPatchReceived || function () { };
+    this.onPatchSent = options.onPatchSent || function () { };
+    this.onSocketStateChanged = options.onSocketStateChanged || function () { };
+    this.onConnectionError = options.onConnectionError || function () { };
+
+    this.network = new PuppetNetworkChannel(
+        this, // puppet instance TODO: to be removed, used for error reporting
+        options.remoteUrl,
+        options.useWebSocket || false, // useWebSocket
+        this.handleRemoteChange.bind(this), //onReceive
+        this.onPatchSent.bind(this), //onSend,
+        this.handleRemoteError.bind(this), //onError,
+        this.onSocketStateChanged.bind(this) //onStateChange
+      );
+    
+    Object.defineProperty(this, "useWebSocket", {
+      get: function () {
+        return this.network.useWebSocket;
+      },
+      set: function (newValue) {
+        this.network.useWebSocket = newValue;
+      }
+    });
+
+    // choose queuing engine
+    if(options.localVersionPath){
+      if(!options.remoteVersionPath){
+        //just versioning
+        this.queue = new JSONPatchQueueSynchronous(options.localVersionPath, this.validateAndApplySequence.bind(this), options.purity);
+      } else {
+        // double versioning or OT
+        this.queue = options.ot ?
+          new JSONPatchOTAgent(JSONPatchOT.transform, [options.localVersionPath, options.remoteVersionPath], this.validateAndApplySequence.bind(this), options.purity) :
+          new JSONPatchQueue([options.localVersionPath, options.remoteVersionPath], this.validateAndApplySequence.bind(this), options.purity); // full or noop OT
+      }
+    } else {
+      // no queue - just api
+      this.queue = new NoQueue(this.validateAndApplySequence.bind(this));
+    }
+
+    this.ignoreCache = [];
+    this.ignoreAdd = options.ignoreAdd || null; //undefined, null or regexp (tested against JSON Pointer in JSON Patch)
+    this.pingInterval = options.pingInterval || false;
+
+    //usage:
+    //puppet.ignoreAdd = null;  //undefined or null means that all properties added on client will be sent to remote
+    //puppet.ignoreAdd = /./; //ignore all the "add" operations
+    //puppet.ignoreAdd = /\/\$.+/; //ignore the "add" operations of properties that start with $
+    //puppet.ignoreAdd = /\/_.+/; //ignore the "add" operations of properties that start with _
+
+    var onDataReady = options.callback;
+    var puppet = this;
+    this.network.establish(function bootstrap(responseText){
+      var json = JSON.parse(responseText);
+      recursiveExtend(puppet.obj, json);
+
+      if (puppet.debug) {
+        puppet.remoteObj = responseText; // JSON.parse(JSON.stringify(puppet.obj));
+      }
+
+      recursiveMarkObjProperties(puppet.obj);
+      puppet.observe();
+      if (onDataReady) {
+        onDataReady.call(puppet, puppet.obj);
+      }
+
+      puppet.ping();
+    });
+  }
+
+  function markObjPropertyByPath(obj, path) {
+    var keys = path.split('/');
+    var len = keys.length;
+    if (len > 2) {
+      for (var i = 1; i < len - 1; i++) {
+        obj = obj[keys[i]];
+      }
+    }
+    recursiveMarkObjProperties(obj[keys[len - 1]], len > 1? obj : undefined);
+  }
+
+  function placeMarker(subject, parent) {
+    if (parent != undefined && !subject.hasOwnProperty('$parent')) {
+      Object.defineProperty(subject, '$parent', {
+        enumerable: false,
+        get: function () {
+          return parent;
+        }
+      });
+    }
+  }
+
+  function recursiveMarkObjProperties(subject, parent) {
+    var child;
+    if(subject !== null && typeof subject === 'object'){
+      placeMarker(subject, parent);
+      for (var i in subject) {
+        child = subject[i];
+        if (subject.hasOwnProperty(i)) {
+          recursiveMarkObjProperties(child, subject);
+      }
+    }
+  }
+  }
+
+  function recursiveExtend(par, obj) {
+    for (var i in obj) {
+      if (obj.hasOwnProperty(i)) {
+        if (typeof obj[i] === 'object' && par.hasOwnProperty(i)) {
+          recursiveExtend(par[i], obj[i]);
+        }
+        else {
+          par[i] = obj[i];
+        }
+      }
+    }
+  }
+
+  Puppet.prototype = Object.create(EventDispatcher.prototype); //inherit EventTarget API from EventDispatcher
+
+  Puppet.prototype.ping = function () {
+      if (!this.pingInterval) {
+          return;
+      }
+
+      var time = this.pingInterval * 1000;
+
+      clearTimeout(this.pingTimeout);
+
+      this.pingTimeout = setTimeout(function () {
+          this.handleLocalChange([]);
+          //console.log(this.obj);
+          this.ping();
+      }.bind(this), time);
+  };
+
+  Puppet.prototype.observe = function () {
+    this.observer = jsonpatch.observe(this.obj, this.filterChangedCallback.bind(this));
+  };
+
+  Puppet.prototype.unobserve = function () {
+    if (this.observer) { //there is a bug in JSON-Patch when trying to unobserve something that is already unobserved
+      jsonpatch.unobserve(this.obj, this.observer);
+      this.observer = null;
+    }
+  };
+
+  Puppet.prototype.filterChangedCallback = function (patches) {
+    this.filterIgnoredPatches(patches);
+    if(patches.length) {
+      this.handleLocalChange(patches);
+    }
+  };
+
+  function isIgnored(pattern, ignoreCache, path, op) {
+    if (op === 'add' && pattern.test(path)) {
+      ignoreCache[path] = true;
+      return true;
+    }
+    var arr = path.split('/');
+    var joined = '';
+    for (var i = 1, ilen = arr.length; i < ilen; i++) {
+      joined += '/' + arr[i];
+      if (ignoreCache[joined]) {
+        return true; //once we decided to ignore something that was added, other operations (replace, remove, ...) are ignored as well
+      }
+    }
+    return false;
+  }
+
+  //ignores private member changes
+  Puppet.prototype.filterIgnoredPatches = function (patches) {
+    if(this.ignoreAdd){
+      for (var i = 0, ilen = patches.length; i < ilen; i++) {
+        if (isIgnored(this.ignoreAdd, this.ignoreCache, patches[i].path, patches[i].op)) { //if it is ignored, remove patch
+          patches.splice(i, 1); //ignore changes to properties that start with PRIVATE_PREFIX
+          ilen--;
+          i--;
+        }
+      }
+    }
+    return patches;
+  };
+
+  Puppet.prototype.handleLocalChange = function (patches) {
+    var that = this;
+
+    if(this.debug) {
+      this.validateSequence(this.remoteObj, patches);
+    }
+
+    var txt = JSON.stringify( this.queue.send(patches) );
+    if (txt.indexOf('__Jasmine_been_here_before__') > -1) {
+      throw new Error("PuppetJs did not handle Jasmine test case correctly");
+    }
+    this.network.send(txt);
+    this.unobserve();
+    patches.forEach(function (patch) {
+      markObjPropertyByPath(that.obj, patch.path);
+    });
+    this.observe();
+  };
+
+  Puppet.prototype.validateAndApplySequence = function (tree, sequence) {
+    if (this.debug) {
+      try {
+        jsonpatch.apply(tree, sequence, true);
+      }
+      catch (error) {
+        error.message = "Incoming patch validation error: " + error.message;
+        var ev;
+        if (ErrorEvent.prototype.initErrorEvent) {
+          var ev = document.createEvent("ErrorEvent");
+          ev.initErrorEvent('error', true, true, error.message, "", ""); //IE10+
+          Object.defineProperty(ev, 'error', {value: error}); //ev.error is ignored
+        }
+        else {
+          ev = new ErrorEvent("error", {bubbles: true, cancelable: true, error: error}); //this works everywhere except IE
+        }
+        this.dispatchEvent(ev);
+      }
+    }
+    else {
+      jsonpatch.apply(tree, sequence);
+    }
+  };
+
+  Puppet.prototype.validateSequence = function (tree, sequence) {
+    var error = jsonpatch.validate(sequence, tree);
+    if (error) {
+      error.message = "Outgoing patch validation error: " + error.message;
+      var ev;
+      if (ErrorEvent.prototype.initErrorEvent) {
+        var ev = document.createEvent("ErrorEvent");
+        ev.initErrorEvent('error', true, true, error.message, "", ""); //IE10+
+        Object.defineProperty(ev, 'error', {value: error}); //ev.error is ignored
+      }
+      else {
+        ev = new ErrorEvent("error", {bubbles: true, cancelable: true, error: error}); //this works everywhere except IE
+      }
+      this.dispatchEvent(ev);
+    }
+  };
+
+  Puppet.prototype.handleRemoteError = function (data, url, method) {
+      if (this.onConnectionError) {
+          this.onConnectionError(data, url, method);
+      }
+
+      if (this.onPatchReceived) {
+          this.onPatchReceived(data, url, method);
+      }
+  };
+
+  Puppet.prototype.showWarning = function (heading, description) {
+    if (this.debug && global.console && console.warn) {
+      if (description) {
+        heading += " (" + description + ")";
+      }
+      console.warn("PuppetJs warning: " + heading);
+    }
+  };
+
+  Puppet.prototype.handleRemoteChange = function (data, url, method) {
+    var patches = JSON.parse(data || '[]'); // fault tolerance - empty response string should be treated as empty patch array
+    var that = this;
+
+    if (this.onPatchReceived) {
+        this.onPatchReceived(data, url, method);
+    }
+
+    if (!this.observer) {
+      return; //ignore remote change if we are not watching anymore
+    }
+
+    this.unobserve();
+    this.queue.receive(this.obj, patches);
+
+    patches.forEach(function (patch) {
+      if (patch.path === "") {
+        var desc = JSON.stringify(patches);
+        if (desc.length > 103) {
+          desc = desc.substring(0, 100) + "...";
+        }
+        //TODO Error
+        that.showWarning("Server pushed patch that replaces the object root", desc);
+      }
+      if (patch.op === "add" || patch.op === "replace" || patch.op === "test") {
+        markObjPropertyByPath(that.obj, patch.path);
+      }
+    });
+    this.observe();
+    if (this.onRemoteChange) {
+      this.onRemoteChange(patches);
+    }
+
+    if(this.debug) {
+      this.remoteObj = JSON.parse(JSON.stringify(this.obj));
+    }
+  };
+
+  global.Puppet = Puppet;
+})(window);
