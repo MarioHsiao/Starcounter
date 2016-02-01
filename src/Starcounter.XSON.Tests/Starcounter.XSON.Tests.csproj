@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>..\..\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
@@ -92,6 +92,10 @@
     <ProjectReference Include="..\Starcounter.XSON.JsonByExample\Starcounter.XSON.JsonByExample.csproj">
       <Project>{78b0f265-3764-4627-996b-b0113a8c7a52}</Project>
       <Name>Starcounter.XSON.JsonByExample</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Starcounter.XSON.JsTemplateParser\Starcounter.XSON.JsTemplateParser.fsproj">
+      <Project>{6b8b91cd-9da4-4585-b9a0-84b75a5d42f6}</Project>
+      <Name>Starcounter.XSON.JsTemplateParser</Name>
     </ProjectReference>
     <ProjectReference Include="..\Starcounter.XSON.Tests.CompiledJson\Starcounter.XSON.Tests.CompiledJson.csproj">
       <Project>{43C7287D-816A-4C82-A0CB-188A51E6C94A}</Project>
