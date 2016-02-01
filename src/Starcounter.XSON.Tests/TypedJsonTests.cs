@@ -867,6 +867,38 @@ namespace Starcounter.Internal.XSON.Tests {
             Assert.AreEqual("JSON!", json.MixedValues[2].Title);
         }
 
+        [Test]
+        public static void TestInvalidCharactersinJsonPropertyName() {
+            TValue template;
 
+            string json = @"{""Name with space"":1}";
+            var ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+                () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
+            );
+            Helper.ConsoleWriteLine(ex.Message);
+
+            json = @"{""7Name--with .dea@"":1}";
+            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+                () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
+            );
+            Helper.ConsoleWriteLine(ex.Message);
+
+            json = @"{""£blhaha"":1}";
+            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+                () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
+            );
+            Helper.ConsoleWriteLine(ex.Message);
+
+            json = @"{""blhaha@1"":1}";
+            ex = Assert.Throws<Starcounter.Internal.JsonTemplate.Error.CompileError>(
+                () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
+            );
+            Helper.ConsoleWriteLine(ex.Message);
+
+            json = @"{""bla345sa234"":1}";
+            Assert.DoesNotThrow(
+                () => { template = Helper.CreateJsonTemplateFromContent("Test", json); }
+            );   
+        }
     }
 }
