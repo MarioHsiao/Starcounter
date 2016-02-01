@@ -525,22 +525,27 @@ namespace Starcounter.Internal.JsonTemplate {
         void ITemplateFactory.SetBindProperty(object template, string path, DebugInfo debugInfo) {
             ((TValue)template).Bind = path;
         }
-        
+
+        private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
+            if (propertyName == null)
+                return;
+
+            CheckForInvalidCharactersInPropertyName(propertyName, debugInfo);
+            CheckForIllegalPropertyName(propertyName, debugInfo);
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="debugInfo"></param>
-        private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
+        private void CheckForInvalidCharactersInPropertyName(string propertyName, DebugInfo debugInfo) {
             Match match;
             MatchCollection matches;
             StringBuilder invalidTokens;
             int tokenStart;
             int tokenLength;
-
-            if (propertyName == null)
-                return;
-
+            
             matches = legalPropertyNameRegex.Matches(propertyName);
             if (matches.Count > 0) {
                 match = matches[0];
@@ -584,7 +589,9 @@ namespace Starcounter.Internal.JsonTemplate {
 
                 ErrorHelper.RaiseInvalidPropertyCharactersError(propertyName, invalidTokens.ToString(), debugInfo);
             }
-            
+        }
+
+        private void CheckForIllegalPropertyName(string propertyName, DebugInfo debugInfo) {
             for (int i = 0; i < ILLEGAL_PROPERTIES.Length; i++) {
                 if (propertyName.Equals(ILLEGAL_PROPERTIES[i], StringComparison.CurrentCultureIgnoreCase)) {
                     ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
