@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Starcounter.Internal {
     internal interface ITransactionManager {
-        TransactionHandle Create(bool readOnly, bool detectConflicts = false);
+        TransactionHandle Create(bool readOnly, bool detectConflicts = false, bool applyHooks = true);
         Starcounter.Advanced.ITransaction WrapHandle(TransactionHandle handle);
         void Commit(TransactionHandle handle);
         void Rollback(TransactionHandle handle);
@@ -39,18 +39,20 @@ namespace Starcounter.Internal {
         private const uint FLAG_TEMPORARY_REF = 0x8000;
         
 
-        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED | FLAG_IMPLICIT, -1);
+        internal static TransactionHandle Invalid = new TransactionHandle(0, INVALID_VERIFY, FLAG_TEMPORARY_REF | FLAG_CLAIMED | FLAG_IMPLICIT, -1, true);
 
         internal ulong handle;        // 8
         internal ulong verify;        // 8
         internal uint flags;          // 4
         internal int index;           // 4
-                                      // 24
-        internal TransactionHandle(ulong handle, ulong verify, uint flags, int index) {
+        internal bool applyHooks;     // 4
+                                      // 28
+        internal TransactionHandle(ulong handle, ulong verify, uint flags, int index, bool applyHooks) {
             this.handle = handle;
             this.verify = (ushort)verify;
             this.flags = flags;
             this.index = index;
+            this.applyHooks = applyHooks;
         }
 
         internal void SetTemporaryRef() {
