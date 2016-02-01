@@ -4,7 +4,6 @@ class Program {
 	static void Main() {
 		Db.SQL("create index PersonNikcNameIndx on \"Person\" (NickName)");
 		Db.SQL("create index UserNikcNameIndx on \"User\" (NickName)");
-		Db.SQL("drop index auto on \"User\"");
 		Db.Transact(delegate {
 			new User { FirstName = "Alex", LastName = "Ivanov", NickName = "Lion" };
 		});
