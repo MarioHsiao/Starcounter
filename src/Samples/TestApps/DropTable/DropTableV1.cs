@@ -16,6 +16,14 @@ class Program {
         ScAssertion.Assert(Db.SQL<RawView>("SELECT v FROM RawView v WHERE Name = ?", "Account").First != null);
         ScAssertion.Assert(Db.SQL<Column>("SELECT c FROM Column c WHERE c.Table.Name = ? AND c.Name = ?",
             "Account", "Client") != null);
+		int count = 0;
+		Db.Transact(delegate {
+			foreach(Account a in Db.SQL<Account>("SELECT a FROM Account a")) {
+				a.Delete();
+				count++;
+			}
+		});
+		System.Diagnostics.Trace.Assert(count == 1);
     }
 }
 

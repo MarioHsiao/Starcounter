@@ -438,7 +438,12 @@ internal static class SqlProcessor
         }
         DeleteMetadataDroppedTable(typePath);
 #else
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
+            DDLScope(() => {
+                uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_table_cascade(
+                ThreadData.ContextHandle, typePath);
+                if (err != 0) throw ErrorCode.ToException(err);
+            });
+            //throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
 #endif
         }
 
