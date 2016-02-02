@@ -44,6 +44,15 @@ namespace Starcounter.Internal {
             UInt32 sessionTimeoutMinutes,
             String dbName,
             Boolean noNetworkGateway) {
+
+            // Dependency injection for db and transaction calls.
+            StarcounterBase._DB = new DbImpl();
+            DbSession dbs = new DbSession();
+            Scheduling.SetDbSessionImplementation(dbs);
+
+            // Invalidating scheduler id.
+            StarcounterEnvironment.InvalidateSchedulerId();
+
             // Setting host exception logging for internal.
             Diagnostics.SetHostLogException((Exception exc) => {
                 LogSources.Hosting.LogException(exc);
@@ -63,11 +72,6 @@ namespace Starcounter.Internal {
             // Allow reading of JSON-by-example files at runtime
             // Starcounter_XSON_JsonByExample.Initialize();
 
-            // Dependency injection for db and transaction calls.
-            StarcounterBase._DB = new DbImpl();
-            DbSession dbs = new DbSession();
-            ScSessionClass.SetDbSessionImplementation(dbs);
-
             // Dependency injection for converting puppets to html
             Starcounter.Internal.XSON.Modules.Starcounter_XSON.Injections.JsonMimeConverter = new JsonMimeConverter();
 
@@ -86,9 +90,7 @@ namespace Starcounter.Internal {
             }
 
             // Injecting required hosted Node functionality.
-            Node.InjectHostedImpl(
-                UriManagedHandlersCodegen.RunUriMatcherAndCallHandler,
-                NodeErrorLogSource.LogException);
+            Node.InjectHostedImpl(NodeErrorLogSource.LogException);
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);

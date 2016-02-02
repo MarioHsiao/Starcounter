@@ -29,9 +29,6 @@ namespace Starcounter.Internal.XSON.Tests {
             Session session = new Session();
             Session session2 = new Session();
 
-            session.CargoId = 1;
-            session2.CargoId = 2;
-
             StarcounterEnvironment.AppName = "SingleApp";
             session.Data = root;
 
