@@ -190,7 +190,7 @@ namespace Starcounter {
                                     throw ErrorCode.ToException(dbe.ErrorCode, dbe);
                                 }
                                 else {
-                                    throw ErrorCode.ToException(Error.SCERRUNSPECIFIED, e);
+                                    throw ErrorCode.ToException(Error.SCERRUNHANDLEDEXCEPTION, e);
                                 }
                             }
                         }
