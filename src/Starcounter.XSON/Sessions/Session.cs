@@ -46,6 +46,11 @@ namespace Starcounter {
         private static JsonPatch jsonPatch_ = new JsonPatch();
 
         /// <summary>
+        /// To which scheduler this session belongs.
+        /// </summary>
+        Byte schedulerId_;
+
+        /// <summary>
         /// List of destroy delegates for this session.
         /// </summary>
         List<SessionDestroyInfo> destroyDelegates_;
@@ -99,6 +104,20 @@ namespace Starcounter {
                 throw ErrorCode.ToException(errCode);
 
             waitObj = new AutoResetEvent(true);
+
+            // Getting current scheduler on which the session was created.
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
+        }
+
+        /// <summary>
+        /// Checks if session is used on the owning scheduler.
+        /// </summary>
+        void CheckCorrectScheduler() {
+
+            // Checking if on the owning scheduler.
+            if (schedulerId_ != StarcounterEnvironment.CurrentSchedulerId) {
+                throw new InvalidOperationException("You are trying to use the session on different scheduler.");
+            }
         }
 
         /// <summary>
@@ -151,6 +170,9 @@ namespace Starcounter {
         /// Calculates the patch and pushes it on WebSocket.
         /// </summary>
         public void CalculatePatchAndPushOnWebSocket() {
+
+            // Checking if on the owning scheduler.
+            CheckCorrectScheduler();
 
             // Checking if there is an active WebSocket.
             if (ActiveWebSocket == null)
@@ -260,6 +282,10 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
+
+                // Checking if on the owning scheduler.
+                CheckCorrectScheduler();
+
                 int stateIndex;
                 string appName;
 
@@ -273,6 +299,10 @@ namespace Starcounter {
                 return _stateList[stateIndex];
             }
             set {
+
+                // Checking if on the owning scheduler.
+                CheckCorrectScheduler();
+
                 int stateIndex;
                 string appName;
 
