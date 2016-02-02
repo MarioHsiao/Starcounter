@@ -41,6 +41,7 @@
 - Fixed correct handling of bound values for arrays in TypedJSON when bound value was null [#3304](https://github.com/Starcounter/Starcounter/issues/3304)
 - Wrapping all generated classes for TypedJSON inside namespace to avoid clashing of names [#3316](https://github.com/Starcounter/Starcounter/issues/3316)
 - Added verification when generating code from JSON-by-example for TypedJSON to make sure all properties only contains valid characters [#3103](https://github.com/Starcounter/Starcounter/issues/3103)
+- Wrapped unhandled exception from a scheduled task inside a starcounter exception to preserve stacktrace [#3032](https://github.com/Starcounter/Starcounter/issues/3032), [#3122](https://github.com/Starcounter/Starcounter/issues/3122), [#3329](https://github.com/Starcounter/Starcounter/issues/3032)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.

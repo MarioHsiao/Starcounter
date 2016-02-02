@@ -157,6 +157,13 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
+        /// Checks if execution occurs on scheduler.
+        /// </summary>
+        public static bool IsOnScheduler() {
+            return (StarcounterEnvironment.InvalidSchedulerId != StarcounterEnvironment.CurrentSchedulerId);
+        }
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte CurrentSchedulerId

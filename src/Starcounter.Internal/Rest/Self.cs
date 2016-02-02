@@ -330,6 +330,11 @@ namespace Starcounter {
             HandlerOptions handlerOptions,
             Request req) {
 
+            // Checking if we are not on scheduler.
+            if (!StarcounterEnvironment.IsOnScheduler()) {
+                throw new InvalidOperationException("You are trying to perform a Self call while not being on Starcounter scheduler.");
+            }
+
             // Checking if URI starts with a slash.
             if (String.IsNullOrEmpty(relativeUri) || relativeUri[0] != '/') {
                 throw new ArgumentOutOfRangeException(relativeUri, "Self should be called with URI starting with a slash.");

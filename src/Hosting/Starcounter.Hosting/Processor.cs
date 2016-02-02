@@ -129,7 +129,7 @@ namespace StarcounterInternal.Hosting
                 // Checking if any exception was thrown.
                 var e = task.GetException();
                 if (e != null) {
-                    throw e;
+                    throw ErrorCode.ToException(Starcounter.Error.SCERRUNHANDLEDEXCEPTION, e);
                 }
             } finally {
                 TransactionManager.Cleanup();
