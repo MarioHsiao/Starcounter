@@ -533,12 +533,15 @@ namespace Starcounter {
             // Checking if destroy callback is supplied.
             if (null != destroyDelegates_) {
                 RunDestroyDelegates(this);
+                destroyDelegates_ = null;
             }
-            
+
             // NOTE: Preventing recursive destroy call.
-            InternalSession.apps_session_int_ = null;
-            InternalSession.Destroy();
-            InternalSession = null;
+            if (InternalSession != null) {
+                InternalSession.apps_session_int_ = null;
+                InternalSession.Destroy();
+                InternalSession = null;
+            }
 
             Session._current = null;
         }
