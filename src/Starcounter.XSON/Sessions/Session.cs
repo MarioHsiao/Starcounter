@@ -195,7 +195,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
         /// <param name="task">Task to run on session.</param>
-        public static void ScheduleTask(String sessionId, Action<Session, String> task) {
+        /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
+        public static void ScheduleTask(String sessionId, Action<Session, String> task, Boolean waitForCompletion = false) {
 
             // Getting session structure from string.
             ScSessionStruct ss = new ScSessionStruct();
@@ -211,10 +212,10 @@ namespace Starcounter {
 
                 Scheduling.ScheduleTask(() => {
 
-                    Session s = (Session) GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
+                    Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
                     task(s, sessionId);
 
-                }, ss.schedulerId_);
+                }, ss.schedulerId_, waitForCompletion);
             }
         }
 
