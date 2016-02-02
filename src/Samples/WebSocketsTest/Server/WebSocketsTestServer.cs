@@ -176,61 +176,7 @@ namespace WebSocketsTestServer {
                 }
             }
         }
-
-        /// <summary>
-        /// Broadcasts on active sessions.
-        /// </summary>
-        static void BroadcastSessions() {
-
-            while (true) {
-
-                try {
-
-                    Session.ForAll((Session s) => {
-
-                        try {
-
-                            // Getting active attached WebSocket.
-                            WebSocket ws = s.ActiveWebSocket;
-                            if (ws == null) {
-                                s.Destroy();
-                            }
-
-                            // Checking if we have a WebSocket.
-                            if (!allWebSockets_.ContainsKey(ws.ToUInt64()))
-                                return;
-
-                            //WebSocketState wss = Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w WHERE w.Id=?", ws.ToUInt64()).First;
-                            WebSocketState wss = allWebSockets_[ws.ToUInt64()];
-
-                            // Checking if there is no such WebSocket.
-                            if (wss == null) {
-                                GlobalErrorCode = 4;
-                                return;
-                            }
-
-                            // Pushing message on this WebSocket.
-                            for (Int32 i = 0; i < 5; i++) {
-                                PushOnWebSocket(new String((Char)wss.MessageLetter, wss.MessageSize), ws);
-                            }
-
-                        } catch (Exception exc) {
-
-                            GlobalErrorMessage = exc.ToString();
-                            GlobalErrorCode = 5;
-                        }
-                    });
-
-                } catch (Exception exc) {
-
-                    GlobalErrorMessage = exc.ToString();
-                    GlobalErrorCode = 6;
-                }
-
-                Thread.Sleep(PushSleepInterval);
-            }
-        }
-
+        
         /// <summary>
         /// Broadcasts on active WebSockets.
         /// </summary>
@@ -434,9 +380,6 @@ namespace WebSocketsTestServer {
 
                 return 200;
             });
-
-            //Thread broadcastSessionsThread = new Thread(() => { BroadcastSessions(); });
-            //broadcastSessionsThread.Start();
 
             //Thread broadcastWebSocketsThread = new Thread(() => { BroadcastWebSockets(); });
             //broadcastWebSocketsThread.Start();
