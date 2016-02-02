@@ -69,26 +69,7 @@ namespace Starcounter {
 
         // Nodes cache when used for Starcounter client.
         [ThreadStatic]
-        static Dictionary<String, Node> ThreadStaticNodeDict;
-
-        // Nodes cache when used for Starcounter hosted code.
-        static Dictionary<String, Node>[] StaticNodeDictArray = new Dictionary<String, Node>[StarcounterConstants.MaximumSchedulersNumber];
-
-        // Nodes cache when used for Starcounter hosted code.
-        static Dictionary<UInt16, Node>[] StaticNodeDictArrayByPort = new Dictionary<UInt16, Node>[StarcounterConstants.MaximumSchedulersNumber];
-
-        // Default node for 127.0.0.1 and default user port.
-        static Node[] StaticThisNodeArray = new Node[StarcounterConstants.MaximumSchedulersNumber];
-
-        // Determines if we are inside hosted Starcounter code.
-        static Boolean IsInSccode = false;
-
-        // Static constructor.
-        static Http() {
-            if (StarcounterEnvironment.IsCodeHosted) {
-                IsInSccode = true;
-            }
-        }
+        static Dictionary<String, Node> threadStaticNodeDict_;
 
         /// <summary>
         /// Gets node instance from given URI.
@@ -100,35 +81,17 @@ namespace Starcounter {
                 throw new ArgumentOutOfRangeException("URI should start with \"http://\" prefix.");
             }
 
-            Dictionary<String, Node> nodesDict = null;
-
-            if (IsInSccode) {
-
-                Byte curSchedulerId = StarcounterEnvironment.CurrentSchedulerId;
-
-                // Checking if node dictionary is already created.
-                if (null == StaticNodeDictArray[curSchedulerId])
-                    StaticNodeDictArray[curSchedulerId] = new Dictionary<String, Node>();
-
-                // Getting Node dictionary from array by current scheduler index.
-                nodesDict = StaticNodeDictArray[curSchedulerId];
-
-            } else {
-
-                // Checking if static object is initialized.
-                if (null == ThreadStaticNodeDict)
-                    ThreadStaticNodeDict = new Dictionary<String, Node>();
-
-                // Getting thread static instance.
-                nodesDict = ThreadStaticNodeDict;
+            // Checking if static object is initialized.
+            if (null == threadStaticNodeDict_) {
+                threadStaticNodeDict_ = new Dictionary<String, Node>();
             }
-
+                
             // Calculating endpoint name from given URI.
             String endpoint;
             GetEndpointFromUri(uri, out endpoint, out relativeUri);
 
             // Trying to get node instance from node cache.
-            if (!nodesDict.TryGetValue(endpoint, out node)) {
+            if (!threadStaticNodeDict_.TryGetValue(endpoint, out node)) {
 
                 String endpointWithoutPort = endpoint;
                 UInt16 destPort = port;
@@ -158,7 +121,7 @@ namespace Starcounter {
                 node = new Node(endpointWithoutPort, destPort);
 
                 // Adding node to dictionary.
-                nodesDict.Add(endpoint, node);
+                threadStaticNodeDict_.Add(endpoint, node);
             }
         }
 

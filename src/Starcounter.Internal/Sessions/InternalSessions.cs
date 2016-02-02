@@ -55,21 +55,6 @@ namespace Starcounter.Internal
         WebSocket ActiveWebSocket { get; set; }
     }
 
-    /// <summary>
-    /// Represents a database session.
-    /// </summary>
-    internal interface IDbSession {
-        /// <summary>
-        /// Runs a task asynchronously on a given scheduler.
-        /// </summary>
-        void RunAsync(Action action, Byte schedId = Byte.MaxValue);
-
-        /// <summary>
-        /// Runs a task asynchronously on current scheduler.
-        /// </summary>
-        void RunSync(Action action, Byte schedId = Byte.MaxValue);
-    }
-
     public class UriHelper
     {
         /// <summary>
@@ -290,6 +275,11 @@ namespace Starcounter.Internal
     public class ScSessionClass
     {
         /// <summary>
+        /// To which application this session belongs.
+        /// </summary>
+        public String AppName;
+
+        /// <summary>
         /// Get current session instance.
         /// </summary>
         /// <returns></returns>
@@ -318,11 +308,6 @@ namespace Starcounter.Internal
         public Boolean use_session_cookie_;
 
         /// <summary>
-        /// Specific saved user object ID.
-        /// </summary>
-        public UInt64 CargoId { get; set; }
-
-        /// <summary>
         /// Time when session was created.
         /// </summary>
         public DateTime Created { get; internal set; }
@@ -349,42 +334,7 @@ namespace Starcounter.Internal
         {
             TimeoutMinutes = StarcounterEnvironment.Default.SessionTimeoutMinutes;
         }
-
-        /// <summary>
-        /// Database session interface.
-        /// </summary>
-        static IDbSession _dbSession;
-
-        /// <summary>
-        /// Database session.
-        /// </summary>
-        internal static IDbSession DbSession
-        {
-            get { return _dbSession; }
-        }
-
-        /// <summary>
-        /// Setting actual database session implementation.
-        /// </summary>
-        internal static unsafe void SetDbSessionImplementation(IDbSession dbSessionImpl)
-        {
-            _dbSession = dbSessionImpl;
-        }
-
-        /// <summary>
-        /// Runs a task asynchronously on a given scheduler.
-        /// </summary>
-        public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
-            _dbSession.RunAsync(action, schedId);
-        }
-
-        /// <summary>
-        /// Runs a task asynchronously on current scheduler.
-        /// </summary>
-        public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
-            _dbSession.RunSync(action, schedId);
-        }
-
+        
         /// <summary>
         /// Updating last active session time tick.
         /// </summary>
@@ -443,8 +393,6 @@ namespace Starcounter.Internal
 
             // Removing linear index node.
             linear_index_node_ = null;
-
-            CargoId = 0;
         }
 
         // Session stored in ASCII bytes.
@@ -456,8 +404,9 @@ namespace Starcounter.Internal
         // Converts internal bytes to session.
         public String ToAsciiString()
         {
-            if (session_string_ == null)
+            if (session_string_ == null) {
                 session_string_ = Encoding.ASCII.GetString(session_bytes_);
+            }
 
             return session_string_;
         }
@@ -599,6 +548,9 @@ namespace Starcounter.Internal
             // Getting session class reference.
             ScSessionClass s = apps_sessions_[ss.linearIndex_];
 
+            // Setting application name to which session belongs.
+            s.AppName = StarcounterEnvironment.AppName;
+
             // Initializing session structure underneath.
             s.session_struct_.Init(
                 ss.schedulerId_,
@@ -650,8 +602,9 @@ namespace Starcounter.Internal
             if (s.session_struct_.randomSalt_ == random_salt)
             {
                 // Checking that session is not being used at the moment.
-                if (s.IsBeingUsed())
+                if (s.IsBeingUsed()) {
                     throw new Exception("Trying to destroy a session that is already used in some task!");
+                }
 
                 // Removing used session index node.
                 LinkedListNode<UInt32> linear_index_node = s.linear_index_node_;
@@ -854,21 +807,6 @@ namespace Starcounter.Internal
         }
 
         /// <summary>
-        /// Gets existing session.
-        /// </summary>
-        /// <param name="apps_session_index"></param>
-        /// <param name="apps_session_salt"></param>
-        /// <param name="scheduler_id"></param>
-        /// <returns></returns>
-        public ScSessionClass GetSessionClass(
-            Byte scheduler_id,
-            UInt32 linear_index,
-            UInt64 random_salt)
-        {
-            return scheduler_sessions_[scheduler_id].GetSessionClass(linear_index, random_salt);
-        }
-
-        /// <summary>
         /// All global sessions.
         /// </summary>
         public static GlobalSessions AllGlobalSessions = null;
@@ -877,156 +815,23 @@ namespace Starcounter.Internal
         /// Creating global sessions.
         /// </summary>
         /// <param name="num_schedulers"></param>
-        public static void InitGlobalSessions(Byte num_schedulers)
-        {
+        public static void InitGlobalSessions(Byte num_schedulers) {
             AllGlobalSessions = new GlobalSessions(num_schedulers);
         }
 
         /// <summary>
         /// Returns existing Apps session interface.
         /// </summary>
-        /// <param name="scheduler_id"></param>
-        /// <param name="apps_session_index"></param>
-        /// <returns></returns>
-        internal IAppsSession GetAppsSessionInterface(ref ScSessionStruct ss)
-        {
-            return scheduler_sessions_[ss.schedulerId_].GetAppsSessionInterface(
+        internal IAppsSession GetAppsSessionInterface(ref ScSessionStruct ss) {
+
+            Byte schedId = ss.schedulerId_;
+            if (StarcounterEnvironment.CurrentSchedulerId != schedId) {
+                throw new ArgumentOutOfRangeException("Trying to access session on a different scheduler!");
+            }
+
+            return scheduler_sessions_[schedId].GetAppsSessionInterface(
                 ss.linearIndex_,
                 ss.randomSalt_);
-        }
-    }
-
-    /// <summary>
-    /// Apps session class.
-    /// </summary>
-    public class AppsSession : IAppsSession
-    {
-        // Indicates if session is being used by a task.
-        Boolean is_used_ = false;
-
-        // Linked list node with this session in it.
-        LinkedListNode<AppsSession> node_ = null;
-
-        /// <summary>
-        /// Getting internal session.
-        /// </summary>
-        public ScSessionClass InternalSession { get; set; }
-
-        /// <summary>
-        /// Currently active WebSocket.
-        /// </summary>
-        public WebSocket ActiveWebSocket { get; set; }
-
-        /// <summary>
-        /// Linked list node to itself.
-        /// </summary>
-        public void SetNode(LinkedListNode<AppsSession> node)
-        {
-            node_ = node;
-        }
-
-        /// <summary>
-        /// Linked list node to itself.
-        /// </summary>
-        public LinkedListNode<AppsSession> GetNode()
-        {
-            return node_;
-        }
-
-        /// <summary>
-        /// Checks if this session is currently in use.
-        /// </summary>
-        /// <returns></returns>
-        public Boolean IsBeingUsed()
-        {
-            return is_used_ == true;
-        }
-
-        /// <summary>
-        /// Destroys the Apps sessions.
-        /// </summary>
-        public void Destroy()
-        {
-            SchedulerAppsSessionsPool.Pool.ReturnBack(this);
-            node_ = null;
-        }
-
-        /// <summary>
-        /// Indicates that session is started being used.
-        /// </summary>
-        public void StartUsing()
-        {
-            is_used_ = true;
-        }
-
-        /// <summary>
-        /// Indicates that session was stopped being used.
-        /// </summary>
-        public void StopUsing()
-        {
-            is_used_ = false;
-        }
-    }
-
-    /// <summary>
-    /// Per scheduler pool for allocating Apps sessions.
-    /// </summary>
-    public class SchedulerAppsSessionsPool
-    {
-        LinkedList<AppsSession> all_used_apps_ = new LinkedList<AppsSession>();
-
-        /// <summary>
-        /// Efficiently allocates a new/existing Apps session.
-        /// </summary>
-        /// <returns>New Apps session index</returns>
-        public AppsSession Allocate()
-        {
-            // Checking if we have free session indexes.
-            if (all_used_apps_.Last != null)
-            {
-                LinkedListNode<AppsSession> apps_session_node = all_used_apps_.Last;
-                all_used_apps_.RemoveLast();
-                apps_session_node.Value.SetNode(apps_session_node);
-                return apps_session_node.Value;
-            }
-
-            // Creating new Apps session instance.
-            AppsSession new_session = new AppsSession();
-
-            // Creating new node.
-            LinkedListNode<AppsSession> new_node = new LinkedListNode<AppsSession>(new_session);
-            new_session.SetNode(new_node);
-
-            return new_session;
-        }
-
-        /// <summary>
-        /// Returning Apps sessions back to pool.
-        /// </summary>
-        /// <param name="apps_session"></param>
-        public void ReturnBack(AppsSession apps_session)
-        {
-            all_used_apps_.AddLast(apps_session.GetNode());
-        }
-
-        /// <summary>
-        /// Scheduler pool instance.
-        /// </summary>
-        [ThreadStatic]
-        static SchedulerAppsSessionsPool pool_;
-
-        /// <summary>
-        /// Gets instance of scheduler pool.
-        /// </summary>
-        public static SchedulerAppsSessionsPool Pool
-        {
-            get
-            {
-                if (pool_ == null)
-                    pool_ = new SchedulerAppsSessionsPool();
-
-                return pool_;
-            }
         }
     }
 }

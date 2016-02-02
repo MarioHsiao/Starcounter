@@ -26,14 +26,13 @@ namespace Starcounter.Internal.Test {
             String testString = "";
 
             // Setting the destroyed events.
-            s.Destroyed += (object sender, EventArgs e) => {
-                Assert.AreEqual(s, (Session)sender);
+            s.AddDestroyDelegate((Session session) => {
                 testString += "One";
-            };
-            s.Destroyed += (object sender, EventArgs e) => {
-                Assert.AreEqual(s, (Session)sender);
+            });
+
+            s.AddDestroyDelegate((Session session) => {
                 testString += "Two";
-            };
+            });
 
             // Destroying the session.
             s.Destroy();
