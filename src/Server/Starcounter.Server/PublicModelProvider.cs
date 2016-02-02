@@ -63,7 +63,7 @@ namespace Starcounter.Server {
             lock (databases) {
                 databases.Add(database.Uri, info);
             }
-            Self.POST("/__internal_api/databases", database.Name, null);
+            Http.POST("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/__internal_api/databases", database.Name, null);
             return info;
         }
 
