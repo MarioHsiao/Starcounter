@@ -45,7 +45,7 @@ namespace Starcounter {
         /// <param name="action">Action to be run on scheduler.</param>
         /// <param name="schedId">Scheduler ID to run on.</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
-        public static void ScheduleTask(Action action, Byte schedId = Byte.MaxValue, Boolean waitForCompletion = false) {
+        public static void ScheduleTask(Action action, Byte schedId, Boolean waitForCompletion = false) {
 
             if (waitForCompletion) {
                 _dbSession.RunSync(action, schedId);
