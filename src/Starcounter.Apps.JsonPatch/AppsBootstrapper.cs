@@ -47,8 +47,10 @@ namespace Starcounter.Internal {
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
-            DbSession dbs = new DbSession();
-            Scheduling.SetDbSessionImplementation(dbs);
+
+#pragma warning disable 0618
+            Scheduling.SetDbSessionImplementation(new DbSession());
+#pragma warning restore 0618
 
             // Invalidating scheduler id.
             StarcounterEnvironment.InvalidateSchedulerId();

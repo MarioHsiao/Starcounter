@@ -95,6 +95,7 @@ namespace Starcounter {
 
     /// <summary>
     /// </summary>
+    [Obsolete("Please use Scheduling.ScheduleTask instead.")]
     public class DbSession : IDbSession {
 
         /// <summary>
