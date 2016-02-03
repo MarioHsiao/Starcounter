@@ -191,7 +191,7 @@ namespace WebSocketsTestServer {
                         Byte s = k;
 
                         // Getting sessions for current scheduler.
-                        new DbSession().RunAsync(() => {
+                        Scheduling.ScheduleTask(() => {
 
                             /*foreach (WebSocketState wss in Db.SQL<WebSocketState>("SELECT w FROM WebSocketState w")) {
 
@@ -215,7 +215,7 @@ namespace WebSocketsTestServer {
                                 }
                             }
 
-                        }, s);
+                        }, false, s);
 
                     } catch (Exception exc) {
 

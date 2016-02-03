@@ -18,7 +18,7 @@ namespace Starcounter.Hosting {
 
         /// <summary>
         /// </summary>
-        public void Run(ITask task, Byte schedId = Byte.MaxValue) {
+        public void Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
             unsafe {
                 IntPtr hTask = (IntPtr)GCHandle.Alloc(task, GCHandleType.Normal);
 

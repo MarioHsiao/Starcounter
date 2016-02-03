@@ -215,7 +215,7 @@ namespace Starcounter {
                     Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
                     task(s, sessionId);
 
-                }, ss.schedulerId_, waitForCompletion);
+                }, waitForCompletion, ss.schedulerId_);
             }
         }
 

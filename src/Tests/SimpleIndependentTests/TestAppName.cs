@@ -23,7 +23,7 @@ class TestAppName {
 
                 AutoResetEvent scEvent = new AutoResetEvent(false);
 
-                (new DbSession()).RunAsync(() => {
+                Scheduling.ScheduleTask(() => {
 
                     Assert.IsTrue(StarcounterEnvironment.AppName == expectedAppName);
 

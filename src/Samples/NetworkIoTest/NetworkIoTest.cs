@@ -249,8 +249,7 @@ namespace NetworkIoTestApp {
             //Thread perf_thread = new Thread(PrintPerformanceThread);
             //perf_thread.Start();
 
-            //DbSession dbs = new DbSession();
-            //dbs.RunAsync(() => PrintPerformanceThread(0), 0);
+            //Scheduling.ScheduleTask(() => PrintPerformanceThread(0), false, 0);
         }
 
         static Int32 WsEchoesCounter = 0;
