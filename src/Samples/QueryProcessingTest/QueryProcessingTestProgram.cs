@@ -36,9 +36,7 @@ namespace QueryProcessingTest {
                 SelectClauseExpressionsTests.TestSelectClauseExpressions();
                 OffsetkeyTest.Master();
                 ObjectIdentityTest.TestObjectIdentityInSQL();
-#if true // TODO EOH: Meta-data.
                 MetadataTest.TestPopulatedMetadata();
-#endif
                 TestKinds.RunKindsTest();
                 ReloadTest.Run();
                 if (Environment.GetEnvironmentVariable("SC_NIGHTLY_BUILD") == "True")
