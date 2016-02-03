@@ -46,6 +46,11 @@ namespace Starcounter {
         private static JsonPatch jsonPatch_ = new JsonPatch();
 
         /// <summary>
+        /// To which scheduler this session belongs.
+        /// </summary>
+        Byte schedulerId_;
+
+        /// <summary>
         /// List of destroy delegates for this session.
         /// </summary>
         List<SessionDestroyInfo> destroyDelegates_;
@@ -99,6 +104,20 @@ namespace Starcounter {
                 throw ErrorCode.ToException(errCode);
 
             waitObj = new AutoResetEvent(true);
+
+            // Getting current scheduler on which the session was created.
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
+        }
+
+        /// <summary>
+        /// Checks if session is used on the owning scheduler.
+        /// </summary>
+        void CheckCorrectScheduler() {
+
+            // Checking if on the owning scheduler.
+            if (schedulerId_ != StarcounterEnvironment.CurrentSchedulerId) {
+                throw new InvalidOperationException("You are trying to use the session on different scheduler.");
+            }
         }
 
         /// <summary>
@@ -152,6 +171,9 @@ namespace Starcounter {
         /// </summary>
         public void CalculatePatchAndPushOnWebSocket() {
 
+            // Checking if on the owning scheduler.
+            CheckCorrectScheduler();
+
             // Checking if there is an active WebSocket.
             if (ActiveWebSocket == null)
                 return;
@@ -173,7 +195,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
         /// <param name="task">Task to run on session.</param>
-        public static void ScheduleTask(String sessionId, Action<Session, String> task) {
+        /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
+        public static void ScheduleTask(String sessionId, Action<Session, String> task, Boolean waitForCompletion = false) {
 
             // Getting session structure from string.
             ScSessionStruct ss = new ScSessionStruct();
@@ -189,10 +212,10 @@ namespace Starcounter {
 
                 Scheduling.ScheduleTask(() => {
 
-                    Session s = (Session) GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
+                    Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
                     task(s, sessionId);
 
-                }, ss.schedulerId_);
+                }, ss.schedulerId_, waitForCompletion);
             }
         }
 
@@ -260,6 +283,10 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
+
+                // Checking if on the owning scheduler.
+                CheckCorrectScheduler();
+
                 int stateIndex;
                 string appName;
 
@@ -273,6 +300,10 @@ namespace Starcounter {
                 return _stateList[stateIndex];
             }
             set {
+
+                // Checking if on the owning scheduler.
+                CheckCorrectScheduler();
+
                 int stateIndex;
                 string appName;
 
