@@ -28,7 +28,7 @@ namespace Starcounter.Internal {
 
         /// <summary>
         /// </summary>
-        void Run(ITask task, Byte schedId = Byte.MaxValue);
+        void Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ namespace Starcounter.Internal {
             impl_ = impl;
         }
 
-        internal static void Run(ITask task, Byte schedId = Byte.MaxValue) {
+        internal static void Run(ITask task, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
             impl_.Run(task, schedId);
         }
     }
@@ -95,6 +95,7 @@ namespace Starcounter {
 
     /// <summary>
     /// </summary>
+    [Obsolete("Please use Scheduling.ScheduleTask instead.")]
     public class DbSession : IDbSession {
 
         /// <summary>
@@ -117,12 +118,12 @@ namespace Starcounter {
         /// thread. If the calling thread is not a Starcounter thread, the task
         /// is scheduled on scheduler 0.
         /// </remarks>
-        public void RunAsync(Action action, Byte schedId = Byte.MaxValue) {
+        public void RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
             unsafe {
                 String curAppName = StarcounterEnvironment.AppName;
 
                 // Checking if we need to use round robin for getting scheduler id.
-                if (Byte.MaxValue == schedId) {
+                if (StarcounterEnvironment.InvalidSchedulerId == schedId) {
                     lock (roundRobinLock_) {
                         roundRobinSchedId_++;
                         if (roundRobinSchedId_ >= StarcounterEnvironment.SchedulerCount) {
@@ -158,13 +159,13 @@ namespace Starcounter {
         /// exception, as an inner exception, is thrown by RunSync.
         /// </para>
         /// </remarks>
-        public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
+        public void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
             unsafe {
                 uint r;
 
                 byte schedulerNumber;
                 r = sccorelib.cm3_get_cpun(null, &schedulerNumber);
-                if ((r != 0) || (schedId != Byte.MaxValue && schedulerNumber != schedId)) {
+                if ((r != 0) || (schedId != StarcounterEnvironment.InvalidSchedulerId && schedulerNumber != schedId)) {
                     void* hEvent;
                     r = sccorelib.cm3_mevt_new(null, 0, &hEvent);
                     if (r == 0) {

@@ -47,8 +47,10 @@ namespace Starcounter.Internal {
 
             // Dependency injection for db and transaction calls.
             StarcounterBase._DB = new DbImpl();
-            DbSession dbs = new DbSession();
-            Scheduling.SetDbSessionImplementation(dbs);
+
+#pragma warning disable 0618
+            Scheduling.SetDbSessionImplementation(new DbSession());
+#pragma warning restore 0618
 
             // Invalidating scheduler id.
             StarcounterEnvironment.InvalidateSchedulerId();
@@ -227,14 +229,13 @@ namespace Starcounter.Internal {
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
-            DbSession dbSession = new DbSession();
             int interval = 1000 * 60;
             sessionCleanupTimer_ = new Timer((state) => {
                 // Schedule a job to check once for inactive sessions on each scheduler.
                 for (Byte i = 0; i < numSchedulers; i++) {
                     // Getting sessions for current scheduler.
                     SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
-                    dbSession.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
+                    Scheduling.ScheduleTask(() => schedSessions.InactiveSessionsCleanupRoutine(), false, i);
                 }
             },
                 null, interval, interval);

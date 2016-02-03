@@ -260,7 +260,7 @@ namespace Starcounter
 
                         countdownEvent.Signal();
 
-                    }, schedId);
+                    }, false, schedId);
                 }
 
                 countdownEvent.Wait();
@@ -296,7 +296,7 @@ namespace Starcounter
 
                         countdownEvent.Signal();
 
-                    }, schedId);
+                    }, false, schedId);
                 }
 
                 countdownEvent.Wait();

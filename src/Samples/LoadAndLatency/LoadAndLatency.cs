@@ -788,8 +788,7 @@ namespace LoadAndLatency
                     if (!startedOnClient)
                     {
                         // Starting workers as Starcounter jobs.
-                        DbSession dbs = new DbSession();
-                        dbs.RunAsync(() => SQLTestWorker(workerParams), schedulerId);
+                        Scheduling.ScheduleTask(() => SQLTestWorker(workerParams), false, schedulerId);
                     }
                     else
                     {
@@ -1127,8 +1126,7 @@ namespace LoadAndLatency
                     if (!startedOnClient)
                     {
                         // Starting workers as Starcounter jobs.
-                        DbSession dbs = new DbSession();
-                        dbs.RunAsync(() => SQLSimpleMultiTestWrapper(workerParams), (Byte)(i % NumOfLogProc));
+                        Scheduling.ScheduleTask(() => SQLSimpleMultiTestWrapper(workerParams), false, (Byte)(i % NumOfLogProc));
                     }
                     else
                     {

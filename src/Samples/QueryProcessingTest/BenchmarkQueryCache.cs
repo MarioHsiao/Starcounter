@@ -27,8 +27,7 @@ namespace QueryProcessingTest {
                 nrFinishedWorkers = 0;
                 timer.Start();
                 for (byte schedulerId = 0; schedulerId < schedulers; schedulerId++) {
-                    DbSession dbs = new DbSession();
-                    dbs.RunAsync(() => QueryEnumerator(2), schedulerId);
+                    Scheduling.ScheduleTask(() => QueryEnumerator(2), false, schedulerId);
                 }
                 while (nrFinishedWorkers != schedulers)
                     Thread.Sleep(100);
@@ -65,8 +64,7 @@ namespace QueryProcessingTest {
             nrFinishedWorkers = 0;
             timer.Start();
             for (byte schedulerId = 0; schedulerId < nrSchedulers; schedulerId++) {
-                DbSession dbs = new DbSession();
-                dbs.RunAsync(work, schedulerId);
+                Scheduling.ScheduleTask(work, false, schedulerId);
             }
             while (nrFinishedWorkers != nrSchedulers)
                 Thread.Sleep(100);

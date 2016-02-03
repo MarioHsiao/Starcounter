@@ -142,7 +142,7 @@ namespace Starcounter.Internal
         /// <summary>
         /// Invalid scheduler id value (indicates that you are not on scheduler).
         /// </summary>
-        public static Byte InvalidSchedulerId = 255;
+        public const Byte InvalidSchedulerId = 255;
 
         /// <summary>
         /// Current value of invalid scheduler id (needed to suport Unit tests basically).

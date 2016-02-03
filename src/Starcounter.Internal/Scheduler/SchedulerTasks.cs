@@ -14,12 +14,12 @@ namespace Starcounter {
         /// <summary>
         /// Runs a task asynchronously on a given scheduler.
         /// </summary>
-        void RunAsync(Action action, Byte schedId = Byte.MaxValue);
+        void RunAsync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
 
         /// <summary>
         /// Runs a task asynchronously on current scheduler.
         /// </summary>
-        void RunSync(Action action, Byte schedId = Byte.MaxValue);
+        void RunSync(Action action, Byte schedId = StarcounterEnvironment.InvalidSchedulerId);
     }
 
     /// <summary>
@@ -43,9 +43,9 @@ namespace Starcounter {
         /// Runs the task represented by the action delegate asynchronously.
         /// </summary>
         /// <param name="action">Action to be run on scheduler.</param>
-        /// <param name="schedId">Scheduler ID to run on.</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
-        public static void ScheduleTask(Action action, Byte schedId, Boolean waitForCompletion = false) {
+        /// <param name="schedId">Scheduler ID to run on.</param>
+        public static void ScheduleTask(Action action, Boolean waitForCompletion = false, Byte schedId = StarcounterEnvironment.InvalidSchedulerId) {
 
             if (waitForCompletion) {
                 _dbSession.RunSync(action, schedId);

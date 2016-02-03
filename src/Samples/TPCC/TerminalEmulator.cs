@@ -20,17 +20,14 @@ namespace tpcc
       string app_name = Starcounter.Internal.StarcounterEnvironment.AppName;
       await Task.Yield();
 
-      new DbSession().RunSync(() =>
+      Scheduling.ScheduleTask(() =>
       {
-        Starcounter.Internal.StarcounterEnvironment.RunWithinApplication(app_name,
-          () =>
-          {
-            foreach (var transaction in deck.trasactions)
-            {
-              transaction();
-            }
+          Starcounter.Internal.StarcounterEnvironment.RunWithinApplication(app_name, () => {
+              foreach (var transaction in deck.trasactions) {
+                  transaction();
+              }
           });
-      }, scheduler);
+      }, true, scheduler);
 
       await Task.Yield();
     }
