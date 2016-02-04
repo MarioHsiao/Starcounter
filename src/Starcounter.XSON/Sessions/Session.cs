@@ -24,7 +24,15 @@ namespace Starcounter {
     }
 
     /// <summary>
-    /// 
+    /// Session destroy delegate.
+    /// </summary>
+    class SessionDestroyInfo {
+        internal String AppName;
+        internal Action<Session> DestroyDelegate;
+    }
+
+    /// <summary>
+    /// Class representing session.
     /// </summary>
     public sealed class Session : IAppsSession, IDisposable {
         private class TransactionRef {
@@ -38,9 +46,14 @@ namespace Starcounter {
         private static JsonPatch jsonPatch_ = new JsonPatch();
 
         /// <summary>
-        /// Event which is called when session is being destroyed (timeout, manual, etc).
+        /// To which scheduler this session belongs.
         /// </summary>
-        public event EventHandler Destroyed;
+        Byte schedulerId_;
+
+        /// <summary>
+        /// List of destroy delegates for this session.
+        /// </summary>
+        List<SessionDestroyInfo> destroyDelegates_;
 
         private bool _isInUse;
         private Dictionary<string, int> _indexPerApplication;
@@ -91,27 +104,75 @@ namespace Starcounter {
                 throw ErrorCode.ToException(errCode);
 
             waitObj = new AutoResetEvent(true);
+
+            // Getting current scheduler on which the session was created.
+            schedulerId_ = StarcounterEnvironment.CurrentSchedulerId;
         }
 
+        /// <summary>
+        /// Checks if session is used on the owning scheduler.
+        /// </summary>
+        void CheckCorrectScheduler() {
+
+            // Checking if on the owning scheduler.
+            if (schedulerId_ != StarcounterEnvironment.CurrentSchedulerId) {
+                throw new InvalidOperationException("You are trying to use the session on different scheduler.");
+            }
+        }
+
+        /// <summary>
+        /// Event which is called when session is being destroyed (timeout, manual, etc).
+        /// </summary>
+        public void AddDestroyDelegate(Action<Session> destroyDelegate) {
+
+            SessionDestroyInfo sdi = new SessionDestroyInfo() {
+                AppName = StarcounterEnvironment.AppName,
+                DestroyDelegate = destroyDelegate
+            };
+
+            if (destroyDelegates_ == null) {
+                destroyDelegates_ = new List<SessionDestroyInfo>();
+            }
+
+            destroyDelegates_.Add(sdi);
+        }
+
+        /// <summary>
+        /// Runs session destruction delegates.
+        /// </summary>
+        void RunDestroyDelegates(Session s) {
+
+            foreach (SessionDestroyInfo sdi in destroyDelegates_) {
+
+                StarcounterEnvironment.RunWithinApplication(sdi.AppName, () => {
+                    sdi.DestroyDelegate(s);
+                });
+            }
+        }
+
+        /// <summary>
+        /// Configured options for this session.
+        /// </summary>
         public SessionOptions Options {
             get { return sessionOptions; }
         }
 
+        /// <summary>
+        /// Checks if given option exists in session options.
+        /// </summary>
+        /// <param name="option"></param>
+        /// <returns></returns>
         public bool CheckOption(SessionOptions option) {
             return (sessionOptions & option) == option;
-        }
-
-        /// <summary>
-        /// Runs a task asynchronously on current scheduler.
-        /// </summary>
-        public void RunSync(Action action, Byte schedId = Byte.MaxValue) {
-            InternalSession.RunSync(action, schedId);
         }
 
         /// <summary>
         /// Calculates the patch and pushes it on WebSocket.
         /// </summary>
         public void CalculatePatchAndPushOnWebSocket() {
+
+            // Checking if on the owning scheduler.
+            CheckCorrectScheduler();
 
             // Checking if there is an active WebSocket.
             if (ActiveWebSocket == null)
@@ -130,76 +191,58 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running asynchronously the given action on each active session on each owning scheduler.
+        /// Schedule a task on specific session.
         /// </summary>
-        /// <param name="action">The action to be performed on each session.</param>
-        public static void ForAll(Action<Session> action) {
-            ForAll(UInt64.MaxValue, action);
-        }
+        /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
+        /// <param name="task">Task to run on session.</param>
+        /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
+        public static void ScheduleTask(String sessionId, Action<Session, String> task, Boolean waitForCompletion = false) {
 
-        /// <summary>
-        /// Runs a given session for each task on current scheduler.
-        /// </summary>
-        static void ForEachSessionOnCurrentScheduler(UInt64 cargoId, Action<Session> action) {
+            // Getting session structure from string.
+            ScSessionStruct ss = new ScSessionStruct();
+            ss.ParseFromString(sessionId);
 
-            // Saving current session since we are going to set other.
-            Session origCurrentSession = Session.Current;
-            Session._current = null;
+            // Checking if we are on the same scheduler.
+            if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
 
-            try {
-                SchedulerSessions ss = 
-                    GlobalSessions.AllGlobalSessions.GetSchedulerSessions(StarcounterEnvironment.CurrentSchedulerId);
+                Session s = (Session) GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
+                task(s, sessionId);
 
-                LinkedListNode<UInt32> used_session_index_node = ss.UsedSessionIndexes.First;
-                while (used_session_index_node != null) {
-                    LinkedListNode<UInt32> next_used_session_index_node = used_session_index_node.Next;
+            } else {
 
-                    // Getting session instance.
-                    ScSessionClass s = ss.GetAppsSessionIfAlive(used_session_index_node.Value);
+                Scheduling.ScheduleTask(() => {
 
-                    // Checking if session is created at all.
-                    if (s != null) {
+                    Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
+                    task(s, sessionId);
 
-                        // Checking if cargo ID is correct.
-                        if ((cargoId == UInt64.MaxValue) || (cargoId == s.CargoId)) {
-
-                            Session session = (Session)s.apps_session_int_;
-                            session.Use<Session>(action, session);
-                        }
-                    }
-
-                    // Getting next used session.
-                    used_session_index_node = next_used_session_index_node;
-                }
-            } finally {
-                // Restoring original current session.
-                Session._current = origCurrentSession;
+                }, waitForCompletion, ss.schedulerId_);
             }
         }
 
         /// <summary>
-        /// Running asynchronously the given action on each active session on each owning scheduler.
+        /// Schedule a task on given sessions.
         /// </summary>
-        /// <param name="action">The user procedure to be performed on each session.</param>
-        /// <param name="cargoId">Cargo ID filter.</param>
-        public static void ForAll(UInt64 cargoId, Action<Session> action) {
+        /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
+        /// <param name="task">Task to run on session.</param>
+        public static void ScheduleTask(IEnumerable<String> sessionIds, Action<Session, String> task) {
 
-            String appName = StarcounterEnvironment.AppName;
-
-            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
-                
-                Byte schedId = i;
-
-                ScSessionClass.DbSession.RunAsync(
-                    () => {
-
-                        // We need to set application name when running on different schedulers.
-                        StarcounterEnvironment.AppName = appName;
-
-                        ForEachSessionOnCurrentScheduler(cargoId, action);
-                    },
-                    schedId);
+            List<String> sessionIdsList = new List<string>();
+            foreach (String s in sessionIds) {
+                sessionIdsList.Add(s);
             }
+
+            for (Int32 i = 0; i < sessionIdsList.Count; i++) {
+                String s = sessionIdsList[i];
+                ScheduleTask(s, task);
+            }
+        }
+
+        /// <summary>
+        /// Returns ASCII string representing the session.
+        /// </summary>
+        /// <returns></returns>
+        public String ToAsciiString() {
+            return InternalSession.ToAsciiString();
         }
 
         /// <summary>
@@ -240,6 +283,10 @@ namespace Starcounter {
         /// </summary>
         public Json Data {
             get {
+
+                // Checking if on the owning scheduler.
+                CheckCorrectScheduler();
+
                 int stateIndex;
                 string appName;
 
@@ -253,6 +300,10 @@ namespace Starcounter {
                 return _stateList[stateIndex];
             }
             set {
+
+                // Checking if on the owning scheduler.
+                CheckCorrectScheduler();
+
                 int stateIndex;
                 string appName;
 
@@ -299,18 +350,6 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Specific saved user object ID.
-        /// </summary>
-        public UInt64 CargoId {
-            get {
-                return InternalSession.CargoId;
-            }
-            set {
-                InternalSession.CargoId = value;
-            }
-        }
-
-        /// <summary>
         /// Getting session creation time. 
         /// </summary>
         public DateTime Created {
@@ -343,11 +382,11 @@ namespace Starcounter {
         /// <summary>
         /// Internal session string.
         /// </summary>
+        [System.Obsolete("Please use ToAsciiString() instead.")]
         public String SessionIdString {
             get { return InternalSession.ToAsciiString(); }
         }
 
-        /// <summary>
         /// Returns True if session is being used now.
         /// </summary>
         /// <returns></returns>
@@ -522,22 +561,25 @@ namespace Starcounter {
                 ActiveWebSocket = null;
             }
 
+            // Checking if destroy callback is supplied.
+            if (null != destroyDelegates_) {
+                RunDestroyDelegates(this);
+                destroyDelegates_ = null;
+            }
+
+            // NOTE: Preventing recursive destroy call.
             if (InternalSession != null) {
-                // NOTE: Preventing recursive destroy call.
                 InternalSession.apps_session_int_ = null;
                 InternalSession.Destroy();
                 InternalSession = null;
             }
 
-            // Checking if destroy callback is supplied.
-            if (null != Destroyed) {
-                Destroyed(this, null);
-                Destroyed = null;
-            }
-
             Session._current = null;
         }
 
+        /// <summary>
+        /// Dispose functionality for session.
+        /// </summary>
         void IDisposable.Dispose() {
             Destroy();
         }

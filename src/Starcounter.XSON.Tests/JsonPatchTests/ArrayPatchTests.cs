@@ -498,6 +498,35 @@ namespace Starcounter.Internal.XSON.Tests {
         }
 
         [Test]
+        public static void TestArrayChangesWithBoundNullData() {
+            var tSchema = new TObject() { ClassName = "ObjWithArr" };
+            var tItems = tSchema.Add<TObjArr>("Items");
+            tItems.BindingStrategy = BindingStrategy.Auto;
+            tItems.ElementType = new TString() { BindingStrategy = BindingStrategy.Auto };
+            dynamic json = new Json() { Template = tSchema };
+
+            var session = new Session();
+
+            session.Use(() => {
+                session.Data = json;
+
+                var newArr = new string[] { "1", "2", "3" };
+                json.Items.Data = newArr;
+                AssertArray(json.Items, newArr);
+
+                var patch = jsonPatch.Generate(json, true, false);
+
+                newArr = null;
+                json.Items.CheckBoundArray(newArr);
+                AssertArray(json.Items, newArr);
+
+                patch = jsonPatch.Generate(json, true, false);
+                var expectedPatch = @"[{""op"":""remove"",""path"":""/Items/0""},{""op"":""remove"",""path"":""/Items/0""},{""op"":""remove"",""path"":""/Items/0""}]";
+                Assert.AreEqual(expectedPatch, patch);
+            });
+        }
+
+        [Test]
         public static void TestArrayChangesWithBoundData() {
             var tSchema = new TObject() { ClassName = "ObjWithArr" };
             var tItems = tSchema.Add<TObjArr>("Items");
@@ -582,9 +611,20 @@ namespace Starcounter.Internal.XSON.Tests {
             }
         }
 
-// Test added for checking performance when implementing the new check of bound arrays. No point in running it for every
-// build but nice to have the code. 
-//        [Test]
+        private static void AssertArray(IList actual, string[] expected) {
+            if (expected != null) {
+                Assert.AreEqual(expected.Length, actual.Count);
+                for (int i = 0; i < expected.Length; i++) {
+                    Assert.AreEqual(expected[i], (string)(((Json)actual[i]).Data));
+                }
+            } else {
+                Assert.AreEqual(0, actual.Count);
+            }
+        }
+
+        // Test added for checking performance when implementing the new check of bound arrays. No point in running it for every
+        // build but nice to have the code. 
+        //        [Test]
         public static void BenchmarkArrayChangesWithBoundData() {
             var tSchema = new TObject() { ClassName = "ObjWithArr" };
             var tItems = tSchema.Add<TObjArr>("Items");

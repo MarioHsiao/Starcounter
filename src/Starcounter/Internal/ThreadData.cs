@@ -49,6 +49,9 @@ namespace Starcounter
         [ThreadStatic]
         internal static uint objectVerify_;
 
+        [ThreadStatic]
+        internal static bool applyHooks_ = true;
+
         private static ulong GetContextHandleExcept() {
             // Thread not attached. There could be a number of reasons for this,
             // the thread might not be a Starcounter worker thread for example,

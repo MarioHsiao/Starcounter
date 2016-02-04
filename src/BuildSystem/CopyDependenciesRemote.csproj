@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="CopyRemoteFiles" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <GIT_LEVEL0_BRANCH Condition=" '$(GIT_LEVEL0_BRANCH)' == '' ">develop</GIT_LEVEL0_BRANCH>
+    <GIT_LEVEL0_BRANCH Condition=" '$(GIT_LEVEL0_BRANCH)' == '' ">pnext</GIT_LEVEL0_BRANCH>
     <BinariesFTP>\\scbuildserver\FTP</BinariesFTP>
     <BinariesFTPAccessible Condition="'$(SC_BUILD_SKIP_LOCAL_FTP)' != 'True' AND Exists('$(BinariesFTP)')">True</BinariesFTPAccessible>
   </PropertyGroup>
@@ -40,7 +40,7 @@
     <!-- Creating copied files lists. -->
     <ItemGroup>
       <RemoteLevel0BinFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\x64\$(Level0Configuration)\*" />
-      <RemoteLevel0IncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\*" />
+      <RemoteLevel0IncludeFiles Include="$(BinariesFTP)\SCBuilds\Level0\$(GIT_LEVEL0_BRANCH)\LatestStable\Include\**\*" />
       <RemotePostSharpBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\PostSharp\*" />
 	  <RemoteCecilBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\Cecil\Release\*" />
       <RemoteCRT64BitBinaries Include="$(BinariesFTP)\SCDev\ThirdParty\CRT\x64\$(Configuration)\*" />
@@ -50,7 +50,8 @@
 
     <!-- Remote files from FTP. -->
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0BinFiles)" DestinationFiles="@(RemoteLevel0BinFiles->'$(OutputPath)\%(RecursiveDir)%(Filename)%(Extension)')" />
-    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0IncludeFiles)" DestinationFolder="..\..\..\Level0\src\include" />
+    <Copy Condition="'$(BinariesFTPAccessible)' == 'True' AND !Exists('$(LocalLevel0Solution)')" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteLevel0IncludeFiles)" DestinationFiles="@(RemoteLevel0IncludeFiles->'..\..\..\Level0\src\include\%(RecursiveDir)%(Filename)%(Extension)')" />
+
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemotePostSharpBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCecilBinaries)" DestinationFolder="$(OutputPath)" />
     <Copy Condition="'$(BinariesFTPAccessible)' == 'True'" SkipUnchangedFiles="true" OverwriteReadOnlyFiles="true" SourceFiles="@(RemoteCRT64BitBinaries)" DestinationFolder="$(OutputPath)" />

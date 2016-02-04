@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using Starcounter;
 using Starcounter.Templates;
 using System.Reflection;
+using System.Text.RegularExpressions;
+using System.Text;
 
 namespace Starcounter.Internal.JsonTemplate {
     /// <summary>
@@ -20,6 +22,7 @@ namespace Starcounter.Internal.JsonTemplate {
         where TJson : Json, new()
         where TTemplate : TValue {
         private static string[] ILLEGAL_PROPERTIES = { "parent", "data", "input" };
+        private static Regex legalPropertyNameRegex = new Regex(@"[_a-zA-Z][\w]*");
 
         /// <summary>
         /// Checks if the specified name already exists. If the name exists
@@ -523,21 +526,86 @@ namespace Starcounter.Internal.JsonTemplate {
             ((TValue)template).Bind = path;
         }
 
+        private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
+            if (propertyName == null)
+                return;
+
+            CheckForInvalidCharactersInPropertyName(propertyName, debugInfo);
+            CheckForIllegalPropertyName(propertyName, debugInfo);
+        }
+
         /// <summary>
         /// 
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="debugInfo"></param>
-        private void VerifyPropertyName(string propertyName, DebugInfo debugInfo) {
-            if (propertyName == null)
-                return;
+        private void CheckForInvalidCharactersInPropertyName(string propertyName, DebugInfo debugInfo) {
+            Match match;
+            MatchCollection matches;
+            StringBuilder invalidTokens;
+            int tokenStart;
+            int tokenLength;
+            
+            matches = legalPropertyNameRegex.Matches(propertyName);
+            if (matches.Count > 0) {
+                match = matches[0];
 
+                if (match.Length == propertyName.Length)
+                    return; // Valid name!
+
+                invalidTokens = new StringBuilder();
+
+                // Do we have the first match in the beginning or not?
+                if (match.Index == 0) {
+                    // First invalid token is after the first match (possibly in the end of the name).
+                    tokenStart = match.Length;
+                } else {
+                    tokenStart = 0;
+                    tokenLength = match.Index;
+                    AppendInvalidTokenInfo(propertyName, invalidTokens, tokenStart, tokenLength);
+                    tokenStart = match.Index + match.Length;
+                }
+
+                for (int i = 1; i < matches.Count; i++) {
+                    match = matches[i];
+
+                    if (invalidTokens.Length > 0)
+                        invalidTokens.Append(", ");
+
+                    tokenLength = match.Index - tokenStart;
+                    AppendInvalidTokenInfo(propertyName, invalidTokens, tokenStart, tokenLength);
+
+                    tokenStart = match.Index + match.Length;
+                }
+
+                // We might have one last invalid token in the end.
+                if (tokenStart != propertyName.Length) {
+                    tokenLength = propertyName.Length - tokenStart;
+
+                    if (invalidTokens.Length > 0)
+                        invalidTokens.Append(", ");
+                    AppendInvalidTokenInfo(propertyName, invalidTokens, tokenStart, tokenLength);
+                }
+
+                ErrorHelper.RaiseInvalidPropertyCharactersError(propertyName, invalidTokens.ToString(), debugInfo);
+            }
+        }
+
+        private void CheckForIllegalPropertyName(string propertyName, DebugInfo debugInfo) {
             for (int i = 0; i < ILLEGAL_PROPERTIES.Length; i++) {
                 if (propertyName.Equals(ILLEGAL_PROPERTIES[i], StringComparison.CurrentCultureIgnoreCase)) {
                     ErrorHelper.RaisePropertyExistsError(propertyName, debugInfo);
                     break;
                 }
             }
+        }
+
+        private static void AppendInvalidTokenInfo(string propertyName, StringBuilder invalidTokens, int position, int length) {
+            invalidTokens.Append("{token:'");
+            invalidTokens.Append(propertyName.Substring(position, length));
+            invalidTokens.Append("', position:");
+            invalidTokens.Append(position);
+            invalidTokens.Append('}');
         }
     }
 
@@ -584,6 +652,19 @@ namespace Starcounter.Internal.JsonTemplate {
         internal static void RaiseInvalidPropertyError(String propertyName, DebugInfo debugInfo) {
             Error.CompileError.Raise<Object>(
                 "Property '" + propertyName + "' is not valid on this field.",
+                new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
+                debugInfo.FileName
+            );
+        }
+
+        /// <summary>
+        /// Raises the invalid property error.
+        /// </summary>
+        /// <param name="propertyName">Name of the property.</param>
+        /// <param name="debugInfo">The debug info.</param>
+        internal static void RaiseInvalidPropertyCharactersError(String propertyName, String invalidChars, DebugInfo debugInfo) {
+            Error.CompileError.Raise<Object>(
+                "Property '" + propertyName + "' contains unsupported characters and is not valid (" + invalidChars + ").",
                 new Tuple<int, int>(debugInfo.LineNo, debugInfo.ColNo),
                 debugInfo.FileName
             );

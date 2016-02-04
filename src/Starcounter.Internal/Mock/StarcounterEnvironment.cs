@@ -140,6 +140,30 @@ namespace Starcounter.Internal
         internal static Nullable<Byte> currentSchedulerId_;
 
         /// <summary>
+        /// Invalid scheduler id value (indicates that you are not on scheduler).
+        /// </summary>
+        public const Byte InvalidSchedulerId = 255;
+
+        /// <summary>
+        /// Current value of invalid scheduler id (needed to suport Unit tests basically).
+        /// </summary>
+        static Byte invalidSchedulerIdValue_ = 0;
+
+        /// <summary>
+        /// Invalidate scheduler id value.
+        /// </summary>
+        internal static void InvalidateSchedulerId() {
+            invalidSchedulerIdValue_ = InvalidSchedulerId;
+        }
+
+        /// <summary>
+        /// Checks if execution occurs on scheduler.
+        /// </summary>
+        public static bool IsOnScheduler() {
+            return (StarcounterEnvironment.InvalidSchedulerId != StarcounterEnvironment.CurrentSchedulerId);
+        }
+
+        /// <summary>
         /// Obtains current scheduler id.
         /// </summary>
         public static Byte CurrentSchedulerId
@@ -155,7 +179,7 @@ namespace Starcounter.Internal
                             cm3_eautodet(IntPtr.Zero);
                             errCode = cm3_get_cpun(null, &cpun);
                             if (errCode != 0) {
-                                return 0;
+                                return invalidSchedulerIdValue_;
                             }
                         }
                         currentSchedulerId_ = cpun;

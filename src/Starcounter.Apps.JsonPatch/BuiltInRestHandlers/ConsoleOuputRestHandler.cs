@@ -201,7 +201,7 @@ namespace Starcounter.Internal {
                     string s = consoleEvents.ToJson();
 
                     // Getting sessions for current scheduler.
-                    new DbSession().RunAsync(() => {
+                    Scheduling.ScheduleTask(() => {
 
                         lock (ConsoleWebSocketGroupName) {
 

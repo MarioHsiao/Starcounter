@@ -24,9 +24,7 @@ namespace QueryProcessingTest {
             account = Db.SQL<Account>("select a from account a where accountid = ?", null).First;
             Trace.Assert(account == null);
             HelpMethods.LogEvent("Finished some tests on variables and case insensitivity");
-#if false // TODO EOH: Doesn't work: Meta-data tables.
             TestComparison();
-#endif
             TestEnumerators();
             QueryResultMismatch();
             TestIndexQueryOptimization();
@@ -540,10 +538,8 @@ namespace QueryProcessingTest {
             HelpMethods.LogEvent("Test delimited identifiers.");
             // Test single identifier
             Trace.Assert(Db.SQL<Account>("select a from account a").First != null);
-#if false // TODO EOH: Meta-data table.
             // Test delimited keyword identifier
             Trace.Assert(Db.SQL<Table>("select t from \"table\" t").First != null);
-#endif
             // Test qualified identifier
             Trace.Assert(Db.SQL<QueryProcessingTest.Account>(
                 "select a from QueryProcessingTest.Account a").First != null);

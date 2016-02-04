@@ -35,8 +35,8 @@ namespace Starcounter {
         /// </summary>
         /// <param name="readOnly">Transaction read-only flag.</param>
         /// <param name="detectConflicts">Transaction conflicts detection flag (merging writes are used if False).</param>
-        public Transaction(bool readOnly, bool detectConflicts = true) {
-            _handle = StarcounterBase.TransactionManager.Create(readOnly, detectConflicts);
+        public Transaction(bool readOnly, bool detectConflicts = true, bool applyHooks = true) {
+            _handle = StarcounterBase.TransactionManager.Create(readOnly, detectConflicts, applyHooks);
         }
 
         internal Transaction(TransactionHandle handle) {

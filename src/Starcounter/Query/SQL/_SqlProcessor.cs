@@ -422,24 +422,11 @@ internal static class SqlProcessor
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
             throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Found token after end of statement.");
         }
-
-#if false // TODO RUS: not supported, should be implemented through metalayer in new way
-            // Call kernel
-            UInt32 errorCode;
-        unsafe
-        {
-            errorCode = sccoredb.star_drop_table(0, typePath);
-        }
-        if (errorCode != 0) {
-            Exception ex = ErrorCode.ToException(errorCode);
-            if (errorCode == Error.SCERRTRANSACTIONLOCKEDONTHREAD)
-                ex = ErrorCode.ToException(Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, ex, "Cannot execute DROP TABLE statement.");
-            throw ex;
-        }
-        DeleteMetadataDroppedTable(typePath);
-#else
-            throw ErrorCode.ToException(Error.SCERRNOTIMPLEMENTED);
-#endif
+            DDLScope(() => {
+                uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_table_cascade(
+                ThreadData.ContextHandle, typePath);
+                if (err != 0) throw ErrorCode.ToException(err);
+            });
         }
 
     internal static Exception CheckSingleDelimitedIdentifiers(string query) {

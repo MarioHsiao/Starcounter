@@ -84,6 +84,10 @@ namespace Starcounter.SqlProcessor {
             string table_full_name, string index_name);
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint star_drop_table_cascade(ulong context,
+            string table_full_name);
+
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         private static unsafe extern uint star_clrmetadata_clean(ulong context_handle);
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]

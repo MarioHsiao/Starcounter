@@ -239,7 +239,7 @@ namespace Starcounter
                     Byte schedId = i;
 
                     // Running asynchronous task.
-                    ScSessionClass.DbSession.RunAsync(() => {
+                    Scheduling.ScheduleTask(() => {
 
                         Byte currentSchedId = StarcounterEnvironment.CurrentSchedulerId;
                         allSchedProfilerResults[currentSchedId] = Profiler.Current.GetResultsInJson(false);
@@ -260,7 +260,7 @@ namespace Starcounter
 
                         countdownEvent.Signal();
 
-                    }, schedId);
+                    }, false, schedId);
                 }
 
                 countdownEvent.Wait();
@@ -289,14 +289,14 @@ namespace Starcounter
                     Byte schedId = i;
 
                     // Running asynchronous task.
-                    ScSessionClass.DbSession.RunAsync(() => {
+                    Scheduling.ScheduleTask(() => {
 
                         Profiler.Current.ResetAll();
                         bmx.sc_profiler_reset(StarcounterEnvironment.CurrentSchedulerId);
 
                         countdownEvent.Signal();
 
-                    }, schedId);
+                    }, false, schedId);
                 }
 
                 countdownEvent.Wait();

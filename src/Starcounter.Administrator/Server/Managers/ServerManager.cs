@@ -21,7 +21,22 @@ namespace Administrator.Server.Managers {
         private static ConcurrentDictionary<ulong, Database> databaseModelSockets;
         static Object lockObject_ = new Object();
 
-        private static List<Session> SessionList = new List<Session>();
+        private static List<String> sessionList_ = new List<String>();
+
+        static void DestroySession(Session s) {
+
+            if (null == s)
+                return;
+
+            lock (lockObject_) {
+
+                String sessionString = s.ToAsciiString();
+
+                if (sessionList_.Contains(sessionString)) {
+                    sessionList_.Remove(sessionString);
+                }
+            }
+        }
 
         /// <summary>
         /// Initilized and register handlers
@@ -73,8 +88,13 @@ namespace Administrator.Server.Managers {
                     // Check if the request was a WebSocket request.
                     if (request.WebSocketUpgrade) {
 
-                        if (session != null && !SessionList.Contains(session)) {
-                            SessionList.Add(session);
+                        // Checking if its internal Self.GET that has no session.
+                        if (session != null) {
+                            String sessionString = session.ToAsciiString();
+
+                            if (!sessionList_.Contains(sessionString)) {
+                                sessionList_.Add(sessionString);
+                            }
                         }
 
                         WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
@@ -97,13 +117,13 @@ namespace Administrator.Server.Managers {
                     serverModelJson.Data = ServerManager.ServerInstance;
 
                     // Store the view-model 
-                    string id = TemporaryStorage.Store(serverModelJson);
+                    string id = TemporaryStorage.Store(serverModelJson, DestroySession);
 
                     // Create response
                     Response response = GetAllowAccessControlResponse();
                     response.Resource = serverModelJson;
                     response["Set-Cookie"] = request.Uri + "/" + id;
-                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
 
                     return response;
                 }
@@ -128,9 +148,9 @@ namespace Administrator.Server.Managers {
                 // Remove ws.
                 lock (lockObject_) {
 
-                    if (SessionList.Contains((Session)ws.Session)) {
-                        SessionList.Remove((Session)ws.Session);
-                    }
+                    Session s = ((Session)ws.Session);
+
+                    DestroySession(s);
                 }
 
             });
@@ -150,17 +170,23 @@ namespace Administrator.Server.Managers {
                     // Check if the request was a WebSocket request.
                     if (request.WebSocketUpgrade) {
 
-                        if (session != null && !SessionList.Contains(session)) {
-                            SessionList.Add(session);
+                        // Checking if its internal Self.GET that has no session.
+                        if (session != null) {
+
+                            String sessionString = session.ToAsciiString();
+
+                            if (!sessionList_.Contains(sessionString)) {
+                                sessionList_.Add(sessionString);
+                            }
                         }
+
                         Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
                         if (database != null) {
 
                             WebSocket ws = request.SendUpgrade(socketChannelName, null, null, session);
                             databaseModelSockets[ws.ToUInt64()] = database;
                             return HandlerStatus.Handled;
-                        }
-                        else {
+                        } else {
                             // TODO:
                         }
                     }
@@ -180,13 +206,13 @@ namespace Administrator.Server.Managers {
                     databaseJson.Data = ServerManager.ServerInstance.GetDatabase(databaseName);
 
                     // Store the view-model 
-                    string id = TemporaryStorage.Store(databaseJson);
+                    string id = TemporaryStorage.Store(databaseJson, DestroySession);
 
                     // Create response
                     Response response = new Response();
                     response.Resource = databaseJson;
                     response["Set-Cookie"] = request.Uri + "/" + id;
-                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.SessionIdString;
+                    response["X-Location"] = request.Uri + "/" + id + "/" + Session.Current.ToAsciiString();
 
                     response["Access-Control-Allow-Origin"] = "*"; // "http://localhost:8080";
                     response["Access-Control-Expose-Headers"] = "Location, X-Location";
@@ -231,14 +257,11 @@ namespace Administrator.Server.Managers {
                 }
             });
 
-
-
             Handle.WebSocketDisconnect(port, socketChannelName, (ws) => {
                 lock (lockObject_) {
 
-                    if (SessionList.Contains((Session)ws.Session)) {
-                        SessionList.Remove((Session)ws.Session);
-                    }
+                    DestroySession((Session)ws.Session);
+
                     // Remove ws.
                     Database database;
                     databaseModelSockets.TryRemove(ws.ToUInt64(), out database);
@@ -253,37 +276,48 @@ namespace Administrator.Server.Managers {
         private static void RegisterInternalModelApi() {
 
             Handle.POST("/__internal_api/databases", (Request request) => {
-                // Database added
-                ServerManager.ServerInstance.InvalidateDatabases();
+
+                lock (lockObject_) {
+
+                    // Database added
+                    ServerManager.ServerInstance.InvalidateDatabases();
+                }
+
                 return 200;
             });
 
             Handle.DELETE("/__internal_api/databases/{?}", (string databaseName, Request request) => {
-                // Database deleted
-                ServerManager.ServerInstance.InvalidateDatabases();
+
+                lock (lockObject_) {
+
+                    // Database deleted
+                    ServerManager.ServerInstance.InvalidateDatabases();
+                }
+
                 return 200;
             });
 
             Handle.PUT("/__internal_api/databases/{?}", (string databaseName, Request request) => {
-                // Database properties changed and/or database application(s) started/stopped
 
-                Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
-                if (database == null) {
-                    ServerManager.ServerInstance.InvalidateDatabases();
-                    database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                lock (lockObject_) {
+                    // Database properties changed and/or database application(s) started/stopped
+
+                    Database database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    if (database == null) {
+                        ServerManager.ServerInstance.InvalidateDatabases();
+                        database = ServerManager.ServerInstance.GetDatabase(databaseName);
+                    }
+
+                    if (database == null) {
+                        // Error;
+                        return 500;
+                    }
+
+                    database.InvalidateModel();
                 }
-
-                if (database == null) {
-                    // Error;
-                    return 500;
-                }
-
-                database.InvalidateModel();
 
                 return 200;
             });
-
-
         }
 
         /// <summary>
@@ -294,22 +328,23 @@ namespace Administrator.Server.Managers {
         /// <param name="e"></param>
         static void ServerModel_Changed(object sender, EventArgs e) {
 
-            lock (lockObject_) {
+            Session.ScheduleTask(ServerManager.sessionList_, (Session session, String sessionId) => {
 
-                foreach (Session session in ServerManager.SessionList) {
+                lock (lockObject_) {
 
-                    session.RunSync(() => {
-
-                        if (session.ActiveWebSocket != null) {
-
-                            string changes = ServerManager.GetModelChanges(session);
-                            if (changes != null) {
-                                session.ActiveWebSocket.Send(changes);
-                            }
+                    if (session == null) {
+                        if (sessionList_.Contains(sessionId)) {
+                            sessionList_.Remove(sessionId);
                         }
-                    });
+                        return;
+                    }
+
+                    string changes = ServerManager.GetModelChanges(session);
+                    if (changes != null) {
+                        session.ActiveWebSocket.Send(changes);
+                    }
                 }
-            }
+            });
         }
 
         /// <summary>
@@ -326,8 +361,7 @@ namespace Administrator.Server.Managers {
                 if (databaseModelSockets.TryGetValue(session.ActiveWebSocket.ToUInt64(), out database)) {
                     changes = database.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
                 }
-            }
-            else if (session.PublicViewModel is ServerJson) {
+            } else if (session.PublicViewModel is ServerJson) {
                 changes = ServerManager.ServerInstance.JsonPatchInstance.Generate(session.PublicViewModel, true, false);
             }
 
@@ -346,10 +380,13 @@ namespace Administrator.Server.Managers {
     public static class TemporaryStorage {
         private static Dictionary<string, Json> Storage = new Dictionary<string, Json>();
 
-        public static string Store(Json json) {
+        public static string Store(Json json, Action<Session> sessionDestroy) {
             string id = Guid.NewGuid().ToString();
 
             Session session = new Session(SessionOptions.StrictPatchRejection);
+            session.AddDestroyDelegate(sessionDestroy);
+
+            session.TimeoutMinutes = 1;
             session.Data = json;
 
             Storage[id] = json;

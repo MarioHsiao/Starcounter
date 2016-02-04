@@ -45,7 +45,7 @@ namespace Starcounter.Internal {
         /// <param name="readOnly"></param>
         /// <param name="detectConflicts"></param>
         /// <returns></returns>
-        public TransactionHandle Create(bool readOnly, bool detectConflicts) {
+        public TransactionHandle Create(bool readOnly, bool detectConflicts, bool applyHooks) {
             int index = Used;
 
             ulong handle;
@@ -60,7 +60,7 @@ namespace Starcounter.Internal {
             if (ec == 0) {
                 verify = ThreadData.ObjectVerify;
                 try {
-                    TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
+                    TransactionHandle th = new TransactionHandle(handle, verify, flags, index, applyHooks);
 
                     if (index < ShortListCount) {
                         unsafe {
@@ -98,14 +98,14 @@ namespace Starcounter.Internal {
         }
 
         internal static TransactionHandle CreateImplicitAndSetCurrent(bool readOnly) {
-            return CreateAndSetCurrent(readOnly, false, true);
+            return CreateAndSetCurrent(readOnly, false, true, true);
         }
 
         internal static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts) {
-            return CreateAndSetCurrent(readOnly, detectConflicts, false);
+            return CreateAndSetCurrent(readOnly, detectConflicts, false, true);
         }
 
-        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit) {
+        private static TransactionHandle CreateAndSetCurrent(bool readOnly, bool detectConflicts, bool isImplicit, bool applyHooks) {
             if (ThreadData.inTransactionScope_ != 0)
                 throw ErrorCode.ToException(Error.SCERRTRANSACTIONLOCKEDONTHREAD);
 
@@ -126,7 +126,7 @@ namespace Starcounter.Internal {
                     // Can not fail.
                     sccoredb.star_context_set_current_transaction(ThreadData.ContextHandle, handle);
 
-                    TransactionHandle th = new TransactionHandle(handle, verify, flags, index);
+                    TransactionHandle th = new TransactionHandle(handle, verify, flags, index, applyHooks);
                     if (isImplicit)
                         th.flags |= TransactionHandle.FLAG_IMPLICIT;
 
@@ -346,6 +346,7 @@ namespace Starcounter.Internal {
                     ThreadData.ContextHandle, handle.handle
                     );
                 CurrentHandle = handle;
+                ThreadData.applyHooks_ = handle.applyHooks;
                 return;
             }
 
@@ -634,25 +635,40 @@ namespace Starcounter.Internal {
         /// Commits current transaction.
         /// </summary>
         internal static void Commit(int free) {
+
+            if (ThreadData.applyHooks_)
+                InvokeHooks();
+
+            uint r = sccoredb.star_context_commit(ThreadData.ContextHandle, free);
+            if (r != 0) throw ErrorCode.ToException(r);
+        }
+
+        internal static void InvokeHooks()
+        {
             uint r;
             ulong vi, hi;
 
             // Lock transaction on thread while invoking hook callbacks.
             ThreadData.inTransactionScope_++;
-            try {
+            try
+            {
                 vi = ThreadData.ObjectVerify;
-                unsafe {
+                unsafe
+                {
                     r = sccoredb.star_context_create_update_iterator(ThreadData.ContextHandle, &hi);
                 }
                 if (r != 0) throw ErrorCode.ToException(r);
-                try {
+                try
+                {
                     TypeBinding binding = null;
                     IObjectProxy proxy = null;
                     HookKey key = null;
 
-                    for (;;) {
+                    for (;;)
+                    {
                         ulong recordId, recordRef;
-                        unsafe {
+                        unsafe
+                        {
                             r = sccoredb.star_iterator_next(hi, &recordId, &recordRef, vi);
                         }
                         if (r != 0) throw ErrorCode.ToException(r);
@@ -666,12 +682,15 @@ namespace Starcounter.Internal {
 
                         ushort layoutHandle = (ushort)(recordRef & 0xFFFF);
 
-                        if (HookType.IsCommitInsertOrUpdate(hookType)) {
-                            if (binding == null || binding.TableId != layoutHandle) {
+                        if (HookType.IsCommitInsertOrUpdate(hookType))
+                        {
+                            if (binding == null || binding.TableId != layoutHandle)
+                            {
                                 binding = TypeRepository.GetTypeBinding(layoutHandle);
 
                                 // Handle if actual layout is different from expected layout.
-                                if (binding.TableId != layoutHandle) {
+                                if (binding.TableId != layoutHandle)
+                                {
                                     layoutHandle = binding.TableId;
                                     recordRef = DbHelper.EncodeObjectRefWithLayoutHandle(
                                         recordRef, layoutHandle
@@ -685,30 +704,30 @@ namespace Starcounter.Internal {
                         }
 
                         key = HookKey.FromTable(layoutHandle, hookType, key);
-                        switch (hookType) {
-                        case HookType.CommitInsert:
-                            InvokableHook.InvokeInsert(key, proxy);
-                            break;
-                        case HookType.CommitUpdate:
-                            InvokableHook.InvokeUpdate(key, proxy);
-                            break;
-                        case HookType.CommitDelete:
-                            InvokableHook.InvokeDelete(key, recordId);
-                            break;
+                        switch (hookType)
+                        {
+                            case HookType.CommitInsert:
+                                InvokableHook.InvokeInsert(key, proxy);
+                                break;
+                            case HookType.CommitUpdate:
+                                InvokableHook.InvokeUpdate(key, proxy);
+                                break;
+                            case HookType.CommitDelete:
+                                InvokableHook.InvokeDelete(key, recordId);
+                                break;
                         }
                     }
                 }
-                finally {
+                finally
+                {
                     sccoredb.star_iterator_free(hi, vi);
                 }
             }
-            finally {
+            finally
+            {
                 Debug.Assert(ThreadData.inTransactionScope_ > 0);
                 ThreadData.inTransactionScope_--;
             }
-
-            r = sccoredb.star_context_commit(ThreadData.ContextHandle, free);
-            if (r != 0) throw ErrorCode.ToException(r);
         }
 
         /// <summary>

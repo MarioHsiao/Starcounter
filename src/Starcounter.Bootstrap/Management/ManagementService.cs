@@ -77,10 +77,10 @@ namespace Starcounter.Bootstrap.Management {
             
             if (setupAPI) {
                 CodeHostAPI.Setup(HostIdentity);
-                new DbSession().RunSync(() => {
+                Scheduling.ScheduleTask(() => {
                     CodeHostHandler.Setup();
                     ExecutablesHandler.Setup(handleScheduler);
-                });
+                }, true);
             }
         }
 

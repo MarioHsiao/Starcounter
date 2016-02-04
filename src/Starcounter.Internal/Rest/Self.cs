@@ -130,7 +130,7 @@ namespace Starcounter {
             Dictionary<String, String> headersDictionary = null,
             HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 port,
                 Handle.GET_METHOD,
                 uri,
@@ -152,7 +152,7 @@ namespace Starcounter {
             UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 port,
                 Handle.POST_METHOD,
                 uri,
@@ -174,7 +174,7 @@ namespace Starcounter {
             UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 port,
                 Handle.PUT_METHOD,
                 uri,
@@ -196,7 +196,7 @@ namespace Starcounter {
             UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 port,
                 Handle.PATCH_METHOD,
                 uri,
@@ -218,7 +218,7 @@ namespace Starcounter {
             UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 port,
                 Handle.DELETE_METHOD,
                 uri,
@@ -241,7 +241,7 @@ namespace Starcounter {
             UInt16 port = StarcounterConstants.NetworkPorts.DefaultUnspecifiedPort,
             HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 port,
                 method,
                 uri,
@@ -257,7 +257,7 @@ namespace Starcounter {
         /// </summary>
         public static Response CustomRESTRequest(Request req, HandlerOptions ho = null) {
 
-            return DoSelfNodeCall(
+            return DoSelfCall(
                 req.PortNumber,
                 req.Method,
                 req.Uri,
@@ -299,7 +299,7 @@ namespace Starcounter {
             out Response resp);
 
         /// <summary>
-        /// Performs local Node REST call.
+        /// Performs local REST call.
         /// </summary>
         static RunUriMatcherAndCallHandlerDelegate runUriMatcherAndCallHandler_;
 
@@ -318,9 +318,9 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Perform Node call.
+        /// Perform Self call.
         /// </summary>
-        static Response DoSelfNodeCall(
+        static Response DoSelfCall(
             UInt16 portNumber,
             String method,
             String relativeUri,
@@ -329,6 +329,11 @@ namespace Starcounter {
             Byte[] bodyBytes,
             HandlerOptions handlerOptions,
             Request req) {
+
+            // Checking if we are not on scheduler.
+            if (!StarcounterEnvironment.IsOnScheduler()) {
+                throw new InvalidOperationException("You are trying to perform a Self call while not being on Starcounter scheduler.");
+            }
 
             // Checking if URI starts with a slash.
             if (String.IsNullOrEmpty(relativeUri) || relativeUri[0] != '/') {

@@ -29,7 +29,7 @@ namespace WebSocketsTestServer {
             WebSocketSessionsTimer = new Timer((state) => {
 
                 // Getting sessions for current scheduler.
-                new DbSession().RunAsync(() => {
+                Scheduling.ScheduleTask(() => {
 
                     Db.Transact(() => {
 

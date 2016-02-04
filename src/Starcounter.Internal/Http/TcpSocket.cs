@@ -30,24 +30,10 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Converts lower and upper part of TcpSocket into an object.
+        /// Converts UInt64 TcpSocket into an object.
         /// </summary>
-        /// <param name="lowerPart">Lower part of the socket info.</param>
-        /// <param name="upperPart">Upper part of the socket info.</param>
-        public TcpSocket(UInt64 lowerPart, UInt64 upperPart) {
-            socketStruct_ = SocketStruct.FromLowerUpper(lowerPart, upperPart);
-        }
-
-        /// <summary>
-        /// Converts TcpSocket to lower and upper parts.
-        /// </summary>
-        /// <param name="socketIdLower">Lower part of socket ID.</param>
-        /// <param name="socketIdUpper">Upper part of socket ID.</param>
-        public void ToLowerUpper(
-            out UInt64 socketIdLower,
-            out UInt64 socketIdUpper) {
-
-            SocketStruct.ToLowerUpper(socketStruct_, out socketIdLower, out socketIdUpper);
+        public TcpSocket(UInt64 socketId) {
+            socketStruct_.FromUInt64(socketId);
         }
 
         /// <summary>

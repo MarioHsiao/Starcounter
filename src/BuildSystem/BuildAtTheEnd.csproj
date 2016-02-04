@@ -37,6 +37,7 @@
         $(OutputPath)\Starcounter.Logging.dll;
         $(OutputPath)\Starcounter.HyperMedia.dll;
         $(OutputPath)\Starcounter.XSON.dll;
+        $(OutputPath)\Starcounter.TransactionLog.dll;
       "/>
       <PublicAssembliesHelp Include="
         $(OutputPath)\Starcounter.XML;
