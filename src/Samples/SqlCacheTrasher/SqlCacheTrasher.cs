@@ -135,16 +135,14 @@ namespace SqlCacheTrasher
                 // Starting workers as several Starcounter jobs.
                 for (Byte i = 0; i < numWorkers; i++)
                 {
-                    DbSession dbs = new DbSession();
-
                     // Constructing parameter.
                     Byte workerId = i;
 
                     // Starting workers as Starcounter jobs.
                     if (i < numLogProc)
-                        dbs.RunAsync(() => TestWorker(workerId), i);
+                        Scheduling.ScheduleTask(() => TestWorker(workerId), false, i);
                     else
-                        dbs.RunAsync(() => TestWorker(workerId));
+                        Scheduling.ScheduleTask(() => TestWorker(workerId));
                 }
             }
             else

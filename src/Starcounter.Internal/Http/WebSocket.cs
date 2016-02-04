@@ -256,18 +256,6 @@ namespace Starcounter
         }
 
         /// <summary>
-        /// Converts WebSocket to lower and upper parts.
-        /// </summary>
-        /// <param name="socketIdLower">Lower part of socket ID.</param>
-        /// <param name="socketIdUpper">Upper part of socket ID.</param>
-        internal void ToLowerUpper(
-            out UInt64 socketIdLower,
-            out UInt64 socketIdUpper) {
-
-            SocketStruct.ToLowerUpper(socketStruct_, out socketIdLower, out socketIdUpper);
-        }
-
-        /// <summary>
         /// Converts socket struct to lower and upper parts.
         /// </summary>
         public UInt64 ToUInt64() {
@@ -287,16 +275,6 @@ namespace Starcounter
         internal WebSocket(NetworkDataStream dataStream) {
 
             socketStruct_.Init(dataStream);
-        }
-
-        /// <summary>
-        /// Converts lower and upper part of WebSocket into an object.
-        /// </summary>
-        /// <param name="lowerPart">Lower part of the socket info.</param>
-        /// <param name="upperPart">Upper part of the socket info.</param>
-        internal WebSocket(UInt64 socketIdLower, UInt64 socketIdUpper) {
-
-            socketStruct_ = SocketStruct.FromLowerUpper(socketIdLower, socketIdUpper);
         }
 
         /// <summary>

@@ -44,6 +44,17 @@ namespace Starcounter.Internal {
             UInt32 sessionTimeoutMinutes,
             String dbName,
             Boolean noNetworkGateway) {
+
+            // Dependency injection for db and transaction calls.
+            StarcounterBase._DB = new DbImpl();
+
+#pragma warning disable 0618
+            Scheduling.SetDbSessionImplementation(new DbSession());
+#pragma warning restore 0618
+
+            // Invalidating scheduler id.
+            StarcounterEnvironment.InvalidateSchedulerId();
+
             // Setting host exception logging for internal.
             Diagnostics.SetHostLogException((Exception exc) => {
                 LogSources.Hosting.LogException(exc);
@@ -63,11 +74,6 @@ namespace Starcounter.Internal {
             // Allow reading of JSON-by-example files at runtime
             // Starcounter_XSON_JsonByExample.Initialize();
 
-            // Dependency injection for db and transaction calls.
-            StarcounterBase._DB = new DbImpl();
-            DbSession dbs = new DbSession();
-            ScSessionClass.SetDbSessionImplementation(dbs);
-
             // Dependency injection for converting puppets to html
             Starcounter.Internal.XSON.Modules.Starcounter_XSON.Injections.JsonMimeConverter = new JsonMimeConverter();
 
@@ -86,9 +92,7 @@ namespace Starcounter.Internal {
             }
 
             // Injecting required hosted Node functionality.
-            Node.InjectHostedImpl(
-                UriManagedHandlersCodegen.RunUriMatcherAndCallHandler,
-                NodeErrorLogSource.LogException);
+            Node.InjectHostedImpl(NodeErrorLogSource.LogException);
 
             // Initializing global sessions.
             GlobalSessions.InitGlobalSessions(numSchedulers);
@@ -225,14 +229,13 @@ namespace Starcounter.Internal {
             }
 
             // Starting a timer that will schedule a job for the session-cleanup on each scheduler.
-            DbSession dbSession = new DbSession();
             int interval = 1000 * 60;
             sessionCleanupTimer_ = new Timer((state) => {
                 // Schedule a job to check once for inactive sessions on each scheduler.
                 for (Byte i = 0; i < numSchedulers; i++) {
                     // Getting sessions for current scheduler.
                     SchedulerSessions schedSessions = GlobalSessions.AllGlobalSessions.GetSchedulerSessions(i);
-                    dbSession.RunAsync(() => schedSessions.InactiveSessionsCleanupRoutine(), i);
+                    Scheduling.ScheduleTask(() => schedSessions.InactiveSessionsCleanupRoutine(), false, i);
                 }
             },
                 null, interval, interval);

@@ -1,4 +1,5 @@
 ﻿
+using Starcounter.Internal;
 using Starcounter.Server.Commands.InternalCommands;
 using Starcounter.Server.PublicModel.Commands;
 using System;
@@ -47,7 +48,7 @@ namespace Starcounter.Server.Commands {
             this.Engine.CurrentPublicModel.RemoveDatabase(database);
             this.Engine.Databases.Remove(database.Name);
 
-            Self.DELETE("/__internal_api/databases/" + database.Name, string.Empty, null);
+            Http.DELETE("http://localhost:" + StarcounterEnvironment.Default.SystemHttpPort + "/__internal_api/databases/" + database.Name, string.Empty, null);
 
             // Just try this particular instance, and then schedule for all
             // occurances if this does not work.

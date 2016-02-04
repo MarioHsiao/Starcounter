@@ -17,6 +17,8 @@
 - Added possibility to use straight handlers paramters notation "{?}" in URIs when doing mapping. Paramter type notation "@w" is still supported but is temporary and will be removed in future.
 - Added functionality to unregister existing HTTP handlers. Documentation information added to http://starcounter.io/guides/network/handling-requests/#unregistering-existing-http-handlers
 - Added a possibility to stream data over TCP, WebSockets and HTTP responses: [#9](https://github.com/Starcounter/Starcounter/issues/9)
+- Added `Session.ToAsciiString()` to convert an existing session into an ASCII string. Later this session ASCII string can be used as parameter to `Session.ScheduleTask`.
+- Added simpler task scheduling interface using static method `Scheduling.ScheduleTask()`.
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
@@ -38,6 +40,8 @@
 - Fixed nullreference exception in some cases when a bound array in TypedJSON was changed [#3245](https://github.com/Starcounter/Starcounter/issues/3245)
 - Fixed correct handling of bound values for arrays in TypedJSON when bound value was null [#3304](https://github.com/Starcounter/Starcounter/issues/3304)
 - Wrapping all generated classes for TypedJSON inside namespace to avoid clashing of names [#3316](https://github.com/Starcounter/Starcounter/issues/3316)
+- Added verification when generating code from JSON-by-example for TypedJSON to make sure all properties only contains valid characters [#3103](https://github.com/Starcounter/Starcounter/issues/3103)
+- Wrapped unhandled exception from a scheduled task inside a starcounter exception to preserve stacktrace [#3032](https://github.com/Starcounter/Starcounter/issues/3032), [#3122](https://github.com/Starcounter/Starcounter/issues/3122), [#3329](https://github.com/Starcounter/Starcounter/issues/3032)
 
 ### Changed
 - Changed so that working directory is no longer a resource directory by default.
@@ -46,6 +50,10 @@
 - Its no longer possible to register handlers with same signature. For example, one can't register handler "GET /{?}" with string parameter, and handler "GET /{?}" with integer parameter.
 - Due to [`<juicy-redirect>`](https://github.com/Juicy/juicy-redirect) and [`<puppet-redirect>`](https://github.com/PuppetJs/puppet-redirect) update, Custom Element should now be imported from `/sys/juicy-redirect/juicy-redirect.html` or `/sys/puppet-redirect/puppet-redirect.html`. When used with Polymer's template binding, `url` value can be bound two-way via property: `<juicy-redirect url="{{model.path.to.RedirectURL$}}">`
 - Added method(s) on Session taking a delegate to be run instead of using `session.StartUsing()` and `session.StopUsing()`,  these two methods are no longer public. [#3117](https://github.com/Starcounter/Starcounter/issues/3117)
+- Session API has been refactored. `Session.ForEach` has been removed for its inefficiency, `Session.ScheduleTask` now replaces it.
+- `Session.Destroyed` is now replaced by `Session.AddDestroyDelegate` because of apps separation issues.
+- `Session.CargoId` is removed because of no use.
+
 ## [2.1.177] - 2015-10-14
 ### Changed
 - Removal of notion of Polyjuice and major refactoring around this. Full list of changes is here:

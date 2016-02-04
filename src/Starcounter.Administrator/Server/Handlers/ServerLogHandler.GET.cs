@@ -192,7 +192,7 @@ namespace Starcounter.Administrator.Server.Handlers {
         static void sendLogChangedEvent() {
 
             // Getting sessions for current scheduler.
-            new DbSession().RunAsync(() => {
+            Scheduling.ScheduleTask(() => {
 
                 lock (ServerLogWebSocketGroupName) {
 
