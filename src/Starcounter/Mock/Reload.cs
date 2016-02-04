@@ -296,7 +296,7 @@ namespace Starcounter
 
                 try
                 {
-                    new DbSession().RunSync(() =>
+                    Scheduling.ScheduleTask(() =>
                         Starcounter.Internal.StarcounterEnvironment.RunWithinApplication(app_name, () =>
                         {
                             Db.Transact(() =>
@@ -304,8 +304,7 @@ namespace Starcounter
                                 foreach (var i in a)
                                     res.Add(i());
                             });
-                        }),
-                        scheduler);
+                        }), true, scheduler);
 
                     return res;
                 }
