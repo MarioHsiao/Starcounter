@@ -33,7 +33,7 @@ adminModule.controller('DatabaseCtrl', ['$scope', '$log', '$sce', '$location', '
     $scope.btnDeleteDatabase = function (database) {
 
         var title = "Delete database";        
-        var message = $sce.trustAsHtml("This will delete the database <strong>'" + database.ID + "'</strong> <strong>permantely!</strong>.</br>All data will be completly deleted, with no ways to recover it.</br>This action is not possible to reverse.");
+        var message = $sce.trustAsHtml("This will delete the database <strong>'" + database.ID + "'</strong> <strong>permanently!</strong>.</br>All data will be completly deleted, with no ways to recover it.</br>This action is not possible to reverse.");
         var buttons = [{ result: 0, label: 'Delete Database', cssClass: 'btn-danger' }, { result: 1, label: 'Cancel', cssClass: 'btn' }];
         var model = { "title": title, "message": message, "buttons": buttons, enteredDatabaseName: "" };
         model.pattern = database.ID;

@@ -4785,6 +4785,11 @@
         There is no given index in the database for the given type.
       </message>
     </code>
+    <code hex="0006" severity="Error" name="ScErrDropTypeNotEmpty">
+      <message>
+        Type cannot be dropped, since it is not empty.
+      </message>
+    </code>
   </facility>
 
 <!--
