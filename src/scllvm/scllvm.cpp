@@ -218,12 +218,13 @@ extern "C" {
 					llvm::createFunctionInliningPass(optLevel, sizeLevel);
 				builder.populateModulePassManager(mpm);
 				builder.populateFunctionPassManager(fpm);
-				mpm.run(*module);
 
 				auto fi = module->functions();
 				fpm.doInitialization();
 				for (Function &f : fi) fpm.run(f);
 				fpm.doFinalization();
+
+				mpm.run(*module);
 			}
 
 			std::string error_str;
