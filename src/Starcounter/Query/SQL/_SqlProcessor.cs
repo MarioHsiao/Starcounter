@@ -422,10 +422,17 @@ internal static class SqlProcessor
             //throw new SqlException("Expected no more tokens.", tokenList, pos);
             throw SqlException.GetSqlException(Error.SCERRSQLINCORRECTSYNTAX, "Found token after end of statement.");
         }
+            try {
+                TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
+                throw ErrorCode.ToException(Error.SCERRDROPTYPENOTEMPTY, 
+                    "CLR class is loaded for the table being deleted:" + typeBind.TypeDef.TableDef.Name);
+            }
+            catch (DbException e) {
+                if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSCHEMACODEMISMATCH)
+                    throw;
+            }
             DDLScope(() => {
-                uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_table_cascade(
-                ThreadData.ContextHandle, typePath);
-                if (err != 0) throw ErrorCode.ToException(err);
+                Starcounter.SqlProcessor.SqlProcessor.DropTableCascade(typePath);
             });
         }
 

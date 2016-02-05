@@ -84,7 +84,7 @@ namespace Starcounter.SqlProcessor {
             string table_full_name, string index_name);
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static unsafe extern uint star_drop_table_cascade(ulong context,
+        private static unsafe extern uint star_drop_table_cascade(ulong context,
             string table_full_name);
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
@@ -94,6 +94,10 @@ namespace Starcounter.SqlProcessor {
         internal static unsafe extern uint star_alter_table_add_columns(ulong context_handle,
             string full_table_name, STAR_COLUMN_DEFINITION_HIGH* added_columns,
             out ulong new_layout_handle);
+        [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
+        internal static unsafe extern char* star_metalayer_errbuf(ulong context_handle,
+            out ulong size);
+        
 
         public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
             uint err = scsql_process_query(ThreadData.ContextHandle, query, out queryType, out iterator);
@@ -147,7 +151,6 @@ namespace Starcounter.SqlProcessor {
             LoadGlobalSetspecIndexHandle(context);
         }
 
-#if true
         private static ulong globalSetspecIndexHandle_ = 0;
 
         internal static ulong GetGlobalSetspecIndexHandle(ulong contextHandle) {
@@ -212,7 +215,6 @@ namespace Starcounter.SqlProcessor {
                 }
             }
         }
-#endif
 
         public static void CleanClrMetadata(ulong context) {
             uint err = star_clrmetadata_clean(context);
@@ -243,6 +245,16 @@ namespace Starcounter.SqlProcessor {
             if (err != 0)
                 throw ErrorCode.ToException(err);
             return token;
+        }
+
+        public static unsafe void DropTableCascade(string tableFullName) {
+            uint err = star_drop_table_cascade(ThreadData.ContextHandle, tableFullName);
+            if (err != 0) {
+                ulong size;
+                char* errorMessage = star_metalayer_errbuf(ThreadData.ContextHandle, out size);
+                Debug.Assert(errorMessage != null);
+                throw ErrorCode.ToException(err, new String(errorMessage));
+            }
         }
 
         /// <summary>
