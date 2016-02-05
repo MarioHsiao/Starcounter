@@ -11,6 +11,9 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/ExecutionEngine/SectionMemoryManager.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
+#include "llvm/Transforms/IPO.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/IR/LegacyPassManager.h"
 
 #include <sstream>
 #include <cstdio>
@@ -202,6 +205,26 @@ extern "C" {
 			// Creating new module.
 			llvm::Module* module = codegen_->ReleaseModule();
 			assert(module && "Can't release module by some reason!");
+
+			if (do_optimizations) {
+				const int optLevel = 3;
+				const int sizeLevel = 0;
+				llvm::legacy::PassManager mpm;
+				llvm::legacy::FunctionPassManager fpm(module);
+				llvm::PassManagerBuilder builder;
+				builder.OptLevel = optLevel;
+				builder.SizeLevel = sizeLevel;
+				builder.Inliner =
+					llvm::createFunctionInliningPass(optLevel, sizeLevel);
+				builder.populateModulePassManager(mpm);
+				builder.populateFunctionPassManager(fpm);
+				mpm.run(*module);
+
+				auto fi = module->functions();
+				fpm.doInitialization();
+				for (Function &f : fi) fpm.run(f);
+				fpm.doFinalization();
+			}
 
 			std::string error_str;
 
