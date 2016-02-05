@@ -286,7 +286,7 @@ namespace Starcounter.SqlProcessor {
     [StructLayout(LayoutKind.Sequential)]
     public unsafe struct ScError {
         public uint scerrorcode;
-        public sbyte* scerrmessage;
+        public char* scerrmessage;
         public int scerrposition;
         public byte isKeyword;
         private IntPtr _token;
