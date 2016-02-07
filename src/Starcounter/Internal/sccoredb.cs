@@ -123,6 +123,29 @@ namespace Starcounter.Internal
             ulong handle, ushort layout_handle, out STARI_LAYOUT_INFO layout_info
             );
 
+        [StructLayout(LayoutKind.Sequential, Pack = 8)]
+        internal unsafe struct STARI_INDEX_INFO {
+            /// <summary>
+            /// </summary>
+            public ulong handle;
+            /// <summary>
+            /// </summary>
+            public ulong token;
+            /// <summary>
+            /// </summary>
+            public ushort column_count;
+            /// <summary>
+            /// </summary>
+            public ushort sort_mask;
+            /// <summary>
+            /// </summary>
+            public ushort flags;
+            /// <summary>
+            /// </summary>
+            //public fixed STARI_COLUMN_DEFINITION column_definitions[8];
+            public fixed ulong column_definitions[2 * 8];
+        };
+
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall)]
         internal static extern unsafe uint stari_context_get_layout_infos_by_token(
             ulong handle, ulong token, uint *pcount, STARI_LAYOUT_INFO *playout_infos
@@ -169,80 +192,34 @@ namespace Starcounter.Internal
         };
 
         [StructLayout(LayoutKind.Sequential, Pack = 8)]
-        internal struct STARI_INDEX_INFO
-        {
-          /// <summary>
-          /// </summary>
-          public ulong handle;
-
-          /// <summary>
-          /// </summary>
-          public ulong token;
-
-          /// <summary>
-          /// </summary>
-          public ushort layout_handle;
-
-          /// <summary>
-          /// </summary>
-          public short attributeCount;
-
-          /// <summary>
-          /// </summary>
-          public ushort sortMask;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_0;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_1;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_2;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_3;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_4;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_5;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_6;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_7;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_8;
-          
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_9;
-
-          /// <summary>
-          /// </summary>
-          public short attrIndexArr_10;
-
-          /// <summary>
-          /// </summary>
-          public ushort flags;
+        internal unsafe struct STARI_INDEX_INFO_OLD {
+            /// <summary>
+            /// </summary>
+            public ulong handle;
+            /// <summary>
+            /// </summary>
+            public ulong token;
+            /// <summary>
+            /// </summary>
+            public ushort layout_handle;
+            /// <summary>
+            /// </summary>
+            public ushort column_count;
+            /// <summary>
+            /// </summary>
+            public ushort sort_mask;
+            /// <summary>
+            /// </summary>
+            public ushort flags;
+            /// <summary>
+            /// </summary>
+            public fixed ushort column_indexes[8];
         };
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static extern unsafe uint stari_context_get_index_infos_by_setspec(
-            ulong handle, string setspec, uint flags, uint *pic, STARI_INDEX_INFO *piis
+        internal static extern unsafe uint stari_context_get_index_infos_by_setspec_OLD(
+            ulong handle, string setspec, ushort layout_handle, uint flags, uint *pic,
+            STARI_INDEX_INFO_OLD *piis
             );
 
         internal const uint STAR_EXCLUDE_INHERITED = 1;
