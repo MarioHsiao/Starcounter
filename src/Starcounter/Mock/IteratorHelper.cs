@@ -117,10 +117,6 @@ namespace Starcounter
             keyOid = *(UInt64*)(recreationKey + keyLen - 12);
             keyEti = *(UInt64*)(recreationKey + keyLen - 20);
 #endif
-            // To get the record handle from the record reference in the index (which is what is
-            // stored in the recreate key). Not very pretty but a temporary fix. Record handle
-            // should not be used to identify a record. Issue in tracker: #3066.
-            keyEti >>= 1;
         }
 
         // No code generation is used here.
