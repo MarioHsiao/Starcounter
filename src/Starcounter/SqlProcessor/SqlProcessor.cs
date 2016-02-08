@@ -95,8 +95,7 @@ namespace Starcounter.SqlProcessor {
             string full_table_name, STAR_COLUMN_DEFINITION_HIGH* added_columns,
             out ulong new_layout_handle);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static unsafe extern char* star_metalayer_errbuf(ulong context_handle,
-            out ulong size);
+        internal static unsafe extern char* star_metalayer_errbuf(ulong context_handle);
         
 
         public static unsafe Exception CallSqlProcessor(String query, out byte queryType, out ulong iterator) {
@@ -247,14 +246,18 @@ namespace Starcounter.SqlProcessor {
             return token;
         }
 
-        public static unsafe void DropTableCascade(string tableFullName) {
-            uint err = star_drop_table_cascade(ThreadData.ContextHandle, tableFullName);
+        internal static unsafe void MetalayerThrowIfError(uint err) {
             if (err != 0) {
-                ulong size;
-                char* errorMessage = star_metalayer_errbuf(ThreadData.ContextHandle, out size);
-                Debug.Assert(errorMessage != null);
-                throw ErrorCode.ToException(err, new String(errorMessage));
+                char* errorMessage = star_metalayer_errbuf(ThreadData.ContextHandle);
+                if (errorMessage != null)
+                    throw ErrorCode.ToException(err, new String(errorMessage));
+                else
+                    throw ErrorCode.ToException(err);
             }
+        }
+
+        public static unsafe void DropTableCascade(string tableFullName) {
+            MetalayerThrowIfError(star_drop_table_cascade(ThreadData.ContextHandle, tableFullName));
         }
 
         /// <summary>
