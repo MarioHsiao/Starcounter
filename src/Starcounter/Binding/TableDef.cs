@@ -222,16 +222,13 @@ namespace Starcounter.Binding {
             uint ec;
             uint ic;
             sccoredb.STARI_INDEX_INFO[] iis;
-            List<IndexInfo> iil;
+            IndexInfo[] iil;
 
             unsafe
             {
                 string setspec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(TableId);
                 ec = sccoredb.stari_context_get_index_infos_by_setspec(
-                    ThreadData.ContextHandle,
-                    setspec,
-                    &ic,
-                    null
+                    ThreadData.ContextHandle, setspec, sccoredb.STAR_EXCLUDE_INHERITED, &ic, null
                     );
                 if (ec != 0) {
                     throw ErrorCode.ToException(ec);
@@ -244,27 +241,17 @@ namespace Starcounter.Binding {
                 fixed (sccoredb.STARI_INDEX_INFO* pii = &(iis[0]))
                 {
                     ec = sccoredb.stari_context_get_index_infos_by_setspec(
-                        ThreadData.ContextHandle,
-                        setspec,
-                        &ic,
-                        pii
+                        ThreadData.ContextHandle, setspec, sccoredb.STAR_EXCLUDE_INHERITED, &ic, pii
                         );
                     if (ec != 0) {
                         throw ErrorCode.ToException(ec);
                     }
 
-                    // Index infos array contains all indexes including inherited ones, which we do not 
-                    // want here, so we filter them out. We check all existing layouts for this definition
-                    // and make sure the indexes we add belongs to any of them.
-                    iil = new List<IndexInfo>((int)ic);
+                    iil = new IndexInfo[ic];
                     for (int i = 0; i < ic; i++) {
-                        foreach (ushort tableId in allLayoutIds) {
-                            if ((pii + i)->layout_handle == tableId) {
-                                iil.Add(CreateIndexInfo(pii + i));
-                            }
-                        }
+                        iil[i] = CreateIndexInfo(pii + i);
                     }
-                    return iil.ToArray();
+                    return iil;
                 }
             }
         }

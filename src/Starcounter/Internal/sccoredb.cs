@@ -242,8 +242,10 @@ namespace Starcounter.Internal
 
         [DllImport("sccoredb.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static extern unsafe uint stari_context_get_index_infos_by_setspec(
-            ulong handle, string setspec, uint *pic, STARI_INDEX_INFO *piis
+            ulong handle, string setspec, uint flags, uint *pic, STARI_INDEX_INFO *piis
             );
+
+        internal const uint STAR_EXCLUDE_INHERITED = 1;
 
         /// <summary>
         /// </summary>
