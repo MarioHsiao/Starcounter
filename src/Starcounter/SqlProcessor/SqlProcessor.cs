@@ -74,7 +74,7 @@ namespace Starcounter.SqlProcessor {
         };
 
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static unsafe extern uint star_create_index_high(ulong context,
+        private static unsafe extern uint star_create_index_by_names(ulong context,
             string index_name,
             string table_name,
             STAR_INDEXED_COLUMN *columns,
@@ -256,8 +256,14 @@ namespace Starcounter.SqlProcessor {
             }
         }
 
-        public static unsafe void DropTableCascade(string tableFullName) {
+        public static void DropTableCascade(string tableFullName) {
             MetalayerThrowIfError(star_drop_table_cascade(ThreadData.ContextHandle, tableFullName));
+        }
+
+        internal static unsafe void CreateIndex(string index_name, string table_name, 
+            STAR_INDEXED_COLUMN* columns, bool is_unique) {
+            MetalayerThrowIfError(star_create_index_by_names(ThreadData.ContextHandle,
+                index_name, table_name, columns, is_unique));
         }
 
         /// <summary>
