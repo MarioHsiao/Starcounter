@@ -4792,7 +4792,7 @@
     </code>
     <code hex="0007" severity="Error" name="ScErrMetalayerBufferTooSmall">
       <message>
-        Type cannot be dropped, since it is not empty.
+        Internal metalayer buffer is too small.
       </message>
     </code>
   </facility>
