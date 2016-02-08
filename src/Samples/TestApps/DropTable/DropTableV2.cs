@@ -4,11 +4,15 @@ using Starcounter.Metadata;
 
 class Program {
     static void Main() {
+		Exception ex = null;
 		try {
-			Db.SQL("DROP TABLE User");
-		} catch (Starcounter.DbException e) {
-			Console.WriteLine(e.Message);
+			Db.SQL("DROP TABLE \"User\"");
+		} catch (Exception e) {
+			ex = e;
 		}
+		ScAssertion.Assert(ex != null);
+		ScAssertion.Assert(ex.Message.Substring(0, 34).Equals("ScErrDropTypeNotEmpty (SCERR15006)"));
+		ScAssertion.Assert(ex.Message.Contains("User"));
         ScAssertion.Assert(Db.SQL<RawView>("SELECT v FROM RawView v WHERE Name = ?", "User").First != null);
         ScAssertion.Assert(Db.SQL<Column>("SELECT c FROM Column c WHERE c.Table.Name = ? AND c.Name = ?",
             "User", "LastName") != null);

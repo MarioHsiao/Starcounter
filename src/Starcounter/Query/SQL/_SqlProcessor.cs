@@ -425,7 +425,7 @@ internal static class SqlProcessor
             try {
                 TypeBinding typeBind = Bindings.GetTypeBindingInsensitive(typePath);
                 throw ErrorCode.ToException(Error.SCERRDROPTYPENOTEMPTY, 
-                    "CLR class is loaded for the table being deleted:" + typeBind.TypeDef.TableDef.Name);
+                    "CLR class is loaded for the table being deleted: " + typeBind.TypeDef.TableDef.Name);
             }
             catch (DbException e) {
                 if ((uint)e.Data[ErrorCode.EC_TRANSPORT_KEY] != Error.SCERRSCHEMACODEMISMATCH)
