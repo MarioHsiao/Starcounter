@@ -221,14 +221,15 @@ namespace Starcounter.Binding {
         internal IndexInfo[] GetAllIndexInfos() {
             uint ec;
             uint ic;
-            sccoredb.STARI_INDEX_INFO[] iis;
+            sccoredb.STARI_INDEX_INFO_OLD[] iis;
             IndexInfo[] iil;
 
             unsafe
             {
                 string setspec = Starcounter.SqlProcessor.SqlProcessor.GetSetSpecifier(TableId);
-                ec = sccoredb.stari_context_get_index_infos_by_setspec(
-                    ThreadData.ContextHandle, setspec, sccoredb.STAR_EXCLUDE_INHERITED, &ic, null
+                ec = sccoredb.stari_context_get_index_infos_by_setspec_OLD(
+                    ThreadData.ContextHandle, setspec, TableId, sccoredb.STAR_EXCLUDE_INHERITED,
+                    &ic, null
                     );
                 if (ec != 0) {
                     throw ErrorCode.ToException(ec);
@@ -237,11 +238,12 @@ namespace Starcounter.Binding {
                     return new IndexInfo[0];
                 }
 
-                iis = new sccoredb.STARI_INDEX_INFO[ic];
-                fixed (sccoredb.STARI_INDEX_INFO* pii = &(iis[0]))
+                iis = new sccoredb.STARI_INDEX_INFO_OLD[ic];
+                fixed (sccoredb.STARI_INDEX_INFO_OLD* pii = &(iis[0]))
                 {
-                    ec = sccoredb.stari_context_get_index_infos_by_setspec(
-                        ThreadData.ContextHandle, setspec, sccoredb.STAR_EXCLUDE_INHERITED, &ic, pii
+                    ec = sccoredb.stari_context_get_index_infos_by_setspec_OLD(
+                        ThreadData.ContextHandle, setspec, TableId, sccoredb.STAR_EXCLUDE_INHERITED,
+                        &ic, pii
                         );
                     if (ec != 0) {
                         throw ErrorCode.ToException(ec);
@@ -274,7 +276,7 @@ namespace Starcounter.Binding {
             }
         }
 
-        internal unsafe IndexInfo CreateIndexInfo(sccoredb.STARI_INDEX_INFO* pii) {
+        internal unsafe IndexInfo CreateIndexInfo(sccoredb.STARI_INDEX_INFO_OLD* pii) {
             string name;
             short attributeCount;
             ushort tempSortMask;
@@ -286,13 +288,13 @@ namespace Starcounter.Binding {
             token = pii->token;
             name = Starcounter.SqlProcessor.SqlProcessor.GetNameFromToken(token);
             // Get the number of attributes.
-            attributeCount = pii->attributeCount;
-            if (attributeCount < 1 || attributeCount > 10) {
+            attributeCount = (short)pii->column_count;
+            if (attributeCount < 1 || attributeCount > 8) {
                 throw ErrorCode.ToException(Error.SCERRSQLINTERNALERROR, "Incorrect attributeCount.");
             }
             // Get the sort orderings.
             sortOrderings = new SortOrder[attributeCount];
-            tempSortMask = pii->sortMask;
+            tempSortMask = pii->sort_mask;
             for (Int32 j = 0; j < attributeCount; j++) {
                 if ((tempSortMask & 1) == 1) {
                     sortOrderings[j] = SortOrder.Descending;
@@ -305,52 +307,8 @@ namespace Starcounter.Binding {
             columnIndexes = new int[attributeCount];
             columnDefs = new ColumnDef[attributeCount];
             for (Int32 j = 0; j < attributeCount; j++) {
-                switch (j) {
-                    case 0:
-                        columnIndexes[j] = pii->attrIndexArr_0;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_0];
-                        break;
-                    case 1:
-                        columnIndexes[j] = pii->attrIndexArr_1;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_1];
-                        break;
-                    case 2:
-                        columnIndexes[j] = pii->attrIndexArr_2;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_2];
-                        break;
-                    case 3:
-                        columnIndexes[j] = pii->attrIndexArr_3;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_3];
-                        break;
-                    case 4:
-                        columnIndexes[j] = pii->attrIndexArr_4;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_4];
-                        break;
-                    case 5:
-                        columnIndexes[j] = pii->attrIndexArr_5;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_5];
-                        break;
-                    case 6:
-                        columnIndexes[j] = pii->attrIndexArr_6;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_6];
-                        break;
-                    case 7:
-                        columnIndexes[j] = pii->attrIndexArr_7;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_7];
-                        break;
-                    case 8:
-                        columnIndexes[j] = pii->attrIndexArr_8;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_8];
-                        break;
-                    case 9:
-                        columnIndexes[j] = pii->attrIndexArr_9;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_9];
-                        break;
-                    case 10:
-                        columnIndexes[j] = pii->attrIndexArr_10;
-                        columnDefs[j] = ColumnDefs[pii->attrIndexArr_10];
-                        break;
-                }
+                columnIndexes[j] = pii->column_indexes[j];
+                columnDefs[j] = ColumnDefs[pii->column_indexes[j]];
             }
             return new IndexInfo(
                 pii->handle, TableId, token, name, columnIndexes, columnDefs, sortOrderings
