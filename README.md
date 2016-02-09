@@ -8,7 +8,7 @@ This Starcounter is a fused ACID memory centric database engine and C# VM.
 
 This repository is reserved for the public Starcounter bits.
 
-## Developer samples
+## Developer samples and prefabs
 
 * [GitHub.com/StarcounterSamples](https://github.com/StarcounterSamples)
 * [GitHub.com/StarcounterPrefabs](https://github.com/StarcounterPrefabs)
