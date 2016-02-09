@@ -38,7 +38,7 @@ namespace Starcounter.Hosting {
 
         protected override void UpdateDatabaseSchemaAndRegisterTypes(string fullAppId, TypeDef[] unregisteredTypeDefs, TypeDef[] allTypeDefs) {
             if (unregisteredTypeDefs.Length != 0) {
-                Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata(ThreadData.ContextHandle);
+                Starcounter.SqlProcessor.SqlProcessor.PopulateRuntimeMetadata();
 
                 OnRuntimeMetadataPopulated();
                 // Call CLR class clean up
