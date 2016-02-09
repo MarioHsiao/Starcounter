@@ -130,8 +130,8 @@ namespace Starcounter
                     inheritedTableId = inheritedTableDef.TableId;
                 }
                 ColumnDef[] columns = tableDef.ColumnDefs;
-                SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[] column_defs =
-                    new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH[columns.Length - implicitColumnCount + 1];
+                SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES[] column_defs =
+                    new SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES[columns.Length - implicitColumnCount + 1];
                 Debug.Assert(column_defs.Length > 0);
     
                 try
@@ -143,11 +143,11 @@ namespace Starcounter
                         column_defs[di].is_nullable = columns[ci].IsNullable ? (byte)1 : (byte)0;
                     }
                     ushort layout_id;
-                    fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_HIGH* fixed_column_defs = column_defs)
+                    fixed (SqlProcessor.SqlProcessor.STAR_COLUMN_DEFINITION_WITH_NAMES* fixed_column_defs = column_defs)
                     {
-                        uint e = SqlProcessor.SqlProcessor.star_create_table_high(ThreadData.ContextHandle,
-                            tableDef.Name, tableDef.BaseName, fixed_column_defs, out layout_id);
-                        if (e != 0) throw ErrorCode.ToException(e);
+                        SqlProcessor.SqlProcessor.CreatTableByNames(
+                            tableDef.Name, tableDef.BaseName, fixed_column_defs, 
+                            out layout_id);
                     }
                 }
                 finally { }

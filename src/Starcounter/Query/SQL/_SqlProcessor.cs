@@ -137,7 +137,6 @@ internal static class SqlProcessor
     {
         Int32 factor;
         UInt16 sortMask;
-        UInt32 errorCode;
         Int16[] attributeIndexArr;
         UInt32 flags = 0;
         
@@ -272,11 +271,10 @@ internal static class SqlProcessor
             DDLScope(() => {
                 fixed (Int16* attributeIndexesPointer = &(attributeIndexArr[0]))
                 {
-                    errorCode = Starcounter.SqlProcessor.SqlProcessor.star_create_index_ids(
-                        ThreadData.ContextHandle, typeBind.TableId,
-                        indexName, sortMask, attributeIndexesPointer, flags);
+                    Starcounter.SqlProcessor.SqlProcessor.CreateIndexByIds(
+                        typeBind.TableId, indexName, sortMask, 
+                        attributeIndexesPointer, flags);
                 }
-                if (errorCode != 0) throw ErrorCode.ToException(errorCode);
             });
         }
     }
@@ -388,18 +386,14 @@ internal static class SqlProcessor
         if (typeBind == null)
             throw SqlException.GetSqlException(Error.SCERRSQLUNKNOWNNAME, "Table \"" + typePath + "\" is not found", exc);
 
-#if true
         // Operation creates its own transaction. Not allowed if transaction is locked on thread.
         if (ThreadData.inTransactionScope_ != 0)
             throw ErrorCode.ToException(
                 Error.SCERRCANTEXECUTEDDLTRANSACTLOCKED, "Cannot execute DROP INDEX statement."
                 );
-#endif
-
         DDLScope(() => {
-            uint err = Starcounter.SqlProcessor.SqlProcessor.star_drop_index_by_table_and_name(
-                ThreadData.ContextHandle, typeBind.TypeDef.TableDef.Name, indexName);
-            if (err != 0) throw ErrorCode.ToException(err);
+            Starcounter.SqlProcessor.SqlProcessor.DropIndexByTableAndIndexName(
+                typeBind.TypeDef.TableDef.Name, indexName);
         });
     }
 
