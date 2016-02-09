@@ -9,14 +9,14 @@ namespace Starcounter.SqlProcessor {
         internal const ulong STAR_MOM_OF_ALL_LAYOUTS_NAME_TOKEN = 10;
         internal const ulong STAR_GLOBAL_SETSPEC_INDEX_NAME_TOKEN = 11;
 
-        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall, 
-            CharSet = CharSet.Unicode)]
-        public static unsafe extern uint scsql_process_query(ulong context, 
-            string query, out byte query_type, out ulong iter);
-            /*void* caller, void* executor, */
         [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
             CharSet = CharSet.Unicode)]
-        internal static unsafe extern uint scsql_process_modifyquery(ulong context, 
+        public static unsafe extern uint scsql_process_query(ulong context,
+            string query, out byte query_type, out ulong iter);
+        /*void* caller, void* executor, */
+        [DllImport("scsqlprocessor.dll", CallingConvention = CallingConvention.StdCall,
+            CharSet = CharSet.Unicode)]
+        internal static unsafe extern uint scsql_process_modifyquery(ulong context,
             string query, out int nrObjectsUpdated);
         [DllImport("scsqlprocessor.dll")]
         public static unsafe extern ScError* scsql_get_error();
@@ -35,12 +35,25 @@ namespace Starcounter.SqlProcessor {
         private static unsafe extern uint star_assure_token(ulong context_handle,
             string label, ulong* token_id);
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static unsafe extern uint star_table_ref_by_layout_id(ulong context_handle, 
+        private static extern uint star_table_ref_by_layout_id(ulong context_handle,
             ushort layout_id, out ulong table_oid, out ulong table_ref);
+        //internal static void GetTableRefByLayoutId(ushort layout_id,
+        //    out ulong table_oid, out ulong table_ref) {
+        //    MetalayerThrowIfError(star_table_ref_by_layout_id(ThreadData.ContextHandle,
+        //        layout_id, out table_oid, out table_ref));
+        //}
+
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
-        internal static unsafe extern uint star_create_index(ulong context,
+        private static unsafe extern uint star_create_index(ulong context,
             ulong table_oid, ulong table_ref, string name, ushort sort_mask,
             short* column_indexes, uint attribute_flags);
+        internal static unsafe void CreateIndex(ulong table_oid, ulong table_ref,
+            string name, ushort sort_mask, short* column_indexes, uint attribute_flags) {
+            MetalayerThrowIfError(star_create_index(ThreadData.ContextHandle,
+                table_oid, table_ref, name, sort_mask, column_indexes,
+                attribute_flags));
+        }
+
         [DllImport("scdbmetalayer.dll", CallingConvention = CallingConvention.StdCall, CharSet = CharSet.Unicode)]
         internal static unsafe extern uint star_create_index_ids(ulong context,
         ushort layout_id,
@@ -133,20 +146,17 @@ namespace Starcounter.SqlProcessor {
             ulong rawviewRecordAddr;
             ulong setspecRecordOid;
             ulong setspecRecordAddr;
-            uint err = Starcounter.SqlProcessor.SqlProcessor.star_table_ref_by_layout_id(
-                ThreadData.ContextHandle, layoutId, out rawviewRecordOid, out rawviewRecordAddr);
-            if (err != 0) throw ErrorCode.ToException(err);
-            err = Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
+            MetalayerThrowIfError(Starcounter.SqlProcessor.SqlProcessor.star_table_ref_by_layout_id(
+                ThreadData.ContextHandle, layoutId, out rawviewRecordOid, out rawviewRecordAddr));
+            MetalayerThrowIfError(Starcounter.SqlProcessor.SqlProcessor.star_setspec_ref_by_table_ref(
                 ThreadData.ContextHandle, rawviewRecordOid, rawviewRecordAddr,
-                &setspecRecordOid, &setspecRecordAddr);
-            if (err != 0) throw ErrorCode.ToException(err);
+                &setspecRecordOid, &setspecRecordAddr));
             return DbState.ReadString(setspecRecordOid, setspecRecordAddr, 2);
         }
 
-        public static void PopulateRuntimeMetadata(ulong context) {
-            uint err = star_prepare_system_tables(context);
-            if (err != 0)
-                throw ErrorCode.ToException(err);
+        public static void PopulateRuntimeMetadata() {
+            ulong context = ThreadData.ContextHandle;
+            MetalayerThrowIfError(star_prepare_system_tables(context));
             LoadGlobalSetspecIndexHandle(context);
         }
 
