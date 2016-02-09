@@ -11,6 +11,7 @@ This repository is reserved for the public Starcounter bits.
 ## Developer samples
 
 * [GitHub.com/StarcounterSamples](https://github.com/StarcounterSamples)
+* [GitHub.com/StarcounterPrefabs](https://github.com/StarcounterPrefabs)
 * [Tutorials](http://starcounter.io/tutorials/)
 
 ## Download installer
