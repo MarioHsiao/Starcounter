@@ -1093,8 +1093,8 @@ uint32_t Gateway::LoadSettings()
 		if (setting_maximum_receive_content_length_ > static_cast<uint32_t>(MAX_SOCKET_DATA_SIZE)) {
 
 			std::wstringstream s;
-			s << L"Gateway XML: MaximumReceiveContentLength parameter exceeds maximum value of " << MAX_SOCKET_DATA_SIZE <<
-				". Value of " << MAX_SOCKET_DATA_SIZE << " will be used.";
+			s << L"Gateway XML: MaximumReceiveContentLength parameter exceeds maximum value. " <<
+				"Current value is set to " << MAX_SOCKET_DATA_SIZE << ".";
 			g_gateway.LogWriteWarning(s.str().c_str());
 		}
 

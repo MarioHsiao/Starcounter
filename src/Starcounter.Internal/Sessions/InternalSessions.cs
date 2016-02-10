@@ -451,8 +451,8 @@ namespace Starcounter.Internal
         /// <summary>
         /// Gets application session by index if its alive.
         /// </summary>
-        /// <param name="index"></param>
-        /// <returns></returns>
+        /// <param name="index">Index on which to obtain session.</param>
+        /// <returns>Internal session class instance.</returns>
         public ScSessionClass GetAppsSessionIfAlive(UInt32 index) {
 
             // Getting session instance.

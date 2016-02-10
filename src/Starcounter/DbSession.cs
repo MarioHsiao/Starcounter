@@ -163,6 +163,17 @@ namespace Starcounter {
             unsafe {
                 uint r;
 
+                // Checking if we need to use round robin for getting scheduler id.
+                if (StarcounterEnvironment.InvalidSchedulerId == schedId) {
+                    lock (roundRobinLock_) {
+                        roundRobinSchedId_++;
+                        if (roundRobinSchedId_ >= StarcounterEnvironment.SchedulerCount) {
+                            roundRobinSchedId_ = 0;
+                        }
+                        schedId = roundRobinSchedId_;
+                    }
+                }
+
                 byte schedulerNumber;
                 r = sccorelib.cm3_get_cpun(null, &schedulerNumber);
                 if ((r != 0) || (schedId != StarcounterEnvironment.InvalidSchedulerId && schedulerNumber != schedId)) {
