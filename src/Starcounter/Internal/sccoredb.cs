@@ -74,6 +74,8 @@ namespace Starcounter.Internal
             public void* query_highmem_cond;
 
             public void *on_index_updated;
+
+            public void* on_datamanager_disconnected;
         }
 
         /// <summary>
