@@ -191,12 +191,69 @@ namespace Starcounter {
         }
 
         /// <summary>
+        /// Resembles session task to be used in Session.ScheduleTask and Session.ForAll.
+        /// </summary>
+        /// <param name="session">Session on which this task is to be called. Note that Session value can still be null (if session was destroyed in the meantime).</param>
+        /// <param name="sessionId">Session ASCII representation (useful in case if Session value is null).</param>
+        public delegate void SessionTask(Session session, String sessionId);
+
+        /// <summary>
+        /// Runs a given session for each task on current scheduler.
+        /// </summary>
+        static void RunForSessionsOnCurrentScheduler(Action<Session> task) {
+
+            SchedulerSessions ss =
+                GlobalSessions.AllGlobalSessions.GetSchedulerSessions(StarcounterEnvironment.CurrentSchedulerId);
+
+            LinkedListNode<UInt32> usedSessionIndexNode = ss.UsedSessionIndexes.First;
+
+            while (usedSessionIndexNode != null) {
+
+                LinkedListNode<UInt32> nextUsedSessionIndexNode = usedSessionIndexNode.Next;
+
+                // Getting session instance.
+                ScSessionClass sessionClass = ss.GetAppsSessionIfAlive(usedSessionIndexNode.Value);
+
+                // Checking if session is created at all.
+                if (null != sessionClass) {
+
+                    Session s = (Session) sessionClass.apps_session_int_;
+                    if (null != s) {
+                        s.Use<Session>(task, s);
+                    }
+                }
+
+                // Getting next used session.
+                usedSessionIndexNode = nextUsedSessionIndexNode;
+            }
+        }
+
+        /// <summary>
+        /// Running given action on each active session on each owning scheduler.
+        /// </summary>
+        /// <param name="task">Task to run on session.</param>
+        /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
+        public static void ForAll(Action<Session> task, Boolean waitForCompletion = false) {
+
+            for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
+
+                Byte schedId = i;
+
+                Scheduling.ScheduleTask(
+                    () => { RunForSessionsOnCurrentScheduler(task); },
+                    waitForCompletion,
+                    schedId);
+            }
+        }
+
+        /// <summary>
         /// Schedule a task on specific session.
         /// </summary>
         /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
-        /// <param name="task">Task to run on session.</param>
+        /// <param name="task">Task to run on session. Note that Session value can still be null (if session was destroyed in the meantime).
+        /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
-        public static void ScheduleTask(String sessionId, Action<Session, String> task, Boolean waitForCompletion = false) {
+        public static void ScheduleTask(String sessionId, SessionTask task, Boolean waitForCompletion = false) {
 
             // Getting session structure from string.
             ScSessionStruct ss = new ScSessionStruct();
@@ -206,14 +263,14 @@ namespace Starcounter {
             if (ss.schedulerId_ == StarcounterEnvironment.CurrentSchedulerId) {
 
                 Session s = (Session) GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-                task(s, sessionId);
+                s.Use(task, sessionId);
 
             } else {
 
                 Scheduling.ScheduleTask(() => {
 
                     Session s = (Session)GlobalSessions.AllGlobalSessions.GetAppsSessionInterface(ref ss);
-                    task(s, sessionId);
+                    s.Use(task, sessionId);
 
                 }, waitForCompletion, ss.schedulerId_);
             }
@@ -223,8 +280,10 @@ namespace Starcounter {
         /// Schedule a task on given sessions.
         /// </summary>
         /// <param name="sessionId">String representing the session (string is obtained from Session.ToAsciiString()).</param>
-        /// <param name="task">Task to run on session.</param>
-        public static void ScheduleTask(IEnumerable<String> sessionIds, Action<Session, String> task) {
+        /// <param name="task">Task to run on session. Note that Session value can still be null (if session was destroyed in the meantime).
+        /// Second string parameter is the session ASCII representation (useful in case if Session value is null).</param>
+        /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
+        public static void ScheduleTask(IEnumerable<String> sessionIds, SessionTask task, Boolean waitForCompletion = false) {
 
             List<String> sessionIdsList = new List<string>();
             foreach (String s in sessionIds) {
@@ -233,7 +292,7 @@ namespace Starcounter {
 
             for (Int32 i = 0; i < sessionIdsList.Count; i++) {
                 String s = sessionIdsList[i];
-                ScheduleTask(s, task);
+                ScheduleTask(s, task, waitForCompletion);
             }
         }
 
@@ -593,6 +652,21 @@ namespace Starcounter {
             bool started = this.StartUsing();
             try {
                 action();
+            } finally {
+                if (started)
+                    this.StopUsing();
+            }
+        }
+
+        /// <summary>
+        /// Executes the specified delegate inside the scope of the session,
+        /// ensuring that only the caller have access for the duration of the call       
+        /// </summary>
+        /// <param name="action"></param>
+        void Use(SessionTask action, String sessionId) {
+            bool started = this.StartUsing();
+            try {
+                action(this, sessionId);
             } finally {
                 if (started)
                     this.StopUsing();
