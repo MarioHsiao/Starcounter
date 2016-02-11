@@ -593,12 +593,28 @@ namespace Starcounter.InstallerWPF {
         /// </summary>
         void CheckHardwareStatus() {
 
-            // Checking the RAM size and number of cores.
-            if (Utilities.LessThan4GbMemory() || (Environment.ProcessorCount <= 1)) {
+            Boolean notFullfilled = false;
+            String faults = "";
 
-                WpfMessageBox.Show("For being productive Starcounter recommends that your machine has at least 4Gb of RAM and 2 CPU cores." +
-                    Environment.NewLine + "You can now proceed with installation...",
-                    "Recommended hardware requirements are not fulfilled", WpfMessageBoxButton.OK, WpfMessageBoxImage.Exclamation);
+            if (Utilities.LessThan4GbMemory()) {
+                notFullfilled = true;
+                faults += "Your machine has less than 4Gb of RAM." + Environment.NewLine;
+            }
+
+            if (Environment.ProcessorCount <= 1) {
+                notFullfilled = true;
+                faults += "Your machine has less than 2 CPU logical processors." + Environment.NewLine;
+            }
+
+            // Checking requirements are not met.
+            if (notFullfilled) {
+
+                WpfMessageBox.Show(
+                    "To be productive Starcounter recommends that your machine has at least 4Gb of RAM and 2 CPU logical processors." +
+                    Environment.NewLine + faults + 
+                    Environment.NewLine + "You can now proceed with installation.",
+                    "Recommended hardware requirements are not met.",
+                    WpfMessageBoxButton.OK, WpfMessageBoxImage.Exclamation);
             }
         }
 
