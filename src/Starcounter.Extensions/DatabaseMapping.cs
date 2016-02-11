@@ -440,15 +440,22 @@ namespace Starcounter.Extensions {
                     // Searching for orhaned relations and deleting them.
                     foreach (DbMappingRelation rel in Db.SQL<DbMappingRelation>("SELECT o FROM Starcounter.Extensions.DbMappingRelation o")) {
 
-                        // Checking that there are no objects in each direction.
-                        if (null == DbHelper.FromID(rel.FromOid) &&
-                            null == DbHelper.FromID(rel.ToOid)) {
+                        // NOTE: We are doing try-catch to skip classes that were not loaded into codehost.
+                        try {
 
-                            // First deleting other direction map.
-                            rel.MirrorRelationRef.Delete();
+                            // Checking that there are no objects in each direction.
+                            if (null == DbHelper.FromID(rel.FromOid) &&
+                                null == DbHelper.FromID(rel.ToOid)) {
 
-                            // Deleting the relation, since we are about to delete objects.
-                            rel.Delete();
+                                // First deleting other direction map.
+                                rel.MirrorRelationRef.Delete();
+
+                                // Deleting the relation, since we are about to delete objects.
+                                rel.Delete();
+                            }
+
+                        } catch {
+                            continue;
                         }
                     }
                 });
@@ -677,8 +684,14 @@ namespace Starcounter.Extensions {
 
                                             Response resp = null;
 
-                                            // Checking that both objects exist.
-                                            if (null == DbHelper.FromID(rel.FromOid) || null == DbHelper.FromID(rel.ToOid)) {
+                                            try {
+
+                                                // Checking that both objects and classes exist.
+                                                if (null == DbHelper.FromID(rel.FromOid) || null == DbHelper.FromID(rel.ToOid)) {
+                                                    continue;
+                                                }
+
+                                            } catch {
                                                 continue;
                                             }
 
