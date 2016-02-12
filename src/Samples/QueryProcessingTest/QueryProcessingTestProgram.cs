@@ -15,8 +15,7 @@ namespace QueryProcessingTest {
                     int nrLoaded = Starcounter.Db.Reload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
                     HelpMethods.LogEvent("Finish loading query processing database. Loaded " +
                         nrLoaded + " objects.");
-                }
-                else
+                } else
                     HelpMethods.LogEvent("No reload.");
                 KernelBugsTest.RunKernelBugsTest(secondRun);
                 BindingTestDirect.DirectBindingTest();
@@ -43,7 +42,7 @@ namespace QueryProcessingTest {
                     HelpMethods.LogEvent("Benchmark of query cache is skipped");
                 HelpMethods.LogEvent("Start unloading query processing database.");
                 int nrUnloaded = Starcounter.Db.Unload(@"s\QueryProcessingTest\dumpQueryProcessingDB.sql");
-                HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " + 
+                HelpMethods.LogEvent("Finish unloading query processing database. Unloaded " +
                     nrUnloaded + " objects.");
                 HelpMethods.LogEvent("Start delete the database data.");
                 Starcounter.Reload.DeleteAll();

@@ -33,6 +33,7 @@ namespace QueryProcessingTest {
             TestSearchByObject();
             OuterJoinBugs();
             TestDelimitedIdentifier();
+            NegativeFloatBug3226();
         }
 
         public static void TestFetchOrderBy() {
@@ -551,6 +552,24 @@ namespace QueryProcessingTest {
             }
             Trace.Assert(wasException);
             HelpMethods.LogEvent("Finidhed testing delimited identifiers.");
+        }
+
+        public static void NegativeFloatBug3226() {
+            HelpMethods.LogEvent("Test negative floats in queries.");
+            string userName = "DoubleUser";
+            Db.Transact(delegate {
+                User u = new User { FirstName = userName };
+                new Account { Client = u, AmountDouble = -3 };
+                Account a = Db.SQL<Account>("select a from account a where not AmountDouble >= ?",
+                    0).First;
+                Trace.Assert(a != null);
+                Trace.Assert(a.Client.FirstName == userName);
+                a = Db.SQL<Account>("select a from account a where AmountDouble < ?",
+                    0).First;
+                Trace.Assert(a != null);
+                Trace.Assert(a.Client.FirstName == userName);
+            });
+            HelpMethods.LogEvent("Finished testing negative floats in queries.");
         }
     }
 }
