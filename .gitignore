@@ -17,6 +17,7 @@ Release
 *.ipch
 *.aps
 *.csproj.user
+*.opendb
 src/Starcounter/Error.cs
 src/Starcounter.Internal/Error.cs
 src/_NCrunch_Level1
