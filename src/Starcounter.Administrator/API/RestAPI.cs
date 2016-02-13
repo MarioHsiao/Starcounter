@@ -28,7 +28,7 @@ namespace Starcounter.Administrator.API {
             IServerRuntime runtime) {
             
             RootHandler.Host.Setup(serverHost, serverPort, engine, runtime);
-            RootHandler.Setup(admin);
+            RootHandler.Setup(admin, true);
             ServerHandler.Setup();
             DatabaseCollectionHandler.Setup();
             DatabaseHandler.Setup();

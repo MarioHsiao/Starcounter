@@ -24,6 +24,12 @@ namespace Starcounter.Administrator.API.Handlers {
         public static AdminAPI API { get; private set; }
 
         /// <summary>
+        /// Relax "REST confirmance" by not registering 405's on all resource URI's
+        /// that does not support all methods.
+        /// </summary>
+        public static bool Disable405Registrations { get; private set; }
+
+        /// <summary>
         /// Provides a set of references to the currently running
         /// admin server host. Used and shared by handlers when fullfilling
         /// REST requests.
@@ -53,7 +59,11 @@ namespace Starcounter.Administrator.API.Handlers {
         /// </summary>
         /// <param name="adminAPI">The API to be used by all
         /// fellow handlers.</param>
-        public static void Setup(AdminAPI adminAPI) {
+        /// <param name="disable405registrations">
+        /// Relax "REST confirmance" by not registering 405's on all resource URI's
+        /// that does not support all methods.
+        /// </param>
+        public static void Setup(AdminAPI adminAPI, bool disable405registrations = false) {
             API = adminAPI;
             var uri = adminAPI.Uris.Root;
             Handle.GET(uri, () => { return 403; });
@@ -61,6 +71,10 @@ namespace Starcounter.Administrator.API.Handlers {
         }
 
         public static void Register405OnAllUnsupported(string uri, string[] methodsSupported, bool allowExtensionsBeyondPatch = false) {
+            if (RootHandler.Disable405Registrations) {
+                return;
+            }
+
             RESTUtility.Register405OnAllUnsupported(uri, (ushort)Host.ServerPort, methodsSupported, allowExtensionsBeyondPatch);
         }
 
