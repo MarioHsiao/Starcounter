@@ -31,6 +31,7 @@ namespace Starcounter.Administrator.API.Handlers {
             var command = new CreateDatabaseCommand(engine, name) {
                 EnableWaiting = true
             };
+            ApplyCustomSettings(command, db);
 
             var info = runtime.Execute(command);
             if (command.EnableWaiting) {
@@ -48,6 +49,29 @@ namespace Starcounter.Administrator.API.Handlers {
             db.Uri = admin.Uris.Database.ToAbsoluteUri(name);
 
             return RESTUtility.JSON.CreateResponse(db.ToJson(), 201);
+        }
+
+        static void ApplyCustomSettings(CreateDatabaseCommand cmd, Database db) {
+            var config = cmd.SetupProperties.Configuration;
+            var storageConfig = cmd.SetupProperties.StorageConfiguration;
+
+            if (db.Configuration.DefaultUserHttpPort > 0) {
+                config.Runtime.DefaultUserHttpPort = (ushort)db.Configuration.DefaultUserHttpPort;
+            }
+            if (!string.IsNullOrWhiteSpace(db.Configuration.DataDirectory)) {
+                config.Runtime.ImageDirectory = db.Configuration.DataDirectory;
+                config.Runtime.TransactionLogDirectory = db.Configuration.DataDirectory;
+            }
+            if (!string.IsNullOrWhiteSpace(db.Configuration.TempDirectory)) {
+                config.Runtime.ImageDirectory = db.Configuration.DataDirectory;
+                config.Runtime.TempDirectory = db.Configuration.TempDirectory;
+            }
+            if (db.Configuration.FirstObjectID > 0) {
+                storageConfig.FirstObjectID = db.Configuration.FirstObjectID;
+            }
+            if (db.Configuration.LastObjectID > 0) {
+                storageConfig.LastObjectID = db.Configuration.LastObjectID;
+            }
         }
     }
 }

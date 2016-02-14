@@ -1,10 +1,18 @@
 ﻿{
-    "Uri": "", // "http://example.com/api/databases/foo",
-    "Name": "", // "Foo",
-    "Configuration": {
-        "Uri": "" // "http://example.com/api/databases/foo/configuration"
-    },
-    "Engine": {
-        "Uri": "", // "http://example.com/api/engines/foo"
-    }
+
+  "Uri": "", // "http://example.com/api/databases/foo",
+  "Name": "", // "Foo",
+
+  "Configuration": {
+    "Uri": "", // "http://example.com/api/databases/foo/configuration",
+    "DataDirectory": "",
+    "TempDirectory": "",
+    "DefaultUserHttpPort": 0,
+    "FirstObjectID": 0,
+    "LastObjectID": 0
+  },
+
+  "Engine": {
+    "Uri": "", // "http://example.com/api/engines/foo"
+  }
 }
