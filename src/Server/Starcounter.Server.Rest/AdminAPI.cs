@@ -88,6 +88,16 @@ namespace Starcounter.Server.Rest {
             }
 
             /// <summary>
+            /// Gets the URI template to use to address a database
+            /// configuration resource.
+            /// </summary>
+            public string DatabaseConfiguration {
+                get {
+                    return Databases + "/{?}/config";
+                }
+            }
+
+            /// <summary>
             /// Gets the URI of the root database engines collection
             /// resource.
             /// </summary>
