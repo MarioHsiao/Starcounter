@@ -20,6 +20,8 @@
 - Added `Session.ToAsciiString()` to convert an existing session into an ASCII string. Later this session ASCII string can be used as parameter to `Session.ScheduleTask`.
 - Added simpler task scheduling interface using static method `Scheduling.ScheduleTask()`.
 - Extended the basic admin REST API to support creating databases with custom settings [#3362](https://github.com/Starcounter/Starcounter/issues/3362)
+- Made `staradmin new db` support the name to be given as a first parameter, like `staradmin new db`
+- Extended `staradmin new db` to support custom settings as specified in [#3360](https://github.com/Starcounter/Starcounter/issues/3360)
 
 ### Fixed
 - Bug fixed for inheritance of objects and arrays in TypedJSON that caused null references: [#2955](https://github.com/Starcounter/Starcounter/issues/2955)
