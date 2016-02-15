@@ -13,19 +13,23 @@ class Program {
 		Person q = Db.SQL<Person>("select p from Person p where LastName IS NULL").First;
 		ScAssertion.Assert(q != null, "At least one person with LastName IS NULL should be found.");
 		q = Db.SQL<Person>("select p from Person p where LastName = ?", null).First;
-		ScAssertion.Assert(q != null, "At least one person with LastName = null should be found.");
+		ScAssertion.Assert(q == null, "Should be no hits on person with LastName = null.");
 		q = Db.SQL<Person>("select p from Person p where NickName = ?", null).First;
-		ScAssertion.Assert(q != null, "At least one person with NickName = null should be found.");
+		ScAssertion.Assert(q == null, "Should be no hits on person with NickName = null.");
 		Account f = Db.SQL<Account>("select a from Account a where Client IS NULL").First;
 		ScAssertion.Assert(f != null, "At least one account with Client IS NULL should be found.");
 		f = Db.SQL<Account>("select a from Account a where Client = ?", null).First;
-		ScAssertion.Assert(f != null, "At least one account with Client = null should be found.");
+		ScAssertion.Assert(f == null, "Should be no hits on account with Client = null.");
 		DailyAccount r = Db.SQL<DailyAccount>("select d from dailyaccount d where Client = ?", null).First;
-		ScAssertion.Assert(r != null);
+		ScAssertion.Assert(r == null);
 		int count = 0;
-		foreach(Account account in Db.SQL<Account>("select a from Account a where a.Client=?", null))
+		foreach(Account account in Db.SQL<Account>("select a from Account a where a.Client IS NULL"))
 			count++;
 		ScAssertion.Assert(count == 2, "Two account with Client = null should be found.");
+		count = 0;
+		foreach(Account account in Db.SQL<Account>("select a from Account a where a.Client=?", null))
+			count++;
+		ScAssertion.Assert(count == 0, "No hits on account with Client = null should be found.");
 		Db.Transact(delegate {
 			d.Delete();
 			a.Delete();

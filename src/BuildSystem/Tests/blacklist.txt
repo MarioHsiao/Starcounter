@@ -74,7 +74,7 @@ Level1\src\Samples\CommitHooksTest\commithooks2_test.bat
 SimpleIndependentTests_hosted_test.exe
 # DropTable_test.bat
 # IndexedColumnDrop_test.bat
-SelectOnNull2362_test.bat
+# SelectOnNull2362_test.bat
 
 # Level0 tests that has to be reenabled in future (they are not maintained at the moment).
 
