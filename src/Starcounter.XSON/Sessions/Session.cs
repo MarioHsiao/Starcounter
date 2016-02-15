@@ -200,7 +200,7 @@ namespace Starcounter {
         /// <summary>
         /// Runs a given session for each task on current scheduler.
         /// </summary>
-        static void RunForSessionsOnCurrentScheduler(Action<Session> task) {
+        static void RunForSessionsOnCurrentScheduler(SessionTask task) {
 
             SchedulerSessions ss =
                 GlobalSessions.AllGlobalSessions.GetSchedulerSessions(StarcounterEnvironment.CurrentSchedulerId);
@@ -219,7 +219,7 @@ namespace Starcounter {
 
                     Session s = (Session) sessionClass.apps_session_int_;
                     if (null != s) {
-                        s.Use<Session>(task, s);
+                        s.Use(task, s.ToAsciiString());
                     }
                 }
 
@@ -229,11 +229,11 @@ namespace Starcounter {
         }
 
         /// <summary>
-        /// Running given action on each active session on each owning scheduler.
+        /// Running given task on each active session on each owning scheduler.
         /// </summary>
-        /// <param name="task">Task to run on session.</param>
+        /// <param name="task">Task to run on session. Second string parameter is the session ASCII representation.</param>
         /// <param name="waitForCompletion">Should we wait for the task to be completed.</param>
-        public static void ForAll(Action<Session> task, Boolean waitForCompletion = false) {
+        public static void ForAll(SessionTask task, Boolean waitForCompletion = false) {
 
             for (Byte i = 0; i < StarcounterEnvironment.SchedulerCount; i++) {
 
