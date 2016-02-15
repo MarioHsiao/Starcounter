@@ -17,7 +17,7 @@ namespace staradmin.Commands {
             };
 
             public CommandSyntaxDefinition Define(ApplicationSyntaxDefinition appSyntax) {
-                var cmd = appSyntax.DefineCommand(newCommand.Name, newCommand.ShortText, 0, 3);
+                var cmd = appSyntax.DefineCommand(newCommand.Name, newCommand.ShortText, 0, int.MaxValue);
                 return cmd;
             }
 
