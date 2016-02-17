@@ -9,7 +9,6 @@ using Starcounter.TestFramework;
 
 namespace QueryProcessingTest {
     public static class HelpMethods {
-        internal static TestLogger logger = new TestLogger("QueryProcessingTest", false);
 
         internal static void PrintQueryPlan(String query) {
             Console.WriteLine(((IEnumerator)Db.SQL(query, null).GetEnumerator()).ToString());
@@ -20,7 +19,7 @@ namespace QueryProcessingTest {
         }
 
         internal static void LogEvent(String eventString) {
-            logger.Log(eventString);
+            Console.WriteLine(eventString);
         }
     }
 }
