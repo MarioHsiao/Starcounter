@@ -43,9 +43,6 @@ namespace SqlCacheTrasher
         // Indicates that all threads has finished their work.
         Int32 numThreadsFinishedUnsafe = 0;
 
-        // Used for logging test messages.
-        TestLogger logger = null;
-
         // All combinations of property string capitalization.
         String[] queryCapCombs = null;
 
@@ -59,8 +56,6 @@ namespace SqlCacheTrasher
             this.numWorkers = numWorkers;
             this.numQueries = numQueries;
             this.numQueriesPerWorker = numQueries / numWorkers;
-
-            logger = new TestLogger(TestName, startedOnClient);
         }
 
         /// <summary>
@@ -68,7 +63,7 @@ namespace SqlCacheTrasher
         /// </summary>
         public void LogEvent(String eventString)
         {
-            logger.Log(eventString);
+            Console.WriteLine(eventString);
         }
 
         /// <summary>
@@ -82,7 +77,7 @@ namespace SqlCacheTrasher
             if ((!startedOnClient) && (TestLogger.SkipInProcessTests()))
             {
                 // Creating file indicating finish of the work.
-                logger.Log(TestName + " in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
+                Console.WriteLine(TestName + " in-process test is skipped!");
 
                 return;
             }
@@ -113,7 +108,7 @@ namespace SqlCacheTrasher
             StartMultipleWorkers(numWorkers);
 
             // Indicating successful finish of the work.
-            logger.Log(TestName + " test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+            Console.WriteLine(TestName + " test finished successfully!");
         }
 
         /// <summary>

@@ -51,11 +51,6 @@ namespace SQLTest
         static Boolean generateInput = false;
 
         /// <summary>
-        // Test logging object.
-        /// </summary>
-        static TestLogger testLogger = null;
-
-        /// <summary>
         /// Server-side log source.
         /// </summary>
         static LogSource logSource = null;
@@ -96,34 +91,8 @@ namespace SQLTest
             }
             if (!startedOnClient)
                 logSource = new LogSource(testName);
-            testLogger = new TestLogger(testName, startedOnClient);
         }
-
-        /// <summary>
-        /// Logs event both for server-side and client-side execution.
-        /// </summary>
-        /// <param name="eventString">Text message.</param>
-        /// <param name="msgType">Message type.</param>
-        public static void LogEvent(String eventString, TestLogger.LogMsgType msgType)
-        {
-            testLogger.Log(eventString, msgType);
-
-            if (!startedOnClient)
-                logSource.LogNotice(eventString);
-        }
-
-        /// <summary>
-        /// Logs event both for server-side and client-side execution.
-        /// </summary>
-        /// <param name="eventString">Text message.</param>
-        public static void LogEvent(String eventString)
-        {
-            testLogger.Log(eventString);
-
-            if (!startedOnClient)
-                logSource.LogNotice(eventString);
-        }
-
+        
         /// <summary>
         /// Runs the test on server or client.
         /// </summary>
@@ -133,7 +102,7 @@ namespace SQLTest
             if ((!startedOnClient) && (TestLogger.SkipInProcessTests()))
             {
                 // Creating file indicating finish of the work.
-                testLogger.Log("SqlTestX in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
+                Console.WriteLine("SqlTestX in-process test is skipped!");
 
                 return 0;
             }
@@ -143,77 +112,75 @@ namespace SQLTest
 
             try
             {
-                LogEvent("Read test input from file: " + inputFilePath);
+                Console.WriteLine("Read test input from file: " + inputFilePath);
                 stopwatch.Reset();
                 stopwatch.Start();
                 queryList = InputReader.ReadQueryListFromFile(inputFilePath, startedOnClient, out counter);
                 stopwatch.Stop();
-                LogEvent(queryList.Count + " out of " + counter + " queries read from input file in [ms]: " + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine(queryList.Count + " out of " + counter + " queries read from input file in [ms]: " + stopwatch.ElapsedMilliseconds);
 
-                LogEvent("Execute queries (first round).");
+                Console.WriteLine("Execute queries (first round).");
                 stopwatch.Reset();
                 stopwatch.Start();
                 QueryExecutor.ResultExecuteQueries(queryList, true);
                 stopwatch.Stop();
-                LogEvent(queryList.Count + " queries executed (first round) in [ms]: " + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine(queryList.Count + " queries executed (first round) in [ms]: " + stopwatch.ElapsedMilliseconds);
 
-                LogEvent("Execute queries (second round).");
+                Console.WriteLine("Execute queries (second round).");
                 stopwatch.Reset();
                 stopwatch.Start();
                 QueryExecutor.ResultExecuteQueries(queryList, false);
                 stopwatch.Stop();
-                LogEvent(queryList.Count + " queries executed (second round) in [ms]: " + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine(queryList.Count + " queries executed (second round) in [ms]: " + stopwatch.ElapsedMilliseconds);
 
-                LogEvent("Evaluate test result.");
+                Console.WriteLine("Evaluate test result.");
                 stopwatch.Reset();
                 stopwatch.Start();
                 nrFailedQueries = EvaluateTestResult(queryList);
                 stopwatch.Stop();
-                LogEvent(queryList.Count + " query results evaluated in [ms]: " + stopwatch.ElapsedMilliseconds);
-                LogEvent("Failed queries: " + nrFailedQueries);
+                Console.WriteLine(queryList.Count + " query results evaluated in [ms]: " + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine("Failed queries: " + nrFailedQueries);
 
-                LogEvent("Write test result to file: " + outputFilePath);
+                Console.WriteLine("Write test result to file: " + outputFilePath);
                 stopwatch.Reset();
                 stopwatch.Start();
                 OutputWriter.WriteOutputToFile(outputFilePath, queryList, FileType.Output);
                 stopwatch.Stop();
-                LogEvent("Test result written to file in [ms]: " + stopwatch.ElapsedMilliseconds);
+                Console.WriteLine("Test result written to file in [ms]: " + stopwatch.ElapsedMilliseconds);
 
                 if (debugOutput)
                 {
-                    LogEvent("Write debug output to file: " + debugFilePath);
+                    Console.WriteLine("Write debug output to file: " + debugFilePath);
                     stopwatch.Reset();
                     stopwatch.Start();
                     OutputWriter.WriteOutputToFile(debugFilePath, queryList, FileType.Debug);
                     stopwatch.Stop();
-                    LogEvent(queryList.Count + " queries written to debug file in [ms]: " + stopwatch.ElapsedMilliseconds);
+                    Console.WriteLine(queryList.Count + " queries written to debug file in [ms]: " + stopwatch.ElapsedMilliseconds);
                 }
 
                 if (generateInput)
                 {
-                    LogEvent("Generate new input file: " + generatedInputFilePath);
+                    Console.WriteLine("Generate new input file: " + generatedInputFilePath);
                     stopwatch.Reset();
                     stopwatch.Start();
                     OutputWriter.WriteOutputToFile(generatedInputFilePath, queryList, FileType.Input);
                     stopwatch.Stop();
-                    LogEvent(queryList.Count + " queries written to new input file in [ms]: " + stopwatch.ElapsedMilliseconds);
+                    Console.WriteLine(queryList.Count + " queries written to new input file in [ms]: " + stopwatch.ElapsedMilliseconds);
                 }
             }
             catch (Exception exception)
             {
-                LogEvent("Exception: " + exception, TestLogger.LogMsgType.MSG_ERROR);
+                Console.WriteLine("Exception: " + exception);
                 throw exception;
             }
 
             // Checking if there are any failed queries.
-            if (nrFailedQueries > 0)
-            {
-                LogEvent(testName + " has finished with errors!", TestLogger.LogMsgType.MSG_ERROR);
-                if (File.Exists(outputFilePath))
-                    testLogger.Log(File.ReadAllText(outputFilePath));
+            if (nrFailedQueries > 0) {
+                Console.WriteLine(testName + " has finished with errors!");
+            } else {
+                Console.WriteLine(testName + " finished successfully!");
             }
-            else
-                LogEvent(testName + " finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+                
             return nrFailedQueries;
         }
 

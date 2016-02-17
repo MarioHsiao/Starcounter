@@ -24,16 +24,10 @@ public class PolePositionEntrance
     Boolean startedOnClient = false;
 
     /// <summary>
-    /// Information logger.
-    /// </summary>
-    static TestLogger logger = null;
-
-    /// <summary>
     /// Constructor.
     /// </summary>
     public PolePositionEntrance(Boolean startedOnClient)
     {
-        logger = new TestLogger("PolePosition", startedOnClient);
         this.startedOnClient = startedOnClient;
 
         if (!startedOnClient)
@@ -66,22 +60,6 @@ public class PolePositionEntrance
         }
     }
 
-    /// <summary>
-    /// Logs some important event both for client and server side execution.
-    /// </summary>
-    public static void LogEvent(String eventString)
-    {
-        logger.Log(eventString);
-    }
-
-    /// <summary>
-    /// Same but no new line at the end.
-    /// </summary>
-    public static void LogEventNoNewLine(String eventString)
-    {
-        logger.Log(eventString, false);
-    }
-
     // Flag determines if its a nightly build.
     Boolean NightlyBuild = false;
 
@@ -102,7 +80,7 @@ public class PolePositionEntrance
         if ((!startedOnClient) && (TestLogger.SkipInProcessTests()))
         {
             // Creating file indicating finish of the work.
-            logger.Log("PolePosition in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
+            Console.WriteLine("PolePosition in-process test is skipped!");
 
             return;
         }
@@ -113,23 +91,23 @@ public class PolePositionEntrance
         // Running all laps.
         for (Int32 i = 0; i < 1; i++)
         {
-            LogEvent("\n\n---------------------------------");
-            LogEvent("Starting test suite " + i);
-            LogEvent("\n\n Running Sepang...");
+            Console.WriteLine("\n\n---------------------------------");
+            Console.WriteLine("Starting test suite " + i);
+            Console.WriteLine("\n\n Running Sepang...");
             RunSepang();
-            LogEvent("\n\n Running Melbourne...");
+            Console.WriteLine("\n\n Running Melbourne...");
             RunMelbourne();
-            LogEvent("\n\n Running Imola...");
+            Console.WriteLine("\n\n Running Imola...");
             RunImola();
-            LogEvent("\n\n Running Barcelona...");
+            Console.WriteLine("\n\n Running Barcelona...");
             RunBarcelona();
-            LogEvent("\n\n Running Bahrain...");
+            Console.WriteLine("\n\n Running Bahrain...");
             RunBahrain();
-            LogEvent("\n\n Done test suite " + i);
+            Console.WriteLine("\n\n Done test suite " + i);
         }
 
         // Creating file indicating finish of the work.
-        logger.Log("PolePosition successfully finished!", TestLogger.LogMsgType.MSG_SUCCESS);
+        Console.WriteLine("PolePosition successfully finished!");
     }
 
     void RunSepang()
@@ -139,7 +117,7 @@ public class PolePositionEntrance
         Setup setup = new Setup();
         setup.TreeDepth = 18;
 
-        LogEvent(" Tree depth: " + setup.TreeDepth);
+        Console.WriteLine(" Tree depth: " + setup.TreeDepth);
 
         SepangDriver sepangDriver = new SepangDriver(setup);
         sepangDriver.TakeSeatIn();
@@ -166,7 +144,7 @@ public class PolePositionEntrance
         setup.ObjectCount = 300000;
         setup.CommitInterval = 1000;
 
-        LogEvent(" Number of objects: " + setup.ObjectCount);
+        Console.WriteLine(" Number of objects: " + setup.ObjectCount);
 
         MelbourneDriver melbourneDriver = new MelbourneDriver(setup);
         melbourneDriver.TakeSeatIn();
@@ -194,8 +172,8 @@ public class PolePositionEntrance
         setup.SelectCount = 300000;
         setup.CommitInterval = 1000;
 
-        LogEvent(" Number of objects: " + setup.ObjectCount);
-        LogEvent(" Number of selects: " + setup.SelectCount);
+        Console.WriteLine(" Number of objects: " + setup.ObjectCount);
+        Console.WriteLine(" Number of selects: " + setup.SelectCount);
 
         ImolaDriver imolaDriver = new ImolaDriver(setup);
         imolaDriver.TakeSeatIn();
@@ -219,9 +197,9 @@ public class PolePositionEntrance
         setup.UpdateCount = 50000;
         setup.CommitInterval = 1000;
 
-        LogEvent(" Number of objects: " + setup.ObjectCount);
-        LogEvent(" Number of selects: " + setup.SelectCount);
-        LogEvent(" Number of updates: " + setup.UpdateCount);
+        Console.WriteLine(" Number of objects: " + setup.ObjectCount);
+        Console.WriteLine(" Number of selects: " + setup.SelectCount);
+        Console.WriteLine(" Number of updates: " + setup.UpdateCount);
 
         BahrainDriver bahrainDriver = new BahrainDriver(setup);
 
@@ -266,8 +244,8 @@ public class PolePositionEntrance
         setup.SelectCount = 5000;
         setup.ObjectCount = 5000;
 
-        LogEvent(" Number of objects: " + setup.ObjectCount);
-        LogEvent(" Number of selects: " + setup.SelectCount);
+        Console.WriteLine(" Number of objects: " + setup.ObjectCount);
+        Console.WriteLine(" Number of selects: " + setup.SelectCount);
 
         BarcelonaDriver barcelonaDriver = new BarcelonaDriver(setup);
 
@@ -303,9 +281,9 @@ public class PolePositionEntrance
         var lapAttr = Attributes.Find<LapAttribute>(lap.Method, false);
 
         if (lapAttr != null)
-            LogEventNoNewLine("Lap " + lapAttr.Name + ", ");
+            Console.WriteLine("Lap " + lapAttr.Name + ", ");
         else
-            LogEventNoNewLine("Unnamed lap, ");
+            Console.WriteLine("Unnamed lap, ");
 
         var stopwatch = Stopwatch.StartNew();
         lap();
@@ -313,7 +291,7 @@ public class PolePositionEntrance
 
         // Logging time spent.
         Int32 elapsedMs = (Int32) stopwatch.ElapsedMilliseconds;
-        LogEvent("done in " + elapsedMs + " milliseconds. ");
+        Console.WriteLine("done in " + elapsedMs + " milliseconds. ");
 
         // Reporting statistics.
         if (lapAttr != null)

@@ -86,7 +86,7 @@ public class BahrainDriver : Driver
                     using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByName, Pilot.GetName(i)).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
                         if (taken != 1) {
-                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.Name = " + i + ", hits = " + taken);
+                            Console.WriteLine("Duplicates/absences found, Pilot.Name = " + i + ", hits = " + taken);
                         }
                     }
 
@@ -94,7 +94,7 @@ public class BahrainDriver : Driver
                 {
                         using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByName, Pilot.GetName(i)).GetEnumerator()) {
                             taken = AddResultChecksums(sqlResult);
-                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                            Console.WriteLine("Hits during the re-try = " + taken);
                         }
                     }
                 }
@@ -115,7 +115,7 @@ public class BahrainDriver : Driver
                     using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByFirstName, Pilot.GetFirstName(i)).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
                         if (taken != 1) {
-                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.FirstName = " + i + ", hits = " + taken);
+                            Console.WriteLine("Duplicates/absences found, Pilot.FirstName = " + i + ", hits = " + taken);
                         }
                     }
 
@@ -123,7 +123,7 @@ public class BahrainDriver : Driver
                 {
                         using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByFirstName, Pilot.GetFirstName(i)).GetEnumerator()) {
                             taken = AddResultChecksums(sqlResult);
-                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                            Console.WriteLine("Hits during the re-try = " + taken);
                         }
                     }
                 }
@@ -144,7 +144,7 @@ public class BahrainDriver : Driver
                     using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByLicenseId, i).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
                         if (taken != 1) {
-                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.LicenseId = " + i + ", hits = " + taken);
+                            Console.WriteLine("Duplicates/absences found, Pilot.LicenseId = " + i + ", hits = " + taken);
                         }
                     }
 
@@ -152,7 +152,7 @@ public class BahrainDriver : Driver
                 {
                         using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByLicenseId, i).GetEnumerator()) {
                             taken = AddResultChecksums(sqlResult);
-                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                            Console.WriteLine("Hits during the re-try = " + taken);
                         }
                     }
                 }
@@ -174,7 +174,7 @@ public class BahrainDriver : Driver
                     using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByPoints, i).GetEnumerator()) {
                         taken = AddResultChecksums(sqlResult);
                         if (taken != 1) {
-                            PolePositionEntrance.LogEvent("Duplicates/absences found, Pilot.Points = " + i + ", hits = " + taken);
+                            Console.WriteLine("Duplicates/absences found, Pilot.Points = " + i + ", hits = " + taken);
                         }
                     }
 
@@ -182,7 +182,7 @@ public class BahrainDriver : Driver
                 {
                         using (SqlEnumerator<Object> sqlResult = (SqlEnumerator<Object>)Db.SQL(SelectPilotByPoints, i).GetEnumerator()) {
                             taken = AddResultChecksums(sqlResult);
-                            PolePositionEntrance.LogEvent("Hits during the re-try = " + taken);
+                            Console.WriteLine("Hits during the re-try = " + taken);
                         }
                     }
                 }

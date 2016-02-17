@@ -137,9 +137,6 @@ namespace LoadAndLatency
         // Some of nanoseconds per object per operation.
         Double g_nsPerObjectUnsafe = 0;
 
-        // Used for logging test messages.
-        TestLogger logger = null;
-
         // Simple query with condition.
         const string SimpleSelectIntQuery = "SELECT s FROM SimpleObject s WHERE s.fetchInt = ?";
 
@@ -221,7 +218,6 @@ namespace LoadAndLatency
             NumOfQueryTypes = QueryStrings.Length;
 
             this.startedOnClient = startedOnClient;
-            logger = new TestLogger("LoadAndLatency", startedOnClient);
         }
 
         // Determines if its a nightly build.
@@ -249,7 +245,7 @@ namespace LoadAndLatency
         /// </summary>
         public void LogEvent(String eventString)
         {
-            logger.Log(eventString);
+            Console.WriteLine(eventString);
         }
 
         /// <summary>
@@ -263,7 +259,7 @@ namespace LoadAndLatency
             if ((!startedOnClient) && (TestLogger.SkipInProcessTests()))
             {
                 // Creating file indicating finish of the work.
-                logger.Log("LoadAndLatency in-process test is skipped!", TestLogger.LogMsgType.MSG_SUCCESS);
+                Console.WriteLine("LoadAndLatency in-process test is skipped!");
 
                 return 0;
             }
@@ -292,7 +288,7 @@ namespace LoadAndLatency
                 SQLSelectMulti(false, NumOfWorkers);
 
                 // Indicating successful finish of the work.
-                logger.Log("LoadAndLatency parallel read-only test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+                Console.WriteLine("LoadAndLatency parallel read-only test finished successfully!");
 
                 return 0;
             }
@@ -323,7 +319,7 @@ namespace LoadAndLatency
                 }
 
                 // Indicating successful finish of the work.
-                logger.Log("LoadAndLatency parallel updates test finished successfully!", TestLogger.LogMsgType.MSG_SUCCESS);
+                Console.WriteLine("LoadAndLatency parallel updates test finished successfully!");
 
                 return 0;
             }
@@ -395,7 +391,7 @@ namespace LoadAndLatency
             }
 
             // Indicating successful finish of the work.
-            logger.Log("LoadAndLatency successfully finished!", TestLogger.LogMsgType.MSG_SUCCESS);
+            Console.WriteLine("LoadAndLatency successfully finished!");
 
             return 0;
         }
@@ -628,7 +624,7 @@ namespace LoadAndLatency
                                 if (!sqlEnum.MoveNext()) {
                                     // Throwing an exception that will cause test failure.
                                     String errMessage = "Object does not exist when it should.";
-                                    logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                    Console.WriteLine(errMessage);
                                     throw new Exception(errMessage);
                                 }
 
@@ -645,7 +641,7 @@ namespace LoadAndLatency
                                 if (calcChecksum != artChecksum) {
                                     // Throwing an exception that will cause test failure.
                                     String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
-                                    logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                    Console.WriteLine(errMessage);
                                     throw new Exception(errMessage);
                                 }
                             }
@@ -659,7 +655,7 @@ namespace LoadAndLatency
                             if (sqlEnum.MoveNext()) {
                                 // Throwing an exception that will cause test failure.
                                 String errMessage = "Unexpected object exists when it shouldn't.";
-                                logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                Console.WriteLine(errMessage);
                                 throw new Exception(errMessage);
                             }
 
@@ -718,7 +714,7 @@ namespace LoadAndLatency
                                     if (!sqlEnum.MoveNext()) {
                                         // Throwing an exception that will cause test failure.
                                         String errMessage = "Object does not exist when it should.";
-                                        logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                        Console.WriteLine(errMessage);
                                         throw new Exception(errMessage);
                                     }
 
@@ -735,7 +731,7 @@ namespace LoadAndLatency
                                     if (calcChecksum != artChecksum) {
                                         // Throwing an exception that will cause test failure.
                                         String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
-                                        logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                        Console.WriteLine(errMessage);
                                         throw new Exception(errMessage);
                                     }
                                 }
@@ -744,7 +740,7 @@ namespace LoadAndLatency
                                 if (sqlEnum.MoveNext()) {
                                     // Throwing an exception that will cause test failure.
                                     String errMessage = "Unexpected object exists when it shouldn't.";
-                                    logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                                    Console.WriteLine(errMessage);
                                     throw new Exception(errMessage);
                                 }
                             }
@@ -1923,7 +1919,7 @@ namespace LoadAndLatency
                 String errMessage = "Inconsistent checksums: [" + artChecksum + ", " + calcChecksum + "].";
 
                 // Throwing an exception that will cause test failure.
-                logger.Log(errMessage, TestLogger.LogMsgType.MSG_ERROR);
+                Console.WriteLine(errMessage);
                 throw new Exception(errMessage);
             }
         }

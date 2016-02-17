@@ -147,10 +147,8 @@ namespace IndexQueryTest
     }
 
     public static class HelpMethods {
-        internal static TestLogger logger = new TestLogger("IndexQueryTest", false);
-
         internal static void LogEvent(String eventString) {
-            logger.Log(eventString);
+            Console.WriteLine(eventString);
         }
     }
 }
