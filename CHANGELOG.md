@@ -53,7 +53,7 @@
 - Its no longer possible to register handlers with same signature. For example, one can't register handler "GET /{?}" with string parameter, and handler "GET /{?}" with integer parameter.
 - Due to [`<juicy-redirect>`](https://github.com/Juicy/juicy-redirect) and [`<puppet-redirect>`](https://github.com/PuppetJs/puppet-redirect) update, Custom Element should now be imported from `/sys/juicy-redirect/juicy-redirect.html` or `/sys/puppet-redirect/puppet-redirect.html`. When used with Polymer's template binding, `url` value can be bound two-way via property: `<juicy-redirect url="{{model.path.to.RedirectURL$}}">`
 - Added method(s) on Session taking a delegate to be run instead of using `session.StartUsing()` and `session.StopUsing()`,  these two methods are no longer public. [#3117](https://github.com/Starcounter/Starcounter/issues/3117)
-- Session API has been refactored. `Session.ForEach` has been removed for its inefficiency, `Session.ScheduleTask` now replaces it.
+- Session API has been refactored. New `Session.ScheduleTask` is added. `Session.ForAll` has been refactored.
 - `Session.Destroyed` is now replaced by `Session.AddDestroyDelegate` because of apps separation issues.
 - `Session.CargoId` is removed because of no use.
 
