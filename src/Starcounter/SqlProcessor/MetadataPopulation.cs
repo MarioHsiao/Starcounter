@@ -72,7 +72,11 @@ namespace Starcounter.SqlProcessor {
                                     Db.SQL<Starcounter.Metadata.Column>(
                                     "select c from column c where c.table = ? and name = ?",
                                     theView.Mapper, propDef.ColumnName).First;
-                                Debug.Assert(rawCol != null);
+                                if (rawCol == null)
+                                    throw ErrorCode.ToException(Error.SCERRUNEXPMETADATA,
+                                        "Unexpecably not found metadata for column " +
+                                        propDef.ColumnName + " in table " + 
+                                        theView.Mapper.FullName);
                                 MappedProperty prop = new MappedProperty {
                                     Table = theView,
                                     Column = rawCol,
