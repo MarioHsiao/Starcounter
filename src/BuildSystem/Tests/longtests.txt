@@ -15,3 +15,4 @@ schema_upgrade_test.bat 180
 udp_test.bat 100
 HttpStreams_test.exe 900
 3LevelSchemaChange_test.bat 120
+umbrella_node_test.bat 240
