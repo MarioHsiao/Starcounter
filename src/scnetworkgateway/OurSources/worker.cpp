@@ -235,6 +235,42 @@ bool GatewayWorker::ApplySocketInfoToSocketData(
 }
 
 // Collects outdated sockets if any.
+uint32_t GatewayWorker::DisonnectCodehostSockets(db_index_type db_index)
+{
+	int32_t num_checked = 0;
+	int64_t num_active_sockets = g_gateway.NumberOfActiveSocketsOnAllPortsForWorker(worker_id_);
+
+	for (socket_index_type i = 0; i < g_gateway.setting_max_connections_per_worker(); i++)
+	{
+		ScSocketInfoStruct* si = sockets_infos_ + i;
+
+		// Checking that socket is alive.
+		if ((!si->IsReset()) && (INVALID_SOCKET != si->get_socket())) {
+
+			// Checking if database is the same.
+			if (db_index == si->get_dest_db_index()) {
+
+				// Updating unique socket id.
+				GenerateUniqueSocketInfoIds(i);
+
+				// Disconnecting outdated socket.
+				si->DisconnectSocket();
+			}
+
+			// Increasing number of checked sockets.
+			num_checked++;
+		}
+
+		// Checking if we have checked all active sockets.
+		if (num_checked >= num_active_sockets) {
+			break;
+		}
+	}
+
+	return 0;
+}
+
+// Collects outdated sockets if any.
 uint32_t GatewayWorker::CollectInactiveSockets()
 {
     int32_t num_inactive = 0;
