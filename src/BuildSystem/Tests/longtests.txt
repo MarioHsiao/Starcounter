@@ -14,3 +14,4 @@ websockets_test.bat 300
 udp_test.bat 100
 HttpStreams_test.exe 900
 umbrella_node_test.bat 240
+star_loop_test.bat 100
